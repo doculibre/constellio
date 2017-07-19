@@ -5,12 +5,11 @@ import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADA
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -20,10 +19,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
-import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -34,6 +31,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.records.Record;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -48,263 +46,284 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
-		implements AdvancedSearchView, BatchProcessingView {
+        implements AdvancedSearchView, BatchProcessingView, Observer {
 
-	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
-	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
+    public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
+    public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
-	private final ConstellioHeader header;
-	private WindowButton batchProcessingButton;
+    private final ConstellioHeader header;
+    private WindowButton batchProcessingButton;
+    private ReportTabButton reportButton;
 
-	public AdvancedSearchViewImpl() {
-		presenter = new AdvancedSearchPresenter(this);
-		presenter.resetFacetAndOrder();
-		header = ConstellioUI.getCurrent().getHeader();
-	}
+    public AdvancedSearchViewImpl() {
+        presenter = new AdvancedSearchPresenter(this);
+        presenter.addObserver(this);
+        presenter.resetFacetAndOrder();
+        header = ConstellioUI.getCurrent().getHeader();
+    }
 
-	@Override
-	public List<Criterion> getSearchCriteria() {
-		return header.getAdvancedSearchCriteria();
-	}
+    @Override
+    public List<Criterion> getSearchCriteria() {
+        return header.getAdvancedSearchCriteria();
+    }
 
-	@Override
-	public void setSearchCriteria(List<Criterion> criteria) {
-		header.setAdvancedSearchCriteria(criteria);
-	}
+    @Override
+    public void setSearchCriteria(List<Criterion> criteria) {
+        header.setAdvancedSearchCriteria(criteria);
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public void downloadBatchProcessingResults(final InputStream stream) {
-		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
-			@Override
-			public InputStream getStream() {
-				return stream;
-			}
-		}, "results.xls");
-		Page.getCurrent().open(resource, null, false);
-	}
+    @SuppressWarnings("deprecation")
+    @Override
+    public void downloadBatchProcessingResults(final InputStream stream) {
+        Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
+            @Override
+            public InputStream getStream() {
+                return stream;
+            }
+        }, "results.xls");
+        Page.getCurrent().open(resource, null, false);
+    }
 
-	@Override
-	public void closeBatchProcessingWindow() {
-		batchProcessingButton.getWindow().close();
-	}
+    @Override
+    public void closeBatchProcessingWindow() {
+        batchProcessingButton.getWindow().close();
+    }
 
-	@Override
-	public String getSchemaType() {
-		return header.getAdvancedSearchSchemaType();
-	}
+    @Override
+    public String getSchemaType() {
+        return header.getAdvancedSearchSchemaType();
+    }
 
-	@Override
-	public void setSchemaType(String schemaTypeCode) {
-		header.selectAdvancedSearchSchemaType(schemaTypeCode);
-	}
+    @Override
+    public void setSchemaType(String schemaTypeCode) {
+        header.selectAdvancedSearchSchemaType(schemaTypeCode);
+    }
 
-	@Override
-	public String getSearchExpression() {
-		return header.getSearchExpression();
-	}
+    @Override
+    public String getSearchExpression() {
+        return header.getSearchExpression();
+    }
 
-	@Override
-	protected Component buildSearchUI() {
-		return new VerticalLayout();
-	}
+    @Override
+    protected Component buildSearchUI() {
+        return new VerticalLayout();
+    }
 
-	@Override
-	protected Component buildSummary(SearchResultTable results) {
-		// TODO: Create an extension for this
+    @Override
+    protected Component buildSummary(SearchResultTable results) {
+        // TODO: Create an extension for this
 
-		final String schemaType = getSchemaType();
-		List<Component> selectionActions = new ArrayList<>();
+        final String schemaType = getSchemaType();
+        List<Component> selectionActions = new ArrayList<>();
 
-		batchProcessingButton = newBatchProcessingButton();
-		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
-		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething());
-		} else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
-			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
-		}
-		selectionActions.add(batchProcessingButton);
+        batchProcessingButton = newBatchProcessingButton();
+        batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
+        batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
+        if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+            batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething());
+        } else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
+            batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
+        }
+        selectionActions.add(batchProcessingButton);
 
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getCustomTemplates();
-				}
-			};
-			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getDefaultTemplates();
-				}
-			};
-			final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
-					$("SearchView.printLabels"),
-					customLabelTemplatesFactory,
-					defaultLabelTemplatesFactory,
-					getConstellioFactories().getAppLayerFactory(),
-					getSessionContext().getCurrentCollection());
-			labelsButton.setSchemaType(schemaType);
-			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
-			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
-			labelsButton.addClickListener(new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
-				}
-			});
-			selectionActions.add(labelsButton);
-		}
+        if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+            Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+                @Override
+                public List<LabelTemplate> get() {
+                    return presenter.getCustomTemplates();
+                }
+            };
+            Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+                @Override
+                public List<LabelTemplate> get() {
+                    return presenter.getDefaultTemplates();
+                }
+            };
+            final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
+                    $("SearchView.printLabels"),
+                    customLabelTemplatesFactory,
+                    defaultLabelTemplatesFactory,
+                    getConstellioFactories().getAppLayerFactory(),
+                    getSessionContext().getCurrentCollection());
+            labelsButton.setSchemaType(schemaType);
+            labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
+            labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+            labelsButton.addClickListener(new Button.ClickListener() {
+                @Override
+                public void buttonClick(Button.ClickEvent event) {
+                    labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
+                }
+            });
+            selectionActions.add(labelsButton);
+        }
 
-		if (Document.SCHEMA_TYPE.equals(schemaType)) {
-			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
-					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
-			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectionActions.add(zipButton);
-		}
+        if (Document.SCHEMA_TYPE.equals(schemaType)) {
+            Component zipButton = new Link($("ReportViewer.download", "(zip)"),
+                    new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+            zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(zipButton);
+        }
 
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ||
-				ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			if (presenter.hasCurrentUserPermissionToUseCart()) {
-				Button addToCart = buildAddToCartButton();
-				selectionActions.add(addToCart);
-			}
-		}
+        if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
+            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(reportButton);
+            ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
+                @Override
+                public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
+                    reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
+                }
+            });
+        }
 
-		Button switchViewMode = buildSwitchViewMode();
+        if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ||
+                ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+            if (presenter.hasCurrentUserPermissionToUseCart()) {
+                Button addToCart = buildAddToCartButton();
+                selectionActions.add(addToCart);
+            }
+        }
 
-		// TODO Build SelectAllButton properly for table mode
-		//		List<Component> actions = Arrays.asList(
-		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
-		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(),
-				(Component) new ReportSelector(presenter), switchViewMode);
+        Button switchViewMode = buildSwitchViewMode();
 
-		return results.createSummary(actions, selectionActions);
-	}
+        // TODO Build SelectAllButton properly for table mode
+        //		List<Component> actions = Arrays.asList(
+        //				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+        List<Component> actions = Arrays.asList(
+                buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(),
+                (Component) new ReportSelector(presenter), switchViewMode);
 
-	private String getSwitchViewModeCaption() {
-		String caption;
-		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
-			caption = $("AdvancedSearchView.switchToTable");
-		} else {
-			caption = $("AdvancedSearchView.switchToList");
-		}
-		return caption;
-	}
+        return results.createSummary(actions, selectionActions);
+    }
 
-	private Button buildSwitchViewMode() {
-		final Button switchViewModeButton = new Button(getSwitchViewModeCaption());
-		switchViewModeButton.addClickListener(new Button.ClickListener() {
-			@Override
-			public void buttonClick(Button.ClickEvent event) {
-				if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
-					presenter.switchToTableView();
-				} else if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-					presenter.switchToDetailedView();
-				}
-				switchViewModeButton.setCaption(getSwitchViewModeCaption());
-			}
-		});
-		switchViewModeButton.addStyleName(ValoTheme.BUTTON_LINK);
-		return switchViewModeButton;
-	}
+    private String getSwitchViewModeCaption() {
+        String caption;
+        if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+            caption = $("AdvancedSearchView.switchToTable");
+        } else {
+            caption = $("AdvancedSearchView.switchToList");
+        }
+        return caption;
+    }
 
-	@Override
-	protected SearchResultTable buildResultTable() {
-		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-			return buildSimpleResultsTable();
-		} else {
-			return buildDetailedResultsTable();
-		}
-	}
+    private Button buildSwitchViewMode() {
+        final Button switchViewModeButton = new Button(getSwitchViewModeCaption());
+        switchViewModeButton.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+                    presenter.switchToTableView();
+                } else if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+                    presenter.switchToDetailedView();
+                }
+                switchViewModeButton.setCaption(getSwitchViewModeCaption());
+            }
+        });
+        switchViewModeButton.addStyleName(ValoTheme.BUTTON_LINK);
+        return switchViewModeButton;
+    }
 
-	private SearchResultTable buildSimpleResultsTable() {
-		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
-		table.setWidth("100%");
-		return table;
-	}
+    @Override
+    protected SearchResultTable buildResultTable() {
+        if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+            return buildSimpleResultsTable();
+        } else {
+            return buildDetailedResultsTable();
+        }
+    }
 
-	private WindowButton buildAddToCartButton() {
-		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
+    private SearchResultTable buildSimpleResultsTable() {
+        final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+        SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
+        table.setWidth("100%");
+        return table;
+    }
 
-				HorizontalLayout newCartLayout = new HorizontalLayout();
-				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label($("CartView.newCart")));
-				final BaseTextField newCartTitleField;
-				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
-				BaseButton saveButton;
-				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-						getWindow().close();
-					}
-				});
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+    private WindowButton buildAddToCartButton() {
+        WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
+            @Override
+            protected Component buildWindowContent() {
+                VerticalLayout layout = new VerticalLayout();
 
-				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
-						presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
-				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(),
-								ownedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
+                HorizontalLayout newCartLayout = new HorizontalLayout();
+                newCartLayout.setSpacing(true);
+                newCartLayout.addComponent(new Label($("CartView.newCart")));
+                final BaseTextField newCartTitleField;
+                newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+                BaseButton saveButton;
+                newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+                        getWindow().close();
+                    }
+                });
+                saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
-						presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
-				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(),
-								sharedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
+                TabSheet tabSheet = new TabSheet();
+                final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
+                        presenter.getOwnedCartsDataProvider());
+                RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
+                ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+                    @Override
+                    public void itemClick(ItemClickEvent event) {
+                        presenter.addToCartRequested(getSelectedRecordIds(),
+                                ownedCartsContainer.getRecordVO((int) event.getItemId()));
+                        getWindow().close();
+                    }
+                });
 
-				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
-				ownedCartsTable.setWidth("100%");
-				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
-				sharedCartsTable.setWidth("100%");
-				tabSheet.addTab(ownedCartsTable);
-				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout, tabSheet);
-				return layout;
-			}
-		};
-		windowButton.addStyleName(ValoTheme.BUTTON_LINK);
-		return windowButton;
-	}
+                final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
+                        presenter.getSharedCartsDataProvider());
+                RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+                sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+                    @Override
+                    public void itemClick(ItemClickEvent event) {
+                        presenter.addToCartRequested(getSelectedRecordIds(),
+                                sharedCartsContainer.getRecordVO((int) event.getItemId()));
+                        getWindow().close();
+                    }
+                });
 
-	private WindowButton newBatchProcessingButton() {
-		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			return new BatchProcessingButton(presenter, this);
-		} else if (mode.equals(ONE_METADATA)) {
-			return new BatchProcessingModifyingOneMetadataButton(presenter, this);
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
-	}
+                ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+                ownedCartsTable.setWidth("100%");
+                sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+                sharedCartsTable.setWidth("100%");
+                tabSheet.addTab(ownedCartsTable);
+                tabSheet.addTab(sharedCartsTable);
+                layout.addComponents(newCartLayout, tabSheet);
+                return layout;
+            }
+        };
+        windowButton.addStyleName(ValoTheme.BUTTON_LINK);
+        return windowButton;
+    }
 
-	@Override
-	public Boolean computeStatistics() {
-		return presenter.computeStatistics();
-	}
+    private WindowButton newBatchProcessingButton() {
+        BatchProcessingMode mode = presenter.getBatchProcessingMode();
+        if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
+            return new BatchProcessingButton(presenter, this);
+        } else if (mode.equals(ONE_METADATA)) {
+            return new BatchProcessingModifyingOneMetadataButton(presenter, this);
+        } else {
+            throw new RuntimeException("Unsupported mode " + mode);
+        }
+    }
 
-	@Override
-	protected String getTitle() {
-		return $("searchResults");
-	}
+    @Override
+    public Boolean computeStatistics() {
+        return presenter.computeStatistics();
+    }
+
+    @Override
+    protected String getTitle() {
+        return $("searchResults");
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        if (reportButton != null) {
+            reportButton.addRecordToVoList((RecordVO) arg);
+        }
+    }
 }

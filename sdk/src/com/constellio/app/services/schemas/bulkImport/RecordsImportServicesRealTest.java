@@ -2164,10 +2164,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "schemaType", "metadataCode", "metadataLabel",
 					"basedOnMetadatas")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", "2", "3", zeSchema.typeCode(),
-							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
+							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata", "en", "stringMetadata"),
 							"[numberMetadata, booleanMetadata]"),
 					tuple("ValueRequirementValidator_requiredValueForMetadata", "3", "4", "zeSchemaType",
-							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
+							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata", "en", "stringMetadata"),
 							"[numberMetadata, booleanMetadata]")
 			);
 			assertThat(frenchMessages(e)).containsOnly(

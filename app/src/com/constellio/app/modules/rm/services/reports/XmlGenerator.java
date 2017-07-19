@@ -18,9 +18,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public abstract class XmlGenerator {
     /**
      * First element of the XMl document, usually in plural form.
@@ -129,7 +126,7 @@ public abstract class XmlGenerator {
         return ob == null ? "null" : ob.toString();
     }
 
-    public abstract String generateXML() throws Exception;
+    public abstract String generateXML();
 
     abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 

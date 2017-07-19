@@ -6,7 +6,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;

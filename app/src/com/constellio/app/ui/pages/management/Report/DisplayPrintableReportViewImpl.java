@@ -15,9 +15,6 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class DisplayPrintableReportViewImpl extends BaseViewImpl implements DisplayPrintableReportView {
     private DisplayPrintableReportPresenter presenter;
     private RecordVO recordVO;

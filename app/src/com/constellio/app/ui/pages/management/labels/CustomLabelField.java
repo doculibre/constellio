@@ -2,9 +2,6 @@ package com.constellio.app.ui.pages.management.labels;
 
 import java.io.Serializable;
 
-/**
- * Created by Marco on 2017-01-20.
- */
 public interface CustomLabelField<T> extends Serializable {
 
     T getFieldValue();
