@@ -52,9 +52,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-06-29.
- */
 public class LabelButtonV2 extends WindowButton {
     //Window property
     @PropertyId("startPosition")

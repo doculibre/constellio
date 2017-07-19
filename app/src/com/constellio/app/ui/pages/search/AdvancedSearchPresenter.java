@@ -7,13 +7,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
+import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -614,6 +610,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+		setChanged();
+		notifyObservers(recordVO);
 	}
 
 	@Override
@@ -633,6 +631,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public User getUser() {
 		return getCurrentUser();
+	}
+
+	public List<RecordVO> getRecordVOList(List<String> ids) {
+		List<RecordVO> recordsVO = new ArrayList<>();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordToVOBuilder builder = new RecordToVOBuilder();
+		for(String id : ids) {
+			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
+		}
+		return recordsVO;
 	}
 
 }

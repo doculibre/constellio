@@ -12,6 +12,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.io.IOUtils;
 
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -62,7 +63,8 @@ public class CartEmailService {
 			List<MessageAttachment> attachments = getAttachments(cart);
 			
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
 				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);

@@ -24,10 +24,19 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 	@Override
 	public Record get(String id) {
+		Record recordFromRequestCache = null;
 		if (cache.containsKey(id)) {
-			return cache.get(id).getCopyOfOriginalRecord();
+			recordFromRequestCache = cache.get(id).getCopyOfOriginalRecord();
 		}
+
 		Record record = nested.get(id);
+		if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
+			throw new RuntimeException("Request cache : Version mismatch with record " + record.getIdTitle());
+		}
+		if (recordFromRequestCache != null) {
+			return recordFromRequestCache;
+		}
+
 		if (record != null) {
 			insertInRequestcache(record);
 		}
@@ -136,17 +145,26 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
 
+		Record recordFromRequestCache = null;
 		String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
 		for (Record cachedRecord : cache.values()) {
 			if (metadataTypeCode.equals(cachedRecord.getTypeCode())) {
 				Object recordValue = cachedRecord.get(metadata);
 				if (recordValue != null && recordValue.equals(value)) {
-					return cachedRecord;
+					recordFromRequestCache = cachedRecord;
 				}
 			}
 		}
 
 		Record record = nested.getByMetadata(metadata, value);
+		if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
+			throw new RuntimeException("Request cache : Version mismatch with record " + record.getIdTitle());
+		}
+
+		if (recordFromRequestCache != null) {
+			return recordFromRequestCache;
+		}
+
 		if (record != null) {
 			cache.put(record.getId(), record);
 		}

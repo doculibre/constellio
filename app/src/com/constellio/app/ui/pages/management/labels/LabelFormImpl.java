@@ -7,9 +7,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
 
-/**
- * Created by Marco on 2017-01-20.
- */
 public abstract class LabelFormImpl extends RecordForm implements LabelForm {
     public LabelFormImpl(RecordVO record) {
         super(record);

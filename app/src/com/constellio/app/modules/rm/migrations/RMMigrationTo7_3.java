@@ -5,7 +5,6 @@ import java.util.Map;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;

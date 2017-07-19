@@ -372,12 +372,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new RecordUpdateOptions());
-			recordsCaches.insert(record);
+			insertInCache(record);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
+	}
+
+	public void insertInCache(Record record) {
+		recordsCaches.insert(record);
+	}
+
+	public void insertInCache(String collection, List<Record> records) {
+		recordsCaches.insert(collection, records);
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
@@ -677,7 +685,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
-		recordsCaches.insert(collection, recordsToInsert);
+		insertInCache(collection, recordsToInsert);
 
 	}
 

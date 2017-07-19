@@ -18,10 +18,12 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
@@ -106,6 +108,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
+        addMetadataReportButton(param);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -203,6 +206,19 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         duplicateButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         duplicateButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(duplicateButton);
+    }
+
+    public void addMetadataReportButton(final AvailableActionsParam param) {
+        List<RecordVO> recordVOS = new ArrayList<>();
+        RecordServices recordServices = recordServices();
+        for(String id : param.getIds()) {
+            RecordToVOBuilder builder = new RecordToVOBuilder();
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+        }
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
+        tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+        tabButton.addStyleName(WindowButton.STYLE_NAME);
+        ((VerticalLayout)param.getComponent()).addComponent(tabButton);
     }
 
     public void addClassifyButton(final AvailableActionsParam param) {
@@ -660,7 +676,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             }
             
             AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage("cart", signature, subject, from, attachments);
+            EmailMessageParams params = new EmailMessageParams("selection", signature, subject, from, attachments);
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
 				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);

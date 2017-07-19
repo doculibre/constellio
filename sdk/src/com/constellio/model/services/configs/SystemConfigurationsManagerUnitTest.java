@@ -19,6 +19,8 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
@@ -49,6 +51,8 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 	@Mock IOServices ioServices;
 	@Mock DataLayerFactory dataLayerFactory;
 	@Mock IOServicesFactory ioServicesFactory;
+	@Mock ConstellioCacheManager cacheManager;
+	@Mock ConstellioCache cache;
 
 	@Before
 	public void setUp()
@@ -59,9 +63,10 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
+		when(cacheManager.getCache(any(String.class))).thenReturn(cache);
 
 		systemConfigurationsManager = spy(
-				new SystemConfigurationsManager(modelLayerFactory, configManager, new Delayed<>(constellioModulesManager)));
+				new SystemConfigurationsManager(modelLayerFactory, configManager, new Delayed<>(constellioModulesManager), cacheManager));
 	}
 
 	@Test

@@ -1,7 +1,6 @@
 package com.constellio.app.services.schemasDisplay;
 
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.FIELD;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RADIO_BUTTONS;
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.TEXTAREA;
 import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.REQUIRED_METADATA_IN_FORM_LIST;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,6 +22,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -37,6 +36,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 
 public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
@@ -395,11 +395,13 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 		Map<String, Object> anEssentialMetadataParams = asMap(
 				"code", "mySchemaType_default_anEssentialMetadata");
-		anEssentialMetadataParams.put("label", asMap("fr", "zeEssentialMetadata"));
+		anEssentialMetadataParams.put("label", TestUtils.asMap("fr", "zeEssentialMetadata", "en", "anEssentialMetadata"));
 
 		Map<String, Object> aMetadataThatWillOneDayBeEssentialParams = asMap(
 				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential");
-		aMetadataThatWillOneDayBeEssentialParams.put("label", asMap("fr", "zeMetadataThatWillOneDayBeEssential"));
+		aMetadataThatWillOneDayBeEssentialParams
+				.put("label",
+						TestUtils.asMap("fr", "zeMetadataThatWillOneDayBeEssential", "en", "aMetadataThatWillOneDayBeEssential"));
 
 		Map<String, Object> aTrivialMetadataParams = asMap(
 				"code", "mySchemaType_default_aTrivialMetadata");
@@ -412,7 +414,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 		Map<String, Object> codeParams = asMap(
 				"code", "mySchemaType_default_code");
-		codeParams.put("label", asMap("fr", "Ze code"));
+		codeParams.put("label", TestUtils.asMap("fr", "Ze code", "en", "code"));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -656,7 +658,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private ValidationError error(final String code, final Map<String, Object> params) {
-		return new ValidationError(SchemasDisplayManager.class,code, params);
+		return new ValidationError(SchemasDisplayManager.class, code, params);
 	}
 
 	@Test
