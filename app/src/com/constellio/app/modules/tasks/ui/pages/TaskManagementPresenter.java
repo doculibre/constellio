@@ -15,8 +15,6 @@ import java.util.Map;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.services.reports.XmlGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -38,7 +36,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Component;
@@ -192,7 +190,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
-		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleView.TASK, recordVO);
+		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
 		button.click();
 	}
 

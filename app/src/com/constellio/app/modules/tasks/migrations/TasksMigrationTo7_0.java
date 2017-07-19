@@ -13,9 +13,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-02-27.
- */
 public class TasksMigrationTo7_0 implements MigrationScript {
     @Override
     public String getVersion() {

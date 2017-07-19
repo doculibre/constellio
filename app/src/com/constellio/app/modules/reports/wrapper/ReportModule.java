@@ -14,9 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Marco on 2017-01-24.
- */
 public class ReportModule implements InstallableModule {
     public static final String ID = "ReportModule";
     public static final String TITLE = "Module de rapport";
