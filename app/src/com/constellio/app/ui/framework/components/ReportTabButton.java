@@ -139,7 +139,7 @@ public class ReportTabButton extends WindowButton {
                     customElementSelected.setVisible(true);
                     customElementSelected.setEnabled(true);
                     selectedSchemaType = null;
-                    reportComboBox.setValue(null    );
+                    reportComboBox.setValue(null);
 
                 }
                 if(selectedSchemaType != null && selectedReporType != null) {
