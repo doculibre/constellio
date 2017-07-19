@@ -65,20 +65,20 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		layout.setSpacing(true);
 
 		this.tabsheet = new TabSheet();
+		tabsheet.addStyleName("config-management");
 
 		for (String groupCode : dataProvider.getCodesList()) {
 			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
 			if(!configs.isEmpty()){
-				GridLayout gridLayout = new GridLayout(2, configs.size() + 1);
-				gridLayout.setSizeFull();
-				gridLayout.setId(groupCode);
-				gridLayout.setSpacing(true);
-
+				VerticalLayout groupLayout = new VerticalLayout();
+				groupLayout.addStyleName("config-group");
+				groupLayout.setSizeFull();
+				groupLayout.setSpacing(true);
+				groupLayout.setId(groupCode);
+				
 				for (int i = 0; i < configs.size(); i++) {
 					SystemConfigurationVO currentConfigurationVO = configs.get(i);
-					Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()), ContentMode.HTML);
-					currentLabel.setSizeFull();
-					gridLayout.addComponent(currentLabel, 0, i);
+					String fieldCaption = presenter.getLabel(groupCode, currentConfigurationVO.getCode());
 					Field<?> field = createField(currentConfigurationVO);
 					field.setId(groupCode + i);
 					field.addStyleName(CONFIG_ELEMENT_VALUE);
@@ -101,8 +101,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 						}
 					});
 					field.setSizeFull();
-					gridLayout.addComponent(field, 1, i);
-
 
 					OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 						@Override
@@ -117,9 +115,12 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					} else if (field instanceof ComboBox) {
 						onEnterHandler.installOn((ComboBox) field);
 					}
+					
+					field.setCaption(fieldCaption);
+					groupLayout.addComponent(field);
 				}
 
-				tabsheet.addTab(gridLayout, presenter.getGroupLabel(groupCode));
+				tabsheet.addTab(groupLayout, presenter.getGroupLabel(groupCode));
 			}
 		}
 		layout.addComponent(tabsheet);
@@ -205,4 +206,5 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 			}
 		};
 	}
+	
 }
