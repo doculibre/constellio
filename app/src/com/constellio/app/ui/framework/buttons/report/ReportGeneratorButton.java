@@ -82,7 +82,9 @@ public class ReportGeneratorButton extends WindowButton {
 	}
 
 	public void setElements(RecordVO... elements) {
-		this.currentSchema = PrintableReportListPossibleType.getValue(elements[0].getSchema().getTypeCode().toUpperCase());
+		if(this.currentSchema == null) {
+			this.currentSchema = PrintableReportListPossibleType.getValue(elements[0].getSchema().getTypeCode().toUpperCase());
+		}
 		this.elements = elements;
 	}
 
@@ -112,7 +114,9 @@ public class ReportGeneratorButton extends WindowButton {
 
     private List<PrintableReportTemplate> getPrintableReportTemplate(){
 		return ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(), currentSchema);
-	}private void setupPrintableReportTemplateSelection() throws Exception{
+	}
+
+	private void setupPrintableReportTemplateSelection() throws Exception{
         printableItemsFields = new ComboBox();
         List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
         if(printableReportTemplateList.size() > 0) {
