@@ -16,6 +16,7 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.data.Property;
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
 import java.util.*;
@@ -230,11 +231,18 @@ public class ReportTabButton extends WindowButton {
     }
 
     private void showNoDefinedReportTemplateForConditionError() {
+        String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
         //TODO remove tab
+        if(view == null) {
+            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+            notification.setHtmlContentAllowed(true);
+            notification.show(Page.getCurrent());
+        }
         tabSheet.setSelectedTab(0);
         if(view != null ) {
-            view.showErrorMessage($("ReportTabButton.noReportTemplateForCondition"));
+            view.showErrorMessage(errorMessage);
         }
+
     }
 
     private class MetadataSchemaCounter {

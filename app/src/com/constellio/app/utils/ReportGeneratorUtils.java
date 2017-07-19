@@ -76,7 +76,7 @@ public class ReportGeneratorUtils {
         LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
                 .where(printableReportSchemaType.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(recordSchema);
         LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
-                .where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.getSchemaTypeUpperCase());
+                .where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
         List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
                 from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
         for (Record record : records) {

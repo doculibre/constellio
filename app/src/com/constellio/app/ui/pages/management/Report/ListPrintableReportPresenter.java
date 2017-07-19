@@ -101,7 +101,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
     }
 
     public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {
-        RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(POSSIBLE_SCHEMA_TYPE.get(schema));
+        RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema.toString());
         return itemId == null ?  null : dataProvider.getRecordVO(Integer.parseInt(itemId));
     }
 
