@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.bpmn.BpmnModeler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
@@ -35,6 +36,7 @@ public class AdminViewImpl extends BaseViewImpl implements AdminView {
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.addStyleName("view-group");
+		layout.addComponent(new BpmnModeler());
 		layout.addComponent(buildButtonPanel(presenter.getCollectionItems()));
 		if (presenter.isSystemSectionVisible()) {
 			Label systemSectionTitle = new Label($("AdminView.systemSectionTitle"));

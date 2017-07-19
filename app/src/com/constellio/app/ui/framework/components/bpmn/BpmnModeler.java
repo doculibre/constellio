@@ -43,8 +43,10 @@ public class BpmnModeler extends VerticalLayout {
 		setHeight("600px");
 		HorizontalLayout mainLayout = new HorizontalLayout();
 		mainLayout.setSizeFull();
+		
 		canvas = new Label();
 		canvas.setId("canvas");
+		canvas.setHeight("100%");
 		
 		saveButton = new Button("Save Diagram");
 		saveButton.setId("save-button");
@@ -67,6 +69,7 @@ public class BpmnModeler extends VerticalLayout {
 		String saveButtonCallbackURL = saveRequestHandler.getCallbackURL();
 		com.vaadin.ui.JavaScript.eval("bpmnDiagramURL='" + bpmnFileURL + "';");
 		com.vaadin.ui.JavaScript.eval("saveButtonCallbackURL='" + saveButtonCallbackURL + "';");
+//		com.vaadin.ui.JavaScript.eval("$('canvas').height='500px';");
 		
         JavascriptUtils.loadScript("bpmn/constellio-modeler.js");
 	}
