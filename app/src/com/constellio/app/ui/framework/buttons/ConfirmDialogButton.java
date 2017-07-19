@@ -99,7 +99,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 		};
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
-			html.append("<span class=\"confirm-dialog-" + iconName + "\">");
+			html.append("<span style=\"height: 30px;\" class=\"confirm-dialog-" + iconName + "\">");
 			html.append("<span class=\"confirm-dialog-message\">");
 			html.append(message);
 			html.append("</span>");
