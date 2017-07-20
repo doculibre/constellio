@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
+import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -37,6 +40,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAttribute;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -55,7 +59,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
-	
+
 	private String schemaCode;
 	private String schemaTypeCode;
 	private Map<String, String> parameters;
@@ -72,8 +76,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setParameters(Map<String, String> params) {
 		this.parameters = params;
-		this.schemaCode = parameters.get("schemaCode"); 
-		this.schemaTypeCode = parameters.get("schemaTypeCode"); 
+		this.schemaCode = parameters.get("schemaCode");
+		this.schemaTypeCode = parameters.get("schemaTypeCode");
 	}
 
 	public void setMetadataCode(String metadataCode) {
@@ -400,9 +404,49 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential();
 	}
 
+	private boolean isBuiltInMetadataStatusModifiable(final MetadataAttribute attribute) {
+		boolean builtInMetadataModifiable = false;
+		if (!metadataCode.startsWith("USR")) {
+			final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			final MetadataSchema schema = types.getSchema(schemaCode);
+			if (schema.hasMetadataWithCode(metadataCode)) {
+				final Metadata metadata = schema.getMetadata(metadataCode);
+
+				builtInMetadataModifiable = appLayerFactory.getExtensions().forCollection(collection)
+						.isMetadataRequiredStatusModifiable(
+								new IsBuiltInMetadataAttributeModifiableParam() {
+
+									@Override
+									public Metadata getMetadata() {
+										return metadata;
+									}
+
+									@Override
+									public MetadataSchema getSchema() {
+										return schema;
+									}
+
+									@Override
+									public MetadataSchemaType getSchemaType() {
+										return types.getSchemaType(schemaTypeCode);
+									}
+
+									@Override
+									public MetadataAttribute getMetadataAttribute() {
+										return attribute;
+									}
+								});
+			}
+
+		}
+		return builtInMetadataModifiable;
+	}
+
 	public boolean isMetadataRequiredStatusModifiable() {
-		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential() || getMetadata(metadataCode)
-				.hasSameCode(Schemas.LEGACY_ID);
+		return metadataCode.isEmpty()
+				|| !getMetadata(metadataCode).isEssential()
+				|| getMetadata(metadataCode).hasSameCode(LEGACY_ID)
+				|| isBuiltInMetadataStatusModifiable(REQUIRED);
 	}
 
 	public boolean isFolderMediumTypes() {

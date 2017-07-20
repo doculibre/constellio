@@ -512,4 +512,13 @@ public class AppLayerCollectionExtensions {
 			extension.addFieldsInLabelXML(params);
 		}
 	}
+
+	public boolean isMetadataRequiredStatusModifiable(final IsBuiltInMetadataAttributeModifiableParam params) {
+		return ExtensionUtils.getBooleanValue(schemaTypesPageExtensions, false, new BooleanCaller<SchemaTypesPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(SchemaTypesPageExtension extension) {
+				return extension.isBuiltInMetadataAttributeModifiable(params);
+			}
+		});
+	}
 }
