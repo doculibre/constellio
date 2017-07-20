@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -159,6 +160,8 @@ public class RecordExportServices {
 							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
 		for (String exportedSchemaType : schemaTypeList) {
 
 			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).where(Schemas.IDENTIFIER).isIn(recordsToExport));
@@ -170,40 +173,9 @@ public class RecordExportServices {
 				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId());
+						record.getId(), metadataSchema.getLocalCode());
 
-				for (Metadata metadata : metadataSchema.getMetadatas()) {
-					if (!metadata.isSystemReserved()
-							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-							&& metadata.getType() != MetadataValueType.STRUCTURE) {
-						Object object = record.get(metadata);
-
-						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
-							if(object instanceof List) {
-								List<String> idList = new ArrayList<>((List) object);
-								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, "id:"+idList.get(i));
-								}
-							}
-						} else if (object != null) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), object);
-						}
-					}
-					else if(metadata.getType() == MetadataValueType.STRUCTURE) {
-						StructureFactory structureFactory = metadata.getStructureFactory();
-						if(structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
-							manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
-						} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
-							manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
-						} else if (structureFactory.getClass().equals(CommentFactory.class)) {
-							manageCommentFactory(record, metadata, modifiableImportRecord);
-						} else if(structureFactory.getClass().equals(EmailAddressFactory.class)) {
-							manageEmailAddressFactory(record, metadata, modifiableImportRecord);
-						}
-					}
-				}
+				writeRecord(collection, record, modifiableImportRecord, options);
 
 				appLayerFactory.getExtensions().forCollection(collection)
 						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
@@ -238,40 +210,11 @@ public class RecordExportServices {
 			MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
-					record.getId());
+					record.getId(), metadataSchema.getLocalCode());
 
-			for (Metadata metadata : metadataSchema.getMetadatas()) {
-				if (!metadata.isSystemReserved()
-						&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-						&& metadata.getType() != MetadataValueType.STRUCTURE) {
-					Object object = record.get(metadata);
+			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-					if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-						modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-					} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
-						if(object instanceof List) {
-							List<String> idList = new ArrayList<>((List) object);
-							for(int i = 0; i < idList.size(); i++) {
-								idList.set(i, "id:"+idList.get(i));
-							}
-						}
-					} else if (object != null) {
-						modifiableImportRecord.addField(metadata.getLocalCode(), object);
-					}
-				}
-				else if(metadata.getType() == MetadataValueType.STRUCTURE) {
-					StructureFactory structureFactory = metadata.getStructureFactory();
-					if(structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
-						manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
-					} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
-						manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
-					} else if (structureFactory.getClass().equals(CommentFactory.class)) {
-						manageCommentFactory(record, metadata, modifiableImportRecord);
-					} else if(structureFactory.getClass().equals(EmailAddressFactory.class)) {
-						manageEmailAddressFactory(record, metadata, modifiableImportRecord);
-					}
-				}
-			}
+			writeRecord(collection, record, modifiableImportRecord, options);
 
 			appLayerFactory.getExtensions().forCollection(collection)
 					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
@@ -316,45 +259,72 @@ public class RecordExportServices {
 				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId());
+						record.getId(), metadataSchema.getLocalCode());
 
-				for (Metadata metadata : metadataSchema.getMetadatas()) {
-					if (!metadata.isSystemReserved()
-							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-							&& metadata.getType() != MetadataValueType.STRUCTURE) {
-						Object object = record.get(metadata);
+				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-						if (object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && !metadata.isMultivalue()) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), "id:"+object);
-						} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && options.isForSameSystem && metadata.isMultivalue()) {
-							if(object instanceof List) {
-								List<String> idList = new ArrayList<>((List) object);
-								for(int i = 0; i < idList.size(); i++) {
-									idList.set(i, "id:"+idList.get(i));
-								}
-							}
-						} else if (object != null) {
-							modifiableImportRecord.addField(metadata.getLocalCode(), object);
-						}
-					}
-					else if(metadata.getType() == MetadataValueType.STRUCTURE) {
-						StructureFactory structureFactory = metadata.getStructureFactory();
-						if(structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
-                            manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
-                        } else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
-                            manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
-                        } else if (structureFactory.getClass().equals(CommentFactory.class)) {
-                            manageCommentFactory(record, metadata, modifiableImportRecord);
-                        } else if(structureFactory.getClass().equals(EmailAddressFactory.class)) {
-                            manageEmailAddressFactory(record, metadata, modifiableImportRecord);
-                        }
-					}
-				}
+				writeRecord(collection, record, modifiableImportRecord, options);
 
 				appLayerFactory.getExtensions().forCollection(collection)
 						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
 
 				writer.write(modifiableImportRecord);
+			}
+		}
+	}
+
+	private void writeRecord(String collection, Record record, ModifiableImportRecord modifiableImportRecord, RecordExportOptions options) {
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
+		MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		for (Metadata metadata : metadataSchema.getMetadatas()) {
+			if (!metadata.isSystemReserved()
+					&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+					&& metadata.getType() != MetadataValueType.STRUCTURE) {
+				Object object = record.get(metadata);
+				String referencePrefix = "id:";
+				if(metadata.getType() == MetadataValueType.REFERENCE) {
+					MetadataSchema defaultSchema = metadataSchemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
+					referencePrefix = options.isForSameSystem? "id:":"";
+					referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue()? "code:":referencePrefix;
+					referencePrefix = defaultSchema.hasMetadataWithCode("username") && defaultSchema.getMetadata("username").isUniqueValue()? "username:":referencePrefix;
+				}
+				if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
+					Object referencedObject = object;
+					if("code:".equals(referencePrefix) || "username:".equals(referencePrefix)) {
+						Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+						referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get(referencePrefix.replace(":", "")));
+					}
+					modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix+referencedObject);
+				} else if(object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
+					if(object instanceof List) {
+						List<String> idList = new ArrayList<>((List) object);
+						for(int i = 0; i < idList.size(); i++) {
+							Object referencedObject = idList.get(i);
+							if("code:".equals(referencePrefix) || "username:".equals(referencePrefix)) {
+								Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
+								referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get(referencePrefix.replace(":", "")));
+							}
+							idList.set(i, referencePrefix+referencedObject);
+						}
+						modifiableImportRecord.addField(metadata.getLocalCode(), idList);
+					}
+				} else if (object != null) {
+					modifiableImportRecord.addField(metadata.getLocalCode(), object);
+				}
+			}
+			else if(metadata.getType() == MetadataValueType.STRUCTURE) {
+				StructureFactory structureFactory = metadata.getStructureFactory();
+				if(structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
+					manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
+				} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
+					manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
+				} else if (structureFactory.getClass().equals(CommentFactory.class)) {
+					manageCommentFactory(record, metadata, modifiableImportRecord);
+				} else if(structureFactory.getClass().equals(EmailAddressFactory.class)) {
+					manageEmailAddressFactory(record, metadata, modifiableImportRecord);
+				}
 			}
 		}
 	}

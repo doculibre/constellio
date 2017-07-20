@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import javax.mail.Message;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -96,7 +96,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		addEmailToSend(0, now.minusDays(1), SDKPasswords.testPOP3Username());
 		emailQueueManager.sendEmails();
-		verify(emailServices, times(1)).sendEmail(any(Message.class));
+		verify(emailServices, times(1)).sendEmail(any(MimeMessage.class));
 		assertNoEmailToSend();
 	}
 
@@ -114,7 +114,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 
 		emailQueueManager.sendEmails();
 
-		verify(emailServices, times(5)).sendEmail(any(Message.class));
+		verify(emailServices, times(5)).sendEmail(any(MimeMessage.class));
 		assertNoEmailToSend();
 	}
 
@@ -129,7 +129,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			}
 		}, zeCollection, true);
 		emailQueueManager.sendEmails();
-		verify(emailServices, times(0)).sendEmail(any(Message.class));
+		verify(emailServices, times(0)).sendEmail(any(MimeMessage.class));
 		assertNoEmailToSend();
 	}
 
@@ -138,7 +138,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		addEmailToSend(0, now.minusDays(1), SDKPasswords.testPOP3Username());
 		doThrow(new EmailTempException(new Exception())).when(emailServices)
-				.sendEmail(any(Message.class));
+				.sendEmail(any(MimeMessage.class));
 		emailQueueManager.sendEmails();
 		assertOneEmailToSendWithDateAndWithNumberOfTry(now.plusDays(1), 1);
 	}
@@ -148,7 +148,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		addEmailToSend(0, now.minusDays(1));
 		doThrow(new EmailPermanentException(new Exception())).when(emailServices)
-				.sendEmail(any(Message.class));
+				.sendEmail(any(MimeMessage.class));
 		emailQueueManager.sendEmails();
 		assertNoEmailToSend();
 	}
@@ -172,7 +172,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 	public void given19EmailsFailedToBeSentWhenThe20ththrowAPermanentExceptionThenDisableSmtpServer()
 			throws Exception {
 
-		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(Message.class));
+		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(MimeMessage.class));
 
 		for (int i = 0; i < EmailQueueManager.MAXIMUM_FAILURES_BEFORE_DISABLING_SMTP_SERVER - 1; i++) {
 			addEmailToSend(0, now.minusDays(1));
@@ -190,7 +190,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 	public void given19EmailsFailedToBeSentWhenThe20ththrowATemporaryExceptionThenDisableSmtpServer()
 			throws Exception {
 
-		doThrow(EmailTempException.class).when(emailServices).sendEmail(any(Message.class));
+		doThrow(EmailTempException.class).when(emailServices).sendEmail(any(MimeMessage.class));
 
 		for (int i = 0; i < EmailQueueManager.MAXIMUM_FAILURES_BEFORE_DISABLING_SMTP_SERVER - 1; i++) {
 			addEmailToSend(0, now.minusDays(1));
@@ -208,7 +208,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 	public void given19EmailsFailedToBeSentWhenThe20thSucceedThenSmtpServerStillEnabled()
 			throws Exception {
 
-		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(Message.class));
+		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(MimeMessage.class));
 
 		for (int i = 0; i < EmailQueueManager.MAXIMUM_FAILURES_BEFORE_DISABLING_SMTP_SERVER - 1; i++) {
 			addEmailToSend(0, now.minusDays(1));
@@ -217,12 +217,12 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(emailConfigurationsManager.getEmailConfiguration(zeCollection, false).isEnabled()).isTrue();
 
-		doNothing().when(emailServices).sendEmail(any(Message.class));
+		doNothing().when(emailServices).sendEmail(any(MimeMessage.class));
 		addEmailToSend(0, now.minusDays(1));
 		emailQueueManager.sendEmails();
 		assertThat(emailConfigurationsManager.getEmailConfiguration(zeCollection, false).isEnabled()).isTrue();
 
-		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(Message.class));
+		doThrow(EmailPermanentException.class).when(emailServices).sendEmail(any(MimeMessage.class));
 		addEmailToSend(0, now.minusDays(1));
 		emailQueueManager.sendEmails();
 		assertThat(emailConfigurationsManager.getEmailConfiguration(zeCollection, false).isEnabled()).isTrue();

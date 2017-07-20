@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCert
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel.FoldersCertificateReportModel_Folder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -79,7 +80,14 @@ public class DecomCertificateService {
 
 	Content buildFoldersContent(List<FoldersCertificateReportModel_Folder> folders) {
 		FoldersCertificateReportModel reportModel = new FoldersCertificateReportModel();
+		try {
+			AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+			reportModel.setDecommissioningListAdministrativeUnitCodeAndTitle(administrativeUnit.getCode() + " -  " + administrativeUnit.getTitle());
+		} catch (Exception e) {
+
+		}
 		reportModel.setDate(TimeProvider.getLocalDate()).setFolders(folders);
+
 
 		NewReportWriterFactory<FolderDecommissioningCertificateParams> factory = reportBuilderFactories().folderDecommissioningCertificateFactory
 				.getValue();

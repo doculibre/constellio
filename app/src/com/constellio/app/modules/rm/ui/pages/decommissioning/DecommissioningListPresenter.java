@@ -282,10 +282,19 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)
 					&& !isFolderPlacedInContainer(folder)) {
-				result.add(builder.build(folder));
+				FolderDetailVO folderVO = builder.build(folder);
+				addOtherMetadatasToFolderDetailVO(folderVO);
+				result.add(folderVO);
 			}
 		}
 		return result;
+	}
+
+	private void addOtherMetadatasToFolderDetailVO(FolderDetailVO folderVO) {
+		DecommissioningListFolderTableExtension folderDetailTableExtension = getFolderDetailTableExtension();
+		if(folderDetailTableExtension != null) {
+			folderDetailTableExtension.addPreviousIdToFolderVO(folderVO);
+		}
 	}
 
 	public List<FolderDetailVO> getProcessableFolders() {

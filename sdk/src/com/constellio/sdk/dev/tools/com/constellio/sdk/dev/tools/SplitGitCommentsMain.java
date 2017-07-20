@@ -14,12 +14,12 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class SplitGitCommentsMain {
 
-	private static File gitLog = new File("/Users/francisbaril/Workspaces/rsde/log.csv");
-	private static File gitLogSplittedFolder = new File("/Users/francisbaril/Workspaces/rsde/splitted/");
+	private static File gitLog = new File("/Users/francisbaril/Downloads/log.csv");
+	private static File gitLogSplittedFolder = new File("/Users/francisbaril/Downloads/rsde/splitted/");
 
 	private static List<Sprint> sprints = new ArrayList<>();
 
-	private static DateTimeFormatter formatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z");
+	private static DateTimeFormatter formatter = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss yyyy Z");
 
 	static {
 		sprints.add(new Sprint("Sprint 1-22", new LocalDate(2014, 1, 1), new LocalDate(2015, 1, 31)));
@@ -45,6 +45,9 @@ public class SplitGitCommentsMain {
 		sprints.add(new Sprint("Sprint 5.1.6", new LocalDate(2015, 11, 29), new LocalDate(2015, 12, 7)));
 		sprints.add(new Sprint("Sprint 5.1.7", new LocalDate(2015, 12, 8), new LocalDate(2015, 12, 12)));
 		sprints.add(new Sprint("Sprint 5.1.8", new LocalDate(2015, 12, 13), new LocalDate(2016, 1, 2)));
+		sprints.add(new Sprint("Janvier 2015", new LocalDate(2016, 1, 3), new LocalDate(2016, 1, 31)));
+		sprints.add(new Sprint("Année 2016", new LocalDate(2016, 2, 1), new LocalDate(2017, 1, 31)));
+		sprints.add(new Sprint("Année 2017", new LocalDate(2017, 2, 1), new LocalDate(2018, 1, 31)));
 
 	}
 
@@ -67,14 +70,18 @@ public class SplitGitCommentsMain {
 			File all = new File(sprintDir, "all.csv");
 			File authorInSprintFile = new File(sprintDir, author + ".csv");
 
-			FileUtils.write(all, line + "\n", true);
-			FileUtils.write(authorFile, line.replace(author, sprintName) + "\n", true);
-			FileUtils.write(authorInSprintFile, line + "\n", true);
+			if (!line.contains(",\"Merge remote-tracking")) {
+
+				FileUtils.write(all, line + "\n", true);
+				FileUtils.write(authorFile, line.replace(author, sprintName) + "\n", true);
+				FileUtils.write(authorInSprintFile, line + "\n", true);
+			}
 		}
 	}
 
 	private static String detectSprintOfLine(String line) {
 		String dateTimeStr = line.split("\",\"")[2].replace("\"", "");
+		System.out.println(dateTimeStr);
 		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, formatter);
 
 		for (Sprint sprint : sprints) {
@@ -88,6 +95,7 @@ public class SplitGitCommentsMain {
 
 	private static String detectAuthorOfLine(String line) {
 		String author = line.split(",")[1].replace("\"", "");
+		System.out.println(author);
 		if ("Maxime Cote".equals(author)) {
 			author = "Maxime Côté";
 		}

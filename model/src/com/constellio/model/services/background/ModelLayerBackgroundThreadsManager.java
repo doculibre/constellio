@@ -24,7 +24,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
-				.executedEvery(standardSeconds(10)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardSeconds(60)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override

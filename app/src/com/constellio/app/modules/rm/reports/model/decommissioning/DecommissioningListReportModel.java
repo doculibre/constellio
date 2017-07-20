@@ -14,6 +14,8 @@ public class DecommissioningListReportModel {
 	private String decommissioningListTitle = "";
 	private String decommissioningListType = "";
 	private String decommissioningListAdministrativeUnitCodeAndTitle = "";
+	boolean isWithMediumType;
+	boolean isWithMainCopyRule;
 
 	public StreamFactory<InputStream> getHeaderLogo() {
 		return headerLogo;
@@ -62,6 +64,22 @@ public class DecommissioningListReportModel {
 		this.decommissioningListAdministrativeUnitCodeAndTitle = decommissioningListAdministrativeUnitCodeAndTitle;
 	}
 
+	public boolean isWithMediumType() {
+		return isWithMediumType;
+	}
+
+	public void setWithMediumType(boolean withMediumType) {
+		isWithMediumType = withMediumType;
+	}
+
+	public boolean isWithMainCopyRule() {
+		return isWithMainCopyRule;
+	}
+
+	public void setWithMainCopyRule(boolean withMainCopyRule) {
+		isWithMainCopyRule = withMainCopyRule;
+	}
+
 	public static class DecommissioningListReportModel_Folder {
 
 		String legacyId;
@@ -75,6 +93,10 @@ public class DecommissioningListReportModel {
 		String category;
 
 		String containerRecord;
+
+		String mediumTypes;
+
+		String mainCopyRule;
 
 		public DecommissioningListReportModel_Folder(String legacyId, String id, String title, String retentionRule, String category, String containerRecord) {
 			this.legacyId = legacyId;
@@ -127,6 +149,22 @@ public class DecommissioningListReportModel {
 
 		public void setLegacyId(String legacyId) {
 			this.legacyId = legacyId;
+		}
+
+		public String getMediumTypes() {
+			return mediumTypes;
+		}
+
+		public void setMediumTypes(String mediumTypes) {
+			this.mediumTypes = mediumTypes;
+		}
+
+		public String getMainCopyRule() {
+			return mainCopyRule;
+		}
+
+		public void setMainCopyRule(String mainCopyRule) {
+			this.mainCopyRule = mainCopyRule;
 		}
 	}
 }

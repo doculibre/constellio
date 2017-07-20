@@ -6,6 +6,7 @@ import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionCo
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
@@ -24,6 +25,7 @@ public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider imp
 		this.writeAccess = writeAccess;
 		this.schemaTypeCode = schemaTypeCode;
 		ignoreLinkability = false;
+
 	}
 
 	public RecordLookupTreeDataProvider(String schemaTypeCode, boolean writeAccess,
@@ -47,7 +49,12 @@ public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider imp
 
 	@Override
 	public TextInputDataProvider<String> search() {
-		return new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, writeAccess);
+		return new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, writeAccess, true);
+	}
+
+	@Override
+	public TextInputDataProvider<String> searchWithoutDisabled() {
+		return new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, writeAccess, false);
 	}
 
 	public void setIgnoreLinkability(boolean ignoreLinkability) {

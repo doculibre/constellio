@@ -1,5 +1,18 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -12,17 +25,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
@@ -182,9 +184,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
-		if(ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
+		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser
+				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
 			return false;
-		} else if(StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
+				.globally()) {
 			return false;
 		}
 		return true;
@@ -211,7 +215,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	protected SavedSearch saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord;
 		if (searchID == null) {
-			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		} else {
 			tmpSearchRecord = getTemporarySearchRecord();
 		}

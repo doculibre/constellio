@@ -80,8 +80,8 @@ dependencies {
     compile "vaadin:mediaelementjs-player:1.2.6"
     compile "org.apache.commons:commons-jexl3:3.0"
 
-    //compile "com.vaadin:vaadin-client-compiler:7.7.4"
-    //compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+    compile "com.vaadin:vaadin-client-compiler:7.7.4"
+    compile files("libs/vaadin-breadcrumb-1.7.3.jar")
 
     compile "juh:juh:3.2.1"
     compile "jurt:jurt:3.2.1"

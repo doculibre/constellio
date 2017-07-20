@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -47,7 +48,12 @@ import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactory
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.*;
+import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
@@ -123,6 +129,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -390,13 +397,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 			}
 		}
 
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		if (Toggle.CACHES_ENABLED.isEnabled()) {
 			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
 			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
 			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(
-					rm.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-							.getSchemaType(SavedSearch.SCHEMA_TYPE), 10000));
+			cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
 
 		}
 	}

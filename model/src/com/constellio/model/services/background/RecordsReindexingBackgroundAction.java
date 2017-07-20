@@ -13,6 +13,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -34,27 +35,28 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 	@Override
 	public synchronized void run() {
 
-		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-			LogicalSearchQuery query = new LogicalSearchQuery();
-			query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
-					.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
-			query.setNumberOfRows(1000);
+		if (ReindexingServices.getReindexingInfos() == null) {
+			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
+						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
+				query.setNumberOfRows(1000);
 
-			List<Record> records = searchServices.search(query);
+				List<Record> records = searchServices.search(query);
 
-			if (!records.isEmpty()) {
-				System.out.println("---------------------------------------");
-				for (Record record : records) {
-					System.out.println("Reindexing : " + record.getId());
+				if (!records.isEmpty()) {
+					System.out.println("---------------------------------------");
+					for (Record record : records) {
+						System.out.println("Reindexing : " + record.getId());
+					}
+
+					Transaction transaction = new Transaction(records);
+					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
+							.setOptimisticLockingResolution(EXCEPTION));
+					executeTransaction(transaction);
 				}
-
-				Transaction transaction = new Transaction(records);
-				transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
-						.setOptimisticLockingResolution(EXCEPTION));
-				executeTransaction(transaction);
 			}
 		}
-
 	}
 
 	void executeTransaction(Transaction transaction) {

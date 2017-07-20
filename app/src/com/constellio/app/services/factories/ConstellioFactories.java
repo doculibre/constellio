@@ -42,6 +42,10 @@ public class ConstellioFactories {
 
 	}
 
+	public static ConstellioFactories getInstanceIfAlreadyStarted() {
+		return instanceProvider.getInstance(null);
+	}
+
 	public static ConstellioFactories getInstance() {
 		File propertyFile = new FoldersLocator().getConstellioProperties();
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator();

@@ -45,7 +45,6 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	private static volatile CuratorFramework CLIENT;
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
-	private Map<String, TreeCache> nodeCaches = new HashMap<>();
 
 	private String address;
 	private String rootFolder;
@@ -77,15 +76,6 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public void close() {
-		try {
-			for (TreeCache nodeCache : nodeCaches.values()) {
-				CloseableUtils.closeQuietly(nodeCache);
-			}
-			nodeCaches.clear();
-		} finally {
-			CloseableUtils.closeQuietly(CLIENT);
-		}
-		CLIENT = null;
 	}
 
 	@Override
@@ -359,6 +349,8 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			CLIENT.delete().deletingChildrenIfNeeded().forPath(clientPath);
+		} catch (NoNodeException nodeNode){
+			//Ignore
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

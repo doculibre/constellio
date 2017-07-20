@@ -64,7 +64,7 @@ public class EventFactory {
 	}
 
 	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason, LocalDateTime eventDateTime) {
-		if (record.getCollection().endsWith(currentUser.getCollection())) {
+		if (currentUser != User.GOD && record.getCollection().endsWith(currentUser.getCollection())) {
 			return createRecordEvent(record, currentUser, eventType, reason, eventDateTime, currentUser.getCollection());
 		} else {
 			return null;

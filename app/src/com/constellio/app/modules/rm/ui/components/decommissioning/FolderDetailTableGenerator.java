@@ -26,7 +26,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
-	public static final String FOLDER_ID = "id";
+	public static final String FOLDER_ID = "folderId";
 	public static final String PREVIOUS_ID = "previousId";
 	public static final String FOLDER = "folder";
 	public static final String RETENTION_RULE = "rule";
@@ -145,7 +145,6 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.addGeneratedColumn(CATEGORY_CODE, this);
 			table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
 			visibleColumns.add(CATEGORY_CODE);
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
 		table.addGeneratedColumn(LINEAR_SIZE, this);
@@ -163,6 +162,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 
 		table.setVisibleColumns(visibleColumns.toArray());
+
+		if(extension != null) {
+			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		} else {
+			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
+		}
 
 		return table;
 	}

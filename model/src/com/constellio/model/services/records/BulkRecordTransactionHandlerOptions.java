@@ -62,4 +62,24 @@ public class BulkRecordTransactionHandlerOptions {
 	public RecordUpdateOptions getTransactionOptions() {
 		return transactionOptions;
 	}
+
+	public int getRecordsPerBatch() {
+		return recordsPerBatch;
+	}
+
+	public int getQueueSize() {
+		return queueSize;
+	}
+
+	public int getNumberOfThreads() {
+		return numberOfThreads;
+	}
+
+	public boolean isShowProgressionInConsole() {
+		return showProgressionInConsole;
+	}
+
+	public BulkRecordTransactionImpactHandling getRecordModificationImpactHandling() {
+		return recordModificationImpactHandling;
+	}
 }

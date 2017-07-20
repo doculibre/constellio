@@ -108,9 +108,15 @@ public class BulkRecordTransactionHandler {
 
 	public void pushCurrent() {
 
+		long size = 0;
+		for (Record record : currentRecords) {
+			size += RecordUtils.estimateRecordSize(record);
+		}
+
 		if (!currentRecords.isEmpty()) {
 			try {
 				createdTasksCounter.incrementAndGet();
+				LOGGER.info("Appending a task of " + currentRecords.size() + " records (" + size + " bytes)");
 				tasks.put(new BulkRecordTransactionHandlerTask(currentRecords, currentReferencedRecords));
 			} catch (InterruptedException e) {
 				throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);
@@ -310,5 +316,14 @@ public class BulkRecordTransactionHandler {
 			result = 31 * result + (referencedRecords != null ? referencedRecords.hashCode() : 0);
 			return result;
 		}
+	}
+
+	public int getMaximumCountOfRecords() {
+		return (options.getNumberOfThreads() * options.getRecordsPerBatch())
+				+ (options.getQueueSize() * options.getRecordsPerBatch());
+	}
+
+	public int getNumberOfThreads() {
+		return options.getNumberOfThreads();
 	}
 }

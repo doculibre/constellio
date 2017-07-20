@@ -119,7 +119,8 @@ public class AppLayerFactory extends LayerFactory {
 		this.appLayerConfiguration = appLayerConfiguration;
 		this.setDefaultLocale();
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
-				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(), dataLayerFactory.getSettingsCacheManager()));
+				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(),
+				dataLayerFactory.getSettingsCacheManager()));
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),

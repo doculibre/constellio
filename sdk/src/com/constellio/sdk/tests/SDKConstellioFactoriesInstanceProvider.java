@@ -27,7 +27,7 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 	public ConstellioFactories getInstance(Factory<ConstellioFactories> constellioFactoriesFactory, String name) {
 		ConstellioFactories constellioFactories = instances.get(name);
 
-		if (constellioFactories == null) {
+		if (constellioFactories == null && constellioFactoriesFactory != null) {
 
 			boolean createdByThisThread = false;
 			synchronized (SingletonConstellioFactoriesInstanceProvider.class) {

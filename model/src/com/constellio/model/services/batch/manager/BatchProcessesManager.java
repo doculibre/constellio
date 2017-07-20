@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
@@ -438,7 +439,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			RecordsReindexingBackgroundAction recordsReindexingBackgroundAction = modelLayerFactory
 					.getModelLayerBackgroundThreadsManager().getRecordsReindexingBackgroundAction();
 
-			if (recordsReindexingBackgroundAction != null) {
+			if (recordsReindexingBackgroundAction != null && ReindexingServices.getReindexingInfos() == null) {
 				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())) {
 					recordsReindexingBackgroundAction.run();
 				}

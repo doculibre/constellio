@@ -31,10 +31,10 @@ public class CoreMigrationTo_7_3 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		createKeyFile(collection, appLayerFactory.getModelLayerFactory().getConfiguration());
+		createKeyFileInZookeeperIfNeeded(collection, appLayerFactory.getModelLayerFactory().getConfiguration());
 	}
 
-	private static void createKeyFile(String collection, ModelLayerConfiguration modelLayerConfiguration)
+	public static void createKeyFileInZookeeperIfNeeded(String collection, ModelLayerConfiguration modelLayerConfiguration)
 			throws IOException {
 		File encryptionFile = modelLayerConfiguration.getConstellioEncryptionFile();
 		if (modelLayerConfiguration.getDataLayerConfiguration().getSettingsConfigType().equals(ConfigManagerType.ZOOKEEPER)
@@ -46,17 +46,16 @@ public class CoreMigrationTo_7_3 implements MigrationScript {
 						.newClient(modelLayerConfiguration.getDataLayerConfiguration().getSettingsZookeeperAddress(),
 								retryPolicy);
 				client.start();
-				if (encryptionFile.exists()) {
-					byte[] content = FileUtils.readFileToByteArray(encryptionFile);
-					String path = "/constellio/conf/" + encryptionFile.getName();
-					if (client.checkExists().forPath(path) == null) {
+				String path = "/constellio/conf/" + encryptionFile.getName();
+				if (client.checkExists().forPath(path) == null) {
+					if (encryptionFile.exists()) {
+						byte[] content = FileUtils.readFileToByteArray(encryptionFile);
 						client.create().creatingParentsIfNeeded().forPath(path, content);
+					} else {
+						String fileKeyPart =
+								"constellio_" + modelLayerConfiguration.getDataLayerConfiguration().createRandomUniqueKey() + "_ext";
+						client.create().creatingParentsIfNeeded().forPath(path, fileKeyPart.getBytes());
 					}
-				} else {
-					String fileKeyPart =
-							"constellio_" + modelLayerConfiguration.getDataLayerConfiguration().createRandomUniqueKey() + "_ext";
-					client.create().creatingParentsIfNeeded()
-							.forPath("/constellio/conf/" + encryptionFile.getName(), fileKeyPart.getBytes());
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);

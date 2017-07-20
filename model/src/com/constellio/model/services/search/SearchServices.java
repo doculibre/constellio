@@ -398,7 +398,6 @@ public class SearchServices {
 
 		//		sb.append("search_txt_");
 		//		sb.append(mainDataLanguage);
-		System.out.println(sb.toString());
 		return sb.toString();
 	}
 

@@ -14,7 +14,6 @@ import javax.mail.AuthenticationFailedException;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.FolderNotFoundException;
-import javax.mail.Message;
 import javax.mail.MessageRemovedException;
 import javax.mail.MessagingException;
 import javax.mail.MethodNotSupportedException;
@@ -42,9 +41,10 @@ import com.constellio.model.services.emails.EmailServicesException.EmailServerEx
 import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
 
 public class EmailServices {
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailQueueManager.class);
 
-	public void sendEmail(Message message)
+	public void sendEmail(MimeMessage message)
 			throws Exception {
 		try {
 			Transport.send(message);
@@ -98,10 +98,10 @@ public class EmailServices {
 	public void closeSession(Session session) {
 	}
 
-	public Message createMessage(String from, String subject, String body, List<MessageAttachment> attachments)
+	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
-		Message message = new MimeMessage(Session.getInstance(System.getProperties()));
+		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		if (StringUtils.isNotBlank(from)) {
 			message.setFrom(new InternetAddress(from));
 		}
@@ -122,7 +122,7 @@ public class EmailServices {
 		if (attachments != null && !attachments.isEmpty()) {
 			for (MessageAttachment messageAttachment : attachments) {
 				String filename = messageAttachment.getAttachmentName();
-				filename = MimeUtility.encodeText(filename, "UTF-8", null);
+				filename = MimeUtility.encodeText(filename, charset, null);
 				MimeBodyPart attachment = new MimeBodyPart();
 				DataSource source = new ByteArrayDataSource(messageAttachment.getInputStream(), messageAttachment.getMimeType());
 				attachment.setDataHandler(new DataHandler(source));
@@ -131,11 +131,12 @@ public class EmailServices {
 			}
 		}
 		message.setContent(multipart);
+		message.addHeader("X-Unsent", "1");
 
 		return message;
 	}
 
-	public List<MessageAttachment> getAttachments(Message message)
+	public List<MessageAttachment> getAttachments(MimeMessage message)
 			throws IOException, MessagingException {
 		List<MessageAttachment> returnList = new ArrayList<>();
 		Multipart multipart = (Multipart) message.getContent();
@@ -155,7 +156,7 @@ public class EmailServices {
 		return returnList;
 	}
 
-	public String getBody(Message message)
+	public String getBody(MimeMessage message)
 			throws IOException, MessagingException {
 		Multipart multipart = (Multipart) message.getContent();
 
@@ -171,6 +172,27 @@ public class EmailServices {
 		}
 		return "";
 	}
+    
+    public static class EmailMessage {
+    	
+    	String filename;
+    	
+    	InputStream inputStream;
+    	
+    	public EmailMessage(String filename, InputStream inputStream) {
+    		this.filename = filename;
+    		this.inputStream = inputStream;
+    	}
+
+		public String getFilename() {
+			return filename;
+		}
+
+		public InputStream getInputStream() {
+			return inputStream;
+		}
+    	
+    }
 
 	public static class MessageAttachment {
 		InputStream inputStream;

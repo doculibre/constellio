@@ -23,7 +23,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlService;
+import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -49,6 +49,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -98,8 +101,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		InputStream stream = new CartEmlService(collection, modelLayerFactory).createEmlForCart(cart());
-		view.startDownload(stream);
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart());
+		String filename = emailMessage.getFilename();
+    	InputStream stream = emailMessage.getInputStream();
+		view.startDownload(stream, filename);
 	}
 
 	public boolean canDuplicate() {

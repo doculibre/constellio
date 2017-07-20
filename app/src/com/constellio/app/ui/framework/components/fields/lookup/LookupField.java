@@ -54,6 +54,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private Button clearButton;
 	private Converter<String, T> itemConverter;
 	private int treeBufferSize = 100;
+
+	protected boolean isShowDeactivated = true;
+
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
@@ -417,8 +420,15 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						searchResultsTable.setVisible(true);
 					}
 					LookupTreeDataProvider<T> currentDataProvider = getCurrentTreeDataProvider();
-					Container searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.search(), searchField);
-					searchResultsTable.setContainerDataSource(searchResultsContainer);
+					Container searchResultsContainer;
+					if(isShowDeactivated) {
+						searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.search(), searchField);
+					}
+					else {
+						searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.searchWithoutDisabled(), searchField);
+					}
+
+						searchResultsTable.setContainerDataSource(searchResultsContainer);
 					replaceComponent(lookupTreeComponent, searchResultsTable);
 					setExpandRatio(searchResultsTable, 1);
 				} else {
@@ -457,6 +467,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();
+
+		TextInputDataProvider<T> searchWithoutDisabled();
 
 		boolean isSelectable(T selection);
 	}

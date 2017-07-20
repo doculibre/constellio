@@ -7,10 +7,7 @@ import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-
-import org.joda.time.LocalDateTime;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -19,10 +16,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -34,7 +27,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -100,7 +92,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential adminCredentials = userServices.createUserCredential(
 				username, firstName, lastName, email, null, isSystemAdmin, globalGroups, collections,
-				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
+				null, status, domain, Arrays.asList(""), null);
 		userServices.addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
