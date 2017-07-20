@@ -19,8 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
@@ -50,6 +48,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -60,6 +59,7 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
@@ -107,7 +107,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
-	public void whenGetListOfCategoriesThenReturnNotDeactivatedTaxonomie() throws Exception {
+	public void whenGetListOfCategoriesThenReturnNotDeactivatedTaxonomie()
+			throws Exception {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Transaction transaction = new Transaction();
@@ -119,7 +120,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		MetadataSchemaType categoryType = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(zeCollection).getSchemaType(Category.SCHEMA_TYPE);
-		LogicalSearchCondition searchCondition = from(categoryType).where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
+		LogicalSearchCondition searchCondition = from(categoryType)
+				.where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
 
@@ -1770,12 +1772,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder(records.categoryId_Z110))
 				.has(noItemsWithChildren());
 
-		//		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110)
-		//				.has(numFoundAndListSize(2))
-		//				.has(unlinkable(records.categoryId_Z111, records.categoryId_Z112))
-		//				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
-		//				.has(noItemsWithChildren());
-
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z112)
 				.is(empty());
 
@@ -1883,7 +1879,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		assertThatRootWhenSelectingFolderUsingAdministrativeUnitsTaxonomy(sasquatch, options)
 				.has(resultsInOrder(records.unitId_10, records.unitId_20))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_20))
-						.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2));
 
 		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
 				.has(resultsInOrder(records.unitId_12))
@@ -2253,8 +2249,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		return assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(new TaxonomiesSearchOptions());
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(TaxonomiesSearchFilter taxonomiesSearchFilter) {
-		return assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter));
+	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(
+			TaxonomiesSearchFilter taxonomiesSearchFilter) {
+		return assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(
+				new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter));
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenSelectingAUnitUsingAdministrativeUnitTaxonomy() {
