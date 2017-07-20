@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecision;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
 import org.apache.commons.lang.StringUtils;
 
@@ -60,6 +60,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private String parentId;
 	private String workflowId;
 	private TaskToVOBuilder voBuilder = new TaskToVOBuilder();
+
+	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -212,13 +214,21 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustDecisionField() {
 		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
-		ListAddRemoveWorkflowInclusiveDecision listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecision) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
 
 		if (field != null) {
 			try {
 				BetaWorkflowTask task = loadTask();
+				boolean isInclusiveDecision;
 
-				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				try
+				{
+					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
+				} catch (Exception exception) {
+					isInclusiveDecision = false;
+				}
+
+
+				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
 					field.setVisible(false);
 					return;
 				}
@@ -230,36 +240,30 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				}
 
 			} catch (NoSuchRecordWithId e) {
-
-			}
-		}
-
-		if(listAddRemoveWorkflowInclusiveDecision != null) {
-			BetaWorkflowTask task = loadTask();
-
-			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
-				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
-				return;
-			}
-
-			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
-			listAddRemoveWorkflowInclusiveDecision.setVisible(true);
-
-			for (String code : task.getNextTasksDecisionsCodes()) {
-				listAddRemoveWorkflowInclusiveDecision.addItem(code);
+				field.setVisible(false);
 			}
 		}
 	}
 
 	private void adjustInclusiveDecisionField() {
-		ListAddRemoveWorkflowInclusiveDecision listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecision) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
+		ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
 
 		if(listAddRemoveWorkflowInclusiveDecision != null) {
-			BetaWorkflowTask task = loadTask();
 
-			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
-				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
-				return;
+			try {
+				BetaWorkflowTask task = loadTask();
+				boolean isInclusiveDecision;
+
+				try
+				{
+					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
+				} catch (Exception exception) {
+					isInclusiveDecision = true;
+				}
+
+			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
+					listAddRemoveWorkflowInclusiveDecision.setVisible(false);
+					return;
 			}
 
 			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
@@ -267,6 +271,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			for (String code : task.getNextTasksDecisionsCodes()) {
 				listAddRemoveWorkflowInclusiveDecision.addItem(code);
+			}
+			} catch (NoSuchRecordWithId e) {
+				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
 			}
 		}
 	}

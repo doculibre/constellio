@@ -3,7 +3,6 @@ package com.constellio.app.modules.tasks.ui.components;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.*;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
@@ -64,7 +63,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			postBuild(field, metadata);
             break;
         case INCLUSIVE_DECISION:
-        	field = new ListAddRemoveWorkflowInclusiveDecision();
+        	field = new ListAddRemoveWorkflowInclusiveDecisionFieldImpl();
         	break;
 		default:
 			field = super.build(metadata);
