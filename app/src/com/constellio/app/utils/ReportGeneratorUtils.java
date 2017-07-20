@@ -55,7 +55,7 @@ public class ReportGeneratorUtils {
                             + ".pdf";
             File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile, title);
             VerticalLayout newLayout = new VerticalLayout();
-            newLayout.addComponents(new LabelViewer(generatedJasperFile, title));
+            newLayout.addComponents(new LabelViewer(generatedJasperFile, title, factory.getModelLayerFactory().getIOServicesFactory().newIOServices()));
             newLayout.setWidth("100%");
             return newLayout;
         } catch (JRException | IOException e) {
@@ -63,6 +63,7 @@ public class ReportGeneratorUtils {
             e.printStackTrace();
         } finally {
             factory.getModelLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(selectedJasperFileContentInputStream);
+            factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
             factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
         }
         return null;

@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.*;
 
+import com.constellio.data.io.services.facades.IOServices;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -21,10 +23,14 @@ import com.vaadin.ui.VerticalLayout;
 public class LabelViewer extends VerticalLayout {
     private ContentManager contentManager;
 
-    public LabelViewer(File PDF, String filename) {
+    public LabelViewer(File PDF, String filename, IOServices ioServices) {
+        InputStream inputStream = null;
+        try {
             ModelLayerFactory model = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory();
             contentManager = model.getContentManager();
-            StreamSource source = buildSource(PDF);
+            inputStream = new FileInputStream(PDF);
+            byte[] PDFbytes = IOUtils.toByteArray(inputStream);
+            StreamSource source = buildSource(PDFbytes);
             BrowserFrame viewer = new BrowserFrame();
             viewer.setSource(new StreamResource(source, filename));
 
@@ -36,6 +42,13 @@ public class LabelViewer extends VerticalLayout {
 
             addComponents(download, viewer);
             setWidth("100%");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            ioServices.closeQuietly(inputStream);
+            ioServices.deleteQuietly(PDF);
+        }
     }
 
     static String getMimeTypeFromFileName(String filename) {
@@ -56,30 +69,13 @@ public class LabelViewer extends VerticalLayout {
         return DownloadStreamResource.PDF_MIMETYPE;
     }
 
-    @Deprecated
-    private StreamSource buildSource(final NewReportWriterFactory factory) {
+    private StreamSource buildSource(final byte[] PDF) {
         return new StreamSource() {
             @Override
             public InputStream getStream() {
-                ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
                 try {
-                    factory.getReportBuilder(modelLayerFactory).write(output);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return new ByteArrayInputStream(output.toByteArray());
-            }
-        };
-    }
-
-    private StreamSource buildSource(final File PDF) {
-        return new StreamSource() {
-            @Override
-            public InputStream getStream() {
-                try{
-                    return new FileInputStream(PDF);
-                }catch (Exception e) {
+                    return new ByteArrayInputStream(PDF);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return null;

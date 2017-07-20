@@ -15,7 +15,10 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.VerticalLayout;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,7 +26,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GetXmlButtonV2 extends WindowButton{
     private ModelLayerFactory model;
@@ -55,7 +57,9 @@ public class GetXmlButtonV2 extends WindowButton{
     }
 
     private ListAddRemoveRecordLookupField getLookupFieldForCurrentSchema() {
-        return new ListAddRemoveRecordLookupField(currentSchema.getSchemaType());
+        //TODO add permission support.
+        ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema.getSchemaType());
+        return listAddRemoveRecordLookupField;
     }
 
     private class GetXmlFrom extends BaseForm<LabelParametersVO> {

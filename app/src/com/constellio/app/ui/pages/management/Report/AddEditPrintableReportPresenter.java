@@ -20,12 +20,12 @@ import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<AddEditPrintableReportView> {
+public class  AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<AddEditPrintableReportView> {
     private transient MetadataSchemasManager metadataSchemasManager;
     protected RecordVO container;
     private PrintableReportListPossibleType currentType;
 
-    AddEditPrintableReportPresenter(AddEditPrintableReportView view) {
+    public AddEditPrintableReportPresenter(AddEditPrintableReportView view) {
         super(view);
         initTransientObjects();
     }
@@ -60,10 +60,10 @@ public class AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<A
         return super.newRecord();
     }
 
-    public RecordVO getRecordVO(String id, RecordVO.VIEW_MODE mode) {
+    public RecordVO getRecordVO(String id) {
         LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
         Record printableReportRecord = searchServices().searchSingleResult(condition);
-        return new RecordToVOBuilder().build(printableReportRecord, mode, view.getSessionContext());
+        return new RecordToVOBuilder().build(printableReportRecord,  RecordVO.VIEW_MODE.FORM, view.getSessionContext());
     }
 
     public PrintableReportListPossibleType getCurrentType() {
