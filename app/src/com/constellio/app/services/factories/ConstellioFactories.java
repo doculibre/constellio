@@ -2,6 +2,10 @@ package com.constellio.app.services.factories;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
@@ -12,6 +16,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
@@ -20,6 +25,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 
 public class ConstellioFactories {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioFactories.class);
 
 	public static ConstellioFactoriesInstanceProvider instanceProvider = new SingletonConstellioFactoriesInstanceProvider();
 
@@ -141,16 +148,32 @@ public class ConstellioFactories {
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
 	}
 
+	private static AtomicInteger factoryIdSeq = new AtomicInteger();
+
 	public void onRequestStarted() {
-//		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
-//		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
-//				appLayerFactory);
-//
-//		requestCachedFactories.set(requestCachedAppLayerFactory);
+
+		long factoryId = factoryIdSeq.incrementAndGet();
+
+		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+				appLayerFactory, "" + factoryId);
+
+		requestCachedFactories.set(requestCachedAppLayerFactory);
+		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
+		}
 	}
 
 	public void onRequestEnded() {
-//		requestCachedFactories.set(null);
+
+		AppLayerFactory appLayerFactory = requestCachedFactories.get();
+		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
+			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
+			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
+			}
+		}
+		requestCachedFactories.set(null);
 	}
 
 	public IOServicesFactory getIoServicesFactory() {

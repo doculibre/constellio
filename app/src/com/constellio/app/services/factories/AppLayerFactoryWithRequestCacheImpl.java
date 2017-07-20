@@ -26,22 +26,19 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
-import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
 
 public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 
 	AppLayerFactoryImpl appLayerFactory;
-	RecordsCaches requestCache;
+	RecordsCachesRequestMemoryImpl requestCache;
 	ModelLayerFactory modelLayerFactory;
+	String id;
 
-	public AppLayerFactoryWithRequestCacheImpl(AppLayerFactoryImpl appLayerFactory) {
-		this(appLayerFactory, new RecordsCachesRequestMemoryImpl(appLayerFactory.getModelLayerFactory()));
-	}
-
-	public AppLayerFactoryWithRequestCacheImpl(AppLayerFactoryImpl appLayerFactory, RecordsCaches requestCache) {
+	public AppLayerFactoryWithRequestCacheImpl(AppLayerFactoryImpl appLayerFactory, String id) {
+		this.id = id;
 		this.appLayerFactory = appLayerFactory;
-		this.requestCache = requestCache;
+		this.requestCache = new RecordsCachesRequestMemoryImpl(appLayerFactory.getModelLayerFactory(), id);
 		this.modelLayerFactory = new ModelLayerFactoryWithRequestCacheImpl(
 				(ModelLayerFactoryImpl) appLayerFactory.getModelLayerFactory(), requestCache);
 	}
@@ -175,5 +172,14 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 
 	public LabelTemplateManager getLabelTemplateManager() {
 		return appLayerFactory.getLabelTemplateManager();
+	}
+
+	@Override
+	public String toString() {
+		return id;
+	}
+
+	public void disconnect() {
+		requestCache.disconnect();
 	}
 }

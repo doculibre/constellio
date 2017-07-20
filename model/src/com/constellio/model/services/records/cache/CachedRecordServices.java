@@ -40,7 +40,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		Record record = recordsCaches.getRecord(id);
 		if (record == null) {
 			record = recordServices.getDocumentById(id);
-			recordsCaches.insert(record);
+			//recordsCaches.insert(record);
 		}
 		return record;
 	}
