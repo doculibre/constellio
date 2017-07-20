@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.components.fields.number;
 
+import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.converter.StringToIntegerConverter;
 
 public class BaseIntegerField extends BaseTextField {
 
@@ -31,7 +31,7 @@ public class BaseIntegerField extends BaseTextField {
 	}
 	
 	private void init() {
-		setConverter(new StringToIntegerConverter());
+		setConverter(new BaseStringToIntegerConverter());
 	}
 
 }

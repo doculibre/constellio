@@ -142,15 +142,15 @@ public class ConstellioFactories {
 	}
 
 	public void onRequestStarted() {
-		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
-		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
-				appLayerFactory);
-
-		requestCachedFactories.set(requestCachedAppLayerFactory);
+//		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+//		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+//				appLayerFactory);
+//
+//		requestCachedFactories.set(requestCachedAppLayerFactory);
 	}
 
 	public void onRequestEnded() {
-		requestCachedFactories.set(null);
+//		requestCachedFactories.set(null);
 	}
 
 	public IOServicesFactory getIoServicesFactory() {

@@ -1,6 +1,8 @@
 package com.constellio.app.ui.util;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +34,8 @@ public class FileIconUtils implements Serializable {
 	private static final String DEFAULT_VALUE = "document";
 
 	private static final String DEFAULT_ICON_PATH = ICONS_DIR + DEFAULT_VALUE + ".gif";
+	
+	private static final Map<String, String> ICON_PATHS = new HashMap<>();
 
 	public static Resource getIcon(String fileName) {
 		if (fileName.contains("/") && ThemeUtils.resourceExists(fileName)) {
@@ -49,10 +53,14 @@ public class FileIconUtils implements Serializable {
 			if (StringUtils.isBlank(extension)) {
 				extension = fileName;
 			}
-			iconPath = ICONS_DIR + extension + ICON_EXTENSION;
-			if (!ThemeUtils.resourceExists(iconPath)) {
-				LOGGER.warn("Resource not found : '" + iconPath + "'");
-				iconPath = DEFAULT_ICON_PATH;
+			iconPath = ICON_PATHS.get(extension);
+			if (iconPath == null) {
+				iconPath = ICONS_DIR + extension + ICON_EXTENSION;
+				if (!ThemeUtils.resourceExists(iconPath)) {
+					LOGGER.warn("Resource not found : '" + iconPath + "'");
+					iconPath = DEFAULT_ICON_PATH;
+				}
+				ICON_PATHS.put(extension, iconPath);
 			}
 		} else {
 			iconPath = DEFAULT_ICON_PATH;
@@ -61,25 +69,29 @@ public class FileIconUtils implements Serializable {
 	}
 
 	public static String getExtension(RecordVO recordVO) {
-		String extension;
-		String fileName = null;
-		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
-			Object value = metadataValueVO.getValue();
-			if (value instanceof ContentVersionVO) {
-				fileName = ((ContentVersionVO) value).getFileName();
-				break;
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String collection = recordVO.getSchema().getCollection();
+		String extension = appLayerFactory.getExtensions().forCollection(collection).getExtensionForRecordVO(new GetIconPathParams(recordVO, false));
+		if (extension == null) {
+			String fileName = null;
+			for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
+				Object value = metadataValueVO.getValue();
+				if (value instanceof ContentVersionVO) {
+					fileName = ((ContentVersionVO) value).getFileName();
+					break;
+				}
 			}
-		}
-		if (fileName != null) {
-			String iconPath = getIconPath(fileName);
-			if (DEFAULT_ICON_PATH.equals(iconPath)) {
-				extension = DEFAULT_VALUE;
+			if (fileName != null) {
+				String iconPath = getIconPath(fileName);
+				if (DEFAULT_ICON_PATH.equals(iconPath)) {
+					extension = DEFAULT_VALUE;
+				} else {
+					extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+				}
 			} else {
-				extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+				extension = getExtensionForRecordVO(recordVO);
 			}
-		} else {
-			extension = getExtensionForRecordVO(recordVO);
-		}
+		}	
 		return extension;
 	}
 
@@ -92,12 +104,16 @@ public class FileIconUtils implements Serializable {
 	}
 
 	public static Resource getIcon(RecordVO recordVO) {
-		String fileName = null;
-		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
-			Object value = metadataValueVO.getValue();
-			if (value instanceof ContentVersionVO) {
-				fileName = ((ContentVersionVO) value).getFileName();
-				break;
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String collection = recordVO.getSchema().getCollection();
+		String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
+		if (fileName == null) {
+			for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
+				Object value = metadataValueVO.getValue();
+				if (value instanceof ContentVersionVO) {
+					fileName = ((ContentVersionVO) value).getFileName();
+					break;
+				}
 			}
 		}
 		if (fileName != null) {
@@ -110,13 +126,10 @@ public class FileIconUtils implements Serializable {
 	@Deprecated
 	public static Resource getIconForRecordId(String recordId) {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-
 		try {
 			return getIconForRecordId(recordServices.getDocumentById(recordId), false);
-
 		} catch (Exception e) {
 			return null;
 		}

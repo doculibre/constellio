@@ -14,10 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.services.migrations.ConstellioEIM;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -25,9 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -50,11 +49,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -106,7 +105,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	private SchemaPresenterUtils schemaPresenterUtils;
 	private FolderVO folderVO;
 
 	private transient RMConfigs rmConfigs;
@@ -123,10 +121,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
-
-		ConstellioFactories constellioFactories = view.getConstellioFactories();
-		SessionContext sessionContext = view.getSessionContext();
-		schemaPresenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 		initTransientObjects();
 	}
 
@@ -263,12 +257,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public RecordVODataProvider getWorkflows() {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
-				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+				schema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new WorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
+				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
 	}
@@ -276,8 +270,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put(RMTask.LINKED_FOLDERS, asList(folderVO.getId()));
-		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
-		new WorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
 	@Override
@@ -347,7 +341,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
 			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
+					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder) && !extensions.isModifyBlocked(folder.getWrappedRecord(), user));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -446,7 +440,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder)) {
+		if (user.hasDeleteAccess().on(folder) && !extensions.isDeleteBlocked(folder.getWrappedRecord(), user)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -476,7 +470,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return ComponentState.INVISIBLE;
 		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
-				&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
+				&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
 
 	}
 
@@ -543,6 +537,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchema getTasksSchema() {
 		return schema(Task.DEFAULT_SCHEMA);
 	}
+
 
 	public void viewAssembled() {
 		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
@@ -671,11 +666,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		return searchServices.query(query).getNumFound() > 0;
 	}
+	
+	private Record currentFolder() {
+		return recordServices.getDocumentById(folderVO.getId());
+	}
 
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
 		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
-		if (!documentExists(fileName)) {
+		if (!documentExists(fileName) && !extensions.isModifyBlocked(currentFolder(), getCurrentUser())) {
 			try {
 				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -714,10 +713,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
 
-				schemaPresenterUtils.setSchemaCode(newRecord.getSchemaCode());
-				newRecord = schemaPresenterUtils.toRecord(documentVO);
+				String schemaCode = newRecord.getSchemaCode();
+				ConstellioFactories constellioFactories = view.getConstellioFactories();
+				SessionContext sessionContext = view.getSessionContext();
+				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
+				newRecord = documentPresenterUtils.toRecord(documentVO);
 
-				schemaPresenterUtils.addOrUpdate(newRecord);
+				documentPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
 			} catch (final IcapException e) {

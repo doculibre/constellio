@@ -78,6 +78,7 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -2058,7 +2059,7 @@ public class RMTestRecords {
 
 	public ContentVersionDataSummary upload(String resource) {
 		InputStream inputStream = DemoTestRecords.class.getResourceAsStream("RMTestRecords_" + resource);
-		return contentManager.upload(inputStream);
+		return contentManager.upload(inputStream, new UploadOptions(resource)).getContentVersionDataSummary();
 	}
 
 	private LocalDate date(int year, int month, int day) {

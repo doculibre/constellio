@@ -52,9 +52,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-06-29.
- */
 public class LabelButtonV2 extends WindowButton {
     //Window property
     @PropertyId("startPosition")
@@ -312,7 +309,7 @@ public class LabelButtonV2 extends WindowButton {
                     FileUtils.copyInputStreamToFile(inputStream, jasperFile);
                     String titleOfthePdfFile = ReportXMLGeneratorV2.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
                     File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, titleOfthePdfFile);
-                    layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile);
+                    layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
                 } finally {
                     ioServicesFactory.newIOServices().deleteQuietly(jasperFile);
                     ioServicesFactory.newIOServices().closeQuietly(inputStream);

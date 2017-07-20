@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
+import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -37,6 +40,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAttribute;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -55,6 +59,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
+
+	private String schemaCode;
+	private String schemaTypeCode;
 	private Map<String, String> parameters;
 	private String metadataCode;
 
@@ -69,6 +76,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setParameters(Map<String, String> params) {
 		this.parameters = params;
+		this.schemaCode = parameters.get("schemaCode");
+		this.schemaTypeCode = parameters.get("schemaTypeCode");
 	}
 
 	public void setMetadataCode(String metadataCode) {
@@ -88,7 +97,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
+			found = voBuilder.build(metadata, displayManager, schemaTypeCode, view.getSessionContext());
 		}
 
 		return found;
@@ -147,19 +156,19 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					@Override
 					public Metadata getMetadata() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getMetadata(metadataCode);
+						return StringUtils.isNotBlank(metadataCode) ? types.getMetadata(metadataCode) : null;
 					}
 
 					@Override
 					public MetadataSchema getSchema() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getSchema(new SchemaUtils().getSchemaCode(metadataCode));
+						return types.getSchema(schemaCode);
 					}
 
 					@Override
 					public MetadataSchemaType getSchemaType() {
 						MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-						return types.getSchemaType(SchemaUtils.getSchemaTypeCode(metadataCode));
+						return types.getSchemaType(schemaTypeCode);
 					}
 				});
 	}
@@ -297,15 +306,24 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
 		if (displayConfig == null) {
-			displayConfig = new MetadataDisplayConfig(collection, code, formMetadataVO.isAdvancedSearch(),
+			displayConfig = new MetadataDisplayConfig(collection, code,
+					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
 					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
-					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch()).withInputType(type)
+					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
+					.withInputType(type)
 					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
 		}
 
 		displayManager.saveMetadata(displayConfig);
+
+		if (formMetadataVO.isInheritance()) {
+			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
+			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
+					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch());
+			displayManager.saveMetadata(displayConfig);
+		}
 
 		this.saveFacetDisplay(schemasManager, displayManager, code, formMetadataVO.isFacet());
 		if (!editMode) {
@@ -376,12 +394,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public List<String> getMetadataGroupList() {
-		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		return new ArrayList<>(schemaConfig.getMetadataGroup().keySet());
 	}
 
 	public String getGroupLabel(String code) {
-		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		return schemaConfig.getMetadataGroup().get(code).get(language);
 	}
@@ -395,9 +413,49 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential();
 	}
 
+	private boolean isBuiltInMetadataStatusModifiable(final MetadataAttribute attribute) {
+		boolean builtInMetadataModifiable = false;
+		if (!metadataCode.startsWith("USR")) {
+			final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			final MetadataSchema schema = types.getSchema(schemaCode);
+			if (schema.hasMetadataWithCode(metadataCode)) {
+				final Metadata metadata = schema.getMetadata(metadataCode);
+
+				builtInMetadataModifiable = appLayerFactory.getExtensions().forCollection(collection)
+						.isMetadataRequiredStatusModifiable(
+								new IsBuiltInMetadataAttributeModifiableParam() {
+
+									@Override
+									public Metadata getMetadata() {
+										return metadata;
+									}
+
+									@Override
+									public MetadataSchema getSchema() {
+										return schema;
+									}
+
+									@Override
+									public MetadataSchemaType getSchemaType() {
+										return types.getSchemaType(schemaTypeCode);
+									}
+
+									@Override
+									public MetadataAttribute getMetadataAttribute() {
+										return attribute;
+									}
+								});
+			}
+
+		}
+		return builtInMetadataModifiable;
+	}
+
 	public boolean isMetadataRequiredStatusModifiable() {
-		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential() || getMetadata(metadataCode)
-				.hasSameCode(Schemas.LEGACY_ID);
+		return metadataCode.isEmpty()
+				|| !getMetadata(metadataCode).isEssential()
+				|| getMetadata(metadataCode).hasSameCode(LEGACY_ID)
+				|| isBuiltInMetadataStatusModifiable(REQUIRED);
 	}
 
 	public boolean isFolderMediumTypes() {

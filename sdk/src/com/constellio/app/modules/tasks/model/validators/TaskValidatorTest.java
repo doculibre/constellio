@@ -1,20 +1,22 @@
 package com.constellio.app.modules.tasks.model.validators;
 
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.sdk.tests.ConstellioTest;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.ConfigProvider;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.sdk.tests.ConstellioTest;
 
 public class TaskValidatorTest extends ConstellioTest {
 
@@ -26,11 +28,22 @@ public class TaskValidatorTest extends ConstellioTest {
 	Task task;
 	@Mock ConfigProvider configProvider;
 
+	@Mock MetadataSchemaTypes types;
+
+	@Mock Record record;
+
 	ValidationErrors errors = new ValidationErrors();
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		when(configProvider.get(RMConfigs.WORKFLOWS_ENABLED)).thenReturn(false);
+
+		when(record.getSchemaCode()).thenReturn("userTask_default");
+		when(task.getWrappedRecord()).thenReturn(record);
+		when(task.getMetadataSchemaTypes()).thenReturn(types);
+
 		when(task.getAssignee()).thenReturn("zeAssignee");
 		when(task.getAssignedOn()).thenReturn(LocalDate.now());
 		when(task.getAssigner()).thenReturn("zeAssigner");

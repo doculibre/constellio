@@ -40,9 +40,6 @@ import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     RMSchemasRecordsServices rm;
     RMTestRecords records = new RMTestRecords(zeCollection);
@@ -98,68 +95,79 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     @Test
     public void testGenerateXmlWithFolder() {
         InputStream inputStream = null;
-        try{
-            XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-            xmlReportGeneratorParameters.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(), records.getFolder_A08().getWrappedRecord());
-            XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(), records.getFolder_A08().getWrappedRecord());
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+
+        try {
             String xmlString = xmlReportGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
             inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();
-            for(Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
+            for (Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
                 Element element = (Element) ob;
                 xmlRecordValues.add(tuple(element.getName(), element.getText()));
             }
             List<Tuple> listOfMetadataInFolder = new ArrayList<>();
-            for(Metadata metadata : metadataSchemasManager.getSchemaOf(records.getFolder_A11().getWrappedRecord()).getMetadatas()) {
+            for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getFolder_A11().getWrappedRecord()).getMetadatas()) {
                 List<Element> elementOfMetadata = xmlReportGenerator.createMetadataTagsFromMetadata(metadata, records.getFolder_A11().getWrappedRecord());
-                for(Element element : elementOfMetadata) {
+                for (Element element : elementOfMetadata) {
                     listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
                 }
             }
             assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {
             ioServices.closeQuietly(inputStream);
         }
+
     }
 
     @Test
     public void testGenerateXmlWithDocument() {
         InputStream inputStream = null;
-        try{
-            XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-            xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(), records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
-            XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(), records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+
+        try {
             String xmlString = xmlReportGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
             inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();
-            for(Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
+            for (Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
                 Element element = (Element) ob;
-                xmlRecordValues.add(tuple(element.getName(), element.getText()));
+                //exclude content because it changes every time,
+                if (!element.getName().equals("content")) {
+                    xmlRecordValues.add(tuple(element.getName(), element.getText()));
+                }
             }
             List<Tuple> listOfMetadataInFolder = new ArrayList<>();
-            for(Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord()).getMetadatas()) {
+            for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord()).getMetadatas()) {
                 List<Element> elementOfMetadata = xmlReportGenerator.createMetadataTagsFromMetadata(metadata, records.getDocumentWithContent_A19().getWrappedRecord());
-                for(Element element : elementOfMetadata) {
-                    listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
+                for (Element element : elementOfMetadata) {
+                    //exclude content because it changes every time,
+                    if (!element.getName().equals("content")) {
+                        listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
+                    }
                 }
             }
             assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {
@@ -170,54 +178,56 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     @Test
     public void testGenerateXmlWithTask() {
         InputStream inputStream = null;
-        try{
-            TaskStatus zeStatus = schemas.newTaskStatus().setCode("zeStatus").setStatusType(IN_PROGRESS).setTitle("status title");
 
-            Task zeTask = schemas.newTask();
-            zeTask.setCreatedOn(new LocalDateTime().minusDays(10));
-            zeTask.setDueDate(new LocalDate().minusDays(1));
-            zeTask.setEndDate(new LocalDate());
-            zeTask.setStatus(zeStatus.getId());
-            zeTask.setAssignee(records.getAdmin().getId());
-            zeTask.setDescription("Ceci est une description de test");
-            zeTask.setTitle("zeTask");
-            zeTask.setType(records.taskTypeForm());
-            Task zeSecondTask = schemas.newTask().setStatus(zeStatus.getId()).setDueDate(new LocalDate().plusDays(10));
-            zeSecondTask.setTitle("zeSecondTask");
-            zeSecondTask.setDescription("description of zeSecondTask");
-            zeSecondTask.setAssignee(records.getChuckNorris().getId());
-            zeSecondTask.setProgressPercentage(0D);
-            Task zeThirdTask = schemas.newTask().setStatus(zeStatus.getId());
-            zeThirdTask.setProgressPercentage(52D);
-            zeThirdTask.setTitle("zeThirdTask");
-            zeThirdTask.setAssignee(records.getDakota_managerInA_userInB().getId());
-            zeThirdTask.setDescription("zeThirdTask description");
-            zeThirdTask.setDueDate(new LocalDate().plusDays(30));
-            XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-            xmlReportGeneratorParameters.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
-            XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        TaskStatus zeStatus = schemas.newTaskStatus().setCode("zeStatus").setStatusType(IN_PROGRESS).setTitle("status title");
+
+        Task zeTask = schemas.newTask();
+        zeTask.setCreatedOn(new LocalDateTime().minusDays(10));
+        zeTask.setDueDate(new LocalDate().minusDays(1));
+        zeTask.setEndDate(new LocalDate());
+        zeTask.setStatus(zeStatus.getId());
+        zeTask.setAssignee(records.getAdmin().getId());
+        zeTask.setDescription("Ceci est une description de test");
+        zeTask.setTitle("zeTask");
+        zeTask.setType(records.taskTypeForm());
+        Task zeSecondTask = schemas.newTask().setStatus(zeStatus.getId()).setDueDate(new LocalDate().plusDays(10));
+        zeSecondTask.setTitle("zeSecondTask");
+        zeSecondTask.setDescription("description of zeSecondTask");
+        zeSecondTask.setAssignee(records.getChuckNorris().getId());
+        zeSecondTask.setProgressPercentage(0D);
+        Task zeThirdTask = schemas.newTask().setStatus(zeStatus.getId());
+        zeThirdTask.setProgressPercentage(52D);
+        zeThirdTask.setTitle("zeThirdTask");
+        zeThirdTask.setAssignee(records.getDakota_managerInA_userInB().getId());
+        zeThirdTask.setDescription("zeThirdTask description");
+        zeThirdTask.setDueDate(new LocalDate().plusDays(30));
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
             String xmlString = xmlReportGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
             inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
             Document xmlDocument = saxBuilder.build(inputStream);
             // Assert that document contains correct tags;
             assertThat(xmlDocument.getRootElement().getName()).isEqualTo(XmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(1);
+            assertThat(xmlDocument.getRootElement().getChildren(XmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
             Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
             List<Tuple> xmlRecordValues = new ArrayList<>();
-            for(Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
+            for (Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
                 Element element = (Element) ob;
                 xmlRecordValues.add(tuple(element.getName(), element.getText()));
             }
             List<Tuple> listOfMetadataInFolder = new ArrayList<>();
-            for(Metadata metadata : metadataSchemasManager.getSchemaOf(zeTask.getWrappedRecord()).getMetadatas()) {
+            for (Metadata metadata : metadataSchemasManager.getSchemaOf(zeTask.getWrappedRecord()).getMetadatas()) {
                 List<Element> elementOfMetadata = xmlReportGenerator.createMetadataTagsFromMetadata(metadata, zeTask.getWrappedRecord());
-                for(Element element : elementOfMetadata) {
+                for (Element element : elementOfMetadata) {
                     listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
                 }
             }
             assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {

@@ -5,9 +5,6 @@ import com.google.common.base.Strings;
 
 import java.util.List;
 
-/**
- * Created by Marco on 2017-07-05.
- */
 public abstract class XmlGeneratorParameters {
 
     private Record[] recordsElements;

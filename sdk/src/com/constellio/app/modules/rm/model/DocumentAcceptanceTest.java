@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -43,6 +44,8 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withAllTest(users)
 		);
+
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);

@@ -43,7 +43,6 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.trash.TrashQueueManager;
@@ -52,11 +51,6 @@ import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
-import com.constellio.model.services.workflows.WorkflowExecutor;
-import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
-import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexManager;
-import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
 
 public interface ModelLayerFactory extends LayerFactory {
 
@@ -71,6 +65,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	RecordServices newRecordServices();
 
 	RecordServicesImpl newCachelessRecordServices();
+
+	RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches);
 
 	SearchServices newSearchServices();
 
@@ -123,18 +119,6 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	IOServicesFactory getIOServicesFactory();
 
-	WorkflowBPMNDefinitionsService newWorkflowBPMNDefinitionsService();
-
-	WorkflowExecutionService newWorkflowExecutionService();
-
-	WorkflowsConfigManager getWorkflowsConfigManager();
-
-	WorkflowExecutionIndexManager getWorkflowExecutionIndexManager();
-
-	WorkflowExecutor getWorkflowsManager();
-
-	TaskServices newTaskServices();
-
 	ModelLayerConfiguration getConfiguration();
 
 	UserPhotosServices newUserPhotosServices();
@@ -158,6 +142,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	EmailQueueManager getEmailQueueManager();
 
 	RecordsCaches getRecordsCaches();
+
+	RecordsCaches getBottomRecordsCaches();
 
 	SecurityTokenManager getSecurityTokenManager();
 

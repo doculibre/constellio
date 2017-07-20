@@ -22,16 +22,7 @@ import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
-import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
-import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
-import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
-import com.constellio.app.api.extensions.params.OnWriteRecordParams;
-import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
-import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
-import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
+import com.constellio.app.api.extensions.params.*;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
@@ -154,6 +145,26 @@ public class AppLayerCollectionExtensions {
 	public String getIconForRecord(GetIconPathParams params) {
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
 			String icon = recordAppExtension.getIconPathForRecord(params);
+			if (icon != null) {
+				return icon;
+			}
+		}
+		return null;
+	}
+
+	public String getIconForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			String icon = recordAppExtension.getIconPathForRecordVO(params);
+			if (icon != null) {
+				return icon;
+			}
+		}
+		return null;
+	}
+
+	public String getExtensionForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			String icon = recordAppExtension.getExtensionForRecordVO(params);
 			if (icon != null) {
 				return icon;
 			}
@@ -457,6 +468,12 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public void updateComponent(UpdateComponentExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.updateComponent(params);
+		}
+	}
+
 	public List<String> getAvailableExtraMetadataAttributes(GetAvailableExtraMetadataAttributesParam param) {
 		List<String> values = new ArrayList<>();
 		for (SchemaTypesPageExtension extensions : schemaTypesPageExtensions) {
@@ -494,5 +511,14 @@ public class AppLayerCollectionExtensions {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.addFieldsInLabelXML(params);
 		}
+	}
+
+	public boolean isMetadataRequiredStatusModifiable(final IsBuiltInMetadataAttributeModifiableParam params) {
+		return ExtensionUtils.getBooleanValue(schemaTypesPageExtensions, false, new BooleanCaller<SchemaTypesPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(SchemaTypesPageExtension extension) {
+				return extension.isBuiltInMetadataAttributeModifiable(params);
+			}
+		});
 	}
 }

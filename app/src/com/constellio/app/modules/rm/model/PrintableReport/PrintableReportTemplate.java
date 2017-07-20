@@ -4,9 +4,6 @@ import com.constellio.model.entities.records.Content;
 
 import java.io.Serializable;
 
-/**
- * Created by Marco on 2017-07-10.
- */
 public class PrintableReportTemplate implements Serializable {
     private String title;
     private String id;

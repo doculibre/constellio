@@ -26,10 +26,7 @@ allprojects {
         flatDir(dirs: file(project(":constellio").projectDir.getAbsolutePath() + '/libs/'))
     }
 
-    configurations {
-        all*.exclude group: 'xml-apis'
-        all*.exclude group: 'xerces'
-    }
+
 
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
