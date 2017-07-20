@@ -88,6 +88,89 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(resultVO.getLabel("fr")).isEqualTo(stringDefault.getLabel(Language.French));
 	}
 
+	private MetadataDisplayConfig displayConfigOf(String code) {
+		return getAppLayerFactory().getMetadataSchemasDisplayManager().getMetadata(zeCollection, code);
+	}
+
+	@Test
+	public void whenAddEditingMetadataWithoutInheritanceInDefaultSchemaThenAdvancedSearchFlagSaved()
+			throws Exception {
+		presenter.setSchemaCode(zeSchema.code());
+		presenter.setMetadataCode(zeSchema.stringMetadata().getCode());
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+
+		FormMetadataVO formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+		formMetadataVO.setAdvancedSearch(true);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isTrue();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isTrue();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isTrue();
+
+		formMetadataVO.setAdvancedSearch(false);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+	}
+
+	@Test
+	public void whenAddEditingMetadataWithInheritanceThenAdvancedSearchFlagSavedInInheritedMetadata()
+			throws Exception {
+		presenter.setSchemaCode(zeCustomSchema.code());
+		presenter.setMetadataCode(zeCustomSchema.stringMetadata().getCode());
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+
+		FormMetadataVO formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+		formMetadataVO.setAdvancedSearch(true);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isTrue();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isTrue();
+
+		formMetadataVO.setAdvancedSearch(false);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_default_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		assertThat(displayConfigOf("zeSchemaType_custom_stringMetadata").isVisibleInAdvancedSearch()).isFalse();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+	}
+
+	@Test
+	public void whenAddEditingMetadataWithoutInheritanceInCustomSchemaThenAdvancedSearchFlagSaved()
+			throws Exception {
+		presenter.setSchemaCode(zeCustomSchema.code());
+		presenter.setMetadataCode(zeCustomSchema.customStringMetadata().getCode());
+		assertThat(displayConfigOf("zeSchemaType_custom_customString").isVisibleInAdvancedSearch()).isFalse();
+
+		FormMetadataVO formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+		formMetadataVO.setAdvancedSearch(true);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_custom_customString").isVisibleInAdvancedSearch()).isTrue();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isTrue();
+
+		formMetadataVO.setAdvancedSearch(false);
+		presenter.preSaveButtonClicked(formMetadataVO, true);
+
+		assertThat(displayConfigOf("zeSchemaType_custom_customString").isVisibleInAdvancedSearch()).isFalse();
+		formMetadataVO = presenter.getFormMetadataVO();
+		assertThat(formMetadataVO.isAdvancedSearch()).isFalse();
+
+	}
+
 	@Test
 	public void givenNewMetadataFormFilledWhenSaveButtonClickThenMetadataSaved()
 			throws Exception {
