@@ -13,18 +13,18 @@ import java.util.List;
 public class ListAddRemoveWorkflowInclusiveDecision extends ListAddRemoveField<String, TaskWorkflowInclusiveDecisionFieldImpl> {
 
     TaskWorkflowInclusiveDecisionFieldImpl taskWorkflowInclusiveDecisionField;
-    private List<String> stringList = new ArrayList<>();
+    
+    public ListAddRemoveWorkflowInclusiveDecision() {
+        taskWorkflowInclusiveDecisionField = new TaskWorkflowInclusiveDecisionFieldImpl();
+    }
+    
     @Override
     protected TaskWorkflowInclusiveDecisionFieldImpl newAddEditField() {
-        taskWorkflowInclusiveDecisionField = new TaskWorkflowInclusiveDecisionFieldImpl();
-        taskWorkflowInclusiveDecisionField.addItems(stringList);
-        taskWorkflowInclusiveDecisionField.setImmediate(true);
-        return new TaskWorkflowInclusiveDecisionFieldImpl();
+        return taskWorkflowInclusiveDecisionField;
     }
 
     public void addItem(String item){
-        stringList.add(item);
         taskWorkflowInclusiveDecisionField.addItem(item);
-        taskWorkflowInclusiveDecisionField.markAsDirty();
     }
+    
 }
