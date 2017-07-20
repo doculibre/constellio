@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseLabel;
 import com.constellio.app.ui.framework.components.BooleanLabel;
+import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -43,7 +44,6 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -507,7 +507,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 				}
 
 				final MiniTextField yearsField = new MiniTextField();
-				yearsField.setConverter(new StringToIntegerConverter());
+				yearsField.setConverter(new BaseStringToIntegerConverter());
 
 				if (retentionPeriod.getRetentionType() == RetentionType.FIXED) {
 					openRetentionPeriodDDVField.setValue(null);

@@ -168,7 +168,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	}
 
 	private void fireSelectionChangeEvent() {
-		recordVOContainer.refresh();
+//		recordVOContainer.refresh();
 		SelectionChangeEvent event = new SelectionChangeEvent(this, selectedItemIds, deselectedItemIds, allItemsSelected);
 		for (SelectionChangeListener listener : listeners) {
 			listener.selectionChanged(event);
@@ -401,7 +401,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		if (lastSelectedItemIndex == -1) {
 			nextSelectionEndIndex = Math.min(recordVOContainer.size(), MAX_SELECTION_RANGE);
 		} else {
-			nextSelectionEndIndex = Math.min(recordVOContainer.size(), lastSelectedItemIndex + MAX_SELECTION_RANGE);
+			nextSelectionEndIndex = Math.min(recordVOContainer.size(), computeNextSelectionStartIndex() + MAX_SELECTION_RANGE);
 		}
 		return nextSelectionEndIndex;
 	}

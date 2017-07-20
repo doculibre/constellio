@@ -99,6 +99,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
+		createTransaction.setToReindexAll();
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
 		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
