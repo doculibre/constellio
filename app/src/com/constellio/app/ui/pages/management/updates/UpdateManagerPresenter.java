@@ -119,7 +119,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Restarting Event")
+					.setTitle($("ListEventsView.restarting"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.add(event);
@@ -146,7 +146,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Restarting Event")
+					.setTitle($("ListEventsView.restarting"))
 					.getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
 					.setType(EventType.REINDEXING)
@@ -154,7 +154,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Reindexing Event")
+					.setTitle($("ListEventsView.reindexing"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
@@ -173,7 +173,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("Redémarrage")
+					.setTitle($("RedémarrageListEventsView.restarting"))
 					.getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
 					.setType(EventType.REINDEXING)
@@ -181,7 +181,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("Réindexation")
+					.setTitle($("ListEventsView.reindexing"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));

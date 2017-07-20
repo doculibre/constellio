@@ -16,6 +16,7 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.data.Property;
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
 import java.util.*;
@@ -129,7 +130,18 @@ public class ReportTabButton extends WindowButton {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                fillSchemaCombobox(customElementSelected);
+                if(fillSchemaCombobox(customElementSelected) == null) {
+                    customElementSelected.setVisible(false);
+                    customElementSelected.setEnabled(false);
+                    Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+                    selectedSchemaType = setIterator.next().getCode();
+                } else {
+                    customElementSelected.setVisible(true);
+                    customElementSelected.setEnabled(true);
+                    selectedSchemaType = null;
+                    reportComboBox.setValue(null);
+
+                }
                 if(selectedSchemaType != null && selectedReporType != null) {
                     fillTemplateComboBox(reportComboBox);
                 }
@@ -220,21 +232,33 @@ public class ReportTabButton extends WindowButton {
 
     private ComboBox fillSchemaCombobox(ComboBox comboBox) {
         comboBox.removeAllItems();
+        int compteur = 0;
         for (MetadataSchemaVO metadataSchemaVO : occurence.getAllCustomMetadataSchemaOccurence().keySet()) {
             if(selectedReporType == null || metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType())) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
+                compteur++;
             }
+        }
+        if(compteur == 1) {
+           return null;
         }
         return comboBox;
     }
 
     private void showNoDefinedReportTemplateForConditionError() {
+        String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
         //TODO remove tab
+        if(view == null) {
+            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+            notification.setHtmlContentAllowed(true);
+            notification.show(Page.getCurrent());
+        }
         tabSheet.setSelectedTab(0);
         if(view != null ) {
-            view.showErrorMessage($("ReportTabButton.noReportTemplateForCondition"));
+            view.showErrorMessage(errorMessage);
         }
+
     }
 
     private class MetadataSchemaCounter {
