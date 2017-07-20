@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -1913,6 +1914,65 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata linkedFolders() {
 			return metadata("linkedFolders");
+		}
+	}
+
+	public StorageSpaceType wrapStorageSpaceType(Record record) {
+		return record == null ? null : new StorageSpaceType(record, getTypes());
+	}
+
+	public List<StorageSpaceType> wrapStorageSpaceTypes(List<Record> records) {
+		List<StorageSpaceType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new StorageSpaceType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<StorageSpaceType> searchStorageSpaceTypes(LogicalSearchQuery query) {
+		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<StorageSpaceType> searchStorageSpaceTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvStorageSpaceType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public StorageSpaceType getStorageSpaceType(String id) {
+		return wrapStorageSpaceType(get(id));
+	}
+
+	public List<StorageSpaceType> getStorageSpaceTypes(List<String> ids) {
+		return wrapStorageSpaceTypes(get(ids));
+	}
+
+	public StorageSpaceType getStorageSpaceTypeWithCode(String code) {
+		return wrapStorageSpaceType(getByCode(ddvStorageSpaceType.schemaType(), code));
+	}
+
+	public StorageSpaceType getStorageSpaceTypeWithLegacyId(String legacyId) {
+		return wrapStorageSpaceType(getByLegacyId(ddvStorageSpaceType.schemaType(),  legacyId));
+	}
+
+	public StorageSpaceType newStorageSpaceType() {
+		return wrapStorageSpaceType(create(ddvStorageSpaceType.schema()));
+	}
+
+	public StorageSpaceType newStorageSpaceTypeWithId(String id) {
+		return wrapStorageSpaceType(create(ddvStorageSpaceType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvStorageSpaceType_default ddvStorageSpaceType
+			= new SchemaTypeShortcuts_ddvStorageSpaceType_default("ddvStorageSpaceType_default");
+	public class SchemaTypeShortcuts_ddvStorageSpaceType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvStorageSpaceType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata linkedSchema() {
+			return metadata("linkedSchema");
 		}
 	}
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
