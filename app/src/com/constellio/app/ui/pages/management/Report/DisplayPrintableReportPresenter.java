@@ -20,10 +20,10 @@ public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<D
         super(view);
     }
 
-    public RecordVO getRecordVO(String id, RecordVO.VIEW_MODE mode) {
+    public RecordVO getRecordVO(String id) {
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view);
         RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-        return voBuilder.build(rm.getPrintableReport(id).getWrappedRecord(), mode, view.getSessionContext());
+        return voBuilder.build(rm.getPrintableReport(id).getWrappedRecord(),  RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
     }
 
     @Override

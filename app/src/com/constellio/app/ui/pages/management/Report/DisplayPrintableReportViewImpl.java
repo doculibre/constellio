@@ -35,7 +35,7 @@ public class DisplayPrintableReportViewImpl extends BaseViewImpl implements Disp
         presenter = new DisplayPrintableReportPresenter(this);
         if (StringUtils.isNotEmpty(event.getParameters())) {
             Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            recordVO = presenter.getRecordVO(paramsMap.get("id"), RecordVO.VIEW_MODE.DISPLAY);
+            recordVO = presenter.getRecordVO(paramsMap.get("id"));
         }
     }
 

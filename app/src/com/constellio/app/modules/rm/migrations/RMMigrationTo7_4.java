@@ -15,6 +15,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static java.util.Arrays.asList;
+
 /**
  * Created by constellios on 2017-07-13.
  */
@@ -36,6 +38,7 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 				PrintableReport.RECORD_TYPE,
 				PrintableReport.RECORD_SCHEMA
 		);
+		schemaFormatDisplayPrintableReport.withTableMetadataCodes(asList(PrintableReport.TITLE, PrintableReport.RECORD_SCHEMA));
 		SchemaDisplayManagerTransaction schemaDisplayManagerTransaction = new SchemaDisplayManagerTransaction();
 		schemaDisplayManagerTransaction.add(schemaFormatDisplayPrintableReport
 				.withFormMetadataCodes(schemaFormatDisplayPrintableReport.getFormMetadataCodes()));
@@ -52,7 +55,7 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
-					.createCustomSchema(PrintableReport.SCHEMA_TYPE);
+					.createCustomSchema(PrintableReport.SCHEMA_TYPE).setUndeletable(true);
 
 			metadataSchemaBuilder.create(PrintableReport.RECORD_TYPE).setType(MetadataValueType.STRING).setEssential(true);
 			metadataSchemaBuilder.create(PrintableReport.RECORD_SCHEMA).setType(MetadataValueType.STRING).setEssential(true);
