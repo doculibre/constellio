@@ -154,6 +154,9 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public MetadataSchema getSchema(String code) {
+		if (code == null) {
+			throw new IllegalArgumentException("Code required");
+		}
 		String[] parsedCode = SchemaUtils.underscoreSplitWithCache(code);
 
 		String typeCode;

@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -16,11 +22,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.junit.Before;
-import org.junit.Test;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContainerAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -154,4 +155,6 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		assertThat(users.aliceIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
 		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.aliceIn(zeCollection)))).isEqualTo(0);
 	}
+
+
 }

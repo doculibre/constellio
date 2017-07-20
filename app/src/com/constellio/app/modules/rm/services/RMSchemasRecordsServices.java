@@ -466,13 +466,15 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//KEEP
 	@Deprecated
 	public String PA() {
-		return getMediumTypeByCode("PA").getId();
+		MediumType mediumType = getMediumTypeByCode("PA");
+		return mediumType == null ? null : mediumType.getId();
 	}
 
 	//KEEP
 	@Deprecated
 	public String FI() {
-		return getMediumTypeByCode("FI").getId();
+		MediumType mediumType = getMediumTypeByCode("FI");
+		return mediumType == null ? null : mediumType.getId();
 	}
 
 	//KEEP
@@ -480,7 +482,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public String DM() {
 		MediumType frenchMediumType = getMediumTypeByCode("DM");
 		if (frenchMediumType == null) {
-			return getMediumTypeByCode("MD").getId();
+			MediumType mediumType = getMediumTypeByCode("MD");
+			return mediumType == null ? null : mediumType.getId();
+
 		} else {
 			return frenchMediumType.getId();
 		}
