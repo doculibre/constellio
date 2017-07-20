@@ -91,7 +91,7 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 				.has(propertyType(STRING)).has(updatability(READONLY));
 
 		assertThat(getAllTypeIds()).containsOnly("document_email", "folder_default", "administrativeUnit_default", "taxonomy",
-				"storageSpace_default", "document_default", "category_default", "collection_default");
+				"storageSpace_default", "document_default", "category_default", "collection_default", "containerRecord_default");
 
 	}
 

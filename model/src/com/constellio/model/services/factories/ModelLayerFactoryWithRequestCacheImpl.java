@@ -286,6 +286,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public RecordsCaches getBottomRecordsCaches() {
+		return modelLayerFactory.getRecordsCaches();
+	}
+
+	@Override
 	public SecurityTokenManager getSecurityTokenManager() {
 		return modelLayerFactory.getSecurityTokenManager();
 	}

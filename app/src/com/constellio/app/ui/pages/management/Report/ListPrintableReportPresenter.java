@@ -94,13 +94,20 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
     }
 
     protected void removeRecord(String id, PrintableReportListPossibleType schema) {
+        Record record;
         SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
-        Record record = utils.toRecord(getRecordsWithIndex(schema, id));
+        if(id.startsWith("0") && id.length() > 1) {
+            //the item id is not an index, it's an id. we get the record from that id.
+            record = recordServices().getDocumentById(id);
+        } else {
+            record = utils.toRecord(getRecordsWithIndex(schema, id));
+        }
         delete(record);
         view.navigate().to().managePrintableReport();
     }
 
     public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {
+
         RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema.toString());
         return itemId == null ?  null : dataProvider.getRecordVO(Integer.parseInt(itemId));
     }

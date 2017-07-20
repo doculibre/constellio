@@ -11,9 +11,7 @@ public class RecordsCachesRequestMemoryImpl extends RecordsCachesMemoryImpl {
 
 	@Override
 	protected RecordsCache newRecordsCache(String collection, ModelLayerFactory modelLayerFactory) {
-		RecordsCache recordsCache = super.newRecordsCache(collection, modelLayerFactory);
-		//return recordsCache;
-		return new RecordsCacheRequestImpl(recordsCache);
+		return new RecordsCacheRequestImpl(modelLayerFactory.getBottomRecordsCaches().getCache(collection));
 
 	}
 

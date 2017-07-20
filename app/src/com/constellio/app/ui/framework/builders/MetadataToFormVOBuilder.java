@@ -11,14 +11,13 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
 public class MetadataToFormVOBuilder implements Serializable {
@@ -50,7 +49,15 @@ public class MetadataToFormVOBuilder implements Serializable {
 		MetadataDisplayType displayType = config.getDisplayType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
-		boolean advancedSearch = config.isVisibleInAdvancedSearch();
+
+		boolean advancedSearch;
+		if (metadata.getInheritance() == null) {
+			advancedSearch = config.isVisibleInAdvancedSearch();
+		} else {
+			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
+			MetadataDisplayConfig inheritanceConfig = configManager.getMetadata(metadata.getCollection(), codeInDefaultSchema);
+			advancedSearch = inheritanceConfig.isVisibleInAdvancedSearch();
+		}
 		boolean highlight = config.isHighlight();
 		boolean enabled = metadata.isEnabled();
 		boolean facet = false;
@@ -81,14 +88,16 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		boolean duplicable = metadata.isDuplicable();
 
-		FormMetadataVO formMetadataVO = new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
+		FormMetadataVO formMetadataVO = new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable,
+				multivalue, sortable,
 				advancedSearch, facet, entry, displayType, highlight, autocomplete, enabled, metadataGroup, defaultValue,
 				inputMask,
 				duplicable,
 				metadata.getCustomAttributes(),
 				sessionContext);
-		if(metadata.getInheritance() != null) {
-			formMetadataVO.setInheritance(this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode,sessionContext ));
+		if (metadata.getInheritance() != null) {
+			formMetadataVO.setInheritance(
+					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));
 		}
 		return formMetadataVO;
 	}
