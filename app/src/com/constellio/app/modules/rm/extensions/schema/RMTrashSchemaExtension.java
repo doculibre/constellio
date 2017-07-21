@@ -101,6 +101,15 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 				return null;
 			}
 
+		case RetentionRule.SCHEMA_TYPE:
+			if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()) {
+				return fromAllSchemasIn(collection).whereAllConditions(
+						where(Schemas.SCHEMA).isStartingWithText(RetentionRule.SCHEMA_TYPE + "_"),
+						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+			} else {
+				return null;
+			}
+
 		}
 
 		return null;

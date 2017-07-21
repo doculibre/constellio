@@ -44,7 +44,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		cache = new RecordsCacheRequestImpl(nestedCache);
+		cache = new RecordsCacheRequestImpl("zeCache", nestedCache);
 		when(nestedCache.get(record1Id)).thenReturn(record1);
 		when(nestedCache.get(record2Id)).thenReturn(record2);
 		when(nestedCache.get(record3Id)).thenReturn(record3);
