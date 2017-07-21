@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -686,7 +687,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
-						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
 						message.append("<br>");
 						for (Document document : duplicateDocuments) {
 							message.append("<br>-");
