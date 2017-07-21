@@ -296,7 +296,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		addToCartButton = buildAddToCartButton();
 		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
