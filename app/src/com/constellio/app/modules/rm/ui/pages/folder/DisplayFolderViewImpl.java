@@ -323,7 +323,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		addToCartButton = buildAddToCartButton();
 		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO);
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO, getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
 
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
