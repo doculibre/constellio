@@ -27,7 +27,7 @@ public class Toggle {
 	public static AvailableToggle STORAGE_SPACE_CAPACITIY_VALIDATION = newToggle(true);
 	public static AvailableToggle CACHES_ENABLED = newToggle(true);
 
-	public static AvailableToggle LOG_REQUEST_CACHE = newToggle();
+	public static AvailableToggle LOG_REQUEST_CACHE = newToggle(false);
 	public static AvailableToggle TEST_REQUEST_CACHE = newToggle(true);
 
 	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);

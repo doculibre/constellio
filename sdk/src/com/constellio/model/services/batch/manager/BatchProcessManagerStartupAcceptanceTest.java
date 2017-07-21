@@ -6,10 +6,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import com.constellio.app.services.factories.AppLayerFactory;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -18,6 +18,27 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 
 @SlowTest
 public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
+
+	@Test
+	public void givenSystemWithCurrentBatchProcessesIsStartingThenFinished()
+			throws Exception {
+		givenBackgroundThreadsEnabled();
+		givenSystemWithCurrentBatchProcessesIsStarting();
+
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		AppLayerFactory appLayerFactory = getAppLayerFactory();
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		waitForBatchProcessAcceptingErrors();
+		assertThat(batchProcessesManager.getStandbyBatchProcesses()).isEmpty();
+		assertThat(batchProcessesManager.getCurrentBatchProcess()).isNull();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, appLayerFactory);
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn(zeCollection).where(rm.folder.keywords())
+				.isEqualTo("newKeywords"))).isEqualTo(105);
+
+	}
 
 	@Test
 	public void givenStartedBatchProcessWhenStartingACollectionThenPutTo()
@@ -78,6 +99,12 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	private void given_some_processed_batch_process_and_a_current_jammed_process() {
 		givenTransactionLogIsEnabled();
 		File state = getTestResourceFile("given_some_processed_batch_process_and_a_current_jammed_process.zip");
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+	}
+
+	private void givenSystemWithCurrentBatchProcessesIsStarting() {
+		givenTransactionLogIsEnabled();
+		File state = getTestResourceFile("given_system_with_current_batch_processes.zip");
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
 }
