@@ -5,19 +5,27 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * Created by constellios on 2017-07-13.
@@ -29,19 +37,31 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
     }
 
     @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new RMMigrationTo7_4.SchemaAlterationFor7_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
-        SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-        SchemaDisplayConfig schemaFormatDisplayPrintableReport = order(collection, appLayerFactory, "form",
-                manager.getSchema(collection, PrintableReport.SCHEMA_NAME),
+    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+            throws Exception {
+        SchemaAlterationFor7_4 schemaAlterationFor7_4 = new RMMigrationTo7_4.SchemaAlterationFor7_4(collection, migrationResourcesProvider, appLayerFactory);
+        schemaAlterationFor7_4.migrate();
+        schemaAlterationFor7_4.setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), migrationResourcesProvider);
+
+        SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+        SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
+
+        transaction.add(order(collection, appLayerFactory, "form", displayManager.getSchema(collection, PrintableReport.SCHEMA_NAME),
                 PrintableReport.TITLE,
                 PrintableReport.JASPERFILE,
                 PrintableReport.RECORD_TYPE,
                 PrintableReport.RECORD_SCHEMA
+                ).withNewTableMetadatas(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA)
         );
-        SchemaDisplayManagerTransaction schemaDisplayManagerTransaction = new SchemaDisplayManagerTransaction();
-        schemaDisplayManagerTransaction.add(schemaFormatDisplayPrintableReport.withFormMetadataCodes(schemaFormatDisplayPrintableReport.getFormMetadataCodes()));
-        manager.execute(schemaDisplayManagerTransaction);
+        displayManager.execute(transaction.build());
+        givenNewPermissionsToRGDandADMRoles(collection, appLayerFactory.getModelLayerFactory());
+    }
+
+    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+        List<String> newRgdPermissions = new ArrayList<>();
+        newRgdPermissions.add(CorePermissions.MANAGE_PRINTABLE_REPORT);
+        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
     }
 
     class SchemaAlterationFor7_4 extends MetadataSchemasAlterationHelper {
@@ -53,15 +73,21 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE).createCustomSchema(PrintableReport.SCHEMA_TYPE);
+            MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
+                    .createCustomSchema(PrintableReport.SCHEMA_TYPE);
 
-            metadataSchemaBuilder.create(PrintableReport.RECORD_TYPE).setType(MetadataValueType.STRING).setEssential(true);
-            metadataSchemaBuilder.create(PrintableReport.RECORD_SCHEMA).setType(MetadataValueType.STRING).setEssential(true);
+            metadataSchemaBuilder.create(PrintableReport.RECORD_TYPE).setType(MetadataValueType.STRING).setUndeletable(true).setEssential(true);
+            metadataSchemaBuilder.create(PrintableReport.RECORD_SCHEMA).setType(MetadataValueType.STRING).setUndeletable(true).setEssential(true);
 
             MetadataSchemaBuilder containerRecord = typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA);
             containerRecord.getMetadata(ContainerRecord.DECOMMISSIONING_TYPE).setDefaultRequirement(true);
             containerRecord.getMetadata(ContainerRecord.ADMINISTRATIVE_UNITS).setDefaultRequirement(true);
 
+        }
+
+        private void setupRoles(String collection, RolesManager manager, MigrationResourcesProvider provider) {
+            manager.updateRole(
+                    manager.getRole(collection, RMRoles.MANAGER).withNewPermissions(Collections.singletonList(CorePermissions.MANAGE_PRINTABLE_REPORT)));
         }
     }
 }

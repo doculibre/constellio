@@ -31,7 +31,6 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -66,6 +65,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -128,10 +128,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	@SlowTest
+	@LoadTest
 	public void whenEveryoneGetsInHereThenStillNotLetal()
 			throws Exception {
-		onlyWhen(Toggle.NEW_USERCREDENTIAL_SERVICES).isEnabled();
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {

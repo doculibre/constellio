@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.util.Arrays;
 import java.util.List;
@@ -97,7 +98,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			restricted = params;
 		}
 
-		return Arrays.asList(restricted);
+		return asList(restricted);
 	}
 
 	@Override
@@ -233,7 +234,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
 		return from(rmRecordServices().containerRecord.schemaType())
-				.where(rmRecordServices().containerRecord.administrativeUnits()).isEqualTo(adminUnitId)
+				.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId))
 				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 	}
 

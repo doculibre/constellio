@@ -168,12 +168,21 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
             reportButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(reportButton);
-            ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
-                @Override
-                public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
-                    reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
-                }
-            });
+            if (results instanceof SearchResultDetailedTable) {
+                ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
+                    @Override
+                    public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
+                        reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
+                    }
+                });
+            } else {
+                ((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
+                    @Override
+                    public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
+                        reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
+                    }
+                });
+            }
         }
 
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ||

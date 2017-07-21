@@ -198,6 +198,11 @@ public class Transaction {
 		return this;
 	}
 
+	public Transaction setToReindexAll() {
+		recordUpdateOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		return this;
+	}
+
 	public RecordUpdateOptions onOptimisticLocking(OptimisticLockingResolution resolution) {
 		return recordUpdateOptions.onOptimisticLocking(resolution);
 	}

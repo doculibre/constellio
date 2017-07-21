@@ -16,6 +16,7 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.data.Property;
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
 import java.util.*;
@@ -120,7 +121,7 @@ public class ReportTabButton extends WindowButton {
             return new HorizontalLayout();
         }
 
-        ComboBox defaultElementSelected = new ComboBox();
+        final ComboBox defaultElementSelected = new ComboBox();
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
@@ -129,9 +130,23 @@ public class ReportTabButton extends WindowButton {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                fillSchemaCombobox(customElementSelected);
+                if(fillSchemaCombobox(customElementSelected) == null) {
+                    customElementSelected.setVisible(false);
+                    customElementSelected.setEnabled(false);
+                    Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+                    do{
+                        selectedSchemaType = setIterator.next().getCode();
+                    }while(setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
+
+                } else {
+                    customElementSelected.setVisible(true);
+                    customElementSelected.setEnabled(true);
+                    selectedSchemaType = null;
+                    reportComboBox.setValue(null);
+
+                }
                 if(selectedSchemaType != null && selectedReporType != null) {
-                    fillTemplateComboBox(reportComboBox);
+                    reportComboBox = fillTemplateComboBox(reportComboBox);
                 }
             }
         });
@@ -155,7 +170,7 @@ public class ReportTabButton extends WindowButton {
                 if(event.getProperty() != null && event.getProperty().getValue() != null) {
                     selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
                     if(selectedSchemaType != null && selectedReporType != null) {
-                        fillTemplateComboBox(reportComboBox);
+                        reportComboBox = fillTemplateComboBox(reportComboBox);
                     }
                 }
             }
@@ -168,7 +183,7 @@ public class ReportTabButton extends WindowButton {
     private Component createReportSelectorComboBox() {
         reportComboBox = new ComboBox();
         if(selectedSchemaType != null && selectedReporType != null) {
-            fillTemplateComboBox(reportComboBox);
+            reportComboBox = fillTemplateComboBox(reportComboBox);
         }
         reportComboBox.setCaption("Veuillez selectionner gabarit d'étiquette");
         reportComboBox.setWidth("100%");
@@ -210,9 +225,17 @@ public class ReportTabButton extends WindowButton {
         if(printableReportTemplateList.isEmpty()) {
             showNoDefinedReportTemplateForConditionError();
         } else {
-            for (PrintableReportTemplate printableReport : printableReportTemplateList) {
-                comboBox.addItem(printableReport);
-                comboBox.setItemCaption(printableReport, printableReport.getTitle());
+            if(printableReportTemplateList.size() == 1) {
+                PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
+                comboBox.addItem(onlyTemplate);
+                comboBox.setItemCaption(onlyTemplate, onlyTemplate.getTitle());
+                comboBox.setValue(onlyTemplate);
+                comboBox.setEnabled(false);
+            } else {
+                for (PrintableReportTemplate printableReport : printableReportTemplateList) {
+                    comboBox.addItem(printableReport);
+                    comboBox.setItemCaption(printableReport, printableReport.getTitle());
+                }
             }
         }
         return comboBox;
@@ -220,21 +243,34 @@ public class ReportTabButton extends WindowButton {
 
     private ComboBox fillSchemaCombobox(ComboBox comboBox) {
         comboBox.removeAllItems();
+        int compteur = 0;
         for (MetadataSchemaVO metadataSchemaVO : occurence.getAllCustomMetadataSchemaOccurence().keySet()) {
-            if(selectedReporType == null || metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType())) {
+            //check if the schema of the record isn't the default one, if yes
+            if(selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
+                compteur++;
             }
+        }
+        if(compteur == 1) {
+           return null;
         }
         return comboBox;
     }
 
     private void showNoDefinedReportTemplateForConditionError() {
+        String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
         //TODO remove tab
+        if(view == null) {
+            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+            notification.setHtmlContentAllowed(true);
+            notification.show(Page.getCurrent());
+        }
         tabSheet.setSelectedTab(0);
         if(view != null ) {
-            view.showErrorMessage($("ReportTabButton.noReportTemplateForCondition"));
+            view.showErrorMessage(errorMessage);
         }
+
     }
 
     private class MetadataSchemaCounter {

@@ -30,10 +30,10 @@ public enum PrintableReportListPossibleType {
     }
 
     public String getSchemaType() {
-        return this.schemaType;
+        return schemaType;
     }
 
     public String getSchemaTypeUpperCase() {
-        return this.getSchemaType().toUpperCase();
+        return schemaType.toUpperCase();
     }
 }

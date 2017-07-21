@@ -53,6 +53,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -625,8 +626,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		givenUser(sasquatch).isAddedInGroup(heroes);
 		givenUser(edouard).isAddedInGroup(sidekicks);
 
-		//TODO Optimistic locking exception should occur
-		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		ConstellioFactories.getInstance().onRequestEnded();
+		ConstellioFactories.getInstance().onRequestStarted();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
@@ -1047,8 +1048,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		givenUser(alice).isAddedInGroup(heroes);
 
+		ConstellioFactories.getInstance().onRequestEnded();
+		ConstellioFactories.getInstance().onRequestStarted();
+
 		//TODO Optimistic locking exception should occur
-		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		//getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		forUser(alice).assertThatRecordsWithReadAccess().containsOnly(
 				FOLDER1, FOLDER1_DOC1, FOLDER2, FOLDER2_1, FOLDER2_2, FOLDER2_2_DOC1, FOLDER2_2_DOC2);

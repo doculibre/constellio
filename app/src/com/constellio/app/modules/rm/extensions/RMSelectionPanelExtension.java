@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import org.apache.commons.io.IOUtils;
 
@@ -211,13 +212,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     public void addMetadataReportButton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = new ArrayList<>();
         RecordServices recordServices = recordServices();
+        RecordToVOBuilder builder = new RecordToVOBuilder();
         for(String id : param.getIds()) {
-            RecordToVOBuilder builder = new RecordToVOBuilder();
             recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
         }
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
-        tabButton.addStyleName(WindowButton.STYLE_NAME);
+        setStyles(tabButton);
+        tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
     }
 

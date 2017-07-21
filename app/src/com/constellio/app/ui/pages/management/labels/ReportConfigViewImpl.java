@@ -1,8 +1,12 @@
 package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.events.EventCategory;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -12,8 +16,13 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ReportConfigViewImpl extends BaseViewImpl {
+public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup {
     public static final String CATEGORY_BUTTON = "seleniumCategoryButton";
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return super.buildBreadcrumbTrail();
+    }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {

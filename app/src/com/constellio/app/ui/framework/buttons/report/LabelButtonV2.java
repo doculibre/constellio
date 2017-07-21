@@ -309,7 +309,7 @@ public class LabelButtonV2 extends WindowButton {
                     FileUtils.copyInputStreamToFile(inputStream, jasperFile);
                     String titleOfthePdfFile = ReportXMLGeneratorV2.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
                     File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, titleOfthePdfFile);
-                    layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile);
+                    layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
                 } finally {
                     ioServicesFactory.newIOServices().deleteQuietly(jasperFile);
                     ioServicesFactory.newIOServices().closeQuietly(inputStream);

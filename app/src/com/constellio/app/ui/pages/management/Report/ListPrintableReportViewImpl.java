@@ -20,7 +20,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPrintableReportView{
+public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPrintableReportView {
 
     public static final String TYPE_TABLE = "types";
 
@@ -59,13 +59,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
 
@@ -73,7 +73,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
         container = buttonsContainerForFolder;
@@ -88,13 +88,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
 
@@ -102,7 +102,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
         container = buttonsContainerForFolder;
@@ -117,13 +117,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
 
@@ -131,7 +131,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
         container = buttonsContainerForFolder;

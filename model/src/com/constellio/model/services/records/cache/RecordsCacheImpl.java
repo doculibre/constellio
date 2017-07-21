@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -49,6 +50,8 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	ModelLayerFactory modelLayerFactory;
 	SearchServices searchServices;
+
+	Set<String> doNotLog = new HashSet<>();
 
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -212,16 +215,25 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public Record forceInsert(Record insertedRecord) {
 
+		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+			if (!insertedRecord.getSchemaCode().startsWith("event")
+					&& !doNotLog.contains(insertedRecord.getId() + "_" + insertedRecord.getVersion())) {
+				new Exception("inserting in central cache " + insertedRecord.getIdTitle() + " in version "
+						+ insertedRecord.getVersion()).printStackTrace();
+			}
+		}
+
 		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 
 		CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
-				synchronized (this) {
-					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);RecordHolder holder = cacheById.get(recordCopy.getId());
-					if (holder != null) {
-						previousRecord = holder.record;
+			synchronized (this) {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);
+				RecordHolder holder = cacheById.get(recordCopy.getId());
+				if (holder != null) {
+					previousRecord = holder.record;
 
 					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
 					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy

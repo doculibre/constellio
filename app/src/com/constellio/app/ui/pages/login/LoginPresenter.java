@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -110,7 +112,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					try {
 						modelLayerFactory.newRecordServices().update(userInLastCollection
 								.setLastLogin(TimeProvider.getLocalDateTime())
-								.setLastIPAddress(view.getSessionContext().getCurrentUserIPAddress()));
+								.setLastIPAddress(view.getSessionContext().getCurrentUserIPAddress()).getWrappedRecord(), new RecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER));
 
 					} catch (RecordServicesException e) {
 						throw new RuntimeException(e);

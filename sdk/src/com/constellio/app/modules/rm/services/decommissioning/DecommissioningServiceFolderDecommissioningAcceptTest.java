@@ -1,5 +1,14 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMConfigs.DecommissioningPhase;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -15,17 +24,11 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningServiceFolderDecommissioningAcceptTest extends ConstellioTest {
 	DecommissioningService service;
@@ -600,6 +603,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	@SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
+		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
@@ -641,6 +645,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
+		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
@@ -651,6 +656,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	@SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
+		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());

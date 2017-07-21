@@ -11,7 +11,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 
 	ModelLayerFactory modelLayerFactory;
 
-	Map<String, RecordsCache> collectionsCache = new HashMap<>();
+	protected Map<String, RecordsCache> collectionsCache = new HashMap<>();
 
 	public RecordsCachesMemoryImpl(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;

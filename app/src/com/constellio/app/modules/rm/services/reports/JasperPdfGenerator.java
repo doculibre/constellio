@@ -51,6 +51,7 @@ public class JasperPdfGenerator {
         Map<String, Object> params = new HashMap<>();
         Document document;
         String PDFFile = "";
+        String reportFile = "";
         IOServices ioServices = factory.getModelLayerFactory().getIOServicesFactory().newIOServices();
         try {
             document = JRXmlUtils.parse(new ByteArrayInputStream(this.xmlGenerated.getBytes("UTF-8")));
@@ -62,12 +63,13 @@ public class JasperPdfGenerator {
         try{
 
             ioServices.copyFile(jasperFile, tempJasperFile);
-            String reportFile = JasperFillManager.fillReportToFile(tempJasperFile.getAbsolutePath(), params);
+            reportFile = JasperFillManager.fillReportToFile(tempJasperFile.getAbsolutePath(), params);
             PDFFile = JasperExportManager.exportReportToPdfFile(reportFile);
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            ioServices.deleteQuietly(new File(reportFile));
             ioServices.deleteQuietly(tempJasperFile);
         }
         return new File(PDFFile);

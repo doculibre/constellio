@@ -14,10 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.services.migrations.ConstellioEIM;
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -25,9 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -50,11 +50,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -106,7 +106,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	private SchemaPresenterUtils schemaPresenterUtils;
 	private FolderVO folderVO;
 
 	private transient RMConfigs rmConfigs;
@@ -123,10 +122,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
-
-		ConstellioFactories constellioFactories = view.getConstellioFactories();
-		SessionContext sessionContext = view.getSessionContext();
-		schemaPresenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 		initTransientObjects();
 	}
 
@@ -692,7 +687,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
-						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
 						message.append("<br>");
 						for (Document document : duplicateDocuments) {
 							message.append("<br>-");
@@ -719,10 +714,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
 
-				schemaPresenterUtils.setSchemaCode(newRecord.getSchemaCode());
-				newRecord = schemaPresenterUtils.toRecord(documentVO);
+				String schemaCode = newRecord.getSchemaCode();
+				ConstellioFactories constellioFactories = view.getConstellioFactories();
+				SessionContext sessionContext = view.getSessionContext();
+				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
+				newRecord = documentPresenterUtils.toRecord(documentVO);
 
-				schemaPresenterUtils.addOrUpdate(newRecord);
+				documentPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
 			} catch (final IcapException e) {
