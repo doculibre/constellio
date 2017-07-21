@@ -316,7 +316,13 @@ public class ContentManager implements StatefulService {
 				duplicate = parsedContentResponse.hasFoundDuplicate();
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
+				try {
+					getParsedContent(hash);
+					duplicate = true;
+				} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+				}
 			}
+
 			//saveContent(hash, closeableInputStreamFactory);
 			long length = closeableInputStreamFactory.length();
 			saveContent(hash, closeableInputStreamFactory);
