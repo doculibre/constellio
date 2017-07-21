@@ -182,4 +182,8 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 	public void disconnect() {
 		requestCache.disconnect();
 	}
+
+	public boolean isDisconnected() {
+		return requestCache.isDisconnected();
+	}
 }

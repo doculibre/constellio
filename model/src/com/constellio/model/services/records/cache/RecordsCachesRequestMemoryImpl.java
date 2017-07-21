@@ -35,8 +35,12 @@ public class RecordsCachesRequestMemoryImpl extends RecordsCachesMemoryImpl {
 		disconnected = true;
 		for (RecordsCache recordsCache : collectionsCache.values()) {
 			if (recordsCache instanceof RecordsCacheRequestImpl) {
-				((RecordsCacheRequestImpl)recordsCache).disconnect();
+				((RecordsCacheRequestImpl) recordsCache).disconnect();
 			}
 		}
+	}
+
+	public boolean isDisconnected() {
+		return disconnected;
 	}
 }

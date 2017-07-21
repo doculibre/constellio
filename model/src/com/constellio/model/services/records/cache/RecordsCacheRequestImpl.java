@@ -184,13 +184,21 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 			}
 		}
 
-		Record record = nested.getByMetadata(metadata, value);
-		if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
-			throw new RuntimeException("Request cache : Version mismatch with record " + record.getIdTitle());
+		if (!Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+			if (recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
 		}
 
-		if (recordFromRequestCache != null) {
-			return recordFromRequestCache;
+		Record record = nested.getByMetadata(metadata, value);
+		if (Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+			if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
+				throw new RuntimeException("Request cache : Version mismatch with record " + record.getIdTitle());
+			}
+
+			if (recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
 		}
 
 		if (record != null && !disconnected) {
