@@ -1,25 +1,31 @@
 package com.constellio.app.services.metadata;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.records.ActionExecutorInBatch;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -29,6 +35,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AppSchemasServices {
 
@@ -81,7 +88,7 @@ public class AppSchemasServices {
 		schemasManager.deleteCustomSchemas(asList(schemasManager.getSchemaTypes(collection).getSchema(schemaCode)));
 	}
 
-	public void modifySchemaCode(String collection, final String fromCode, final String toCode) {
+	public boolean modifySchemaCode(String collection, final String fromCode, final String toCode) {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		validateModificationAllowed(types, fromCode, toCode);
 
@@ -92,16 +99,26 @@ public class AppSchemasServices {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(schemaTypeCode).createCustomSchemaCopying(
 						new SchemaUtils().getSchemaLocalCode(toCode), new SchemaUtils().getSchemaLocalCode(fromCode));
+				Map<Language, String> labels = types.getSchemaType(schemaTypeCode).getSchema(fromCode).getLabels();
+
+				for (Language language : labels.keySet()) {
+					labels.put(language, labels.get(language) + " " + $("AppSchemasServices.toDelete"));
+				}
+
 			}
 		});
+
 		types = schemasManager.getSchemaTypes(collection);
 
-		modifyRecords(collection, types.getSchema(fromCode), types.getSchema(toCode));
 		modifyReferencesWithDirectTarget(types, fromCode, toCode);
 		updateRecordsWithLinkedSchemas(collection, fromCode, toCode);
+		boolean async = modifyRecordsAndReturnIfAsyncOperations(collection, types.getSchema(fromCode), types.getSchema(toCode));
 		configureNewSchema(collection, fromCode, toCode);
 
-		schemasManager.deleteCustomSchemas(asList(types.getSchema(fromCode)));
+		if (!async) {
+			schemasManager.deleteCustomSchemas(asList(types.getSchema(fromCode)));
+		}
+		return async;
 	}
 
 	private void updateRecordsWithLinkedSchemas(String collection, String fromCode, String toCode) {
@@ -144,28 +161,46 @@ public class AppSchemasServices {
 		}
 	}
 
-	private void modifyRecords(String collection, final MetadataSchema originalSchema, final MetadataSchema destinationSchema) {
-		try {
-			new ActionExecutorInBatch(searchServices, "Modify schema of records", 1000) {
+	private boolean modifyRecordsAndReturnIfAsyncOperations(String collection, final MetadataSchema originalSchema,
+			final MetadataSchema destinationSchema) {
 
-				@Override
-				public void doActionOnBatch(List<Record> records)
-						throws Exception {
-					Transaction transaction = new Transaction();
-					transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+		BatchProcessesManager batchProcessesManager = appLayerFactory.getModelLayerFactory().getBatchProcessesManager();
+		LogicalSearchCondition condition = from(originalSchema).returnAll();
 
-					for (Record record : records) {
-						record.changeSchema(originalSchema, destinationSchema);
-						transaction.add(record);
-					}
+		if (searchServices.getResultsCount(condition) >= 1000) {
 
-					recordServices.execute(transaction);
+			Map<String, Object> modifiedMetadatas = new HashMap<>();
+			modifiedMetadatas.put(originalSchema.get(Schemas.SCHEMA.getLocalCode()).getCode(), destinationSchema.getCode());
 
-				}
-			}.execute(from(originalSchema).returnAll());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+			BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(modifiedMetadatas);
+
+			Map<String, Object> params = new HashMap<>();
+			params.put("from", originalSchema.getLocalCode());
+			params.put("to", destinationSchema.getLocalCode());
+
+			batchProcessesManager.addPendingBatchProcess(
+					condition, action, $("AppSchemasServices.changeSchemaCodeTask", params));
+			return true;
+		} else {
+
+			Transaction transaction = new Transaction();
+			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+
+			List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
+			for (Record record : records) {
+				record.changeSchema(originalSchema, destinationSchema);
+				transaction.add(record);
+			}
+
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+
+			return false;
 		}
+
 	}
 
 	private void configureNewSchema(String collection, String fromCode, String toCode) {
