@@ -158,24 +158,24 @@ public class RMSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(sasquatch.hasDeleteAccess().on(records.getStorageSpaceS01_01())).isTrue();
 	}
 
-	//@Test
-	public void givenUserWithGlobalCollectionReadWriteDeleteAccessThenSeesNoStorageSpaceAndContainers()
+	@Test
+	public void givenUserWithGlobalCollectionReadWriteDeleteAccessThenSeesAllStorageSpaceAndContainers()
 			throws Exception {
 
 		recordServices.update(sasquatch.setCollectionAllAccess(true));
 
-		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUser(sasquatch))).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserWrite(sasquatch))).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserDelete(sasquatch))).isEqualTo(0);
-		assertThat(sasquatch.hasReadAccess().on(records.getContainerBac04())).isFalse();
-		assertThat(sasquatch.hasWriteAccess().on(records.getContainerBac04())).isFalse();
-		assertThat(sasquatch.hasDeleteAccess().on(records.getContainerBac04())).isFalse();
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUser(sasquatch))).isEqualTo(19);
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserWrite(sasquatch))).isEqualTo(19);
+		assertThat(searchServices.getResultsCount(query(allContainers).filteredWithUserDelete(sasquatch))).isEqualTo(19);
+		assertThat(sasquatch.hasReadAccess().on(records.getContainerBac04())).isTrue();
+		assertThat(sasquatch.hasWriteAccess().on(records.getContainerBac04())).isTrue();
+		assertThat(sasquatch.hasDeleteAccess().on(records.getContainerBac04())).isTrue();
 
-		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUser(sasquatch))).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserWrite(sasquatch))).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserDelete(sasquatch))).isEqualTo(0);
-		assertThat(sasquatch.hasReadAccess().on(records.getStorageSpaceS01_01())).isFalse();
-		assertThat(sasquatch.hasWriteAccess().on(records.getStorageSpaceS01_01())).isFalse();
-		assertThat(sasquatch.hasDeleteAccess().on(records.getStorageSpaceS01_01())).isFalse();
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUser(sasquatch))).isEqualTo(6);
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserWrite(sasquatch))).isEqualTo(6);
+		assertThat(searchServices.getResultsCount(query(allStorageSpaces).filteredWithUserDelete(sasquatch))).isEqualTo(6);
+		assertThat(sasquatch.hasReadAccess().on(records.getStorageSpaceS01_01())).isTrue();
+		assertThat(sasquatch.hasWriteAccess().on(records.getStorageSpaceS01_01())).isTrue();
+		assertThat(sasquatch.hasDeleteAccess().on(records.getStorageSpaceS01_01())).isTrue();
 	}
 }
