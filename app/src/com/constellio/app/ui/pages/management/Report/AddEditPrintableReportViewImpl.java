@@ -40,7 +40,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
         if (StringUtils.isNotEmpty(event.getParameters())) {
             Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            recordVO = presenter.getRecordVO(paramsMap.get("id"), RecordVO.VIEW_MODE.FORM);
+            recordVO = presenter.getRecordVO(paramsMap.get("id"));
             isEdit = true;
         } else {
             recordVO = new RecordToVOBuilder().build(presenter.newRecord(), RecordVO.VIEW_MODE.FORM, getSessionContext());

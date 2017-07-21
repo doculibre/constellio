@@ -20,14 +20,13 @@ import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
-	public static final String FOLDER_ID = "id";
+	public static final String FOLDER_ID = "folderId";
 	public static final String PREVIOUS_ID = "previousId";
 	public static final String FOLDER = "folder";
 	public static final String RETENTION_RULE = "rule";

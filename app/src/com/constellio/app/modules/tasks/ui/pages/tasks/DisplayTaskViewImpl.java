@@ -189,7 +189,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		};
 		actionMenuButtons.add(deleteTask);
 
-		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.FOLDER,  presenter.getTask());
+		ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.TASK,  presenter.getTask());
 		actionMenuButtons.add(reportGeneratorButton);
 
 		return actionMenuButtons;

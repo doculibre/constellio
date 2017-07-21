@@ -464,7 +464,7 @@ public class RecordsImportServicesExecutor {
 				.contains(legacyId)) {
 
 			extensions.callRecordImportValidate(typeImportContext.schemaType,
-					new ValidationParams(errors, toImport, typeBatchImportContext.options));
+					new ValidationParams(errors, toImport, typeBatchImportContext.options, params.isWarningsForInvalidFacultativeMetadatas()));
 
 			String title = (String) toImport.getFields().get("title");
 

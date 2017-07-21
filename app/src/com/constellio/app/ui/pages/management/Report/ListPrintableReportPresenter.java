@@ -40,7 +40,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
     private MetadataSchemaToVOBuilder schemaVOBuilder;
     private ListPrintableReportView view;
 
-    ListPrintableReportPresenter(ListPrintableReportView view) {
+    public ListPrintableReportPresenter(ListPrintableReportView view) {
         super(view);
         this.view = view;
         initTransientObjects();
@@ -52,7 +52,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 
     private RecordVODataProvider getDataProviderForSchemaType(final String schemaType){
         final MetadataSchemaVO printableReportVO =  schemaVOBuilder.build(
-                modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.DEFAULT_SCHEMA),
+                modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME),
                 RecordVO.VIEW_MODE.TABLE,
                 view.getSessionContext());
         return new RecordVODataProvider(printableReportVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
@@ -64,15 +64,15 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         };
     }
 
-    protected RecordVODataProvider getPrintableReportFolderDataProvider() {
+    public RecordVODataProvider getPrintableReportFolderDataProvider() {
         return getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.toString());
     }
 
-    protected RecordVODataProvider getPrintableReportDocumentDataProvider() {
+    public RecordVODataProvider getPrintableReportDocumentDataProvider() {
         return getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.toString());
     }
 
-    protected RecordVODataProvider getPrintableReportTaskDataProvider() {
+    public RecordVODataProvider getPrintableReportTaskDataProvider() {
         return getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.toString());
     }
 
@@ -81,7 +81,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         return user.has(CorePermissions.MANAGE_PRINTABLE_REPORT).globally();
     }
 
-    protected void addLabelButtonClicked() {
+    public void addLabelButtonClicked() {
         view.navigate().to().addPrintableReport();
     }
 
@@ -93,7 +93,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         view.navigate().to().displayPrintableReport(id);
     }
 
-    protected void removeRecord(String id, PrintableReportListPossibleType schema) {
+    public void removeRecord(String id, PrintableReportListPossibleType schema) {
         Record record;
         SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
         if(id.startsWith("0") && id.length() > 1) {
@@ -102,8 +102,15 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         } else {
             record = utils.toRecord(getRecordsWithIndex(schema, id));
         }
-        delete(record);
+        custtomDelete(record);
         view.navigate().to().managePrintableReport();
+    }
+
+    public void custtomDelete(Record record) {
+        if (recordServices().isLogicallyThenPhysicallyDeletable(record, User.GOD)) {
+            recordServices().logicallyDelete(record, User.GOD);
+            recordServices().physicallyDelete(record, User.GOD);
+        }
     }
 
     public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {

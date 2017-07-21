@@ -351,7 +351,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(copyContentButton);
 
 		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT,  getDocumentVO());
-		actionMenuButtons.add(reportGeneratorButton);
+
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
 					WindowConfiguration.modalDialog("40%", "100px")) {
@@ -494,7 +494,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
-
+		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 

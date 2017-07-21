@@ -390,7 +390,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		if(!isAFolderAndDestroyed) {
 			actionMenuButtons.add(printLabelButton);
-			actionMenuButtons.add(reportGeneratorButton);
 			actionMenuButtons.add(borrowButton);
 		}
 			actionMenuButtons.add(returnFolderButton);
@@ -405,6 +404,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			actionMenuButtons.add(startWorkflowButton);
 		}
 
+		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 
