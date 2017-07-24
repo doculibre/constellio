@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 	private static final String DEPOSIT_DATE_BEFORE_TRANSFER_DATE = "depositDateBeforeTransferDate";
 	private static final String DESTRUCTION_DATE_BEFORE_TRANSFER_DATE = "destructionDateBeforeTransferDate";
+	private static final String ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME = "messageUSRNotPresentInSchemaName";
 	private static Logger LOGGER = LoggerFactory.getLogger(RMSystemCheckExtension.class);
 
 	String collection;
@@ -211,6 +215,20 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 					//OK
 				}
 				markedForReindexing = true;
+			}
+		}
+
+		MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		for(MetadataSchemaType metadataSchemaType : metadataSchemaTypes.getSchemaTypes()) {
+			if(metadataSchemaType.getCode().toLowerCase().equals("document") || metadataSchemaType.getCode().toLowerCase().equals("folder")) {
+				for(MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
+					if(!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default")) {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("schemaCode", metadataSchema.getLocalCode());
+						parameter.put("metadataSchemaType", metadataSchemaType.getCode());
+						params.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME, parameter);
+					}
+				}
 			}
 		}
 

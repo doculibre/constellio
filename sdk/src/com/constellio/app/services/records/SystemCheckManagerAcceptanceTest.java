@@ -11,9 +11,7 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static com.constellio.sdk.tests.TestUtils.*;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,6 +88,21 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
 
+	}
+
+	@Test
+	public void testdocumentAndFolderSchemaCodeThen5Errors() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnée document, le schéma code email ne débute pas par USR",
+				"Dans le type de schéma de métadonnée document, le schéma code form ne débute pas par USR",
+				"Dans le type de schéma de métadonnée document, le schéma code report ne débute pas par USR",
+				"Dans le type de schéma de métadonnée folder, le schéma code employe ne débute pas par USR",
+				"Dans le type de schéma de métadonnée folder, le schéma code meetingFolder ne débute pas par USR");
 	}
 
 	@Test
@@ -424,7 +437,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
 				);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
 		);
@@ -480,15 +493,15 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
 
 		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
@@ -524,9 +537,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnits);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnitsErrorMessages
 		);
 		assertThat(statusOf(records.unitId_20)).isEqualTo(RecordStatus.LOGICALLY_DELETED);
@@ -540,7 +553,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(18);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnits);
 		assertThat(statusOf(records.unitId_20)).isEqualTo(RecordStatus.ACTIVE);
 		assertThat(statusOf(records.unitId_12c)).isEqualTo(RecordStatus.DELETED);
@@ -553,7 +566,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).isEmpty();
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).hasSize(5);
 	}
 
 	@Test
@@ -594,7 +607,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 	}
 
 	@Test
@@ -651,7 +664,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 	}
 
 	@Test
@@ -681,17 +694,17 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(0);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 
