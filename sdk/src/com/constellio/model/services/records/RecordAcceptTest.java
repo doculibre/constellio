@@ -44,6 +44,70 @@ public class RecordAcceptTest extends ConstellioTest {
 	ThirdSchemaMetadatas thirdSchema = setup.new ThirdSchemaMetadatas();
 
 	@Test
+	public void whenChangingSchemasWithoutLosingMetadataValuesThenReturnFalse()
+			throws Exception {
+
+		defineSchemasManager().using(setup.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+
+				MetadataSchemaTypeBuilder anotherSchemaTypeBuilder = schemaTypes.getSchemaType("anotherSchemaType");
+				MetadataSchemaTypeBuilder aThirdSchemaTypeBuilder = schemaTypes.getSchemaType("aThirdSchemaType");
+
+				MetadataSchemaBuilder schema1 = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("schema1");
+				MetadataSchemaBuilder schema2 = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("schema2");
+
+				schema1.create("meta1").setType(STRING);
+				schema1.create("meta2").setType(STRING);
+				schema1.create("meta4").setType(STRING);
+				schema1.create("meta5").setType(STRING);
+				schema1.create("meta6").setType(STRING).setMultivalue(true);
+				schema1.create("meta7").setType(STRING).setMultivalue(true);
+				schema1.create("meta8").setType(REFERENCE).defineReferencesTo(anotherSchemaTypeBuilder);
+				schema1.create("meta9").setType(REFERENCE).defineReferencesTo(anotherSchemaTypeBuilder);
+				schema1.create("meta10").setType(ENUM).defineAsEnum(FolderStatus.class);
+				schema1.create("meta11").setType(ENUM).defineAsEnum(CopyType.class);
+				schema1.create("meta12").setType(STRUCTURE).defineStructureFactory(MapStringStringStructureFactory.class);
+				schema1.create("meta13").setType(STRUCTURE).defineStructureFactory(MapStringStringStructureFactory.class);
+
+				schema2.create("meta2").setType(STRING);
+				schema2.create("meta3").setType(STRING);
+				schema2.create("meta4").setType(MetadataValueType.BOOLEAN);
+				schema2.create("meta5").setType(STRING).setMultivalue(true);
+				schema2.create("meta6").setType(STRING);
+				schema2.create("meta7").setType(STRING).setMultivalue(true);
+				schema2.create("meta8").setType(REFERENCE).defineReferencesTo(anotherSchemaTypeBuilder);
+				schema2.create("meta9").setType(REFERENCE).defineReferencesTo(aThirdSchemaTypeBuilder);
+				schema2.create("meta10").setType(ENUM).defineAsEnum(FolderStatus.class);
+				schema2.create("meta11").setType(ENUM).defineAsEnum(FolderStatus.class);
+				schema2.create("meta12").setType(STRUCTURE).defineStructureFactory(MapStringListStringStructureFactory.class);
+				schema2.create("meta13").setType(STRUCTURE).defineStructureFactory(MapStringStringStructureFactory.class);
+
+			}
+		}));
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecordId"));
+		transaction.add(new TestRecord(thirdSchema, "thirdSchemaRecordId"));
+		recordServices.execute(transaction);
+
+		MetadataSchema schema1 = setup.getTypes().getSchema("zeSchemaType_schema1");
+		MetadataSchema schema2 = setup.getTypes().getSchema("zeSchemaType_schema2");
+
+		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+
+		record.set(schema1.get("meta2"), "23");
+		record.set(schema1.get("meta7"), asList("78", "89"));
+		record.set(schema1.get("meta8"), "anotherSchemaRecordId");
+		record.set(schema1.get("meta10"), FolderStatus.ACTIVE);
+		record.set(schema1.get("meta13"), new MapStringStringStructure().with("key3", "value3").with("key4", "value4"));
+
+		assertThat(record.changeSchema(schema1, schema2)).isFalse();
+
+	}
+
+	@Test
 	public void whenChangingSchemasThenKeepSameMetadata()
 			throws Exception {
 
@@ -113,7 +177,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		record.set(schema1.get("meta12"), new MapStringStringStructure().with("key1", "value1").with("key2", "value2"));
 		record.set(schema1.get("meta13"), new MapStringStringStructure().with("key3", "value3").with("key4", "value4"));
 
-		record.changeSchema(schema1, schema2);
+		assertThat(record.changeSchema(schema1, schema2)).isTrue();
 
 		assertThatRecord(record)
 				.hasNoMetadataValue(inexistentMetadata1InSchema2)
@@ -144,7 +208,7 @@ public class RecordAcceptTest extends ConstellioTest {
 				.hasMetadataValue(schema2.get("meta7"), asList("78", "89"))
 				.hasMetadataValue(schema2.get("meta8"), "anotherSchemaRecordId");
 
-		record.changeSchema(schema2, schema1);
+		assertThat(record.changeSchema(schema2, schema1)).isTrue();
 
 		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
 				.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta1", "meta13",
@@ -212,7 +276,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		record.set(schema1.get("meta10"), new ArrayList<>());
 		record.set(schema1.get("meta11"), null);
 
-		record.changeSchema(schema1, schema2);
+		assertThat(record.changeSchema(schema1, schema2)).isFalse();
 
 		assertThatRecord(record)
 				.hasMetadataValue(schema2.get("meta1"), "B")
@@ -227,7 +291,7 @@ public class RecordAcceptTest extends ConstellioTest {
 				.hasMetadataValue(schema2.get("meta10"), asList("value3", "value4"))
 				.hasMetadataValue(schema2.get("meta11"), asList("value3", "value4"));
 
-		record.changeSchema(schema2, schema1);
+		assertThat(record.changeSchema(schema2, schema1)).isFalse();
 
 		assertThatRecord(record)
 				.hasMetadataValue(schema2.get("meta1"), "A")

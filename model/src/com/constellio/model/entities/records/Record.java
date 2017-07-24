@@ -65,7 +65,7 @@ public interface Record extends Serializable, CollectionObject {
 
 	void markAsModified(Metadata metadata);
 
-	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
+	boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
 
 	<T> void addValueToList(Metadata metadata, T value);
 

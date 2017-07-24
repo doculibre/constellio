@@ -508,4 +508,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public boolean isSelectAllMode() {
 		return selectDeselectAllButton == null? null:selectDeselectAllButton.isSelectAllMode();
 	}
+
+	public SearchResultTable getResult() {
+		return this.results;
+	}
 }

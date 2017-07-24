@@ -34,6 +34,7 @@ public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
 	private BatchProcessingPresenter presenter;
 	private final BatchProcessingView view;
+	private boolean hasResultSelected;
 
 	//fields
 	LookupRecordField typeField;
@@ -60,6 +61,11 @@ public class BatchProcessingButton extends WindowButton {
 			windowContent = buildBatchProcessingForm();
 		}
 		return windowContent;
+	}
+
+	public BatchProcessingButton hasResultSelected(boolean value) {
+		this.hasResultSelected = value;
+		return this;
 	}
 	
 	private Component buildSearchResultsSelectionForm() {
@@ -91,7 +97,11 @@ public class BatchProcessingButton extends WindowButton {
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
 		};
-		
+
+		if(!hasResultSelected) {
+			selectedSearchResultsButton.setEnabled(false);
+		}
+
 		vLayout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
 
 		panel.setContent(vLayout);
