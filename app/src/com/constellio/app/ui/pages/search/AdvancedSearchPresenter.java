@@ -9,6 +9,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.io.InputStream;
 import java.util.*;
 
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -76,6 +77,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	String schemaTypeCode;
 	private int pageNumber;
 	private String searchID;
+	private SearchResultTable result;
 	private boolean batchProcessOnAllSearchResults;
 
 	private transient LogicalSearchCondition condition;
@@ -627,6 +629,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public boolean isSearchResultsSelectionForm() {
 		return true;
+	}
+
+	public void setResult(SearchResultTable result) {
+		this.result = result;
 	}
 
 	public User getUser() {
