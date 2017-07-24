@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.model.entities.modules.Module;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -262,7 +263,8 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
             public InputStream getStream() {
                 InputStream stream = null;
                 try {
-                    File file = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_Etiquette.zip");
+                    File extensionFile = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).changeDownloadableTemplate();
+                    File file = extensionFile != null ? extensionFile : new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_Etiquette.zip");
                     stream = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
                 } catch (IOException e) {
                     e.printStackTrace();
