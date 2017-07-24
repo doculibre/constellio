@@ -48,7 +48,9 @@ import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 
+@IgniteTest
 public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 	@Mock ModelLayerSystemExtensions systemExtensions;

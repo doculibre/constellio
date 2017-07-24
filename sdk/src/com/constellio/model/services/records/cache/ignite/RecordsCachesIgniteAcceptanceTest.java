@@ -15,7 +15,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 
+@IgniteTest
 public class RecordsCachesIgniteAcceptanceTest extends ConstellioTest {
 
 	@Mock DataLayerConfiguration dataLayerConfiguration;
