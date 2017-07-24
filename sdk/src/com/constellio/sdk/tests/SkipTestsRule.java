@@ -18,6 +18,7 @@ import org.junit.runners.model.Statement;
 import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -44,6 +45,7 @@ public class SkipTestsRule implements TestRule {
 	boolean skipInternetTest;
 	boolean checkRollback = false;
 	boolean skipCloud;
+	boolean skipIgnite;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
 	private List<String> whiteList;
@@ -100,6 +102,7 @@ public class SkipTestsRule implements TestRule {
 			this.whiteList = getFilterList("tests.whitelist", properties);
 			this.blackList = getFilterList("tests.blacklist", properties);
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
+			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
 		}
 	}
 
@@ -146,6 +149,7 @@ public class SkipTestsRule implements TestRule {
 		InDevelopmentTest inDevelopmentTestAnnotation = testClass.getAnnotation(InDevelopmentTest.class);
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
 		CloudTest cloudTest = testClass.getAnnotation(CloudTest.class);
+		IgniteTest igniteTest = testClass.getAnnotation(IgniteTest.class);
 
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
 		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
@@ -205,33 +209,26 @@ public class SkipTestsRule implements TestRule {
 
 		if (doNotRunOnIntegrationServer != null && TestUtils.isIntegrationServer()) {
 			return true;
-
 		} else if (loadTest != null && skipLoad) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && uiTest != null && skipUI) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && driverTest != null && skipDriver) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && internetTest != null && skipInternetTest) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && slowTest != null && skipSlow) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && performanceTest != null && !runPerformance) {
 			return true;
-
 		} else if (inDevelopmentTestAnnotation != null && skipInDevelopment) {
 			return true;
-
 		} else if (!testClassDirectlyTargetted && isRealTest && skipReal) {
 			return true;
 		} else if (!testClassDirectlyTargetted && cloudTest != null && skipCloud) {
 			return true;
-
+		} else if (!testClassDirectlyTargetted && igniteTest != null && skipIgnite) {
+			return true;
 		} else {
 			return false;
 		}

@@ -9,7 +9,7 @@ public class RecordsCachesRequestMemoryImpl extends RecordsCachesMemoryImpl {
 	boolean disconnected;
 
 	public RecordsCachesRequestMemoryImpl(ModelLayerFactory modelLayerFactory, String id) {
-		super(modelLayerFactory);
+		super(modelLayerFactory, modelLayerFactory.getBottomRecordsCaches());
 		this.id = id;
 	}
 

@@ -8,6 +8,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
+import com.vaadin.data.Property;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -53,10 +56,19 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 	void rmFieldsCreated() {
 		CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
+		FolderCopyStatusEnteredFieldImpl copyStatusField = fields.getFolderCopyStatusEnteredField();
 		if (retentionRuleField != null) {
 			retentionRuleField.addValueChangeListener(new CopyRetentionRuleDependencyField.RetentionValueChangeListener() {
 				@Override
 				public void valueChanged(String newValue) {
+					updateFields();
+				}
+			});
+		}
+		if (copyStatusField != null) {
+			copyStatusField.addValueChangeListener(new Property.ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
 					updateFields();
 				}
 			});
@@ -178,6 +190,12 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 
+		FolderCopyStatusEnteredFieldImpl folderCopyStatusEnteredField = fields.getFolderCopyStatusEnteredField();
+		if(folderCopyStatusEnteredField != null && folderCopyStatusEnteredField.getFieldValue() != null) {
+			return folderCopyStatusEnteredField.getFieldValue();
+		}
+
+
 		if (request.getQuery() != null) {
 			SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();
 
@@ -213,6 +231,12 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 	private RetentionRule getUniformFolderRetentionRuleOrNull(BatchProcessRequest request) {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
+
+		CopyRetentionRuleDependencyField copyRetentionRuleDependencyField = fields.getCopyRetentionRuleDependencyField();
+		if(copyRetentionRuleDependencyField != null && copyRetentionRuleDependencyField.getFieldValue() != null) {
+			return rm.getRetentionRule(copyRetentionRuleDependencyField.getFieldValue());
+		}
+
 
 		if (request.getQuery() != null) {
 			SearchServices searchServices = fields.getConstellioFactories().getModelLayerFactory().newSearchServices();

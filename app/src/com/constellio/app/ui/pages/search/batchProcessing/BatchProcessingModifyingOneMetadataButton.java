@@ -21,6 +21,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
     private Button process;
     private AdvancedSearchPresenter presenter;
     private final AdvancedSearchView view;
+    private boolean hasResultSelected;
 
     public BatchProcessingModifyingOneMetadataButton(AdvancedSearchPresenter presenter, AdvancedSearchView view) {
         super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"));
@@ -41,6 +42,12 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 		}
 		return windowContent;
 	}
+
+
+    public BatchProcessingModifyingOneMetadataButton hasResultSelected(boolean value) {
+        this.hasResultSelected = value;
+        return this;
+    }
 	
 	private Component buildSearchResultsSelectionForm() {
 		getWindow().setHeight("220px");
@@ -73,8 +80,13 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 				getWindow().center();
 			}
 		};
-		
-		layout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
+
+
+        if(!hasResultSelected) {
+            selectedSearchResultsButton.setEnabled(false);
+        }
+
+        layout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
 
 		panel.setContent(layout);
 		panel.setSizeFull();
