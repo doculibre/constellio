@@ -155,10 +155,10 @@ public class DecommissioningListReportPresenter {
                     if (value2 == null) {
                         return 0;
                     } else {
-                        return -1;
+                        return 1;
                     }
                 } else if (value2 == null) {
-                    return 1;
+                    return -1;
                 }
 
                 try {
@@ -184,10 +184,10 @@ public class DecommissioningListReportPresenter {
                     if (value2 == null) {
                         return 0;
                     } else {
-                        return -1;
+                        return 1;
                     }
                 } else if (value2 == null) {
-                    return 1;
+                    return -1;
                 }
 
                 try {

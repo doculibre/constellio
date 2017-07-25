@@ -1,7 +1,5 @@
 package com.constellio.data.utils;
 
-import org.apache.poi.ss.formula.functions.T;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
