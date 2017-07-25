@@ -23,9 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,10 +43,6 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
@@ -82,12 +83,100 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
+		recordServices = getModelLayerFactory().newRecordServices();
+	}
 
+	@Test
+	public void givenDocumentWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema1");
+				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema2");
+			}
+		});
+		DocumentType documentType = rm.newDocumentType();
+		documentType.setLinkedSchema("document_USRdocumentSchema1");
+		documentType.setCode("USRdocumentSchema");
+		documentType.setTitle("USRdocumentSchema");
+
+		recordServices.add(documentType);
+
+		Document document = rm.newDocumentWithTypeAndId(documentType, "MyDocument").setTitle("Document").setFolder(records.folder_A01);
+		document.setCreatedOn(LocalDateTime.now());
+
+		documentType.setLinkedSchema("document_USRdocumentSchema2");
+		recordServices.update(documentType);
+		recordServices.add(document);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(results.getRepairedRecords().size()).isEqualTo(1);
+		assertThat(results.getRepairedRecords().contains("MyDocument")).isTrue();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
+
+		Document documentResult = rm.getDocument("MyDocument");
+		assertThat(documentResult.getSchema().getCode()).isEqualTo("document_USRdocumentSchema2");
+	}
+
+	@Test
+	public void givenFolderWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
+			}
+		});
+
+
+		FolderType folderType = rm.newFolderType();
+		folderType.setLinkedSchema("folder_USRfolderSchema1");
+		folderType.setCode("USRfolderSchema");
+		folderType.setTitle("USRfolderSchema");
+		recordServices.add(folderType);
+
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		folder.setType(folderType);
+		folder.setOpenDate(LocalDate.now());
+		folder.setCreatedOn(LocalDateTime.now());
+
+		folderType.setLinkedSchema("folder_USRfolderSchema2");
+		recordServices.update(folderType);
+		recordServices.add(folder);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(results.getRepairedRecords().size()).isEqualTo(1);
+		assertThat(results.getRepairedRecords().contains("MyFolder")).isTrue();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
+
+		Folder documentResult = rm.getFolder("MyFolder");
+		assertThat(documentResult.getSchema().getCode()).isEqualTo("folder_USRfolderSchema2");
 	}
 
 	@Test
@@ -507,6 +596,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
+
 
 	@Test
 	public void givenLogicallyDeletedAdministrativeUnitsAndCategoriesThenRepairRestoreThem()
