@@ -199,8 +199,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
         //		List<Component> actions = Arrays.asList(
         //				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
         List<Component> actions = Arrays.asList(
-                buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(),
-                (Component) new ReportSelector(presenter), switchViewMode);
+                buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) switchViewMode);
 
         return results.createSummary(actions, selectionActions);
     }

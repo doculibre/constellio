@@ -82,7 +82,9 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createExcelTab() {
-        return new ReportSelector(new AdvancedSearchPresenter((AdvancedSearchView) view));
+        AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+        presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+        return new ReportSelector(presenter);
     }
 
     private Component createPDFTab() {
@@ -150,7 +152,7 @@ public class ReportTabButton extends WindowButton {
                 }
             }
         });
-        defaultElementSelected.setCaption($("Veuillez selectionnez un type d''éléments"));
+        defaultElementSelected.setCaption($("ReportTabButton.selectDefaultReportType"));
         defaultElementSelected.setWidth("100%");
         return defaultElementSelected;
     }
@@ -175,7 +177,7 @@ public class ReportTabButton extends WindowButton {
                 }
             }
         });
-        customElementSelected.setCaption($("Veuillez selectionnez un type de schéma d'éléments"));
+        customElementSelected.setCaption($("ReportTabButton.selectCustomReportSchema"));
         customElementSelected.setWidth("100%");
         return customElementSelected;
     }
@@ -185,7 +187,7 @@ public class ReportTabButton extends WindowButton {
         if(selectedSchemaType != null && selectedReporType != null) {
             reportComboBox = fillTemplateComboBox(reportComboBox);
         }
-        reportComboBox.setCaption("Veuillez selectionner gabarit d'étiquette");
+        reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");
         return reportComboBox;
     }
