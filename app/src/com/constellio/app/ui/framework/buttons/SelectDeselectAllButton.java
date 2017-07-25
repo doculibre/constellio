@@ -48,10 +48,13 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 			setCaption(selectAllCaption);
 		}
 		selectAllMode = !selectAllMode;
+		buttonClickCallBack(selectAllMode);
 	}
 	
 	protected abstract void onSelectAll(ClickEvent event);
 	
 	protected abstract void onDeselectAll(ClickEvent event);
+
+	protected abstract void buttonClickCallBack(boolean selectAllMode);
 
 }

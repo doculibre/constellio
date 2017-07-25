@@ -438,6 +438,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+				hashMapAllSelection.put(presenter.getPageNumber(), selectAllMode);
+			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
