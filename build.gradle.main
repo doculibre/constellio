@@ -28,6 +28,11 @@ allprojects {
 
 
 
+    configurations {
+        all*.exclude group: 'xml-apis'
+        all*.exclude group: 'xerces'
+    }
+
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
 
@@ -62,7 +67,10 @@ allprojects {
         gradleVersion = '3.4'
     }
 
-    jar {
-        version = '7.0.9.2'
+    String projectVersion = "4.2.42"
+    if (new File("./version").exists()) {
+        projectVersion = new File("./version").text.trim()
     }
+
+    project.ext.set("VERSION", projectVersion)
 }
