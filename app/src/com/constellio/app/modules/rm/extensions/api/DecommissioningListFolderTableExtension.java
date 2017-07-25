@@ -12,6 +12,8 @@ public interface DecommissioningListFolderTableExtension extends Serializable {
 
 	String getPreviousIdOrNull(FolderDetailVO detail);
 
+	String getPreviousIdOrNull(Folder folder);
+
 	String getPreviousId(Folder folder);
 
 	void addPreviousIdToFolderVO(FolderDetailVO folderVO);

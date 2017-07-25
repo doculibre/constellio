@@ -28,6 +28,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -664,30 +665,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
 		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders);
-		container.setItemSorter(new DefaultItemSorter() {
-			@Override
-			protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
-				// Get the properties to compare
-				int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
-				final Property<?> property1 = item1.getItemProperty(propertyId);
-				final Property<?> property2 = item2.getItemProperty(propertyId);
-
-				// Get the values to compare
-				final Object value1 = (property1 == null) ? null : property1.getValue();
-				final Object value2 = (property2 == null) ? null : property2.getValue();
-				if (value1 == null) {
-					if (value2 == null) {
-						return 0;
-					} else {
-						return -returnedValue;
-					}
-				} else if (value2 == null) {
-					return -returnedValue;
-				}
-
-				return returnedValue;
-			}
-		});
+		container.setItemSorter(buildItemSorter());
 		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container) {
 
 		};
@@ -702,6 +680,75 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingValidation(presenter.shouldDisplayValidation())
 				.displayingOrderNumber(true)
 				.attachTo(table);
+	}
+
+	private DefaultItemSorter buildItemSorter() {
+		if (presenter.getFolderDetailTableExtension() != null) {
+			return 	new DefaultItemSorter() {
+				@Override
+				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
+					// Get the properties to compare
+
+					final Property<?> property1 = item1.getItemProperty(propertyId);
+					final Property<?> property2 = item2.getItemProperty(propertyId);
+
+					// Get the values to compare
+					final Object value1 = (property1 == null) ? null : property1.getValue();
+					final Object value2 = (property2 == null) ? null : property2.getValue();
+
+					if(FolderDetailTableGenerator.FOLDER_ID.equals(propertyId) && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
+						try {
+							if(sortDirection) {
+								return Integer.compare(Integer.parseInt((String) value1), Integer.parseInt((String) value2));
+							} else {
+								return Integer.compare(Integer.parseInt((String) value2), Integer.parseInt((String) value1));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
+
+					if (value1 == null) {
+						if (value2 == null) {
+							return 0;
+						} else {
+							return -returnedValue;
+						}
+					} else if (value2 == null) {
+						return -returnedValue;
+					}
+
+					return returnedValue;
+				}
+			};
+		} else {
+			return 	new DefaultItemSorter() {
+				@Override
+				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
+					// Get the properties to compare
+					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
+					final Property<?> property1 = item1.getItemProperty(propertyId);
+					final Property<?> property2 = item2.getItemProperty(propertyId);
+
+					// Get the values to compare
+					final Object value1 = (property1 == null) ? null : property1.getValue();
+					final Object value2 = (property2 == null) ? null : property2.getValue();
+					if (value1 == null) {
+						if (value2 == null) {
+							return 0;
+						} else {
+							return -returnedValue;
+						}
+					} else if (value2 == null) {
+						return -returnedValue;
+					}
+
+					return returnedValue;
+				}
+			};
+		}
 	}
 
 	private Component  buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
