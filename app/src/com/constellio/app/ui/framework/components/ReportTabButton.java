@@ -82,7 +82,9 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createExcelTab() {
-        return new ReportSelector(new AdvancedSearchPresenter((AdvancedSearchView) view));
+        AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+        presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+        return new ReportSelector(presenter);
     }
 
     private Component createPDFTab() {

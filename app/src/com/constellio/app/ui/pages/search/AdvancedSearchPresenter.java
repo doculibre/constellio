@@ -88,6 +88,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		super(view);
 	}
 
+	public void setSchemaType(String schemaType) {
+		this.schemaTypeCode = schemaType;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;

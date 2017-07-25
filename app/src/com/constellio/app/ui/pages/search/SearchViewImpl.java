@@ -144,7 +144,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -511,7 +511,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public boolean isSelectAllMode() {
-		return selectDeselectAllButton == null? null:selectDeselectAllButton.isSelectAllMode();
+		return (selectDeselectAllButton == null) ? null : selectDeselectAllButton.isSelectAllMode();
 	}
 
 	public SearchResultTable getResult() {
