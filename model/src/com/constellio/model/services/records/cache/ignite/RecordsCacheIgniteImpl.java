@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache.ignite;
 
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.Serializable;
@@ -34,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -479,11 +481,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record forceInsert(Record insertedRecord) {
+	public CacheInsertionStatus forceInsert(Record insertedRecord) {
 		long start = new Date().getTime();
+
 		if (!insertedRecord.isFullyLoaded()) {
 			invalidate(insertedRecord.getId());
-			return insertedRecord;
+			return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
 		}
 
 		try {
@@ -516,57 +519,59 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				}
 
 			}
-			return insertedRecord;
+			return CacheInsertionStatus.ACCEPTED;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return insertedRecord;
+		return CacheInsertionStatus.ACCEPTED;
 	}
 
 	@Override
-	public Record insert(Record insertedRecord) {
+	public CacheInsertionStatus insert(Record insertedRecord) {
 
-		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {
-			return insertedRecord;
-		}
+		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord);
 
-		if (!insertedRecord.isFullyLoaded()) {
+		if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
 			invalidate(insertedRecord.getId());
-			return insertedRecord;
 		}
 
-		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
+		if (status == CacheInsertionStatus.ACCEPTED) {
 
-		CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
-		if (cacheConfig != null) {
-			String schemaTypeCode = cacheConfig.getSchemaType();
-			Record previousRecord = null;
+			Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 
-			synchronized (this) {
-				long start = new Date().getTime();
-				RecordHolder holder = byIdRecordHoldersCache.get(recordCopy.getId());
-				if (holder != null) {
-					previousRecord = holder.record;
+			CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
+			if (cacheConfig != null) {
+				String schemaTypeCode = cacheConfig.getSchemaType();
+				Record previousRecord = null;
 
-					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
-					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
-							.getVersion())) {
-						clearQueryResults(schemaTypeCode);
+				synchronized (this) {
+					long start = new Date().getTime();
+					RecordHolder holder = byIdRecordHoldersCache.get(recordCopy.getId());
+					if (holder != null) {
+						previousRecord = holder.record;
+
+						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
+						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
+								.getVersion())) {
+							clearQueryResults(schemaTypeCode);
+						}
+					} else {
+						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
+						if (cacheConfig.isPermanent()) {
+							clearQueryResults(schemaTypeCode);
+						}
 					}
-				} else {
-					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
-					if (cacheConfig.isPermanent()) {
-						clearQueryResults(schemaTypeCode);
-					}
+
+					putInRecordByMetadataCache(previousRecord, recordCopy);
+					long end = new Date().getTime();
+					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, end - start);
 				}
 
-				putInRecordByMetadataCache(previousRecord, recordCopy);
-				long end = new Date().getTime();
-				modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, end - start);
 			}
-
+			return CacheInsertionStatus.ACCEPTED;
+		} else {
+			return status;
 		}
-		return insertedRecord;
 	}
 
 	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig) {
