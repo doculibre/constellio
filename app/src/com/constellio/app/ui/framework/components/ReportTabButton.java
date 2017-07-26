@@ -103,7 +103,7 @@ public class ReportTabButton extends WindowButton {
         MetadataSchemaCounter metadataSchemaCounter = new MetadataSchemaCounter();
         List<MetadataSchemaVO> allSchemaList = getSchemaFromRecordVO();
         for (MetadataSchemaVO metadataSchemaVO : allSchemaList) {
-            metadataSchemaCounter.addOrIncrementDefaultSchema(PrintableReportListPossibleType.getValue(metadataSchemaVO.getTypeCode().toUpperCase()));
+            metadataSchemaCounter.addOrIncrementDefaultSchema(PrintableReportListPossibleType.getValueFromSchemaType(metadataSchemaVO.getTypeCode()));
             metadataSchemaCounter.addOrIncrementCustomSchema(metadataSchemaVO);
         }
         return metadataSchemaCounter;
@@ -120,7 +120,9 @@ public class ReportTabButton extends WindowButton {
     private Component createDefaultSelectComboBox() {
         if (occurence.getNumberOfDefaultSchemaOccurence() <= 1) {
             Iterator<PrintableReportListPossibleType> setIterator =  occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
-            selectedReporType = setIterator.next();
+            if(setIterator.hasNext()) {
+                selectedReporType = setIterator.next();
+            }
             return new HorizontalLayout();
         }
 

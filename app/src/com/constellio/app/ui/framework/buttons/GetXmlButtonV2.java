@@ -4,28 +4,38 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.ui.components.task.TaskFieldLookupImpl;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class GetXmlButtonV2 extends WindowButton{
     private ModelLayerFactory model;
@@ -34,8 +44,8 @@ public class GetXmlButtonV2 extends WindowButton{
     private ContentManager contentManager;
     private PrintableReportListPossibleType currentSchema;
 
-    private ListAddRemoveRecordLookupField elementLookUpField;
-
+    private Field elementLookUpField;
+    private BaseView view;
 
     public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleType currentSchema) {
         super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
@@ -44,6 +54,7 @@ public class GetXmlButtonV2 extends WindowButton{
         this.collection = collection;
         this.contentManager = model.getContentManager();
         this.currentSchema = currentSchema;
+        this.view = view;
     }
 
     public void setCurrentSchema(PrintableReportListPossibleType schema) {
@@ -52,7 +63,11 @@ public class GetXmlButtonV2 extends WindowButton{
 
     @Override
     protected Component buildWindowContent() {
-        this.elementLookUpField = getLookupFieldForCurrentSchema();
+        if(currentSchema.equals(PrintableReportListPossibleType.TASK)) {
+            this.elementLookUpField = getLookupFieldForTaskSchema();
+        } else {
+            this.elementLookUpField = getLookupFieldForCurrentSchema();
+        }
         return new GetXmlFrom(new LabelParametersVO(new LabelTemplate()), this, this.elementLookUpField);
     }
 
@@ -60,6 +75,19 @@ public class GetXmlButtonV2 extends WindowButton{
         //TODO add permission support.
         ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema.getSchemaType());
         return listAddRemoveRecordLookupField;
+    }
+
+    private ComboBox getLookupFieldForTaskSchema() {
+        ComboBox taskFieldcomboBox = new ComboBox();
+        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Task.SCHEMA_TYPE)).where(ALL)));
+        TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
+        for(Record record : records) {
+            TaskVO taskVO = taskToVOBuilder.build(record, RecordVO.VIEW_MODE.FORM, view.getSessionContext());
+            taskFieldcomboBox.addItem(taskVO);
+            taskFieldcomboBox.setItemCaption(taskVO, taskVO.getTitle());
+        }
+        return taskFieldcomboBox;
     }
 
     private class GetXmlFrom extends BaseForm<LabelParametersVO> {
@@ -71,9 +99,10 @@ public class GetXmlButtonV2 extends WindowButton{
         @Override
         protected void saveButtonClick(LabelParametersVO viewObject) throws ValidationException {
             try{
-                ListAddRemoveRecordLookupField lookupField = (ListAddRemoveRecordLookupField) fields.get(0);
+                Field lookupField = fields.get(0);
                 XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
-                xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), lookupField.getValue());
+                List<String> ids = currentSchema.equals(PrintableReportListPossibleType.TASK) ? asList(((TaskVO) lookupField.getValue()).getId()):((ListAddRemoveRecordLookupField) lookupField).getValue();
+                xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
                 XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                 String xml = xmlGenerator.generateXML();
                 String filename = "Constellio-Test.xml";

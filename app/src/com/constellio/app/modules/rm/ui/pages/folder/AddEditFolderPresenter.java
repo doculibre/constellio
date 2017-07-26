@@ -599,6 +599,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 			folder.setRetentionRuleEntered(retentionRuleField.getFieldValue());
 		}
+
+
+		if(folder.getCopyStatus() != null && retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
+			try {
+				RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(retentionRuleField.getFieldValue());
+				return !retentionRule.isResponsibleAdministrativeUnits();
+			} catch (Exception e) {
+
+			}
+		}
 		return decommissioningService().isCopyStatusInputPossible(folder, getCurrentUser());
 	}
 
