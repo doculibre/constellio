@@ -187,11 +187,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnée document, le schéma code email ne débute pas par USR",
-				"Dans le type de schéma de métadonnée document, le schéma code form ne débute pas par USR",
-				"Dans le type de schéma de métadonnée document, le schéma code report ne débute pas par USR",
-				"Dans le type de schéma de métadonnée folder, le schéma code employe ne débute pas par USR",
-				"Dans le type de schéma de métadonnée folder, le schéma code meetingFolder ne débute pas par USR");
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
 	}
 
 	@Test
