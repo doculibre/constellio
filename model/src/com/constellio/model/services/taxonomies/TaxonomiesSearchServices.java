@@ -523,6 +523,18 @@ public class TaxonomiesSearchServices {
 
 	}
 
+	private boolean isAuthGivingRequiredAccess(AuthorizationDetails authorizationDetails, String requiredAccess) {
+
+		if (Role.READ.equals(requiredAccess)) {
+			return authorizationDetails.getRoles().contains(Role.READ)
+					|| authorizationDetails.getRoles().contains(Role.WRITE)
+					|| authorizationDetails.getRoles().contains(Role.DELETE);
+		} else {
+			return authorizationDetails.getRoles().contains(requiredAccess);
+		}
+
+	}
+
 	/**
 	 * @param context The call context
 	 * @return all children for which the user has no access, but are ancestor of a record for which he has access
@@ -533,7 +545,7 @@ public class TaxonomiesSearchServices {
 		Set<String> returnedRecordIds = new HashSet<>();
 		for (String authorizationDetailsId : context.user.getAllUserAuthorizations()) {
 			AuthorizationDetails authorizationDetails = context.user.getAuthorizationDetail(authorizationDetailsId);
-			if (authorizationDetails.getRoles().contains(context.options.getRequiredAccess())) {
+			if (isAuthGivingRequiredAccess(authorizationDetails, context.options.getRequiredAccess())) {
 
 				Record securedRecord = recordServices.getDocumentById(authorizationDetails.getTarget());
 				String schemaType = getSchemaTypeCode(securedRecord.getSchemaCode());
@@ -622,8 +634,12 @@ public class TaxonomiesSearchServices {
 			LogicalSearchQuery facetQuery;
 			if (selectingAConcept) {
 				LogicalSearchCondition condition = fromTypeIn(taxonomy)
-						.where(VISIBLE_IN_TREES).isTrueOrNull()
-						.andWhere(LINKABLE).isTrueOrNull();
+						.where(VISIBLE_IN_TREES).isTrueOrNull();
+
+				if (!options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+					condition = condition.andWhere(LINKABLE).isTrueOrNull();
+				}
+
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsCondition() != null) {
 					condition = allConditions(condition, options.getFilter().getLinkableConceptsCondition());
 				}
