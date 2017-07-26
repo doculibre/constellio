@@ -50,6 +50,7 @@ import com.constellio.model.services.search.query.logical.condition.ConditionTem
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
@@ -752,7 +753,127 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	}
 
 	@Test
-	public void givenPlethoraOfRootCategoriesInARubricThenValidGetRootResponse()
+	@InDevelopmentTest
+	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
+			throws Exception {
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		Transaction transaction = new Transaction();
+		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
+
+		for (int i = 1; i <= 300; i++) {
+			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+					.setTitle("Category #" + code).setParent(rootCategory);
+			transaction.add(rm.newFolder().setTitle("A folder")
+					.setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		transaction.add(rootCategory);
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		newWebDriver();
+		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void givenPlethoraOfChildCategoriesThenValidGetRootResponse()
+			throws Exception {
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		Transaction transaction = new Transaction();
+		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
+
+		for (int i = 1; i <= 300; i++) {
+			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+					.setTitle("Category #" + code).setParent(rootCategory);
+			transaction.add(rm.newFolder().setTitle("A folder")
+					.setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		transaction.add(rootCategory);
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		User alice = users.aliceIn(zeCollection);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30));
+
+		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
+						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
+						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 31));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(60)).has(listSize(30))
+				.has(fastContinuationInfos(false, 30));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(null))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(300)).has(listSize(11))
+				.has(fastContinuationInfos(true, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(300)).has(listSize(11))
+				.has(fastContinuationInfos(true, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+				.has(recordsInOrder("category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(299)).has(listSize(10))
+				.has(fastContinuationInfos(true, 0));
+	}
+
+	@Test
+	public void givenPlethoraOfRootCategoriesThenValidGetRootResponse()
 			throws Exception {
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
