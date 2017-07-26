@@ -15,6 +15,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
@@ -207,6 +208,11 @@ public class ReportTabButton extends WindowButton {
         button.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
+                if(selectedSchemaType.contains("_")) {
+                    selectedSchemaType = selectedSchemaType.split("_")[0];
+//                    MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+//                    metadataSchemasManager.getSchemaTypes(collection).getSchema(selectedSchemaType);
+                }
                 getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchemaType, (PrintableReportTemplate) reportComboBox.getValue(), 1, getIdsFromRecordVO()));
             }
         });
