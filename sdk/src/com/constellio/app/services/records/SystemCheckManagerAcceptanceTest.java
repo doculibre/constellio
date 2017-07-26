@@ -83,13 +83,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
-	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
-		recordServices = getModelLayerFactory().newRecordServices();
 	}
 
 	@Test
@@ -109,6 +107,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema2");
 			}
 		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		DocumentType documentType = rm.newDocumentType();
 		documentType.setLinkedSchema("document_USRdocumentSchema1");
 		documentType.setCode("USRdocumentSchema");
@@ -152,7 +152,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		FolderType folderType = rm.newFolderType();
 		folderType.setLinkedSchema("folder_USRfolderSchema1");
 		folderType.setCode("USRfolderSchema");
