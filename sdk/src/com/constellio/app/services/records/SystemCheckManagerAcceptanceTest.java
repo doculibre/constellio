@@ -83,13 +83,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
-	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
-		recordServices = getModelLayerFactory().newRecordServices();
 	}
 
 	@Test
@@ -109,6 +107,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema2");
 			}
 		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		DocumentType documentType = rm.newDocumentType();
 		documentType.setLinkedSchema("document_USRdocumentSchema1");
 		documentType.setCode("USRdocumentSchema");
@@ -152,7 +152,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		FolderType folderType = rm.newFolderType();
 		folderType.setLinkedSchema("folder_USRfolderSchema1");
 		folderType.setCode("USRfolderSchema");
@@ -187,11 +187,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnée document, le schéma code email ne débute pas par USR",
-				"Dans le type de schéma de métadonnée document, le schéma code form ne débute pas par USR",
-				"Dans le type de schéma de métadonnée document, le schéma code report ne débute pas par USR",
-				"Dans le type de schéma de métadonnée folder, le schéma code employe ne débute pas par USR",
-				"Dans le type de schéma de métadonnée folder, le schéma code meetingFolder ne débute pas par USR");
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
 	}
 
 	@Test
