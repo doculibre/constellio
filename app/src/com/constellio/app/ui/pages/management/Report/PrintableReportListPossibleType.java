@@ -29,6 +29,15 @@ public enum PrintableReportListPossibleType {
         return null;// not found
     }
 
+    public static PrintableReportListPossibleType getValueFromSchemaType(String value) {
+        for (PrintableReportListPossibleType e : PrintableReportListPossibleType.values()) {
+            if (e.getSchemaType().toLowerCase().equals(value.toLowerCase())){
+                return e;
+            }
+        }
+        return null;// not found
+    }
+
     public String getSchemaType() {
         return schemaType;
     }

@@ -165,25 +165,18 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             selectionActions.add(zipButton);
         }
 
-        if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType)) {
+        if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
             reportButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(reportButton);
-            if (results instanceof SearchResultDetailedTable) {
-                ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
-                    @Override
-                    public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
-                        reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
-                    }
-                });
-            } else {
-                ((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
-                    @Override
-                    public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
-                        reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
-                    }
-                });
-            }
+            addListenerToButton(results);
+        }
+
+        if(Task.SCHEMA_TYPE.equals(schemaType)) {
+            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, true);
+            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(reportButton);
+            addListenerToButton(results);
         }
 
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ||
@@ -316,6 +309,24 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             return new BatchProcessingModifyingOneMetadataButton(presenter, this).hasResultSelected(!getSelectedRecordIds().isEmpty());
         } else {
             throw new RuntimeException("Unsupported mode " + mode);
+        }
+    }
+
+    private void addListenerToButton(SearchResultTable results){
+        if (results instanceof SearchResultDetailedTable) {
+            ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
+                @Override
+                public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
+                    reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
+                }
+            });
+        } else {
+            ((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
+                @Override
+                public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
+                    reportButton.setRecordVoList(presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]));
+                }
+            });
         }
     }
 
