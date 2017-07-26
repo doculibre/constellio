@@ -696,9 +696,13 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					final Object value1 = (property1 == null) ? null : property1.getValue();
 					final Object value2 = (property2 == null) ? null : property2.getValue();
 
-					if(propertyId.equals("folderId") && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
+					if(FolderDetailTableGenerator.FOLDER_ID.equals(propertyId) && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
 						try {
-							return Integer.compare(Integer.parseInt((String) value1), Integer.parseInt((String) value2));
+							if(sortDirection) {
+								return Integer.compare(Integer.parseInt((String) value1), Integer.parseInt((String) value2));
+							} else {
+								return Integer.compare(Integer.parseInt((String) value2), Integer.parseInt((String) value1));
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

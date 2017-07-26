@@ -2,10 +2,14 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
@@ -16,7 +20,7 @@ import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.utils.GradleFileVersionParser;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -61,7 +65,17 @@ public class MainLayoutPresenter implements Serializable {
 		String version = appLayerFactory.newApplicationService().getWarVersion();
 
 		if (version == null || version.equals("5.0.0")) {
-			version = "8.8.8.8";
+			File versionFile = new File(new FoldersLocator().getConstellioProject(), "version");
+			if (versionFile.exists()) {
+				try {
+					version = FileUtils.readFileToString(versionFile);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				version = "no version file";
+			}
+
 		}
 
 		if (version != null) {

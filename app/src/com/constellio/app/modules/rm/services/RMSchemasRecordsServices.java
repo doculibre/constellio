@@ -247,6 +247,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Document(record, getTypes()).setType(type);
 	}
 
+	public Document newDocumentWithTypeAndId(DocumentType type, String id) {
+		Record record = create(documentSchemaFor(type),id);
+		return new Document(record, getTypes()).setType(type);
+	}
+
 	public Document newDocumentWithType(String typeId) {
 		Record record = create(documentSchemaFor(typeId));
 		return new Document(record, getTypes()).setType(typeId);
@@ -346,6 +351,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public Folder newFolderWithType(String typeId) {
 		Record record = create(folderSchemaFor(typeId));
+		return new Folder(record, getTypes()).setType(typeId);
+	}
+
+	public Folder newFolderWithTypeAndId(String typeId, String id) {
+		Record record = create(folderSchemaFor(typeId), id);
 		return new Folder(record, getTypes()).setType(typeId);
 	}
 

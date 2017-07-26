@@ -106,11 +106,20 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
-		Record record4 = cache.insert(newRecord(zeType, 4));
-		Record record5 = cache.insert(newRecord(zeType, 5));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
+
+		Record record4 = newRecord(zeType, 4);
+		cache.insert(record4);
+
+		Record record5 = newRecord(zeType, 5);
+		cache.insert(record5);
 
 		cache.insert(record1);
 		cache.insert(record2);
@@ -175,9 +184,14 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
@@ -198,9 +212,14 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(anotherType, 2));
-		Record record3 = cache.insert(newRecord(anotherType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(anotherType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(anotherType, 3);
+		cache.insert(record3);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecords("2", "3").areNotInCache();
@@ -213,9 +232,14 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
