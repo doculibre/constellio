@@ -229,7 +229,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getCurrentVersion() {
 		String version = appLayerFactory.newApplicationService().getWarVersion();
 		if (version == null || version.equals("5.0.0")) {
-			version = GradleFileVersionParser.getVersion();
+			version = "8.8.8";
 		}
 		return version;
 	}

@@ -46,6 +46,10 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         initTransientObjects();
     }
 
+    public ListPrintableReportView getView() {
+        return this.view;
+    }
+
     private void initTransientObjects() {
         schemaVOBuilder = new MetadataSchemaToVOBuilder();
     }
