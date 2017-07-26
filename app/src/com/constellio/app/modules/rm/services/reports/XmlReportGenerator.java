@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.reports;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -129,7 +130,7 @@ public class XmlReportGenerator extends XmlGenerator{
     private Record[] getRecordFromIds(String schemaType, List<String> ids) {
         SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
         MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
-        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchema(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
+        LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
     }
 }

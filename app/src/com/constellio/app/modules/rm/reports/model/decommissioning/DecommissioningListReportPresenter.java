@@ -8,16 +8,22 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.MultipleFieldsComparator;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.vaadin.data.Property;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -45,7 +51,7 @@ public class DecommissioningListReportPresenter {
     public DecommissioningListReportModel build() {
 
         DecommissioningListReportModel model = new DecommissioningListReportModel();
-        DecommissioningListFolderTableExtension folderDetailTableExtension = getFolderDetailTableExtension();
+        final DecommissioningListFolderTableExtension folderDetailTableExtension = getFolderDetailTableExtension();
 
         MetadataSchemaType folderSchemaType = rm.folder.schemaType();
         DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
@@ -58,13 +64,15 @@ public class DecommissioningListReportPresenter {
         if(folderDetailTableExtension != null) {
             model.setWithMediumType(true);
             model.setWithMainCopyRule(true);
-            Metadata ancienNumeroMetadata = folderDetailTableExtension.getPreviousIdMetadata();
-            foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(ancienNumeroMetadata).sortAsc(Schemas.IDENTIFIER);
+//            foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(ancienNumeroMetadata).sortAsc(Schemas.IDENTIFIER);
         } else {
             foldersQuery.sortAsc(folderSchemaType.getDefaultSchema().get(Folder.CATEGORY_CODE)).sortAsc(Schemas.LEGACY_ID).sortAsc(Schemas.IDENTIFIER);
         }
 
         List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
+        if(folderDetailTableExtension != null) {
+            Collections.sort(folders, new MultipleFieldsComparator(getCategoryComparator(), getPreviousIdComparator(), getIdComparator()));
+        }
 
         List<DecommissioningListReportModel_Folder> foldersModel = new ArrayList<>();
         int currentFolder = 0;
@@ -124,5 +132,73 @@ public class DecommissioningListReportPresenter {
     public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
         RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
         return rmModuleExtensions.getDecommissioningListFolderTableExtension();
+    }
+
+    public Comparator getCategoryComparator() {
+        return new Comparator<Folder>() {
+            @Override
+            public int compare(Folder o1, Folder o2) {
+                return o1.getCategoryCode().compareTo(o2.getCategoryCode());
+            }
+        };
+    }
+
+    public Comparator getPreviousIdComparator() {
+        final DecommissioningListFolderTableExtension folderDetailTableExtension = getFolderDetailTableExtension();
+        return new Comparator<Folder>() {
+            @Override
+            public int compare(Folder o1, Folder o2) {
+                // Get the values to compare
+                final String value1 = folderDetailTableExtension.getPreviousIdOrNull(o1);
+                final String value2 = folderDetailTableExtension.getPreviousIdOrNull(o2);
+                if (value1 == null) {
+                    if (value2 == null) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                } else if (value2 == null) {
+                    return -1;
+                }
+
+                try {
+                    Integer int1 = Integer.parseInt(value1);
+                    Integer int2 = Integer.parseInt(value2);
+                    return int1.compareTo(int2);
+                } catch (NumberFormatException e) {
+
+                }
+                return value1.compareTo(value2);
+            }
+        };
+    }
+
+    public Comparator getIdComparator() {
+        return new Comparator<Folder>() {
+            @Override
+            public int compare(Folder o1, Folder o2) {
+                // Get the values to compare
+                final String value1 = o1.getId();
+                final String value2 = o2.getId();
+                if (value1 == null) {
+                    if (value2 == null) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                } else if (value2 == null) {
+                    return -1;
+                }
+
+                try {
+                    Integer int1 = Integer.parseInt(value1);
+                    Integer int2 = Integer.parseInt(value2);
+                    return int1.compareTo(int2);
+                } catch (NumberFormatException e) {
+
+                }
+                return value1.compareTo(value2);
+            }
+        };
     }
 }
