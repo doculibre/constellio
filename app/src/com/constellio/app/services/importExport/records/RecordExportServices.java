@@ -31,10 +31,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -336,23 +333,39 @@ public class RecordExportServices {
 			if(metadata.getType() == MetadataValueType.CONTENT) {
 				DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 				DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
-				Content content = (Content)record.get(metadata);
-				if(content != null) {
-					List<ContentVersion> versions = content.getVersions();
-					for(ContentVersion version: versions) {
-						String systemFilePath = "";
-						if (conf.getContentDaoType() == ContentDaoType.FILESYSTEM) {
-							systemFilePath = ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf(version.getHash()).getAbsolutePath();
-						} else {
-							systemFilePath = "Unsupported";
-						}
-						contentPaths.append(systemFilePath);
-						contentPaths.append("\n");
+
+				Object contentMetadataValue = record.get(metadata);
+				if(contentMetadataValue instanceof Content) {
+					Content content = (Content) contentMetadataValue;
+					writeContentPath(content, contentPaths);
+				} else if(contentMetadataValue instanceof java.util.Collection) {
+					Iterator iterator = ((Collection) contentMetadataValue).iterator();
+					while(iterator.hasNext()) {
+						writeContentPath((Content) iterator.next(), contentPaths);
 					}
 				}
 			}
 		}
 	}
+
+	private void writeContentPath(Content content, StringBuilder contentPaths) {
+		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
+		if(content != null) {
+			List<ContentVersion> versions = content.getVersions();
+			for(ContentVersion version: versions) {
+				String systemFilePath = "";
+				if (conf.getContentDaoType() == ContentDaoType.FILESYSTEM) {
+					systemFilePath = ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf(version.getHash()).getAbsolutePath();
+				} else {
+					systemFilePath = "Unsupported";
+				}
+				contentPaths.append(systemFilePath);
+				contentPaths.append("\n");
+			}
+		}
+	}
+
 
 	private void manageMapStringListStringStructureFactory(Record record, Metadata metadata,ModifiableImportRecord modifiableImportRecord) {
 		List<MapStringListStringStructure> mapStringListStructureList;
