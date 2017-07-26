@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -22,13 +25,6 @@ import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
@@ -47,6 +43,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	private static final String DEPOSIT_DATE_BEFORE_TRANSFER_DATE = "depositDateBeforeTransferDate";
 	private static final String DESTRUCTION_DATE_BEFORE_TRANSFER_DATE = "destructionDateBeforeTransferDate";
 	private static final String ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME = "messageUSRNotPresentInSchemaName";
+	private static final String ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE = "typeCannotBeChangeForTypeType";
 	private static Logger LOGGER = LoggerFactory.getLogger(RMSystemCheckExtension.class);
 
 	String collection;
@@ -63,6 +60,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	public static final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
 	public static final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
 	public static final String METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL = "rm.recordValidation.subFolderWithNullFieldsNotNulls";
+	public static final String METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE = "rm.recordValidation.typeDoNotCorrespondToTypeType";
 
 	public static final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
 	public static final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
@@ -124,6 +122,25 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		} else if (record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
 			Folder folder = rm.wrapFolder(record);
 			boolean incrementMetric = false;
+			FolderType folderType = null;
+			if (folder.getType() != null) {
+				folderType = rm.getFolderType(folder.getType());
+			}
+			if(folderType != null && folderType.getLinkedSchema()!= null && !record.getSchemaCode().equals(folderType.getLinkedSchema())) {
+				boolean isSavechangeSchema;
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
+				if(isRepair) {
+					isSavechangeSchema = record.changeSchema(rm.getTypes().getSchema(record.getSchemaCode()),rm.getTypes().getSchema(folderType.getLinkedSchema()));
+					if(!isSavechangeSchema) {
+						isToBeSaved = true;
+					}
+					else {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("recordId", record.getId());
+						validateRecordsCheckParams.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE, parameter);
+					}
+				}
+			}
 
 			if (folder.getParentFolder() != null) {
 				if (folder.getMainCopyRuleIdEntered() != null) {
@@ -176,6 +193,28 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 				if (incrementMetric) {
 					validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL);
+				}
+			}
+ 		} else if (record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
+			Document document = rm.wrapDocument(record);
+
+			DocumentType documentType = null;
+			if (document.getType() != null) {
+				documentType = rm.getDocumentType(document.getType());
+			}
+			if(documentType != null && documentType.getLinkedSchema() != null && !record.getSchemaCode().equals(documentType.getLinkedSchema())) {
+				boolean isSavechangeSchema;
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
+				if(isRepair) {
+					isSavechangeSchema = record.changeSchema(rm.getTypes().getSchema(record.getSchemaCode()),rm.getTypes().getSchema(documentType.getLinkedSchema()));
+					if(!isSavechangeSchema) {
+						isToBeSaved = true;
+					}
+					else {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("recordId", record.getId());
+						validateRecordsCheckParams.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE, parameter);
+					}
 				}
 			}
 		}
