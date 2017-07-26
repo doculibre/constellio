@@ -61,7 +61,7 @@ public class MainLayoutPresenter implements Serializable {
 		String version = appLayerFactory.newApplicationService().getWarVersion();
 
 		if (version == null || version.equals("5.0.0")) {
-			version = GradleFileVersionParser.getVersion();
+			version = "8.8.8.8";
 		}
 
 		if (version != null) {
