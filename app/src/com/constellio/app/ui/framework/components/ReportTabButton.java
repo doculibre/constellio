@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReport;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -84,9 +85,15 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createExcelTab() {
-        AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-        presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-        return new ReportSelector(presenter);
+        VerticalLayout verticalLayout = new VerticalLayout();
+        try{
+            AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+            presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+            verticalLayout.addComponent(new ReportSelector(presenter));
+        }catch (UnsupportedReport unsupportedReport ){
+            view.showErrorMessage($("ReportTabButton.noExcelReport"));
+        }
+        return verticalLayout;
     }
 
     private Component createPDFTab() {
@@ -216,7 +223,7 @@ public class ReportTabButton extends WindowButton {
             @Override
             public void validate(Object value) throws InvalidValueException {
                 if(value == null) {
-                    throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+                    throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
                 }
             }
         });
