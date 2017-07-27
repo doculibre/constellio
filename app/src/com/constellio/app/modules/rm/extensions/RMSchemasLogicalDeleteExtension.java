@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
+import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
+import static com.constellio.model.services.contents.ContentFactory.checkedOut;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -101,6 +101,9 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else if (event.isSchemaType(Category.SCHEMA_TYPE)) {
 			return isCategoryLogicallyDeletable(event);
 
+		} else if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
+			return isFolderLogicallyDeletable(event);
+
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
@@ -117,6 +120,13 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
 				fromAllSchemasExcept(asList(rm.category.schemaType()))
 						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
+	}
+
+	private ExtensionBooleanResult isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.document.schemaType())
+				.where(rm.document.content()).is(checkedOut())
+				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())
+		));
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
