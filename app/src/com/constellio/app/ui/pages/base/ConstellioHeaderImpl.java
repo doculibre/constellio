@@ -536,7 +536,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	private WindowButton buildAddToCartButton(VerticalLayout actionMenuLayout) {
-		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 		WindowButton windowButton = new WindowButton($("ConstellioHeader.selection.actions.addToCart"), $("ConstellioHeader.selection.actions.addToCart")) {
 			@Override
 			protected Component buildWindowContent() {
@@ -551,7 +550,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
+						presenter.createNewCartAndAddToItRequested(param.getIds(), newCartTitleField.getValue());
 						getWindow().close();
 					}
 				});
@@ -563,6 +563,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
+						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 						presenter.addToCartRequested(param.getIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
@@ -573,6 +574,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
+						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 						presenter.addToCartRequested(param.getIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
@@ -590,6 +592,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 			@Override
 			public boolean isVisible() {
+				AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(), asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
 			}
 
@@ -599,6 +602,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		};
 		SelectionPanelExtension.setStyles(windowButton);
+		AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 		windowButton.setEnabled(presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(), asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
 		windowButton.setVisible(isEnabled());
 		return windowButton;
