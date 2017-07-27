@@ -98,7 +98,8 @@ public class StreamsTestFeatures {
 						for (StackTraceElement element : thread.getStackTrace()) {
 							message.append("\n\t" + element.toString());
 						}
-						LOGGER.info(message.toString());
+						//LOGGER.info(message.toString());
+						System.out.println(message.toString());
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
