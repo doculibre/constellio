@@ -106,23 +106,22 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		String schemaTypeCode = parameters.get("schemaTypeCode");
 
 		ValidationErrors validationErrors = new ValidationErrors();
+		if(isCodeEditable()) {
+			if (!schemaTypeCode.toLowerCase().equals("document")
+					&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
+				if (!schemaVO.getLocalCode().startsWith("USR")) {
+					validationErrors.add(AddEditSchemaPresenter.class, "startWithUSR");
+				}
 
-		if(!schemaTypeCode.toLowerCase().equals("document")
-				&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
-			if (!schemaVO.getLocalCode().startsWith("USR")) {
-				validationErrors.add(AddEditSchemaPresenter.class, "startWithUSR");
-			}
-
-			if (schemaVO.getLocalCode().length() <= 3) {
-				validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				if (schemaVO.getLocalCode().length() <= 3) {
+					validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				}
+			} else {
+				if (schemaVO.getLocalCode().length() <= 0) {
+					validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				}
 			}
 		}
-		else {
-			if (schemaVO.getLocalCode().length() <= 0) {
-				validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
-			}
-		}
-
 		validationErrors.throwIfNonEmpty();
 
 		String code;
