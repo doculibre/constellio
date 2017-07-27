@@ -6,6 +6,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -84,6 +85,8 @@ public class ContentManager implements StatefulService {
 
 	//TODO Increase this limit to 100
 	private static final int REPARSE_REINDEX_BATCH_SIZE = 1;
+
+	public static final String READ_FILE_TO_UPLOAD = "ContentManager-ReadFileToUpload";
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "ContentManager-ReadContentForPreviewConversion";
 
@@ -269,6 +272,18 @@ public class ContentManager implements StatefulService {
 
 	String writeParsingResults(ParsedContent parsingResults) {
 		return new ParsedContentConverter().convertToString(parsingResults);
+	}
+
+	public ContentVersionDataSummary upload(File file)
+			throws FileNotFoundException {
+
+		InputStream inputStream = ioServices.newBufferedFileInputStream(file, READ_FILE_TO_UPLOAD);
+
+		try {
+			return upload(inputStream, new UploadOptions(file.getName())).getContentVersionDataSummary();
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
 	}
 
 	@Deprecated
