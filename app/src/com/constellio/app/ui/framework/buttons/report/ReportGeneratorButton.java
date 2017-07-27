@@ -100,15 +100,19 @@ public class ReportGeneratorButton extends WindowButton {
         printableItemsFields = new ComboBox();
         List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
         if(printableReportTemplateList.size() > 0) {
+        	boolean first = true;
             for(PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
                 printableItemsFields.addItem(printableReportTemplate);
                 printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
+                if(first) {
+					printableItemsFields.setValue(printableReportTemplate);
+                	first = false;
+				}
             }
         } else {
             throw new Exception("No report generated");
         }
         printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
-        printableItemsFields.setNullSelectionAllowed(false);
         printableItemsFields.addValidator(new Validator() {
 			@Override
 			public void validate(Object value) throws InvalidValueException {
@@ -117,6 +121,9 @@ public class ReportGeneratorButton extends WindowButton {
 				}
 			}
 		});
+		printableItemsFields.requestRepaint();
+		printableItemsFields.setNullSelectionAllowed(false);
+		printableItemsFields.setValue(printableReportTemplateList.get(0));
     }
 
 	private void setupCopieFields() {
@@ -141,7 +148,7 @@ public class ReportGeneratorButton extends WindowButton {
 
 		@Override
 		protected void cancelButtonClick(LabelParametersVO viewObject) {
-
+			getWindow().close();
 		}
 
 		private List<String> getIdsFromRecordVO() {

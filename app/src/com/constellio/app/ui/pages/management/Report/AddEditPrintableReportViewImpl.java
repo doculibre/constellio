@@ -61,7 +61,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 
     @Override
     protected String getTitle() {
-        return $( isEdit ? "AddLabelView.title" : "EditLabelView.title");
+        return $( isEdit ? "PrintableReport.add.title" : "PrintableReport.edit.title");
     }
 
     private PrintableReportFormImpl newForm() {
