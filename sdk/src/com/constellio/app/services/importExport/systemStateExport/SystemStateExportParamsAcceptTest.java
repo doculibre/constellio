@@ -19,10 +19,12 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_RecordHasNoContent;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -54,16 +56,17 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withAllTestUsers().withConstellioRMModule()
 		);
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
-		ContentVersionDataSummary resource1 = contentManager.upload(getTestResourceInputStream("resource1.docx"));
-		ContentVersionDataSummary resource2 = contentManager.upload(getTestResourceInputStream("resource2.docx"));
-		ContentVersionDataSummary resource3 = contentManager.upload(getTestResourceInputStream("resource3.pdf"));
-		ContentVersionDataSummary resource4 = contentManager.upload(getTestResourceInputStream("resource4.pdf"));
+		ContentVersionDataSummary resource1 = contentManager.upload(getTestResourceFile("resource1.docx"));
+		ContentVersionDataSummary resource2 = contentManager.upload(getTestResourceFile("resource2.docx"));
+		ContentVersionDataSummary resource3 = contentManager.upload(getTestResourceFile("resource3.pdf"));
+		ContentVersionDataSummary resource4 = contentManager.upload(getTestResourceFile("resource4.pdf"));
 
 		document1PreviousContent = resource1.getHash();
 		document1CurrentContent = resource2.getHash();
