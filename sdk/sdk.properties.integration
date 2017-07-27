@@ -14,13 +14,13 @@ dao.contents.type=filesystem
 dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
-skip.uitests=true
-skip.indevelopment=true
-skip.drivertests=false
-skip.internettests=true
-validateRollback=false
-skip.testsWithGradle=true
-skip.loadtests=true
 skip.slowtests=false
+skip.uitests=true
+skip.drivertests=true
+skip.loadtests=true
+skip.internettests=true
+skip.indevelopment=true
+
+
 tests.whitelist=
-tests.blacklist=com.constellio.app.modules.sct.
+tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,com.constellio.model.conf.ldap.services.AzureAdClientAcceptanceTest,com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteAcceptanceTest,com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManagerAcceptTest,com.constellio.app.modules.migrations.PluginsComboMigrationsAcceptanceTest
