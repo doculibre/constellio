@@ -296,7 +296,7 @@ public class DecommissioningService {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
 			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
-			emailToSend.setSubject($("DecommissionningServices.approvalRequest"))
+			emailToSend.setSubject($("DecommissionningServices.approvalRequestEmailTitle"))
 					.setSendOn(TimeProvider.getLocalDateTime())
 					.setParameters(parameters)
 					.setTemplate(templateID)
