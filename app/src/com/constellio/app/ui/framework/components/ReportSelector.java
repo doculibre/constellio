@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.model.search.NoSuchReportRuntimeException;
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReport;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -45,7 +47,7 @@ public class ReportSelector extends HorizontalLayout {
 		ComboBox comboBox = new ComboBox();
 		List<String> supportedReports = presenter.getSupportedReports();
 		if (supportedReports.isEmpty()) {
-			setVisible(false);
+			throw new UnsupportedReport();
 		} else {
 			for (String report : supportedReports) {
 				comboBox.addItem(report);
@@ -53,6 +55,7 @@ public class ReportSelector extends HorizontalLayout {
 			}
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
+			comboBox.setValue(supportedReports.get(0));
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
