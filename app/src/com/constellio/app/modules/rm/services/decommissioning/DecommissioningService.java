@@ -296,7 +296,14 @@ public class DecommissioningService {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
 			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
-			emailToSend.setSubject($("DecommissionningServices.approvalRequest"))
+			String subject = "";
+			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+				subject = $("DecommissionningServices.approvalRequestEmailTitle");
+			} else {
+				subject = $("DecommissionningServices.validationRequest");
+			}
+
+			emailToSend.setSubject(subject)
 					.setSendOn(TimeProvider.getLocalDateTime())
 					.setParameters(parameters)
 					.setTemplate(templateID)
