@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.entities.PrintableReportVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -80,6 +81,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.FOLDER).withRecordSchema().withRecordType().attachTo((BaseTable) tableFolder);
     }
 
     private Table createDocumentTable() {
@@ -109,6 +111,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.DOCUMENT).withRecordSchema().withRecordType().attachTo((BaseTable) tableFolder);
     }
 
     private Table createTaskTable() {
@@ -135,9 +138,12 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
             }
         });
         container = buttonsContainerForFolder;
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addComponents();
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.TASK).withRecordSchema().withRecordType().withButtonContainer().attachTo((BaseTable) tableFolder);
     }
 
     private Table setTableProperty(Table table, int maxSize) {

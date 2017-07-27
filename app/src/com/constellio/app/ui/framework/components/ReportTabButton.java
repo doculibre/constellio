@@ -15,7 +15,9 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
@@ -102,7 +104,7 @@ public class ReportTabButton extends WindowButton {
         MetadataSchemaCounter metadataSchemaCounter = new MetadataSchemaCounter();
         List<MetadataSchemaVO> allSchemaList = getSchemaFromRecordVO();
         for (MetadataSchemaVO metadataSchemaVO : allSchemaList) {
-            metadataSchemaCounter.addOrIncrementDefaultSchema(PrintableReportListPossibleType.getValue(metadataSchemaVO.getTypeCode().toUpperCase()));
+            metadataSchemaCounter.addOrIncrementDefaultSchema(PrintableReportListPossibleType.getValueFromSchemaType(metadataSchemaVO.getTypeCode()));
             metadataSchemaCounter.addOrIncrementCustomSchema(metadataSchemaVO);
         }
         return metadataSchemaCounter;
@@ -119,7 +121,9 @@ public class ReportTabButton extends WindowButton {
     private Component createDefaultSelectComboBox() {
         if (occurence.getNumberOfDefaultSchemaOccurence() <= 1) {
             Iterator<PrintableReportListPossibleType> setIterator =  occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
-            selectedReporType = setIterator.next();
+            if(setIterator.hasNext()) {
+                selectedReporType = setIterator.next();
+            }
             return new HorizontalLayout();
         }
 
@@ -128,6 +132,15 @@ public class ReportTabButton extends WindowButton {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
         }
+        defaultElementSelected.setNullSelectionAllowed(false);
+        defaultElementSelected.addValidator(new Validator() {
+            @Override
+            public void validate(Object value) throws InvalidValueException {
+                if(value == null) {
+                    throw new InvalidValueException($("ReportTabButton.invalidReportType"));
+                }
+            }
+        });
         defaultElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
@@ -152,7 +165,7 @@ public class ReportTabButton extends WindowButton {
                 }
             }
         });
-        defaultElementSelected.setCaption($("Veuillez selectionnez un type d''éléments"));
+        defaultElementSelected.setCaption($("ReportTabButton.selectDefaultReportType"));
         defaultElementSelected.setWidth("100%");
         return defaultElementSelected;
     }
@@ -166,6 +179,15 @@ public class ReportTabButton extends WindowButton {
 
         customElementSelected = new ComboBox();
         this.fillSchemaCombobox(customElementSelected);
+        customElementSelected.setNullSelectionAllowed(false);
+        customElementSelected.addValidator(new Validator() {
+            @Override
+            public void validate(Object value) throws InvalidValueException {
+                if(value == null) {
+                    throw new InvalidValueException($("ReportTabButton.invalidRecordSchema"));
+                }
+            }
+        });
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
@@ -177,7 +199,7 @@ public class ReportTabButton extends WindowButton {
                 }
             }
         });
-        customElementSelected.setCaption($("Veuillez selectionnez un type de schéma d'éléments"));
+        customElementSelected.setCaption($("ReportTabButton.selectCustomReportSchema"));
         customElementSelected.setWidth("100%");
         return customElementSelected;
     }
@@ -187,8 +209,17 @@ public class ReportTabButton extends WindowButton {
         if(selectedSchemaType != null && selectedReporType != null) {
             reportComboBox = fillTemplateComboBox(reportComboBox);
         }
-        reportComboBox.setCaption("Veuillez selectionner gabarit d'étiquette");
+        reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");
+        reportComboBox.setNullSelectionAllowed(false);
+        reportComboBox.addValidator(new Validator() {
+            @Override
+            public void validate(Object value) throws InvalidValueException {
+                if(value == null) {
+                    throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+                }
+            }
+        });
         return reportComboBox;
     }
 
@@ -207,6 +238,11 @@ public class ReportTabButton extends WindowButton {
         button.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
+                if(selectedSchemaType.contains("_")) {
+                    selectedSchemaType = selectedSchemaType.split("_")[0];
+//                    MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+//                    metadataSchemasManager.getSchemaTypes(collection).getSchema(selectedSchemaType);
+                }
                 getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchemaType, (PrintableReportTemplate) reportComboBox.getValue(), 1, getIdsFromRecordVO()));
             }
         });

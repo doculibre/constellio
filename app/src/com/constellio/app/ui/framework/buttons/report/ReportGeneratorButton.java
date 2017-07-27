@@ -1,46 +1,26 @@
 package com.constellio.app.ui.framework.buttons.report;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.utils.ReportGeneratorUtils;
-import net.sf.jasperreports.engine.JRException;
-import org.apache.commons.io.FileUtils;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.ISODateTimeFormat;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.data.io.IOServicesFactory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -68,7 +48,7 @@ public class ReportGeneratorButton extends WindowButton {
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
 			PrintableReportListPossibleType currentSchema) {
-		super(caption, windowCaption);
+		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
 		this.currentSchema = currentSchema;
@@ -128,6 +108,15 @@ public class ReportGeneratorButton extends WindowButton {
             throw new Exception("No report generated");
         }
         printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
+        printableItemsFields.setNullSelectionAllowed(false);
+        printableItemsFields.addValidator(new Validator() {
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				if(value == null) {
+					throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+				}
+			}
+		});
     }
 
 	private void setupCopieFields() {
@@ -147,7 +136,7 @@ public class ReportGeneratorButton extends WindowButton {
 		@Override
 		protected void saveButtonClick(LabelParametersVO viewObject)
 				throws ValidationException {
-			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO()));
+			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO()));
 		}
 
 		@Override

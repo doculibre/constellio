@@ -12,7 +12,7 @@ public interface RecordsCaches {
 
 	void insert(String collection, List<Record> records);
 
-	void insert(Record record);
+	CacheInsertionStatus insert(Record record);
 
 	Record getRecord(String id);
 

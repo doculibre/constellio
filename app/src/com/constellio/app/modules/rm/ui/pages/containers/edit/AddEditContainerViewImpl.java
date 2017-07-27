@@ -75,8 +75,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	private ContainerFormImpl buildForm() {
 		ContainerFormImpl form = newForm();
-		prepareTypeField(form.getTypeField());
-		prepareDecommissioningTypeField(form.getDecommissioningTypeField());
+		prepareTypeField(form.getTypeField());;
 		prepareCapacityField(form.getCapacityField());
 		return form;
 	}
@@ -106,9 +105,6 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 		});
 	}
 
-	private void prepareDecommissioningTypeField(Field<String> field) {
-		field.setVisible(presenter.canEditDecommissioningType());
-	}
 
 	private ContainerFormImpl newForm() {
 		return new ContainerFormImpl(container, presenter) {

@@ -134,7 +134,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+	public void givenPermanentCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOnePassedToTheCacheThenDoesNotAffectTheCachedRecord()
 			throws Exception {
 
 		Transaction transaction = new Transaction();
@@ -144,9 +144,9 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
@@ -156,13 +156,13 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 
 	@Test
-	public void givenVolatileCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+	public void givenVolatileCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOnePassedToTheCacheThenDoesNotAffectTheCachedRecord()
 			throws Exception {
 
 		Transaction transaction = new Transaction();
@@ -172,10 +172,10 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
@@ -184,8 +184,8 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 				.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 
@@ -200,18 +200,18 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 

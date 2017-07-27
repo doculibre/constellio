@@ -226,6 +226,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				navigator.addViewChangeListener(new ViewChangeListener() {
 					@Override
 					public boolean beforeViewChange(ViewChangeEvent event) {
+						ConstellioFactories.getInstance().onRequestEnded();
+						ConstellioFactories.getInstance().onRequestStarted();
 						return true;
 					}
 

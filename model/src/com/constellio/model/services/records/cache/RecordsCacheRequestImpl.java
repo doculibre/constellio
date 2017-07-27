@@ -88,7 +88,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record insert(Record record) {
+	public CacheInsertionStatus insert(Record record) {
 		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 			if (!record.getSchemaCode().startsWith("event")) {
 				LOGGER.info("inserting in request cache " + record.getIdTitle() + " with version " + record.getVersion()
@@ -96,8 +96,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 				((RecordsCacheImpl) nested).doNotLog.add(record.getId() + "_" + record.getVersion());
 			}
 		}
-		insertInRequestcache(record);
-		return nested.insert(record);
+		CacheInsertionStatus status = nested.insert(record);
+		if (status == CacheInsertionStatus.ACCEPTED) {
+			insertInRequestcache(record);
+		}
+		return status;
 	}
 
 	private void insertInRequestcache(Record insertedRecord) {
@@ -120,7 +123,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record forceInsert(Record record) {
+	public CacheInsertionStatus forceInsert(Record record) {
 		forceInsertInRequestcache(record);
 		return nested.forceInsert(record);
 	}

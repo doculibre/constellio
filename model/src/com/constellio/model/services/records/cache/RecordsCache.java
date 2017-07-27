@@ -20,9 +20,9 @@ public interface RecordsCache {
 
 	List<Record> getQueryResults(LogicalSearchQuery query);
 
-	Record insert(Record record);
+	CacheInsertionStatus insert(Record record);
 
-	Record forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record);
 
 	void invalidateRecordsOfType(String recordType);
 

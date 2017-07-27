@@ -8,6 +8,7 @@ public class PrintableReportVO extends RecordVO implements Serializable {
     private String jasperFile;
     private String reportType;
     private boolean deletable;
+    private String recordSchema;
 
     public PrintableReportVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
         super(id, metadataValues, viewMode);
@@ -29,6 +30,10 @@ public class PrintableReportVO extends RecordVO implements Serializable {
         return reportType;
     }
 
+    public String getRecordSchema() {
+        return recordSchema;
+    }
+
     public PrintableReportVO setJasperFile(String jasperFile) {
         this.jasperFile = jasperFile;
         return this;
@@ -36,6 +41,11 @@ public class PrintableReportVO extends RecordVO implements Serializable {
 
     public PrintableReportVO setReportType(String reportType) {
         this.reportType = reportType;
+        return this;
+    }
+
+    public PrintableReportVO setRecordSchema(String recordSchema) {
+        this.recordSchema = recordSchema;
         return this;
     }
 

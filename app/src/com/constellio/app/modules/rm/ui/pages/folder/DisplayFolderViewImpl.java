@@ -409,10 +409,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private WindowButton buildAddToCartButton() {
-		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "50%");
+		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart"), configuration) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
@@ -458,6 +460,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponents(newCartLayout,tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
 		};
