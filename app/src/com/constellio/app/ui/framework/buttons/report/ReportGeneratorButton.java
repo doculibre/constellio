@@ -15,6 +15,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -46,7 +47,7 @@ public class ReportGeneratorButton extends WindowButton {
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
 			PrintableReportListPossibleType currentSchema) {
-		super(caption, windowCaption);
+		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
 		this.currentSchema = currentSchema;

@@ -2,18 +2,18 @@ package com.constellio.app.ui.framework.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-import com.constellio.data.io.services.facades.IOServices;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.vaadin.server.DownloadStream;
+import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.BrowserFrame;
@@ -21,13 +21,11 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
 public class LabelViewer extends VerticalLayout {
-    private ContentManager contentManager;
 
     public LabelViewer(File PDF, String filename, IOServices ioServices) {
+		addStyleName("no-scroll");
         InputStream inputStream = null;
         try {
-            ModelLayerFactory model = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory();
-            contentManager = model.getContentManager();
             inputStream = new FileInputStream(PDF);
             byte[] PDFbytes = IOUtils.toByteArray(inputStream);
             StreamSource source = buildSource(PDFbytes);
@@ -35,13 +33,17 @@ public class LabelViewer extends VerticalLayout {
             viewer.setSource(new StreamResource(source, filename));
 
             viewer.setWidth("100%");
-            viewer.setHeight("1024px");
+//            viewer.setHeight("900px");
+            int adjustedHeight = Page.getCurrent().getBrowserWindowHeight() - 200;
+            viewer.setHeight(adjustedHeight + "px");
 
             Link download = new Link($("ReportViewer.download", filename),
                     new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
             addComponents(download, viewer);
             setWidth("100%");
+            setHeight("100%");
+            setExpandRatio(viewer, 1);
 
         } catch (IOException e) {
             e.printStackTrace();
