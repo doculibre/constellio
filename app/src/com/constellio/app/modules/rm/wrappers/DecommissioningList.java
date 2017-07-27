@@ -314,6 +314,16 @@ public class DecommissioningList extends RecordWrapper {
 		return setFolderDetails(details);
 	}
 
+	public DecommissioningList removeFolderDetails(List<String> folderIds) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (DecomListFolderDetail detail : getFolderDetails()) {
+			if (!folderIds.contains(detail.getFolderId())) {
+				details.add(detail);
+			}
+		}
+		return setFolderDetails(details);
+	}
+
 	public DecommissioningList addFolderDetailsFor(Folder... folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		details.addAll(getFolderDetails());
@@ -567,5 +577,22 @@ public class DecommissioningList extends RecordWrapper {
 		ArrayList<String> ids = new ArrayList<>(getDocuments());
 		ids.remove(id);
 		return setDocuments(ids);
+	}
+
+	public DecommissioningList removeReferences(Record... recordsToRemove) {
+		List<String> documentsToRemove = new ArrayList<>();
+		List<String> foldersToRemove = new ArrayList<>();
+
+		for(Record record: recordsToRemove) {
+			if(record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+				foldersToRemove.add(record.getId());
+			} else if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+				documentsToRemove.add(record.getId());
+			}
+		}
+
+		removeDocuments(documentsToRemove.toArray(new String[0]));
+		removeFolderDetails(foldersToRemove);
+		return this;
 	}
 }
