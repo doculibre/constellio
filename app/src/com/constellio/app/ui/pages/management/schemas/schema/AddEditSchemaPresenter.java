@@ -42,7 +42,11 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 	private boolean editMode;
 
 	private String schemaTypeCode;
-	
+
+	private String initialCode;
+
+	boolean initialIsCodeEditable;
+
 	public AddEditSchemaPresenter(AddEditSchemaView view) {
 		super(view);
 	}
@@ -79,13 +83,16 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 				code = codeParam;
 			}
 		}
+
+		initialCode = code;
 		initialSchemaCode = schema.getCode();
 
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(collection, schemaTypeCode);
 
-		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema,code, sessionContext, schemaTypeDisplayConfig);
+		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema,code, sessionContext, schemaTypeDisplayConfig, editMode);
 		setSchemaVO(schemaVO);
+		initialIsCodeEditable = isCodeEditable();
 	}
 
 	public MetadataVODataProvider getDataProvider() {
@@ -102,20 +109,20 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		String schemaTypeCode = parameters.get("schemaTypeCode");
 
 		ValidationErrors validationErrors = new ValidationErrors();
+		if(initialIsCodeEditable) {
+			if (!schemaTypeCode.toLowerCase().equals("document")
+					&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
+				if (!schemaVO.getLocalCode().startsWith("USR")) {
+					validationErrors.add(AddEditSchemaPresenter.class, "startWithUSR");
+				}
 
-		if(!schemaTypeCode.toLowerCase().equals("document")
-				&& !schemaTypeCode.toLowerCase().equals("folder") || !editMode) {
-			if (!schemaVO.getLocalCode().startsWith("USR")) {
-				validationErrors.add(AddEditSchemaPresenter.class, "startWithUSR");
-			}
-
-			if (schemaVO.getLocalCode().length() <= 3) {
-				validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
-			}
-		}
-		else {
-			if (schemaVO.getLocalCode().length() <= 0) {
-				validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				if (schemaVO.getLocalCode().length() <= 3) {
+					validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				}
+			} else {
+				if (schemaVO.getLocalCode().length() <= 0) {
+					validationErrors.add(AddEditSchemaPresenter.class, "codeToShort");
+				}
 			}
 		}
 

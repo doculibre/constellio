@@ -70,7 +70,11 @@ public class LayerFactoryImpl implements LayerFactory {
 
 	public void close(boolean closeBottomLayers) {
 		for (int i = statefulServices.size() - 1; i >= 0; i--) {
-			statefulServices.get(i).close();
+			try  {
+				statefulServices.get(i).close();
+			} catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 		if (closeBottomLayers && bottomLayerFactory != null) {
 			bottomLayerFactory.close(closeBottomLayers);
