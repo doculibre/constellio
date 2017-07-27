@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -60,6 +61,14 @@ public class ReportSelector extends HorizontalLayout {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					button.setEnabled(true);
+				}
+			});
+			comboBox.addValidator(new Validator() {
+				@Override
+				public void validate(Object value) throws InvalidValueException {
+					if(value == null) {
+						throw new InvalidValueException($("ReportTabButton.invalidReportType"));
+					}
 				}
 			});
 		}
