@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.model;
 import static com.constellio.model.entities.enums.TitleMetadataPopulatePriority.PROPERTIES_FILENAME_STYLES;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.joda.time.LocalDate.now;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -178,13 +180,40 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenACheckedOutDocumentThenNotLogicallyDeletable()
+			throws Exception {
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+		ContentVersionDataSummary version2 = contentManager.upload(getTestResourceFile("test2.docx"));
+		Content content = contentManager.createMajor(dakota, "test.docx", version1);
+
+		Folder childFolder = rm.newFolder().setParentFolder(records.getFolder_A03()).setTitle("childFolder").setOpenDate(now());
+		Document wordDocument = rm.newDocument().setFolder(childFolder).setTitle("ze title").setContent(content);
+		wordDocument.getContent().checkOut(dakota);
+		recordServices.execute(new Transaction(childFolder, wordDocument));
+
+		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isFalse();
+
+		wordDocument.getContent().checkIn();
+		recordServices.update(wordDocument);
+
+		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isTrue();
+		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isTrue();
+		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isTrue();
+	}
+
+	@Test
 	public void whenCreatingADocumentWithAMicrosofContentThenConverted()
 			throws Exception {
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
-		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceInputStream("test.docx"));
-		ContentVersionDataSummary version2 = contentManager.upload(getTestResourceInputStream("test2.docx"));
+		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));
+		ContentVersionDataSummary version2 = contentManager.upload(getTestResourceFile("test2.docx"));
 
 		Document wordDocument = newDocumentWithContent(contentManager.createMajor(dakota, "test.docx", version1));
 		recordServices.add(wordDocument);
