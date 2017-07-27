@@ -211,6 +211,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean doesFileExist(String hash) {
+		return getContentDao().isDocumentExisting(hash);
+	}
+
 	public ContentDao getContentDao() {
 		return modelLayerFactory.getDataLayerFactory().getContentsDao();
 	}
@@ -316,11 +320,7 @@ public class ContentManager implements StatefulService {
 				duplicate = parsedContentResponse.hasFoundDuplicate();
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
-				try {
-					getParsedContent(hash);
-					duplicate = true;
-				} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
-				}
+				duplicate = doesFileExist(hash);
 			}
 
 			//saveContent(hash, closeableInputStreamFactory);
