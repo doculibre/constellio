@@ -26,6 +26,7 @@ import java.util.Map;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -177,6 +178,51 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		Folder documentResult = rm.getFolder("MyFolder");
 		assertThat(documentResult.getSchema().getCode()).isEqualTo("folder_USRfolderSchema2");
+	}
+
+	@Test
+	public void givenFolderWithSchemaAndWrongTypeThenRepairFail() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
+				types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("USRfolderSchema1").create("metadataInSchema1").setType(MetadataValueType.STRING);
+			}
+
+		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		FolderType folderType = rm.newFolderType();
+		folderType.setLinkedSchema("folder_USRfolderSchema1");
+		folderType.setCode("USRfolderSchema");
+		folderType.setTitle("USRfolderSchema");
+		recordServices.add(folderType);
+
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		folder.setType(folderType);
+		folder.setOpenDate(LocalDate.now());
+		folder.setCreatedOn(LocalDateTime.now());
+		folder.set("metadataInSchema1", "StringValue");
+
+		folderType.setLinkedSchema("folder_USRfolderSchema2");
+		recordServices.update(folderType);
+		recordServices.add(folder);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(frenchMessages(results.errors)).contains("Le schéma de l'enregistrement MyFolder n’a pas pu être modifié pour celui de son type");
+		assertThat(results.getRepairedRecords().size()).isEqualTo(0);
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
 	}
 
 	@Test
