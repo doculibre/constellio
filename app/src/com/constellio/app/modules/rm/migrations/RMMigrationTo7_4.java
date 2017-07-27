@@ -59,11 +59,9 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
     }
 
     private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
-        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
         Role adminRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
         List<String> newRgdPermissions = new ArrayList<>();
         newRgdPermissions.add(CorePermissions.MANAGE_PRINTABLE_REPORT);
-        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
         modelLayerFactory.getRolesManager().updateRole(adminRole.withNewPermissions(newRgdPermissions));
     }
 
