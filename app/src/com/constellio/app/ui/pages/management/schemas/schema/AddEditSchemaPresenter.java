@@ -44,7 +44,9 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 	private String schemaTypeCode;
 
 	private String initialCode;
-	
+
+	boolean initialIsCodeEditable;
+
 	public AddEditSchemaPresenter(AddEditSchemaView view) {
 		super(view);
 	}
@@ -90,6 +92,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 
 		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema,code, sessionContext, schemaTypeDisplayConfig, editMode);
 		setSchemaVO(schemaVO);
+		initialIsCodeEditable = isCodeEditable();
 	}
 
 	public MetadataVODataProvider getDataProvider() {
@@ -106,7 +109,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		String schemaTypeCode = parameters.get("schemaTypeCode");
 
 		ValidationErrors validationErrors = new ValidationErrors();
-		if(isCodeEditable()) {
+		if(initialIsCodeEditable) {
 			if (!schemaTypeCode.toLowerCase().equals("document")
 					&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
 				if (!schemaVO.getLocalCode().startsWith("USR")) {
@@ -122,6 +125,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 				}
 			}
 		}
+
 		validationErrors.throwIfNonEmpty();
 
 		String code;
