@@ -15,10 +15,12 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -46,7 +48,7 @@ public class ReportGeneratorButton extends WindowButton {
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
 			PrintableReportListPossibleType currentSchema) {
-		super(caption, windowCaption);
+		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
 		this.currentSchema = currentSchema;
@@ -106,6 +108,15 @@ public class ReportGeneratorButton extends WindowButton {
             throw new Exception("No report generated");
         }
         printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
+        printableItemsFields.setNullSelectionAllowed(false);
+        printableItemsFields.addValidator(new Validator() {
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				if(value == null) {
+					throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+				}
+			}
+		});
     }
 
 	private void setupCopieFields() {
