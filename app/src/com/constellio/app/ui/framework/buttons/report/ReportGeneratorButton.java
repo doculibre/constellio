@@ -20,6 +20,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -107,6 +108,15 @@ public class ReportGeneratorButton extends WindowButton {
             throw new Exception("No report generated");
         }
         printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
+        printableItemsFields.setNullSelectionAllowed(false);
+        printableItemsFields.addValidator(new Validator() {
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				if(value == null) {
+					throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+				}
+			}
+		});
     }
 
 	private void setupCopieFields() {
