@@ -1843,6 +1843,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, true);
 		waitForBatchProcess();
 
+		Transaction tx = new Transaction();
+		tx.add(rm.newCategoryWithId("rootCategoryWithoutChild").setCode("rootCategoryWithoutChild")
+				.setTitle("rootCategoryWithoutChild"));
+		tx.add(rm.newCategoryWithId("rootCategoryWithChild").setCode("rootCategoryWithChild").setTitle("rootCategoryWithChild"));
+		tx.add(rm.newCategoryWithId("childCategory").setCode("childCategory").setTitle("childCategory")
+				.setParent("rootCategoryWithChild"));
+		recordServices.execute(tx);
+
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy()
@@ -1876,19 +1884,42 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, true);
 		waitForBatchProcess();
 
+		Transaction tx = new Transaction();
+		tx.add(rm.newCategoryWithId("rootCategoryWithoutChild").setCode("rootCategoryWithoutChild")
+				.setTitle("rootCategoryWithoutChild"));
+		tx.add(rm.newCategoryWithId("rootCategoryWithChild").setCode("rootCategoryWithChild").setTitle("rootCategoryWithChild"));
+		tx.add(rm.newCategoryWithId("childCategory").setCode("childCategory").setTitle("childCategory")
+				.setParent("rootCategoryWithChild"));
+		tx.add(rm.newCategoryWithId("childChildCategory").setCode("childChildCategory").setTitle("childChildCategory")
+				.setParent("childCategory"));
+		recordServices.execute(tx);
+
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(2))
-				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
-				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
-				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+				.has(numFoundAndListSize(4))
+				.has(linkable("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X,
+						records.categoryId_Z))
+				.has(itemsWithChildren("rootCategoryWithChild", records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy("rootCategoryWithChild", options)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder("childCategory"))
+				.has(itemsWithChildren("childCategory"))
+				.has(linkable("childCategory"));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy("childCategory", options)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder("childChildCategory"))
+				.has(noItemsWithChildren())
+				.has(linkable("childChildCategory"));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z, options)
 				.has(numFoundAndListSize(4))
-				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200,
-						records.categoryId_Z999, records.categoryId_ZE42))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
 				.has(itemsWithChildren(records.categoryId_Z100))
 				.has(linkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42));
