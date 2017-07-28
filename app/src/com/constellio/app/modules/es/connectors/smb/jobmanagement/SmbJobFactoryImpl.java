@@ -53,19 +53,17 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 					break;
 				}
 
-				if (this.connectorInstance.getSeeds().contains(url)) {
-					SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(url);
-					SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
+				SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(url);
+				SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
 
-					boolean folder = smbUtils.isFolder(url);
-					if (shareIndicator == null) {
-						job = new SmbDeleteJob(params);
-					} else if (recordSmbDocument == null) {
-						job = new SmbNewRetrievalJob(params, shareIndicator, folder);
-					} else if (!recordSmbDocument.equals(shareIndicator)) {
-						job = new SmbNewRetrievalJob(params, shareIndicator, folder);
-					}
+				if (shareIndicator == null) {
+					job = new SmbDeleteJob(params);
+				} else if (recordSmbDocument == null) {
+					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
+				} else if (recordSmbDocument.getParentId() == null || !recordSmbDocument.equals(shareIndicator)) {
+					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
 				}
+
 				break;
 			case DELETE:
 				job = new SmbDeleteJob(params);

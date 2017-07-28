@@ -117,6 +117,7 @@ public class SmbRecordService {
 		}
 
 		SmbModificationIndicator databaseIndicator = new SmbModificationIndicator(permissionHashValue, sizeValue, lastModifiedValue);
+		databaseIndicator.setParentId(record.getParentId());
 		return databaseIndicator;
 	}
 

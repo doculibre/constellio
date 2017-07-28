@@ -4,7 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
-public class SmbModificationIndicator implements Serializable { ;
+public class SmbModificationIndicator implements Serializable {
+    private String parentId;
     private final String permissionsHash;
     private final double size;
     private final long lastModified;
@@ -26,6 +27,14 @@ public class SmbModificationIndicator implements Serializable { ;
             }
         }
         return false;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 
     public String getPermissionsHash() {

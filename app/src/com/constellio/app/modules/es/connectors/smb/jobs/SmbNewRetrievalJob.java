@@ -5,16 +5,11 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJo
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
-import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
-import com.constellio.model.entities.schemas.Schemas;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 
 public class SmbNewRetrievalJob extends SmbConnectorJob {
@@ -45,8 +40,12 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                     final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
 
                     ConnectorSmbFolder parentRecord = jobParams.getSmbRecordService().getFolder(jobParams.getParentUrl());
+                    String parentId = null;
+                    if (parentRecord != null) {
+                        parentId = parentRecord.getId();
+                    }
                     if (seed | parentRecord != null) {
-                        jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, parentRecord.getId(), seed);
+                        jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, parentId, seed);
                         jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
                     }
                 } catch (Exception e) {

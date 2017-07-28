@@ -1,12 +1,9 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
-import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.google.common.collect.EvictingQueue;
-import com.google.common.collect.Queues;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
@@ -19,8 +16,6 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.net.URLConnection;
-import java.util.Queue;
 
 public class SmbDocumentOrFolderUpdater {
 
