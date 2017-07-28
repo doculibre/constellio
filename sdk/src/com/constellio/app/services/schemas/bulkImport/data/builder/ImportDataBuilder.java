@@ -28,6 +28,23 @@ public class ImportDataBuilder {
 		return this;
 	}
 
+	public ImportDataBuilder addOption(String key, Object value) {
+		this.fields.put("option_" + key, value);
+		return this;
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public Map<String, Object> getFields() {
+		return fields;
+	}
+
 	public ImportData build(int index) {
 		return new ImportData(index, schema, id, fields);
 	}
