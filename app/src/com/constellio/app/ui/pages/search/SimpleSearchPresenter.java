@@ -232,7 +232,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setFreeTextSearch(searchExpression)
 				.setPageNumber(pageNumber)
 				.setPageLength(selectedPageLength);
-		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord());
 		//			recordServices().update(search);
 		updateUIContext(search);

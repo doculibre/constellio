@@ -7,10 +7,13 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import com.constellio.app.ui.framework.components.SearchResultTable;
-import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -65,6 +69,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -426,7 +431,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setResultsViewMode(resultsViewMode)
 				.setPageLength(selectedPageLength);
 		try {
-			((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
 
 			//recordServices().update(search);
@@ -647,7 +652,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<RecordVO> recordsVO = new ArrayList<>();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		RecordToVOBuilder builder = new RecordToVOBuilder();
-		for(String id : ids) {
+		for (String id : ids) {
 			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
 		}
 		return recordsVO;
