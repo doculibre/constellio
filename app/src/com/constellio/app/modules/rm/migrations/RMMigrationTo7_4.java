@@ -1,23 +1,18 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.util.Collections;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
 
 /**
  * Created by constellios on 2017-07-13.
@@ -34,8 +29,6 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 		SchemaAlterationFor7_4 schemaAlterationFor7_4 = new RMMigrationTo7_4.SchemaAlterationFor7_4(collection,
 				migrationResourcesProvider, appLayerFactory);
 		schemaAlterationFor7_4.migrate();
-		schemaAlterationFor7_4
-				.setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), migrationResourcesProvider);
 
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
@@ -58,6 +51,12 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 	//        newRgdPermissions.add(CorePermissions.MANAGE_PRINTABLE_REPORT);
 	//        modelLayerFactory.getRolesManager().updateRole(adminRole.withNewPermissions(newRgdPermissions));
 	//    }
+
+	//		private void setupRoles(String collection, RolesManager manager, MigrationResourcesProvider provider) {
+	//			manager.updateRole(
+	//					manager.getRole(collection, RMRoles.MANAGER)
+	//							.withNewPermissions(Collections.singletonList(CorePermissions.MANAGE_PRINTABLE_REPORT)));
+	//		}
 
 	class SchemaAlterationFor7_4 extends MetadataSchemasAlterationHelper {
 
@@ -82,10 +81,5 @@ public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript
 
 		}
 
-		private void setupRoles(String collection, RolesManager manager, MigrationResourcesProvider provider) {
-			manager.updateRole(
-					manager.getRole(collection, RMRoles.MANAGER)
-							.withNewPermissions(Collections.singletonList(CorePermissions.MANAGE_PRINTABLE_REPORT)));
-		}
 	}
 }
