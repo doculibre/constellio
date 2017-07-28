@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDelete;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
 import com.constellio.app.modules.es.connectors.smb.config.SmbSchemaDisplayConfiguration;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
@@ -10,7 +8,6 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrF
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
-import com.constellio.app.modules.es.connectors.smb.jobs.SmbNullJob;
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueue;
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueueSortedImpl;
 import com.constellio.app.modules.es.connectors.smb.security.Credentials;
@@ -25,7 +22,6 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -72,12 +68,8 @@ public class ConnectorSmb extends Connector {
 	private SmbUrlComparator urlComparator;
 
 	private String connectorId;
-	private SmbConnectorContext context;
-	private SmbConnectorContextServices contextServices;
 
 	private final Set<String> duplicateUrls = new ConcurrentSkipListSet<>();
-
-	private DateTime lastSave;
 
 	public ConnectorSmb() {
 		urlComparator = new SmbUrlComparator();
@@ -110,7 +102,6 @@ public class ConnectorSmb extends Connector {
 		}
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
-		contextServices = new SmbConnectorContextServices(es);
 
 		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
 				updater);
@@ -124,15 +115,6 @@ public class ConnectorSmb extends Connector {
 	public void start() {
 		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
-		try {
-			context = contextServices.createContext(connectorId);
-		} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
-			contextServices.deleteContext(connectorId);
-			context = contextServices.createContext(connectorId);
-		}
-
-		jobsQueue.clear();
-		String resumeUrl = connectorInstance.getResumeUrl();
 		queueSeeds();
 	}
 
@@ -140,10 +122,8 @@ public class ConnectorSmb extends Connector {
 		List<String> sortedSeeds = new ArrayList(connectorInstance.getSeeds());
 		Collections.sort(sortedSeeds, urlComparator);
 		for (String seed : sortedSeeds) {
-			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.SEED, seed, "");
-			if (!(smbDispatchJob instanceof SmbNullJob)) {
+			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.DISPATCH, seed, "");
 				queueJob(smbDispatchJob);
-			}
 		}
 	}
 
@@ -151,35 +131,23 @@ public class ConnectorSmb extends Connector {
 	public void resume() {
 		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
-		context = contextServices.loadContext(connectorId);
 		jobsQueue.clear();
-		String resumeUrl = connectorInstance.getResumeUrl();
 		queueSeeds();
 	}
 
 	@Override
 	public void stop() {
-		try {
-			es.getRecordServices()
-					.update(connectorInstance.setResumeUrl(""));
-		} catch (Exception e) {
-			logger.errorUnexpected(e);
-		}
 	}
 
 	@Override
 	public List<String> fetchTokens(String username) {
-		// Ne pas modifier cette méthode!
 		return new ArrayList<>();
 	}
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
-		if (lastSave == null || lastSave.plusMinutes(15).isBeforeNow()) {
-			contextServices.save(context);
-			lastSave = new DateTime();
-		}
 	}
+
 
 	@Override
 	public List<String> getReportMetadatas(String reportMode) {
@@ -199,7 +167,6 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		// TODO Pat delete config folder for this connector.
 	}
 
 	@Override
@@ -212,12 +179,7 @@ public class ConnectorSmb extends Connector {
 		}
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
-			List<String> urlsOfDocumentsToDelete = this.context.staleUrls(this.connectorInstance.getTraversalCode());
-			// Delete jobs are currently not limited to MAX_JOBS_PER_GET_JOBS_CALL
-			for (String url : urlsOfDocumentsToDelete) {
-				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
-				jobs.add(deleteJob);
-			}
+			//TODO Delete jobs
 
 			cleanupInconsistencies();
 			changeTraversalCodeToMarkEndOfTraversal();
@@ -236,8 +198,10 @@ public class ConnectorSmb extends Connector {
 	}
 
 	public void queueJob(SmbConnectorJob job) {
-		logger.debug("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
-		jobsQueue.add(job);
+		if (job != null) {
+			logger.info("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
+			jobsQueue.add(job);
+		}
 	}
 
 	private void changeTraversalCodeToMarkEndOfTraversal() {
@@ -266,10 +230,6 @@ public class ConnectorSmb extends Connector {
 
 	public void setEs(ESSchemasRecordsServices es) {
 		this.es = es;
-	}
-
-	private ConnectorSmbUtils getSmbUtils() {
-		return smbUtils;
 	}
 
 	public InputStream getInputStream(ConnectorSmbDocument document, String resourceName) {
@@ -325,9 +285,5 @@ public class ConnectorSmb extends Connector {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public SmbConnectorContext getContext() {
-		return this.context;
 	}
 }

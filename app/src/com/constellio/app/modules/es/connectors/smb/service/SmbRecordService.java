@@ -1,12 +1,10 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
 import java.util.*;
 
-import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +17,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;
@@ -31,14 +30,6 @@ public class SmbRecordService {
 		this.smbUtils = new ConnectorSmbUtils();
 	}
 
-	public static String getSafeId(ConnectorSmbFolder folder) {
-		String folderId = null;
-		if (folder != null) {
-			folderId = folder.getId();
-		}
-		return folderId;
-	}
-
 	public List<ConnectorSmbDocument> getDocuments(String url) {
 		return es.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
 				.andWhere(es.connectorSmbDocument.url())
@@ -49,11 +40,6 @@ public class SmbRecordService {
 		return es.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
 				.andWhere(es.connectorSmbFolder.url())
 				.isEqualTo(url));
-	}
-
-	public synchronized ConnectorSmbDocument newConnectorSmbDocument(String url) {
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		return document;
 	}
 
 	public ConnectorSmbDocument convertToSmbDocumentOrNull(ConnectorDocument document) {
@@ -82,9 +68,11 @@ public class SmbRecordService {
 		return result;
 	}
 
-	public synchronized ConnectorSmbFolder newConnectorSmbFolder(String url) {
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);
-		return folder;
+	public ConnectorDocument newConnectorDocument(String url) {
+		if (smbUtils.isFolder(url)) {
+			return es.newConnectorSmbFolder(connectorInstance);
+		}
+		return es.newConnectorSmbDocument(connectorInstance);
 	}
 
 	public ConnectorSmbFolder getFolder(String url) {
@@ -99,29 +87,43 @@ public class SmbRecordService {
 		}
 	}
 
-	public ConnectorSmbDocument getDocument(String url) {
-		if (StringUtils.isBlank(url)) {
+	public SmbModificationIndicator getSmbModificationIndicator(String url) {
+		Metadata permissionHash = es.connectorSmbDocument.permissionsHash();
+		Metadata size = es.connectorSmbDocument.size();
+		Metadata lastModified = es.connectorSmbDocument.lastModified();
+		Metadata parent = es.connectorSmbDocument.parent();
+		Metadata parentFolder = es.connectorSmbFolder.parent();
+
+		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId()).andWhere(Schemas.URL).is(url));
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL, permissionHash, size, lastModified, parent, parentFolder));
+
+		SPEQueryResponse response = es.getAppLayerFactory().getModelLayerFactory().newSearchServices().query(query);
+		List<Record> records = response.getRecords();
+		if (records.isEmpty()) {
 			return null;
-		} else {
-			List<ConnectorSmbDocument> documents = getDocuments(url);
-			if (documents.isEmpty()) {
-				return null;
-			}
-			return documents.get(0);
 		}
+		Record record = response.getRecords().get(0);
+		String permissionHashValue = record.get(permissionHash);
+		permissionHashValue = StringUtils.defaultString(permissionHashValue);
+		Double sizeDouble = record.get(size);
+		double sizeValue = 0;
+		if (sizeDouble != null) {
+			sizeValue = sizeDouble;
+		}
+		LocalDateTime lastModifiedDateTime = record.get(lastModified);
+		long lastModifiedValue = -1;
+		if (lastModifiedDateTime != null) {
+			lastModifiedValue = lastModifiedDateTime.toDate().getTime();
+		}
+
+		SmbModificationIndicator databaseIndicator = new SmbModificationIndicator(permissionHashValue, sizeValue, lastModifiedValue);
+		return databaseIndicator;
 	}
 
 	public void updateResumeUrl(String url) {
 		connectorInstance.setResumeUrl(url);
 	}
 
-	public Iterator<ConnectorSmbDocument> getAllDocumentsInFolder(ConnectorDocument<?> folderToDelete) {
-		if (folderToDelete.getPaths().isEmpty()) {
-			return new ArrayList<ConnectorSmbDocument>().iterator();
-		}
-		String path = folderToDelete.getPaths().get(0);
-		return es.iterateConnectorSmbDocuments(where(Schemas.PATH).isStartingWithText(path));
-	}
 
 	public Set<String> duplicateDocuments() {
 		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId()))
@@ -138,25 +140,6 @@ public class SmbRecordService {
 		for (FacetValue facetValue : response.getFieldFacetValues(Schemas.URL.getDataStoreCode())) {
 			urls.add(facetValue.getValue());
 		}
-
-		return urls;
-	}
-
-	public Set<String> misplacedUrls() {
-		List<String> seeds = connectorInstance.getSeeds();
-
-		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId())
-			.andWhere(Schemas.PARENT_PATH).is("/" + ESTaxonomies.SMB_FOLDERS))
-			.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL))
-			.setNumberOfRows(10_000);
-
-		Set<String> urls = new HashSet<>();
-		SPEQueryResponse response = es.getAppLayerFactory().getModelLayerFactory().newSearchServices().query(query);
-		for (Record record : response.getRecords()) {
-			urls.add(record.get(Schemas.URL).toString());
-		}
-
-		urls.removeAll(seeds);
 
 		return urls;
 	}

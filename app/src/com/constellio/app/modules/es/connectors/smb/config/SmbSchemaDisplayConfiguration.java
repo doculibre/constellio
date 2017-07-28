@@ -30,7 +30,6 @@ public class SmbSchemaDisplayConfiguration {
 	}
 
 	public void setupMetadatasDisplay() {
-		// TODO Benoit. Update only once / if needed
 		SchemasDisplayManager manager = getEs().getMetadataSchemasDisplayManager();
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
@@ -49,25 +48,6 @@ public class SmbSchemaDisplayConfiguration {
 		manager.execute(transaction);
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(connectorInstance.getCollection());
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.URL)
-		//				.afterMetadata(ConnectorDocument.TITLE);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.PARENT)
-		//				.afterMetadata(ConnectorSmbDocument.TITLE);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.EXTENSION)
-		//				.afterMetadata(ConnectorSmbDocument.PARENT);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LANGUAGE)
-		//				.afterMetadata(ConnectorSmbDocument.EXTENSION);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.SIZE)
-		//				.afterMetadata(ConnectorSmbDocument.LANGUAGE);
 
 		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
 				.addToSearchResult(ConnectorSmbDocument.LAST_MODIFIED)
@@ -76,18 +56,6 @@ public class SmbSchemaDisplayConfiguration {
 		String modifiedOn = Schemas.MODIFIED_ON.getLocalCode();
 
 		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE).removeFromSearchResult(modifiedOn);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_MODIFIED);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_DETAILS)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS);
 
 		manager.execute(transactionBuilder.build());
 	}

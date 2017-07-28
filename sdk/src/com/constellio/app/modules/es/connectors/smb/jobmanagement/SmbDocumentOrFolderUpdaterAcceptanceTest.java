@@ -561,8 +561,6 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
 
-		documentOrFolderUpdater.updateUnmodifiedDocument(smbFileDTO, document, PARENT_ID);
-
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
 
