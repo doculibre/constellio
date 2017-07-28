@@ -3,6 +3,8 @@ package com.constellio.app.modules.tasks.ui.components.fields.list;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 /**
  * Created by constellios on 2017-07-19.
  */
@@ -12,6 +14,7 @@ public class ListAddRemoveWorkflowInclusiveDecisionFieldImpl extends ListAddRemo
     
     public ListAddRemoveWorkflowInclusiveDecisionFieldImpl() {
         taskWorkflowInclusiveDecisionField = new TaskWorkflowInclusiveDecisionFieldImpl();
+        setCaption($("ListAddRemoveWorkflowInclusiveDecisionFieldImpl.inclusiveDecision"));
     }
     
     @Override
@@ -22,5 +25,5 @@ public class ListAddRemoveWorkflowInclusiveDecisionFieldImpl extends ListAddRemo
     public void addItem(String item){
         taskWorkflowInclusiveDecisionField.addItem(item);
     }
-    
+
 }
