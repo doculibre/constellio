@@ -1170,7 +1170,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void TryingToSafePhysicalDeleteAllUnusedUsers()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers());
-		ConstellioFactories.getInstance().onRequestStarted();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
