@@ -44,10 +44,9 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                     if (parentRecord != null) {
                         parentId = parentRecord.getId();
                     }
-                    if (seed | parentRecord != null) {
-                        jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, parentId, seed);
-                        jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
-                    }
+                    jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, parentId, seed);
+                    jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
+
                 } catch (Exception e) {
                     this.connector.getLogger().errorUnexpected(e);
                 }
@@ -56,10 +55,13 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                 try {
                     final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
                     ConnectorSmbFolder parentRecord = jobParams.getSmbRecordService().getFolder(jobParams.getParentUrl());
+                    String parentId = null;
                     if (parentRecord != null) {
-                        jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, parentRecord.getId());
-                        jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
+                        parentId = parentRecord.getId();
                     }
+                    jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, parentId);
+                    jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
+
                 } catch (Exception e) {
                     this.connector.getLogger().errorUnexpected(e);
                 }

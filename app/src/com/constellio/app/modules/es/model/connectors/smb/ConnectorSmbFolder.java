@@ -19,10 +19,10 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
 
 	public static final String URL = "url";
+	public static final String PERMISSIONS_HASH = "permissionsHash";
 	public static final String PARENT = "parent";
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String LAST_FETCHED_STATUS = "lastFetchedStatus";
-	public static final String UNRETRIEVED_COUNT = "unretrievedCount";
 
 	public ConnectorSmbFolder(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -78,14 +78,12 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	public long getUnretrievedCount() {
-		double count = get(UNRETRIEVED_COUNT);
-		Double d = new Double(count);
-		return d.longValue();
+	public String getPermissionsHash() {
+		return get(PERMISSIONS_HASH);
 	}
 
-	public ConnectorSmbFolder setUnretrievedCount(long unretrievedCount) {
-		set(UNRETRIEVED_COUNT, unretrievedCount);
+	public ConnectorSmbFolder setPermissionsHash(String permissionsHash) {
+		set(PERMISSIONS_HASH, permissionsHash);
 		return this;
 	}
 

@@ -103,8 +103,14 @@ public class SmbDocumentOrFolderUpdater {
 				.setConnector(connectorInstance)
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()));
+
 		// Mandatory
-		smbFolder.setUrl(smbFileDTO.getUrl());
+		smbFolder.setUrl(smbFileDTO.getUrl())
+				.setPermissionsHash(smbFileDTO.getPermissionsHash())
+				.setManualTokens(smbFileDTO.getAllowTokens())
+				.set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
+				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
+				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
 		// Optional
 
