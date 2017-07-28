@@ -138,8 +138,11 @@ public class ReportTabButton extends WindowButton {
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
+            if(defaultElementSelected.getValue() == null) {
+                defaultElementSelected.setValue(printableReportListPossibleType);
+            }
         }
-        defaultElementSelected.setNullSelectionAllowed(false);
+//        defaultElementSelected.setNullSelectionAllowed(false);
         defaultElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -186,7 +189,7 @@ public class ReportTabButton extends WindowButton {
 
         customElementSelected = new ComboBox();
         this.fillSchemaCombobox(customElementSelected);
-        customElementSelected.setNullSelectionAllowed(false);
+//        customElementSelected.setNullSelectionAllowed(false);
         customElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -218,7 +221,7 @@ public class ReportTabButton extends WindowButton {
         }
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");
-        reportComboBox.setNullSelectionAllowed(false);
+//        reportComboBox.setNullSelectionAllowed(false);
         reportComboBox.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -280,6 +283,9 @@ public class ReportTabButton extends WindowButton {
                 for (PrintableReportTemplate printableReport : printableReportTemplateList) {
                     comboBox.addItem(printableReport);
                     comboBox.setItemCaption(printableReport, printableReport.getTitle());
+                    if(comboBox.getValue() == null) {
+                        comboBox.setValue(printableReport);
+                    }
                 }
             }
         }
@@ -294,6 +300,9 @@ public class ReportTabButton extends WindowButton {
             if(selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
+                if(compteur == 0) {
+                    comboBox.setValue(metadataSchemaVO);
+                }
                 compteur++;
             }
         }
