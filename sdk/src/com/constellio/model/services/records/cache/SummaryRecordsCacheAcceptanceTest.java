@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,10 +36,10 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	TestRecord record1, record2, record3, record4, record;
 
 	TestsSchemasSetup zeCollectionSchemas = new TestsSchemasSetup(zeCollection).withSecurityFlag(false);
-	ZeSchemaMetadatas permanentSummaryCacheSchemaType = zeCollectionSchemas.new ZeSchemaMetadatas();
+	ZeSchemaMetadatas schemaType = zeCollectionSchemas.new ZeSchemaMetadatas();
 
 	RecordsCaches recordsCaches;
-	RecordsCache zeCollectionRecordsCache;
+	RecordsCache recordsCache;
 
 	UserServices userServices;
 
@@ -58,7 +59,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		inCollection(zeCollection).giveWriteAccessTo(admin);
 
 		defineSchemasManager().using(zeCollectionSchemas
-				.withAStringMetadata(whichIsEssentialInSummary)
+				.withAStringMetadata(whichIsEssentialInSummary, whichIsUnique)
 				.withANumberMetadata(whichIsEssentialInSummary)
 				.withAnotherStringMetadata());
 
@@ -70,11 +71,11 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		recordsCaches = getModelLayerFactory().getRecordsCaches();
-		zeCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
+		recordsCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 
 		RecordsCache collection1Cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		collection1Cache
-				.configureCache(permanentEssentialMetadatasCacheNotLoadedInitially(permanentSummaryCacheSchemaType.type()));
+				.configureCache(permanentEssentialMetadatasCacheNotLoadedInitially(schemaType.type()));
 
 		DataLayerSystemExtensions extensions = getDataLayerFactory().getExtensions().getSystemWideExtensions();
 		queriesListener = new StatsBigVaultServerExtension();
@@ -89,34 +90,37 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		resetCacheAndQueries();
 
-		assertThat(zeCollectionRecordsCache.getSummary("1")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("1")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("2")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("3")).isNull();
+		assertThat(recordsCache.getSummary("1")).isNull();
+		assertThat(recordsCache.getSummary("1")).isNull();
+		assertThat(recordsCache.getSummary("2")).isNull();
+		assertThat(recordsCache.getSummary("3")).isNull();
 
 		getModelLayerFactory().newRecordServices().getDocumentById("1");
+		assertThat(recordsCache.getSummary("1")).isNotNull();
+		assertThat(recordsCache.getSummary("2")).isNull();
+		assertThat(recordsCache.getSummary("3")).isNull();
+
 		getModelLayerFactory().newRecordServices().getDocumentById("2");
 		getModelLayerFactory().newRecordServices().getDocumentById("3");
 
-		Record record1 = zeCollectionRecordsCache.getSummary("1");
-		Record record2 = zeCollectionRecordsCache.getSummary("2");
-		Record record3 = zeCollectionRecordsCache.getSummary("3");
+		assertThatTheThreeRecordsAreInCache();
 
-		assertThat(zeCollectionRecordsCache.get("1")).isNull();
-		assertThat(zeCollectionRecordsCache.get("2")).isNull();
-		assertThat(zeCollectionRecordsCache.get("3")).isNull();
+	}
 
-		assertThat(record1).isNotNull();
-		assertThat(record1.isFullyLoaded()).isFalse();
-		assertThat(record1.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
+	@Test
+	public void givenRecordsInSummaryCacheThenOnlyRetrievedByMetadataIfUsingGetSummaryByMetadata()
+			throws Exception {
 
-		assertThat(record2).isNotNull();
-		assertThat(record2.isFullyLoaded()).isFalse();
-		assertThat(record2.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
+		givenTestRecords();
 
-		assertThat(record3).isNotNull();
-		assertThat(record3.isFullyLoaded()).isFalse();
-		assertThat(record3.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "1")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "1").getId()).isEqualTo("1");
+
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "4")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "4").getId()).isEqualTo("2");
+
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "6")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "6").getId()).isEqualTo("3");
 
 	}
 
@@ -126,56 +130,20 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		givenTestRecords();
 
-		Record record1 = zeCollectionRecordsCache.getSummary("1");
-		Record record2 = zeCollectionRecordsCache.getSummary("2");
-		Record record3 = zeCollectionRecordsCache.getSummary("3");
-
-		assertThat(zeCollectionRecordsCache.get("1")).isNull();
-		assertThat(zeCollectionRecordsCache.get("2")).isNull();
-		assertThat(zeCollectionRecordsCache.get("3")).isNull();
-
-		assertThat(record1).isNotNull();
-		assertThat(record1.isFullyLoaded()).isFalse();
-		assertThat(record1.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record2).isNotNull();
-		assertThat(record2.isFullyLoaded()).isFalse();
-		assertThat(record2.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record3).isNotNull();
-		assertThat(record3.isFullyLoaded()).isFalse();
-		assertThat(record3.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
+		assertThatTheThreeRecordsAreInCache();
 	}
 
 	@Test
-	public void givenSummaryCacheWhenSearchingRecordsWithAllFieldsThenResultsInsertedInCache()
+	public void givenSummaryCacheWhenInsertingFullyLoadedRecordsThenInsertedInCache()
 			throws Exception {
 
 		givenTestRecords();
 		resetCacheAndQueries();
 
-		LogicalSearchQuery query = new LogicalSearchQuery(from(permanentSummaryCacheSchemaType.type()).returnAll());
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType.type()).returnAll());
 		recordsCaches.insert(zeCollection, searchServices.search(query));
 
-		Record record1 = zeCollectionRecordsCache.getSummary("1");
-		Record record2 = zeCollectionRecordsCache.getSummary("2");
-		Record record3 = zeCollectionRecordsCache.getSummary("3");
-		assertThat(zeCollectionRecordsCache.get("1")).isNull();
-		assertThat(zeCollectionRecordsCache.get("2")).isNull();
-		assertThat(zeCollectionRecordsCache.get("3")).isNull();
-
-		assertThat(record1).isNotNull();
-		assertThat(record1.isFullyLoaded()).isFalse();
-		assertThat(record1.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record2).isNotNull();
-		assertThat(record2.isFullyLoaded()).isFalse();
-		assertThat(record2.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record3).isNotNull();
-		assertThat(record3.isFullyLoaded()).isFalse();
-		assertThat(record3.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
+		assertThatTheThreeRecordsAreInCache();
 
 	}
 
@@ -186,45 +154,27 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		resetCacheAndQueries();
 
-		LogicalSearchQuery query = new LogicalSearchQuery(from(permanentSummaryCacheSchemaType.type()).returnAll());
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(permanentSummaryCacheSchemaType.stringMetadata(),
-				permanentSummaryCacheSchemaType.numberMetadata()));
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType.type()).returnAll());
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(schemaType.stringMetadata(),
+				schemaType.numberMetadata()));
 		List<Record> records = searchServices.search(query);
 
 		for (Record record : records) {
 			recordsCaches.insert(record);
 		}
 
-		assertThat(zeCollectionRecordsCache.get("1")).isNull();
-		assertThat(zeCollectionRecordsCache.get("2")).isNull();
-		assertThat(zeCollectionRecordsCache.get("3")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("1")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("2")).isNull();
-		assertThat(zeCollectionRecordsCache.getSummary("3")).isNull();
+		assertThat(recordsCache.get("1")).isNull();
+		assertThat(recordsCache.get("2")).isNull();
+		assertThat(recordsCache.get("3")).isNull();
+		assertThat(recordsCache.getSummary("1")).isNull();
+		assertThat(recordsCache.getSummary("2")).isNull();
+		assertThat(recordsCache.getSummary("3")).isNull();
 
 		for (Record record : records) {
 			recordsCaches.forceInsert(record);
 		}
 
-		Record record1 = zeCollectionRecordsCache.getSummary("1");
-		Record record2 = zeCollectionRecordsCache.getSummary("2");
-		Record record3 = zeCollectionRecordsCache.getSummary("3");
-		assertThat(zeCollectionRecordsCache.get("1")).isNull();
-		assertThat(zeCollectionRecordsCache.get("2")).isNull();
-		assertThat(zeCollectionRecordsCache.get("3")).isNull();
-
-		assertThat(record1).isNotNull();
-		assertThat(record1.isFullyLoaded()).isFalse();
-		assertThat(record1.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record2).isNotNull();
-		assertThat(record2.isFullyLoaded()).isFalse();
-		assertThat(record2.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
-		assertThat(record3).isNotNull();
-		assertThat(record3.isFullyLoaded()).isFalse();
-		assertThat(record3.get(permanentSummaryCacheSchemaType.anotherStringMetadata())).isNull();
-
+		assertThatTheThreeRecordsAreInCache();
 	}
 
 	//-----------------------------------------------------------------
@@ -246,47 +196,67 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	private void givenTestRecords()
 			throws Exception {
 		Transaction transaction = new Transaction();
-		record3 = (TestRecord) transaction.add(newRecordOf("1", permanentSummaryCacheSchemaType).withTitle("a")
-				.set(permanentSummaryCacheSchemaType.stringMetadata(), "1")
-				.set(permanentSummaryCacheSchemaType.numberMetadata(), 2.0)
-				.set(permanentSummaryCacheSchemaType.anotherStringMetadata(), "3"));
+		record3 = (TestRecord) transaction.add(newRecordOf("1", schemaType).withTitle("a")
+				.set(schemaType.stringMetadata(), "1")
+				.set(schemaType.numberMetadata(), 2.0)
+				.set(schemaType.anotherStringMetadata(), "3"));
 
-		transaction.add(newRecordOf("2", permanentSummaryCacheSchemaType).withTitle("b")
-				.set(permanentSummaryCacheSchemaType.stringMetadata(), "4")
-				.set(permanentSummaryCacheSchemaType.anotherStringMetadata(), "5"));
+		transaction.add(newRecordOf("2", schemaType).withTitle("b")
+				.set(schemaType.stringMetadata(), "4")
+				.set(schemaType.anotherStringMetadata(), "5"));
 
-		transaction.add(newRecordOf("3", permanentSummaryCacheSchemaType).withTitle("c")
-				.set(permanentSummaryCacheSchemaType.stringMetadata(), "6")
-				.set(permanentSummaryCacheSchemaType.numberMetadata(), 7.0)
-				.set(permanentSummaryCacheSchemaType.anotherStringMetadata(), "8"));
-
-		transaction.add(newRecordOf("4", permanentSummaryCacheSchemaType).withTitle("d")
-				.set(permanentSummaryCacheSchemaType.stringMetadata(), "9")
-				.set(permanentSummaryCacheSchemaType.numberMetadata(), 10.0)
-				.set(permanentSummaryCacheSchemaType.anotherStringMetadata(), "11"));
-
-		transaction.add(newRecordOf("5", permanentSummaryCacheSchemaType).withTitle("e")
-				.set(permanentSummaryCacheSchemaType.stringMetadata(), "12")
-				.set(permanentSummaryCacheSchemaType.numberMetadata(), 13.0)
-				.set(permanentSummaryCacheSchemaType.anotherStringMetadata(), "14"));
+		transaction.add(newRecordOf("3", schemaType).withTitle("c")
+				.set(schemaType.stringMetadata(), "6")
+				.set(schemaType.numberMetadata(), 7.0)
+				.set(schemaType.anotherStringMetadata(), "8"));
 
 		recordServices.execute(transaction);
 
 	}
 
-	private void assertThatGetDocumentsByIdReturnEqualRecord(Record... records) {
-		for (Record record : records) {
-			Record returnedRecord = recordServices.getDocumentById(record.getId());
-			assertThat(returnedRecord.getVersion()).isEqualTo(record.getVersion());
-		}
-	}
+	private void assertThatTheThreeRecordsAreInCache() {
 
-	private void getRecordsById(String collection, List<String> ids) {
+		Record record1 = recordsCache.getSummary("1");
+		Record record2 = recordsCache.getSummary("2");
+		Record record3 = recordsCache.getSummary("3");
 
-	}
+		assertThat(recordsCache.get("1")).isNull();
+		assertThat(recordsCache.get("2")).isNull();
+		assertThat(recordsCache.get("3")).isNull();
 
-	private OngoingEntryAssertion assertThatRecord(String id) {
-		return new OngoingEntryAssertion(asList(id));
+		assertThat(record1).isNotNull();
+		assertThat(record1.isFullyLoaded()).isFalse();
+		assertThat(record1.get(schemaType.anotherStringMetadata())).isNull();
+
+		assertThat(record2).isNotNull();
+		assertThat(record2.isFullyLoaded()).isFalse();
+		assertThat(record2.get(schemaType.anotherStringMetadata())).isNull();
+
+		assertThat(record3).isNotNull();
+		assertThat(record3.isFullyLoaded()).isFalse();
+		assertThat(record3.get(schemaType.anotherStringMetadata())).isNull();
+
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "1")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "1").getId()).isEqualTo("1");
+
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "4")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "4").getId()).isEqualTo("2");
+
+		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "6")).isNull();
+		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "6").getId()).isEqualTo("3");
+
+		assertThat(record1.get(schemaType.stringMetadata())).isEqualTo("1");
+		assertThat(record2.get(schemaType.stringMetadata())).isEqualTo("4");
+		assertThat(record3.get(schemaType.stringMetadata())).isEqualTo("6");
+
+		assertThat(record1.get(schemaType.numberMetadata())).isEqualTo(2.0);
+		assertThat(record2.get(schemaType.numberMetadata())).isNull();
+		assertThat(record3.get(schemaType.numberMetadata())).isEqualTo(7.0);
+
+		assertThat(record1.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record2.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record3.get(schemaType.anotherStringMetadata())).isNull();
+
 	}
 
 	private OngoingEntryAssertion assertThatRecords(String... ids) {
