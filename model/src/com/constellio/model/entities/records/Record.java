@@ -59,6 +59,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	Record getCopyOfOriginalRecord();
 
+	Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas);
+
 	String getIdTitle();
 
 	void removeAllFieldsStartingWith(String field);
