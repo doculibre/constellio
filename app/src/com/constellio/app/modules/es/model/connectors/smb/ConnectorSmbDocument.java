@@ -18,6 +18,8 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	public static final String CONNECTOR = ConnectorDocument.CONNECTOR;
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
 	public static final String LAST_MODIFIED = ConnectorDocument.LAST_MODIFIED;
+	public static final String CONNECTOR_URL = "connectorUrl";
+	public static final String PARENT_CONNECTOR_URL = "parentConnectorUrl";
 
 	public static final String URL = "url";
 	public static final String PARSED_CONTENT = "parsedContent";
@@ -50,20 +52,28 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 		return this;
 	}
 
-	public String getParent() {
-		return get(PARENT);
+	public ConnectorSmbDocument setParentUrl(String url) {
+		set(PARENT_CONNECTOR_URL, url);
+		return this;
 	}
 
+	public String getParent() {
+		return null;
+	}
+
+	@Deprecated
 	public ConnectorSmbDocument setParent(String parent) {
 		set(PARENT, parent);
 		return this;
 	}
 
+	@Deprecated
 	public ConnectorSmbDocument setParent(Record parent) {
 		set(PARENT, parent);
 		return this;
 	}
 
+	@Deprecated
 	public ConnectorSmbDocument setParent(ConnectorSmbFolder parent) {
 		set(PARENT, parent);
 		return this;

@@ -39,7 +39,7 @@ public class SmbDocumentOrFolderUpdater {
 		}
 	}
 
-	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
+	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
 
 		// Utility
 		smbDocument.setConnector(connectorInstance)
@@ -47,7 +47,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
 				.setFetchedDateTime(TimeProvider.getLocalDateTime())
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		// Mandatory
 		smbDocument.setUrl(smbFileDTO.getUrl())
@@ -86,7 +86,7 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId, boolean seed) {
+	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl, boolean seed) {
 		smbFolder.setTitle(smbFileDTO.getName())
 				.setUrl(smbFileDTO.getUrl())
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -96,7 +96,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setLastFetchedStatus(LastFetchedStatus.OK)
 				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
 				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		// Utility
 		smbFolder.setTraversalCode(connectorInstance.getTraversalCode())
@@ -115,7 +115,7 @@ public class SmbDocumentOrFolderUpdater {
 		// Optional
 
 		// Errors
-		if (parentId == null && !seed) {
+		if (parentUrl == null && !seed) {
 			smbFolder.setLastFetchedStatus(LastFetchedStatus.PARTIAL);
 		} else {
 			smbFolder.setLastFetchedStatus(LastFetchedStatus.OK);
@@ -132,20 +132,20 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentId) {
+	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentUrl) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentId);
+			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentUrl);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
 
 			if (smbFolder != null) {
-				updateFailedFolderDTO(smbFileDTO, smbFolder, parentId);
+				updateFailedFolderDTO(smbFileDTO, smbFolder, parentUrl);
 			}
 		}
 	}
 
-	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
+	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
 
 		smbDocument.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -155,7 +155,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setUrl(smbFileDTO.getUrl())
 				.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
 				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		smbDocument.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
@@ -163,7 +163,7 @@ public class SmbDocumentOrFolderUpdater {
 				.incrementErrorsCount();
 	}
 
-	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
+	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl) {
 
 		smbFolder.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -176,6 +176,6 @@ public class SmbDocumentOrFolderUpdater {
 				.setErrorMessage(smbFileDTO.getErrorMessage())
 				.setErrorStackTrace(smbFileDTO.getErrorMessage())
 				.incrementErrorsCount()
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 	}
 }

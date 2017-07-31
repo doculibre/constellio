@@ -17,6 +17,8 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 
 	public static final String CONNECTOR = ConnectorDocument.CONNECTOR;
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
+	public static final String CONNECTOR_URL = "connectorUrl";
+	public static final String PARENT_CONNECTOR_URL = "parentConnectorUrl";
 
 	public static final String URL = "url";
 	public static final String PERMISSIONS_HASH = "permissionsHash";
@@ -41,23 +43,31 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	public String getParent() {
-		return get(PARENT);
+	public ConnectorSmbFolder setParentUrl(String url) {
+		set(PARENT_CONNECTOR_URL, url);
+		return this;
 	}
 
+	@Deprecated
 	public ConnectorSmbFolder setParent(String parent) {
 		set(PARENT, parent);
 		return this;
 	}
 
+	@Deprecated
 	public ConnectorSmbFolder setParent(Record parent) {
 		set(PARENT, parent);
 		return this;
 	}
 
+	@Deprecated
 	public ConnectorSmbFolder setParent(ConnectorSmbFolder parent) {
 		set(PARENT, parent);
 		return this;
+	}
+
+	public String getParent() {
+		return get(PARENT);
 	}
 
 	public LocalDateTime getLastFetched() {
@@ -89,7 +99,7 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 
 	@Override
 	public List<String> getDefaultMetadata() {
-		return Arrays.asList(CONNECTOR, CONNECTOR_TYPE, URL, PARENT);
+		return Arrays.asList(CONNECTOR, CONNECTOR_TYPE, URL, PARENT_CONNECTOR_URL);
 	}
 
 }
