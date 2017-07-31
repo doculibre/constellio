@@ -28,6 +28,9 @@ import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
+import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportView;
+import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportViewImpl;
+import com.constellio.app.ui.pages.management.ExcelReport.ListExcelReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
@@ -164,6 +167,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PRINTABLE_REPORT_VIEW = "printableReportView";
 	public static final String PRINTABLE_REPORT_ADD = "pritnableReportAdd";
 	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
+	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
+	public static final String EXCEL_REPORT_DISPLAY = "excelReportDisplay";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -283,6 +288,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(PRINTABLE_REPORT_ADD, AddEditPrintableReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PRINTABLE_REPORT_VIEW, DisplayPrintableReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_VIEW, ReportConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EXCEL_REPORT_MANAGE, ListExcelReportViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EXCEL_REPORT_DISPLAY, DisplayExcelReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 	}
 
