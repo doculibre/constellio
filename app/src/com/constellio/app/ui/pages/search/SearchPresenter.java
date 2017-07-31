@@ -83,6 +83,7 @@ import com.constellio.model.services.search.zipContents.ZipContentsService.NoCon
 import com.vaadin.server.StreamResource.StreamSource;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
+
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
 	public enum SortOrder {ASCENDING, DESCENDING}

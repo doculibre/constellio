@@ -5,7 +5,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -104,9 +103,12 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordServices().wrapDecommissioningList(restrictedRecord);
-		AdministrativeUnit administrativeUnit = rmRecordServices().getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(), appLayerFactory);
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService.hasPermissionToCreateTransferOnList(decommissioningList, user);
+		AdministrativeUnit administrativeUnit = rmRecordServices()
+				.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(),
+				appLayerFactory);
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService
+				.hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 
 	@Override
@@ -274,7 +276,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
-		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
 		//recordServices().update(search);
 		if (refreshPage) {

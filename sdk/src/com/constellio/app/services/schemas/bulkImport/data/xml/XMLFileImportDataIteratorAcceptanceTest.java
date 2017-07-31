@@ -3,6 +3,7 @@ package com.constellio.app.services.schemas.bulkImport.data.xml;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -16,6 +17,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
@@ -46,31 +48,36 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("data.xml"), ioServices);
 
-		assertThat(importDataIterator.next()).has(id("1")).has(index(1)).has(schema("default"))
+		ImportData record = importDataIterator.next();
+		assertThat(record).has(id("1")).has(index(1)).has(schema("default"))
 				.has(noField("id")).has(noField("schema"))
 				.has(field("title", "Ze title"))
 				.has(field("createdOn", localDateTime))
 				.has(field("referenceToAnotherSchema", "42"));
+		assertThat(record.getOptions()).isEmpty();
 
-		assertThat(importDataIterator.next()).has(id("42")).has(index(2)).has(schema("default"))
+		record = importDataIterator.next();
+		assertThat(record).has(id("42")).has(index(2)).has(schema("default"))
 				.has(noField("id")).has(noField("schema"))
 				.has(field("title", "Another title"))
 				.has(field("referenceToAThirdSchema", "666"))
 				.has(noField("zeEmptyField"));
+		assertThat(record.getOptions()).containsOnly(
+				entry("zeOption", "1"),
+				entry("anotherOption", "2")
+		);
 
-		assertThat(importDataIterator.next()).has(id("666")).has(index(3)).has(schema("cust"
-				+ ""
-				+ ""
-				+ ""
-				+ ""
-				+ ""
-				+ "omSchema"))
+		record = importDataIterator.next();
+		assertThat(record).has(id("666")).has(index(3)).has(schema("customSchema"))
 				.has(noField("id")).has(noField("schema"))
 				.has(field("createdOn", localDate))
 				.has(field("modifyOn", asList(anOtherLocalDate, aThirdLocalDate)))
 				.has(field("keywords", asList("keyword1", "keyword2")))
 				.has(noField("zeNullField"))
 				.has(field("title", "A third title"));
+		assertThat(record.getOptions()).containsOnly(
+				entry("devil", "true")
+		);
 
 	}
 
