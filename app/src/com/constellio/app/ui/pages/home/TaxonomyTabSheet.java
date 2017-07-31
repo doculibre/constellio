@@ -18,20 +18,22 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 public class TaxonomyTabSheet implements Serializable {
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient User user;
+	private SessionContext sessionContext;
 
 	private int defaultTab = 0;
 
 	public TaxonomyTabSheet(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		init(modelLayerFactory, sessionContext);
+		this.sessionContext = sessionContext;
 	}
 
-	public List<RecordLazyTreeDataProvider> getDataProviders() {
-		List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
-		for (String taxonomy : getTaxonomyCodes()) {
-			providers.add(new RecordLazyTreeDataProvider(taxonomy));
-		}
-		return providers;
-	}
+    public List<RecordLazyTreeDataProvider> getDataProviders() {
+        List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
+        for (String taxonomy : getTaxonomyCodes()) {
+            providers.add(new RecordLazyTreeDataProvider(taxonomy,sessionContext.getCurrentCollection()));
+        }
+        return providers;
+    }
 
 	public int getDefaultTab() {
 		return defaultTab;
@@ -40,7 +42,7 @@ public class TaxonomyTabSheet implements Serializable {
 	private void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		this.modelLayerFactory = modelLayerFactory;
 		user = new PresenterService(modelLayerFactory).getCurrentUser(sessionContext);
-		
+
 		PresenterService presenterService = new PresenterService(modelLayerFactory);
 		String userDefaultTaxonomy = user.getDefaultTaxonomy();
 		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();

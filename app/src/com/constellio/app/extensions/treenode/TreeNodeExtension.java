@@ -1,0 +1,8 @@
+package com.constellio.app.extensions.treenode;
+
+import com.constellio.app.modules.es.constants.ESTaxonomies;
+import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
+
+public interface TreeNodeExtension {
+    RecordTreeNodesDataProvider getTreeNodeFor(String codeToxonomie);
+}

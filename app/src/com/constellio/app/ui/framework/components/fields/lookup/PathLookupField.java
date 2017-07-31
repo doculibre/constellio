@@ -91,7 +91,7 @@ public class PathLookupField extends LookupField<String> {
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode));
+				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode, collection));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
@@ -176,8 +176,8 @@ public class PathLookupField extends LookupField<String> {
 
 	public static class PathLookupTreeDataProvider extends RecordLazyTreeDataProvider implements LookupTreeDataProvider<String> {
 
-		public PathLookupTreeDataProvider(String taxonomyCode) {
-			super(taxonomyCode);
+		public PathLookupTreeDataProvider(String taxonomyCode, String collection) {
+			super(taxonomyCode, collection);
 		}
 
 		@Override
