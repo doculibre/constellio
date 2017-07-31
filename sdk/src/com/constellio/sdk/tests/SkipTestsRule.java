@@ -104,22 +104,22 @@ public class SkipTestsRule implements TestRule {
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
 			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
 
-			System.out.println("skipAllTests:" + skipAllTests);
-			System.out.println("skipSlow:" + skipSlow);
-			System.out.println("skipImportTests:" + skipImportTests);
-			System.out.println("skipReal:" + skipReal);
-			System.out.println("skipLoad:" + skipLoad);
-			System.out.println("checkRollback:" + checkRollback);
-			System.out.println("skipInternetTest:" + skipInternetTest);
-			System.out.println("skipInDevelopment:" + skipInDevelopment);
-			System.out.println("skipDriver:" + skipDriver);
-			System.out.println("skipTestsWithGradle:" + skipTestsWithGradle);
-			System.out.println("runPerformance:" + runPerformance);
-			System.out.println("skipUI:" + skipUI);
-			System.out.println("whiteList:" + whiteList);
-			System.out.println("blackList:" + blackList);
-			System.out.println("skipCloud:" + skipCloud);
-			System.out.println("skipIgnite:" + skipIgnite);
+//			System.out.println("skipAllTests:" + skipAllTests);
+			//			System.out.println("skipSlow:" + skipSlow);
+			//			System.out.println("skipImportTests:" + skipImportTests);
+			//			System.out.println("skipReal:" + skipReal);
+			//			System.out.println("skipLoad:" + skipLoad);
+			//			System.out.println("checkRollback:" + checkRollback);
+			//			System.out.println("skipInternetTest:" + skipInternetTest);
+			//			System.out.println("skipInDevelopment:" + skipInDevelopment);
+			//			System.out.println("skipDriver:" + skipDriver);
+			//			System.out.println("skipTestsWithGradle:" + skipTestsWithGradle);
+			//			System.out.println("runPerformance:" + runPerformance);
+			//			System.out.println("skipUI:" + skipUI);
+			//			System.out.println("whiteList:" + whiteList);
+			//			System.out.println("blackList:" + blackList);
+			//			System.out.println("skipCloud:" + skipCloud);
+			//			System.out.println("skipIgnite:" + skipIgnite);
 
 		}
 	}
