@@ -22,6 +22,7 @@ import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalcul
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -72,6 +73,8 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.getSchemaType("userDocument");
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.getSchemaType("userFolder");
+    MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder actionParametersSchemaType = typesBuilder.createNewSchemaType("actionParameters");
     MetadataSchemaBuilder actionParametersSchema = actionParametersSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder robotSchemaType = typesBuilder.createNewSchemaType("robot");
@@ -100,6 +103,11 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_authorizations.setMultivalue(true);
     actionParameters_authorizations.setSystemReserved(true);
     actionParameters_authorizations.setUndeletable(true);
+    MetadataBuilder actionParameters_autocomplete = actionParametersSchema.get("autocomplete");
+    actionParameters_autocomplete.setMultivalue(true);
+    actionParameters_autocomplete.setSystemReserved(true);
+    actionParameters_autocomplete.setUndeletable(true);
+    actionParameters_autocomplete.setEssential(true);
     MetadataBuilder actionParameters_createdBy = actionParametersSchema.get("createdBy");
     actionParameters_createdBy.setSystemReserved(true);
     actionParameters_createdBy.setUndeletable(true);
@@ -153,12 +161,19 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_manualTokens.setSystemReserved(true);
     actionParameters_manualTokens.setUndeletable(true);
     actionParameters_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder actionParameters_markedForParsing = actionParametersSchema.get("markedForParsing");
+    actionParameters_markedForParsing.setSystemReserved(true);
+    actionParameters_markedForParsing.setUndeletable(true);
     MetadataBuilder actionParameters_markedForPreviewConversion = actionParametersSchema.get("markedForPreviewConversion");
     actionParameters_markedForPreviewConversion.setSystemReserved(true);
     actionParameters_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder actionParameters_markedForReindexing = actionParametersSchema.get("markedForReindexing");
     actionParameters_markedForReindexing.setSystemReserved(true);
     actionParameters_markedForReindexing.setUndeletable(true);
+    MetadataBuilder actionParameters_migrationDataVersion = actionParametersSchema.get("migrationDataVersion");
+    actionParameters_migrationDataVersion.setSystemReserved(true);
+    actionParameters_migrationDataVersion.setUndeletable(true);
+    actionParameters_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder actionParameters_modifiedBy = actionParametersSchema.get("modifiedBy");
     actionParameters_modifiedBy.setSystemReserved(true);
     actionParameters_modifiedBy.setUndeletable(true);
@@ -247,6 +262,11 @@ public final class GeneratedRobotsMigrationCombo {
     robot_autoExecute.setDefaultRequirement(true);
     robot_autoExecute.setUndeletable(true);
     robot_autoExecute.setDefaultValue(false);
+    MetadataBuilder robot_autocomplete = robotSchema.get("autocomplete");
+    robot_autocomplete.setMultivalue(true);
+    robot_autocomplete.setSystemReserved(true);
+    robot_autocomplete.setUndeletable(true);
+    robot_autocomplete.setEssential(true);
     MetadataBuilder robot_code = robotSchema.create("code").setType(MetadataValueType.STRING);
     robot_code.setDefaultRequirement(true);
     robot_code.setUndeletable(true);
@@ -311,12 +331,19 @@ public final class GeneratedRobotsMigrationCombo {
     robot_manualTokens.setSystemReserved(true);
     robot_manualTokens.setUndeletable(true);
     robot_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder robot_markedForParsing = robotSchema.get("markedForParsing");
+    robot_markedForParsing.setSystemReserved(true);
+    robot_markedForParsing.setUndeletable(true);
     MetadataBuilder robot_markedForPreviewConversion = robotSchema.get("markedForPreviewConversion");
     robot_markedForPreviewConversion.setSystemReserved(true);
     robot_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder robot_markedForReindexing = robotSchema.get("markedForReindexing");
     robot_markedForReindexing.setSystemReserved(true);
     robot_markedForReindexing.setUndeletable(true);
+    MetadataBuilder robot_migrationDataVersion = robotSchema.get("migrationDataVersion");
+    robot_migrationDataVersion.setSystemReserved(true);
+    robot_migrationDataVersion.setUndeletable(true);
+    robot_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder robot_modifiedBy = robotSchema.get("modifiedBy");
     robot_modifiedBy.setSystemReserved(true);
     robot_modifiedBy.setUndeletable(true);
@@ -408,6 +435,11 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_authorizations.setMultivalue(true);
     robotLog_authorizations.setSystemReserved(true);
     robotLog_authorizations.setUndeletable(true);
+    MetadataBuilder robotLog_autocomplete = robotLogSchema.get("autocomplete");
+    robotLog_autocomplete.setMultivalue(true);
+    robotLog_autocomplete.setSystemReserved(true);
+    robotLog_autocomplete.setUndeletable(true);
+    robotLog_autocomplete.setEssential(true);
     MetadataBuilder robotLog_count = robotLogSchema.create("count").setType(MetadataValueType.NUMBER);
     robotLog_count.setUndeletable(true);
     MetadataBuilder robotLog_createdBy = robotLogSchema.get("createdBy");
@@ -463,12 +495,19 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_manualTokens.setSystemReserved(true);
     robotLog_manualTokens.setUndeletable(true);
     robotLog_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder robotLog_markedForParsing = robotLogSchema.get("markedForParsing");
+    robotLog_markedForParsing.setSystemReserved(true);
+    robotLog_markedForParsing.setUndeletable(true);
     MetadataBuilder robotLog_markedForPreviewConversion = robotLogSchema.get("markedForPreviewConversion");
     robotLog_markedForPreviewConversion.setSystemReserved(true);
     robotLog_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder robotLog_markedForReindexing = robotLogSchema.get("markedForReindexing");
     robotLog_markedForReindexing.setSystemReserved(true);
     robotLog_markedForReindexing.setUndeletable(true);
+    MetadataBuilder robotLog_migrationDataVersion = robotLogSchema.get("migrationDataVersion");
+    robotLog_migrationDataVersion.setSystemReserved(true);
+    robotLog_migrationDataVersion.setUndeletable(true);
+    robotLog_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder robotLog_modifiedBy = robotLogSchema.get("modifiedBy");
     robotLog_modifiedBy.setSystemReserved(true);
     robotLog_modifiedBy.setUndeletable(true);
@@ -534,6 +573,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_field_allauthorizations = facet_fieldSchema.get("allauthorizations");
     MetadataBuilder facet_field_attachedAncestors = facet_fieldSchema.get("attachedAncestors");
     MetadataBuilder facet_field_authorizations = facet_fieldSchema.get("authorizations");
+    MetadataBuilder facet_field_autocomplete = facet_fieldSchema.get("autocomplete");
     MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
     MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
     MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
@@ -549,8 +589,10 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
     MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
     MetadataBuilder facet_field_manualTokens = facet_fieldSchema.get("manualTokens");
+    MetadataBuilder facet_field_markedForParsing = facet_fieldSchema.get("markedForParsing");
     MetadataBuilder facet_field_markedForPreviewConversion = facet_fieldSchema.get("markedForPreviewConversion");
     MetadataBuilder facet_field_markedForReindexing = facet_fieldSchema.get("markedForReindexing");
+    MetadataBuilder facet_field_migrationDataVersion = facet_fieldSchema.get("migrationDataVersion");
     MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
     MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
     MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
@@ -576,6 +618,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_allauthorizations = facet_querySchema.get("allauthorizations");
     MetadataBuilder facet_query_attachedAncestors = facet_querySchema.get("attachedAncestors");
     MetadataBuilder facet_query_authorizations = facet_querySchema.get("authorizations");
+    MetadataBuilder facet_query_autocomplete = facet_querySchema.get("autocomplete");
     MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
     MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
     MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
@@ -591,8 +634,10 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
     MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
     MetadataBuilder facet_query_manualTokens = facet_querySchema.get("manualTokens");
+    MetadataBuilder facet_query_markedForParsing = facet_querySchema.get("markedForParsing");
     MetadataBuilder facet_query_markedForPreviewConversion = facet_querySchema.get("markedForPreviewConversion");
     MetadataBuilder facet_query_markedForReindexing = facet_querySchema.get("markedForReindexing");
+    MetadataBuilder facet_query_migrationDataVersion = facet_querySchema.get("migrationDataVersion");
     MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
     MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
     MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
@@ -620,6 +665,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
     MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
     MetadataBuilder task_approval_authorizations = task_approvalSchema.get("authorizations");
+    MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
     MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
     MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
     MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
@@ -635,8 +681,10 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
     MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
     MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
+    MetadataBuilder task_approval_markedForParsing = task_approvalSchema.get("markedForParsing");
     MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
     MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
+    MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
     MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
     MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
     MetadataBuilder task_approval_parentpath = task_approvalSchema.get("parentpath");
@@ -657,6 +705,7 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     actionParameters_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     actionParameters_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    actionParameters_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     actionParameters_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     actionParameters_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     actionParameters_path.defineDataEntry().asCalculated(PathCalculator.class);
@@ -667,6 +716,7 @@ public final class GeneratedRobotsMigrationCombo {
     robot_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     robot_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     robot_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    robot_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     robot_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     robot_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     robot_path.defineDataEntry().asCalculated(PathCalculator.class);
@@ -677,6 +727,7 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     robotLog_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     robotLog_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    robotLog_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     robotLog_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     robotLog_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     robotLog_path.defineDataEntry().asCalculated(PathCalculator.class);
@@ -703,6 +754,6 @@ public final class GeneratedRobotsMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules", "core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents", "robots.manageRobots")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSearchEngine", "core.manageSearchReports", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules", "core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "robots.manageRobots")));
   }
 }

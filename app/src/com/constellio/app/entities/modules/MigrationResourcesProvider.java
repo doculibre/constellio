@@ -54,6 +54,24 @@ public class MigrationResourcesProvider {
 		return bundle.containsKey(key) ? bundle.getString(key) : key;
 	}
 
+	public Map<Language, String> getLanguagesString(String key) {
+		ensureBundles();
+
+		Map<Language, String> labels = new HashMap<>();
+
+		for (Language language : collectionLanguages) {
+			Locale locale = language.getLocale();
+			ResourceBundle bundle = bundles.getBundle(locale);
+			String label = key;
+			if (bundle.containsKey(key)) {
+				label = bundle.getString(key);
+			}
+			labels.put(language, label);
+		}
+
+		return labels;
+	}
+
 	private void ensureBundles() {
 		if (bundles == null) {
 			throw new MigrationResourcesProviderRuntimeException_NoBundle(version, module);

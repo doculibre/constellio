@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.constellio.app.modules.rm.wrappers.*;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
@@ -27,6 +26,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -100,7 +104,17 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo6_7(),
 				new RMMigrationTo7_0_5(),
 				new RMMigrationTo7_0_10_5(),
-				new RMMigrationTo7_1()
+				new RMMigrationTo7_1(),
+				new RMMigrationTo7_1_1(),
+				new RMMigrationTo7_1_2(),
+				new RMMigrationTo7_2(),
+				new RMMigrationTo7_2_0_1(),
+				new RMMigrationTo7_2_0_2(),
+				new RMMigrationTo7_2_0_3(),
+				new RMMigrationTo7_2_0_4(),
+				new RMMigrationTo7_3(),
+				new RMMigrationTo7_3_1(),
+				new RMMigrationTo7_4()
 		);
 	}
 
@@ -145,6 +159,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
 			}
 		});
+
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {

@@ -67,6 +67,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 						.resetSchema(zeCollection, SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 			}
 		});
 
@@ -342,13 +343,13 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			String fileAbsolutePath = folderAbsolutePath + file;
 			//if (!file1.getName().contains("schemasDisplay.xml")) {
 
-			String contentOfComboMigrationFile = contentExceptVersion(file1);
-			String contentOfMigrationFile = contentExceptVersion(file2);
+			String contentOfFileMigratedUsingComboScript = contentExceptVersion(file1);
+			String contentOfFileMigratedUsingAtomicScripts = contentExceptVersion(file2);
 
 			if (file.endsWith(".properties")) {
-				List<String> linesOfComboMigrationFile = asList(contentOfComboMigrationFile.split("\n"));
+				List<String> linesOfComboMigrationFile = asList(contentOfFileMigratedUsingComboScript.split("\n"));
 				Collections.sort(linesOfComboMigrationFile);
-				List<String> linesOfMigrationFile = asList(contentOfMigrationFile.split("\n"));
+				List<String> linesOfMigrationFile = asList(contentOfFileMigratedUsingAtomicScripts.split("\n"));
 				Collections.sort(linesOfMigrationFile);
 
 				assertThat(linesOfComboMigrationFile).describedAs("Content of file '" + fileAbsolutePath + "")
@@ -356,8 +357,9 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 			} else {
 
-				assertThat(contentOfComboMigrationFile).describedAs("Content of file '" + fileAbsolutePath + "")
-						.isEqualTo(contentOfMigrationFile);
+				assertThat(contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
+						+ "' generated using combo script is not equal to the content generated using atomic scripts")
+						.isEqualTo(contentOfFileMigratedUsingAtomicScripts);
 			}
 			System.out.println(file1.getName() + " is OK");
 			//}
