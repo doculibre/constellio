@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
@@ -27,6 +28,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -689,8 +691,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
-		assertThat(records.getDocumentWithContent_A19().isLogicallyDeletedStatus()).isTrue();
-		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
+
+		assertThatRecordDoesNotExist(records.document_A19);
+
 	}
 
 	@Test
@@ -703,12 +706,10 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList02()), records.getChuckNorris());
 		verifyProcessed(processingDate, processingUser, records.getList02());
-		verifyFoldersDestroyed(processingDate,
-				records.getFolder_A54(), records.getFolder_A55(), records.getFolder_A56());
-		assertThat(records.getContainerBac10().isFull()).isFalse();
-		assertThat(records.getFolder_A54().isLogicallyDeletedStatus()).isTrue();
-		assertThat(records.getFolder_A55().isLogicallyDeletedStatus()).isTrue();
-		assertThat(records.getFolder_A56().isLogicallyDeletedStatus()).isTrue();
+
+		assertThatRecordDoesNotExist(records.folder_A54);
+		assertThatRecordDoesNotExist(records.folder_A55);
+		assertThatRecordDoesNotExist(records.folder_A56);
 	}
 
 	@Test
@@ -812,6 +813,15 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 	private DecommissioningList requestApproval(DecommissioningList list) {
 		return savedAndRefreshed(list.setApprovalRequestDate(new LocalDate()).setApprovalRequest(records.getChuckNorris()));
+	}
+
+	private void assertThatRecordDoesNotExist(String id) {
+		try {
+			recordServices.getDocumentById(id);
+			fail("Record should not exist : " + id);
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//OK
+		}
 	}
 
 	private DecommissioningList approved(DecommissioningList list) {
