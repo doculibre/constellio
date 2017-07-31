@@ -19,6 +19,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
@@ -148,6 +149,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordAppExtensions.add(new ESRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension(appLayerFactory));
+		extensions.treeNodeAppExtension.add(new TreeNodeAppExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
