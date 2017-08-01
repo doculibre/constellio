@@ -245,6 +245,10 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		return userServices.isLDAPAuthentication();
 	}
 
+	public boolean userNotLDAPSynced(String username) {
+		return User.ADMIN.equals(username) || !modelLayerFactory.getLdapConfigurationManager().idUsersSynchActivated();
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_USERS).globally();
