@@ -117,7 +117,7 @@ public class ReportGeneratorButton extends WindowButton {
 			@Override
 			public void validate(Object value) throws InvalidValueException {
 				if(value == null) {
-					throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+					throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
 				}
 			}
 		});

@@ -100,19 +100,23 @@ public class GetXmlButtonV2 extends WindowButton{
         protected void saveButtonClick(LabelParametersVO viewObject) throws ValidationException {
             try{
                 Field lookupField = fields.get(0);
-                XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
                 List<String> ids = currentSchema.equals(PrintableReportListPossibleType.TASK) ? asList(((TaskVO) lookupField.getValue()).getId()):((ListAddRemoveRecordLookupField) lookupField).getValue();
-                xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
-                XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
-                String xml = xmlGenerator.generateXML();
-                String filename = "Constellio-Test.xml";
-                StreamResource source = createResource(xml, filename);
-                Link download = new Link($("ReportViewer.download", filename),
-                        new GetXMLButton.DownloadStreamResource(source.getStreamSource(), filename));
-                VerticalLayout newLayout = new VerticalLayout();
-                newLayout.addComponents(download);
-                newLayout.setWidth("100%");
-                getWindow().setContent(newLayout);
+                if(ids.size() > 0) {
+                    XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
+                    xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
+                    XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                    String xml = xmlGenerator.generateXML();
+                    String filename = "Constellio-Test.xml";
+                    StreamResource source = createResource(xml, filename);
+                    Link download = new Link($("ReportViewer.download", filename),
+                            new GetXMLButton.DownloadStreamResource(source.getStreamSource(), filename));
+                    VerticalLayout newLayout = new VerticalLayout();
+                    newLayout.addComponents(download);
+                    newLayout.setWidth("100%");
+                    getWindow().setContent(newLayout);
+                } else {
+                    view.showErrorMessage($("DisplayLabelViewImpl.menu.getXMLButton.selectEntity"));
+                }
             } catch (Exception e) {
               e.printStackTrace();
             }

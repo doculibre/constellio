@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReport;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -84,9 +85,15 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createExcelTab() {
-        AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-        presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-        return new ReportSelector(presenter);
+        VerticalLayout verticalLayout = new VerticalLayout();
+        try{
+            AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+            presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+            verticalLayout.addComponent(new ReportSelector(presenter));
+        }catch (UnsupportedReport unsupportedReport ){
+            view.showErrorMessage($("ReportTabButton.noExcelReport"));
+        }
+        return verticalLayout;
     }
 
     private Component createPDFTab() {
@@ -131,8 +138,11 @@ public class ReportTabButton extends WindowButton {
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
+            if(defaultElementSelected.getValue() == null) {
+                defaultElementSelected.setValue(printableReportListPossibleType);
+            }
         }
-        defaultElementSelected.setNullSelectionAllowed(false);
+//        defaultElementSelected.setNullSelectionAllowed(false);
         defaultElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -179,7 +189,7 @@ public class ReportTabButton extends WindowButton {
 
         customElementSelected = new ComboBox();
         this.fillSchemaCombobox(customElementSelected);
-        customElementSelected.setNullSelectionAllowed(false);
+//        customElementSelected.setNullSelectionAllowed(false);
         customElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -211,12 +221,12 @@ public class ReportTabButton extends WindowButton {
         }
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");
-        reportComboBox.setNullSelectionAllowed(false);
+//        reportComboBox.setNullSelectionAllowed(false);
         reportComboBox.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
                 if(value == null) {
-                    throw new InvalidValueException($("ReporTabButton.invalidChoosenReport"));
+                    throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
                 }
             }
         });
@@ -273,6 +283,9 @@ public class ReportTabButton extends WindowButton {
                 for (PrintableReportTemplate printableReport : printableReportTemplateList) {
                     comboBox.addItem(printableReport);
                     comboBox.setItemCaption(printableReport, printableReport.getTitle());
+                    if(comboBox.getValue() == null) {
+                        comboBox.setValue(printableReport);
+                    }
                 }
             }
         }
@@ -287,6 +300,9 @@ public class ReportTabButton extends WindowButton {
             if(selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
+                if(compteur == 0) {
+                    comboBox.setValue(metadataSchemaVO);
+                }
                 compteur++;
             }
         }
