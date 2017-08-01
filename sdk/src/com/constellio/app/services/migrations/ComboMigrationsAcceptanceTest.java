@@ -172,6 +172,14 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "printable_report");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_reactivationRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_returnRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_borrowRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
+
 			}
 		});
 
@@ -193,6 +201,14 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetSchema(zeCollection, "printable_report");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_reactivationRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_returnRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_borrowRequest");
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
 			}
 		});
 

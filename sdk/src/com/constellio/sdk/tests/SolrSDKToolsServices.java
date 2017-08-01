@@ -217,6 +217,9 @@ public class SolrSDKToolsServices {
 			Map<String, Object> dataBefore = snapshotBeforeReindexation.datas.get(id);
 			Map<String, Object> dataAfter = snapshotAfterReindexation.datas.get(id);
 
+			dataBefore.remove("fieldValuesLabel_s");
+			dataAfter.remove("fieldValuesLabel_s");
+
 			MapComparisonResults<String, Object> results = LangUtils.compare(dataBefore, dataAfter);
 
 			StringBuilder sb = new StringBuilder();
