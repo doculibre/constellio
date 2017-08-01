@@ -46,41 +46,45 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
         return user.has(CorePermissions.MANAGE_EXCEL_REPORT).globally();
     }
 
-    protected Map<String, String> initPossibleTab(){
+    public Map<String, String> initPossibleTab() {
+        return this.initPossibleTab(view.getSessionContext().getCurrentLocale());
+    }
+
+    public Map<String, String> initPossibleTab(Locale locale){
         Map<String, String> map = new HashMap<>();
         MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 
         //container
         MetadataSchemaVO containerSchemaVO = builder.build(schemaType(ContainerRecord.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(containerSchemaVO.getLabel(), containerSchemaVO.getTypeCode());
+        map.put(containerSchemaVO.getLabel(locale), containerSchemaVO.getTypeCode());
 
         //Document
         MetadataSchemaVO documentSchemaVO = builder.build(schemaType(Document.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(documentSchemaVO.getLabel(), documentSchemaVO.getTypeCode());
+        map.put(documentSchemaVO.getLabel(locale), documentSchemaVO.getTypeCode());
 
         //internetDocument
         MetadataSchemaVO httpDocumentSchemaVO = builder.build(schemaType(ConnectorHttpDocument.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(httpDocumentSchemaVO.getLabel(), httpDocumentSchemaVO.getTypeCode());
+        map.put(httpDocumentSchemaVO.getLabel(locale), httpDocumentSchemaVO.getTypeCode());
 
         //smbConnector
         MetadataSchemaVO SmbDocumentSchemaVO = builder.build(schemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(SmbDocumentSchemaVO.getLabel(), SmbDocumentSchemaVO.getTypeCode());
+        map.put(SmbDocumentSchemaVO.getLabel(locale), SmbDocumentSchemaVO.getTypeCode());
 
         //folder
         MetadataSchemaVO folderSchemaVO = builder.build(schemaType(Folder.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(folderSchemaVO.getLabel(), folderSchemaVO.getTypeCode());
+        map.put(folderSchemaVO.getLabel(locale), folderSchemaVO.getTypeCode());
 
         //StorageSpace
         MetadataSchemaVO storageSpaceSchemaVO = builder.build(schemaType(StorageSpace.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(storageSpaceSchemaVO.getLabel(), storageSpaceSchemaVO.getTypeCode());
+        map.put(storageSpaceSchemaVO.getLabel(locale), storageSpaceSchemaVO.getTypeCode());
 
         //Task
         MetadataSchemaVO taskSchemaVO = builder.build(schemaType(Task.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(taskSchemaVO.getLabel(), taskSchemaVO.getTypeCode());
+        map.put(taskSchemaVO.getLabel(locale), taskSchemaVO.getTypeCode());
 
         //User
         MetadataSchemaVO userSchemaVO = builder.build(schemaType(User.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(userSchemaVO.getLabel(), userSchemaVO.getTypeCode());
+        map.put(userSchemaVO.getLabel(locale), userSchemaVO.getTypeCode());
         map = sortByValue(map);
         return map;
     }

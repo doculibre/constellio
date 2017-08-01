@@ -60,7 +60,7 @@ public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().manageExcelReport();
             }
-        }, "report-print");
+        }, "excel-templates");
     }
 
     private Button createLink(String caption, final Button.ClickListener listener, String iconName) {
