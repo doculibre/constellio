@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Map;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -240,6 +241,37 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			statusField.setItemCaption(status, $("UserCredentialView.status." + status.getCode()));
 		}
 		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
+		// Allow to modify user collection and nothing else when ldapsynch.
+		boolean isEnabled = presenter.userNotLDAPSynced(userCredentialVO.getUsername());
+		if(!isEnabled) {
+			usernameField.setRequired(false);
+			firstNameField.setRequired(false);
+			lastNameField.setRequired(false);
+			emailField.setRequired(false);
+			jobTitle.setRequired(false);
+			phone.setRequired(false);
+			fax.setRequired(false);
+			address.setRequired(false);
+			personalEmailsField.setRequired(false);
+			passwordField.setRequired(false);
+			confirmPasswordField.setRequired(false);
+			statusField.setRequired(false);
+		}
+
+		usernameField.setEnabled(isEnabled);
+		firstNameField.setEnabled(isEnabled);
+		lastNameField.setEnabled(isEnabled);
+		emailField.setEnabled(isEnabled);
+		jobTitle.setEnabled(isEnabled);
+		phone.setEnabled(isEnabled);
+		fax.setEnabled(isEnabled);
+		address.setEnabled(isEnabled);
+		personalEmailsField.setEnabled(isEnabled);
+		passwordField.setEnabled(isEnabled);
+		confirmPasswordField.setEnabled(isEnabled);
+		collectionsField.setEnabled(true);
+		statusField.setEnabled(isEnabled);
 
 		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField,
 				lastNameField, emailField, jobTitle, phone, fax, address, personalEmailsField, passwordField,
