@@ -149,7 +149,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		List<MetadataSchemaType> types = schemasManager.getSchemaTypes(taxonomy.getCollection())
 				.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 
-		//validateCanBePrincipalTaxonomy(taxonomy, schemasManager);
+		validateCanBePrincipalTaxonomy(taxonomy, schemasManager);
 		String collection = taxonomy.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newSetPrincipalTaxonomy(taxonomy));
 
@@ -168,14 +168,6 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			throw new TaxonomyMustBeAddedBeforeSettingItHasPrincipal();
 		}
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(taxonomy.getCollection());
-		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			for (Metadata metadata : type.getAllReferencesToTaxonomySchemas(asList(taxonomy))) {
-				if (metadata.isMultivalue()) {
-					throw new TaxonomySchemaIsReferencedInMultivalueReference();
-				}
-			}
-		}
 	}
 
 	public List<String> getSecondaryTaxonomySchemaTypes(String collection) {
