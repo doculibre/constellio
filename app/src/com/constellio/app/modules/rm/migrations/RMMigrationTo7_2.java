@@ -123,7 +123,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		updateNewPermissions(appLayerFactory, collection);
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		try {
-			createNewTaskTypes(appLayerFactory, taskSchemas);
+			Transaction transaction = new Transaction();
+			createNewTaskTypes(appLayerFactory, collection, transaction);
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
 		}
@@ -162,9 +164,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 						.withVisibleInAdvancedSearchStatus(true));
 	}
 
-	private void createNewTaskTypes(AppLayerFactory appLayerFactory, TasksSchemasRecordsServices taskSchemas)
+	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction)
 			throws RecordServicesException {
-		Transaction transaction = new Transaction();
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME));
@@ -175,7 +177,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_EXTENSION_REQUEST)
 				.setTitle("Demande de prolongation d'emprunt")
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME));
-		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+
 	}
 
 	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
@@ -254,7 +256,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		)));
 	}
 
-	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
+	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider,
 			String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
@@ -297,7 +300,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		}
 	}
 
-	private void reloadEmailTemplate(final String templateFileName, final String templateId, AppLayerFactory appLayerFactory,
+	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
+			AppLayerFactory appLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 

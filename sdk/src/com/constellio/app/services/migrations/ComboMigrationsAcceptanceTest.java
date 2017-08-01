@@ -68,6 +68,8 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 
@@ -141,6 +143,9 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 						SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 
@@ -164,6 +169,9 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 						SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 
@@ -182,6 +190,9 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 						SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
+				getAppLayerFactory().getMetadataSchemasDisplayManager()
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 

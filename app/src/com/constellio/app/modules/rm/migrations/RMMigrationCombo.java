@@ -53,11 +53,13 @@ import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class RMMigrationCombo implements ComboMigrationScript {
@@ -160,6 +162,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			}
 		});
 
+		//TODO These lines are totally useless, they are only there to ensure that the taxonomies are written in the same order in the file, for combo test validation purpose
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "plan"));
+		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
+
+		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
@@ -168,10 +176,15 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		SchemaDisplayConfig userTask = manager.getSchema(collection, "userTask_default");
 		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_administrativeUnit", "userTask_default_comments");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedContainers", "userTask_default_comments");
 		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedDocuments", "userTask_default_comments");
 		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedFolders", "userTask_default_comments");
+
 		userTask = userTask.withNewFormMetadata("userTask_default_linkedDocuments");
 		userTask = userTask.withNewFormMetadata("userTask_default_linkedFolders");
+		userTask = userTask.withNewFormMetadata("userTask_default_linkedContainers");
+		userTask = userTask.withNewFormMetadata("userTask_default_reason");
+
 		userTask = userTask.withTableMetadataCodes(
 				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
 						"userTask_default_assignee"));
@@ -180,10 +193,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");
 		transaction.add(userDocument.withRemovedDisplayMetadatas("userDocument_default_folder")
 				.withRemovedFormMetadatas("userDocument_default_folder"));
-		//userDocument.withNew
 
 		SchemaDisplayConfig container = manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA);
-		container = container.withNewFormMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FILL_RATIO_ENTRED);
+		//container = container.withNewFormMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FILL_RATIO_ENTRED);
 		transaction.add(container);
 
 		manager.execute(transaction.build());
@@ -236,6 +248,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			e.printStackTrace();
 		}
 
+		try {
+			RMMigrationTo7_2.createNewTaskTypes(appLayerFactory, collection, transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
 		return transaction;
 	}
 
@@ -278,7 +296,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			String extension = provider.getDefaultLanguageString("Migration.fileExtension");
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
-			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), false);
+			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), true);
 			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false);
 			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
 					.getContentVersionDataSummary();
