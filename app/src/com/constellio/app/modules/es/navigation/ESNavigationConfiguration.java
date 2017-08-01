@@ -72,7 +72,7 @@ public class ESNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_CONNECTORS).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(SEARCH_ENGINE, SEARCH_ENGINE_ICON));
+		//config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(SEARCH_ENGINE, SEARCH_ENGINE_ICON));
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
