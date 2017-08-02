@@ -19,6 +19,7 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
 	public static final String CONNECTOR_URL = "connectorUrl";
 	public static final String PARENT_CONNECTOR_URL = "parentConnectorUrl";
+	public static final String PARENT_URL = "parentUrl";
 
 	public static final String URL = "url";
 	public static final String PERMISSIONS_HASH = "permissionsHash";
@@ -44,7 +45,7 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 	}
 
 	public ConnectorSmbFolder setParentUrl(String url) {
-		set(PARENT_CONNECTOR_URL, url);
+		set(PARENT_URL, url);
 		return this;
 	}
 

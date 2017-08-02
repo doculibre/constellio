@@ -1,29 +1,26 @@
 package com.constellio.app.modules.es.model.connectors;
 
-import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DocumentSmbConnectorUrlCalculator implements MetadataValueCalculator<String> {
+public class DocumentSmbParentConnectorUrlCalculator implements MetadataValueCalculator<String> {
 
-	LocalDependency<String> urlParam = LocalDependency.toAString(ConnectorSmbDocument.URL);
+	LocalDependency<String> urlParam = LocalDependency.toAString(ConnectorSmbDocument.PARENT_URL);
 	LocalDependency<String> connectorParam = LocalDependency.toAReference(ConnectorSmbDocument.CONNECTOR);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
 		String url = parameters.get(urlParam);
 		String connector = parameters.get(connectorParam);
-		return calculate(url, connector);
+		return DocumentSmbConnectorUrlCalculator.calculate(url, connector);
 	}
 
 	@Override
@@ -44,9 +41,5 @@ public class DocumentSmbConnectorUrlCalculator implements MetadataValueCalculato
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return asList(urlParam, connectorParam);
-	}
-
-	public static String calculate(String url, String connector) {
-		return url != null && connector != null ? connector + "/?/" + url : null;
 	}
 }

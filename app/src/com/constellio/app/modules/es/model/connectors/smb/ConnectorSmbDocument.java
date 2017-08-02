@@ -20,6 +20,7 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	public static final String LAST_MODIFIED = ConnectorDocument.LAST_MODIFIED;
 	public static final String CONNECTOR_URL = "connectorUrl";
 	public static final String PARENT_CONNECTOR_URL = "parentConnectorUrl";
+	public static final String PARENT_URL = "parentUrl";
 
 	public static final String URL = "url";
 	public static final String PARSED_CONTENT = "parsedContent";
@@ -53,7 +54,7 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	}
 
 	public ConnectorSmbDocument setParentUrl(String url) {
-		set(PARENT_CONNECTOR_URL, url);
+		set(PARENT_URL, url);
 		return this;
 	}
 

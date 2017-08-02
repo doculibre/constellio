@@ -25,7 +25,14 @@ import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -38,6 +45,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class ConnectorSmb extends Connector {
@@ -89,6 +97,8 @@ public class ConnectorSmb extends Connector {
 		schemaDisplayConfig.setupMetadatasDisplay();
 		jobsQueue = new SmbJobQueueSortedImpl();
 
+		loadCache(connectorInstance.getCollection());
+
 		Credentials credentials = new Credentials(connectorInstance.getDomain(), connectorInstance.getUsername(),
 				connectorInstance.getPassword());
 
@@ -105,6 +115,30 @@ public class ConnectorSmb extends Connector {
 
 		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
 				updater);
+	}
+
+	private void loadCache(String collection) {
+		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordsCache cache = recordServices.getRecordsCaches().getCache(collection);
+
+
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbFolder.schemaType()).returnAll());
+		List<Record> smbFolders = searchServices.search(logicalSearchQuery);
+		for(Record smbFolder: smbFolders) {
+			cache.forceInsert(smbFolder);
+		}
+
+		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url(),
+				es.connectorSmbDocument.connectorUrl(),	es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
+				es.connectorSmbDocument.lastModified(),	es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
+		logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType()).returnAll())
+				.setReturnedMetadatas(returnedMetadatasFilter);
+		List<Record> smbDocuments = searchServices.search(logicalSearchQuery);
+		for(Record smbDocument: smbDocuments) {
+			cache.forceInsert(smbDocument);
+		}
 	}
 
 	public Set<String> getDuplicateUrls() {
