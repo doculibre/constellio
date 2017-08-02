@@ -219,7 +219,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public List<FacetVO> getFacets() {
-		return service.getFacets(getSearchQuery(), facetStatus);
+		return service.getFacets(getSearchQuery(), facetStatus, getCurrentLocale());
 	}
 
 	public String getSortCriterion() {
