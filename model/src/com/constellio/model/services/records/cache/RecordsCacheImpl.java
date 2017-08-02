@@ -623,8 +623,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		void insert(Record previousRecord, RecordHolder recordHolder) {
 
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
-				String value = null;
-				String previousValue = null;
+				Object value = null;
+				Object previousValue = null;
 
 				if (previousRecord != null) {
 					previousValue = previousRecord.get(supportedMetadata);
@@ -636,7 +636,7 @@ public class RecordsCacheImpl implements RecordsCache {
 					map.get(supportedMetadata.getLocalCode()).remove(previousValue);
 				}
 				if (value != null && !value.equals(previousValue)) {
-					map.get(supportedMetadata.getLocalCode()).put(value, recordHolder);
+					map.get(supportedMetadata.getLocalCode()).put(value.toString(), recordHolder);
 				}
 			}
 		}
