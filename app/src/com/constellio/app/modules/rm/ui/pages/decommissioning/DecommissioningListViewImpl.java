@@ -1,10 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
-import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -402,17 +399,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildApprovalRequestButton() {
-		approvalRequest = new ConfirmDialogButton(null, $("DecommissioningListView.approvalRequest"), false) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DecommissioningListView.confirmApprovalRequest");
-			}
-
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.approvalRequestButtonClicked();
-			}
-		};
+		approvalRequest = new DecomApprobationRequestWindowButton(presenter, this, getConstellioFactories());
 		approvalRequest.setEnabled(presenter.canSendApprovalRequest());
 		approvalRequest.addStyleName(APPROVAL_REQUEST_BUTTON);
 		return approvalRequest;
