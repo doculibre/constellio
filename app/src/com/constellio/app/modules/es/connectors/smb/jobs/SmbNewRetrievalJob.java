@@ -38,7 +38,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
             case FULL_DTO:
                 try {
                     final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
-                    jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getConnectorInstance().getId()+"/?/"+jobParams.getParentUrl(), seed);
+                    jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getParentUrl(), seed);
                     jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
 
                 } catch (Exception e) {
@@ -48,7 +48,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
             case FAILED_DTO:
                 try {
                     final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
-                    jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getConnectorInstance().getId()+"/?/"+jobParams.getParentUrl());
+                    jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getParentUrl());
                     jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
 
                 } catch (Exception e) {
@@ -57,7 +57,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                 break;
             case DELETE_DTO:
                 try {
-                    SmbConnectorJob deleteJob = jobParams.getJobFactory().get(SmbJobCategory.DELETE, url, jobParams.getConnectorInstance().getId()+"/?/"+jobParams.getParentUrl());
+                    SmbConnectorJob deleteJob = jobParams.getJobFactory().get(SmbJobCategory.DELETE, url, jobParams.getParentUrl());
                     ConnectorSmb connectorSmb = (ConnectorSmb) connector;
                     connectorSmb.queueJob(deleteJob);
 

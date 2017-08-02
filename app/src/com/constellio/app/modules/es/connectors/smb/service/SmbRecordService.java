@@ -2,9 +2,14 @@ package com.constellio.app.modules.es.connectors.smb.service;
 
 import java.util.*;
 
+import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +28,13 @@ public class SmbRecordService {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorSmbUtils smbUtils;
+	private RecordServices recordServices;
 
 	public SmbRecordService(ESSchemasRecordsServices es, ConnectorSmbInstance connectorInstance) {
 		this.es = es;
 		this.connectorInstance = connectorInstance;
 		this.smbUtils = new ConnectorSmbUtils();
+		this.recordServices = es.getAppLayerFactory().getModelLayerFactory().newRecordServices();
 	}
 
 	public List<ConnectorSmbDocument> getDocuments(String url) {
@@ -75,34 +82,39 @@ public class SmbRecordService {
 		return es.newConnectorSmbDocument(connectorInstance);
 	}
 
-	public ConnectorSmbFolder getFolder(String url) {
-		if (StringUtils.isBlank(url)) {
-			return null;
-		} else {
-			List<ConnectorSmbFolder> folders = getFolders(url);
-			if (folders.isEmpty()) {
-				return null;
-			}
-			return folders.get(0);
-		}
+	public ConnectorSmbFolder getFolder(String url, ConnectorSmbInstance connectorInstance) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+		return es.wrapConnectorSmbFolder(recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
 	}
 
-	public SmbModificationIndicator getSmbModificationIndicator(String url) {
+	public ConnectorSmbDocument getDocument(String url, ConnectorSmbInstance connectorInstance) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+		return es.wrapConnectorSmbDocument(recordServices.getRecordByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
+	}
+
+	public SmbModificationIndicator getSmbModificationIndicator(ConnectorSmbInstance connector, String url) {
 		Metadata permissionHash = es.connectorSmbDocument.permissionsHash();
 		Metadata size = es.connectorSmbDocument.size();
 		Metadata lastModified = es.connectorSmbDocument.lastModified();
-		Metadata parent = es.connectorSmbDocument.parent();
-		Metadata parentFolder = es.connectorSmbFolder.parent();
+		Metadata documentConnectorUrlMetadata = es.connectorSmbDocument.connectorUrl();
+		Metadata folderConnectorUrlMetadata = es.connectorSmbFolder.connectorUrl();
 
-		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId()).andWhere(Schemas.URL).is(url));
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL, permissionHash, size, lastModified, parent, parentFolder));
+		String connectorUrlValue = DocumentSmbConnectorUrlCalculator.calculate(url, connector.getId());
 
-		SPEQueryResponse response = es.getAppLayerFactory().getModelLayerFactory().newSearchServices().query(query);
-		List<Record> records = response.getRecords();
-		if (records.isEmpty()) {
+		Record record = null;
+		if(smbUtils.isFolder(url)) {
+			record = recordServices.getRecordByMetadata(folderConnectorUrlMetadata, connectorUrlValue);
+		} else {
+			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getSummaryByMetadata(documentConnectorUrlMetadata, connectorUrlValue);
+		}
+
+
+		if(record == null) {
 			return null;
 		}
-		Record record = response.getRecords().get(0);
+
 		String permissionHashValue = record.get(permissionHash);
 		permissionHashValue = StringUtils.defaultString(permissionHashValue);
 		Double sizeDouble = record.get(size);

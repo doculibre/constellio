@@ -26,19 +26,23 @@ public class SmbDeleteJob extends SmbConnectorJob {
         try {
             if (jobParams.getSmbUtils().isFolder(url)) {
                 //FIXME slow
-                List<ConnectorSmbFolder> foldersToDelete = jobParams.getSmbRecordService().getFolders(url);
-                if (!foldersToDelete.isEmpty()) {
+                ConnectorSmbFolder folderToDelete = jobParams.getSmbRecordService().getFolder(url, jobParams.getConnectorInstance());
+//                List<ConnectorSmbFolder> foldersToDelete = jobParams.getSmbRecordService().getFolders(url);
+//                if (!foldersToDelete.isEmpty()) {
                     DeleteEventOptions options = new DeleteEventOptions();
                     options.getPhysicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
                     options.getLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(LOGICALLY_DELETE_THEM);
-                    jobParams.getEventObserver().deleteEvents(options, foldersToDelete.toArray(new ConnectorSmbFolder[0]));
-                }
+//                    jobParams.getEventObserver().deleteEvents(options, foldersToDelete.toArray(new ConnectorSmbFolder[0]));
+                    jobParams.getEventObserver().deleteEvents(options, folderToDelete);
+//                }
             } else {
                 //FIXME slow
-                List<ConnectorSmbDocument> documentsToDelete = jobParams.getSmbRecordService().getDocuments(url);
-                if (!documentsToDelete.isEmpty()) {
-                    jobParams.getEventObserver().deleteEvents(documentsToDelete.toArray(new ConnectorSmbDocument[0]));
-                }
+//                List<ConnectorSmbDocument> documentsToDelete = jobParams.getSmbRecordService().getDocuments(url);
+//                if (!documentsToDelete.isEmpty()) {
+//                    jobParams.getEventObserver().deleteEvents(documentsToDelete.toArray(new ConnectorSmbDocument[0]));
+//                }
+                ConnectorSmbDocument documentToDelete = jobParams.getSmbRecordService().getDocument(url, jobParams.getConnectorInstance());
+                jobParams.getEventObserver().deleteEvents(documentToDelete);
             }
         } catch (Exception e) {
             this.connector.getLogger().errorUnexpected(e);

@@ -6,7 +6,9 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbParentConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.FolderSmbConnectorUrlCalculator;
+import com.constellio.app.modules.es.model.connectors.FolderSmbParentConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -35,6 +37,8 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
 				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_URL));
+		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
 				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.LAST_MODIFIED));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
 				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.URL));
@@ -46,6 +50,8 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
 				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL));
+		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
 				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.LAST_MODIFIED));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
@@ -66,8 +72,10 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 			MetadataSchemaBuilder documentDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema();
 			documentDefaultSchema.create(ConnectorSmbDocument.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
 					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbConnectorUrlCalculator.class);
-			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
+			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_URL).setType(MetadataValueType.STRING)
 					.setSystemReserved(true).setEssentialInSummary(true);
+			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbParentConnectorUrlCalculator.class);
 			documentDefaultSchema.get(ConnectorSmbDocument.LAST_MODIFIED).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.URL).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.PERMISSIONS_HASH).setEssentialInSummary(true);
@@ -76,8 +84,10 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 			MetadataSchemaBuilder folderDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).getDefaultSchema();
 			folderDefaultSchema.create(ConnectorSmbFolder.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
 					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbConnectorUrlCalculator.class);
-			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
+			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_URL).setType(MetadataValueType.STRING)
 					.setSystemReserved(true).setEssentialInSummary(true);
+			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbParentConnectorUrlCalculator.class);
 		}
 	}
 }
