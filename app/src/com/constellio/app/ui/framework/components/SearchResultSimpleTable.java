@@ -48,10 +48,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer recordVOContainer;
 	private boolean allItemsSelected;
+	private AdvancedSearchPresenter presenter;
 
 	public SearchResultSimpleTable(RecordVOLazyContainer container, final AdvancedSearchPresenter presenter) {
 		super();
 		this.recordVOContainer = container;
+		this.presenter = presenter;
 		
 		RecordVOTable adaptee = new RecordVOTable(container);
 		adaptee.setWidth("100%");
@@ -260,9 +262,13 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		if (selected) {
 			this.selectedItemIds.add(itemId);
 			deselectedItemIds.remove(itemId);
+			presenter.fireSomeRecordsSelected();
 		} else {
 			this.selectedItemIds.remove(itemId);
 			deselectedItemIds.add(itemId);
+			if(selectedItemIds.isEmpty()) {
+				presenter.fireNoRecordSelected();
+			}
 		}
 		if (fireSelectionChangeEvent) {
 			fireSelectionChangeEvent();

@@ -4,8 +4,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.*;
@@ -19,11 +17,11 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
     private ComboBox metadata;
     private Field value;
     private Button process;
-    private AdvancedSearchPresenter presenter;
-    private final AdvancedSearchView view;
+    private BatchProcessingPresenter presenter;
+    private final BatchProcessingView view;
     private boolean hasResultSelected;
 
-    public BatchProcessingModifyingOneMetadataButton(AdvancedSearchPresenter presenter, AdvancedSearchView view) {
+    public BatchProcessingModifyingOneMetadataButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
         super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"));
         this.presenter = presenter;
         factory = new MetadataFieldFactory();
@@ -33,7 +31,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		Component windowContent;
-		if (!presenter.hasWriteAccessOnAllRecords()) {
+		if (!presenter.hasWriteAccessOnAllRecords(view.getSchemaType())) {
 			windowContent = new Label($("AdvancedSearchView.requireWriteAccess"));
 		} else if (presenter.isSearchResultsSelectionForm()) {
 			windowContent = buildSearchResultsSelectionForm();
@@ -105,7 +103,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
             public void buttonClick(ClickEvent event) {
                 MetadataVO metadataVO = (MetadataVO) metadata.getValue();
                 presenter.batchEditRequested(view.getSelectedRecordIds(), metadataVO.getCode(),
-                        ((AbstractField) value).getConvertedValue());
+                        ((AbstractField) value).getConvertedValue(), view.getSchemaType());
                 getWindow().close();
                 view.showMessage($("AdvancedSearchView.batchProcessConfirm"));
             }
@@ -124,7 +122,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
         metadata = new ComboBox();
         metadata.setItemCaptionMode(AbstractSelect.ItemCaptionMode.EXPLICIT);
         metadata.setNullSelectionAllowed(false);
-        for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit()) {
+        for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit(view.getSchemaType())) {
             this.metadata.addItem(metadata);
             this.metadata.setItemCaption(metadata, metadata.getLabel());
         }
