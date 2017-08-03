@@ -1,9 +1,18 @@
 package com.constellio.app.modules.es.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
+import com.constellio.app.modules.es.connectors.smb.model.SmbFolderPathPartsCalculator;
 import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
 import com.constellio.app.modules.es.model.connectors.NextFetchCalculator;
@@ -13,21 +22,25 @@ import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedu
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldFactory;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.*;
+import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
+import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
+import com.constellio.model.services.schemas.calculators.PathCalculator;
+import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedESMigrationCombo {
   String collection;
@@ -70,6 +83,8 @@ public final class GeneratedESMigrationCombo {
     MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.getSchemaType("userDocument");
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.getSchemaType("userFolder");
+    MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder connectorHttpDocumentSchemaType = typesBuilder.createNewSchemaType("connectorHttpDocument").setInTransactionLog(false);
     MetadataSchemaBuilder connectorHttpDocumentSchema = connectorHttpDocumentSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder connectorInstanceSchemaType = typesBuilder.createNewSchemaType("connectorInstance");
@@ -107,6 +122,11 @@ public final class GeneratedESMigrationCombo {
     connectorHttpDocument_authorizations.setMultivalue(true);
     connectorHttpDocument_authorizations.setSystemReserved(true);
     connectorHttpDocument_authorizations.setUndeletable(true);
+    MetadataBuilder connectorHttpDocument_autocomplete = connectorHttpDocumentSchema.get("autocomplete");
+    connectorHttpDocument_autocomplete.setMultivalue(true);
+    connectorHttpDocument_autocomplete.setSystemReserved(true);
+    connectorHttpDocument_autocomplete.setUndeletable(true);
+    connectorHttpDocument_autocomplete.setEssential(true);
     MetadataBuilder connectorHttpDocument_charset = connectorHttpDocumentSchema.create("charset").setType(MetadataValueType.STRING);
     connectorHttpDocument_charset.setUndeletable(true);
     MetadataBuilder connectorHttpDocument_connector = connectorHttpDocumentSchema.create("connector").setType(MetadataValueType.REFERENCE);
@@ -206,12 +226,19 @@ public final class GeneratedESMigrationCombo {
     connectorHttpDocument_manualTokens.setSystemReserved(true);
     connectorHttpDocument_manualTokens.setUndeletable(true);
     connectorHttpDocument_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorHttpDocument_markedForParsing = connectorHttpDocumentSchema.get("markedForParsing");
+    connectorHttpDocument_markedForParsing.setSystemReserved(true);
+    connectorHttpDocument_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorHttpDocument_markedForPreviewConversion = connectorHttpDocumentSchema.get("markedForPreviewConversion");
     connectorHttpDocument_markedForPreviewConversion.setSystemReserved(true);
     connectorHttpDocument_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorHttpDocument_markedForReindexing = connectorHttpDocumentSchema.get("markedForReindexing");
     connectorHttpDocument_markedForReindexing.setSystemReserved(true);
     connectorHttpDocument_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorHttpDocument_migrationDataVersion = connectorHttpDocumentSchema.get("migrationDataVersion");
+    connectorHttpDocument_migrationDataVersion.setSystemReserved(true);
+    connectorHttpDocument_migrationDataVersion.setUndeletable(true);
+    connectorHttpDocument_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorHttpDocument_mimetype = connectorHttpDocumentSchema.create("mimetype").setType(MetadataValueType.STRING);
     connectorHttpDocument_mimetype.setUndeletable(true);
     MetadataBuilder connectorHttpDocument_modifiedBy = connectorHttpDocumentSchema.get("modifiedBy");
@@ -453,6 +480,11 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_authorizations.setMultivalue(true);
     connectorInstance_authorizations.setSystemReserved(true);
     connectorInstance_authorizations.setUndeletable(true);
+    MetadataBuilder connectorInstance_autocomplete = connectorInstanceSchema.get("autocomplete");
+    connectorInstance_autocomplete.setMultivalue(true);
+    connectorInstance_autocomplete.setSystemReserved(true);
+    connectorInstance_autocomplete.setUndeletable(true);
+    connectorInstance_autocomplete.setEssential(true);
     MetadataBuilder connectorInstance_availableFields = connectorInstanceSchema.create("availableFields").setType(MetadataValueType.STRUCTURE);
     connectorInstance_availableFields.setMultivalue(true);
     connectorInstance_availableFields.setUndeletable(true);
@@ -525,12 +557,19 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_manualTokens.setSystemReserved(true);
     connectorInstance_manualTokens.setUndeletable(true);
     connectorInstance_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorInstance_markedForParsing = connectorInstanceSchema.get("markedForParsing");
+    connectorInstance_markedForParsing.setSystemReserved(true);
+    connectorInstance_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorInstance_markedForPreviewConversion = connectorInstanceSchema.get("markedForPreviewConversion");
     connectorInstance_markedForPreviewConversion.setSystemReserved(true);
     connectorInstance_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorInstance_markedForReindexing = connectorInstanceSchema.get("markedForReindexing");
     connectorInstance_markedForReindexing.setSystemReserved(true);
     connectorInstance_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorInstance_migrationDataVersion = connectorInstanceSchema.get("migrationDataVersion");
+    connectorInstance_migrationDataVersion.setSystemReserved(true);
+    connectorInstance_migrationDataVersion.setUndeletable(true);
+    connectorInstance_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorInstance_modifiedBy = connectorInstanceSchema.get("modifiedBy");
     connectorInstance_modifiedBy.setSystemReserved(true);
     connectorInstance_modifiedBy.setUndeletable(true);
@@ -620,6 +659,11 @@ public final class GeneratedESMigrationCombo {
     connectorLdapUserDocument_authorizations.setMultivalue(true);
     connectorLdapUserDocument_authorizations.setSystemReserved(true);
     connectorLdapUserDocument_authorizations.setUndeletable(true);
+    MetadataBuilder connectorLdapUserDocument_autocomplete = connectorLdapUserDocumentSchema.get("autocomplete");
+    connectorLdapUserDocument_autocomplete.setMultivalue(true);
+    connectorLdapUserDocument_autocomplete.setSystemReserved(true);
+    connectorLdapUserDocument_autocomplete.setUndeletable(true);
+    connectorLdapUserDocument_autocomplete.setEssential(true);
     MetadataBuilder connectorLdapUserDocument_company = connectorLdapUserDocumentSchema.create("company").setType(MetadataValueType.STRING);
     connectorLdapUserDocument_company.setUndeletable(true);
     connectorLdapUserDocument_company.setSearchable(true);
@@ -729,12 +773,19 @@ public final class GeneratedESMigrationCombo {
     connectorLdapUserDocument_manualTokens.setSystemReserved(true);
     connectorLdapUserDocument_manualTokens.setUndeletable(true);
     connectorLdapUserDocument_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorLdapUserDocument_markedForParsing = connectorLdapUserDocumentSchema.get("markedForParsing");
+    connectorLdapUserDocument_markedForParsing.setSystemReserved(true);
+    connectorLdapUserDocument_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorLdapUserDocument_markedForPreviewConversion = connectorLdapUserDocumentSchema.get("markedForPreviewConversion");
     connectorLdapUserDocument_markedForPreviewConversion.setSystemReserved(true);
     connectorLdapUserDocument_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorLdapUserDocument_markedForReindexing = connectorLdapUserDocumentSchema.get("markedForReindexing");
     connectorLdapUserDocument_markedForReindexing.setSystemReserved(true);
     connectorLdapUserDocument_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorLdapUserDocument_migrationDataVersion = connectorLdapUserDocumentSchema.get("migrationDataVersion");
+    connectorLdapUserDocument_migrationDataVersion.setSystemReserved(true);
+    connectorLdapUserDocument_migrationDataVersion.setUndeletable(true);
+    connectorLdapUserDocument_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorLdapUserDocument_mimetype = connectorLdapUserDocumentSchema.create("mimetype").setType(MetadataValueType.STRING);
     connectorLdapUserDocument_mimetype.setUndeletable(true);
     MetadataBuilder connectorLdapUserDocument_modifiedBy = connectorLdapUserDocumentSchema.get("modifiedBy");
@@ -836,6 +887,11 @@ public final class GeneratedESMigrationCombo {
     connectorSmbDocument_authorizations.setMultivalue(true);
     connectorSmbDocument_authorizations.setSystemReserved(true);
     connectorSmbDocument_authorizations.setUndeletable(true);
+    MetadataBuilder connectorSmbDocument_autocomplete = connectorSmbDocumentSchema.get("autocomplete");
+    connectorSmbDocument_autocomplete.setMultivalue(true);
+    connectorSmbDocument_autocomplete.setSystemReserved(true);
+    connectorSmbDocument_autocomplete.setUndeletable(true);
+    connectorSmbDocument_autocomplete.setEssential(true);
     MetadataBuilder connectorSmbDocument_connector = connectorSmbDocumentSchema.create("connector").setType(MetadataValueType.REFERENCE);
     connectorSmbDocument_connector.setDefaultRequirement(true);
     connectorSmbDocument_connector.setUndeletable(true);
@@ -935,12 +991,19 @@ public final class GeneratedESMigrationCombo {
     connectorSmbDocument_manualTokens.setSystemReserved(true);
     connectorSmbDocument_manualTokens.setUndeletable(true);
     connectorSmbDocument_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorSmbDocument_markedForParsing = connectorSmbDocumentSchema.get("markedForParsing");
+    connectorSmbDocument_markedForParsing.setSystemReserved(true);
+    connectorSmbDocument_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorSmbDocument_markedForPreviewConversion = connectorSmbDocumentSchema.get("markedForPreviewConversion");
     connectorSmbDocument_markedForPreviewConversion.setSystemReserved(true);
     connectorSmbDocument_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorSmbDocument_markedForReindexing = connectorSmbDocumentSchema.get("markedForReindexing");
     connectorSmbDocument_markedForReindexing.setSystemReserved(true);
     connectorSmbDocument_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorSmbDocument_migrationDataVersion = connectorSmbDocumentSchema.get("migrationDataVersion");
+    connectorSmbDocument_migrationDataVersion.setSystemReserved(true);
+    connectorSmbDocument_migrationDataVersion.setUndeletable(true);
+    connectorSmbDocument_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorSmbDocument_mimetype = connectorSmbDocumentSchema.create("mimetype").setType(MetadataValueType.STRING);
     connectorSmbDocument_mimetype.setUndeletable(true);
     MetadataBuilder connectorSmbDocument_modifiedBy = connectorSmbDocumentSchema.get("modifiedBy");
@@ -1043,6 +1106,11 @@ public final class GeneratedESMigrationCombo {
     connectorSmbFolder_authorizations.setMultivalue(true);
     connectorSmbFolder_authorizations.setSystemReserved(true);
     connectorSmbFolder_authorizations.setUndeletable(true);
+    MetadataBuilder connectorSmbFolder_autocomplete = connectorSmbFolderSchema.get("autocomplete");
+    connectorSmbFolder_autocomplete.setMultivalue(true);
+    connectorSmbFolder_autocomplete.setSystemReserved(true);
+    connectorSmbFolder_autocomplete.setUndeletable(true);
+    connectorSmbFolder_autocomplete.setEssential(true);
     MetadataBuilder connectorSmbFolder_connector = connectorSmbFolderSchema.create("connector").setType(MetadataValueType.REFERENCE);
     connectorSmbFolder_connector.setDefaultRequirement(true);
     connectorSmbFolder_connector.setUndeletable(true);
@@ -1134,12 +1202,19 @@ public final class GeneratedESMigrationCombo {
     connectorSmbFolder_manualTokens.setSystemReserved(true);
     connectorSmbFolder_manualTokens.setUndeletable(true);
     connectorSmbFolder_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorSmbFolder_markedForParsing = connectorSmbFolderSchema.get("markedForParsing");
+    connectorSmbFolder_markedForParsing.setSystemReserved(true);
+    connectorSmbFolder_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorSmbFolder_markedForPreviewConversion = connectorSmbFolderSchema.get("markedForPreviewConversion");
     connectorSmbFolder_markedForPreviewConversion.setSystemReserved(true);
     connectorSmbFolder_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorSmbFolder_markedForReindexing = connectorSmbFolderSchema.get("markedForReindexing");
     connectorSmbFolder_markedForReindexing.setSystemReserved(true);
     connectorSmbFolder_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorSmbFolder_migrationDataVersion = connectorSmbFolderSchema.get("migrationDataVersion");
+    connectorSmbFolder_migrationDataVersion.setSystemReserved(true);
+    connectorSmbFolder_migrationDataVersion.setUndeletable(true);
+    connectorSmbFolder_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorSmbFolder_mimetype = connectorSmbFolderSchema.create("mimetype").setType(MetadataValueType.STRING);
     connectorSmbFolder_mimetype.setUndeletable(true);
     MetadataBuilder connectorSmbFolder_modifiedBy = connectorSmbFolderSchema.get("modifiedBy");
@@ -1234,6 +1309,11 @@ public final class GeneratedESMigrationCombo {
     connectorType_authorizations.setMultivalue(true);
     connectorType_authorizations.setSystemReserved(true);
     connectorType_authorizations.setUndeletable(true);
+    MetadataBuilder connectorType_autocomplete = connectorTypeSchema.get("autocomplete");
+    connectorType_autocomplete.setMultivalue(true);
+    connectorType_autocomplete.setSystemReserved(true);
+    connectorType_autocomplete.setUndeletable(true);
+    connectorType_autocomplete.setEssential(true);
     MetadataBuilder connectorType_code = connectorTypeSchema.create("code").setType(MetadataValueType.STRING);
     connectorType_code.setDefaultRequirement(true);
     connectorType_code.setUndeletable(true);
@@ -1303,12 +1383,19 @@ public final class GeneratedESMigrationCombo {
     connectorType_manualTokens.setSystemReserved(true);
     connectorType_manualTokens.setUndeletable(true);
     connectorType_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder connectorType_markedForParsing = connectorTypeSchema.get("markedForParsing");
+    connectorType_markedForParsing.setSystemReserved(true);
+    connectorType_markedForParsing.setUndeletable(true);
     MetadataBuilder connectorType_markedForPreviewConversion = connectorTypeSchema.get("markedForPreviewConversion");
     connectorType_markedForPreviewConversion.setSystemReserved(true);
     connectorType_markedForPreviewConversion.setUndeletable(true);
     MetadataBuilder connectorType_markedForReindexing = connectorTypeSchema.get("markedForReindexing");
     connectorType_markedForReindexing.setSystemReserved(true);
     connectorType_markedForReindexing.setUndeletable(true);
+    MetadataBuilder connectorType_migrationDataVersion = connectorTypeSchema.get("migrationDataVersion");
+    connectorType_migrationDataVersion.setSystemReserved(true);
+    connectorType_migrationDataVersion.setUndeletable(true);
+    connectorType_migrationDataVersion.setEssentialInSummary(true);
     MetadataBuilder connectorType_modifiedBy = connectorTypeSchema.get("modifiedBy");
     connectorType_modifiedBy.setSystemReserved(true);
     connectorType_modifiedBy.setUndeletable(true);
@@ -1368,6 +1455,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_http_allauthorizations = connectorInstance_httpSchema.get("allauthorizations");
     MetadataBuilder connectorInstance_http_attachedAncestors = connectorInstance_httpSchema.get("attachedAncestors");
     MetadataBuilder connectorInstance_http_authorizations = connectorInstance_httpSchema.get("authorizations");
+    MetadataBuilder connectorInstance_http_autocomplete = connectorInstance_httpSchema.get("autocomplete");
     MetadataBuilder connectorInstance_http_availableFields = connectorInstance_httpSchema.get("availableFields");
     MetadataBuilder connectorInstance_http_code = connectorInstance_httpSchema.get("code");
     MetadataBuilder connectorInstance_http_connectorType = connectorInstance_httpSchema.get("connectorType");
@@ -1385,8 +1473,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_http_legacyIdentifier = connectorInstance_httpSchema.get("legacyIdentifier");
     MetadataBuilder connectorInstance_http_logicallyDeletedOn = connectorInstance_httpSchema.get("logicallyDeletedOn");
     MetadataBuilder connectorInstance_http_manualTokens = connectorInstance_httpSchema.get("manualTokens");
+    MetadataBuilder connectorInstance_http_markedForParsing = connectorInstance_httpSchema.get("markedForParsing");
     MetadataBuilder connectorInstance_http_markedForPreviewConversion = connectorInstance_httpSchema.get("markedForPreviewConversion");
     MetadataBuilder connectorInstance_http_markedForReindexing = connectorInstance_httpSchema.get("markedForReindexing");
+    MetadataBuilder connectorInstance_http_migrationDataVersion = connectorInstance_httpSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_http_modifiedBy = connectorInstance_httpSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_http_modifiedOn = connectorInstance_httpSchema.get("modifiedOn");
     MetadataBuilder connectorInstance_http_parentpath = connectorInstance_httpSchema.get("parentpath");
@@ -1409,6 +1499,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_ldap_allauthorizations = connectorInstance_ldapSchema.get("allauthorizations");
     MetadataBuilder connectorInstance_ldap_attachedAncestors = connectorInstance_ldapSchema.get("attachedAncestors");
     MetadataBuilder connectorInstance_ldap_authorizations = connectorInstance_ldapSchema.get("authorizations");
+    MetadataBuilder connectorInstance_ldap_autocomplete = connectorInstance_ldapSchema.get("autocomplete");
     MetadataBuilder connectorInstance_ldap_availableFields = connectorInstance_ldapSchema.get("availableFields");
     MetadataBuilder connectorInstance_ldap_code = connectorInstance_ldapSchema.get("code");
     MetadataBuilder connectorInstance_ldap_connectorType = connectorInstance_ldapSchema.get("connectorType");
@@ -1426,8 +1517,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_ldap_legacyIdentifier = connectorInstance_ldapSchema.get("legacyIdentifier");
     MetadataBuilder connectorInstance_ldap_logicallyDeletedOn = connectorInstance_ldapSchema.get("logicallyDeletedOn");
     MetadataBuilder connectorInstance_ldap_manualTokens = connectorInstance_ldapSchema.get("manualTokens");
+    MetadataBuilder connectorInstance_ldap_markedForParsing = connectorInstance_ldapSchema.get("markedForParsing");
     MetadataBuilder connectorInstance_ldap_markedForPreviewConversion = connectorInstance_ldapSchema.get("markedForPreviewConversion");
     MetadataBuilder connectorInstance_ldap_markedForReindexing = connectorInstance_ldapSchema.get("markedForReindexing");
+    MetadataBuilder connectorInstance_ldap_migrationDataVersion = connectorInstance_ldapSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_ldap_modifiedBy = connectorInstance_ldapSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_ldap_modifiedOn = connectorInstance_ldapSchema.get("modifiedOn");
     MetadataBuilder connectorInstance_ldap_parentpath = connectorInstance_ldapSchema.get("parentpath");
@@ -1450,6 +1543,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_smb_allauthorizations = connectorInstance_smbSchema.get("allauthorizations");
     MetadataBuilder connectorInstance_smb_attachedAncestors = connectorInstance_smbSchema.get("attachedAncestors");
     MetadataBuilder connectorInstance_smb_authorizations = connectorInstance_smbSchema.get("authorizations");
+    MetadataBuilder connectorInstance_smb_autocomplete = connectorInstance_smbSchema.get("autocomplete");
     MetadataBuilder connectorInstance_smb_availableFields = connectorInstance_smbSchema.get("availableFields");
     MetadataBuilder connectorInstance_smb_code = connectorInstance_smbSchema.get("code");
     MetadataBuilder connectorInstance_smb_connectorType = connectorInstance_smbSchema.get("connectorType");
@@ -1467,8 +1561,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_smb_legacyIdentifier = connectorInstance_smbSchema.get("legacyIdentifier");
     MetadataBuilder connectorInstance_smb_logicallyDeletedOn = connectorInstance_smbSchema.get("logicallyDeletedOn");
     MetadataBuilder connectorInstance_smb_manualTokens = connectorInstance_smbSchema.get("manualTokens");
+    MetadataBuilder connectorInstance_smb_markedForParsing = connectorInstance_smbSchema.get("markedForParsing");
     MetadataBuilder connectorInstance_smb_markedForPreviewConversion = connectorInstance_smbSchema.get("markedForPreviewConversion");
     MetadataBuilder connectorInstance_smb_markedForReindexing = connectorInstance_smbSchema.get("markedForReindexing");
+    MetadataBuilder connectorInstance_smb_migrationDataVersion = connectorInstance_smbSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_smb_modifiedBy = connectorInstance_smbSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_smb_modifiedOn = connectorInstance_smbSchema.get("modifiedOn");
     MetadataBuilder connectorInstance_smb_parentpath = connectorInstance_smbSchema.get("parentpath");
@@ -1492,6 +1588,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_field_allauthorizations = facet_fieldSchema.get("allauthorizations");
     MetadataBuilder facet_field_attachedAncestors = facet_fieldSchema.get("attachedAncestors");
     MetadataBuilder facet_field_authorizations = facet_fieldSchema.get("authorizations");
+    MetadataBuilder facet_field_autocomplete = facet_fieldSchema.get("autocomplete");
     MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
     MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
     MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
@@ -1507,8 +1604,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
     MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
     MetadataBuilder facet_field_manualTokens = facet_fieldSchema.get("manualTokens");
+    MetadataBuilder facet_field_markedForParsing = facet_fieldSchema.get("markedForParsing");
     MetadataBuilder facet_field_markedForPreviewConversion = facet_fieldSchema.get("markedForPreviewConversion");
     MetadataBuilder facet_field_markedForReindexing = facet_fieldSchema.get("markedForReindexing");
+    MetadataBuilder facet_field_migrationDataVersion = facet_fieldSchema.get("migrationDataVersion");
     MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
     MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
     MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
@@ -1534,6 +1633,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_query_allauthorizations = facet_querySchema.get("allauthorizations");
     MetadataBuilder facet_query_attachedAncestors = facet_querySchema.get("attachedAncestors");
     MetadataBuilder facet_query_authorizations = facet_querySchema.get("authorizations");
+    MetadataBuilder facet_query_autocomplete = facet_querySchema.get("autocomplete");
     MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
     MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
     MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
@@ -1549,8 +1649,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
     MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
     MetadataBuilder facet_query_manualTokens = facet_querySchema.get("manualTokens");
+    MetadataBuilder facet_query_markedForParsing = facet_querySchema.get("markedForParsing");
     MetadataBuilder facet_query_markedForPreviewConversion = facet_querySchema.get("markedForPreviewConversion");
     MetadataBuilder facet_query_markedForReindexing = facet_querySchema.get("markedForReindexing");
+    MetadataBuilder facet_query_migrationDataVersion = facet_querySchema.get("migrationDataVersion");
     MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
     MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
     MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
@@ -1578,6 +1680,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
     MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
     MetadataBuilder task_approval_authorizations = task_approvalSchema.get("authorizations");
+    MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
     MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
     MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
     MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
@@ -1593,8 +1696,10 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
     MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
     MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
+    MetadataBuilder task_approval_markedForParsing = task_approvalSchema.get("markedForParsing");
     MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
     MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
+    MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
     MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
     MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
     MetadataBuilder task_approval_parentpath = task_approvalSchema.get("parentpath");
@@ -1615,6 +1720,7 @@ public final class GeneratedESMigrationCombo {
     connectorHttpDocument_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorHttpDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorHttpDocument_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorHttpDocument_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorHttpDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorHttpDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
     connectorHttpDocument_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -1626,6 +1732,7 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorInstance_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorInstance_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorInstance_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorInstance_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorInstance_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     connectorInstance_path.defineDataEntry().asCalculated(PathCalculator.class);
@@ -1636,6 +1743,7 @@ public final class GeneratedESMigrationCombo {
     connectorLdapUserDocument_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorLdapUserDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorLdapUserDocument_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorLdapUserDocument_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorLdapUserDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorLdapUserDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
     connectorLdapUserDocument_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -1647,6 +1755,7 @@ public final class GeneratedESMigrationCombo {
     connectorSmbDocument_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorSmbDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorSmbDocument_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorSmbDocument_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorSmbDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorSmbDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
     connectorSmbDocument_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -1658,17 +1767,19 @@ public final class GeneratedESMigrationCombo {
     connectorSmbFolder_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorSmbFolder_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorSmbFolder_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorSmbFolder_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorSmbFolder_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorSmbFolder_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
     connectorSmbFolder_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     connectorSmbFolder_path.defineDataEntry().asCalculated(PathCalculator.class);
-    connectorSmbFolder_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
+    connectorSmbFolder_pathParts.defineDataEntry().asCalculated(SmbFolderPathPartsCalculator.class);
     connectorSmbFolder_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
     connectorSmbFolder_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
     connectorType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
     connectorType_allRemovedAuths.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
     connectorType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     connectorType_attachedAncestors.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    connectorType_autocomplete.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
     connectorType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
     connectorType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
     connectorType_path.defineDataEntry().asCalculated(PathCalculator.class);
@@ -1765,12 +1876,13 @@ public final class GeneratedESMigrationCombo {
     transaction.add(manager.getSchema(collection, "report_default").withFormMetadataCodes(asList("report_default_title", "report_default_columnsCount", "report_default_linesCount", "report_default_schemaTypeCode", "report_default_separator", "report_default_username", "report_default_reportedMetadata")).withDisplayMetadataCodes(asList("report_default_title", "report_default_createdBy", "report_default_createdOn", "report_default_modifiedBy", "report_default_modifiedOn", "report_default_columnsCount", "report_default_linesCount", "report_default_schemaTypeCode", "report_default_separator", "report_default_username")).withSearchResultsMetadataCodes(asList("report_default_title", "report_default_modifiedOn")).withTableMetadataCodes(asList("report_default_title", "report_default_modifiedOn")));
     transaction.add(manager.getSchema(collection, "task_approval").withFormMetadataCodes(asList("task_approval_title", "task_approval_assignCandidates", "task_approval_assignedTo", "task_approval_finishedBy", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers", "task_approval_assignedOn", "task_approval_dueDate", "task_approval_finishedOn", "task_approval_decision")).withDisplayMetadataCodes(asList("task_approval_title", "task_approval_createdBy", "task_approval_createdOn", "task_approval_modifiedBy", "task_approval_modifiedOn", "task_approval_assignCandidates", "task_approval_assignedOn", "task_approval_assignedTo", "task_approval_dueDate", "task_approval_finishedBy", "task_approval_finishedOn", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers", "task_approval_decision")).withSearchResultsMetadataCodes(asList("task_approval_title", "task_approval_modifiedOn")).withTableMetadataCodes(new ArrayList<String>()));
     transaction.add(manager.getSchema(collection, "task_default").withFormMetadataCodes(asList("task_default_title", "task_default_assignCandidates", "task_default_assignedTo", "task_default_finishedBy", "task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers", "task_default_assignedOn", "task_default_dueDate", "task_default_finishedOn")).withDisplayMetadataCodes(asList("task_default_title", "task_default_createdBy", "task_default_createdOn", "task_default_modifiedBy", "task_default_modifiedOn", "task_default_assignCandidates", "task_default_assignedOn", "task_default_assignedTo", "task_default_dueDate", "task_default_finishedBy", "task_default_finishedOn", "task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers")).withSearchResultsMetadataCodes(asList("task_default_title", "task_default_modifiedOn")).withTableMetadataCodes(asList("task_default_title", "task_default_modifiedOn")));
-    transaction.add(manager.getSchema(collection, "userDocument_default").withFormMetadataCodes(asList("userDocument_default_title", "userDocument_default_user", "userDocument_default_content")).withDisplayMetadataCodes(asList("userDocument_default_title", "userDocument_default_createdOn", "userDocument_default_modifiedOn", "userDocument_default_user", "userDocument_default_content")).withSearchResultsMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn")).withTableMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "userDocument_default").withFormMetadataCodes(asList("userDocument_default_title", "userDocument_default_user", "userDocument_default_userFolder", "userDocument_default_formCreatedOn", "userDocument_default_formModifiedOn", "userDocument_default_content")).withDisplayMetadataCodes(asList("userDocument_default_title", "userDocument_default_createdOn", "userDocument_default_modifiedOn", "userDocument_default_formCreatedOn", "userDocument_default_formModifiedOn", "userDocument_default_user", "userDocument_default_userFolder", "userDocument_default_content")).withSearchResultsMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn")).withTableMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "userFolder_default").withFormMetadataCodes(asList("userFolder_default_title", "userFolder_default_parentUserFolder", "userFolder_default_user", "userFolder_default_formCreatedOn", "userFolder_default_formModifiedOn")).withDisplayMetadataCodes(asList("userFolder_default_title", "userFolder_default_createdOn", "userFolder_default_modifiedOn", "userFolder_default_formCreatedOn", "userFolder_default_formModifiedOn", "userFolder_default_parentUserFolder", "userFolder_default_user")).withSearchResultsMetadataCodes(asList("userFolder_default_title", "userFolder_default_modifiedOn")).withTableMetadataCodes(asList("userFolder_default_title", "userFolder_default_modifiedOn")));
     manager.execute(transaction.build());
   }
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules", "core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSearchEngine", "core.manageSearchReports", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules", "core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses")));
   }
 }

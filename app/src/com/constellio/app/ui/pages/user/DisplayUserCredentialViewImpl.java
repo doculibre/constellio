@@ -331,25 +331,22 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
-		Button editButton = new EditButton(false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editButtonClicked(userCredentialVO);
-			}
-		};
-		actionMenuButtons.add(editButton);
-		if (ADMIN.equals(userCredentialVO.getUsername()) || presenter.userNotLDAPSynced(userCredentialVO.getUsername())) {
-			editButton.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
-		} else {
+		protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+			List<Button> actionMenuButtons = new ArrayList<>();
+			Button editButton = new EditButton(false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editButtonClicked(userCredentialVO);
+				}
+			};
+			actionMenuButtons.add(editButton);
+
 			editButton.setEnabled(presenter.canAddOrModify());
-		}
 
-		Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
-		actionMenuButtons.add(serviceKeyTokenButton);
+			Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
+			actionMenuButtons.add(serviceKeyTokenButton);
 
-		return actionMenuButtons;
+			return actionMenuButtons;
 	}
 
 	@Override
