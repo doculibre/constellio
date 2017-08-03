@@ -27,14 +27,14 @@ public class SmbDocumentOrFolderUpdater {
 		this.smbRecordService = smbRecordService;
 	}
 
-	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentId, boolean seed) {
+	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentUrl, boolean seed) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFullDocumentDTO(smbFileDTO, smbDocument, parentId);
+			updateFullDocumentDTO(smbFileDTO, smbDocument, parentUrl);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
 			if (smbFolder != null) {
-				updateFullFolderDTO(smbFileDTO, smbFolder, parentId, seed);
+				updateFullFolderDTO(smbFileDTO, smbFolder, parentUrl, seed);
 			}
 		}
 	}

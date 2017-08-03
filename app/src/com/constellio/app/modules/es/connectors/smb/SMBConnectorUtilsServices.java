@@ -68,9 +68,13 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 
 	@Override
 	public List<ConnectorDocument<?>> getChildren(ConnectorDocument<?> connectorDocument) {
-		LogicalSearchCondition condition = from(es.connectorSmbDocument.schemaType())
-				.where(es.connectorSmbDocument.parent()).isEqualTo(connectorDocument.getId());
-		return es.searchConnectorDocuments(new LogicalSearchQuery(condition));
+		if(connectorDocument instanceof ConnectorSmbFolder) {
+			LogicalSearchCondition condition = from(es.connectorSmbDocument.schemaType())
+					.where(es.connectorSmbDocument.parentConnectorUrl()).isEqualTo(((ConnectorSmbFolder) connectorDocument).getConnectorUrl());
+			return es.searchConnectorDocuments(new LogicalSearchQuery(condition));
+		} else {
+			return null;
+		}
 	}
 
 	@Override

@@ -37,11 +37,11 @@ public class SmbSchemaDisplayConfiguration {
 		// Connector SMB Config/Instance
 		SchemaDisplayConfig schemaFormFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "form",
 				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
+				ConnectorSmbDocument.URL, "parent");
 
 		SchemaDisplayConfig schemaDisplayFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "display",
 				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
+				ConnectorSmbDocument.URL, "parent");
 
 		transaction.add(schemaDisplayFolderTypeConfig.withFormMetadataCodes(schemaFormFolderTypeConfig.getFormMetadataCodes()));
 
