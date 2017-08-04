@@ -270,6 +270,11 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return record == null ? null : wrapConnectorDocument(record);
 	}
 
+	public ConnectorSmbFolder getConnectorSmbFolder(String id) {
+		Record record = getRecordServices().getDocumentById(id);
+		return record == null ? null : wrapConnectorSmbFolder(record);
+	}
+
 	@Override
 	public ConnectorInstance wrapConnectorInstance(Record record) {
 		if (record == null) {
