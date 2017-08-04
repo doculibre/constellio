@@ -132,7 +132,7 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 				.setConnector(connectorInstance)
 				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
 				.setFetched(true)
-				.setParent(connectorSmbFolder.getId());
+				.setParentUrl(connectorSmbFolder.getUrl());
 
 		es.getRecordServices()
 				.add(connectorSmbDocument);

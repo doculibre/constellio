@@ -132,7 +132,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		folderUrl = parentFolder.getUrl() + folderId + "/";
 		System.out.println(folderUrl);
 		ConnectorSmbFolder newConnectorSmbFolder = es.newConnectorSmbFolderWithId(folderId, connectorInstance);
-		newConnectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParent(parentFolder.getId())
+		newConnectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParentUrl(parentFolder.getUrl())
 				.setManualTokens(
 						PUBLIC_TOKEN);
 		return newConnectorSmbFolder;
@@ -145,7 +145,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		String documentUrl = connectorSmbFolder.getUrl() + documentName + ".txt";
 
 		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocumentWithId(documentId, connectorInstance);
-		connectorSmbDocument.setTitle(documentName).setUrl(documentUrl).setParent(connectorSmbFolder.getId())
+		connectorSmbDocument.setTitle(documentName).setUrl(documentUrl).setParentUrl(connectorSmbFolder.getUrl())
 				.setManualTokens(
 						PUBLIC_TOKEN);
 		smbRecords.add(connectorSmbDocument.getWrappedRecord());
@@ -160,7 +160,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		String folderId = UUID.randomUUID().toString();
 		String folderUrl = SMB + folderId + "/";
 		ConnectorSmbFolder connectorSmbFolder = es.newConnectorSmbFolderWithId(folderId, connectorInstance);
-		connectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParent(parent).setManualTokens(
+		connectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParentUrl(null).setManualTokens(
 				PUBLIC_TOKEN);
 		smbRecords.add(connectorSmbFolder.getWrappedRecord());
 		return connectorSmbFolder;

@@ -28,7 +28,6 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String SIZE = "size";
 
-	public static final String PARENT = "parent";
 	public static final String LAST_FETCH_ATTEMPT_STATUS = "lastFetchAttemptStatus";
 	public static final String LANGUAGE = "language";
 	public static final String EXTENSION = "extension";
@@ -58,26 +57,8 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 		return this;
 	}
 
-	public String getParent() {
-		return null;
-	}
-
-	@Deprecated
-	public ConnectorSmbDocument setParent(String parent) {
-		set(PARENT, parent);
-		return this;
-	}
-
-	@Deprecated
-	public ConnectorSmbDocument setParent(Record parent) {
-		set(PARENT, parent);
-		return this;
-	}
-
-	@Deprecated
-	public ConnectorSmbDocument setParent(ConnectorSmbFolder parent) {
-		set(PARENT, parent);
-		return this;
+	public String getParentConnectorUrl() {
+		return get(PARENT_CONNECTOR_URL);
 	}
 
 	public String getParsedContent() {

@@ -868,10 +868,6 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("lastModified");
 		}
 
-		public Metadata parent() {
-			return metadata("parent");
-		}
-
 		public Metadata parentConnectorUrl() {
 			return metadata("parentConnectorUrl");
 		}
@@ -964,10 +960,6 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 		public Metadata lastFetchedStatus() {
 			return metadata("lastFetchedStatus");
-		}
-
-		public Metadata parent() {
-			return metadata("parent");
 		}
 
 		public Metadata parentConnectorUrl() {

@@ -23,7 +23,6 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 
 	public static final String URL = "url";
 	public static final String PERMISSIONS_HASH = "permissionsHash";
-	public static final String PARENT = "parent";
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String LAST_FETCHED_STATUS = "lastFetchedStatus";
 
@@ -49,26 +48,12 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	@Deprecated
-	public ConnectorSmbFolder setParent(String parent) {
-		set(PARENT, parent);
-		return this;
+	public String getParentConnectorUrl() {
+		return get(PARENT_CONNECTOR_URL);
 	}
 
-	@Deprecated
-	public ConnectorSmbFolder setParent(Record parent) {
-		set(PARENT, parent);
-		return this;
-	}
-
-	@Deprecated
-	public ConnectorSmbFolder setParent(ConnectorSmbFolder parent) {
-		set(PARENT, parent);
-		return this;
-	}
-
-	public String getParent() {
-		return get(PARENT);
+	public String getConnectorUrl() {
+		return get(CONNECTOR_URL);
 	}
 
 	public LocalDateTime getLastFetched() {

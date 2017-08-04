@@ -80,6 +80,7 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 			documentDefaultSchema.get(ConnectorSmbDocument.URL).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.PERMISSIONS_HASH).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.SIZE).setEssentialInSummary(true);
+			documentDefaultSchema.deleteMetadataWithoutValidation("parent");
 
 			MetadataSchemaBuilder folderDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).getDefaultSchema();
 			folderDefaultSchema.create(ConnectorSmbFolder.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
@@ -88,6 +89,7 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 					.setSystemReserved(true).setEssentialInSummary(true);
 			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
 					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbParentConnectorUrlCalculator.class);
+			folderDefaultSchema.deleteMetadataWithoutValidation("parent");
 		}
 	}
 }
