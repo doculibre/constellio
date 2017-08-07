@@ -29,10 +29,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -214,12 +216,27 @@ public class ConnectorSmb extends Connector {
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
 			//TODO Delete jobs
+			List<String> urlsToDelete = getUrlsToDelete(connectorInstance);
+			for (String url : urlsToDelete) {
+				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
+				jobs.add(deleteJob);
+			}
 
 			cleanupInconsistencies();
 			changeTraversalCodeToMarkEndOfTraversal();
 			queueSeeds();
 		}
 		return jobs;
+	}
+
+	private List<String> getUrlsToDelete(ConnectorSmbInstance connectorInstance) {
+		LogicalSearchCondition documentsToDeleteCondition = from(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()).where(es.connectorDocument.connector()).isEqualTo(connectorInstance)
+				.andWhere(es.connectorDocument.traversalCode()).isNotEqual(connectorInstance.getTraversalCode());
+		LogicalSearchQuery documentsToDeleteQuery = new LogicalSearchQuery().setCondition(documentsToDeleteCondition).setNumberOfRows(0)
+				.addFieldFacet(es.connectorDocument.url().getDataStoreCode());
+		SearchServices searchServices = es.getModelLayerFactory().newSearchServices();
+		SPEQueryResponse response = searchServices.query(documentsToDeleteQuery);
+		return response.getFieldFacetValuesWithResults(es.connectorDocument.url().getDataStoreCode());
 	}
 
 	private void cleanupInconsistencies() {

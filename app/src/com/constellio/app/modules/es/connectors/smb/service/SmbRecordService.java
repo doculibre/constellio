@@ -82,6 +82,13 @@ public class SmbRecordService {
 		return es.newConnectorSmbDocument(connectorInstance);
 	}
 
+	public ConnectorDocument getConnectorDocument(String url, ConnectorSmbInstance connectorInstance) {
+		if (smbUtils.isFolder(url)) {
+			return getFolder(url, connectorInstance);
+		}
+		return getDocument(url, connectorInstance);
+	}
+
 	public ConnectorSmbFolder getFolder(String url, ConnectorSmbInstance connectorInstance) {
 		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
@@ -92,6 +99,13 @@ public class SmbRecordService {
 		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
 		return es.wrapConnectorSmbDocument(recordServices.getRecordByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
+	}
+
+	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+		return es.wrapConnectorSmbDocument(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
+				.getSummaryByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
 	}
 
 	public SmbModificationIndicator getSmbModificationIndicator(ConnectorSmbInstance connector, String url) {

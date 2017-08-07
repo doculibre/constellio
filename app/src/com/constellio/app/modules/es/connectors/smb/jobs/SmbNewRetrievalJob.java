@@ -5,6 +5,7 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJo
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
+import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -34,10 +35,14 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
 
         SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url);
 
+        SmbRecordService smbRecordService = jobParams.getSmbRecordService();
         switch (smbFileDTO.getStatus()) {
             case FULL_DTO:
                 try {
-                    final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
+                    ConnectorDocument connectorDocument = smbRecordService.getConnectorDocument(url, jobParams.getConnectorInstance());
+                    if(connectorDocument == null) {
+                        connectorDocument = smbRecordService.newConnectorDocument(url);
+                    }
                     jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getParentUrl(), seed);
                     jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
 
@@ -47,7 +52,10 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                 break;
             case FAILED_DTO:
                 try {
-                    final ConnectorDocument connectorDocument = jobParams.getSmbRecordService().newConnectorDocument(url);
+                    ConnectorDocument connectorDocument = smbRecordService.getConnectorDocument(url, jobParams.getConnectorInstance());
+                    if(connectorDocument == null) {
+                        connectorDocument = smbRecordService.newConnectorDocument(url);
+                    }
                     jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getParentUrl());
                     jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
 
