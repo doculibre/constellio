@@ -134,6 +134,15 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
 
+	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action, String username, String title) {
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		String collection = condition.getCollection();
+		String id = newBatchProcessId();
+
+		return addBatchProcessInStandby(query, action, username, title);
+	}
+
+
 	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String username,
 			String title) {
 		String collection = logicalQuery.getCondition().getCollection();

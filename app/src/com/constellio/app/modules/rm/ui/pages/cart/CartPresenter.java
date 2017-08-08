@@ -702,10 +702,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getRecordsIds(schemaType));
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, "userBatchProcess");
+		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
 		manager.markAsPending(process);
 	}
 
