@@ -424,8 +424,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean shouldAllowContainerEditing() {
-
-		return isGenerated();
+		return decommissioningService().canEditContainers(decommissioningList(), getCurrentUser());
 	}
 
 	public boolean shouldDisplayRetentionRuleInDetails() {
@@ -769,4 +768,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
 	}
 
+	public boolean areContainersHidden() {
+		return decommissioningList().getDecommissioningListType().isDestroyal() && getFolderDetailTableExtension() != null;
+	}
 }
