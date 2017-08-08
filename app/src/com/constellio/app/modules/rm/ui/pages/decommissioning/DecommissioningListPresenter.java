@@ -424,7 +424,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean shouldAllowContainerEditing() {
-		return decommissioningService().canEditContainers(decommissioningList(), getCurrentUser());
+
+		return isGenerated();
 	}
 
 	public boolean shouldDisplayRetentionRuleInDetails() {
@@ -543,6 +544,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean isInApprobation() {
 		return decommissioningList().getStatus() == DecomListStatus.IN_APPROVAL;
+	}
+
+	public boolean isGenerated() {
+		return decommissioningList.getStatus() == DecomListStatus.GENERATED;
 	}
 
 	public boolean isValidationRequestedForCurrentUser() {
