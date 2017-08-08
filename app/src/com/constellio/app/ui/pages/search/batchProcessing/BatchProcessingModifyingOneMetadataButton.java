@@ -105,7 +105,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
                 presenter.batchEditRequested(view.getSelectedRecordIds(), metadataVO.getCode(),
                         ((AbstractField) value).getConvertedValue(), view.getSchemaType());
                 getWindow().close();
-                view.showMessage($("AdvancedSearchView.batchProcessConfirm"));
+                view.showMessage($("BatchProcessing.endedNormally"));
             }
         });
         process.addStyleName(ValoTheme.BUTTON_PRIMARY);
