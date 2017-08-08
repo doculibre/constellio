@@ -163,6 +163,11 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		table.setVisibleColumns(visibleColumns.toArray());
 
+		if(presenter.getFolderDetailTableExtension() != null) {
+			table.setColumnCollapsingAllowed(true);
+			table.setColumnCollapsed(CONTAINER, true);
+		}
+
 		if(extension != null) {
 			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
 		} else {
