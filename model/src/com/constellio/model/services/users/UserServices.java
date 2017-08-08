@@ -715,6 +715,14 @@ public class UserServices {
 		}
 	}
 
+	public boolean isSystemAdmin(User user) {
+		UserCredential userCredential = getUserCredential(user.getUsername());
+		if(userCredential != null && userCredential.isSystemAdmin()) {
+			return true;
+		}
+		return false;
+	}
+
 	private void permissionValidateCredential(UserCredential userCredential) {
 		if (userCredential == null || !userCredential.isSystemAdmin()) {
 			String username = null;
