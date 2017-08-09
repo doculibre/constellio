@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.model.entities.enums.SearchPageLength;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -87,8 +89,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
     public int getDefaultPageLength() {
-		int defaultPageLength = modelLayerFactory.getSystemConfigs().getDefaultPageLength();
-		return defaultPageLength;
+		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
+		return defaultPageLength != null? defaultPageLength.getValue(): SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
     }
 
     public enum SortOrder {ASCENDING, DESCENDING}

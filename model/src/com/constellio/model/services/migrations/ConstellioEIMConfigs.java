@@ -50,8 +50,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
 	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
 
-	public static final SystemConfiguration DEFAULT_PAGE_LENGTH;
-
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
 	public static final SystemConfiguration ICAP_SCAN_ACTIVATED;
@@ -139,7 +137,6 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
-		add(DEFAULT_PAGE_LENGTH = search.createEnum("defaultNumberSearchItems", SearchPageLength.class).withDefaultValue(SearchPageLength.TEN));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
@@ -321,11 +318,6 @@ public class ConstellioEIMConfigs {
 
 	public boolean isReplaceSpacesInSimpleSearchForAnds() {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
-	}
-
-	public int getDefaultPageLength() {
-		SearchPageLength defaultPageLength = manager.getValue(DEFAULT_PAGE_LENGTH);
-		return defaultPageLength.getValue();
 	}
 
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
