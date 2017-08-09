@@ -1,16 +1,5 @@
 package com.constellio.app.modules.es;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -21,11 +10,7 @@ import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
-import com.constellio.app.modules.es.extensions.ESRecordExtension;
-import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
-import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
-import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
+import com.constellio.app.modules.es.extensions.*;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.*;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
@@ -33,6 +18,7 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
+import com.constellio.app.modules.es.scripts.RestoreConnectorTypes;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -41,6 +27,12 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+
+import java.util.*;
+
+import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.*;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "es";
@@ -108,6 +100,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 
 		registerManagers(collection, appLayerFactory);
+		registerScript(new RestoreConnectorTypes(appLayerFactory, collection));
 
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
