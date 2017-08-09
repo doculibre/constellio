@@ -86,7 +86,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
-	public enum SortOrder {ASCENDING, DESCENDING}
+    public int getDefaultPageLength() {
+		int defaultPageLength = modelLayerFactory.getSystemConfigs().getDefaultPageLength();
+		return defaultPageLength;
+    }
+
+    public enum SortOrder {ASCENDING, DESCENDING}
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);
 
