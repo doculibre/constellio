@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveStringLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.i18n.i18n;
@@ -46,26 +47,14 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
     @Override
     protected Component buildWindowContent() {
         final VerticalLayout layout = new VerticalLayout();
-        List<User> managers = new ArrayList<>();
+        List<String> availableManagerIds = new ArrayList<>();
         try {
-            managers = presenter.getAdministrativeUnitAdmin();
+            availableManagerIds = presenter.getAvailableManagerIds();
         } catch (DecommissioningEmailServiceException e) {
             decommissioningListView.showErrorMessage($("DecommissioningListView.noManagerAvalible"));
         }
 
-        final List<User> managersFinal = managers;
-
-        this.users = new ListAddRemoveField() {
-            @Override
-            protected AbstractField<?> newAddEditField() {
-                return new LookupField<User>(new UserTextInputdataProvider(managersFinal), new UserLookupTreeDataProvider(managersFinal)) {
-                    @Override
-                    public Class<? extends User> getType() {
-                        return User.class;
-                    }
-                };
-            }
-        };
+        this.users = new ListAddRemoveStringLookupField(availableManagerIds);
         this.users.setItemConverter(new RecordIdToCaptionConverter());
 
         layout.setSpacing(true);

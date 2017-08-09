@@ -4,10 +4,8 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.util.converter.Converter;
-import com.vaadin.server.Resource;
 
 public class RecordIdToCaptionConverter implements Converter<String, String> {
 

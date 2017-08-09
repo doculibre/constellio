@@ -79,7 +79,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
-	public List<User> getAdministrativeUnitAdmin() throws DecommissioningEmailServiceException {
+	public List<User> getAvailableManagers() throws DecommissioningEmailServiceException {
 
 
 //		AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
@@ -109,6 +109,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //		return userList;
 
 		return decommissioningEmailService.getManagerEmailForList(decommissioningList);
+	}
+	
+	public List<String> getAvailableManagerIds() throws DecommissioningEmailServiceException {
+		List<String> availableManagerIds = new ArrayList<>();
+		for (User availableManager : getAvailableManagers()) {
+			availableManagerIds.add(availableManager.getId());
+		}
+		return availableManagerIds;
 	}
 
 	public boolean isEditable() {
