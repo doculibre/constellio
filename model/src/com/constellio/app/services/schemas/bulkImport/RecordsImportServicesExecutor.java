@@ -25,6 +25,9 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
@@ -88,6 +91,8 @@ public class RecordsImportServicesExecutor {
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 
+	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
+
 	public static final String COMMENT_MESSAGE = "message";
 	public static final String COMMENT_USER_NAME = "userName";
 	public static final String COMMENT_DATE_TIME = "dateTime";
@@ -117,6 +122,7 @@ public class RecordsImportServicesExecutor {
 	private SkippedRecordsImport skippedRecordsImport;
 	private ConfigProvider configProvider;
 	ResolverCache resolverCache;
+	SchemasRecordsServices schemasRecordsServices;
 
 	private static class TypeImportContext {
 		List<String> uniqueMetadatas;
@@ -169,19 +175,40 @@ public class RecordsImportServicesExecutor {
 				return modelLayerFactory.getSystemConfigurationsManager().getValue(config);
 			}
 		};
+
+		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	public BulkImportResults bulkImport()
 			throws RecordsImportServicesRuntimeException, ValidationException {
-
+		ValidationErrors errors = new ValidationErrors();
+		ImportExportAudit importationAudit;
+		importationAudit = schemasRecordsServices.newAuditImportation();
+		importationAudit.setStartDate(LocalDateTime.now());
+		BulkImportResults bulkImportResults = null;
 		try {
+			recordServices.add(importationAudit);
 			initialize();
-			ValidationErrors errors = new ValidationErrors();
 			validate(errors);
-			return run(errors);
+			bulkImportResults = run(errors);
+			for(ValidationError validationErrors : errors.getValidationErrors()) {
+				if(importationAudit.getErrors() == null) {
+					ArrayList<String> errorList = new ArrayList<>();
+					importationAudit.setErrors(errorList);
+				}
+
+				importationAudit.getErrors().add(validationErrors.getValidatorErrorCode());
+			}
+			importationAudit.setEndDate(LocalDateTime.now());
+			recordServices.update(importationAudit);
+
+		} catch (RecordServicesException e) {
+			errors.add(RecordsImportServices.class, "recordServiceException");
+			errors.throwIfNonEmpty();
 		} finally {
 			importDataProvider.close();
 		}
+		return bulkImportResults;
 	}
 
 	RecordsImportServicesExecutor initialize() {
@@ -282,7 +309,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void addCyclicDependenciesValidationError(ValidationErrors errors, MetadataSchemaType schemaType,
-			Set<String> cyclicDependentIds) {
+														   Set<String> cyclicDependentIds) {
 
 		List<String> ids = new ArrayList<>(cyclicDependentIds);
 		Collections.sort(ids);

@@ -39,6 +39,8 @@ import java.util.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
+import java.io.File;
+
 public class RecordExportServices {
 
 	public static final String RECORDS_EXPORT_TEMP_FOLDER = "RecordsExportServices_recordsExportTempFolder";
@@ -62,6 +64,8 @@ public class RecordExportServices {
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
 
 		try {
+
+			//
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
 			try {
