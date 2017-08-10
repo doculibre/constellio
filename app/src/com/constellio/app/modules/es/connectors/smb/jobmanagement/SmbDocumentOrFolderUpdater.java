@@ -41,8 +41,11 @@ public class SmbDocumentOrFolderUpdater {
 
 	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
 
+
+
 		// Utility
 		smbDocument.setConnector(connectorInstance)
+				.setConnectorType(connectorInstance.getConnectorType())
 				.setTraversalCode(connectorInstance.getTraversalCode())
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
