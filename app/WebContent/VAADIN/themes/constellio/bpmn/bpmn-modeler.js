@@ -54881,4 +54881,4 @@ function serialize(node, output) {
 }
 },{}]},{},[1])(1)
 });
-//# sourceMappingURL=bpmn-modeler.js.map
+//# sourceMappingURL=VAADIN/themes/constellio/bpmn/bpmn-modeler.js.map
