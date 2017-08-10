@@ -5,6 +5,7 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -21,10 +22,9 @@ import com.constellio.model.services.search.query.logical.ongoing.OngoingLogical
 import com.constellio.model.services.taxonomies.*;
 import com.constellio.model.services.users.UserServices;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.beans.Transient;
+import java.io.IOException;
+import java.util.*;
 
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -43,15 +43,35 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
     SearchServices searchServices;
     ESSchemasRecordsServices esSchemasRecordsServices;
 
+    transient SessionContext sessionContext;
+
 
     public SmbRecordTreeNodesDataProvider(String taxonomieCode, AppLayerFactory appLayerFactory) {
-        collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+        sessionContext = ConstellioUI.getCurrentSessionContext();
+        collection = sessionContext.getCurrentCollection();
         taxonomyCode = taxonomieCode;
         this.appLayerFactory = appLayerFactory;
         this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
         this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
         this.esSchemasRecordsServices = new ESSchemasRecordsServices(collection, appLayerFactory);
         this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+    }
+
+    public SmbRecordTreeNodesDataProvider(String taxonomieCode, AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+        this.sessionContext = sessionContext;
+        collection = sessionContext.getCurrentCollection();
+        taxonomyCode = taxonomieCode;
+        this.appLayerFactory = appLayerFactory;
+        this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
+        this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+        this.esSchemasRecordsServices = new ESSchemasRecordsServices(collection, appLayerFactory);
+        this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        sessionContext = ConstellioUI.getCurrentSessionContext();
     }
 
     @Override
@@ -83,8 +103,8 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
     @Override
     public LinkableTaxonomySearchResponse getRootNodes(int start, int maxSize, FastContinueInfos infos) {
 
-        Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-        LogicalSearchCondition condition = fromConceptsOf(taxonomy).where(esSchemasRecordsServices.connectorSmbFolder.parentUrl()).isNull();
+        LogicalSearchCondition condition = from(Arrays.asList(esSchemasRecordsServices.connectorSmbFolder.schemaType(), esSchemasRecordsServices.connectorSmbDocument.schemaType()))
+                .where(esSchemasRecordsServices.connectorSmbFolder.parentUrl()).isNull();
 
 
         LogicalSearchQuery query = new LogicalSearchQuery(condition);
@@ -111,9 +131,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
         return taxonomyCode;
     }
 
-    OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {
-        return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
-    }
+
 
     public ReturnedMetadatasFilter returnedMetadatasForRecordsIn(String collection,  MetadataSchemaTypes types) {
 
@@ -134,7 +152,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
     }
 
     public User getCurrentUser(ModelLayerFactory modelLayerFactory) {
-        UserVO userVO = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+        UserVO userVO = sessionContext.getCurrentUser();
         UserServices userServices = modelLayerFactory.newUserServices();
         return userServices.getUserInCollection(userVO.getUsername(), collection);
     }
