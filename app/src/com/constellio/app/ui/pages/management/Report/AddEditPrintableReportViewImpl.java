@@ -20,23 +20,16 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
-import com.vaadin.data.util.converter.Converter;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddEditPrintableReportView {
     private AddEditPrintableReportPresenter presenter = new AddEditPrintableReportPresenter(this);
     private RecordVO recordVO;
@@ -47,7 +40,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
         if (StringUtils.isNotEmpty(event.getParameters())) {
             Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            recordVO = presenter.getRecordVO(paramsMap.get("id"), RecordVO.VIEW_MODE.FORM);
+            recordVO = presenter.getRecordVO(paramsMap.get("id"));
             isEdit = true;
         } else {
             recordVO = new RecordToVOBuilder().build(presenter.newRecord(), RecordVO.VIEW_MODE.FORM, getSessionContext());
@@ -68,7 +61,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 
     @Override
     protected String getTitle() {
-        return $( isEdit ? "AddLabelView.title" : "EditLabelView.title");
+        return $( isEdit ? "PrintableReport.add.title" : "PrintableReport.edit.title");
     }
 
     private PrintableReportFormImpl newForm() {
@@ -134,33 +127,46 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
         private ComboBox typeCombobox, schemaCombobox;
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            Field<?> field = null;
-            if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_TYPE)) {
-                field = createComboBox(metadataVO);
-            } else if(metadataVO.getCode().equals(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.REPORT_SCHEMA)) {
-                field = createComboBoxForSchemaType(metadataVO);
-            } else {
-                field = new MetadataFieldFactory().build(metadataVO);
+            Field<?> field;
+            switch (metadataVO.getCode()) {
+                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE:
+                    field = createComboBox(metadataVO);
+                    break;
+                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA:
+                    field = createComboBoxForSchemaType(metadataVO);
+                    break;
+                default:
+                    field = new MetadataFieldFactory().build(metadataVO);
+                    break;
             }
             return field;
         }
 
         public ComboBox createComboBox(MetadataVO metadataVO) {
             typeCombobox = new BaseComboBox();
-            Object folderValue = PrintableReportListPossibleView.FOLDER;
-            Object documentValue = PrintableReportListPossibleView.DOCUMENT;
-            Object taskValue = PrintableReportListPossibleView.TASK;
+            Object folderValue = PrintableReportListPossibleType.FOLDER;
+            Object documentValue = PrintableReportListPossibleType.DOCUMENT;
+            Object taskValue = PrintableReportListPossibleType.TASK;
             typeCombobox.addItems(folderValue, documentValue, taskValue);
-            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleView.FOLDER.getLabel());
-            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleView.DOCUMENT.getLabel());
-            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleView.TASK.getLabel());
+            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleType.FOLDER.getLabel());
+            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleType.DOCUMENT.getLabel());
+            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleType.TASK.getLabel());
             typeCombobox.setTextInputAllowed(false);
             typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
             typeCombobox.setConverter(new PrintableReportListToStringConverter());
+            typeCombobox.setNullSelectionAllowed(false);
+            typeCombobox.addValidator(new Validator() {
+                @Override
+                public void validate(Object value) throws InvalidValueException {
+                    if(value == null) {
+                        throw new InvalidValueException($("PrintableReport.addEdit.emptyType"));
+                    }
+                }
+            });
             typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
                 @Override
                 public void valueChange(Property.ValueChangeEvent event) {
-                    presenter.setCurrentType((PrintableReportListPossibleView) event.getProperty().getValue());
+                    presenter.setCurrentType((PrintableReportListPossibleType) event.getProperty().getValue());
                     schemaCombobox = fillComboBox(schemaCombobox);
                 }
             });
@@ -172,6 +178,16 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
             schemaCombobox = fillComboBox(schemaCombobox);
             schemaCombobox.setTextInputAllowed(false);
             schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            schemaCombobox.setNullSelectionAllowed(false);
+            //schemaCombobox.setConverter(new CustomSchemaToStringConverter(getCollection(), getConstellioFactories().getAppLayerFactory()));
+            schemaCombobox.addValidator(new Validator() {
+                @Override
+                public void validate(Object value) throws InvalidValueException {
+                    if(value == null) {
+                        throw new InvalidValueException($("PrintableReport.addEdit.emptySchema"));
+                    }
+                }
+            });
             return schemaCombobox;
         }
 
@@ -180,6 +196,10 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
             for(MetadataSchema metadataSchema : presenter.getSchemasForCurrentType()) {
                 comboBox.addItem(metadataSchema.getCode());
                 comboBox.setItemCaption(metadataSchema.getCode(), metadataSchema.getFrenchLabel());
+                if(comboBox.getItemIds().size() == 1) {
+                    comboBox.setValue(metadataSchema.getCode());
+                }
+
             }
             return comboBox;
         }

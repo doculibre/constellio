@@ -4,9 +4,6 @@ import com.constellio.model.entities.records.Content;
 
 import java.io.Serializable;
 
-/**
- * Created by Marco on 2017-07-10.
- */
 public class PrintableReportTemplate implements Serializable {
     private String title;
     private String id;
@@ -37,5 +34,25 @@ public class PrintableReportTemplate implements Serializable {
 
     public Content getJasperFile() {
         return this.jasperFile;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PrintableReportTemplate that = (PrintableReportTemplate) o;
+
+        if (title != null ? !title.equals(that.title) : that.title != null) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        return jasperFile != null ? jasperFile.equals(that.jasperFile) : that.jasperFile == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = title != null ? title.hashCode() : 0;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + (jasperFile != null ? jasperFile.hashCode() : 0);
+        return result;
     }
 }

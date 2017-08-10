@@ -8,12 +8,15 @@ public class PrintableReportListToStringConverter implements Converter<Object, S
 
     @Override
     public String convertToModel(Object value, Class<? extends String> targetType, Locale locale) throws ConversionException {
+        if(value == null) {
+            throw new ConversionException("null value");
+        }
         return value.toString();
     }
 
     @Override
     public Object convertToPresentation(String value, Class<?> targetType, Locale locale) throws ConversionException {
-        return StringUtils.isEmpty(value) ? null : PrintableReportListPossibleView.getValue(value);
+        return StringUtils.isEmpty(value) ? null : PrintableReportListPossibleType.getValue(value);
     }
 
     @Override

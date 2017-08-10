@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,15 +73,51 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	
 	private Map<String, Object> uiContext = new HashMap<>();
 
-	public final RequestHandler requestHandler = new ConstellioResourceHandler();
+	public final ConstellioResourceHandler resourceRequestHandler = new ConstellioResourceHandler();
 
 	private SSOServices ssoServices;
 	
 	private View currentView;
+	
+	public RequestHandler getRequestHandler(Class<? extends RequestHandler> clazz) {
+		RequestHandler match = null;
+		for (RequestHandler requestHandler : getSession().getRequestHandlers()) {
+			if (clazz.isAssignableFrom(requestHandler.getClass())) {
+				match = requestHandler;
+				break;
+			}
+		}
+		return match;
+	}
+	
+	public boolean isRequestHandler(Class<? extends RequestHandler> clazz) {
+		boolean requestHandlerFound = false;
+		for (RequestHandler requestHandler : getSession().getRequestHandlers()) {
+			if (clazz.isAssignableFrom(requestHandler.getClass())) {
+				requestHandlerFound = true;
+				break;
+			}
+		}
+		return requestHandlerFound;
+	}
+	
+	public void addRequestHandler(RequestHandler handler) {
+		getSession().addRequestHandler(handler);
+	}
+	
+	public Collection<RequestHandler> getRequestHandlers() {
+		return getSession().getRequestHandlers();
+	}
+	
+	public void removeRequestHandler(RequestHandler handler) {
+		getSession().removeRequestHandler(handler);
+	}
 
 	@Override
 	protected void init(VaadinRequest request) {
-		getSession().addRequestHandler(requestHandler);
+		if (!isRequestHandler(ConstellioResourceHandler.class)) {
+			addRequestHandler(resourceRequestHandler);
+		}
 
 		ssoServices = SSOServices.getInstance();
 
@@ -132,7 +169,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	@Override
 	public void detach() {
 		super.detach();
-		getSession().removeRequestHandler(requestHandler);
+		removeRequestHandler(resourceRequestHandler);
 	}
 
 	private UserVO ssoAuthenticate() {
@@ -226,6 +263,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				navigator.addViewChangeListener(new ViewChangeListener() {
 					@Override
 					public boolean beforeViewChange(ViewChangeEvent event) {
+						ConstellioFactories.getInstance().onRequestEnded();
+						ConstellioFactories.getInstance().onRequestStarted();
 						return true;
 					}
 

@@ -1,31 +1,25 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
+import com.constellio.app.modules.rm.ui.components.task.TaskFieldLookupImpl;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
@@ -41,41 +35,59 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
-/**
- * Created by Marco on 2017-07-10.
- */
 public class GetXmlButtonV2 extends WindowButton{
     private ModelLayerFactory model;
     private String collection;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private PrintableReportListPossibleView currentSchema;
+    private PrintableReportListPossibleType currentSchema;
 
-    private ListAddRemoveRecordLookupField elementLookUpField;
+    private Field elementLookUpField;
+    private BaseView view;
 
-
-    public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleView currentSchema) {
+    public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleType currentSchema) {
         super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.factory = appLayerFactory;
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
         this.contentManager = model.getContentManager();
         this.currentSchema = currentSchema;
+        this.view = view;
     }
 
-    public void setCurrentSchema(PrintableReportListPossibleView schema) {
+    public void setCurrentSchema(PrintableReportListPossibleType schema) {
         this.currentSchema = schema;
     }
 
     @Override
     protected Component buildWindowContent() {
-        this.elementLookUpField = getLookupFieldForCurrentSchema();
+        if(currentSchema.equals(PrintableReportListPossibleType.TASK)) {
+            this.elementLookUpField = getLookupFieldForTaskSchema();
+        } else {
+            this.elementLookUpField = getLookupFieldForCurrentSchema();
+        }
         return new GetXmlFrom(new LabelParametersVO(new LabelTemplate()), this, this.elementLookUpField);
     }
 
     private ListAddRemoveRecordLookupField getLookupFieldForCurrentSchema() {
-        return new ListAddRemoveRecordLookupField(currentSchema.toString());
+        //TODO add permission support.
+        ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema.getSchemaType());
+        return listAddRemoveRecordLookupField;
+    }
+
+    private ComboBox getLookupFieldForTaskSchema() {
+        ComboBox taskFieldcomboBox = new ComboBox();
+        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+        List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Task.SCHEMA_TYPE)).where(ALL)));
+        TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
+        for(Record record : records) {
+            TaskVO taskVO = taskToVOBuilder.build(record, RecordVO.VIEW_MODE.FORM, view.getSessionContext());
+            taskFieldcomboBox.addItem(taskVO);
+            taskFieldcomboBox.setItemCaption(taskVO, taskVO.getTitle());
+        }
+        return taskFieldcomboBox;
     }
 
     private class GetXmlFrom extends BaseForm<LabelParametersVO> {
@@ -87,19 +99,24 @@ public class GetXmlButtonV2 extends WindowButton{
         @Override
         protected void saveButtonClick(LabelParametersVO viewObject) throws ValidationException {
             try{
-                ListAddRemoveRecordLookupField lookupField = (ListAddRemoveRecordLookupField) fields.get(0);
-                XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
-                xmlGeneratorParameters.setElementWithIds(currentSchema.toString(), lookupField.getValue());
-                XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
-                String xml = xmlGenerator.generateXML();
-                String filename = "Constellio-Test.xml";
-                StreamResource source = createResource(xml, filename);
-                Link download = new Link($("ReportViewer.download", filename),
-                        new GetXMLButton.DownloadStreamResource(source.getStreamSource(), filename));
-                VerticalLayout newLayout = new VerticalLayout();
-                newLayout.addComponents(download);
-                newLayout.setWidth("100%");
-                getWindow().setContent(newLayout);
+                Field lookupField = fields.get(0);
+                List<String> ids = currentSchema.equals(PrintableReportListPossibleType.TASK) ? asList(((TaskVO) lookupField.getValue()).getId()):((ListAddRemoveRecordLookupField) lookupField).getValue();
+                if(ids.size() > 0) {
+                    XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
+                    xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
+                    XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                    String xml = xmlGenerator.generateXML();
+                    String filename = "Constellio-Test.xml";
+                    StreamResource source = createResource(xml, filename);
+                    Link download = new Link($("ReportViewer.download", filename),
+                            new GetXMLButton.DownloadStreamResource(source.getStreamSource(), filename));
+                    VerticalLayout newLayout = new VerticalLayout();
+                    newLayout.addComponents(download);
+                    newLayout.setWidth("100%");
+                    getWindow().setContent(newLayout);
+                } else {
+                    view.showErrorMessage($("DisplayLabelViewImpl.menu.getXMLButton.selectEntity"));
+                }
             } catch (Exception e) {
               e.printStackTrace();
             }

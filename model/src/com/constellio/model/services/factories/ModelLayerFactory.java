@@ -66,6 +66,8 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	RecordServicesImpl newCachelessRecordServices();
 
+	RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches);
+
 	SearchServices newSearchServices();
 
 	FreeTextSearchServices newFreeTextSearchServices();
@@ -140,6 +142,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	EmailQueueManager getEmailQueueManager();
 
 	RecordsCaches getRecordsCaches();
+
+	RecordsCaches getBottomRecordsCaches();
 
 	SecurityTokenManager getSecurityTokenManager();
 

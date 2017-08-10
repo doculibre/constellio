@@ -36,7 +36,6 @@ import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
-import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
@@ -350,6 +349,16 @@ public class SchemasDisplayManager
 		});
 	}
 
+	public void resetMetadata(String collection, final String code) {
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.resetMetadata(code);
+			}
+		});
+	}
+
 	public List<MetadataSchemaType> getAllowedSchemaTypesForSimpleSearch(String collection) {
 		List<MetadataSchemaType> result = new ArrayList<>();
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
@@ -463,4 +472,6 @@ public class SchemasDisplayManager
 			element.addContent(children);
 		}
 	}
+
+
 }

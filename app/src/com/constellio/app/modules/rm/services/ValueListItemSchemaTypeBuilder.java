@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
 
-		List<Language> languages = metadataSchemaTypesBuilder.getLanguages();
+		List<Language> languages = new ArrayList<>(labels.keySet());
 		for (Language language : languages) {
 			codeMetadata.addLabel(language, $("init.valuelist.default.code"));
 		}
@@ -67,8 +68,8 @@ public class ValueListItemSchemaTypeBuilder {
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {
-			if(labels.containsKey(language))
-			titleMetadata.addLabel(language, $("init.valuelist.default.title"));
+			if (labels.containsKey(language))
+				titleMetadata.addLabel(language, $("init.valuelist.default.title", language.getLocale()));
 		}
 		return typeBuilder;
 	}

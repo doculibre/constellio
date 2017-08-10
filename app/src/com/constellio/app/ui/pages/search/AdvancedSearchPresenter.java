@@ -39,6 +39,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -68,6 +69,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -80,6 +82,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	String schemaTypeCode;
 	private int pageNumber;
 	private String searchID;
+	private SearchResultTable result;
 	private boolean batchProcessOnAllSearchResults;
 
 	private transient LogicalSearchCondition condition;
@@ -88,6 +91,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
+	}
+
+	public void setSchemaType(String schemaType) {
+		this.schemaTypeCode = schemaType;
 	}
 
 	@Override
@@ -170,7 +177,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchExpression;
 	}
 
-	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value) {
+	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
@@ -191,7 +198,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return false;
 	}
 
-	public List<MetadataVO> getMetadataAllowedInBatchEdit() {
+	public List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType) {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
@@ -424,7 +431,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setResultsViewMode(resultsViewMode)
 				.setPageLength(selectedPageLength);
 		try {
-			((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
 
 			//recordServices().update(search);
@@ -439,17 +446,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType() {
+	public String getOriginType(String schemaType) {
 		return batchProcessingPresenterService().getOriginType(buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
-	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+	public RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext) {
 		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
@@ -457,7 +464,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, RecordVO viewObject)
+	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
@@ -496,14 +503,14 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords() {
+	public boolean hasWriteAccessOnAllRecords(String schemaType) {
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices()
 				.getResultsCount(query);
 	}
 
 	@Override
-	public long getNumberOfRecords() {
+	public long getNumberOfRecords(String schemaType) {
 		return (int) searchServices().getResultsCount(buildBatchProcessLogicalSearchQuery());
 	}
 
@@ -614,6 +621,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+		setChanged();
+		notifyObservers(recordVO);
 	}
 
 	@Override
@@ -631,8 +640,29 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return true;
 	}
 
+	public void setResult(SearchResultTable result) {
+		this.result = result;
+	}
+
 	public User getUser() {
 		return getCurrentUser();
 	}
 
+	public List<RecordVO> getRecordVOList(List<String> ids) {
+		List<RecordVO> recordsVO = new ArrayList<>();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordToVOBuilder builder = new RecordToVOBuilder();
+		for (String id : ids) {
+			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
+		}
+		return recordsVO;
+	}
+
+	public void fireSomeRecordsSelected() {
+		view.fireSomeRecordsSelected();
+	}
+
+	public void fireNoRecordSelected() {
+		view.fireNoRecordSelected();
+	}
 }

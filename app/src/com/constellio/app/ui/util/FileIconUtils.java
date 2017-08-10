@@ -1,6 +1,8 @@
 package com.constellio.app.ui.util;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +34,8 @@ public class FileIconUtils implements Serializable {
 	private static final String DEFAULT_VALUE = "document";
 
 	private static final String DEFAULT_ICON_PATH = ICONS_DIR + DEFAULT_VALUE + ".gif";
+	
+	private static final Map<String, String> ICON_PATHS = new HashMap<>();
 
 	public static Resource getIcon(String fileName) {
 		if (fileName.contains("/") && ThemeUtils.resourceExists(fileName)) {
@@ -49,10 +53,14 @@ public class FileIconUtils implements Serializable {
 			if (StringUtils.isBlank(extension)) {
 				extension = fileName;
 			}
-			iconPath = ICONS_DIR + extension + ICON_EXTENSION;
-			if (!ThemeUtils.resourceExists(iconPath)) {
-				LOGGER.warn("Resource not found : '" + iconPath + "'");
-				iconPath = DEFAULT_ICON_PATH;
+			iconPath = ICON_PATHS.get(extension);
+			if (iconPath == null) {
+				iconPath = ICONS_DIR + extension + ICON_EXTENSION;
+				if (!ThemeUtils.resourceExists(iconPath)) {
+					LOGGER.warn("Resource not found : '" + iconPath + "'");
+					iconPath = DEFAULT_ICON_PATH;
+				}
+				ICON_PATHS.put(extension, iconPath);
 			}
 		} else {
 			iconPath = DEFAULT_ICON_PATH;

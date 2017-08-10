@@ -15,9 +15,6 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
 public class DisplayPrintableReportViewImpl extends BaseViewImpl implements DisplayPrintableReportView {
     private DisplayPrintableReportPresenter presenter;
     private RecordVO recordVO;
@@ -38,7 +35,7 @@ public class DisplayPrintableReportViewImpl extends BaseViewImpl implements Disp
         presenter = new DisplayPrintableReportPresenter(this);
         if (StringUtils.isNotEmpty(event.getParameters())) {
             Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            recordVO = presenter.getRecordVO(paramsMap.get("id"), RecordVO.VIEW_MODE.DISPLAY);
+            recordVO = presenter.getRecordVO(paramsMap.get("id"));
         }
     }
 

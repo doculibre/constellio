@@ -7,10 +7,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.vaadin.ui.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -25,12 +21,14 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
-import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
@@ -41,9 +39,17 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 	
@@ -399,7 +405,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				}
 
 				final MiniTextField yearsField = new MiniTextField();
-				yearsField.setConverter(new StringToIntegerConverter());
+				yearsField.setConverter(new BaseStringToIntegerConverter());
 
 				if (retentionPeriod.getRetentionType() == RetentionType.FIXED) {
 					openRetentionPeriodDDVField.setValue(null);

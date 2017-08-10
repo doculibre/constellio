@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -67,6 +68,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
+
+	private boolean testWithRequestCache = false;
+
 	protected String anotherCollection = "anotherCollection";
 	protected SecurityAcceptanceTestSetup anothercollectionSetup = new SecurityAcceptanceTestSetup(anotherCollection);
 	protected String ZE_ROLE = "zeRoleCode";
@@ -145,6 +149,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			}
 
 			public void setServices() {
+				if (testWithRequestCache) {
+					ConstellioFactories.getInstance().onRequestStarted();
+				}
 				recordServices = getModelLayerFactory().newRecordServices();
 				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 				searchServices = getModelLayerFactory().newSearchServices();
@@ -211,17 +218,18 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	@After
 	public void checkIfNoBatchProcessRequired() {
-		if(initialFinishedBatchProcesses != null) {
+		if (initialFinishedBatchProcesses != null) {
 
+			List<String> finishedBatchProcesses = new ArrayList<>();
+			for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
+				finishedBatchProcesses.add(batchProcess.getId());
+			}
 
-
-		List<String> finishedBatchProcesses = new ArrayList<>();
-		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
-			finishedBatchProcesses.add(batchProcess.getId());
+			int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
+			totalBatchProcessCount += batchProcessCount;
 		}
-
-		int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
-		totalBatchProcessCount += batchProcessCount;
+		if (testWithRequestCache) {
+			ConstellioFactories.getInstance().onRequestEnded();
 		}
 	}
 
@@ -576,7 +584,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
-
 		public VerifiedAuthorization givingReadWriteDelete() {
 			this.roles = asList(READ, WRITE, DELETE);
 			return this;
@@ -716,6 +723,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected ListAssert<VerifiedAuthorization> assertThatAuthorizationsOn(String recordId) {
 		Record record = recordServices.getDocumentById(recordId);
+
+		recordServices.getRecordsCaches().invalidateAll();
+		recordServices.refresh(record);
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
 		for (Authorization authorization : services.getRecordAuthorizations(record)) {

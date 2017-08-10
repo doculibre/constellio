@@ -925,8 +925,9 @@ public class RecordImpl implements Record {
 	//	}
 
 	@Override
-	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
+	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
 		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
@@ -935,7 +936,13 @@ public class RecordImpl implements Record {
 			if (wasMetadata.getDataEntry().getType() == MANUAL) {
 				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
 				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
+
+					Object value = get(wasMetadata);
+					if (!(value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata))) {
+						lostMetadataValues = true;
+					}
 					set(wasMetadata, null);
+
 				} else {
 					Object value = get(wasMetadata);
 					if (value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata)) {
@@ -963,6 +970,8 @@ public class RecordImpl implements Record {
 			}
 		}
 		markAsModified(Schemas.SCHEMA);
+
+		return lostMetadataValues;
 	}
 
 	@Override

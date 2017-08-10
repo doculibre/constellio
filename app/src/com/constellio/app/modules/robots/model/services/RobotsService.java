@@ -97,11 +97,12 @@ public class RobotsService {
 
 	private void deleteRobotsActionParameters(Robot robot) {
 		String actionParamId = robot.getActionParameters();
-		ActionParameters actionParameters = robots.getActionParameters(actionParamId);
+		if(actionParamId != null) {
+			ActionParameters actionParameters = robots.getActionParameters(actionParamId);
 
-		recordServices.logicallyDelete(actionParameters.getWrappedRecord(), User.GOD);
-		recordServices.physicallyDeleteNoMatterTheStatus(actionParameters.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-
+			recordServices.logicallyDelete(actionParameters.getWrappedRecord(), User.GOD);
+			recordServices.physicallyDeleteNoMatterTheStatus(actionParameters.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+		}
 	}
 
 	public void deleteRobotHierarchy(String robotId) {

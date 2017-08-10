@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.reports.ReportXMLGeneratorV2;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.assertj.core.groups.Tuple;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -22,7 +23,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportField;
@@ -265,7 +266,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         SAXBuilder builder = new SAXBuilder();
         ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
 
-        reportXMLGeneratorV2.setStartingPosition(1);
+        reportXMLGeneratorV2.setStartingPosition(2);
         String contenu = reportXMLGeneratorV2.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
@@ -278,7 +279,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
         ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getFolder_A01().getWrappedRecord());
-        reportXMLGeneratorV2.setStartingPosition(5);
+        reportXMLGeneratorV2.setStartingPosition(5); // index 4
         String contenu = reportXMLGeneratorV2.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
@@ -289,8 +290,6 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         meta = ((Element) document.getRootElement().getChildren().get(2)).getChild("metadatas");
         assertThat(meta.getChildren()).isNullOrEmpty();
         meta = ((Element) document.getRootElement().getChildren().get(3)).getChild("metadatas");
-        assertThat(meta.getChildren()).isNullOrEmpty();
-        meta = ((Element) document.getRootElement().getChildren().get(4)).getChild("metadatas");
         assertThat(meta.getChildren()).isNullOrEmpty();
     }
 
@@ -367,10 +366,11 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
                 tuple("visibleintrees", "Non"),
                 tuple("dispositionDate", "null"),
                 tuple("decommissioningLabel", "Versement")
+
         };
 
         String contenu = reportXmlGenerator.convertContainerWithIdentifierToXML(records.containerId_bac05, null);
-        ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
+        ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes());
         Document document = builder.build(stream);
         Element metadatasOfContainer = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
 
@@ -378,13 +378,14 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
         ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
         String contenuFromV2 = reportXMLGeneratorV2.generateXML();
-        ByteArrayInputStream streamV2 = new ByteArrayInputStream(contenuFromV2.getBytes("UTF-8"));
+        ByteArrayInputStream streamV2 = new ByteArrayInputStream(contenuFromV2.getBytes());
         Document documentV2 = builder.build(streamV2);
         Element metadatasOfContainerV2 = ((Element) documentV2.getRootElement().getChildren().get(0)).getChild("metadatas");
 
         assertThat(getTupleOfNameAndValueForEachMetadata(metadatasOfContainerV2.getChildren())).contains(expectedResults);
     }
 
+    @InDevelopmentTest
     @Test
     public void testingStartingPositionInvalidIsFailing() {
         try {
@@ -398,6 +399,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
     }
 
+    @InDevelopmentTest
     @Test
     public void testingNumberOfCopiesInvalidFailing() {
         try {
@@ -410,6 +412,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         }
     }
 
+    @InDevelopmentTest
     @Test
     public void testingElementNullFailing() {
         try {
@@ -422,6 +425,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         }
     }
 
+    @InDevelopmentTest
     @Test
     public void testingNullCollectionFailing() {
         try {
@@ -433,6 +437,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         }
     }
 
+    @InDevelopmentTest
     @Test
     public void testingEmptyCollectionFailing() {
         try {
@@ -444,6 +449,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         }
     }
 
+    @InDevelopmentTest
     @Test
     public void testingNullFactoryFailing() {
         try {

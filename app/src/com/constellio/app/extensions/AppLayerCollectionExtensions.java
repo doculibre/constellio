@@ -1,5 +1,6 @@
 package com.constellio.app.extensions;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -511,5 +512,25 @@ public class AppLayerCollectionExtensions {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.addFieldsInLabelXML(params);
 		}
+	}
+
+	public File changeDownloadableTemplate() {
+		File file = null;
+		for(LabelTemplateExtension extension : labelTemplateExtensions) {
+			File temp = extension.changeDownloadableTemplate();
+			if(temp != null) {
+				file = temp;
+			}
+		}
+		return file;
+	}
+
+	public boolean isMetadataRequiredStatusModifiable(final IsBuiltInMetadataAttributeModifiableParam params) {
+		return ExtensionUtils.getBooleanValue(schemaTypesPageExtensions, false, new BooleanCaller<SchemaTypesPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(SchemaTypesPageExtension extension) {
+				return extension.isBuiltInMetadataAttributeModifiable(params);
+			}
+		});
 	}
 }

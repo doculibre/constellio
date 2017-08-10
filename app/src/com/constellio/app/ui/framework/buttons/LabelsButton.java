@@ -227,7 +227,7 @@ public class LabelsButton extends WindowButton {
                         FileUtils.copyInputStreamToFile(inputStream, new File("jasper.jasper"));
                         File file = new File("jasper.jasper");
                         File c = reportXmlGenerator.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
-                        getWindow().setContent(new LabelViewer(c, ReportXMLGenerator.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
+                        getWindow().setContent(new LabelViewer(c, ReportXMLGenerator.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf", model.getIOServicesFactory().newIOServices()));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
                         getWindow().setHeight("90%");
                         getWindow().center();

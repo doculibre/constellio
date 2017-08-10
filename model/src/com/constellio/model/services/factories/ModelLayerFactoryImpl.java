@@ -142,7 +142,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
-		this.systemConfigurationsManager = add(new SystemConfigurationsManager(this, configManager, modulesManagerDelayed));
+		this.systemConfigurationsManager = add(
+				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed, cacheManager));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
@@ -217,13 +218,17 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
 	}
 
-	public RecordServicesImpl newCachelessRecordServices() {
+	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
 		RecordDao recordDao = dataLayerFactory.newRecordDao();
 		RecordDao eventsDao = dataLayerFactory.newEventsDao();
 		RecordDao notificationsDao = dataLayerFactory.newNotificationsDao();
 		DataStoreTypesFactory typesFactory = dataLayerFactory.newTypesFactory();
 		return new RecordServicesImpl(recordDao, eventsDao, notificationsDao, this, typesFactory,
 				dataLayerFactory.getUniqueIdGenerator(), recordsCaches);
+	}
+
+	public RecordServicesImpl newCachelessRecordServices() {
+		return newCachelessRecordServices(recordsCaches);
 	}
 
 	public SearchServices newSearchServices() {
@@ -374,6 +379,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public RecordsCaches getRecordsCaches() {
+		return recordsCaches;
+	}
+
+	public RecordsCaches getBottomRecordsCaches() {
 		return recordsCaches;
 	}
 

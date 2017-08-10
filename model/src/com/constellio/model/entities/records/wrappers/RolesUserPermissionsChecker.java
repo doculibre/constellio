@@ -1,20 +1,23 @@
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
+import static java.util.Arrays.asList;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.security.roles.Roles;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.constellio.model.entities.security.Role.*;
-import static java.util.Arrays.asList;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -79,8 +82,8 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 			for (String permission : permissions) {
 				if (permission != null && !userPermissionsOnRecord.contains(permission)) {
-					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission
-							+ "' on record '" + record.getIdTitle() + "'");
+//					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission
+					//							+ "' on record '" + record.getIdTitle() + "'");
 					return false;
 				}
 
@@ -118,8 +121,8 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(allUserPermissions));
 
 			if (!result) {
-				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
-						.join(allUserPermissions, ", ") + " on something");
+				//LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
+				//		.join(allUserPermissions, ", ") + " on something");
 			}
 
 			return result;
@@ -127,7 +130,7 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 			for (String permission : permissions) {
 				if (permission != null && !allUserPermissions.contains(permission)) {
-					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission + "' on something");
+					//LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission + "' on something");
 					return false;
 				}
 

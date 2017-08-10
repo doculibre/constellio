@@ -19,6 +19,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
@@ -33,10 +34,18 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
-import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.VaadinSession;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private static final String COPY_TYPE = "copyType";
@@ -362,7 +371,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 				}
 
 				final MiniTextField yearsField = new MiniTextField();
-				yearsField.setConverter(new StringToIntegerConverter());
+				yearsField.setConverter(new BaseStringToIntegerConverter());
 
 				if (retentionPeriod.getRetentionType() == RetentionType.FIXED) {
 					openRetentionPeriodDDVField.setValue(null);

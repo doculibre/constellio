@@ -27,7 +27,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -296,7 +296,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		addToCartButton = buildAddToCartButton();
 		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -350,8 +350,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		actionMenuButtons.add(copyContentButton);
 
-		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleView.DOCUMENT,  getDocumentVO());
-		actionMenuButtons.add(reportGeneratorButton);
+		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT,  getDocumentVO());
+
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
 					WindowConfiguration.modalDialog("40%", "100px")) {
@@ -494,7 +494,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
-
+		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 

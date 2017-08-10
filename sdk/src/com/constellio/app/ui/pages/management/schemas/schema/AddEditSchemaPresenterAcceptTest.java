@@ -1,11 +1,13 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +16,9 @@ import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -89,13 +94,30 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenAddModeWhenSaveButtonClickedWithoutUSRInItThenError() throws Exception {
+		presenter.setParameters(parameters);
+
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
+		formMetadataSchemaVO.setLocalCode("newSchema");
+		presenter.setSchemaVO(formMetadataSchemaVO);
+
+		try {
+			presenter.saveButtonClicked();
+		}
+		catch(ValidationException validationExeption) {
+			assertThat(extractingSimpleCodeAndParameters(validationExeption)).containsOnly(
+					tuple("AddEditSchemaPresenter_startWithUSR"));
+		}
+	}
+
+	@Test
 	public void givenAddModeWhenSaveButtonClickedThenCustomSchema()
 			throws Exception {
 
 		presenter.setParameters(parameters);
 		
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
-		formMetadataSchemaVO.setLocalCode("newSchema");
+		formMetadataSchemaVO.setLocalCode("USRnewSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
@@ -114,10 +136,12 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenCodeWithSpaceWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
 			throws Exception {
 
+		parameters.put("code", "USRFDS ksdf");
 		presenter.setParameters(parameters);
 
+
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
-		formMetadataSchemaVO.setLocalCode("new Schema");
+		formMetadataSchemaVO.setLocalCode("USRnew Schema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
@@ -135,7 +159,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter.setParameters(parameters);
 
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
-		formMetadataSchemaVO.setLocalCode("3newSchema");
+		formMetadataSchemaVO.setLocalCode("USR3newSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
@@ -150,16 +174,16 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenEditModeWhenSaveButtonClickedThenCustomSchema()
 			throws Exception {
 
-		parameters.put("schemaCode", zeSchema.code());
 		presenter.setParameters(parameters);
+		parameters.put("code", "USRFDSksdf");
 
-		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), zeCollection, new HashMap<String, String>());
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(),"USR" + SchemaUtils.underscoreSplitWithCache(zeSchema.code())[1],zeCollection, new HashMap<String, String>());
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
 		presenter.saveButtonClicked();
 
-		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
+		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRdefault").getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
@@ -171,7 +195,6 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenEditModeWhenSaveButtonClickedThenCustomSchemaTypeDisplay()
 			throws Exception {
 
-		parameters.put("schemaCode", zeSchema.code());
 		parameters.put("schemaTypeCode", zeSchema.type().getCode());
 		presenter.setParameters(parameters);
 
@@ -179,7 +202,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 				.isEqualTo(
 						Boolean.FALSE);
 
-		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), zeCollection, new HashMap<String, String>());
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), "USR" + SchemaUtils.underscoreSplitWithCache(zeSchema.code())[0], zeCollection, new HashMap<String, String>());
 		formMetadataSchemaVO.setAdvancedSearch(true);
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
@@ -220,6 +243,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		parameters.put("schemaCode", zeCustomSchema.code());
+		parameters.put("code", "USRFDSksdf");
 		presenter.setParameters(parameters);
 		assertThat(presenter.isCodeEditable()).isTrue();
 	}

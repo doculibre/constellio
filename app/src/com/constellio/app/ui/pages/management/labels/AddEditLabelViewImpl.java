@@ -21,7 +21,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -166,7 +166,17 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
             monComboBox.setItemCaption(valeur1, $("AddEditTaxonomyView.classifiedObject.folder"));
             monComboBox.setItemCaption(valeur2, $("DecommissioningListView.folderDetails.container"));
             monComboBox.setTextInputAllowed(false);
+            monComboBox.setValue(valeur1);
             monComboBox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            monComboBox.setNullSelectionAllowed(false);
+            monComboBox.addValidator(new Validator() {
+                @Override
+                public void validate(Object value) throws InvalidValueException {
+                    if(value == null) {
+                        throw new InvalidValueException($("ReportTabButton.invalidReportType"));
+                    }
+                }
+            });
             return monComboBox;
         }
     }

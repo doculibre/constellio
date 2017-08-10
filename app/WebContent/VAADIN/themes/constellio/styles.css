@@ -999,7 +999,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "7.7.4";
+	content: "7.7.5";
 }
 
 .v-widget {
@@ -13159,6 +13159,10 @@ div.v-layout.v-horizontal.v-widget {
 	display: block;
 	font-weight: bold;
 	color: red;
+}
+
+.constellio .config-management .config-group .v-spacing {
+	height: 20px;
 }
 
 .constellio .constellio-layout .sidebar {

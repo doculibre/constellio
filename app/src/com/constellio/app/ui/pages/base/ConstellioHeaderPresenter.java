@@ -505,14 +505,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				getCurrentUser(), actionMenuLayout);
 	}
 
-	public void createNewCartAndAddToItRequested(String title) {
+	public void createNewCartAndAddToItRequested(List<String> recordIds, String title) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		List<String> selectedRecords = header.getSessionContext().getSelectedRecordIds();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		for (String record : selectedRecords) {
+		for (String record : recordIds) {
 			switch (recordServices.getDocumentById(record).getTypeCode()) {
 			case Folder.SCHEMA_TYPE:
 				cart.addFolders(asList(record));
@@ -528,7 +527,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			showMessage($("ConstellioHeader.selection.actions.actionCompleted", selectedRecords.size()));
+			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 			//			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();

@@ -2,9 +2,7 @@ package com.constellio.app.ui.pages.management.Report;
 
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.PrintableViewGroup;
 
-/**
- * Created by Marco on 2017-07-07.
- */
-public interface AddEditPrintableReportView extends BaseView, AdminViewGroup {
+public interface AddEditPrintableReportView extends BaseView, AdminViewGroup, PrintableViewGroup {
 }

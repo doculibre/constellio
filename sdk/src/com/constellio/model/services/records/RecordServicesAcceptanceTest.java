@@ -102,6 +102,7 @@ import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 
@@ -959,7 +960,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
@@ -971,7 +972,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)

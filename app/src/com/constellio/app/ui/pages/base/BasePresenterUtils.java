@@ -107,10 +107,10 @@ public class BasePresenterUtils implements Serializable {
 	}
 
 	public final RecordServices recordServices() {
-		if (recordServices == null) {
-			recordServices = modelLayerFactory.newRecordServices();
-		}
-		return recordServices;
+		//if (recordServices == null) {
+		return modelLayerFactory.newRecordServices();
+		//}
+		//return recordServices;
 	}
 
 	public final PresenterService presenterService() {

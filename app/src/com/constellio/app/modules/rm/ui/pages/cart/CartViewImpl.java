@@ -21,8 +21,10 @@ import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvi
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
@@ -42,6 +44,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
@@ -88,6 +92,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
+		//buttons.add(buildPrintMetadataReportButton());
 		return buttons;
 	}
 
@@ -137,13 +142,15 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchProcessingButton(final String schemaType) {
-		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType)) {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.setBatchProcessSchemaType(schemaType);
-				super.buttonClick(event);
-			}
-		};
+		BatchProcessingMode mode = presenter.getBatchProcessingMode();
+		WindowButton button;
+		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
+			button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else if (mode.equals(ONE_METADATA)) {
+			button = new BatchProcessingModifyingOneMetadataButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else {
+			throw new RuntimeException("Unsupported mode " + mode);
+		}
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
@@ -227,6 +234,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 		filterComponent.addComponents(containerFilterField, filterButton);
 		return filterComponent;
+	}
+
+	private Button buildPrintMetadataReportButton() {
+		//ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), Print.ANY);
+		return null;
 	}
 
 		private Button buildDecommissionButton() {

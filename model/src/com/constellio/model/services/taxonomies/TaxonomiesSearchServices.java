@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -334,6 +335,10 @@ public class TaxonomiesSearchServices {
 		long numfound;
 		numfound = nonTaxonomyRecordsResponse.getNumFound() + childrenWithoutAccessToInclude.size() + concepts.size();
 
+		if (!conceptsResponse.finishedIteratingOverRecords) {
+			numfound++;
+		}
+
 		return new LinkableTaxonomySearchResponse(numfound, infos, returnedRecords);
 	}
 
@@ -426,7 +431,7 @@ public class TaxonomiesSearchServices {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(context.getCollection());
 		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
-		Iterator<List<Record>> iterator;
+		SearchResponseIterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;
 		FastContinueInfos continueInfos = context.options.getFastContinueInfos();
 		methodResponse.records = new ArrayList<>();
@@ -440,12 +445,12 @@ public class TaxonomiesSearchServices {
 					.inBatches();
 
 		} else {
-			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 50).inBatches();
+			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, context.options.getRows()).inBatches();
 		}
 
 		int consumed = 0;
 
-		while (methodResponse.records.size() < context.options.getEndRow() && iterator.hasNext()) {
+		while (methodResponse.records.size() < context.options.getEndRow() + 1 && iterator.hasNext()) {
 
 			List<Record> batch = iterator.next();
 			consumed += batch.size();
@@ -506,10 +511,27 @@ public class TaxonomiesSearchServices {
 			}
 		}
 
-		methodResponse.finishedIteratingOverRecords =
-				!iterator.hasNext() && methodResponse.records.size() <= context.options.getEndRow();
+		if (methodResponse.records.size() > context.options.getEndRow()) {
+			methodResponse.finishedIteratingOverRecords = false;
+			methodResponse.records.remove(methodResponse.records.size() - 1);
+		} else {
+			methodResponse.finishedIteratingOverRecords = true;
+		}
+
 		methodResponse.continueAtPosition = lastIteratedRecordIndex;
 		return methodResponse;
+
+	}
+
+	private boolean isAuthGivingRequiredAccess(AuthorizationDetails authorizationDetails, String requiredAccess) {
+
+		if (Role.READ.equals(requiredAccess)) {
+			return authorizationDetails.getRoles().contains(Role.READ)
+					|| authorizationDetails.getRoles().contains(Role.WRITE)
+					|| authorizationDetails.getRoles().contains(Role.DELETE);
+		} else {
+			return authorizationDetails.getRoles().contains(requiredAccess);
+		}
 
 	}
 
@@ -523,7 +545,7 @@ public class TaxonomiesSearchServices {
 		Set<String> returnedRecordIds = new HashSet<>();
 		for (String authorizationDetailsId : context.user.getAllUserAuthorizations()) {
 			AuthorizationDetails authorizationDetails = context.user.getAuthorizationDetail(authorizationDetailsId);
-			if (authorizationDetails.getRoles().contains(context.options.getRequiredAccess())) {
+			if (isAuthGivingRequiredAccess(authorizationDetails, context.options.getRequiredAccess())) {
 
 				Record securedRecord = recordServices.getDocumentById(authorizationDetails.getTarget());
 				String schemaType = getSchemaTypeCode(securedRecord.getSchemaCode());
@@ -612,8 +634,12 @@ public class TaxonomiesSearchServices {
 			LogicalSearchQuery facetQuery;
 			if (selectingAConcept) {
 				LogicalSearchCondition condition = fromTypeIn(taxonomy)
-						.where(VISIBLE_IN_TREES).isTrueOrNull()
-						.andWhere(LINKABLE).isTrueOrNull();
+						.where(VISIBLE_IN_TREES).isTrueOrNull();
+
+				if (!options.isAlwaysReturnTaxonomyConceptsWithReadAccess()) {
+					condition = condition.andWhere(LINKABLE).isTrueOrNull();
+				}
+
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsCondition() != null) {
 					condition = allConditions(condition, options.getFilter().getLinkableConceptsCondition());
 				}

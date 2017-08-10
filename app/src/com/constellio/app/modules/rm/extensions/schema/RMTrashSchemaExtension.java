@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.extensions.schema;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -24,8 +21,14 @@ import com.constellio.model.extensions.behaviors.SchemaExtension;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RMTrashSchemaExtension extends SchemaExtension {
 
@@ -56,24 +59,52 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(event.getSchemaCode());
 		switch (schemaType) {
 		case ContainerRecord.SCHEMA_TYPE:
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+
 			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForUser(event.getUser(),
 					RMPermissionsTo.DELETE_CONTAINERS);
+			long totalNumberOfAdministrativeUnits = searchServices.getResultsCount(from(rm.administrativeUnit.schemaType()).returnAll());
 			if (adminUnitIdsWithPermissions.isEmpty()) {
 				return null;
+			} else if(totalNumberOfAdministrativeUnits == adminUnitIdsWithPermissions.size()) {
+				return fromAllSchemasIn(collection).whereAllConditions(
+						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
+						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+				);
+			} else {
+				SPEQueryResponse query = searchServices.query(new LogicalSearchQuery()
+						.setCondition(from(rm.containerRecord.schemaType()).returnAll())
+						.addFieldFacet(ContainerRecord.ADMINISTRATIVE_UNITS+"Id_ss")
+						.setNumberOfRows(0));
+				List<FacetValue> fieldFacetValues = query.getFieldFacetValues(ContainerRecord.ADMINISTRATIVE_UNITS + "Id_ss");
+				Set<String> administrativeUnitsWithContainers = new HashSet<>();
+				for(FacetValue facetValue: fieldFacetValues) {
+					administrativeUnitsWithContainers.add(facetValue.getValue());
+				}
+
+				return fromAllSchemasIn(collection).whereAllConditions(
+						anyConditions(
+								where(rm.containerRecord.administrativeUnits()).isNull(),
+								where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
+						),
+						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
+						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+				);
 			}
-			return fromAllSchemasIn(collection).whereAllConditions(
-					anyConditions(
-							where(rm.containerRecord.administrativeUnits()).isNull(),
-							where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
-					),
-					where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
-					where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
-			);
 
 		case Category.SCHEMA_TYPE:
 			if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally()) {
 				return fromAllSchemasIn(collection).whereAllConditions(
 						where(Schemas.SCHEMA).isStartingWithText(Category.SCHEMA_TYPE + "_"),
+						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+			} else {
+				return null;
+			}
+
+		case RetentionRule.SCHEMA_TYPE:
+			if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()) {
+				return fromAllSchemasIn(collection).whereAllConditions(
+						where(Schemas.SCHEMA).isStartingWithText(RetentionRule.SCHEMA_TYPE + "_"),
 						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 			} else {
 				return null;

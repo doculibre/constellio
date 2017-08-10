@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 
@@ -62,9 +63,9 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 		cache.insert(records);
 	}
 
-	public void insert(Record record) {
+	public CacheInsertionStatus insert(Record record) {
 		RecordsCache cache = getCache(record.getCollection());
-		cache.insert(record);
+		return cache.insert(record);
 	}
 
 	public Record getRecord(String id) {

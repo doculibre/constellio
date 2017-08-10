@@ -1,9 +1,10 @@
 package com.constellio.app.ui.pages.management.Report;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.entities.PrintableReportVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -20,18 +21,15 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Marco on 2017-07-07.
- */
-public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPrintableReportView{
+public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPrintableReportView {
 
     public static final String TYPE_TABLE = "types";
 
-    private static final PrintableReportListPossibleView[] SCHEMA_INDEX_ARRAY = new PrintableReportListPossibleView[] {PrintableReportListPossibleView.FOLDER, PrintableReportListPossibleView.DOCUMENT, PrintableReportListPossibleView.TASK};
+    private static final PrintableReportListPossibleType[] SCHEMA_INDEX_ARRAY = new PrintableReportListPossibleType[] {PrintableReportListPossibleType.FOLDER, PrintableReportListPossibleType.DOCUMENT, PrintableReportListPossibleType.TASK};
 
     private List<PrintableReportVO> printableReportVOS;
     private TabSheet tabSheet;
-    private PrintableReportListPossibleView currentSchema;
+    private PrintableReportListPossibleType currentSchema;
     private ListPrintableReportPresenter presenter = new ListPrintableReportPresenter(this);
     private VerticalLayout mainLayout;
     private Button addLabelButton, downloadTemplateButton;
@@ -39,7 +37,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-        this.currentSchema = PrintableReportListPossibleView.FOLDER;
+        this.currentSchema = PrintableReportListPossibleType.FOLDER;
     }
 
     @Override
@@ -62,13 +60,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
 
@@ -76,13 +74,14 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.FOLDER);
             }
         });
         container = buttonsContainerForFolder;
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.FOLDER).withRecordSchema().withRecordType().attachTo((BaseTable) tableFolder);
     }
 
     private Table createDocumentTable() {
@@ -91,13 +90,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
 
@@ -105,13 +104,14 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.DOCUMENT);
             }
         });
         container = buttonsContainerForFolder;
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.DOCUMENT).withRecordSchema().withRecordType().attachTo((BaseTable) tableFolder);
     }
 
     private Table createTaskTable() {
@@ -120,13 +120,13 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportEditButton(itemId, currentSchema);
+                return new PrintableReportEditButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDisplayButton(itemId, currentSchema);
+                return new PrintableReportDisplayButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
 
@@ -134,13 +134,16 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new PrintableReportDeleteButton(itemId, currentSchema);
+                return new PrintableReportDeleteButton(itemId, PrintableReportListPossibleType.TASK);
             }
         });
         container = buttonsContainerForFolder;
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addComponents();
         Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
         tableFolder = setTableProperty(tableFolder, container.size());
         return tableFolder;
+        //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.TASK).withRecordSchema().withRecordType().withButtonContainer().attachTo((BaseTable) tableFolder);
     }
 
     private Table setTableProperty(Table table, int maxSize) {
@@ -186,9 +189,9 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
     private class PrintableReportEditButton extends EditButton {
         private String itemId;
-        private PrintableReportListPossibleView currentSchema;
+        private PrintableReportListPossibleType currentSchema;
 
-        public PrintableReportEditButton(Object itemId, PrintableReportListPossibleView currentSchema) {
+        public PrintableReportEditButton(Object itemId, PrintableReportListPossibleType currentSchema) {
             RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
             if(item != null) {
                 this.itemId = item.getId();
@@ -210,9 +213,9 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
     private class PrintableReportDisplayButton extends DisplayButton {
         private String itemId;
-        private PrintableReportListPossibleView currentSchema;
+        private PrintableReportListPossibleType currentSchema;
 
-        public PrintableReportDisplayButton(Object itemId, PrintableReportListPossibleView currentSchema) {
+        public PrintableReportDisplayButton(Object itemId, PrintableReportListPossibleType currentSchema) {
             RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
             if(item != null) {
                 this.itemId = item.getId();
@@ -228,9 +231,9 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
     private class PrintableReportDeleteButton extends DeleteButton {
         private String itemId;
-        private PrintableReportListPossibleView currentSchema;
+        private PrintableReportListPossibleType currentSchema;
 
-        public PrintableReportDeleteButton(Object itemId, PrintableReportListPossibleView currentSchema) {
+        public PrintableReportDeleteButton(Object itemId, PrintableReportListPossibleType currentSchema) {
             RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
             if(item != null) {
                 this.itemId = item.getId();

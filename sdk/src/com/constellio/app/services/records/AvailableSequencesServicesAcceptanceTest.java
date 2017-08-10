@@ -1,5 +1,6 @@
 package com.constellio.app.services.records;
 
+import static com.constellio.model.entities.Language.English;
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.asMap;
@@ -171,12 +172,15 @@ public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 		});
 
 		assertThat(services.getAvailableSequencesForRecord(records.getCategory_X100().getWrappedRecord())).containsOnly(
-				new AvailableSequence(records.categoryId_X100, asMap(French, "Séquence utilisée par le type de schéma Dossier"))
+				new AvailableSequence(records.categoryId_X100,
+						asMap(French, "Séquence utilisée par le type de schéma Dossier",
+								English, "Séquence utilisée par le type de schéma Folder"))
 		);
 
 		assertThat(services.getAvailableSequencesForRecord(records.getUnit10().getWrappedRecord())).containsOnly(
 				new AvailableSequence(records.unitId_10,
-						asMap(French, "Séquence utilisée par les types de schéma Document, Dossier"))
+						asMap(French, "Séquence utilisée par les types de schéma Document, Dossier",
+								English, "Séquence utilisée par les types de schéma Document, Folder"))
 		);
 
 		assertThat(services.getAvailableGlobalSequences()).containsOnly(

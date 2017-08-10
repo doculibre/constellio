@@ -18,6 +18,8 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -107,6 +109,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
+        addMetadataReportButton(param);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -204,6 +207,21 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         duplicateButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         duplicateButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(duplicateButton);
+    }
+
+    public void addMetadataReportButton(final AvailableActionsParam param) {
+        List<RecordVO> recordVOS = new ArrayList<>();
+        RecordServices recordServices = recordServices();
+        RecordToVOBuilder builder = new RecordToVOBuilder();
+        for(String id : param.getIds()) {
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+        }
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
+        tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+        setStyles(tabButton);
+        tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout)param.getComponent()).addComponent(tabButton);
     }
 
     public void addClassifyButton(final AvailableActionsParam param) {
