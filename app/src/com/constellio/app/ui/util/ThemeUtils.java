@@ -17,10 +17,7 @@ public class ThemeUtils implements Serializable {
 	public static boolean resourceExists(String resourcePath) {
 		Boolean resourceExists = cache.get(resourcePath);
 		if (resourceExists == null) {
-			UI ui = UI.getCurrent();
-			InputStream resourceStream;
-			try {
-				resourceStream = ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);
+			try (InputStream resourceStream = getResource(resourcePath)){
 				if (resourceStream != null) {
 					resourceExists = true;
 					IOUtils.closeQuietly(resourceStream);
@@ -33,6 +30,11 @@ public class ThemeUtils implements Serializable {
 			cache.put(resourcePath, resourceExists);
 		}
 		return resourceExists;
+	}
+	
+	public static InputStream getResource(String resourcePath) throws IOException {
+		UI ui = UI.getCurrent();
+		return ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);
 	}
 
 }
