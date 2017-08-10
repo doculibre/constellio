@@ -16,6 +16,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -64,6 +65,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 	    		UserServices userServices = modelLayerFactory.newUserServices();
 	    		RecordServices recordServices = modelLayerFactory.newRecordServices();
 	    		ContentManager contentManager = modelLayerFactory.getContentManager();
+	    		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 	    		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	    		
 	    		VaadinSession vaadinSession = VaadinSession.getCurrent();
@@ -77,19 +79,29 @@ public class ConstellioResourceHandler implements RequestHandler {
 	    		if (user.hasReadAccess().on(record)) {
 	    			String schemaCode = record.getSchemaCode();
 	    			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-	    			Content content = (Content) record.get(metadata);
-	    			ContentVersion contentVersion = content.getVersion(version);
-	    			
-	    			String hash = contentVersion.getHash();
-	    			filename = contentVersion.getFilename();
-	    			if ("true".equals(preview)) {
-	    				if (contentManager.hasContentPreview(hash)) {
-			    			in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
-	    				} else {
-	    					in = null;
-	    				}
+	    			Object metadataValue = record.get(metadata);
+	    			if (metadataValue instanceof Content) {
+		    			Content content = (Content) metadataValue;
+		    			ContentVersion contentVersion = content.getVersion(version);
+		    			
+		    			String hash = contentVersion.getHash();
+		    			filename = contentVersion.getFilename();
+		    			if ("true".equals(preview)) {
+		    				if (contentManager.hasContentPreview(hash)) {
+				    			in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+		    				} else {
+		    					in = null;
+		    				}
+		    			} else {
+			    			in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+		    			}
+	    			} else if (metadataValue instanceof String) {
+	    				filename = paramsMap.get("z-filename");
+	    				String stringValue = (String) metadataValue;
+	    				in = ioServices.newByteInputStream(stringValue.getBytes(), getClass().getSimpleName() + ".handleRequest");
 	    			} else {
-		    			in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+		    			filename = null;
+	    				in = null;
 	    			}
 	    		} else {
 	    			filename = null;

@@ -9,7 +9,7 @@
 //  if (typeof bpmnModeler === 'undefined') {
 	  // create modeler
 	  bpmnModeler = new BpmnModeler({
-	    container: '#bpmn-canvas'
+	    container: '#bpmn-modeler-canvas'
 	  });
 
 	  // save diagram on button click
@@ -18,7 +18,6 @@
 		  	saveButton.addEventListener('click', function() {
 			    // get the diagram contents
 			    bpmnModeler.saveXML({ format: true }, function(err, xml) {
-			  	    console.error('Key:' + bpmnResourceKey);
 			    	$.post(saveButtonCallbackURL, { 'bpmnResourceKey':bpmnResourceKey, 'xml':xml });
 				    if (err) {
 				        console.error('diagram save failed', err);
