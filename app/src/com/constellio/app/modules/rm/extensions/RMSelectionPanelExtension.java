@@ -18,7 +18,9 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.framework.buttons.SIPbutton;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import org.apache.commons.io.IOUtils;
 
@@ -32,12 +34,6 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -110,6 +106,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
+        addSIPbutton(param);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -210,17 +207,22 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = new ArrayList<>();
-        RecordServices recordServices = recordServices();
-        RecordToVOBuilder builder = new RecordToVOBuilder();
-        for(String id : param.getIds()) {
-            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
-        }
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout)param.getComponent()).addComponent(tabButton);
+    }
+
+    public void addSIPbutton(final AvailableActionsParam param) {
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"));
+        setStyles(tabButton);
+        tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
+        tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
+        tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
     }
 
@@ -839,5 +841,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             defaultAdministrativeUnit = null;
         }
         return defaultAdministrativeUnit;
+    }
+
+    private List<RecordVO> getRecordVOFromIds(List<String> ids) {
+        List<RecordVO> recordVOS = new ArrayList<>();
+        RecordServices recordServices = recordServices();
+        RecordToVOBuilder builder = new RecordToVOBuilder();
+        for(String id : ids) {
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+        }
+        return recordVOS;
     }
 }
