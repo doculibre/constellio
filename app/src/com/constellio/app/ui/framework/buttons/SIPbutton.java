@@ -1,11 +1,24 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.filter.SIPFilter;
+import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import org.apache.commons.io.IOUtils;
+
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -14,9 +27,12 @@ import static java.util.Arrays.asList;
 public class SIPbutton extends WindowButton {
     private List<RecordVO> objectList = new ArrayList<>();
     private CheckBox deleteCheckBox;
+    private Upload
+    private BaseView view;
 
-    public SIPbutton(String caption, String windowCaption) {
+    public SIPbutton(String caption, String windowCaption, BaseView view) {
         super(caption, windowCaption);
+        this.view = view;
     }
 
     @Override
@@ -56,7 +72,40 @@ public class SIPbutton extends WindowButton {
         return buttonLayout;
     }
 
-    public void continueButtonClicked(){
+    private List<String> getDocumentIDListFromObjectList() {
+        List<String> documents = new ArrayList<>();
+        for(RecordVO recordVO : this.objectList) {
+            if(recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)){
+                documents.add(recordVO.getId());
+            }
+        }
+        return documents;
+    }
 
+    private List<String> getFolderIDListFromObjectList() {
+        List<String> folders = new ArrayList<>();
+        for(RecordVO recordVO : this.objectList) {
+            if(recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+                folders.add(recordVO.getId());
+            }
+        }
+        return folders;
+    }
+
+    public void continueButtonClicked() throws IOException, FileNotFoundException{
+        File bagInfoFile = new File(bagInfo);
+        InputStream bagInfoIn = new FileInputStream(bagInfoFile);
+        List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
+        bagInfoIn.close();
+        List<String> documentList = getDocumentIDListFromObjectList();
+        List<String> folderList = getFolderIDListFromObjectList();
+        SIPFilter filter = new SIPFilter(view.getCollection(), view.getConstellioFactories().getAppLayerFactory())
+                .withIncludeDocumentIds(documentList)
+                .withIncludeFolderIds(folderList);
+        IntelliGIDSIPObjectsProvider metsObjectsProvider = new IntelliGIDSIPObjectsProvider(view.getCollection(), view.getConstellioFactories().getAppLayerFactory(), filter);
+        if (!metsObjectsProvider.list().isEmpty()) {
+            ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limiterTaille);
+            constellioSIP.build(outFile);
+        }
     }
 }
