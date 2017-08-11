@@ -107,6 +107,7 @@ public class RMPermissionsTo {
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");
+	public static final String GENERATE_SIP_ARCHIVES = permission(DECOMMISSIONING, "generateSIPArchives");
 
 	// Cart
 	private static final String CART_GROUP = "carts";
