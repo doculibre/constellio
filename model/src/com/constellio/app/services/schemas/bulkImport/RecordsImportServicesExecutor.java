@@ -183,7 +183,7 @@ public class RecordsImportServicesExecutor {
 			throws RecordsImportServicesRuntimeException, ValidationException {
 		ValidationErrors errors = new ValidationErrors();
 		ImportExportAudit importationAudit;
-		importationAudit = schemasRecordsServices.newAuditImportation();
+		importationAudit = schemasRecordsServices.newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
 		importationAudit.setStartDate(LocalDateTime.now());
 		BulkImportResults bulkImportResults = null;
 		try {
