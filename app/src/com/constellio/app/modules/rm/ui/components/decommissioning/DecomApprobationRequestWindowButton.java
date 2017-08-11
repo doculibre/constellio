@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningLis
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListView;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
@@ -15,6 +16,8 @@ import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -35,6 +38,7 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
     private CheckBox checkBox;
     private ConstellioFactories constellioFactories;
     DecommissioningListView decommissioningListView;
+    private SchemasRecordsServices schemasRecordsServices;
 
     public DecomApprobationRequestWindowButton(DecommissioningListPresenter presenter, DecommissioningListViewImpl decommissioningListView, ConstellioFactories constellioFactories) {
         super(i18n.$("DecommissioningListView.approvalRequest"),
@@ -42,6 +46,7 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
         this.presenter = presenter;
         this.constellioFactories = constellioFactories;
         this.decommissioningListView = decommissioningListView;
+        this.schemasRecordsServices = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),constellioFactories.getAppLayerFactory().getModelLayerFactory());
     }
 
     @Override
@@ -67,7 +72,13 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
             @Override
             protected void buttonClick(ClickEvent event) {
                 if (users.getValue().size() > 0) {
-                    presenter.approvalRequestButtonClicked(users.getValue());
+                    List<User> userList = new ArrayList<>();
+                    for(Object userId : users.getValue()) {
+                        String userIdStr = (String) userId;
+                        userList.add(schemasRecordsServices.getUser(userIdStr));
+                    }
+
+                    presenter.approvalRequestButtonClicked(userList);
                     getWindow().close();
                 }
             }

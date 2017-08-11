@@ -122,7 +122,7 @@ public class StringLookupField extends LookupField<String> {
 
 		@Override
 		public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
-			return new ObjectsResponse<String>(Collections.emptyList(), 0L);
+			return new ObjectsResponse<String>(new ArrayList<String>(), 0L);
 		}
 
 		@Override
