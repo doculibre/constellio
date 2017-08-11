@@ -12,8 +12,6 @@ public class ImportExportAudit extends RecordWrapper {
     public static final String START_DATE = "startingDate";
     public static final String END_DATE = "endDate";
     public static final String ERRORS = "errors";
-    public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
-    public static final String BORROWED = "borrowed";
     public static final String TYPE = "type";
 
     public ImportExportAudit(Record record,
