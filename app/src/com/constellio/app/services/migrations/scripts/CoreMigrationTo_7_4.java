@@ -36,7 +36,7 @@ public class CoreMigrationTo_7_4 implements MigrationScript {
 			importExportAudit.createUndeletable(ImportExportAudit.START_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
 			importExportAudit.createUndeletable(ImportExportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
 			importExportAudit.createUndeletable(ImportExportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
-			importExportAudit.createUndeletable(ImportExportAudit.TYPE).defineAsEnum(ImportExportAudit.ExportImport.class).isSystemReserved();
+			importExportAudit.createUndeletable(ImportExportAudit.TYPE).defineAsEnum(ImportExportAudit.ExportImport.class).setSystemReserved(true);
 		}
 	}
 }
