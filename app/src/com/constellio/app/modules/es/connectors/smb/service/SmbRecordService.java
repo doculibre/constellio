@@ -98,7 +98,8 @@ public class SmbRecordService {
 	public ConnectorSmbDocument getDocument(String url, ConnectorSmbInstance connectorInstance) {
 		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
-		return es.wrapConnectorSmbDocument(recordServices.getRecordByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
+		return es.wrapConnectorSmbDocument(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
+				.getSummaryByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
 	}
 
 	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {

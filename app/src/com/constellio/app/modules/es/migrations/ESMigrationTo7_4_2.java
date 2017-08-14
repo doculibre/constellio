@@ -80,7 +80,8 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder documentDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema();
 			documentDefaultSchema.create(ConnectorSmbDocument.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
-					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbConnectorUrlCalculator.class);
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbConnectorUrlCalculator.class)
+					.setDefaultRequirement(true);
 			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_URL).setType(MetadataValueType.STRING)
 					.setSystemReserved(true).setEssentialInSummary(true);
 			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
@@ -94,7 +95,8 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 
 			MetadataSchemaBuilder folderDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).getDefaultSchema();
 			folderDefaultSchema.create(ConnectorSmbFolder.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
-					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbConnectorUrlCalculator.class);
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbConnectorUrlCalculator.class)
+					.setDefaultRequirement(true);
 			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_URL).setType(MetadataValueType.STRING)
 					.setSystemReserved(true).setEssentialInSummary(true).setSearchable(true);
 			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)

@@ -422,6 +422,10 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 			return Metadata.newGlobalMetadata("url_s", STRING, false, false);
 		}
 
+		public Metadata connectorUrl() {
+			return Metadata.newGlobalMetadata("connectorUrl_s", STRING, false, false);
+		}
+
 		public Metadata mimetype() {
 			return Metadata.newGlobalMetadata("mimetype_s", STRING, false, false);
 		}

@@ -8,6 +8,7 @@ import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 
 public class SmbJobFactoryImpl implements SmbJobFactory {
@@ -50,6 +51,7 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 			case RETRIEVAL:
 				if (this.connector.getDuplicateUrls().contains(url)) {
 					job = new SmbDeleteJob(params);
+					markUrlAsFound(url);
 					break;
 				}
 
@@ -64,6 +66,9 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
 				}
 
+				if(shareIndicator != null) {
+					markUrlAsFound(url);
+				}
 				break;
 			case DELETE:
 				job = new SmbDeleteJob(params);
@@ -75,5 +80,9 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 			job = new SmbDeleteJob(params);
 		}
 		return job;
+	}
+
+	private void markUrlAsFound(String url) {
+		connector.markUrlAsFound(url);
 	}
 }

@@ -17,6 +17,7 @@ import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -76,6 +77,7 @@ public class ConnectorSmb extends Connector {
 	private SmbRecordService smbRecordService;
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbUrlComparator urlComparator;
+	private Set<String> urlsToDelete;
 
 	private String connectorId;
 
@@ -100,6 +102,7 @@ public class ConnectorSmb extends Connector {
 		jobsQueue = new SmbJobQueueSortedImpl();
 
 		loadCache(connectorInstance.getCollection());
+		loadDeleteCache(connectorInstance);
 
 		Credentials credentials = new Credentials(connectorInstance.getDomain(), connectorInstance.getUsername(),
 				connectorInstance.getPassword());
@@ -216,7 +219,8 @@ public class ConnectorSmb extends Connector {
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
 			//TODO Delete jobs
-			List<String> urlsToDelete = getUrlsToDelete(connectorInstance);
+			Set<String> urlsToDelete = this.urlsToDelete;
+			loadDeleteCache(connectorInstance);
 			for (String url : urlsToDelete) {
 				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
 				jobs.add(deleteJob);
@@ -336,5 +340,19 @@ public class ConnectorSmb extends Connector {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void loadDeleteCache(ConnectorInstance connectorInstance) {
+		LogicalSearchCondition documentsToDeleteCondition = from(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType())
+				.where(es.connectorDocument.connector()).isEqualTo(connectorInstance);
+		LogicalSearchQuery documentsToDeleteQuery = new LogicalSearchQuery().setCondition(documentsToDeleteCondition).setNumberOfRows(0)
+				.addFieldFacet(es.connectorSmbDocument.url().getDataStoreCode());
+		SearchServices searchServices = es.getModelLayerFactory().newSearchServices();
+		SPEQueryResponse response = searchServices.query(documentsToDeleteQuery);
+		urlsToDelete = Collections.synchronizedSet(new HashSet<String>(response.getFieldFacetValuesWithResults(es.connectorDocument.url().getDataStoreCode())));
+	}
+
+	public void markUrlAsFound(String url) {
+		urlsToDelete.remove(url);
 	}
 }

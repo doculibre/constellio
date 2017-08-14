@@ -86,7 +86,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
         logicalSearchQuery.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
         logicalSearchQuery.setStartRow(start);
         logicalSearchQuery.setNumberOfRows(maxSize);
-
+        logicalSearchQuery.sortDesc(Schemas.SCHEMA).sortAsc(TITLE);
 
         List<Record> listResults = searchServices.search(logicalSearchQuery);
         List<TaxonomySearchRecord> taxonomySearchRecords = new ArrayList<>();
@@ -112,7 +112,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
         query.setStartRow(start);
         query.setNumberOfRows(maxSize);
         query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)));
-        query.sortAsc(CODE).sortAsc(TITLE);
+        query.sortAsc(TITLE);
         query.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 
         List<Record> listResults = searchServices.search(query);
@@ -148,7 +148,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
     }
 
     DataStoreFieldLogicalSearchCondition directChildOf(ConnectorSmbFolder connectorSmbFolder) {
-        return (DataStoreFieldLogicalSearchCondition) where(esSchemasRecordsServices.connectorSmbFolder.parentUrl()).isEqualTo(connectorSmbFolder.getUrl());
+        return (DataStoreFieldLogicalSearchCondition) where(esSchemasRecordsServices.connectorSmbFolder.parentConnectorUrl()).isEqualTo(connectorSmbFolder.getConnectorUrl());
     }
 
     public User getCurrentUser(ModelLayerFactory modelLayerFactory) {
