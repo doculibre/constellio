@@ -6,11 +6,14 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static java.util.Arrays.asList;
 
@@ -20,6 +23,7 @@ public class SmbRecordTreeNodesDataProviderAcceptanceTest extends ConstellioTest
     private ESSchemasRecordsServices es;
     private ConnectorInstance connectorInstance;
     RecordServices recordService;
+    SessionContext sessionContext;
 
     @Before
     public void setup() throws Exception {
@@ -55,6 +59,8 @@ public class SmbRecordTreeNodesDataProviderAcceptanceTest extends ConstellioTest
         recordService.add(connectorSmbFolder2);
         recordService.add(connectorSmbDocument1);
         recordService.add(connectorSmbDocument2);
+
+        sessionContext = FakeSessionContext.adminInCollection(zeCollection);
     }
 
     @Test
