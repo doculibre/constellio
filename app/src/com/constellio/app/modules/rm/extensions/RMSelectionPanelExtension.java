@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPbutton;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -218,7 +219,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addSIPbutton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), null);
+        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), (BaseView) ConstellioUI.getCurrent().getCurrentView());
         setStyles(tabButton);
         tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
