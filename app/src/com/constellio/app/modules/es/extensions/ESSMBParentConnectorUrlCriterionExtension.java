@@ -42,7 +42,7 @@ public class ESSMBParentConnectorUrlCriterionExtension extends SearchCriterionEx
 	@Override
 	public Component getComponentForCriterion(Criterion criterion) {
 		if(criterion.getMetadataCode().endsWith("_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL)) {
-			buildComponentForParentConnectorUrl(criterion);
+			return buildComponentForParentConnectorUrl(criterion);
 		}
 		return null;
 	}
