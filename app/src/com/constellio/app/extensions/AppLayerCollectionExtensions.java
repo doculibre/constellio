@@ -7,22 +7,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.api.extensions.BatchProcessingExtension;
+import com.constellio.app.api.extensions.*;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
-import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
-import com.constellio.app.api.extensions.GenericRecordPageExtension;
-import com.constellio.app.api.extensions.LabelTemplateExtension;
-import com.constellio.app.api.extensions.PageExtension;
-import com.constellio.app.api.extensions.PagesComponentsExtension;
-import com.constellio.app.api.extensions.RecordExportExtension;
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.api.extensions.SchemaTypesPageExtension;
-import com.constellio.app.api.extensions.SearchPageExtension;
-import com.constellio.app.api.extensions.SelectionPanelExtension;
-import com.constellio.app.api.extensions.SystemCheckExtension;
-import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.*;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
@@ -54,6 +42,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
@@ -66,6 +55,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.vaadin.ui.Component;
 
 public class AppLayerCollectionExtensions {
 
@@ -96,6 +86,8 @@ public class AppLayerCollectionExtensions {
 	public List<DownloadContentVersionLinkExtension> downloadContentVersionLinkExtensions = new ArrayList<>();
 
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SearchCriterionExtension> searchCriterionExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SelectionPanelExtension> selectionPanelExtensions = new VaultBehaviorsList<>();
 
@@ -535,5 +527,15 @@ public class AppLayerCollectionExtensions {
 				return extension.isBuiltInMetadataAttributeModifiable(params);
 			}
 		});
+	}
+
+	public Component getComponentForCriterion(Criterion criterion) {
+		for(SearchCriterionExtension extension: searchCriterionExtensions) {
+			Component component = extension.getComponentForCriterion(criterion);
+			if(component != null) {
+				return component;
+			}
+		}
+		return null;
 	}
 }

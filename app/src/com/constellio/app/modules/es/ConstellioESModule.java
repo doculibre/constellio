@@ -26,11 +26,7 @@ import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
-import com.constellio.app.modules.es.extensions.ESRecordExtension;
-import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
-import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
-import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
+import com.constellio.app.modules.es.extensions.*;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.*;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
@@ -154,6 +150,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension(appLayerFactory));
 		extensions.treeNodeAppExtension.add(new TreeNodeAppExtension());
+		extensions.searchCriterionExtensions.add(new ESSMBParentConnectorUrlCriterionExtension(appLayerFactory, collection));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
