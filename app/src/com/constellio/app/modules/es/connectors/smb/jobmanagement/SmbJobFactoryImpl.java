@@ -60,7 +60,7 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 					job = new SmbDeleteJob(params);
 				} else if (recordSmbDocument == null) {
 					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
-				} else if (recordSmbDocument.getParentId() == null || !recordSmbDocument.equals(shareIndicator)) {
+				} else if (!recordSmbDocument.equals(shareIndicator)) {
 					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
 				}
 
