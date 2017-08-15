@@ -126,7 +126,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createDefaultSelectComboBox() {
-        if (occurence.getNumberOfDefaultSchemaOccurence() <= 1) {
+        if (occurence.getNumberOfDefaultSchemaOccurence() == 1) {
             Iterator<PrintableReportListPossibleType> setIterator =  occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
             if(setIterator.hasNext()) {
                 selectedReporType = setIterator.next();
@@ -181,7 +181,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createCustomSelectComboBox() {
-        if (occurence.getNumberOfCustomSchemaOccurence() <= 1) {
+        if (occurence.getNumberOfCustomSchemaOccurence() == 1) {
             Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
             selectedSchemaType = setIterator.next().getCode();
             return new HorizontalLayout();
