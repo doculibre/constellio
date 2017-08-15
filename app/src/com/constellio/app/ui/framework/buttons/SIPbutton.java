@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.wrappers.User;
@@ -69,14 +70,20 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
     @Override
     protected Component buildWindowContent() {
         VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.addComponent(buildDeleteItemCheckbox());
-        mainLayout.addComponent(buildLimitSizeComponent());
+        mainLayout.addComponent(buildCheckboxComponent());
         mainLayout.addComponent(buildUploadComponent());
         mainLayout.addComponent(buildButtonComponent());
         mainLayout.setWidth("100%");
         mainLayout.setHeight("100%");
         mainLayout.setSpacing(true);
         return mainLayout;
+    }
+
+    private VerticalLayout buildCheckboxComponent(){
+        VerticalLayout layout = new VerticalLayout();
+        layout.addComponent(buildDeleteItemCheckbox());
+        layout.addComponent(buildLimitSizeComponent());
+        return layout;
     }
 
     public void addAllObject(RecordVO... objects) {
@@ -159,7 +166,7 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
             File outFolder = ioServices.newTemporaryFolder("SIPArchives/");
             String nomSipDossier = "sip-ceic-dossier-" + currentFile.getId() + currentFile.getTitle() + ".zip";
             File outFile = new File(outFolder, nomSipDossier);
-            InputStream bagInfoIn = new FileInputStream((File) upload.getValue());
+            InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
             List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
             bagInfoIn.close();
             List<String> documentList = getDocumentIDListFromObjectList();
