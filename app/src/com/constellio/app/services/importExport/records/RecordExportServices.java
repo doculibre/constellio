@@ -58,14 +58,14 @@ public class RecordExportServices {
 	ZipService zipService;
 	IOServices ioServices;
 	SchemasRecordsServices schemasRecordsServices;
-	RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+	RecordServices recordServices;
 
 	public RecordExportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 	}
 
 	public File exportRecords(String collection, String resourceKey, RecordExportOptions options) {

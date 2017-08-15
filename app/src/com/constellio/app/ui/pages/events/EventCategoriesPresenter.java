@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.events;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -28,6 +29,8 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 			view.navigate().to(RMViews.class).listAgentLogs();
 		} else if (eventCategory == EventCategory.TASKS_EVENTS) {
 			view.navigate().to(TaskViews.class).listTasksLogs();
+		} else if (eventCategory == EventCategory.IMPORT_EXPORT) {
+			view.navigate().to(CoreViews.class).listImportExport();
 		} else {
 			view.navigate().to().showEventCategory(eventCategory);
 		}

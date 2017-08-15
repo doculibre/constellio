@@ -564,4 +564,8 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
 	}
 
+	public void listImportExport() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_IMPORT_EXPORT);
+	}
+
 }

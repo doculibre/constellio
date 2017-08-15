@@ -182,33 +182,31 @@ public class RecordsImportServicesExecutor {
 	public BulkImportResults bulkImport()
 			throws RecordsImportServicesRuntimeException, ValidationException {
 		ValidationErrors errors = new ValidationErrors();
-		ImportExportAudit importationAudit;
-		importationAudit = schemasRecordsServices.newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
+		ImportExportAudit importationAudit = schemasRecordsServices.newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
 		importationAudit.setStartDate(LocalDateTime.now());
-		BulkImportResults bulkImportResults = null;
+		importationAudit.setCreatedBy(user.getId());
 		try {
 			recordServices.add(importationAudit);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+
+		try {
 			initialize();
 			validate(errors);
-			bulkImportResults = run(errors);
-			for(ValidationError validationErrors : errors.getValidationErrors()) {
-				if(importationAudit.getErrors() == null) {
-					ArrayList<String> errorList = new ArrayList<>();
-					importationAudit.setErrors(errorList);
-				}
-
-				importationAudit.getErrors().add(validationErrors.getValidatorErrorCode());
-			}
-			importationAudit.setEndDate(LocalDateTime.now());
-			recordServices.update(importationAudit);
-
-		} catch (RecordServicesException e) {
-			errors.add(RecordsImportServices.class, "recordServiceException");
-			errors.throwIfNonEmpty();
+			return run(errors);
 		} finally {
 			importDataProvider.close();
+			if(errors.getValidationErrors() != null && !errors.getValidationErrors().isEmpty()) {
+				importationAudit.setErrors(asList(errors.toErrorsSummaryString()));
+			}
+			importationAudit.setEndDate(LocalDateTime.now());
+			try {
+				recordServices.update(importationAudit);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
 		}
-		return bulkImportResults;
 	}
 
 	RecordsImportServicesExecutor initialize() {

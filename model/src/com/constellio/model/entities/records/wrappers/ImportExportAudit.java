@@ -1,7 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.List;
@@ -61,9 +64,18 @@ public class ImportExportAudit extends RecordWrapper {
         return get(TYPE);
     }
 
-    public enum ExportImport {
-        EXPORT,
-        IMPORT
-    }
+    public enum ExportImport implements EnumWithSmallCode {
+        EXPORT("E"),
+        IMPORT("I");
 
+        private String code;
+
+        ExportImport(String code) {
+            this.code = code;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
 }

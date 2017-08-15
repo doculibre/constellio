@@ -205,7 +205,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	public MetadataSchema auditImportation() { return getTypes().getSchema(ImportExportAudit.DEFAULT_SCHEMA); }
 
 	public ImportExportAudit newAuditImportation() {
-		return new ImportExportAudit(create(defaultSchema(ImportExportAudit.DEFAULT_SCHEMA)), getTypes());
+		return new ImportExportAudit(create(defaultSchema(ImportExportAudit.SCHEMA_TYPE)), getTypes());
 	}
 
 	//Groups
