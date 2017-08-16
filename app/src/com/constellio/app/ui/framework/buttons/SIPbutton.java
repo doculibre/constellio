@@ -1,18 +1,12 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.exceptions.SIPMaxFileLengthReachedException;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.filter.SIPFilter;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.ConstellioSIP;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.exceptions.SIPMaxReachedException;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -20,25 +14,17 @@ import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.JDOMException;
-import com.vaadin.navigator.View;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class SIPbutton extends WindowButton implements  Upload.SucceededListener,Upload.FailedListener,Upload.Receiver {
@@ -109,9 +95,6 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
     private HorizontalLayout buildUploadComponent() {
         HorizontalLayout layout = new HorizontalLayout();
         upload = new BaseUploadField(true, false);
-
-//        // Use a custom button caption instead of plain "Upload".
-//        upload.setUploadButtonCaption($("ModifyProfileView.upload"));
         layout.addComponents(upload);
         layout.setWidth("100%");
         return layout;

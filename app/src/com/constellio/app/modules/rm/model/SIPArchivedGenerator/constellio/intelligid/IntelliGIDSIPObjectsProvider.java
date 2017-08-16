@@ -180,7 +180,7 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
 			public SIPObject get(int index) {
 				System.out.println("Document " + (index + 1) + " de " + fichesDocuments.size());
 				Document ficheDocument = fichesDocuments.get(index);
-				return new IntelliGIDSIPDocument(ficheDocument, metadonneesDocument, metadonneesDossier, new EntityRetriever(collection, factory.getModelLayerFactory()));
+				return new IntelliGIDSIPDocument(ficheDocument, metadonneesDocument, metadonneesDossier, new EntityRetriever(collection, factory));
 			}
 
 			@Override

@@ -32,15 +32,14 @@ public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees impleme
 		super(ficheDocument, metadonneesDocument, metadonneesDossier);
 		
 		Content fichierElectronique = ficheDocument.getContent();
-		
-//		idFichierElectronique = fichierElectronique.getId();
-		tailleFichierElectronique = fichierElectronique.getLastMajorContentVersion().getLength();
-		sipFilename = fichierElectronique.getLastMajorContentVersion().getFilename();
+		if(fichierElectronique != null) {
+			tailleFichierElectronique = fichierElectronique.getLastMajorContentVersion().getLength();
+			sipFilename = fichierElectronique.getLastMajorContentVersion().getFilename();
+			findCommonsTransactionFilename(fichierElectronique);
+		}
+
 		this.entityRetriever = entityRetriever;
-		
-		findCommonsTransactionFilename(fichierElectronique);
-		
-		Folder ficheDossier = ficheDocument.get(Folder.PARENT_FOLDER);
+		Folder ficheDossier = entityRetriever.getFoldersFromString(ficheDocument.getFolder());
 		if (ficheDossier != null) {
 			folder = new IntelliGIDSIPFolder(ficheDossier, metadonneesDossier);
 		}

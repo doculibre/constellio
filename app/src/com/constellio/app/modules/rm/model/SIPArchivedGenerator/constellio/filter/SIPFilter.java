@@ -37,6 +37,9 @@ public class SIPFilter {
         this.collection = collection;
         this.factory = factory;
         this.rm = new RMSchemasRecordsServices(collection, factory);
+        includeDocumentIds = new ArrayList<>();
+        includeFolderIds = new ArrayList<>();
+        excludeFolderIds = new ArrayList<>();
     }
 
     public SIPFilter withStartIndex(int startIndex) {
@@ -143,19 +146,19 @@ public class SIPFilter {
         List<LogicalSearchCondition> whereClause = new ArrayList<>();
 
         if(this.isDocumentTypeRequired()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.TYPE)).isNotNull());
+            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.TYPE)).isNotNull());
         }
 
         if(this.getRubriqueCode() != null) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.FOLDER_CATEGORY)).isEqualTo(this.getRubriqueCode().getId()));
+            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER_CATEGORY)).isEqualTo(this.getRubriqueCode().getId()));
         }
 
         if(this.getAdministrativeUnit() != null) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT)).isEqualTo(this.getAdministrativeUnit()));
+            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER_ADMINISTRATIVE_UNIT)).isEqualTo(this.getAdministrativeUnit()));
         }
 
         if(!this.getIncludeFolderIds().isEmpty()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.FOLDER)).isIn(this.getIncludeFolderIds()));
+            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isIn(this.getIncludeFolderIds()));
         }
 
         if(!this.getIncludeDocumentIds().isEmpty()) {
@@ -163,7 +166,7 @@ public class SIPFilter {
         }
 
         if(!this.getExcludeFolderIds().isEmpty()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.FOLDER)).isNotIn(this.getExcludeFolderIds()));
+            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isNotIn(this.getExcludeFolderIds()));
         }
 
         LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).whereAllConditions(

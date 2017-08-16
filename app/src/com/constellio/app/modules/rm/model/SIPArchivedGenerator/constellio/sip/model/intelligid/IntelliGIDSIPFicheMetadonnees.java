@@ -32,7 +32,7 @@ public abstract class IntelliGIDSIPFicheMetadonnees implements SIPObject {
 			String metadataId = metadonnee.getCode();
 			String metadataLabel = metadonnee.getLabel(Language.French);
 			try {
-				String displayValue = ficheMetadonnees.getWrappedRecord().get(metadonnee);
+				String displayValue = ficheMetadonnees.getWrappedRecord().get(metadonnee).toString();
 				List<String> metadataValues = StringUtils.isNotBlank(displayValue) ? Arrays.asList(displayValue) : new ArrayList<String>();
 				metadataIds.add(metadataId);
 				metadataLabelsMap.put(metadataId, metadataLabel);
