@@ -1,6 +1,7 @@
 package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
@@ -16,6 +17,22 @@ public class ImportExportAudit extends RecordWrapper {
     public static final String END_DATE = "endDate";
     public static final String ERRORS = "errors";
     public static final String TYPE = "type";
+    public static final String CONTENT = "content";
+
+    public enum ExportImport implements EnumWithSmallCode {
+        EXPORT("E"),
+        IMPORT("I");
+
+        private String code;
+
+        ExportImport(String code) {
+            this.code = code;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
 
     public ImportExportAudit(Record record,
                              MetadataSchemaTypes types) {
@@ -64,18 +81,12 @@ public class ImportExportAudit extends RecordWrapper {
         return get(TYPE);
     }
 
-    public enum ExportImport implements EnumWithSmallCode {
-        EXPORT("E"),
-        IMPORT("I");
+    public ImportExportAudit setContent(Content content) {
+        set(CONTENT, content);
+        return this;
+    }
 
-        private String code;
-
-        ExportImport(String code) {
-            this.code = code;
-        }
-
-        public String getCode() {
-            return code;
-        }
+    public Content getContent() {
+        return get(CONTENT);
     }
 }

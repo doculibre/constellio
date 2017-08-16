@@ -1,8 +1,11 @@
 package com.constellio.app.ui.pages.imports;
 
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -33,8 +36,8 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		TabSheet tabSheet = new TabSheet();
-		tabSheet.addTab(newImportTable(), ("ListImportExportView.importTable"));
-		tabSheet.addTab(newExportTable(), ("ListImportExportView.exportTable"));
+		tabSheet.addTab(newImportTable(), $("ListImportExportView.importTable"));
+		tabSheet.addTab(newExportTable(), $("ListImportExportView.exportTable"));
 		mainLayout.addComponent(tabSheet);
 		
 		return mainLayout;
@@ -57,7 +60,12 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 		RecordVOTable exportTable = new RecordVOTable(presenter.getExportDataProvider()) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				return super.buildMetadataComponent(metadataValue, recordVO);
+				if(metadataValue.getMetadata().getLocalCode().equals(ImportExportAudit.CONTENT) && metadataValue.getValue() != null) {
+					ContentVersionVO content = (ContentVersionVO) metadataValue.getValue();
+					return new DownloadContentVersionLink(content, content.getFileName());
+				} else {
+					return super.buildMetadataComponent(metadataValue, recordVO);
+				}
 			}
 		};
 		exportTable.setWidth("98%");

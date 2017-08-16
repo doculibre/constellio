@@ -31,7 +31,8 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 						ImportExportAudit.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
 						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.START_DATE,
 						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.END_DATE,
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.ERRORS
+						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.ERRORS,
+						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.CONTENT
 				)));
 	}
 
@@ -49,6 +50,7 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 			importExportAudit.createUndeletable(ImportExportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
 			importExportAudit.createUndeletable(ImportExportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
 			importExportAudit.createUndeletable(ImportExportAudit.TYPE).defineAsEnum(ImportExportAudit.ExportImport.class).setSystemReserved(true);
+			importExportAudit.createUndeletable(ImportExportAudit.CONTENT).setType(MetadataValueType.CONTENT);
 		}
 	}
 }

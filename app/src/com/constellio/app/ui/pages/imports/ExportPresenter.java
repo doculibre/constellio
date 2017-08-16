@@ -183,7 +183,6 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			ImportExportAudit newImportExportAudit = createNewImportExportAudit();
 			File zip = null;
 			try {
-				newImportExportAudit = createNewImportExportAudit();
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
 				zip = recordExportServices.exportRecords(collection, "SDK Stream", options, recordsToExport);
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
@@ -236,12 +235,13 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		return importationAudit;
 	}
 
-	private ImportExportAudit completeImportExportAudit(ImportExportAudit importExportAudit, File content) {
+	private ImportExportAudit completeImportExportAudit(ImportExportAudit importExportAudit, File file) {
 		try {
 			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
-			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(content);
-			contentManager.createMajor(getCurrentUser(), content.getName(), contentVersionDataSummary);
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(file);
+			Content content = contentManager.createMajor(getCurrentUser(), file.getName(), contentVersionDataSummary);
 			importExportAudit.setEndDate(LocalDateTime.now());
+			importExportAudit.setContent(content);
 			recordServices().update(importExportAudit);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -2,7 +2,7 @@ package com.constellio.model.services.background;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardSeconds;
+import static org.joda.time.Duration.*;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -16,6 +16,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
+	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -37,6 +38,11 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 			}
 		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
 				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
+
+		temporaryRecordsDeletionBackgroundAction = new TemporaryRecordsDeletionBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("temporaryRecordsDeletionBackgroundAction",
+				temporaryRecordsDeletionBackgroundAction)
+				.executedEvery(standardHours(12)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override
@@ -46,5 +52,9 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public RecordsReindexingBackgroundAction getRecordsReindexingBackgroundAction() {
 		return recordsReindexingBackgroundAction;
+	}
+
+	public TemporaryRecordsDeletionBackgroundAction getTemporaryRecordsDeletionBackgroundAction() {
+		return temporaryRecordsDeletionBackgroundAction;
 	}
 }
