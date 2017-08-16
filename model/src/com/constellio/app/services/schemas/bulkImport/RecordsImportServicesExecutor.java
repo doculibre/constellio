@@ -182,30 +182,12 @@ public class RecordsImportServicesExecutor {
 	public BulkImportResults bulkImport()
 			throws RecordsImportServicesRuntimeException, ValidationException {
 		ValidationErrors errors = new ValidationErrors();
-		ImportExportAudit importationAudit = schemasRecordsServices.newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
-		importationAudit.setStartDate(LocalDateTime.now());
-		importationAudit.setCreatedBy(user.getId());
-		try {
-			recordServices.add(importationAudit);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-		}
-
 		try {
 			initialize();
 			validate(errors);
 			return run(errors);
 		} finally {
 			importDataProvider.close();
-			if(errors.getValidationErrors() != null && !errors.getValidationErrors().isEmpty()) {
-				importationAudit.setErrors(asList(errors.toErrorsSummaryString()));
-			}
-			importationAudit.setEndDate(LocalDateTime.now());
-			try {
-				recordServices.update(importationAudit);
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 

@@ -10,18 +10,25 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.ImportExportAudit;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ImportFilePresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
 
@@ -59,31 +66,10 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 	public void uploadButtonClicked(TempFileUpload upload) {
 		if (upload != null && upload.getTempFile() != null) {
 			File file = upload.getTempFile();
+			ImportExportAudit importationAudit = newImportAudit();
 			try {
 				User currentUser = getCurrentUser();
 				BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
-				//				BulkImportProgressionListener progressionListener = new BulkImportProgressionListener() {
-				//					@Override
-				//					public void updateTotal(int newTotal) {
-				//						view.setTotal(newTotal);
-				//					}
-				//
-				//					@Override
-				//					public void updateProgression(int stepProgression, int totalProgression) {
-				//						view.setProgress(totalProgression);
-				//					}
-				//
-				//					@Override
-				//					public void updateCurrentStepTotal(int newTotal) {
-				//
-				//					}
-				//
-				//					@Override
-				//					public void updateCurrentStepName(String stepName) {
-				//
-				//					}
-				//
-				//				};
 
 				ImportDataProvider importDataProvider = null;
 				if (upload.getFileName().endsWith(".xls")) {
@@ -110,26 +96,58 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 
 					BulkImportResults errors = importServices
 							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
+					List<String> formattedErrors = new ArrayList<>();
 					for (ImportError error : errors.getImportErrors()) {
+						formattedErrors.add(format(error));
 						view.showErrorMessage(format(error));
 					}
+					completeImportationAudit(importationAudit, formattedErrors.toArray(new String[0]));
+
 					view.showImportCompleteMessage();
 				}
 
 			} catch (ValidationException e) {
-				view.showErrorMessage(i18n.$(e.getValidationErrors()));
-
+				String formattedError = i18n.$(e.getValidationErrors());
+				view.showErrorMessage(formattedError);
+				completeImportationAudit(importationAudit, formattedError);
 			} catch (Exception e) {
 				e.printStackTrace();
 
 				StringWriter writer = new StringWriter();
 				PrintWriter pWriter = new PrintWriter(writer);
 				e.printStackTrace(pWriter);
-				view.showErrorMessage(writer.toString());
-
+				String formattedError = writer.toString();
+				view.showErrorMessage(formattedError);
+				completeImportationAudit(importationAudit, formattedError);
 			} finally {
 				FileUtils.deleteQuietly(file);
 			}
+		}
+	}
+
+	private ImportExportAudit newImportAudit() {
+		ImportExportAudit importationAudit = coreSchemas().newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		importationAudit.setStartDate(LocalDateTime.now());
+		importationAudit.setCreatedBy(getCurrentUser().getId());
+		try {
+			recordServices.add(importationAudit);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		return importationAudit;
+	}
+
+	private void completeImportationAudit(ImportExportAudit importationAudit, String... errors) {
+		if(errors != null && errors.length > 0) {
+			importationAudit.setErrors(asList(errors));
+		}
+
+		importationAudit.setEndDate(LocalDateTime.now());
+		try {
+			modelLayerFactory.newRecordServices().update(importationAudit);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
 		}
 	}
 
