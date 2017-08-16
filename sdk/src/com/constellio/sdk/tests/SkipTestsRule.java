@@ -9,12 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.sdk.tests.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import com.constellio.sdk.tests.annotations.CloudTest;
+import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
+import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
+import com.constellio.sdk.tests.annotations.LoadTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.UiTest;
 
 public class SkipTestsRule implements TestRule {
 
@@ -33,11 +45,14 @@ public class SkipTestsRule implements TestRule {
 	boolean skipInternetTest;
 	boolean checkRollback = false;
 	boolean skipCloud;
+	boolean skipIgnite;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
 	private List<String> whiteList;
 	private List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
+	private static String firstClassname;
+	private static String firstTestname;
 
 	private String sunJavaCommand;
 
@@ -47,6 +62,14 @@ public class SkipTestsRule implements TestRule {
 
 		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
 		Map<String, String> systemProperties = bean.getSystemProperties();
+		//
+		//		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+		//
+		//			if (entry.getValue().toLowerCase().contains("ldap")) {
+		//				System.out.println(entry.getValue());
+		//			}
+		//		}
+
 		sunJavaCommand = systemProperties.get("sun.java.command");
 		//		String bootClasspath = bean.getBootClassPath();
 		//		String classpath = bean.getClassPath();
@@ -57,6 +80,9 @@ public class SkipTestsRule implements TestRule {
 		//		System.out.println(bootClasspath);
 		//		System.out.println(classpath);
 		//		System.out.println(libraryPath);
+		this.whiteList = new ArrayList<>();
+		this.blackList = new ArrayList<>();
+
 		this.isUnitMode = isUnitMode;
 		if (!isUnitMode) {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
@@ -76,6 +102,25 @@ public class SkipTestsRule implements TestRule {
 			this.whiteList = getFilterList("tests.whitelist", properties);
 			this.blackList = getFilterList("tests.blacklist", properties);
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
+			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
+
+//			System.out.println("skipAllTests:" + skipAllTests);
+			//			System.out.println("skipSlow:" + skipSlow);
+			//			System.out.println("skipImportTests:" + skipImportTests);
+			//			System.out.println("skipReal:" + skipReal);
+			//			System.out.println("skipLoad:" + skipLoad);
+			//			System.out.println("checkRollback:" + checkRollback);
+			//			System.out.println("skipInternetTest:" + skipInternetTest);
+			//			System.out.println("skipInDevelopment:" + skipInDevelopment);
+			//			System.out.println("skipDriver:" + skipDriver);
+			//			System.out.println("skipTestsWithGradle:" + skipTestsWithGradle);
+			//			System.out.println("runPerformance:" + runPerformance);
+			//			System.out.println("skipUI:" + skipUI);
+			//			System.out.println("whiteList:" + whiteList);
+			//			System.out.println("blackList:" + blackList);
+			//			System.out.println("skipCloud:" + skipCloud);
+			//			System.out.println("skipIgnite:" + skipIgnite);
+
 		}
 	}
 
@@ -103,6 +148,12 @@ public class SkipTestsRule implements TestRule {
 
 		currentTestClass = (Class) testClass;
 		currentTestName = description.getMethodName();
+		if (firstClassname == null) {
+			firstClassname = currentTestClass.getName();
+		}
+		if (firstTestname == null) {
+			firstTestname = currentTestName;
+		}
 
 		boolean testClassDirectlyTargetted = isTestClassDirectlyTargetted(testClass);
 
@@ -116,12 +167,14 @@ public class SkipTestsRule implements TestRule {
 		InDevelopmentTest inDevelopmentTestAnnotation = testClass.getAnnotation(InDevelopmentTest.class);
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
 		CloudTest cloudTest = testClass.getAnnotation(CloudTest.class);
+		IgniteTest igniteTest = testClass.getAnnotation(IgniteTest.class);
 
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
 		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
 		mainTest = mainTestAnnotation != null;
 
 		if (skipTestsWithGradle && isRunnedByGradle()) {
+			System.out.println("Ignore 1");
 			return true;
 		}
 
@@ -131,17 +184,20 @@ public class SkipTestsRule implements TestRule {
 		}
 
 		if (!testClassDirectlyTargetted && isClassFiltered(testClass)) {
+			System.out.println("Ignore 2");
 			return true;
 		}
 
 		Class<?> testSuperClass = testClass.getSuperclass();
 		if (!testClassDirectlyTargetted && testSuperClass != null && "ConstellioImportAcceptTest"
 				.equals(testSuperClass.getSimpleName()) && skipImportTests) {
+			System.out.println("Ignore 3");
 			return true;
 		}
 
 		if (mainTestAnnotation != null) {
 			if (!testClassDirectlyTargetted) {
+				System.out.println("Ignore 4");
 				return true;
 
 			} else if (hasMainTestOnlyOneStarter(testClass)) {
@@ -159,7 +215,7 @@ public class SkipTestsRule implements TestRule {
 			slowTest = description.getAnnotation(SlowTest.class);
 		}
 
-		if(cloudTest == null) {
+		if (cloudTest == null) {
 			cloudTest = description.getAnnotation(CloudTest.class);
 		}
 
@@ -174,34 +230,38 @@ public class SkipTestsRule implements TestRule {
 		}
 
 		if (doNotRunOnIntegrationServer != null && TestUtils.isIntegrationServer()) {
+			System.out.println("Ignore 5");
 			return true;
-
 		} else if (loadTest != null && skipLoad) {
+			System.out.println("Ignore 6");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && uiTest != null && skipUI) {
+			System.out.println("Ignore 7");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && driverTest != null && skipDriver) {
+			System.out.println("Ignore 8");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && internetTest != null && skipInternetTest) {
+			System.out.println("Ignore 9");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && slowTest != null && skipSlow) {
+			System.out.println("Ignore 10");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && performanceTest != null && !runPerformance) {
+			System.out.println("Ignore 11");
 			return true;
-
 		} else if (inDevelopmentTestAnnotation != null && skipInDevelopment) {
+			System.out.println("Ignore 12");
 			return true;
-
 		} else if (!testClassDirectlyTargetted && isRealTest && skipReal) {
+			System.out.println("Ignore 13");
 			return true;
 		} else if (!testClassDirectlyTargetted && cloudTest != null && skipCloud) {
+			System.out.println("Ignore 14");
 			return true;
-
+		} else if (!testClassDirectlyTargetted && igniteTest != null && skipIgnite) {
+			System.out.println("Ignore 15");
+			return true;
 		} else {
 			return false;
 		}
@@ -233,7 +293,8 @@ public class SkipTestsRule implements TestRule {
 			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
 
 		} else {
-			return false;
+			return currentTestClass.getName().equals(firstClassname)
+					&& currentTestName.equals(firstTestname);
 		}
 	}
 
@@ -246,7 +307,7 @@ public class SkipTestsRule implements TestRule {
 			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
 
 		} else {
-			return false;
+			return currentTestClass.getName().equals(firstClassname);
 		}
 	}
 

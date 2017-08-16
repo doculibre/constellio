@@ -16,7 +16,7 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class DocumentToVOBuilder extends RecordToVOBuilder {
@@ -66,7 +66,7 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 					ContentVersion contentVersion = content.getCurrentVersion();
 					try {
 						parsedContent = modelLayerFactory.getContentManager().getParsedContent(contentVersion.getHash());
-					} catch (ContentManagerRuntimeException_NoSuchContent e) {
+					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
 						//OK
 					}
 				}

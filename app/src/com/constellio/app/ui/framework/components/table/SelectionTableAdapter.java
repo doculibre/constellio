@@ -60,6 +60,9 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					SelectionTableAdapter.this.deselectAll();
 					updateVisibleCheckBoxes();
 				}
+
+				@Override
+				protected void buttonClickCallBack(boolean selectAllMode) {}
 			};
 			toggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 			toggleButton.addStyleName(ValoTheme.BUTTON_LINK);

@@ -8,6 +8,7 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
+import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.testutils.FakeSmbService;
@@ -16,6 +17,7 @@ import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -35,6 +37,7 @@ import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -47,7 +50,7 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 	private SmbDocumentOrFolderUpdater updater;
 	private ConnectorSmbUtils smbUtils;
 	private SmbJobFactory jobFactory;
-	private SmbNewDocumentRetrievalJob retrievalJob;
+	private SmbNewRetrievalJob retrievalJob;
 	@Mock private SmbConnectorContext context;
 
 	private String SHARE_URL = SmbTestParams.EXISTING_SHARE;
@@ -97,16 +100,14 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbService = new FakeSmbService(smbFileDTO);
 
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
-		retrievalJob = new SmbNewDocumentRetrievalJob(jobParams);
+		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
 				.containsOnly(addEvent(es.newConnectorSmbDocument(connectorInstance)
 						.setUrl(FILE_URL)));
 
-		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getFolder(anyString());
-		verify(smbRecordService, times(1)).updateResumeUrl(FILE_URL);
+		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
 	}
 
 	@Test
@@ -118,7 +119,7 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbService = new FakeSmbService(smbFileDTO);
 
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
-		retrievalJob = new SmbNewDocumentRetrievalJob(jobParams);
+		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
@@ -126,7 +127,6 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 						.setUrl(FILE_URL)));
 
 		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getFolder(anyString());
 	}
 
 	@Test
@@ -138,10 +138,41 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbService = new FakeSmbService(smbFileDTO);
 
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
-		retrievalJob = new SmbNewDocumentRetrievalJob(jobParams);
+		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 
 		verify(connector, times(1)).queueJob(any(SmbDeleteJob.class));
+	}
+
+	@Test
+	public void givenUncachedDocumentWhenExecutingThenCacheUpdatedAfterDatabase() {
+		SmbFileDTO smbFileDTO = new SmbFileDTO();
+		smbFileDTO.setUrl(FILE_URL);
+		smbFileDTO.setIsFile(true);
+		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
+		smbService = new FakeSmbService(smbFileDTO);
+
+		SmbModificationIndicator shareModificationIndicator = new SmbModificationIndicator("xx", 30D, 10L);
+
+		SmbModificationIndicator smbModificationIndicator = connector.getContext().getModificationIndicator(FILE_URL);
+		assertThat(smbModificationIndicator).isNull();
+
+		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
+		retrievalJob = new SmbNewRetrievalJob(jobParams,shareModificationIndicator, false);
+		retrievalJob.execute(connector);
+
+		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
+
+		smbModificationIndicator = connector.getContext().getModificationIndicator(FILE_URL);
+		assertThat(smbModificationIndicator).isNull();
+
+		when(smbRecordService.getDocument(FILE_URL)).thenReturn(mock(ConnectorSmbDocument.class));
+
+		retrievalJob = new SmbNewRetrievalJob(jobParams, shareModificationIndicator, false);
+		retrievalJob.execute(connector);
+
+		smbModificationIndicator = connector.getContext().getModificationIndicator(FILE_URL);
+		assertThat(smbModificationIndicator).isNotNull();
 	}
 
 	@After

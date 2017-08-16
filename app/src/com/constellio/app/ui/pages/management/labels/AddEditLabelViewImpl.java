@@ -1,6 +1,4 @@
 package com.constellio.app.ui.pages.management.labels;
-
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -23,7 +21,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -34,13 +32,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
  * Created by Nicolas D'Amours & Charles Blanchette on 2017-01-20.
  */
 public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelView {
-    private List<LabelVO> listLabel;
-    private TabSheet tabSheet;
     private AddEditLabelPresenter presenter = new AddEditLabelPresenter(this);
-    private Component folderDisplay, containerDisplay;
-    private VerticalLayout mainLayout;
-    private ReportUtils ru;
-    private Button addLabelButton;
     private LabelFormImpl recordForm;
     private RecordVO recordVO;
 
@@ -174,7 +166,17 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
             monComboBox.setItemCaption(valeur1, $("AddEditTaxonomyView.classifiedObject.folder"));
             monComboBox.setItemCaption(valeur2, $("DecommissioningListView.folderDetails.container"));
             monComboBox.setTextInputAllowed(false);
+            monComboBox.setValue(valeur1);
             monComboBox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+            monComboBox.setNullSelectionAllowed(false);
+            monComboBox.addValidator(new Validator() {
+                @Override
+                public void validate(Object value) throws InvalidValueException {
+                    if(value == null) {
+                        throw new InvalidValueException($("ReportTabButton.invalidReportType"));
+                    }
+                }
+            });
             return monComboBox;
         }
     }

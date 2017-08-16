@@ -1,5 +1,7 @@
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,12 +17,14 @@ import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.A
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -79,6 +83,71 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 		transaction.add(new TestRecord(zeSchema, "r3").set(Schemas.TITLE, "Record 3"));
 		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		//Validate initial state
+		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString").isUnmodifiable())
+				.isTrue();
+		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
+				.containsOnly("zeSchemaType_custom_title");
+		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
+				.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
+				.isEqualTo("Ze french label");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
+				.isEqualTo("Ze english label");
+
+	}
+
+	public void setUpWithPlethoraOfRecords()
+			throws Exception {
+		setUpWithoutRecords();
+
+		Transaction transaction = new Transaction();
+
+		for (int i = 1; i <= 2000; i++) {
+			transaction.add(new TestRecord(zeCustomSchema, "r" + i)
+					.set(Schemas.TITLE, "Record " + i).set(zeCustomSchema.customStringMetadata(), "custom value " + i));
+		}
+
+		transaction.add(new TestRecord(zeSchema, "r0").set(Schemas.TITLE, "Record 0"));
+		transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(countRecordsInSchema("zeSchemaType_custom")).isEqualTo(2000);
+
+		assertThat(recordServices.getDocumentById("r0").getSchemaCode()).isEqualTo("zeSchemaType_default");
+
+		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+
+		assertThat(recordServices.getDocumentById("r1998").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r1998").get(zeCustomSchema.customStringMetadata()))
+				.isEqualTo("custom value 1998");
+		assertThat(recordServices.getDocumentById("r1999").getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(recordServices.getDocumentById("r1999").get(zeCustomSchema.customStringMetadata()))
+				.isEqualTo("custom value 1999");
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas())
+				.extracting("code").containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString")
+				.isUnmodifiable()).isTrue();
+		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
+				.containsOnly("zeSchemaType_custom_title");
+		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
+				.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
+				.isEqualTo("Ze french label");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
+				.isEqualTo("Ze english label");
 	}
 
 	@Test
@@ -156,25 +225,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	public void whenModifyingSchemaCodeThenSchemaRenamedDisplayConfigsKeptAndRecordsHaveNewSchema()
 			throws Exception {
 		setUpWithRecords();
-		//Validate initial state
-		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
-		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
-		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString").isUnmodifiable())
-				.isTrue();
-		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
-				.containsOnly("zeSchemaType_custom_title");
-		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-				.isVisibleInAdvancedSearch()).isTrue();
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
-				.isEqualTo("Ze french label");
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
-				.isEqualTo("Ze english label");
-		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
+
+		boolean async = appSchemasServices
+				.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
+		assertThat(async).isFalse();
 
 		//Validate state after code modification
 		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
@@ -184,6 +238,58 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom2_customString").isUnmodifiable())
+				.isTrue();
+		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
+				.containsOnly("zeSchemaType_custom2_title");
+		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
+				.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
+				.isEqualTo("Ze french label");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
+				.isEqualTo("Ze english label");
+
+	}
+
+	@Test
+	public void givenPlethoraOfRecordsUsingSchemaWhenModifyingSchemaCodeThenSchemaRenamedDisplayConfigsKeptAndBatchProcessStarted()
+			throws Exception {
+
+		setUpWithPlethoraOfRecords();
+
+		boolean async = appSchemasServices
+				.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
+		assertThat(async).isTrue();
+		assertThat(countRecordsInSchema("zeSchemaType_custom2")).isLessThan(2000);
+
+		//TODO Other test without background threads
+		waitForBatchProcess();
+		assertThat(countRecordsInSchema("zeSchemaType_custom")).isEqualTo(0);
+		assertThat(countRecordsInSchema("zeSchemaType_custom2")).isEqualTo(2000);
+
+		//Validate state after code modification
+
+		assertThat(recordServices.getDocumentById("r0").getSchemaCode()).isEqualTo("zeSchemaType_default");
+		assertThat(recordServices.getDocumentById("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("r1").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 1");
+		assertThat(recordServices.getDocumentById("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
+
+		assertThat(recordServices.getDocumentById("r1998").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("r1998").get(zeCustomSchema.customStringMetadata()))
+				.isEqualTo("custom value 1998");
+		assertThat(recordServices.getDocumentById("r1999").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("r1999").get(zeCustomSchema.customStringMetadata()))
+				.isEqualTo("custom value 1999");
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom", "zeSchemaType_custom2");
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getFrenchLabel())
+				.isEqualTo("Ze french label (À supprimer)");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getFrenchLabel())
+				.isEqualTo("Ze french label");
+
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom2_customString").isUnmodifiable())
 				.isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
@@ -250,5 +356,11 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
+	}
+
+	long countRecordsInSchema(String schemaCode) {
+		MetadataSchema schema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchema(schemaCode);
+		return getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery(from(schema).returnAll()));
 	}
 }

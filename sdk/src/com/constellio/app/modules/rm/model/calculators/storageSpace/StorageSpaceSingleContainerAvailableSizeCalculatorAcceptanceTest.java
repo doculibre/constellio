@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.calculators.storageSpace;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -18,6 +19,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -115,7 +117,9 @@ public class StorageSpaceSingleContainerAvailableSizeCalculatorAcceptanceTest ex
 
 	public ContainerRecord buildDefaultContainer(String id) {
 		return rm.newContainerRecordWithId(id).setType("containerTypeTest")
-				.setTemporaryIdentifier("containerTestTemporary");
+				.setTemporaryIdentifier("containerTestTemporary")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public ContainerRecordType buildDefaultContainerType() {

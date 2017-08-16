@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es;
 
+import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
@@ -17,6 +18,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
@@ -33,6 +35,7 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
+import com.constellio.app.modules.es.scripts.RestoreConnectorTypes;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -108,6 +111,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 
 		registerManagers(collection, appLayerFactory);
+		registerScript(new RestoreConnectorTypes(appLayerFactory, collection));
 
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);

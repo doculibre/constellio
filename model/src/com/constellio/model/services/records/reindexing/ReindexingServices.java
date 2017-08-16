@@ -78,6 +78,10 @@ public class ReindexingServices {
 		return REINDEXING_INFOS;
 	}
 
+	public static void markReindexingHasFinished() {
+		REINDEXING_INFOS = null;
+	}
+
 	public void reindexCollections(ReindexationMode reindexationMode) {
 		reindexCollections(new ReindexationParams(reindexationMode));
 	}

@@ -1,6 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import com.constellio.app.modules.es.connectors.http.ConnectorHttpContext;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDelete;
 import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
 import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
@@ -60,7 +59,7 @@ public class ConnectorSmb extends Connector {
 	static final String RESUME_OF_TRAVERSAL = "Resume of traversal";
 	static final String END_OF_TRAVERSAL = "End of traversal";
 
-	private static final int MAX_JOBS_PER_GET_JOBS_CALL = 500;
+	public static final int MAX_JOBS_PER_GET_JOBS_CALL = 500;
 
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorSmbUtils smbUtils;
@@ -75,6 +74,8 @@ public class ConnectorSmb extends Connector {
 	private String connectorId;
 	private SmbConnectorContext context;
 	private SmbConnectorContextServices contextServices;
+
+	private final Set<String> duplicateUrls = new ConcurrentSkipListSet<>();
 
 	private DateTime lastSave;
 
@@ -113,6 +114,10 @@ public class ConnectorSmb extends Connector {
 
 		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
 				updater);
+	}
+
+	public Set<String> getDuplicateUrls() {
+		return duplicateUrls;
 	}
 
 	@Override
@@ -214,10 +219,20 @@ public class ConnectorSmb extends Connector {
 				jobs.add(deleteJob);
 			}
 
+			cleanupInconsistencies();
 			changeTraversalCodeToMarkEndOfTraversal();
 			queueSeeds();
 		}
 		return jobs;
+	}
+
+	private void cleanupInconsistencies() {
+        try {
+			this.duplicateUrls.clear();
+			this.duplicateUrls.addAll(this.smbRecordService.duplicateDocuments());
+		} catch (Exception e) {
+			logger.errorUnexpected(e);
+		}
 	}
 
 	public void queueJob(SmbConnectorJob job) {
@@ -240,7 +255,7 @@ public class ConnectorSmb extends Connector {
 		}
 
 		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + connectorInstance.getId() +
-				" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
+						" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
 

@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.*;
@@ -35,7 +34,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, RecordSelector {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -145,7 +144,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -198,7 +197,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		int selectedPageLength = presenter.getSelectedPageLength();
 		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
 		}
 		presenter.setSelectedPageLength(selectedPageLength);
 		
@@ -439,6 +438,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+				hashMapAllSelection.put(presenter.getPageNumber(), selectAllMode);
+			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
@@ -507,6 +511,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public boolean isSelectAllMode() {
-		return selectDeselectAllButton == null? null:selectDeselectAllButton.isSelectAllMode();
+		return (selectDeselectAllButton == null) ? null : selectDeselectAllButton.isSelectAllMode();
+	}
+
+	public SearchResultTable getResult() {
+		return this.results;
 	}
 }

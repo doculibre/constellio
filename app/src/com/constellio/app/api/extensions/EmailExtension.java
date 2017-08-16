@@ -1,13 +1,11 @@
 package com.constellio.app.api.extensions;
 
-import java.util.List;
-
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
-import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 
 public class EmailExtension {
 	
-	public EmailMessage newEmailMessage(String filenamePrefix, String signature, String subject, String from, List<MessageAttachment> attachments) {
+	public EmailMessage newEmailMessage(EmailMessageParams params) {
 		return null;
 	}
 

@@ -5,11 +5,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 import static java.util.Arrays.asList;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +117,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Restarting Event")
+					.setTitle($("ListEventsView.restarting"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.add(event);
@@ -146,7 +144,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Restarting Event")
+					.setTitle($("ListEventsView.restarting"))
 					.getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
 					.setType(EventType.REINDEXING)
@@ -154,7 +152,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("new Reindexing Event")
+					.setTitle($("ListEventsView.reindexing"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
@@ -173,7 +171,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("Redémarrage")
+					.setTitle($("RedémarrageListEventsView.restarting"))
 					.getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
 					.setType(EventType.REINDEXING)
@@ -181,7 +179,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
 					.setIp(getCurrentUser().getLastIPAddress())
 					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle("Réindexation")
+					.setTitle($("ListEventsView.reindexing"))
 					.getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
@@ -229,7 +227,16 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getCurrentVersion() {
 		String version = appLayerFactory.newApplicationService().getWarVersion();
 		if (version == null || version.equals("5.0.0")) {
-			version = GradleFileVersionParser.getVersion();
+			File versionFile = new File(new FoldersLocator().getConstellioProject(), "version");
+			if (versionFile.exists()) {
+				try {
+					version = FileUtils.readFileToString(versionFile);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				version = "no version file";
+			}
 		}
 		return version;
 	}

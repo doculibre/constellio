@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -14,20 +18,44 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RecordsCacheRequestImpl implements RecordsCache {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheRequestImpl.class);
+
 	Map<String, Record> cache = new HashMap<>();
 
 	RecordsCache nested;
 
-	public RecordsCacheRequestImpl(RecordsCache nested) {
+	private String cacheId;
+
+	private boolean disconnected;
+
+	public RecordsCacheRequestImpl(String cacheId, RecordsCache nested) {
 		this.nested = nested;
+		this.cacheId = cacheId;
 	}
 
 	@Override
 	public Record get(String id) {
+		Record recordFromRequestCache = null;
 		if (cache.containsKey(id)) {
-			return cache.get(id).getCopyOfOriginalRecord();
+			recordFromRequestCache = cache.get(id).getCopyOfOriginalRecord();
 		}
+
+		if (!Toggle.TEST_REQUEST_CACHE.isEnabled() && recordFromRequestCache != null) {
+			return recordFromRequestCache;
+		}
+
 		Record record = nested.get(id);
+		if (Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+			if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
+				throw new RuntimeException("Version mismatch with record " + record.getIdTitle() + " in request cache " + cacheId
+						+ ". Request version '" + recordFromRequestCache.getVersion() + "' doesn't match global cache version"
+						+ "'" + record.getVersion() + "'");
+			}
+			if (recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
+		}
+
 		if (record != null) {
 			insertInRequestcache(record);
 		}
@@ -60,9 +88,19 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record insert(Record record) {
-		insertInRequestcache(record);
-		return nested.insert(record);
+	public CacheInsertionStatus insert(Record record) {
+		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+			if (!record.getSchemaCode().startsWith("event")) {
+				LOGGER.info("inserting in request cache " + record.getIdTitle() + " with version " + record.getVersion()
+						+ " in cache " + cacheId);
+				((RecordsCacheImpl) nested).doNotLog.add(record.getId() + "_" + record.getVersion());
+			}
+		}
+		CacheInsertionStatus status = nested.insert(record);
+		if (status == CacheInsertionStatus.ACCEPTED) {
+			insertInRequestcache(record);
+		}
+		return status;
 	}
 
 	private void insertInRequestcache(Record insertedRecord) {
@@ -79,11 +117,13 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	private void forceInsertInRequestcache(Record record) {
-		cache.put(record.getId(), record);
+		if (!disconnected) {
+			cache.put(record.getId(), record);
+		}
 	}
 
 	@Override
-	public Record forceInsert(Record record) {
+	public CacheInsertionStatus forceInsert(Record record) {
 		forceInsertInRequestcache(record);
 		return nested.forceInsert(record);
 	}
@@ -136,18 +176,35 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
 
+		Record recordFromRequestCache = null;
 		String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
 		for (Record cachedRecord : cache.values()) {
 			if (metadataTypeCode.equals(cachedRecord.getTypeCode())) {
 				Object recordValue = cachedRecord.get(metadata);
 				if (recordValue != null && recordValue.equals(value)) {
-					return cachedRecord;
+					recordFromRequestCache = cachedRecord;
 				}
 			}
 		}
 
+		if (!Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+			if (recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
+		}
+
 		Record record = nested.getByMetadata(metadata, value);
-		if (record != null) {
+		if (Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+			if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
+				throw new RuntimeException("Request cache : Version mismatch with record " + record.getIdTitle());
+			}
+
+			if (recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
+		}
+
+		if (record != null && !disconnected) {
 			cache.put(record.getId(), record);
 		}
 
@@ -183,6 +240,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public long getCacheObjectsSize(String typeCode) {
 		return 0;
+	}
+
+	public void disconnect() {
+		disconnected = true;
+		cache.clear();
 	}
 }
 

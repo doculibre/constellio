@@ -1,36 +1,29 @@
 package com.constellio.app.services.schemas.bulkImport.extensions;
 
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_DOCUMENT_TYPE_CODE;
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_MEDIUM_TYPE_CODE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_ENUM_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.Mock;
+import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
-import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
-import com.constellio.model.extensions.events.recordsImport.ValidationParams;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.Mock;
 
 public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
@@ -62,7 +55,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 		ImportDataOptions importDataOptions = new ImportDataOptions();
 
-		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData, importDataOptions));
+		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData, importDataOptions, false));
 
 		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "value")).containsOnly(
 				tuple("RetentionRuleImportExtension_invalidDocumentType", "0", "documentPapier")

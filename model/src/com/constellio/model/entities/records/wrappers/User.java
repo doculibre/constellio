@@ -8,6 +8,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.enums.SearchPageLength;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -54,6 +55,7 @@ public class User extends RecordWrapper {
 	public static final String FAX = "fax";
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
+	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
 
 	private transient Roles roles;
 
@@ -518,5 +520,14 @@ public class User extends RecordWrapper {
 	public boolean hasGlobalTypeAccess(String typeCode, String access) {
 		return roles.getSchemasRecordsServices().getModelLayerFactory().getSecurityTokenManager()
 				.hasGlobalTypeAccess(this, typeCode, access);
+	}
+
+	public SearchPageLength getDefaultPageLength() {
+		return get(DEFAULT_PAGE_LENGTH);
+	}
+
+	public User setDefaultPageLength(SearchPageLength defaultPageLength) {
+		set(DEFAULT_PAGE_LENGTH, defaultPageLength);
+		return this;
 	}
 }

@@ -34,6 +34,7 @@ public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
 	private BatchProcessingPresenter presenter;
 	private final BatchProcessingView view;
+	private boolean hasResultSelected;
 
 	//fields
 	LookupRecordField typeField;
@@ -52,7 +53,7 @@ public class BatchProcessingButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		Component windowContent;
-		if (!presenter.hasWriteAccessOnAllRecords()) {
+		if (!presenter.hasWriteAccessOnAllRecords(view.getSchemaType())) {
 			windowContent = new Label($("AdvancedSearchView.requireWriteAccess"));
 		} else if (presenter.isSearchResultsSelectionForm()) {
 			windowContent = buildSearchResultsSelectionForm();
@@ -60,6 +61,11 @@ public class BatchProcessingButton extends WindowButton {
 			windowContent = buildBatchProcessingForm();
 		}
 		return windowContent;
+	}
+
+	public BatchProcessingButton hasResultSelected(boolean value) {
+		this.hasResultSelected = value;
+		return this;
 	}
 	
 	private Component buildSearchResultsSelectionForm() {
@@ -91,7 +97,11 @@ public class BatchProcessingButton extends WindowButton {
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
 		};
-		
+
+		if(!hasResultSelected) {
+			selectedSearchResultsButton.setEnabled(false);
+		}
+
 		vLayout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
 
 		panel.setContent(vLayout);
@@ -108,7 +118,7 @@ public class BatchProcessingButton extends WindowButton {
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field
 		typeField.setCaption($("BatchProcessingButton.type"));
-		String originType = presenter.getOriginType();
+		String originType = presenter.getOriginType(view.getSchemaType());
 		if (originType != null) {
 			typeField.setValue(originType);
 		}
@@ -137,7 +147,7 @@ public class BatchProcessingButton extends WindowButton {
 		String selectedType = typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
+		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
 				fieldFactory);
 	}
 
@@ -159,7 +169,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), viewObject);
+						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
 
 						downloadBatchProcessingResults(inputStream);
 					} catch (RecordServicesException.ValidationException e) {
@@ -170,7 +180,7 @@ public class BatchProcessingButton extends WindowButton {
 					}
 				}
 			});
-			processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords()));
+			processButton = new Button($("BatchProcessingButton.process", presenter.getNumberOfRecords(view.getSchemaType())));
 			processButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			processButton.addClickListener(new ClickListener() {
 				@Override
@@ -179,7 +189,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						presenter.processBatchButtonClicked(typeField.getValue(), viewObject);
+						presenter.processBatchButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
 
 						getWindow().close();
 

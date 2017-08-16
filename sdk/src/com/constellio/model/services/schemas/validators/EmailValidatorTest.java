@@ -1,16 +1,13 @@
 package com.constellio.model.services.schemas.validators;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import sun.security.krb5.Config;
-
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailValidatorTest extends ConstellioTest {
 

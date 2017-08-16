@@ -132,10 +132,12 @@ public class EventTypeUtils implements Serializable {
 		Metadata eventUserIPMetadata = metadataSchema.getMetadata(Event.IP);
 		Metadata eventDateMetadata = metadataSchema.getMetadata(Schemas.CREATED_ON.getLocalCode());
 		Metadata eventUserRolesMetadata = metadataSchema.getMetadata(Event.USER_ROLES);
-		metadataCodes.add(eventUserNameMetadata.getCode());
-		metadataCodes.add(eventDateMetadata.getCode());
-		metadataCodes.add(eventUserRolesMetadata.getCode());
-		metadataCodes.add(eventUserIPMetadata.getCode());
+		Metadata eventType = metadataSchema.getMetadata(Event.TYPE);
+        metadataCodes.add(eventUserNameMetadata.getCode());
+        metadataCodes.add(eventDateMetadata.getCode());
+        metadataCodes.add(eventUserRolesMetadata.getCode());
+        metadataCodes.add(eventUserIPMetadata.getCode());
+        metadataCodes.add(eventType.getCode());
 		return metadataCodes;
 	}
 

@@ -11,4 +11,6 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	void reloadCurrentTab();
 
 	void displayWorkflows(RecordVODataProvider provider);
+
+	com.vaadin.ui.Component getSelectedTab();
 }

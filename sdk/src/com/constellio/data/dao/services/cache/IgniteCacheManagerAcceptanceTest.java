@@ -17,7 +17,9 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 
+@IgniteTest
 public class IgniteCacheManagerAcceptanceTest {
 	
 	private static List<String> splitAddress(String addressList) {

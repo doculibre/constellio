@@ -1,10 +1,44 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
@@ -14,9 +48,16 @@ import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.contents.ContentImplRuntimeException.*;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -31,33 +72,6 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 public class ContentManagementAcceptTest extends ConstellioTest {
 
@@ -303,6 +317,91 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenDefaultBehaviorIsParseAsyncWhenAddingContentThenFlaguedAndParsedLater()
+			throws Exception {
+
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
+
+		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
+
+		Record record = givenRecord().withSingleValueContent(content).isSaved();
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).isNull();
+
+		contentManager.handleRecordsMarkedForParsing();
+		recordServices.refresh(record);
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Forage de texte");
+
+	}
+
+	@Test
+	public void givenDefaultBehaviorIsParseAsyncWhenAddingContentWithSyncParsingThenAlreadyParsed()
+			throws Exception {
+
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
+
+		UploadOptions options = new UploadOptions().setParse(true);
+		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream(options));
+
+		Record record = givenRecord().withSingleValueContent(content).isSaved();
+		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Forage de texte");
+
+	}
+
+	@Test
+	public void givenMultipleContentVersionUploadedWithParseAsyncWhenParsedThenOnlyLastVersionIsParsed()
+			throws Exception {
+
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
+
+		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
+		content.updateContent(bob, uploadPdf2InputStream(), false);
+
+		Record record = givenRecord().withSingleValueContent(content).isSaved();
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isTrue();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).isNull();
+
+		contentManager.handleRecordsMarkedForParsing();
+		recordServices.refresh(record);
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isTrue();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Château");
+
+		record.<Content>get(zeSchema.contentMetadata()).deleteVersion("0.2");
+		recordServices.update(record);
+		contentManager.handleRecordsMarkedForParsing();
+		recordServices.refresh(record);
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
+		assertThat(contentManager.isParsed(pdf2Hash)).isTrue();
+		assertThat(record.<Boolean>get(Schemas.MARKED_FOR_PARSING)).isNull();
+		assertThat(contentMetadataParsedContentOf("zeRecord")).contains("Forage de texte");
+
+	}
+
+	String contentMetadataParsedContentOf(String id) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.add("q", "id:" + id);
+		SolrDocument document = null;
+		try {
+			document = getDataLayerFactory().newRecordDao().getBigVaultServer().query(params).getResults().get(0);
+		} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
+			throw new RuntimeException(couldNotExecuteQuery);
+		}
+		return (String) document.getFirstValue("contentMetadata_txt_fr");
+	}
+
+	@Test
 	public void whenAddingContentWithoutParsingHistoryVersionsThenMimetypeCorrectlySet()
 			throws Exception {
 
@@ -327,8 +426,15 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
 		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
-		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
+		assertThat(contentManager.isParsed(docx2Hash)).isFalse();
 
+		contentManager.handleRecordsMarkedForParsing();
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
 	}
 
 	@Test
@@ -359,8 +465,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
-		assertThat(contentManager.isParsed(docx1Hash)).isTrue();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
 
+		contentManager.handleRecordsMarkedForParsing();
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isTrue();
 	}
 
 	@Test
@@ -392,7 +504,6 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.isParsed(pdf3Hash)).isTrue();
 		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
 		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
-
 	}
 
 	@Test
@@ -783,9 +894,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentRenamedTo("ZeDoc.docx").and().
 				hasItsContentUpdatedAndFinalized(alice, uploadDocx1InputStream()).and().isSaved();
 
-		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDoc.docx")).has(
-				docx1HashAndLength()).has(
-				version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDoc.docx"))
+				.has(docx1HashAndLength())
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(docx1Hash, pdf1Hash);
@@ -1754,47 +1865,68 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	private ContentVersionDataSummary uploadACorruptedDocx() {
-		return contentManager.upload(getTestResourceInputStream("corrupted.docx"));
+		return contentManager.upload(getTestResourceInputStream("corrupted.docx"), new UploadOptions())
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf1InputStream() {
-		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"));
+		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions())
+				.getContentVersionDataSummary();
+	}
+
+	private ContentVersionDataSummary uploadPdf1InputStream(UploadOptions options) {
+		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), options)
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStream() {
-		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"));
+		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions())
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStream() {
-		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"));
+		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions())
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStream() {
-		return contentManager.upload(getTestResourceInputStream("docx1.docx"));
+		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions())
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStream() {
-		return contentManager.upload(getTestResourceInputStream("docx2.docx"));
+		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions())
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf1InputStreamWithoutParsing() {
-		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), false, false, "pd1.pdf").getContentVersionDataSummary();
+		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions("pdf1.pdf")
+				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStreamWithoutParsing() {
-		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), false, false, "pd2.docx.pdf").getContentVersionDataSummary();
+		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions("pd2.docx.pdf")
+				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStreamWithoutParsing() {
-		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), false, false, "pd3.pdf.pdf").getContentVersionDataSummary();
+		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions("pd3.pdf.pdf")
+				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStreamWithoutParsing() {
-		return contentManager.upload(getTestResourceInputStream("docx1.docx"), false, false, "doc1.docx").getContentVersionDataSummary();
+		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions("doc1.docx")
+				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStreamWithoutParsing() {
-		return contentManager.upload(getTestResourceInputStream("docx2.docx"), false, false, "doc2.doc.docx").getContentVersionDataSummary();
+		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions("doc2.doc.docx")
+				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.getContentVersionDataSummary();
 	}
 
 	private void assertThatVaultOnlyContains(String... hashes)
@@ -1844,7 +1976,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	private void assertThatContentIsAvailable(ContentVersionDataSummary dataSummary)
 			throws Exception {
 
-		ContentVersionDataSummary retrievedDataSummary = contentManager.getContentVersionSummary(dataSummary.getHash()).getContentVersionDataSummary();
+		ContentVersionDataSummary retrievedDataSummary = contentManager.getContentVersionSummary(dataSummary.getHash())
+				.getContentVersionDataSummary();
 		assertThat(retrievedDataSummary).isEqualTo(dataSummary);
 
 		InputStream contentStream = contentManager.getContentInputStream(dataSummary.getHash(), SDK_STREAM);

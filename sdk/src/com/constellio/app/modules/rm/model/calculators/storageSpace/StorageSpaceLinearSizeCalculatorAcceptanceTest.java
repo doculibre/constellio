@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.calculators.storageSpace;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -190,12 +192,18 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
                 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
     }
 

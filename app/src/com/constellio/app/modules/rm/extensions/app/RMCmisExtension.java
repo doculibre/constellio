@@ -19,6 +19,7 @@ import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
@@ -153,7 +154,9 @@ public class RMCmisExtension extends CmisExtension {
 	public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
 		String schemaType = params.getSchemaType().getCode();
 
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+		if (Folder.SCHEMA_TYPE.equals(schemaType)
+				|| Document.SCHEMA_TYPE.equals(schemaType)
+				|| ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			return ExtensionBooleanResult.FORCE_TRUE;
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

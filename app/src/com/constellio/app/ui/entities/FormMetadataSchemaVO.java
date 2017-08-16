@@ -28,20 +28,15 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 	}
 
-	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels) {
-		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[1];
-		if (localCodeParsed.contains("USR")) {
-			localCodeParsed = localCodeParsed.split("USR")[1];
-		}
-
-		this.localCode = localCodeParsed;
+	public FormMetadataSchemaVO(String code, String localCode, String collection, Map<String, String> labels) {
+		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
 		this.labels = new HashMap<>(labels);
 	}
 
-	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels, Boolean advancedSearch) {
-		this(code, collection, labels);
+	public FormMetadataSchemaVO(String code, String localCode,String collection, Map<String, String> labels, Boolean advancedSearch) {
+		this(code, localCode, collection, labels);
 		this.advancedSearch = advancedSearch;
 	}
 

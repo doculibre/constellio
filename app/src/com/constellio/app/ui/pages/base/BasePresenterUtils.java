@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -107,9 +108,9 @@ public class BasePresenterUtils implements Serializable {
 
 	public final RecordServices recordServices() {
 		//if (recordServices == null) {
-		recordServices = modelLayerFactory.newRecordServices();
+		return modelLayerFactory.newRecordServices();
 		//}
-		return recordServices;
+		//return recordServices;
 	}
 
 	public final PresenterService presenterService() {
@@ -120,9 +121,9 @@ public class BasePresenterUtils implements Serializable {
 	}
 
 	public final SearchServices searchServices() {
-		//if (searchServices == null) {
-		searchServices = modelLayerFactory.newSearchServices();
-		//}
+		if (searchServices == null) {
+			searchServices = modelLayerFactory.newSearchServices();
+		}
 		return searchServices;
 	}
 
@@ -161,17 +162,16 @@ public class BasePresenterUtils implements Serializable {
 
 	public Roles getCollectionRoles() {
 		String collection = getCollection();
-		return modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory);
+		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
 
 	public CollectionsManager getCollectionManager() {
 		return appLayerFactory.getCollectionsManager();
 	}
 
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
-			final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
 		try {
-			return modelLayerFactory.getContentManager().upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+			return modelLayerFactory.getContentManager().upload(inputStream, options);
 		} catch (final IcapException e) {
 			if (e instanceof IcapException.ThreatFoundException) {
 				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
@@ -185,7 +185,7 @@ public class BasePresenterUtils implements Serializable {
 		}
 	}
 
-	public List<String> getConceptsWithPermissionsForCurrentUser(String...permissions) {
+	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {
 		User user = getCurrentUser();
 		return presenterService.getConceptsWithPermissionsForUser(user, permissions);
 	}

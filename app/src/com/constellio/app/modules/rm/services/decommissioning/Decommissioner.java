@@ -27,6 +27,7 @@ import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -53,6 +54,7 @@ public abstract class Decommissioner {
 	private ContentConversionManager conversionManager;
 	private Transaction transaction;
 	private List<Record> recordsToDelete;
+	private List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
 
@@ -145,6 +147,10 @@ public abstract class Decommissioner {
 		recordsToDelete.add(record.getWrappedRecord());
 	}
 
+	protected void physicallyDelete(RecordWrapper record) {
+		recordsToDeletePhysically.add(record.getWrappedRecord());
+	}
+
 	private void validate() {
 		if (!decommissioningService.isProcessable(decommissioningList, user)) {
 			// TODO: Proper exception
@@ -158,6 +164,7 @@ public abstract class Decommissioner {
 		this.user = user;
 		transaction = new Transaction();
 		recordsToDelete = new ArrayList<>();
+		recordsToDeletePhysically = new ArrayList<>();
 	}
 
 	private void saveCertificates(DecommissioningList decommissioningList) {
@@ -282,7 +289,7 @@ public abstract class Decommissioner {
 			}
 			add(document.setContent(null));
 			if (configs.deleteDocumentRecordsWithDestruction()) {
-				delete(document);
+				physicallyDelete(document);
 			}
 		}
 	}
@@ -422,6 +429,17 @@ public abstract class Decommissioner {
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
 			}
+
+			decommissioningList.removeReferences(recordsToDeletePhysically.toArray(new Record[0]));
+			recordServices.recalculate(decommissioningList);
+			recordServices.update(decommissioningList);
+			for (Record record : recordsToDeletePhysically) {
+				try {
+					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+				} catch (Exception e) {
+					recordServices.logicallyDelete(record, user);
+				}
+			}
 			contentManager.deleteUnreferencedContents();
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
@@ -535,7 +553,7 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 		//		}
 		//add(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
-			delete(folder);
+			physicallyDelete(folder);
 		}
 		destroyedFolders.add(folder.getId());
 		processDocumentsInDeleted(folder);

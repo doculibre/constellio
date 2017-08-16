@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,8 +32,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -421,6 +422,20 @@ public class RecordImpl implements Record {
 				return (List<T>) value;
 			} else {
 				throw new CannotGetListForSingleValue(metadata.getLocalCode());
+			}
+		}
+	}
+
+	public <T> List<T> getValues(Metadata metadata) {
+		Object value = get(metadata);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				List<T> values = asList((T) value);
+				return values;
 			}
 		}
 	}
@@ -910,8 +925,9 @@ public class RecordImpl implements Record {
 	//	}
 
 	@Override
-	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
+	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
 		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
@@ -920,7 +936,13 @@ public class RecordImpl implements Record {
 			if (wasMetadata.getDataEntry().getType() == MANUAL) {
 				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
 				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
+
+					Object value = get(wasMetadata);
+					if (!(value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata))) {
+						lostMetadataValues = true;
+					}
 					set(wasMetadata, null);
+
 				} else {
 					Object value = get(wasMetadata);
 					if (value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata)) {
@@ -948,6 +970,8 @@ public class RecordImpl implements Record {
 			}
 		}
 		markAsModified(Schemas.SCHEMA);
+
+		return lostMetadataValues;
 	}
 
 	@Override

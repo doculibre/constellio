@@ -92,7 +92,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setDenyShareTokens(SmbTestParams.DENY_SHARE_TOKENS);
 
 		document = es.newConnectorSmbDocument(connectorInstance);
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -178,7 +178,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
 
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -369,7 +369,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 
 		folder = es.newConnectorSmbFolder(connectorInstance);
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -414,7 +414,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setTraversalCode(TRAVERSAL_CODE)
 				.setFetched(false);
 
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -611,7 +611,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		SmbDocumentOrFolderUpdater documentOrFolderUpdater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
 		folder = es.newConnectorSmbFolder(connectorInstance);
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, null);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, null, false);
 
 		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
 	}

@@ -2,11 +2,10 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -35,7 +34,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView, RecordSelector {
+public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView {
 	private final DisplayContainerPresenter presenter;
 	private Label borrowedLabel;
 
@@ -148,7 +147,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		slip.setStyleName(ValoTheme.BUTTON_LINK);
 		slip.setEnabled(presenter.canPrintReports());
 		buttons.add(slip);
-
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -161,10 +159,9 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				return presenter.getDefaultTemplates();
 			}
 		};
-		Button labels = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
+		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), ContainerRecord.SCHEMA_TYPE, presenter.getContainerId(),
-				getSessionContext().getCurrentUser().getUsername());
+				getSessionContext().getCurrentCollection(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 
@@ -197,91 +194,86 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		return buttons;
 	}
 
-	@Override
-	public List<String> getSelectedRecordIds() {
-		return Arrays.asList(presenter.getContainerId());
-	}
-
 	// TODO: Quick hack to make printing container labels work...
-	public static class ContainerLabelsButton extends WindowButton {
-		private final RecordSelector selector;
-		private final List<LabelTemplate> labelTemplates;
-		private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
-
-		@PropertyId("startPosition") private ComboBox startPosition;
-		@PropertyId("numberOfCopies") private TextField copies;
-		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
-
-		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
-				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
-			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
-			this.selector = selector;
-			this.labelTemplates = labelTemplates;
-			this.labelsReportFactory = labelsReportFactory;
-		}
-
-		@Override
-		protected Component buildWindowContent() {
-			startPosition = new ComboBox($("LabelsButton.startPosition"));
-			if (labelTemplates.size() > 0) {
-				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
-				startPosition.clear();
-				for (int i = 1; i <= size; i++) {
-					startPosition.addItem(i);
-				}
-			}
-			for (int i = 1; i <= 10; i++) {
-				startPosition.addItem(i);
-			}
-			startPosition.setNullSelectionAllowed(false);
-
-			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
-			for (LabelTemplate labelTemplate : labelTemplates) {
-				labelConfiguration.addItem(labelTemplate);
-				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
-			}
-			labelConfiguration.setNullSelectionAllowed(false);
-			labelConfiguration.setImmediate(true);
-			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
-					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
-					startPosition.clear();
-					startPosition.removeAllItems();
-					for (int i = 1; i <= size; i++) {
-
-						startPosition.addItem(i);
-					}
-				}
-			});
-
-			copies = new TextField($("LabelsButton.numberOfCopies"));
-			copies.setConverter(Integer.class);
-
-			return new BaseForm<LabelParametersVO>(
-					new LabelParametersVO(labelTemplates.get(0)), this, labelConfiguration, startPosition,
-					copies) {
-				@Override
-				protected void saveButtonClick(LabelParametersVO parameters)
-						throws ValidationException {
-					LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
-							selector.getSelectedRecordIds(),
-							parameters.getLabelConfiguration(),
-							parameters.getStartPosition(),
-							parameters.getNumberOfCopies());
-
-					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
-							labelsReportFactory.getFilename(null)));
-				}
-
-				@Override
-				protected void cancelButtonClick(LabelParametersVO parameters) {
-					getWindow().close();
-				}
-			};
-		}
-	}
+//	public static class ContainerLabelsButton extends WindowButton {
+//		private final RecordSelector selector;
+//		private final List<LabelTemplate> labelTemplates;
+//		private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
+//
+//		@PropertyId("startPosition") private ComboBox startPosition;
+//		@PropertyId("numberOfCopies") private TextField copies;
+//		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
+//
+//		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
+//				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
+//			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
+//			this.selector = selector;
+//			this.labelTemplates = labelTemplates;
+//			this.labelsReportFactory = labelsReportFactory;
+//		}
+//
+//		@Override
+//		protected Component buildWindowContent() {
+//			startPosition = new ComboBox($("LabelsButton.startPosition"));
+//			if (labelTemplates.size() > 0) {
+//				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
+//				startPosition.clear();
+//				for (int i = 1; i <= size; i++) {
+//					startPosition.addItem(i);
+//				}
+//			}
+//			for (int i = 1; i <= 10; i++) {
+//				startPosition.addItem(i);
+//			}
+//			startPosition.setNullSelectionAllowed(false);
+//
+//			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
+//			for (LabelTemplate labelTemplate : labelTemplates) {
+//				labelConfiguration.addItem(labelTemplate);
+//				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
+//			}
+//			labelConfiguration.setNullSelectionAllowed(false);
+//			labelConfiguration.setImmediate(true);
+//			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
+//				@Override
+//				public void valueChange(ValueChangeEvent event) {
+//					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
+//					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
+//					startPosition.clear();
+//					startPosition.removeAllItems();
+//					for (int i = 1; i <= size; i++) {
+//
+//						startPosition.addItem(i);
+//					}
+//				}
+//			});
+//
+//			copies = new TextField($("LabelsButton.numberOfCopies"));
+//			copies.setConverter(Integer.class);
+//
+//			return new BaseForm<LabelParametersVO>(
+//					new LabelParametersVO(labelTemplates.get(0)), this, labelConfiguration, startPosition,
+//					copies) {
+//				@Override
+//				protected void saveButtonClick(LabelParametersVO parameters)
+//						throws ValidationException {
+//					LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+//							selector.getSelectedRecordIds(),
+//							parameters.getLabelConfiguration(),
+//							parameters.getStartPosition(),
+//							parameters.getNumberOfCopies());
+//
+//					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
+//							labelsReportFactory.getFilename(null)));
+//				}
+//
+//				@Override
+//				protected void cancelButtonClick(LabelParametersVO parameters) {
+//					getWindow().close();
+//				}
+//			};
+//		}
+//	}
 
 	@Override
 	public void setBorrowedMessage(String borrowedMessage) {

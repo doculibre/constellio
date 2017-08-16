@@ -5,6 +5,8 @@ import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copy
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.DocumentCopyRetentionRuleDependencyFieldImpl;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.FolderCopyRetentionruleDependencyFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -24,11 +26,13 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		implements RecordWithCopyRetentionRuleParametersFields {
 	static final private List<String> folderSpecificFieldsMetadataLocaleCodes = Arrays
 			.asList(Folder.RETENTION_RULE_ENTERED, Folder.MAIN_COPY_RULE_ID_ENTERED
-					, Folder.COPY_STATUS);
+					, Folder.COPY_STATUS_ENTERED);
 	static final private List<String> documentSpecificMetadataLocaleCodes = Arrays
 			.asList(Document.FOLDER, Document.MAIN_COPY_RULE_ID_ENTERED);
 
 	private FolderCopyRetentionruleDependencyFieldImpl folderCopyRetentionRuleDependencyField;
+
+	private FolderCopyStatusEnteredFieldImpl folderCopyStatusEnteredField;
 
 	private DocumentCopyRetentionRuleDependencyFieldImpl documentCopyRetentionRuleDependencyField;
 
@@ -95,6 +99,7 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 			folderCopyRetentionRuleDependencyField = new FolderCopyRetentionruleDependencyFieldImpl(
 					presenter.fields.getSessionContext().getCurrentCollection());
 			copyRetentionRuleField = new CopyRetentionRuleFieldImpl();
+			folderCopyStatusEnteredField = new FolderCopyStatusEnteredFieldImpl();
 			presenter.rmFieldsCreated();
 			if (StringUtils.isNotBlank(recordIdThatCopyRetentionRuleDependantOn)) {
 				folderCopyRetentionRuleDependencyField.setFieldValue(recordIdThatCopyRetentionRuleDependantOn);
@@ -104,6 +109,8 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		}
 		if (Folder.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
 			field = copyRetentionRuleField;
+		} else if(Folder.COPY_STATUS_ENTERED.equals(metadataVO.getLocalCode())) {
+			field = folderCopyStatusEnteredField;
 		} else {
 			field = folderCopyRetentionRuleDependencyField;
 		}
@@ -131,6 +138,17 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		}
 	}
 
+//	@Override
+//	public CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField() {
+//		if (schemaType.equals(Folder.SCHEMA_TYPE)) {
+//			return folderCopyRetentionRuleDependencyField;
+//		} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
+//			return documentCopyRetentionRuleDependencyField;
+//		} else {
+//			throw new RuntimeException("Unsupported for record type " + schemaType);
+//		}
+//	}
+
 	@Override
 	public CopyRetentionRuleField getCopyRetentionRuleField() {
 		return copyRetentionRuleField;
@@ -154,6 +172,10 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	@Override
 	public String getType() {
 		return selectedTypeId;
+	}
+
+	public FolderCopyStatusEnteredFieldImpl getFolderCopyStatusEnteredField() {
+		return folderCopyStatusEnteredField;
 	}
 }
 

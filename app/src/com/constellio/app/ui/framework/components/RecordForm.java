@@ -1,5 +1,13 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -8,18 +16,11 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Field;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
 @SuppressWarnings("serial")
 public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public static final String STYLE_FIELD = "metadata-field";
-	
+
 	private RecordFieldFactory formFieldFactory;
 
 	public RecordForm(RecordVO record) {
@@ -30,7 +31,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		this(recordVO, new RecordFieldFactory(metadataFieldFactory));
 	}
 
-	public RecordForm(final RecordVO recordVO, List<FieldAndPropertyId> fieldsAndPropertyIds, RecordFieldFactory formFieldFactory) {
+	public RecordForm(final RecordVO recordVO, List<FieldAndPropertyId> fieldsAndPropertyIds,
+			RecordFieldFactory formFieldFactory) {
 		super(recordVO, fieldsAndPropertyIds);
 		this.formFieldFactory = formFieldFactory;
 	}
@@ -44,7 +46,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
-			if (field != null) {
+			if (field != null && isVisibleField(metadataVO, recordVO)) {
 				field.addStyleName(STYLE_FIELD);
 				field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
 				fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
@@ -52,7 +54,13 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 		return fieldsAndPropertyIds;
 	}
-	
+
+	private static boolean isVisibleField(MetadataVO metadataVO, RecordVO recordVO) {
+		return ConstellioFactories.getInstance().getAppLayerFactory().getExtensions()
+				.forCollection(recordVO.getSchema().getCollection())
+				.isMetadataEnabledInRecordForm(recordVO, metadataVO);
+	}
+
 	protected RecordFieldFactory getFormFieldFactory() {
 		return formFieldFactory;
 	}
@@ -104,7 +112,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			Object metadataCode = validationError.getParameters()
 					.get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
 			if (metadataCode != null) {
-				MetadataVO metadata = viewObject.getMetadataOrNull((String)metadataCode);
+				MetadataVO metadata = viewObject.getMetadataOrNull((String) metadataCode);
 				if (metadata != null) {
 					Field<?> field = getField(metadata);
 					if (field != null) {

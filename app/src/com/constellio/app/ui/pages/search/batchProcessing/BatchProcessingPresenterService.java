@@ -199,7 +199,7 @@ public class BatchProcessingPresenterService {
 							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
 							AllowedReferences allowedReferences, boolean enabled,
 							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							String inputMask) {
+							String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -217,7 +217,7 @@ public class BatchProcessingPresenterService {
 										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
 										allowedReferences,
 										enabled,
-										structureFactory, metadataGroup, defaultValue, inputMask) :
+										structureFactory, metadataGroup, defaultValue, inputMask, customAttributes) :
 								null;
 					}
 				};
@@ -250,9 +250,9 @@ public class BatchProcessingPresenterService {
 			String username, String title)
 			throws RecordServicesException {
 
-//		System.out.println("**************** EXECUTE ****************");
-//		System.out.println("ACTION : ");
-//		System.out.println(action);
+		//		System.out.println("**************** EXECUTE ****************");
+		//		System.out.println("ACTION : ");
+		//		System.out.println(action);
 		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 
@@ -305,7 +305,7 @@ public class BatchProcessingPresenterService {
 							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
 							AllowedReferences allowedReferences, boolean enabled,
 							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							String inputMask) {
+							String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -316,7 +316,7 @@ public class BatchProcessingPresenterService {
 						// Default value is always null
 						required = false;
 						defaultValue = null;
-//						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
+						//						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
 						Map<String, List<FacetValue>> fieldFacetValues = searchServices
 								.query(query.addFieldFacet("schema_s").setNumberOfRows(0)).getFieldFacetValues();
 						for (FacetValue facetValue : fieldFacetValues.get("schema_s")) {
@@ -337,7 +337,7 @@ public class BatchProcessingPresenterService {
 								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
 								allowedReferences,
 								enabled,
-								structureFactory, metadataGroup, defaultValue, inputMask);
+								structureFactory, metadataGroup, defaultValue, inputMask, customAttributes );
 					}
 				};
 			}
@@ -366,9 +366,9 @@ public class BatchProcessingPresenterService {
 			String username, String title)
 			throws RecordServicesException {
 
-//		System.out.println("**************** EXECUTE ****************");
-//		System.out.println("ACTION : ");
-//		System.out.println(action);
+		//		System.out.println("**************** EXECUTE ****************");
+		//		System.out.println("ACTION : ");
+		//		System.out.println(action);
 		List<Transaction> transactionList = prepareTransactions(request, true);
 
 		for (Transaction transaction : transactionList) {

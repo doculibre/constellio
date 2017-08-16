@@ -11,10 +11,17 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 
 	ModelLayerFactory modelLayerFactory;
 
-	Map<String, RecordsCache> collectionsCache = new HashMap<>();
+	protected Map<String, RecordsCache> collectionsCache = new HashMap<>();
+
+	RecordsCaches nested;
 
 	public RecordsCachesMemoryImpl(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	public RecordsCachesMemoryImpl(ModelLayerFactory modelLayerFactory, RecordsCaches nested) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.nested = nested;
 	}
 
 	public RecordsCache getCache(String collection) {
@@ -59,14 +66,22 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		cache.insert(records);
 	}
 
-	public void insert(Record record) {
+	public CacheInsertionStatus insert(Record record) {
 		RecordsCache cache = getCache(record.getCollection());
-		cache.insert(record);
+		return cache.insert(record);
 	}
 
 	public Record getRecord(String id) {
 		for (RecordsCache cache : collectionsCache.values()) {
 			Record record = cache.get(id);
+			if (record != null) {
+				onCacheHit(record);
+				return record;
+			}
+		}
+
+		if (nested != null) {
+			Record record = nested.getRecord(id);
 			if (record != null) {
 				onCacheHit(record);
 				return record;

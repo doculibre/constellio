@@ -213,15 +213,17 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
 		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				AuthorizationVO authorization = (AuthorizationVO) itemId;
-				EditAuthorizationButton button = new EditAuthorizationButton(authorization);
-				button.setVisible(inherited || !authorization.isSynched());
-				return button;
-			}
-		});
+		if(canEditAuthorizations()) {
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					AuthorizationVO authorization = (AuthorizationVO) itemId;
+					EditAuthorizationButton button = new EditAuthorizationButton(authorization);
+					button.setVisible(inherited || !authorization.isSynched());
+					return button;
+				}
+			});
+		}
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -480,5 +482,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			label.setDescription(StringUtils.join(roleTitles, ", "));
 			return label;
 		}
+	}
+
+	protected boolean canEditAuthorizations() {
+		return true;
 	}
 }

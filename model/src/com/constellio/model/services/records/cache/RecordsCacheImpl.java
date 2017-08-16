@@ -1,5 +1,8 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
+import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -49,6 +53,8 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	ModelLayerFactory modelLayerFactory;
 	SearchServices searchServices;
+
+	Set<String> doNotLog = new HashSet<>();
 
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -210,7 +216,15 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record forceInsert(Record insertedRecord) {
+	public CacheInsertionStatus forceInsert(Record insertedRecord) {
+
+		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+			if (!insertedRecord.getSchemaCode().startsWith("event")
+					&& !doNotLog.contains(insertedRecord.getId() + "_" + insertedRecord.getVersion())) {
+				new Exception("inserting in central cache " + insertedRecord.getIdTitle() + " in version "
+						+ insertedRecord.getVersion()).printStackTrace();
+			}
+		}
 
 		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 
@@ -218,15 +232,22 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
-				synchronized (this) {
-					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);RecordHolder holder = cacheById.get(recordCopy.getId());
-					if (holder != null) {
-						previousRecord = holder.record;
+			synchronized (this) {
+				modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);
+				RecordHolder holder = cacheById.get(recordCopy.getId());
+				if (holder != null) {
+					previousRecord = holder.record;
 
-					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
-					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
-							.getVersion())) {
-						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+					if (previousRecord == null || previousRecord.getVersion() < recordCopy.getVersion()) {
+						if (cacheConfig.isVolatile()) {
+							insertRecordIntoAnAlreadyExistingVolatileCacheHolder(recordCopy, cacheConfig, holder);
+						}
+						holder.set(recordCopy);
+						if (cacheConfig.isPermanent()) {
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+						}
+					} else {
+						return REFUSED_OLD_VERSION;
 					}
 				} else {
 					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
@@ -238,22 +259,23 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 
 		}
-		return insertedRecord;
+		return ACCEPTED;
 	}
 
 	@Override
-	public Record insert(Record insertedRecord) {
+	public CacheInsertionStatus insert(Record insertedRecord) {
 
-		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {
-			return insertedRecord;
-		}
+		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord);
 
-		if (!insertedRecord.isFullyLoaded()) {
+		if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
 			invalidate(insertedRecord.getId());
-			return insertedRecord;
 		}
 
-		return forceInsert(insertedRecord);
+		if (status == ACCEPTED) {
+			return forceInsert(insertedRecord);
+		} else {
+			return status;
+		}
 	}
 
 	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig) {
@@ -271,14 +293,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		return holder;
 	}
 
-	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder) {
-		if (currentHolder.record == null && cacheConfig.isVolatile()) {
+	private void insertRecordIntoAnAlreadyExistingVolatileCacheHolder(Record record, CacheConfig cacheConfig,
+			RecordHolder currentHolder) {
+		if (currentHolder.record == null) {
 			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
 			cache.releaseFor(1);
 			cache.insert(currentHolder);
 		}
 
-		currentHolder.set(record);
 	}
 
 	@Override

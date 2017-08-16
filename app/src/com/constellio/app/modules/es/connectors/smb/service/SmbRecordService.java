@@ -1,6 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.*;
@@ -88,34 +87,6 @@ public class SmbRecordService {
 		return folder;
 	}
 
-	public List<String> getRecordsWithDifferentTraversalCode() {
-		List<String> recordsToDelete = new ArrayList<>();
-
-		for (Iterator<String> documentIterator = getDocumentUrlsToDelete(); documentIterator.hasNext(); ) {
-			recordsToDelete.add(documentIterator.next());
-		}
-
-		for (Iterator<String> folderIterator = getFolderUrlsToDelete(); folderIterator.hasNext(); ) {
-			recordsToDelete.add(folderIterator.next());
-		}
-
-		return recordsToDelete;
-	}
-
-	private Iterator<String> getDocumentUrlsToDelete() {
-		return es.getUrlsIterator(new LogicalSearchQuery(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
-				.andWhere(es.connectorDocument.traversalCode())
-				.isNotEqual(connectorInstance.getTraversalCode())));
-
-	}
-
-	private Iterator<String> getFolderUrlsToDelete() {
-		return es.getUrlsIterator(new LogicalSearchQuery(from(es.connectorSmbDocument.schemaType())
-				.where(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
-						.andWhere(es.connectorDocument.traversalCode())
-						.isNotEqual(connectorInstance.getTraversalCode()))));
-	}
-
 	public ConnectorSmbFolder getFolder(String url) {
 		if (StringUtils.isBlank(url)) {
 			return null;
@@ -167,6 +138,25 @@ public class SmbRecordService {
 		for (FacetValue facetValue : response.getFieldFacetValues(Schemas.URL.getDataStoreCode())) {
 			urls.add(facetValue.getValue());
 		}
+
+		return urls;
+	}
+
+	public Set<String> misplacedUrls() {
+		List<String> seeds = connectorInstance.getSeeds();
+
+		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId())
+			.andWhere(Schemas.PARENT_PATH).is("/" + ESTaxonomies.SMB_FOLDERS))
+			.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL))
+			.setNumberOfRows(10_000);
+
+		Set<String> urls = new HashSet<>();
+		SPEQueryResponse response = es.getAppLayerFactory().getModelLayerFactory().newSearchServices().query(query);
+		for (Record record : response.getRecords()) {
+			urls.add(record.get(Schemas.URL).toString());
+		}
+
+		urls.removeAll(seeds);
 
 		return urls;
 	}

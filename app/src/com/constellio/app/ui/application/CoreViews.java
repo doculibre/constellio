@@ -351,6 +351,28 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void managePrintableReport() {
+		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_MANAGE);
+	}
+
+	public void addPrintableReport() {
+		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_ADD);
+	}
+
+	public void editPrintableReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.PRINTABLE_REPORT_ADD, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void displayPrintableReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.PRINTABLE_REPORT_VIEW, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void manageLabels() {
 		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
 	}

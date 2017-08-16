@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -22,15 +13,18 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class MetadataSchemaXMLReader1 {
 
@@ -45,7 +39,7 @@ public class MetadataSchemaXMLReader1 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French));
+				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French, Language.English));
 
 		for (Element schemaTypeElement : rootElement.getChildren("schemaType")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);

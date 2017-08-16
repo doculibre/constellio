@@ -173,14 +173,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public ContainerRecordReportParameters getReportParameters(String report) {
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 
-		return new ContainerRecordReportParameters(containerId,
-				record.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
+		return new ContainerRecordReportParameters(containerId, record.getDecommissioningType());
 	}
 
 	public boolean canPrintReports() {
-		if (!searchServices().hasResults(getFoldersQuery())) {
-			return false;
-		}
 		try {
 			getReport("");
 		} catch (RuntimeException e) {

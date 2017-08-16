@@ -2,14 +2,15 @@ package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.google.gwt.dom.client.Style;
 
 @SuppressWarnings("serial")
 public class FormMetadataVO implements Serializable {
@@ -35,12 +36,16 @@ public class FormMetadataVO implements Serializable {
 	String inputMask;
 	String currentLanguageCode;
 	boolean duplicable;
+	Set<String> customAttributes;
+	FormMetadataVO inheritance;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
-						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
-						  boolean facet,
-						  MetadataInputType input, MetadataDisplayType displayType, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup,
-						  Object defaultValue, String inputMask, boolean duplicable, SessionContext sessionContext) {
+			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
+			boolean facet,
+			MetadataInputType input, MetadataDisplayType displayType, boolean highlight, boolean autocomplete, boolean enabled,
+			String metadataGroup,
+			Object defaultValue, String inputMask, boolean duplicable, Set<String> customAttributes,
+			SessionContext sessionContext) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -67,6 +72,8 @@ public class FormMetadataVO implements Serializable {
 		this.inputMask = inputMask;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = duplicable;
+		this.customAttributes = new HashSet<>(customAttributes);
+		this.inheritance = null;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -92,6 +99,8 @@ public class FormMetadataVO implements Serializable {
 		this.inputMask = "";
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 		this.duplicable = false;
+		this.customAttributes = new HashSet<>();
+		this.inheritance = null;
 	}
 
 	public String getCode() {
@@ -121,6 +130,7 @@ public class FormMetadataVO implements Serializable {
 	public boolean isFacet() {
 		return facet;
 	}
+
 
 	public String getReference() {
 		return reference;
@@ -156,6 +166,18 @@ public class FormMetadataVO implements Serializable {
 
 	public boolean isEnabled() {
 		return enabled;
+	}
+
+	public FormMetadataVO getInheritance() {
+		return this.inheritance;
+	}
+
+	public boolean isInheritance() {
+		return this.getInheritance() != null;
+	}
+
+	public void setInheritance(FormMetadataVO inheritance) {
+		this.inheritance = inheritance;
 	}
 
 	public Map<String, String> getLabels() {
@@ -262,6 +284,24 @@ public class FormMetadataVO implements Serializable {
 		this.duplicable = duplicable;
 	}
 
+	public Set<String> getCustomAttributes() {
+		return customAttributes;
+	}
+
+	public FormMetadataVO setCustomAttributes(Set<String> customAttributes) {
+		this.customAttributes = customAttributes;
+		return this;
+	}
+
+	public void addCustomAttribute(String attribute) {
+		customAttributes.add(attribute);
+	}
+
+	public void removeCustomAttribute(String attribute) {
+		customAttributes.remove(attribute);
+	}
+
+
 	/*public boolean getDuplicable() {
 		return duplicable;
 	}
@@ -270,7 +310,7 @@ public class FormMetadataVO implements Serializable {
         this.duplicable = duplicable;
     }*/
 
-    @Override
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

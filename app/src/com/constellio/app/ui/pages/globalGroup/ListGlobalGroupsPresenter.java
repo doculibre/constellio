@@ -101,4 +101,8 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
 	}
+
+	public boolean isSystemAdmin() {
+		return userServices.isSystemAdmin(getCurrentUser());
+	}
 }

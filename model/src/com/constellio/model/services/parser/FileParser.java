@@ -124,7 +124,8 @@ public class FileParser {
 		}
 	}
 
-	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage) throws FileParserException {
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
+			throws FileParserException {
 
 		Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
 		Pattern patternForSpaceAndReturn = Pattern.compile("((\\n{3,})|( ){2,})|(\\t)");
@@ -209,7 +210,9 @@ public class FileParser {
 		}
 	}
 
-	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage) throws FileParserException {
+	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
+			boolean detectLanguage)
+			throws FileParserException {
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
 				.getValue(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS);
@@ -358,7 +361,7 @@ public class FileParser {
 		KeyListMap<String, String> styles = new KeyListMap<>();
 
 		POIFSFileSystem fis = new POIFSFileSystem(inputStream);
-		
+
 		HWPFDocumentCore wdDoc;
 		try {
 			wdDoc = new HWPFDocument(fis);
@@ -369,7 +372,7 @@ public class FileParser {
 		StyleSheet styleSheet = wdDoc.getStyleSheet();
 		if (styleSheet != null) {
 			Range range = wdDoc.getRange();
-			
+
 			int parasSize = range.numParagraphs();
 			int maxPara = 20;
 			if (range.numParagraphs() > maxPara) {
@@ -377,7 +380,7 @@ public class FileParser {
 			}
 			for (int i = 0; i < parasSize; i++) {
 				Paragraph p = range.getParagraph(i);
-	
+
 				short styleIndex = p.getStyleIndex();
 				StyleDescription style = styleSheet.getStyleDescription(styleIndex);
 				String styleName = style.getName();
@@ -439,6 +442,13 @@ public class FileParser {
 
 	public String detectMimetype(StreamFactory<InputStream> inputStreamFactory, String fileName)
 			throws FileParserException {
+
+		if (fileName != null) {
+			String lcFilename = fileName.toLowerCase();
+			if (lcFilename.endsWith(".odt")) {
+				return "application/vnd.oasis.opendocument.text";
+			}
+		}
 
 		InputStream inputStream = null;
 		try {

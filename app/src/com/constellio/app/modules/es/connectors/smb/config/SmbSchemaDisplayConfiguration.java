@@ -135,5 +135,6 @@ public class SmbSchemaDisplayConfiguration {
 		}
 
 		return newSchema;
+
 	}
 }

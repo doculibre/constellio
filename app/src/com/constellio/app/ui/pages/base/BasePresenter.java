@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Observable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -44,7 +46,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 
 @SuppressWarnings("serial")
-public abstract class BasePresenter<T extends BaseView> implements Serializable {
+public abstract class BasePresenter<T extends BaseView> extends Observable implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BasePresenter.class);
 	protected final T view;
 	protected final String collection;
@@ -63,7 +65,6 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 
 	public BasePresenter(final T view, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		this.view = view;
-		LOGGER.info("Building presenter " + getClass().getName());
 		view.addViewEnterListener(new ViewEnterListener() {
 			@Override
 			public void viewEntered(String params) {
@@ -272,9 +273,8 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		return rmModuleExtensions.getReportBuilderFactories();
 	}
 
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
-			final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
-		return presenterUtils.uploadContent(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
+		return presenterUtils.uploadContent(inputStream, options);
 	}
 
 	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {

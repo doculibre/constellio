@@ -9,14 +9,22 @@ import com.constellio.app.services.importExport.records.writers.ImportRecordOfSa
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.conf.ContentDaoType;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.*;
+import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -24,10 +32,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.io.IOException;
+import java.io.IOException;
+import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -56,13 +63,25 @@ public class RecordExportServices {
 
 		try {
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
+			StringBuilder contentPaths = new StringBuilder();
 			try {
-				writeRecords(collection, writer, options);
+				writeRecords(collection, writer, options, contentPaths);
 			} finally {
 				writer.close();
 			}
 
 			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
+
+			String contentPathString = contentPaths.toString();
+			if(!contentPathString.isEmpty()) {
+				File file = new File(tempFolder, "contentPaths.txt");
+				try {
+					ioServices.appendFileContent(file, contentPathString);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
 				throw new ExportServicesRuntimeException_NoRecords();
 			}
@@ -73,30 +92,6 @@ public class RecordExportServices {
 			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(collection, e);
 		}
 
-	}
-
-	public File exportRecords(String collection, String resourceKey, RecordExportOptions options, List<String> ids) {
-
-		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
-
-		try {
-			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
-			try {
-				writeRecords(collection, writer, options, ids);
-			} finally {
-				writer.close();
-			}
-
-			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
-			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
-				throw new ExportServicesRuntimeException_NoRecords();
-			}
-			zipService.zip(tempZipFile, asList(tempFolder.listFiles()));
-			return tempZipFile;
-
-		} catch (ZipServiceException e) {
-			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(collection, e);
-		}
 	}
 
 	public File exportRecords(String collection, String resourceKey, RecordExportOptions options, Iterator<Record> records) {
@@ -105,13 +100,25 @@ public class RecordExportServices {
 
 		try {
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
+			StringBuilder contentPaths = new StringBuilder();
 			try {
-				writeRecords(collection, writer, options, records);
+				writeRecords(collection, writer, options, records, contentPaths);
 			} finally {
 				writer.close();
 			}
 
 			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
+
+			String contentPathString = contentPaths.toString();
+			if(!contentPathString.isEmpty()) {
+				File file = new File(tempFolder, "contentPaths.txt");
+				try {
+					ioServices.appendFileContent(file, contentPathString);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
 				throw new ExportServicesRuntimeException_NoRecords();
 			}
@@ -136,7 +143,7 @@ public class RecordExportServices {
 		return isSchemaCodePresent;
 	}
 
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, List<String> recordsToExport) {
+	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, List<String> recordsToExport, StringBuilder contentPaths) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
@@ -175,7 +182,7 @@ public class RecordExportServices {
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
 						record.getId(), metadataSchema.getLocalCode());
 
-				writeRecord(collection, record, modifiableImportRecord, options);
+				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 				appLayerFactory.getExtensions().forCollection(collection)
 						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
@@ -185,7 +192,7 @@ public class RecordExportServices {
 		}
 	}
 
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, Iterator<Record> recordsToExport) {
+	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, Iterator<Record> recordsToExport, StringBuilder contentPaths) {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 
@@ -214,7 +221,7 @@ public class RecordExportServices {
 
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-			writeRecord(collection, record, modifiableImportRecord, options);
+			writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 			appLayerFactory.getExtensions().forCollection(collection)
 					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
@@ -223,7 +230,7 @@ public class RecordExportServices {
 		}
 	}
 
-	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
+	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, StringBuilder contentPaths) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
@@ -263,7 +270,7 @@ public class RecordExportServices {
 
 				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-				writeRecord(collection, record, modifiableImportRecord, options);
+				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 				appLayerFactory.getExtensions().forCollection(collection)
 						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
@@ -273,7 +280,7 @@ public class RecordExportServices {
 		}
 	}
 
-	private void writeRecord(String collection, Record record, ModifiableImportRecord modifiableImportRecord, RecordExportOptions options) {
+	private void writeRecord(String collection, Record record, ModifiableImportRecord modifiableImportRecord, RecordExportOptions options, StringBuilder contentPaths) {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 		MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
@@ -326,8 +333,42 @@ public class RecordExportServices {
 					manageEmailAddressFactory(record, metadata, modifiableImportRecord);
 				}
 			}
+			if(metadata.getType() == MetadataValueType.CONTENT) {
+				DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+				DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
+
+				Object contentMetadataValue = record.get(metadata);
+				if(contentMetadataValue instanceof Content) {
+					Content content = (Content) contentMetadataValue;
+					writeContentPath(content, contentPaths);
+				} else if(contentMetadataValue instanceof java.util.Collection) {
+					Iterator iterator = ((Collection) contentMetadataValue).iterator();
+					while(iterator.hasNext()) {
+						writeContentPath((Content) iterator.next(), contentPaths);
+					}
+				}
+			}
 		}
 	}
+
+	private void writeContentPath(Content content, StringBuilder contentPaths) {
+		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
+		if(content != null) {
+			List<ContentVersion> versions = content.getVersions();
+			for(ContentVersion version: versions) {
+				String systemFilePath = "";
+				if (conf.getContentDaoType() == ContentDaoType.FILESYSTEM) {
+					systemFilePath = ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf(version.getHash()).getAbsolutePath();
+				} else {
+					systemFilePath = "Unsupported";
+				}
+				contentPaths.append(systemFilePath);
+				contentPaths.append("\n");
+			}
+		}
+	}
+
 
 	private void manageMapStringListStringStructureFactory(Record record, Metadata metadata,ModifiableImportRecord modifiableImportRecord) {
 		List<MapStringListStringStructure> mapStringListStructureList;
@@ -465,8 +506,8 @@ public class RecordExportServices {
 		}
 	}
 
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
-		writeRecordSchema(collection, writer, options);
+	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options, StringBuilder contentPaths) {
+		writeRecordSchema(collection, writer, options, contentPaths);
 	}
 
 }

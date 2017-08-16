@@ -2,10 +2,12 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
@@ -44,11 +46,20 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 	private Layout buildOwnedCartsTab() {
 		VerticalLayout tabLayout = new VerticalLayout();
 		tabLayout.setCaption($("CartView.ownedCarts"));
-		Button addButton = new WindowButton($("add"),$("CartsListView.creatingCart")) {
+		Button addButton = new WindowButton($("add"), $("CartsListView.creatingCart")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
 				final BaseTextField titleField = new BaseTextField($("CartsListView.cartTitleField"));
+				titleField.focus();
+				new OnEnterKeyHandler() {
+					@Override
+					public void onEnterKeyPressed() {
+						presenter.saveButtonClicked(titleField.getValue());
+						getWindow().close();
+					}
+				}.installOn(titleField);
+				
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {

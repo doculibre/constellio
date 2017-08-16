@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
@@ -45,6 +46,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			if (reindexingRequired) {
 				view.showMessage($("ConfigManagementView.reindexationNeeded"));
 				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+				ConstellioUI.getCurrent().updateContent();
 			} else {
 				view.showMessage($("ConfigManagementView.saved"));
 			}

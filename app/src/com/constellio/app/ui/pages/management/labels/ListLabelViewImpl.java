@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.model.entities.modules.Module;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.modules.reports.wrapper.Printable;
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.LabelVO;
@@ -47,7 +47,6 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     private AddEditLabelPresenter presenter;
     private Component folderDisplay, containerDisplay;
     private VerticalLayout mainLayout;
-    private ReportUtils ru;
     private Button addLabelButton, downloadTemplateButton;
     private String currentSchema;
     final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this);
@@ -72,8 +71,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 //        folderDisplay.setWidth("100%");
 //        containerDisplay.setWidth("100%");
         final SchemaTypeVODataProvider dataProvider = presenter.getDataProvider();
-        ru = new ReportUtils(getSessionContext().getCurrentCollection(), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentUser().getUsername());
-        Container folderContainer = new RecordVOLazyContainer(presenter.getLabelFolderDataProvider());
+       Container folderContainer = new RecordVOLazyContainer(presenter.getLabelFolderDataProvider());
         Container conteneurContainer = new RecordVOLazyContainer(presenter.getLabelContainerDataProvider());
         ButtonsContainer buttonsContainerForFolder = new ButtonsContainer(folderContainer, "buttons");
         buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
@@ -265,7 +263,8 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
             public InputStream getStream() {
                 InputStream stream = null;
                 try {
-                    File file = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_Etiquette.zip");
+                    File extensionFile = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).changeDownloadableTemplate();
+                    File file = extensionFile != null ? extensionFile : new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_Etiquette.zip");
                     stream = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
                 } catch (IOException e) {
                     e.printStackTrace();

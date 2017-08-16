@@ -1,9 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
+import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.google.common.collect.EvictingQueue;
+import com.google.common.collect.Queues;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
@@ -16,21 +19,22 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 
 import javax.activation.MimetypesFileTypeMap;
+import java.util.Queue;
 
 public class SmbDocumentOrFolderUpdater {
+
 	private final ConnectorSmbInstance connectorInstance;
 	private SmbRecordService smbRecordService;
+	private Queue lastDocuments;
 
 	public SmbDocumentOrFolderUpdater(ConnectorSmbInstance connectorInstance, SmbRecordService smbRecordService) {
 		this.connectorInstance = connectorInstance;
 		this.smbRecordService = smbRecordService;
-	}
-
-	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentId) {
-		updateDocumentOrFolder(smbFileDTO, documentOrFolder, parentId, false);
+		lastDocuments = Queues.synchronizedQueue(EvictingQueue.create(ConnectorSmb.MAX_JOBS_PER_GET_JOBS_CALL));
 	}
 
 	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentId, boolean seed) {
+		lastDocuments.add(smbFileDTO.getUrl());
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
 			updateFullDocumentDTO(smbFileDTO, smbDocument, parentId);
@@ -40,6 +44,10 @@ public class SmbDocumentOrFolderUpdater {
 				updateFullFolderDTO(smbFileDTO, smbFolder, parentId, seed);
 			}
 		}
+	}
+
+	public boolean recentlyUpdated(String url) {
+		return lastDocuments.contains(url);
 	}
 
 	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {

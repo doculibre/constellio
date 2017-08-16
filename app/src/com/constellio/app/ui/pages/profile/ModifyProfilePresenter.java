@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.home.HomeView;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.SolrUserCredential;
@@ -63,6 +64,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         user.setJobTitle(profileVO.getJobTitle());
         user.setAddress(profileVO.getAddress());
         user.setFax(profileVO.getFax());
+        user.setDefaultPageLength(profileVO.getDefaultPageLength());
         if (profileVO.getStartTab() == null) {
             user.setStartTab(getDefaultStartTab());
         } else {
@@ -201,21 +203,23 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         AgentStatus agentStatus = userCredentials.getAgentStatus();
         boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 
+        SearchPageLength defaultPageLength = user.getDefaultPageLength();
+
         ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, agentManuallyDisabled, defaultAdministrativeUnit);
+                defaultTaxonomy, agentManuallyDisabled, defaultAdministrativeUnit, defaultPageLength);
         profileVO.setLoginLanguageCode(loginLanguage);
         return profileVO;
     }
 
     ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit) {
+                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit, SearchPageLength defaultPageLength) {
         String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
         }
 
         return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, null, null, null, agentManuallyDisabled, defaultAdministrativeUnit);
+                defaultTaxonomy, defaultPageLength, null, null, null, agentManuallyDisabled, defaultAdministrativeUnit);
     }
 
     public void cancelButtonClicked() {

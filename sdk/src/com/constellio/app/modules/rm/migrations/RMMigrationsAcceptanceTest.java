@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.reports.wrapper.Printable;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;

@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -26,6 +27,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -77,7 +79,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
-			publicLinkButton;
+			publicLinkButton, reportGeneratorButton;
 	
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
@@ -294,7 +296,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		addToCartButton = buildAddToCartButton();
 		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -347,6 +349,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 
 		actionMenuButtons.add(copyContentButton);
+
+		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT,  getDocumentVO());
 
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
@@ -490,7 +494,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
-
+		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 

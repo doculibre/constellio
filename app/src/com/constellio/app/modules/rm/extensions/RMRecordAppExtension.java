@@ -41,6 +41,9 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		String resourceKey = null;
 		String extension = null;
 		RecordVO recordVO = params.getBuiltRecordVO();
+		if (recordVO.getExtension() != null) {
+			return;
+		}
 
 		String schemaCode = recordVO.getSchema().getCode();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);

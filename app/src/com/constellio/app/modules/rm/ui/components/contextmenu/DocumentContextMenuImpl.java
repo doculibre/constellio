@@ -29,6 +29,7 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuIte
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
@@ -285,6 +286,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	@Override
 	public SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
+	}
+
+	@Override
+	public UIContext getUIContext() {
+		return ConstellioUI.getCurrent();
 	}
 
 	@Override

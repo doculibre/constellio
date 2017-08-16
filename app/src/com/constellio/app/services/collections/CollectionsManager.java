@@ -1,13 +1,8 @@
 package com.constellio.app.services.collections;
 
-import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
-import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +43,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.SolrUserCredential;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
@@ -60,11 +52,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class CollectionsManager implements StatefulService {
 
@@ -207,8 +195,6 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
 		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
-		modelLayerFactory.getWorkflowsConfigManager().createCollectionWorkflows(code);
-		modelLayerFactory.getWorkflowExecutionIndexManager().createCollectionWorkflowsExecutionIndex(code);
 		modelLayerFactory.getSearchBoostManager().createCollectionSearchBoost(code);
 	}
 

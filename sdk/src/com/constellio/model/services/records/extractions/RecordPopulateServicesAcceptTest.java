@@ -1,5 +1,22 @@
 package com.constellio.model.services.records.extractions;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -9,15 +26,22 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataList;
@@ -34,20 +58,6 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.*;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
@@ -1332,6 +1342,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRobotsModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		admin = users.adminIn(zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -1341,25 +1352,34 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		robotsSchemas = new RobotSchemaRecordServices(zeCollection, getAppLayerFactory());
 
 		documentWithStylesAndProperties1 = contentManager
-				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties1.docx"), false, false,
-						"DocumentWithStylesAndProperties1.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties1.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithStylesAndProperties1.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties2 = contentManager
-				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties2.docx"), false, false,
-						"DocumentWithStylesAndProperties2.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties2.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithStylesAndProperties2.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties3 = contentManager
-				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties3.docx"), false, false,
-						"DocumentWithStylesAndProperties3.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties3.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithStylesAndProperties3.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties4 = contentManager
-				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties4.docx"), false, false,
-						"DocumentWithStylesAndProperties4.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties4.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithStylesAndProperties4.docx")).getContentVersionDataSummary();
 		documentWithEmptyStylesAndNoProperties = contentManager
-				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndNoProperties.docx"), false, false,
-						"DocumentWithEmptyStylesAndNoProperties.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndNoProperties.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithEmptyStylesAndNoProperties.docx"))
+				.getContentVersionDataSummary();
 		documentWithEmptyStylesAndProperties = contentManager
-				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndWithProperties.docx"), false, false,
-						"DocumentWithEmptyStylesAndWithProperties.docx").getContentVersionDataSummary();
-		onlyWithRegex = contentManager
-				.upload(getTestResourceInputStream("onlyWithRegex.docx"), false, false, "OnlyWithRegex.docx").getContentVersionDataSummary();
+				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndWithProperties.docx"),
+						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
+								.setFileName("DocumentWithEmptyStylesAndWithProperties.docx"))
+				.getContentVersionDataSummary();
+		onlyWithRegex = contentManager.upload(getTestResourceInputStream("onlyWithRegex.docx"),
+				new UploadOptions().setHandleDeletionOfUnreferencedHashes(false).setFileName("OnlyWithRegex.docx"))
+				.getContentVersionDataSummary();
 		documentWithStylesAndNoProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndNoProperties.docx"));
 		withoutStylesAndProperties = contentManager.upload(getTestResourceInputStream("withoutStylesAndProperties.docx"));

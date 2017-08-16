@@ -14,7 +14,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 
 public class DecisionsTasksCalculator implements MetadataValueCalculator<List<String>> {
-	LocalDependency<MapStringStringStructure> decisionsParams = LocalDependency.toAStructure(Task.NEXT_TASKS_DECISIONS);
+	LocalDependency<MapStringStringStructure> decisionsParams = LocalDependency.toAStructure(Task.BETA_NEXT_TASKS_DECISIONS);
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {

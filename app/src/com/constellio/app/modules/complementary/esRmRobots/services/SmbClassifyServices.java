@@ -1,5 +1,22 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyServicesRuntimeException.ClassifyServicesRuntimeException_CannotClassifyAsDocument;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
 import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeException;
@@ -25,6 +42,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.records.RecordServices;
@@ -32,17 +50,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class SmbClassifyServices {
 
@@ -115,7 +122,9 @@ public class SmbClassifyServices {
 			Content content;
 			if (StringUtils.isEmpty(versions)) {
 				InputStream inputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
+				UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+						.setHandleDeletionOfUnreferencedHashes(false);
+				newVersionDataSummary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 				//Content content;
 				if (majorVersions) {
 					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
@@ -158,14 +167,15 @@ public class SmbClassifyServices {
 
 			if (e instanceof IcapException) {
 				if (e instanceof IcapException.ThreatFoundException) {
-					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+					exception = new IcapException(
+							$(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
 				} else {
-                    if (e.getCause() == null) {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
-                    } else {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
-                    }
-                }
+					if (e.getCause() == null) {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()));
+					} else {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+					}
+				}
 			}
 
 			if (newVersionDataSummary != null) {
@@ -184,8 +194,12 @@ public class SmbClassifyServices {
 
 			InputStream availableVersionInputStream = connectorUtilsServices
 					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
-			ContentVersionDataSummary contentVersionDataSummary = contentManager
-					.upload(availableVersionInputStream, false, true, connectorDocument.getTitle()).getContentVersionDataSummary();
+
+			UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+					.setHandleDeletionOfUnreferencedHashes(false);
+
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(availableVersionInputStream, options)
+					.getContentVersionDataSummary();
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();

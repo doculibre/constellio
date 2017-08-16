@@ -5,7 +5,6 @@ import java.io.Serializable;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -14,10 +13,10 @@ import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.viewGroups.TasksViewGroup;
-import com.constellio.app.modules.tasks.ui.pages.workflow.AddEditWorkflowViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.BetaAddEditWorkflowViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.BetaDisplayWorkflowViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.BetaListWorkflowsViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflowInstance.BetaDisplayWorkflowInstanceViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
@@ -54,13 +53,13 @@ public class TasksNavigationConfiguration implements Serializable {
         service.register(ADD_TASK, AddEditTaskViewImpl.class);
         service.register(EDIT_TASK, AddEditTaskViewImpl.class);
         service.register(DISPLAY_TASK, DisplayTaskViewImpl.class);
-        service.register(ADD_WORKFLOW, AddEditWorkflowViewImpl.class);
-        service.register(EDIT_WORKFLOW, AddEditWorkflowViewImpl.class);
-        service.register(DISPLAY_WORKFLOW, DisplayWorkflowViewImpl.class);
-        service.register(LIST_WORKFLOWS, ListWorkflowsViewImpl.class);
+        service.register(ADD_WORKFLOW, BetaAddEditWorkflowViewImpl.class);
+        service.register(EDIT_WORKFLOW, BetaAddEditWorkflowViewImpl.class);
+        service.register(DISPLAY_WORKFLOW, BetaDisplayWorkflowViewImpl.class);
+        service.register(LIST_WORKFLOWS, BetaListWorkflowsViewImpl.class);
         service.register(TASK_MANAGEMENT, TaskManagementViewImpl.class);
         service.register(LIST_TASKS_LOGS, TasksLogsViewImpl.class);
-        service.register(DISPLAY_WORKFLOW_INSTANCE, DisplayWorkflowInstanceViewImpl.class);
+        service.register(DISPLAY_WORKFLOW_INSTANCE, BetaDisplayWorkflowInstanceViewImpl.class);
     }
 
     private static void configureHeaderActionMenu(NavigationConfig config) {

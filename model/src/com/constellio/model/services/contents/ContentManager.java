@@ -1,16 +1,21 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -50,6 +55,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -58,6 +64,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotSaveContent;
@@ -70,6 +77,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -77,6 +85,8 @@ public class ContentManager implements StatefulService {
 
 	//TODO Increase this limit to 100
 	private static final int REPARSE_REINDEX_BATCH_SIZE = 1;
+
+	public static final String READ_FILE_TO_UPLOAD = "ContentManager-ReadFileToUpload";
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "ContentManager-ReadContentForPreviewConversion";
 
@@ -137,6 +147,7 @@ public class ContentManager implements StatefulService {
 						deleteUnreferencedContents();
 					}
 					convertPendingContentForPreview();
+					handleRecordsMarkedForParsing();
 				}
 			}
 		};
@@ -203,6 +214,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean doesFileExist(String hash) {
+		return getContentDao().isDocumentExisting(hash);
+	}
+
 	public ContentDao getContentDao() {
 		return modelLayerFactory.getDataLayerFactory().getContentsDao();
 	}
@@ -263,25 +278,35 @@ public class ContentManager implements StatefulService {
 		return new ParsedContentConverter().convertToString(parsingResults);
 	}
 
+	public ContentVersionDataSummary upload(File file)
+			throws FileNotFoundException {
+
+		InputStream inputStream = ioServices.newBufferedFileInputStream(file, READ_FILE_TO_UPLOAD);
+
+		try {
+			return upload(inputStream, new UploadOptions(file.getName())).getContentVersionDataSummary();
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
 	@Deprecated
 	public ContentVersionDataSummary upload(InputStream inputStream) {
-		return upload(inputStream, true, true, null).getContentVersionDataSummary();
+		return upload(inputStream, new UploadOptions()).getContentVersionDataSummary();
 	}
 
 	public ContentVersionDataSummaryResponse upload(InputStream inputStream, String filename) {
-		return upload(inputStream, true, true, filename);
-	}
-
-	public ContentVersionDataSummaryResponse upload(InputStream inputStream, boolean handleDeletionOfUnreferencedHashes,
-			boolean parse,
-			String fileName) {
-		return upload(inputStream, new UploadOptions(handleDeletionOfUnreferencedHashes, parse, false, fileName));
+		return upload(inputStream, new UploadOptions(filename));
 	}
 
 	public ContentVersionDataSummaryResponse upload(InputStream inputStream, UploadOptions uploadOptions) {
 		String fileName = uploadOptions.getFileName();
 		boolean handleDeletionOfUnreferencedHashes = uploadOptions.isHandleDeletionOfUnreferencedHashes();
-		boolean parse = uploadOptions.isParse();
+
+		boolean defaultParsing = modelLayerFactory.getSystemConfigs()
+				.getDefaultParsingBehavior() == SYNC_PARSING_FOR_ALL_CONTENTS;
+
+		boolean parse = uploadOptions.isParse(defaultParsing);
 
 		CopyInputStreamFactory closeableInputStreamFactory = ioServices.copyToReusableStreamFactory(
 				inputStream, fileName);
@@ -310,7 +335,9 @@ public class ContentManager implements StatefulService {
 				duplicate = parsedContentResponse.hasFoundDuplicate();
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
+				duplicate = doesFileExist(hash);
 			}
+
 			//saveContent(hash, closeableInputStreamFactory);
 			long length = closeableInputStreamFactory.length();
 			saveContent(hash, closeableInputStreamFactory);
@@ -337,7 +364,7 @@ public class ContentManager implements StatefulService {
 		try {
 			getParsedContent(hash);
 			return true;
-		} catch (ContentManagerRuntimeException_NoSuchContent e) {
+		} catch (ContentManagerException_ContentNotParsed e) {
 			return false;
 		}
 	}
@@ -351,7 +378,7 @@ public class ContentManager implements StatefulService {
 		try {
 			parsedContent = getParsedContent(hash);
 			response = new ParsedContentResponse(true, parsedContent);
-		} catch (ContentManagerRuntimeException_NoSuchContent e) {
+		} catch (ContentManagerException_ContentNotParsed e) {
 			parsedContent = parseAndSave(hash, inputStreamFactory);
 			response = new ParsedContentResponse(false, parsedContent);
 		}
@@ -449,7 +476,6 @@ public class ContentManager implements StatefulService {
 	public void uploadFilesInImportFolder() {
 		if (modelLayerFactory.getConfiguration().getContentImportThreadFolder() != null) {
 			new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
-
 		}
 	}
 
@@ -528,6 +554,70 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	public void handleRecordsMarkedForParsing() {
+		handleRecordsMarkedForParsing(RecordsFlushing.NOW());
+	}
+
+	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
+
+		Set<String> collections = getCollectionsWithFlag(Schemas.MARKED_FOR_PARSING);
+		for (String collection : collections) {
+			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PARSING).isTrue());
+			query.setNumberOfRows(50);
+
+			List<Record> records = searchServices.search(query);
+
+			Transaction tx = new Transaction();
+			tx.addAll(records);
+			for (Record record : records) {
+				MetadataSchema schema = types.getSchema(record.getSchemaCode());
+				for (Metadata metadata : schema.getContentMetadatasForPopulate()) {
+
+					for (Content content : record.<Content>getValues(metadata)) {
+						String hash = content.getCurrentVersion().getHash();
+						if (!isParsed(hash)) {
+							try {
+								parseAndSave(hash, getContentInputStreamFactory(hash));
+							} catch (IOException e) {
+								//TODO
+							}
+						}
+
+					}
+
+				}
+				record.set(Schemas.MARKED_FOR_PARSING, null);
+
+			}
+			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			tx.getRecordUpdateOptions().setFullRewrite(true);
+			try {
+				recordServices.execute(tx);
+			} catch (RecordServicesException e) {
+				//TODO
+				throw new RuntimeException(e);
+			}
+
+		}
+
+	}
+
+	private Set<String> getCollectionsWithFlag(Metadata... flags) {
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(fromEveryTypesOfEveryCollection().whereAny(flags).isTrue());
+		query.setNumberOfRows(0);
+		query.addFieldFacet("collection_s");
+
+		SPEQueryResponse response = searchServices.query(query);
+
+		Set<String> collections = new HashSet<>();
+		collections.addAll(response.getFieldFacetValuesWithResults("collection_s"));
+		return collections;
+	}
+
 	public void deleteUnreferencedContents() {
 		deleteUnreferencedContents(RecordsFlushing.NOW());
 	}
@@ -567,7 +657,7 @@ public class ContentManager implements StatefulService {
 	public ParsedContentResponse getParsedContentParsingIfNotYetDone(String hash) {
 		try {
 			return new ParsedContentResponse(true, getParsedContent(hash));
-		} catch (ContentManagerRuntimeException_NoSuchContent e) {
+		} catch (ContentManagerException_ContentNotParsed e) {
 			CloseableStreamFactory<InputStream> streamFactory = getContentInputStreamFactory(hash);
 			try {
 				return getPreviouslyParsedContentOrParseFromStream(hash, streamFactory);
@@ -577,7 +667,8 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public ParsedContent getParsedContent(String hash) {
+	public ParsedContent getParsedContent(String hash)
+			throws ContentManagerException_ContentNotParsed {
 		String parsedContent = null;
 
 		InputStream inputStream = null;
@@ -586,7 +677,7 @@ public class ContentManager implements StatefulService {
 			inputStream = getContentDao().getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
 			parsedContent = ioServices.readStreamToString(inputStream);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
-			throw new ContentManagerRuntimeException_NoSuchContent(hash);
+			throw new ContentManagerException_ContentNotParsed(hash);
 
 		} catch (IOException e) {
 			throw new ContentManagerRuntimeException_CannotReadInputStream(e);
@@ -661,9 +752,9 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private class UploadOptions {
+	public static class UploadOptions {
 		private boolean handleDeletionOfUnreferencedHashes;
-		private boolean parse;
+		private Boolean parse;
 		private boolean isThrowingException;
 		private String fileName;
 
@@ -675,12 +766,44 @@ public class ContentManager implements StatefulService {
 			this.fileName = fileName;
 		}
 
+		public UploadOptions() {
+			this.handleDeletionOfUnreferencedHashes = true;
+			this.isThrowingException = false;
+			this.fileName = null;
+		}
+
+		public UploadOptions(String fileName) {
+			this.fileName = fileName;
+			this.handleDeletionOfUnreferencedHashes = true;
+			this.isThrowingException = false;
+		}
+
+		public UploadOptions setHandleDeletionOfUnreferencedHashes(boolean handleDeletionOfUnreferencedHashes) {
+			this.handleDeletionOfUnreferencedHashes = handleDeletionOfUnreferencedHashes;
+			return this;
+		}
+
+		public UploadOptions setParse(Boolean parse) {
+			this.parse = parse;
+			return this;
+		}
+
+		public UploadOptions setThrowingException(boolean throwingException) {
+			isThrowingException = throwingException;
+			return this;
+		}
+
+		public UploadOptions setFileName(String fileName) {
+			this.fileName = fileName;
+			return this;
+		}
+
 		public boolean isHandleDeletionOfUnreferencedHashes() {
 			return handleDeletionOfUnreferencedHashes;
 		}
 
-		public boolean isParse() {
-			return parse;
+		public boolean isParse(boolean defaultBehavior) {
+			return parse == null ? defaultBehavior : parse;
 		}
 
 		public boolean isThrowingException() {
@@ -689,6 +812,10 @@ public class ContentManager implements StatefulService {
 
 		public String getFileName() {
 			return fileName;
+		}
+
+		public static UploadOptions asFastAsPossible() {
+			return new UploadOptions().setParse(false).setHandleDeletionOfUnreferencedHashes(false);
 		}
 	}
 

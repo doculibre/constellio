@@ -39,6 +39,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	<T> List<T> getList(Metadata metadata);
 
+	<T> List<T> getValues(Metadata metadata);
+
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
 	//MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes);
@@ -63,7 +65,7 @@ public interface Record extends Serializable, CollectionObject {
 
 	void markAsModified(Metadata metadata);
 
-	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
+	boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
 
 	<T> void addValueToList(Metadata metadata, T value);
 

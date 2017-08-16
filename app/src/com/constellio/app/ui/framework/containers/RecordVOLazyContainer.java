@@ -1,18 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -22,6 +9,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Item;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class RecordVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
@@ -155,6 +146,9 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			Collections.sort(extraPropertyMetadataVOs, new Comparator<MetadataVO>() {
 				@Override
 				public int compare(MetadataVO o1, MetadataVO o2) {
+					if(o1.getLabel() == null || o2.getLabel() == null) {
+						return -1;
+					}
 					return o1.getLabel().compareTo(o2.getLabel());
 				}
 			});

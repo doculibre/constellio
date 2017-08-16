@@ -60,6 +60,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -74,7 +75,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
-	private DocumentVO documentVO;
+	protected DocumentVO documentVO;
 	private String userDocumentId;
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -149,7 +150,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
 	}
-
+	
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
@@ -306,7 +307,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, true, true, filename);
+			UploadOptions options = new UploadOptions().setFileName(filename);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(in, options);
 			contentVersionSummary = uploadResponse.getContentVersionDataSummary();
 			contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
 			document.setContent(contentBeforeChange);
@@ -371,7 +373,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
-
+	
 	private void setRecordContent(Record record, DocumentVO documentVO) {
 		Metadata contentMetadata = schema().getMetadata(Document.CONTENT);
 		Object content = record.get(contentMetadata);
@@ -456,7 +458,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						.filteredWithUser(getCurrentUser());
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				if (duplicateDocuments.size() > 0) {
-					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(contentVersionVO.getFileName(), "")));
 					message.append("<br>");
 					for (Document document : duplicateDocuments) {
 						message.append("<br>-");
@@ -673,7 +675,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								.filteredWithUser(getCurrentUser());
 						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 						if (duplicateDocuments.size() > 0) {
-							StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation"));
+							StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(contentVersionVO.getFileName(), "")));
 							message.append("<br>");
 							for (Document document : duplicateDocuments) {
 								message.append("<br>-");
