@@ -55,6 +55,8 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                     ConnectorDocument connectorDocument = smbRecordService.getConnectorDocument(url, jobParams.getConnectorInstance());
                     if(connectorDocument == null) {
                         connectorDocument = smbRecordService.newConnectorDocument(url);
+                    } else if(!jobParams.getSmbUtils().isFolder(url)) {
+                        break;
                     }
                     jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, connectorDocument, jobParams.getParentUrl());
                     jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) connectorDocument));
