@@ -154,6 +154,7 @@ public class ConnectorSmb extends Connector {
 	public void start() {
 		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
+		loadCache(connectorInstance.getCollection());
 		queueSeeds();
 	}
 
@@ -171,6 +172,7 @@ public class ConnectorSmb extends Connector {
 		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
 		jobsQueue.clear();
+		loadCache(connectorInstance.getCollection());
 		queueSeeds();
 	}
 
@@ -254,7 +256,7 @@ public class ConnectorSmb extends Connector {
 
 	public void queueJob(SmbConnectorJob job) {
 		if (job != null) {
-			logger.info("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
+//			logger.info("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
 			jobsQueue.add(job);
 		}
 	}

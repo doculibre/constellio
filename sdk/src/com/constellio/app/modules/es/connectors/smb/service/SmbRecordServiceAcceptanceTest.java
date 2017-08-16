@@ -82,7 +82,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 	public void givenUrlWithNonCachedNonExistingRecordWhenGettingRecordThenGetNull() {
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
 
-		ConnectorSmbFolder folder = smbRecordService.getFolder(SmbTestParams.EXISTING_SHARE, connectorInstance);
+		ConnectorSmbFolder folder = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance);
 		assertThat(folder).isNull();
 	}
 
@@ -97,7 +97,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		recordService.update(folder);
 		recordService.flush();
 
-		String id = smbRecordService.getFolder(SmbTestParams.EXISTING_SHARE, connectorInstance).getId();
+		String id = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance).getId();
 		assertThat(id).isEqualTo(folder.getId());
 	}
 
@@ -115,7 +115,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		recordService.logicallyDelete(folder.getWrappedRecord(), User.GOD);
 		recordService.physicallyDelete(folder.getWrappedRecord(), User.GOD);
 
-		ConnectorSmbFolder connectorSmbFolder = smbRecordService.getFolder(SmbTestParams.EXISTING_SHARE, connectorInstance);
+		ConnectorSmbFolder connectorSmbFolder = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance);
 		assertThat(connectorSmbFolder).isNull();
 	}
 

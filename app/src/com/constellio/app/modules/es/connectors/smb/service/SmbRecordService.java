@@ -84,22 +84,16 @@ public class SmbRecordService {
 
 	public ConnectorDocument getConnectorDocument(String url, ConnectorSmbInstance connectorInstance) {
 		if (smbUtils.isFolder(url)) {
-			return getFolder(url, connectorInstance);
+			return getFolderFromCache(url, connectorInstance);
 		}
-		return getDocument(url, connectorInstance);
+		return getDocumentFromCache(url, connectorInstance);
 	}
 
-	public ConnectorSmbFolder getFolder(String url, ConnectorSmbInstance connectorInstance) {
+	public ConnectorSmbFolder getFolderFromCache(String url, ConnectorSmbInstance connectorInstance) {
 		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
-		return es.wrapConnectorSmbFolder(recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
-	}
-
-	public ConnectorSmbDocument getDocument(String url, ConnectorSmbInstance connectorInstance) {
-		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
-		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
-		return es.wrapConnectorSmbDocument(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
-				.getSummaryByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
+		return es.wrapConnectorSmbFolder(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
+				.getByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
 	}
 
 	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {
@@ -120,7 +114,7 @@ public class SmbRecordService {
 
 		Record record = null;
 		if(smbUtils.isFolder(url)) {
-			record = recordServices.getRecordByMetadata(folderConnectorUrlMetadata, connectorUrlValue);
+			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getByMetadata(folderConnectorUrlMetadata, connectorUrlValue);
 		} else {
 			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getSummaryByMetadata(documentConnectorUrlMetadata, connectorUrlValue);
 		}
