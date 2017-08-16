@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.data.intelligid;
 
-import com.constellio.app.modules.es.ui.entities.DocumentType;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.filter.SIPFilter;
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.data.SIPObjectsProvider;
@@ -11,8 +10,10 @@ import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.m
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.model.intelligid.IntelliGIDSIPFolder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -21,6 +22,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -151,9 +154,9 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
                 }
             } else {
                 if ("typeDocument".equals(metadataId)) {
-                    DocumentType typeDocument = ficheDocument.get(Document.TYPE);
+                    DocumentType typeDocument = rm.getDocumentType(ficheDocument.<String>get(Document.TYPE));
                     if (typeDocument != null) {
-                        metadataValues.add(typeDocument.getLabel());
+                        metadataValues.add(typeDocument.getCode());
                     }
                 }
             }
@@ -217,8 +220,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
         return result;
     }
 
-    private String formatDate(Date date) {
-        return date != null ? new SimpleDateFormat("yyyyMMdd").format(date) : null;
+    private String formatDate(LocalDate date) {
+        return date != null ? new SimpleDateFormat("yyyyMMdd").format(date.toDate()) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -232,12 +235,12 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
 
             archdesc = new EADArchdesc();
 
-            String dateCreation = formatDate(ficheDocument.getCreatedOn().toDate());
+            String dateCreation = formatDate(ficheDocument.getCreatedOn().toLocalDate());
             if (dateCreation != null) {
                 archdesc.getDidUnitDates().put("creation", dateCreation);
             }
 
-            String datePublication = formatDate(ficheDocument.getFolderActualDepositDate().toDate());
+            String datePublication = formatDate(ficheDocument.getFolderActualDepositDate());
             if (datePublication != null) {
                 archdesc.getDidUnitDates().put("publication", datePublication);
             }
@@ -258,7 +261,7 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
                     archdesc.getControlAccessSubjects().add(motCle);
                 }
             }
-            archdesc.setAccessRestrictLegalStatus(ficheDossier.get(Folder.IS_RESTRICTED_ACCESS).toString());
+            //archdesc.setAccessRestrictLegalStatus(ficheDossier.get(Folder.IS_RESTRICTED_ACCESS).toString());
 
         } else if (sipObject instanceof IntelliGIDSIPFolder) {
             IntelliGIDSIPFolder sipFolder = (IntelliGIDSIPFolder) sipObject;
@@ -269,12 +272,12 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             Category processusActivite = rm.getCategory(ficheDossier.getCategory());
             archdesc.getFileplanPs().add(processusActivite.getTitle());
 
-            String dateOuverture = formatDate(ficheDossier.getOpenDate().toDate());
+            String dateOuverture = formatDate(ficheDossier.getOpenDate());
             if (dateOuverture != null) {
                 archdesc.getDidUnitDates().put("creation", dateOuverture);
             }
 
-            String dateFermeture = formatDate(ficheDossier.getCloseDate().toDate());
+            String dateFermeture = formatDate(ficheDossier.getCloseDate());
             if (dateFermeture != null) {
                 archdesc.getDidUnitDates().put("closure", dateFermeture);
             }
@@ -284,8 +287,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
                 archdesc.getDidAbstracts().add(resume);
             }
 
-            AdministrativeUnit posteClassement = ficheDossier.get(Folder.ADMINISTRATIVE_UNIT);
-            AdministrativeUnit uniteAdministrative = posteClassement.get(AdministrativeUnit.PARENT);
+            AdministrativeUnit posteClassement = rm.getAdministrativeUnit(ficheDossier.<String>get(Folder.ADMINISTRATIVE_UNIT));
+            AdministrativeUnit uniteAdministrative = rm.getAdministrativeUnit(posteClassement.<String>get(AdministrativeUnit.PARENT));
 
             archdesc.setDidOriginationCorpname(uniteAdministrative.getCode());
 
@@ -295,8 +298,10 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
 //				archdesc.getAltformavailPs().add(libelleStatutExemplaire);
 //			}
             MetadataSchemasManager manager = factory.getModelLayerFactory().getMetadataSchemasManager();
-            LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE)).where(manager.getSchemaTypes(collection).getMetadata(Document.FOLDER)).isEqualTo(ficheDossier.getId());
+            MetadataSchemaType documentSchemaType = manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
+            LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(ficheDossier.getId());
             List<Document> documentsLies = rm.wrapDocuments(factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(conditionDocument)));
+            factory.getModelLayerFactory().newSearchServices().ite
             if (documentsLies != null) {
                 for (Document documentLie : documentsLies) {
                     List<String> relatedmaterialList = new ArrayList<String>();
@@ -305,7 +310,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
                 }
             }
 
-            LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(manager.getSchemaTypes(collection).getSchemaType(Folder.SCHEMA_TYPE)).where(manager.getSchemaTypes(collection).getMetadata(Folder.PARENT_FOLDER)).isEqualTo(ficheDossier.getId());
+            MetadataSchemaType folderSchemaType = manager.getSchemaTypes(collection).getSchemaType(Folder.SCHEMA_TYPE);
+            LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(folderSchemaType).where(folderSchemaType.getDefaultSchema().getMetadata(Folder.PARENT_FOLDER)).isEqualTo(ficheDossier.getId());
             List<Folder> dossiersLies = rm.wrapFolders(factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(conditionFolder)));
             if (dossiersLies != null) {
                 for (Folder dossierLie : dossiersLies) {
@@ -321,7 +327,7 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             for (String motCle : motsCles) {
                 archdesc.getControlAccessSubjects().add(motCle);
             }
-            archdesc.setAccessRestrictLegalStatus(ficheDossier.get(Folder.IS_RESTRICTED_ACCESS).toString());
+            //archdesc.setAccessRestrictLegalStatus(ficheDossier.get(Folder.IS_RESTRICTED_ACCESS).toString());
         } else {
             archdesc = null;
         }

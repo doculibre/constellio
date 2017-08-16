@@ -39,9 +39,11 @@ public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees impleme
 		}
 
 		this.entityRetriever = entityRetriever;
-		Folder ficheDossier = entityRetriever.getFoldersFromString(ficheDocument.getFolder());
-		if (ficheDossier != null) {
-			folder = new IntelliGIDSIPFolder(ficheDossier, metadonneesDossier);
+		if(ficheDocument.getFolder() != null){
+			Folder ficheDossier = entityRetriever.getFoldersFromString(ficheDocument.getFolder());
+			if (ficheDossier != null) {
+				folder = new IntelliGIDSIPFolder(ficheDossier, metadonneesDossier, entityRetriever);
+			}
 		}
 	}
 	
@@ -81,7 +83,7 @@ public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees impleme
 
 	@Override
 	public long getLength() {
-		return tailleFichierElectronique;
+		return tailleFichierElectronique == null ? 0 : tailleFichierElectronique;
 	}
 
 	@Override

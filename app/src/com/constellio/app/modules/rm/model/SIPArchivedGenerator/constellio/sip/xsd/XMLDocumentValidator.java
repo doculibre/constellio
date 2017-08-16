@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.xsd;
 
+import com.constellio.model.conf.FoldersLocator;
 import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
@@ -12,6 +13,8 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -27,7 +30,7 @@ public class XMLDocumentValidator {
 			schemaFactory.setResourceResolver(xsdResourceResolver);
 			List<Source> schemaSources = new ArrayList<Source>();
 			for (String schemaFilename : schemaFilenames) {
-				InputStream schemaIn = getClass().getClassLoader().getResourceAsStream("com/constellio/sip/xsd/" + schemaFilename);
+				InputStream schemaIn = new FileInputStream(new File(new FoldersLocator().getModuleResourcesFolder("rm"), "SIPArchiveGenerator/" + schemaFilename));
 				schemaSources.add(new StreamSource(schemaIn));
 			}
 			Schema schema = schemaFactory.newSchema(schemaSources.toArray(new Source[0]));

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.model.intelligid;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -13,11 +14,13 @@ public class EntityRetriever {
     private String collection;
     private AppLayerFactory appLayerFactory;
     private ModelLayerFactory modelLayerFactory;
+    private RMSchemasRecordsServices rm;
 
     public EntityRetriever(String collection, AppLayerFactory appLayerFactory) {
         this.collection = collection;
         this.appLayerFactory = appLayerFactory;
         this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+        rm = new RMSchemasRecordsServices(collection, appLayerFactory);
     }
 
     public InputStream getContentFromHash(String hash) {
@@ -25,7 +28,11 @@ public class EntityRetriever {
     }
 
     public Folder getFoldersFromString(String id){
-        return new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(id);
+        return id == null ? null : rm.getFolder(id);
+    }
+
+    public Category getCategoryById(String id) {
+        return id == null ? null :  rm.getCategory(id);
     }
 
     public File newTempFile(){

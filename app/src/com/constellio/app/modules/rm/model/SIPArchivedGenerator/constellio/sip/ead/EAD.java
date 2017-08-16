@@ -24,7 +24,7 @@ public class EAD {
 	
 	private SIPObject sipObject;
 	
-	private Namespace eadNamespace = Namespace.getNamespace("com/constellio/ead", "urn:isbn:1-931666-22-9");
+	private Namespace eadNamespace = Namespace.getNamespace("ead", "urn:isbn:1-931666-22-9");
 	private Namespace xsiNamespace = Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	
 	private Document doc;
@@ -54,7 +54,7 @@ public class EAD {
 		this.sipObject = sipObject;
 		this.archdesc = archdesc;
 		
-		this.eadElement = new Element("com/constellio/ead", eadNamespace);
+		this.eadElement = new Element("ead", eadNamespace);
 		this.eadElement.addNamespaceDeclaration(xsiNamespace);
 		eadElement.setAttribute("schemaLocation", "urn:isbn:1-931666-22-9 http://www.loc.gov/ead/ead.xsd", xsiNamespace);
 		

@@ -383,8 +383,10 @@ public class ConstellioSIP {
             } else {
                 currentDocumentIndex++;
             }
-
-            String hash = getHash(file);
+            String hash = null;
+            if(file != null) {
+                hash = getHash(file);
+            }
             String extension = FilenameUtils.getExtension(filename);
             Integer extensionCount = extensionCounts.get(extension);
             if (extensionCount == null) {
@@ -405,7 +407,9 @@ public class ConstellioSIP {
             documentFile.setID(fileId);
             documentFile.setDmdID(dmdSecId);
             documentFile.setSize(length);
-            documentFile.setChecksum(hash);
+            if(hash != null) {
+                documentFile.setChecksum(hash);
+            }
             documentFile.setChecksumType("SHA-256");
 
             FLocat documentFileFLocat = documentFile.newFLocat();
@@ -419,7 +423,10 @@ public class ConstellioSIP {
             fileFptr.setFileID(fileId);
             folderDiv.addFptr(fileFptr);
 
-            addToZip(file, zipFilePath);
+            if(file != null) {
+
+                addToZip(file, zipFilePath);
+            }
             addManifestLine(hash, zipFilePath);
 
             if (extraFiles != null) {

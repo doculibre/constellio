@@ -16,17 +16,19 @@ public class IntelliGIDSIPFolder extends IntelliGIDSIPFicheMetadonnees implement
 	private SIPFolder parentFolder;
 	
 	private SIPCategory category;
+
+	private EntityRetriever entityRetriever;
 	
-	public IntelliGIDSIPFolder(Folder ficheDossier, List<Metadata> metadonneesDossier) {
+	public IntelliGIDSIPFolder(Folder ficheDossier, List<Metadata> metadonneesDossier, EntityRetriever entityRetriever) {
 		super(adjust(ficheDossier), metadonneesDossier, metadonneesDossier);
 		this.title = ficheDossier.getTitle();
-
-		Folder ficheDossierParent = ficheDossier.get(Folder.PARENT_FOLDER);
+		this.entityRetriever = entityRetriever;
+		Folder ficheDossierParent = entityRetriever.getFoldersFromString(ficheDossier.getParentFolder());
 		if (ficheDossierParent != null) {
-			parentFolder = new IntelliGIDSIPFolder(ficheDossierParent, metadonneesDossier);
+			parentFolder = new IntelliGIDSIPFolder(ficheDossierParent, metadonneesDossier, entityRetriever);
 		} else {
-			Category processusActivite = ficheDossier.get(Folder.CATEGORY);
-			category = new IntelliGIDSIPCategory(processusActivite);
+			Category processusActivite = entityRetriever.getCategoryById(ficheDossier.getCategory());
+			category = new IntelliGIDSIPCategory(processusActivite, entityRetriever);
 		}
 	}
 	

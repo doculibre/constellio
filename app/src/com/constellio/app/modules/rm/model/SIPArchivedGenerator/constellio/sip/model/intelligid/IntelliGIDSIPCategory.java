@@ -19,15 +19,17 @@ public class IntelliGIDSIPCategory implements SIPCategory {
 	
 	private SIPCategory parentCategory;
 
-	public IntelliGIDSIPCategory(Category processusActivite) {
+	private EntityRetriever entityRetriever;
+
+	public IntelliGIDSIPCategory(Category processusActivite, EntityRetriever entityRetriever) {
 		this.id = "" + processusActivite.getId();
 		this.code = processusActivite.getCode();
 		this.title = processusActivite.getTitle();
 		this.description = processusActivite.getDescription();
-
-		Category processusActiviteParent = processusActivite.get(Category.PARENT);
+		this.entityRetriever = entityRetriever;
+		Category processusActiviteParent = entityRetriever.getCategoryById(processusActivite.getParent());
 		if (processusActiviteParent != null) {
-			parentCategory = new IntelliGIDSIPCategory(processusActiviteParent);
+			parentCategory = new IntelliGIDSIPCategory(processusActiviteParent, entityRetriever);
 		}
 	}
 

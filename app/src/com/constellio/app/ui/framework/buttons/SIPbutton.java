@@ -146,7 +146,7 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
     public void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException {
         for (int i = 0; i < objectList.size(); i++) {
             RecordVO currentFile = objectList.get(i);
-            File outFolder = ioServices.newTemporaryFolder("SIPArchives/");
+            File outFolder = new File("C:\\Users\\Marco\\Desktop\\SIPArchives");//ioServices.newTemporaryFolder("SIPArchives/");
             String nomSipDossier = "sip-ceic-dossier-" + currentFile.getId() + currentFile.getTitle() + ".zip";
             File outFile = new File(outFolder, nomSipDossier);
             InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
