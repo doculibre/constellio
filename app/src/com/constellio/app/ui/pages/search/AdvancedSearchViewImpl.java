@@ -165,6 +165,13 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             selectionActions.add(zipButton);
         }
 
+        if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
+            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(reportButton);
+            addListenerToButton(results);
+        }
+
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
             reportButton.addStyleName(ValoTheme.BUTTON_LINK);
