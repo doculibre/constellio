@@ -56,6 +56,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -307,6 +308,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				cache.removeCache(type.getCode());
 			}
 			cache.configureCache(CacheConfig.permanentCache(type));
+		}
+
+		if (!cache.isConfigured(Facet.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.facet.schemaType()));
 		}
 
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {

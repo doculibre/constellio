@@ -18,7 +18,6 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
@@ -29,7 +28,14 @@ import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
 import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.*;
+import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -40,6 +46,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
@@ -164,6 +171,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
+		}
+
+		if (!recordsCache.isConfigured(Facet.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.facet.schemaType()));
 		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));
