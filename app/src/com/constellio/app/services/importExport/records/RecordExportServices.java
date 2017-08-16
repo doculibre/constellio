@@ -73,10 +73,6 @@ public class RecordExportServices {
 		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
 		ValidationErrors errors = new ValidationErrors();
-		ImportExportAudit importationAudit;
-
-		importationAudit = schemasRecordsServices.newAuditImportation().setType(ImportExportAudit.ExportImport.EXPORT);
-		importationAudit.setStartDate(LocalDateTime.now());
 
 		try {
 
@@ -106,7 +102,6 @@ public class RecordExportServices {
 			}
 			zipService.zip(tempZipFile, asList(tempFolder.listFiles()));
 
-			importationAudit.setEndDate(LocalDateTime.now());
 			return tempZipFile;
 
 		} catch (ZipServiceException e) {
