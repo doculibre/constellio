@@ -15,7 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
@@ -180,7 +181,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			view.showErrorMessage($("ExportView.lastReindexingFailed"));
 
 		} else {
-			ImportExportAudit newImportExportAudit = createNewImportExportAudit();
+			ExportAudit newExportAudit = createNewExportAudit();
 			File zip = null;
 			try {
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
@@ -188,11 +189,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
 				String error = "Error while generating savestate";
-				newImportExportAudit.setErrors(asList(error));
+//				newExportAudit.setErrors(asList(error));
 				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
 			} finally {
-				completeImportExportAudit(newImportExportAudit, zip);
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
 	}
@@ -205,7 +206,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		} else {
 
-			ImportExportAudit newImportExportAudit = createNewImportExportAudit();
+			ExportAudit newExportAudit = createNewExportAudit();
 			File zip = null;
 			try {
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
@@ -213,40 +214,39 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
 				String error = "Error while generating savestate";
-				newImportExportAudit.setErrors(asList(error));
+//				newExportAudit.setErrors(asList(error));
 				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
 			} finally {
-				completeImportExportAudit(newImportExportAudit, zip);
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
 	}
 
-	private ImportExportAudit createNewImportExportAudit() {
-		ImportExportAudit importationAudit = new SchemasRecordsServices(collection, modelLayerFactory).newAuditImportation()
-				.setType(ImportExportAudit.ExportImport.EXPORT);
-		importationAudit.setStartDate(LocalDateTime.now());
-		importationAudit.setCreatedBy(getCurrentUser().getId());
+	private ExportAudit createNewExportAudit() {
+		ExportAudit exportAudit = new SchemasRecordsServices(collection, modelLayerFactory).newExportAudit();
+		exportAudit.setCreatedOn(LocalDateTime.now());
+		exportAudit.setCreatedBy(getCurrentUser().getId());
 		try {
-			recordServices().add(importationAudit);
+			recordServices().add(exportAudit);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		return importationAudit;
+		return exportAudit;
 	}
 
-	private ImportExportAudit completeImportExportAudit(ImportExportAudit importExportAudit, File file) {
+	private TemporaryRecord completeImportExportAudit(ExportAudit exportAudit, File file) {
 		try {
 			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(file);
 			Content content = contentManager.createMajor(getCurrentUser(), file.getName(), contentVersionDataSummary);
-			importExportAudit.setEndDate(LocalDateTime.now());
-			importExportAudit.setContent(content);
-			recordServices().update(importExportAudit);
+			exportAudit.setEndDate(LocalDateTime.now());
+			exportAudit.setContent(content);
+			recordServices().update(exportAudit);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return importExportAudit;
+		return exportAudit;
 	}
 
 	void exportWithContentsButtonClicked() {

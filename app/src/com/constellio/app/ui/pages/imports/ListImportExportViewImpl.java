@@ -4,13 +4,13 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
@@ -51,7 +51,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 			}
 		};
 		importTable.setWidth("98%");
-		importTable.setCellStyleGenerator(newStyleGenerator());
+		importTable.setCellStyleGenerator(newImportStyleGenerator());
 
 		return importTable;
 	}
@@ -60,7 +60,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 		RecordVOTable exportTable = new RecordVOTable(presenter.getExportDataProvider()) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(metadataValue.getMetadata().getLocalCode().equals(ImportExportAudit.CONTENT) && metadataValue.getValue() != null) {
+				if(metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT) && metadataValue.getValue() != null) {
 					ContentVersionVO content = (ContentVersionVO) metadataValue.getValue();
 					return new DownloadContentVersionLink(content, content.getFileName());
 				} else {
@@ -69,12 +69,11 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 			}
 		};
 		exportTable.setWidth("98%");
-		exportTable.setCellStyleGenerator(newStyleGenerator());
 
 		return exportTable;
 	}
 
-	private Table.CellStyleGenerator newStyleGenerator() {
+	private Table.CellStyleGenerator newImportStyleGenerator() {
 		return new Table.CellStyleGenerator() {
 
 			@Override
@@ -82,7 +81,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 				try {
 					RecordVOItem item = (RecordVOItem) source.getItem(itemId);
 					RecordVO record = item.getRecord();
-					MetadataVO errors = record.getMetadata(ImportExportAudit.ERRORS);
+					MetadataVO errors = record.getMetadata(ImportAudit.ERRORS);
 					if(errors != null && !((List)record.getMetadataValue(errors).getValue()).isEmpty()) {
 						return "error";
 					}

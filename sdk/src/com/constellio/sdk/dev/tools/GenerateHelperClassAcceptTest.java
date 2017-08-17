@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -30,16 +31,6 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -90,6 +81,9 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
 		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
 		wrappers.put(UserFolder.DEFAULT_SCHEMA, UserFolder.class);
+		wrappers.put(TemporaryRecord.DEFAULT_SCHEMA, TemporaryRecord.class);
+		wrappers.put(ImportAudit.SCHEMA, ImportAudit.class);
+		wrappers.put(ExportAudit.SCHEMA, ExportAudit.class);
 
 		System.out.println(header());
 

@@ -10,7 +10,8 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -66,7 +67,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 	public void uploadButtonClicked(TempFileUpload upload) {
 		if (upload != null && upload.getTempFile() != null) {
 			File file = upload.getTempFile();
-			ImportExportAudit importationAudit = newImportAudit();
+			ImportAudit importAudit = newImportAudit();
 			try {
 				User currentUser = getCurrentUser();
 				BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
@@ -101,7 +102,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 						formattedErrors.add(format(error));
 						view.showErrorMessage(format(error));
 					}
-					completeImportationAudit(importationAudit, formattedErrors.toArray(new String[0]));
+					completeImportationAudit(importAudit, formattedErrors.toArray(new String[0]));
 
 					view.showImportCompleteMessage();
 				}
@@ -109,7 +110,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 			} catch (ValidationException e) {
 				String formattedError = i18n.$(e.getValidationErrors());
 				view.showErrorMessage(formattedError);
-				completeImportationAudit(importationAudit, formattedError);
+				completeImportationAudit(importAudit, formattedError);
 			} catch (Exception e) {
 				e.printStackTrace();
 
@@ -118,34 +119,34 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 				e.printStackTrace(pWriter);
 				String formattedError = writer.toString();
 				view.showErrorMessage(formattedError);
-				completeImportationAudit(importationAudit, formattedError);
+				completeImportationAudit(importAudit, formattedError);
 			} finally {
 				FileUtils.deleteQuietly(file);
 			}
 		}
 	}
 
-	private ImportExportAudit newImportAudit() {
-		ImportExportAudit importationAudit = coreSchemas().newAuditImportation().setType(ImportExportAudit.ExportImport.IMPORT);
+	private ImportAudit newImportAudit() {
+		ImportAudit importAudit = coreSchemas().newImportAudit();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		importationAudit.setStartDate(LocalDateTime.now());
-		importationAudit.setCreatedBy(getCurrentUser().getId());
+		importAudit.setCreatedOn(LocalDateTime.now());
+		importAudit.setCreatedBy(getCurrentUser().getId());
 		try {
-			recordServices.add(importationAudit);
+			recordServices.add(importAudit);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		return importationAudit;
+		return importAudit;
 	}
 
-	private void completeImportationAudit(ImportExportAudit importationAudit, String... errors) {
+	private void completeImportationAudit(ImportAudit importAudit, String... errors) {
 		if(errors != null && errors.length > 0) {
-			importationAudit.setErrors(asList(errors));
+			importAudit.setErrors(asList(errors));
 		}
 
-		importationAudit.setEndDate(LocalDateTime.now());
+		importAudit.setEndDate(LocalDateTime.now());
 		try {
-			modelLayerFactory.newRecordServices().update(importationAudit);
+			modelLayerFactory.newRecordServices().update(importAudit);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}

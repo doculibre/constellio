@@ -7,7 +7,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.records.RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords;
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.conf.ContentDaoType;
@@ -21,31 +20,23 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.ImportExportAudit;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.contents.ContentFactory;
-import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.joda.time.LocalDateTime;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.IOException;
 import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
-
-import java.io.File;
 
 public class RecordExportServices {
 

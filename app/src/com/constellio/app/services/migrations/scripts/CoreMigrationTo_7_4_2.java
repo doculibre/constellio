@@ -5,10 +5,13 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.records.wrappers.ImportExportAudit;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static java.util.Arrays.asList;
@@ -26,13 +29,12 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 		new CoreSchemaAlterationFor7_4_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ImportExportAudit.DEFAULT_SCHEMA)
+		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, TemporaryRecord.DEFAULT_SCHEMA)
 				.withTableMetadataCodes(asList(
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.START_DATE,
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.END_DATE,
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.ERRORS,
-						ImportExportAudit.DEFAULT_SCHEMA + "_" + ImportExportAudit.CONTENT
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT
 				)));
 	}
 
@@ -44,13 +46,22 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder importExportAudit = typesBuilder.createNewSchemaType(ImportExportAudit.SCHEMA_TYPE).getDefaultSchema();
+			migrateTemporaryRecord(typesBuilder);
+		}
 
-			importExportAudit.createUndeletable(ImportExportAudit.START_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
-			importExportAudit.createUndeletable(ImportExportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
-			importExportAudit.createUndeletable(ImportExportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
-			importExportAudit.createUndeletable(ImportExportAudit.TYPE).defineAsEnum(ImportExportAudit.ExportImport.class).setSystemReserved(true);
-			importExportAudit.createUndeletable(ImportExportAudit.CONTENT).setType(MetadataValueType.CONTENT);
+		private void migrateTemporaryRecord(MetadataSchemaTypesBuilder typesBuilder) {
+			MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaType(TemporaryRecord.SCHEMA_TYPE);
+			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
+
+			defaultSchema.createUndeletable(TemporaryRecord.DESTRUCTION_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
+			defaultSchema.createUndeletable(TemporaryRecord.CONTENT).setType(MetadataValueType.CONTENT).setSystemReserved(true);
+
+			MetadataSchemaBuilder importAuditSchema = schemaType.createCustomSchema(ImportAudit.SCHEMA);
+			importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
+			importAuditSchema.createUndeletable(ImportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
+
+			MetadataSchemaBuilder exportAuditSchema = schemaType.createCustomSchema(ExportAudit.SCHEMA);
+			exportAuditSchema.createUndeletable(ImportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
 		}
 	}
 }

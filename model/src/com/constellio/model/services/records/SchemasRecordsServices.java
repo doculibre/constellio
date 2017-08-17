@@ -202,10 +202,18 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
-	public MetadataSchema auditImportation() { return getTypes().getSchema(ImportExportAudit.DEFAULT_SCHEMA); }
+	public MetadataSchema temporaryRecord() { return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA); }
 
-	public ImportExportAudit newAuditImportation() {
-		return new ImportExportAudit(create(defaultSchema(ImportExportAudit.SCHEMA_TYPE)), getTypes());
+	public TemporaryRecord newTemporaryRecord() {
+		return new TemporaryRecord(create(defaultSchema(TemporaryRecord.SCHEMA_TYPE)), getTypes());
+	}
+
+	public ImportAudit newImportAudit() {
+		return new ImportAudit(create(getTypes().getSchema(ImportAudit.FULL_SCHEMA)), getTypes());
+	}
+
+	public ExportAudit newExportAudit() {
+		return new ExportAudit(create(getTypes().getSchema(ExportAudit.FULL_SCHEMA)), getTypes());
 	}
 
 	//Groups
