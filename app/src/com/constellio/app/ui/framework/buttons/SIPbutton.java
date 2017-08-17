@@ -1,13 +1,12 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.filter.SIPFilter;
-import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.ConstellioSIP;
-import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
-import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.exceptions.SIPMaxReachedException;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.exceptions.SIPMaxReachedException;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -161,7 +160,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         if (!metsObjectsProvider.list().isEmpty()) {
             ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
             constellioSIP.build(outFile);
-            
+
         }
     }
 
