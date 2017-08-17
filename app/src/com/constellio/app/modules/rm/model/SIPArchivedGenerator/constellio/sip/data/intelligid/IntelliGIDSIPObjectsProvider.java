@@ -12,6 +12,8 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -300,11 +302,11 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             MetadataSchemasManager manager = factory.getModelLayerFactory().getMetadataSchemasManager();
             MetadataSchemaType documentSchemaType = manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
             LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(ficheDossier.getId());
-            List<Document> documentsLies = rm.wrapDocuments(factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(conditionDocument)));
-            factory.getModelLayerFactory().newSearchServices().ite
-            if (documentsLies != null) {
-                for (Document documentLie : documentsLies) {
-                    List<String> relatedmaterialList = new ArrayList<String>();
+            SearchResponseIterator<Record> iteratorDocument = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionDocument));
+            if (iteratorDocument != null) {
+                while(iteratorDocument.hasNext()){
+                    Document documentLie = rm.wrapDocument(iteratorDocument.next());
+                    List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(documentLie.getId() + " " + documentLie.getTitle());
                     archdesc.getRelatedmaterialLists().add(relatedmaterialList);
                 }
@@ -312,10 +314,11 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
 
             MetadataSchemaType folderSchemaType = manager.getSchemaTypes(collection).getSchemaType(Folder.SCHEMA_TYPE);
             LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(folderSchemaType).where(folderSchemaType.getDefaultSchema().getMetadata(Folder.PARENT_FOLDER)).isEqualTo(ficheDossier.getId());
-            List<Folder> dossiersLies = rm.wrapFolders(factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(conditionFolder)));
-            if (dossiersLies != null) {
-                for (Folder dossierLie : dossiersLies) {
-                    List<String> relatedmaterialList = new ArrayList<String>();
+            SearchResponseIterator<Record> iteratorFolder = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionFolder));
+            if (iteratorFolder != null) {
+                while(iteratorFolder.hasNext()) {
+                    Folder dossierLie = rm.wrapFolder(iteratorFolder.next());
+                    List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(dossierLie.getId() + " " + dossierLie.getTitle());
                     archdesc.getRelatedmaterialLists().add(relatedmaterialList);
                 }

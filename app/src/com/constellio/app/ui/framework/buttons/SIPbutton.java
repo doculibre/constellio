@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.d
 import com.constellio.app.modules.rm.model.SIPArchivedGenerator.constellio.sip.exceptions.SIPMaxReachedException;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -19,6 +20,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.JDOMException;
+import org.joda.time.LocalDateTime;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class SIPbutton extends WindowButton implements  Upload.SucceededListener,Upload.FailedListener,Upload.Receiver {
+public class SIPbutton extends WindowButton implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver {
 
 
     private List<RecordVO> objectList = new ArrayList<>();
@@ -42,12 +44,12 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
     public SIPbutton(String caption, String windowCaption, BaseView view) {
         super(caption, windowCaption);
         this.view = view;
-        if(this.view != null) {
+        if (this.view != null) {
             this.factory = this.view.getConstellioFactories().getAppLayerFactory();
             this.collection = this.view.getCollection();
             ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
             User user = this.view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(this.view.getSessionContext().getCurrentUser().getUsername(), this.view.getCollection());
-            if(!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
+            if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
                 super.setVisible(false);
             }
         }
@@ -65,7 +67,7 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
         return mainLayout;
     }
 
-    private VerticalLayout buildCheckboxComponent(){
+    private VerticalLayout buildCheckboxComponent() {
         VerticalLayout layout = new VerticalLayout();
         layout.addComponent(buildDeleteItemCheckbox());
         layout.addComponent(buildLimitSizeComponent());
@@ -76,7 +78,7 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
         objectList.addAll(asList(objects));
     }
 
-    private HorizontalLayout buildDeleteItemCheckbox(){
+    private HorizontalLayout buildDeleteItemCheckbox() {
         HorizontalLayout layout = new HorizontalLayout();
         deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
         layout.addComponents(deleteCheckBox);
@@ -84,7 +86,7 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
         return layout;
     }
 
-    private HorizontalLayout buildLimitSizeComponent(){
+    private HorizontalLayout buildLimitSizeComponent() {
         HorizontalLayout layout = new HorizontalLayout();
         limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
         layout.addComponents(limitSizeCheckbox);
@@ -111,9 +113,9 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
         Button continueButton = new BaseButton($("ok")) {
             @Override
             protected void buttonClick(ClickEvent event) {
-                try{
+                try {
                     continueButtonClicked();
-                }catch (IOException | JDOMException | SIPMaxReachedException  e) {
+                } catch (IOException | JDOMException | SIPMaxReachedException e) {
                     view.showErrorMessage(e.getMessage());
                 }
             }
@@ -125,8 +127,8 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
 
     private List<String> getDocumentIDListFromObjectList() {
         List<String> documents = new ArrayList<>();
-        for(RecordVO recordVO : this.objectList) {
-            if(recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)){
+        for (RecordVO recordVO : this.objectList) {
+            if (recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)) {
                 documents.add(recordVO.getId());
             }
         }
@@ -135,8 +137,8 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
 
     private List<String> getFolderIDListFromObjectList() {
         List<String> folders = new ArrayList<>();
-        for(RecordVO recordVO : this.objectList) {
-            if(recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+        for (RecordVO recordVO : this.objectList) {
+            if (recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
                 folders.add(recordVO.getId());
             }
         }
@@ -144,26 +146,23 @@ public class SIPbutton extends WindowButton implements  Upload.SucceededListener
     }
 
     public void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException {
-        for (int i = 0; i < objectList.size(); i++) {
-            RecordVO currentFile = objectList.get(i);
-            File outFolder = new File("C:\\Users\\Marco\\Desktop\\SIPArchives");//ioServices.newTemporaryFolder("SIPArchives/");
-            String nomSipDossier = "sip-ceic-dossier-" + currentFile.getId() + currentFile.getTitle() + ".zip";
-            File outFile = new File(outFolder, nomSipDossier);
-            InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
-            List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
-            bagInfoIn.close();
-            List<String> documentList = getDocumentIDListFromObjectList();
-            List<String> folderList = getFolderIDListFromObjectList();
-            SIPFilter filter = new SIPFilter(view.getCollection(), view.getConstellioFactories().getAppLayerFactory())
-                    .withIncludeDocumentIds(documentList)
-                    .withIncludeFolderIds(folderList);
-            IntelliGIDSIPObjectsProvider metsObjectsProvider = new IntelliGIDSIPObjectsProvider(view.getCollection(), view.getConstellioFactories().getAppLayerFactory(), filter);
-            if (!metsObjectsProvider.list().isEmpty()) {
-                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
-                constellioSIP.build(outFile);
-            }
+        File outFolder = ioServices.newTemporaryFolder("SIPArchives");
+        String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
+        File outFile = new File(outFolder, nomSipDossier);
+        InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
+        List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
+        bagInfoIn.close();
+        List<String> documentList = getDocumentIDListFromObjectList();
+        List<String> folderList = getFolderIDListFromObjectList();
+        SIPFilter filter = new SIPFilter(view.getCollection(), view.getConstellioFactories().getAppLayerFactory())
+                .withIncludeDocumentIds(documentList)
+                .withIncludeFolderIds(folderList);
+        IntelliGIDSIPObjectsProvider metsObjectsProvider = new IntelliGIDSIPObjectsProvider(view.getCollection(), view.getConstellioFactories().getAppLayerFactory(), filter);
+        if (!metsObjectsProvider.list().isEmpty()) {
+            ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
+            constellioSIP.build(outFile);
+            
         }
-
     }
 
     @Override
