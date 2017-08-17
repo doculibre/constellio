@@ -5,15 +5,26 @@ import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.f
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.ConstellioSIP;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.exceptions.SIPMaxReachedException;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.FileResource;
+import com.vaadin.server.Page;
+import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -39,11 +50,13 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     private AppLayerFactory factory;
     private String collection;
     private BaseUploadField upload;
+    private RMSchemasRecordsServices rm;
 
     public SIPbutton(String caption, String windowCaption, BaseView view) {
         super(caption, windowCaption);
         this.view = view;
         if (this.view != null) {
+            this.rm = new RMSchemasRecordsServices(view.getCollection(), view.getConstellioFactories().getAppLayerFactory());
             this.factory = this.view.getConstellioFactories().getAppLayerFactory();
             this.collection = this.view.getCollection();
             ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
@@ -114,7 +127,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             protected void buttonClick(ClickEvent event) {
                 try {
                     continueButtonClicked();
-                } catch (IOException | JDOMException | SIPMaxReachedException e) {
+                } catch (IOException | JDOMException | SIPMaxReachedException | RecordServicesException e) {
                     view.showErrorMessage(e.getMessage());
                 }
             }
@@ -144,10 +157,10 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         return folders;
     }
 
-    public void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException {
+    private void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException, RecordServicesException {
         File outFolder = ioServices.newTemporaryFolder("SIPArchives");
         String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-        File outFile = new File(outFolder, nomSipDossier);
+        final File outFile = new File(outFolder, nomSipDossier);
         InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
         List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
         bagInfoIn.close();
@@ -160,7 +173,23 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         if (!metsObjectsProvider.list().isEmpty()) {
             ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
             constellioSIP.build(outFile);
+            SIParchive siParchive = rm.newSIParchive();
+            ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory();
 
+            //Create SIParchive record
+            ContentManager contentManager = modelLayerFactory.getContentManager();
+            User currentUser = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
+            ContentVersionDataSummary summary = contentManager.upload(outFile);
+            siParchive.setContent(contentManager.createMajor(currentUser, nomSipDossier, summary));
+            siParchive.setName(nomSipDossier);
+            siParchive.setCreationDate(new LocalDateTime());
+            Transaction transaction = new Transaction();
+            transaction.add(siParchive);
+            modelLayerFactory.newRecordServices().execute(transaction);
+
+            //download ZIP
+            FileResource res = new FileResource(outFile);
+            Page.getCurrent().open(res, null, false);
         }
     }
 
@@ -188,5 +217,19 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     @Override
     public void uploadSucceeded(Upload.SucceededEvent event) {
 
+    }
+
+    private StreamResource.StreamSource buildSource(final File file) {
+        return new StreamResource.StreamSource() {
+            @Override
+            public InputStream getStream() {
+                try{
+                    return new FileInputStream(file);
+                }catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
     }
 }

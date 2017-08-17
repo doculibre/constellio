@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.m
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.SIPObject;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.modules.rm.wrappers.SIParchive;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -244,6 +245,7 @@ public class ConstellioSIP {
         if (maxReachedException != null) {
             throw maxReachedException;
         }
+
     }
 
     private void addToZip(File file, String path) throws IOException {

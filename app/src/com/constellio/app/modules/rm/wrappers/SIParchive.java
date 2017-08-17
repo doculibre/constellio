@@ -17,6 +17,8 @@ public class SIParchive extends RecordWrapper {
 
     public static final String CONTENT = "content";
 
+    public static final String USER = "user";
+
     public SIParchive(Record record, MetadataSchemaTypes types) {
         super(record, types, SCHEMA_TYPE);
     }
