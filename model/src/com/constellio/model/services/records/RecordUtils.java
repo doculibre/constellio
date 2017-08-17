@@ -44,18 +44,19 @@ public class RecordUtils {
 
 		long size = 0;
 
-		if (recordDTO.getCopyFields() != null) {
-			for (Object object : recordDTO.getCopyFields().values()) {
-				size += sizeOf(object);
-			}
+		if (recordDTO != null) {
+			if (recordDTO.getCopyFields() != null) {
+				for (Object object : recordDTO.getCopyFields().values()) {
+					size += sizeOf(object);
+				}
 
-		}
-		if (recordDTO.getFields() != null) {
-			for (Object object : recordDTO.getFields().values()) {
-				size += sizeOf(object);
+			}
+			if (recordDTO.getFields() != null) {
+				for (Object object : recordDTO.getFields().values()) {
+					size += sizeOf(object);
+				}
 			}
 		}
-
 		return size;
 	}
 
