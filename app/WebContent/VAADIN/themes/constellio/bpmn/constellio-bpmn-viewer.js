@@ -11,47 +11,38 @@
 (function(BpmnViewer, $) {
 
   // create viewer
-  var bpmnViewer = new BpmnViewer({
-    container: '#bpmn-viewer-canvas'
-  });
+  var bpmnViewer = new BpmnViewer();
+  bpmnViewer.attachTo('#bpmn-viewer-canvas');
 
 
   // import function
   function importXML(xml) {
-	if (!xml.startsWith('<!doctype html>')) {
-	    // import diagram
-	    bpmnViewer.importXML(xml, function(err) {
-	
-	      if (err) {
-	        return console.error('could not import BPMN 2.0 diagram', err);
-	      }
-	
-	      var canvas = bpmnViewer.get('canvas'),
-	          overlays = bpmnViewer.get('overlays');
-	
-	
-	      // zoom to fit full viewport
-	      canvas.zoom('fit-viewport');
-	
-	      // attach an overlay to a node
-	      overlays.add('SCAN_OK', 'note', {
-	        position: {
-	          bottom: 0,
-	          right: 0
-	        },
-	        html: '<div class="diagram-note">Mixed up the labels?</div>'
-	      });
-	
-	      // add marker
-	      canvas.addMarker('SCAN_OK', 'needs-discussion');
-	    });
-	}    
+    console.log('viewer : importXml : ' + xml);
+
+    console.log('2 viewer : importXml : ' + xml);
+    // import diagram
+    bpmnViewer.importXML(xml, function(err) {
+      if (err) {
+        console.log('could not render diagram', err);
+      } else {
+        console.log('rendered');
+      }
+
+       var canvas = bpmnViewer.get('canvas');
+
+
+       // zoom to fit full viewport
+      canvas.zoom('fit-viewport');
+    });
   }
 
 
   // load external diagram file via AJAX and import it
   //$.get('diagram.bpmn', importXML, 'text');
-  $.get(bpmnDiagramURL, importXML, 'text');
+  console.log('bpmnDiagramURL : ' + bpmnDiagramURL);
+   $.get(bpmnDiagramURL, importXML, 'text');
 
+    alert("complete");
 
 })(window.BpmnJS, window.jQuery);
+
