@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.TemporaryRecordValidator;
 
 import static java.util.Arrays.asList;
 
@@ -56,6 +57,7 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 
 			defaultSchema.createUndeletable(TemporaryRecord.DESTRUCTION_DATE).setType(MetadataValueType.DATE_TIME).defineDataEntry().asCalculated(TemporaryRecordDestructionDateCalculator.class).setSystemReserved(true);
 			defaultSchema.createUndeletable(TemporaryRecord.CONTENT).setType(MetadataValueType.CONTENT).setSystemReserved(true);
+			defaultSchema.createUndeletable(TemporaryRecord.DAY_BEFORE_DESTRUCTION).setType(MetadataValueType.NUMBER).setDefaultValue(7).addValidator(TemporaryRecordValidator.class);
 
 			MetadataSchemaBuilder importAuditSchema = schemaType.createCustomSchema(ImportAudit.SCHEMA);
 			importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);

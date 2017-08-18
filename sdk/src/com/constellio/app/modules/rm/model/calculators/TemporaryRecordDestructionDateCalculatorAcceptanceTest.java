@@ -46,7 +46,7 @@ public class TemporaryRecordDestructionDateCalculatorAcceptanceTest extends Cons
 
     @Test
     public void givenParametersThenCalculatorReturnsGoodValue()  {
-        when(parameters.get(calculator.numberOfDaysParams)).thenReturn("5");
+        when(parameters.get(calculator.numberOfDaysParams)).thenReturn(5D);
         assertThat(calculator.calculate(parameters).toString("dd/MM/yyyy")).isEqualTo(new LocalDate().plusDays(5).toString("dd/MM/yyyy"));
     }
 }

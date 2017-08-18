@@ -14,10 +14,10 @@ import java.util.List;
 
 public class TemporaryRecordDestructionDateCalculator implements MetadataValueCalculator<LocalDateTime> {
     private static final int DEFAULT_NUMBER_OF_DAYS_BEFORE_DESTRUCTION = 7;
-    public LocalDependency<String> numberOfDaysParams = LocalDependency.toAString(TemporaryRecord.DAY_BEFORE_DESTRUCTION);
+    public LocalDependency<Double> numberOfDaysParams = LocalDependency.toANumber(TemporaryRecord.DAY_BEFORE_DESTRUCTION);
     @Override
     public LocalDateTime calculate(CalculatorParameters parameters) {
-        return addDaysToCurrentDate(Integer.parseInt(parameters.get(numberOfDaysParams)));
+        return addDaysToCurrentDate(Integer.parseInt(parameters.get(numberOfDaysParams).toString()));
     }
 
     @Override
