@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
 
 public class Task extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userTask";
@@ -27,6 +29,8 @@ public class Task extends RecordWrapper {
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENTS = "contents";
 	public static final String NEXT_REMINDER_ON = "nextReminderOn";
+	public static final String REMINDER_FREQUENCY = "reminderFrequency";
+	public static final String LAST_REMINDER = "lastReminder";
 	public static final String REMINDERS = "reminders";
 	public static final String START_DATE = "startDate";
 	public static final String DUE_DATE = "dueDate";
@@ -323,6 +327,24 @@ public class Task extends RecordWrapper {
 
 	public Task setLinkedDocuments(List<?> documentIds) {
 		set(LINKED_DOCUMENTS, documentIds);
+		return this;
+	}
+
+	public String getReminderFrequency() {
+		return get(REMINDER_FREQUENCY);
+	}
+
+	public Task setReminderFrequency(String reminderFrequency) {
+		set(REMINDER_FREQUENCY, reminderFrequency);
+		return this;
+	}
+
+	public LocalDateTime getLastReminder() {
+		return get(LAST_REMINDER);
+	}
+
+	public Task setLastReminder(LocalDateTime datetime) {
+		set(LAST_REMINDER, datetime);
 		return this;
 	}
 }

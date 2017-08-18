@@ -14,9 +14,11 @@ import com.constellio.app.modules.tasks.migrations.*;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBackgroundAction;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
@@ -24,6 +26,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
+import static org.joda.time.Duration.standardMinutes;
+import static org.joda.time.Duration.standardSeconds;
 
 public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
@@ -38,7 +45,8 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 				new TasksMigrationTo6_0(),
 				new TasksMigrationTo6_5_33(),
 				new TasksMigrationTo7_0(),
-				new TasksMigrationTo7_2());
+				new TasksMigrationTo7_2(),
+				new TasksMigrationTo7_4_2());
 	}
 
 	@Override
@@ -51,7 +59,14 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		registerManagers(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
 		setupModelLayerExtensions(collection, appLayerFactory);
+		setupBackgroundThreadsManager(collection, appLayerFactory);
+	}
 
+	private void setupBackgroundThreadsManager(String collection, AppLayerFactory appLayerFactory) {
+		ModelLayerBackgroundThreadsManager manager = appLayerFactory.getModelLayerFactory().getModelLayerBackgroundThreadsManager();
+		manager.configureBackgroundThreadConfiguration(repeatingAction("alertOverdueTasksBackgroundAction-"+collection,
+				new AlertOverdueTasksBackgroundAction(appLayerFactory, collection))
+				.executedEvery(standardMinutes(30)).handlingExceptionWith(CONTINUE));
 	}
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
