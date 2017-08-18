@@ -1,18 +1,16 @@
 package com.constellio.model.entities.records.wrappers;
 
-import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
 
-import java.util.List;
-
 public class TemporaryRecord extends RecordWrapper {
     public static final String SCHEMA_TYPE = "temporaryRecord";
     public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
     public static final String DESTRUCTION_DATE = "destructionDate";
+    public static final String DAY_BEFORE_DESTRUCTION = "daysBeforeDestruction";
     public static final String TITLE = "title";
     public static final String CONTENT = "content";
 
@@ -50,6 +48,15 @@ public class TemporaryRecord extends RecordWrapper {
 
     public TemporaryRecord setTitle(String title) {
         set(TITLE, title);
+        return this;
+    }
+
+    public int getNumberOfDaysBeforeDestruction(){
+        return Integer.parseInt((String) get(DAY_BEFORE_DESTRUCTION));
+    }
+
+    public TemporaryRecord setNumberOfDaysBeforeDestruction(int numberOfDaysBeforeDestruction) {
+        set(DAY_BEFORE_DESTRUCTION, numberOfDaysBeforeDestruction);
         return this;
     }
 
