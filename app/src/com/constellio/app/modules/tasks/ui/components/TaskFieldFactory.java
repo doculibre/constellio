@@ -65,6 +65,9 @@ public class TaskFieldFactory extends MetadataFieldFactory {
         case INCLUSIVE_DECISION:
         	field = new ListAddRemoveWorkflowInclusiveDecisionFieldImpl();
         	break;
+		case REMINDER_FREQUENCY:
+			field = new TaskReminderFrequencyFieldImpl();
+			break;
 		default:
 			field = super.build(metadata);
 		}

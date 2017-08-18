@@ -250,6 +250,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("status");
 		}
 
+		public Metadata reminderFrequency() {
+			return metadata("reminderFrequency");
+		}
+
 		public Metadata statusType() {
 			return metadata("statusType");
 		}

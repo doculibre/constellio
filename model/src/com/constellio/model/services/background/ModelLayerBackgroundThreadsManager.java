@@ -47,4 +47,8 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	public RecordsReindexingBackgroundAction getRecordsReindexingBackgroundAction() {
 		return recordsReindexingBackgroundAction;
 	}
+
+	public void configureBackgroundThreadConfiguration(BackgroundThreadConfiguration configuration) {
+		backgroundThreadsManager.configure(configuration);
+	}
 }
