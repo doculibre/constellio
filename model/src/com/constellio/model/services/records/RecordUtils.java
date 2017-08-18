@@ -43,16 +43,17 @@ public class RecordUtils {
 		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
 
 		long size = 0;
+		if (recordDTO != null) {
+			if (recordDTO.getCopyFields() != null) {
+				for (Object object : recordDTO.getCopyFields().values()) {
+					size += sizeOf(object);
+				}
 
-		if (recordDTO.getCopyFields() != null) {
-			for (Object object : recordDTO.getCopyFields().values()) {
-				size += sizeOf(object);
 			}
-
-		}
-		if (recordDTO.getFields() != null) {
-			for (Object object : recordDTO.getFields().values()) {
-				size += sizeOf(object);
+			if (recordDTO.getFields() != null) {
+				for (Object object : recordDTO.getFields().values()) {
+					size += sizeOf(object);
+				}
 			}
 		}
 
