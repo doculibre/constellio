@@ -53,24 +53,12 @@
 	        return console.error('could not import BPMN 2.0 diagram: ' + xml, err);
 	      }
 
-	      var canvas = bpmnModeler.get('canvas'),
-	          overlays = bpmnModeler.get('overlays');
+	      var canvas = bpmnModeler.get('canvas');
 
 
 	      // zoom to fit full viewport
 	      canvas.zoom('fit-viewport');
 
-	      // attach an overlay to a node
-	      overlays.add('SCAN_OK', 'note', {
-	        position: {
-	          bottom: 0,
-	          right: 0
-	        },
-	        html: '<div class="diagram-note">Mixed up the labels?</div>'
-	      });
-
-	      // add marker
-	      canvas.addMarker('SCAN_OK', 'needs-discussion');
 	    });
 	}
   }
