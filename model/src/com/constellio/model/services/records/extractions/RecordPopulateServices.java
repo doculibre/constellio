@@ -60,31 +60,34 @@ public class RecordPopulateServices {
 			MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 			List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
-			if (!contentMetadatas.isEmpty()) {
-				if (!record.isSaved()) {
-					String category = getCategory(parsedContentProvider, contentMetadatas, record);
-					setCategoryToRecord(record, category);
 
-				}
-				schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-				Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
+			//TODO Causing problem when using regex populators on smb documents (no content metadata)
+			//Should be replaced by something else, since it improve performance
+			//if (!contentMetadatas.isEmpty()) {
+			if (!record.isSaved()) {
+				String category = getCategory(parsedContentProvider, contentMetadatas, record);
+				setCategoryToRecord(record, category);
 
-				MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
-				TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
-				for (Metadata metadata : schema.getMetadatas()) {
-					if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-						RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
-								titlePriority, schema);
-						if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
-							Object currentPopulatedValue = populator.populate(record, contentMetadatas);
+			}
+			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+			Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
 
-							if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-								record.set(metadata, currentPopulatedValue);
-							}
+			MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
+			TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+					RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
+							titlePriority, schema);
+					if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
+						Object currentPopulatedValue = populator.populate(record, contentMetadatas);
+
+						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+							record.set(metadata, currentPopulatedValue);
 						}
 					}
 				}
 			}
+			//}
 
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
 			if (LOG_CONTENT_MISSING) {
