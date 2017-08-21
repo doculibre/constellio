@@ -44,7 +44,7 @@ public class ReportTabButton extends WindowButton {
     private TextField numberOfCopies;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
         this.view = view;
     }
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
@@ -53,11 +53,14 @@ public class ReportTabButton extends WindowButton {
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false);
+        this.view = view;
     }
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
+
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton){
         this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
     }
+
     public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
         super(caption, windowCaption);
         this.factory = appLayerFactory;
@@ -87,10 +90,7 @@ public class ReportTabButton extends WindowButton {
         if(!this.noExcelButton) {
             tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
-
-        if(!this.noPDFButton) {
-            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
-        }
+if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));}
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }

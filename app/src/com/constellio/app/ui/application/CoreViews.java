@@ -373,6 +373,17 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void manageExcelReport() {
+		navigator.navigateTo(NavigatorConfigurationService.EXCEL_REPORT_MANAGE);
+	}
+
+	public void displayExcelReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EXCEL_REPORT_DISPLAY, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void manageLabels() {
 		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
 	}
