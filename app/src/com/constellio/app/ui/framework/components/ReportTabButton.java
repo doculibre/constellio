@@ -38,24 +38,35 @@ public class ReportTabButton extends WindowButton {
     private ComboBox reportComboBox, customElementSelected;
     private PrintableReportListPossibleType selectedReporType;
     private String selectedSchemaType;
-    private boolean noExcelButton = false;
+    private boolean noExcelButton = false, noPDFButton = false;
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false);
+        this.view = view;
     }
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
+
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton){
+        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
+    }
+
+    public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton);
+        this.view = view;
+    }
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
         super(caption, windowCaption);
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
+        this.noPDFButton = noPDFButton;
         recordVOList = new ArrayList<>();
     }
 
@@ -79,7 +90,9 @@ public class ReportTabButton extends WindowButton {
         if(!this.noExcelButton) {
             tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
-        tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+        if(!this.noPDFButton){
+            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+        }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
