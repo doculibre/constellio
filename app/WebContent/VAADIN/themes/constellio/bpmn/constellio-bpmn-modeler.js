@@ -1,3 +1,5 @@
+$.ajaxSetup({ cache: false });
+
 $(document).ready(function() {
 
     setTimeout(function() {
@@ -14,26 +16,24 @@ $(document).ready(function() {
             });
 
             // save diagram on button click
-            var saveButton = document.querySelector('#bpmn-save-button');
-            if (saveButton) {
-                saveButton.addEventListener('click', function() {
-                    // get the diagram contents
-                    bpmnModeler.saveXML({
-                        format: true
-                    }, function(err, xml) {
-                        $.post(saveButtonCallbackURL, {
-                            'bpmnResourceKey': bpmnResourceKey,
-                            'xml': xml
-                        });
-                        if (err) {
-                            console.error('diagram save failed', err);
-                        } else {
-                            console.info('diagram saved');
-                            // console.info(xml);
-                        }
+            $('#bpmn-save-button').click(function() {
+                // get the diagram contents
+                bpmnModeler.saveXML({
+                    format: true
+                }, function(err, xml) {
+                    $.post(saveButtonCallbackURL, {
+                        'bpmnResourceKey': bpmnResourceKey,
+                        'xml': xml
                     });
+                    if (err) {
+                        console.error('diagram save failed', err);
+                    } else {
+                        console.info('diagram saved');
+                        // console.info(xml);
+                    }
                 });
-            }
+            });
+
 
             $.get(bpmnDiagramURL, importBpmn, 'text');
             //  }
