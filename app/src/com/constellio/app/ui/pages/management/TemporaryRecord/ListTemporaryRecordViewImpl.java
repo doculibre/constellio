@@ -36,6 +36,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         TabSheet tabSheet = new TabSheet();
         tabSheet.addTab(newImportTable(), $("ListTemporaryRecordViewImpl.importTable"));
         tabSheet.addTab(newExportTable(), $("ListTemporaryRecordViewImpl.exportTable"));
+        tabSheet.addTab(newSIPArchivesTable(), $("ListTemporaryRecordViewImpl.SIParchivesTable"));
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
@@ -68,6 +69,22 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         exportTable.setWidth("98%");
 
         return exportTable;
+    }
+
+    private BaseTable newSIPArchivesTable(){
+        RecordVOTable sipArchivesTable = new RecordVOTable(presenter.getSIPArchivesDataProvider()) {
+            @Override
+            protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+                if(metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT) && metadataValue.getValue() != null) {
+                    ContentVersionVO content = metadataValue.getValue();
+                    return new DownloadContentVersionLink(content, content.getFileName());
+                } else {
+                    return super.buildMetadataComponent(metadataValue, recordVO);
+                }
+            }
+        };
+        sipArchivesTable.setWidth("98%");
+        return sipArchivesTable;
     }
 
     private Table.CellStyleGenerator newImportStyleGenerator() {

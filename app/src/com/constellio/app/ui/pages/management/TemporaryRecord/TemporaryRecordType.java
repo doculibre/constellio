@@ -1,10 +1,11 @@
 package com.constellio.app.ui.pages.management.TemporaryRecord;
 
+import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 
 public enum TemporaryRecordType {
-    EXPORT(ExportAudit.SCHEMA), IMPORT(ImportAudit.SCHEMA);
+    EXPORT(ExportAudit.SCHEMA), IMPORT(ImportAudit.SCHEMA), SIP_ARCHIVES(SIParchive.SCHEMA);
 
     private String schema;
 

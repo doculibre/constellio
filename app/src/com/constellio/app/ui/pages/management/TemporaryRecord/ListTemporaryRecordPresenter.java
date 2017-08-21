@@ -43,11 +43,15 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
         };
     }
 
-    public RecordVODataProvider getExportDataProvider(){
+    RecordVODataProvider getExportDataProvider(){
         return getDataProviderFromType(TemporaryRecordType.EXPORT.getSchema());
     }
 
-    public RecordVODataProvider getImportDataProvider(){
+    RecordVODataProvider getImportDataProvider(){
         return getDataProviderFromType(TemporaryRecordType.IMPORT.getSchema());
+    }
+
+    RecordVODataProvider getSIPArchivesDataProvider(){
+        return getDataProviderFromType(TemporaryRecordType.SIP_ARCHIVES.getSchema());
     }
 }
