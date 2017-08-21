@@ -13,4 +13,6 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	void displayWorkflows(RecordVODataProvider provider);
 
 	com.vaadin.ui.Component getSelectedTab();
+
+	TaskManagementViewImpl.Timestamp getTimestamp();
 }

@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.util.List;
 
@@ -14,18 +15,21 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
 	private TabSheet sheet;
+	private ComboBox timestamp;
+
+	enum Timestamp {
+		ALL, TODAY, WEEK, MONTH
+	}
 
 	public TaskManagementViewImpl() {
 		this.presenter = new TaskManagementPresenter(this);
@@ -56,6 +60,22 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		timestamp = new ComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
+		timestamp.setNullSelectionAllowed(false);
+		timestamp.setValue(Timestamp.ALL);
+		timestamp.setItemCaption(Timestamp.ALL, $("all"));
+		timestamp.setItemCaption(Timestamp.TODAY, $("today"));
+		timestamp.setItemCaption(Timestamp.WEEK, $("week"));
+		timestamp.setItemCaption(Timestamp.MONTH, $("month"));
+		timestamp.setWidth("20%");
+		timestamp.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				reloadCurrentTab();
+			}
+		});
 		sheet = new TabSheet();
 		sheet.setSizeFull();
 		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -69,7 +89,8 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			sheet.addTab(buildEmptyTab(tabId));
 		}
 
-		return sheet;
+		mainLayout.addComponents(timestamp, sheet);
+		return mainLayout;
 	}
 
 	@Override
@@ -131,5 +152,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			});
 			return table;
 		}
+	}
+
+	@Override
+	public Timestamp getTimestamp() {
+		return (Timestamp) timestamp.getValue();
 	}
 }
