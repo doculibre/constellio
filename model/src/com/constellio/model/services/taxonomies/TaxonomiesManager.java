@@ -36,18 +36,15 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.*;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyCannotBeDisabled;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyIsAlreadyDefined;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyMustBeAddedBeforeSettingItHasPrincipal;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaIsReferencedInMultivalueReference;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
-import org.jdom2.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<TaxonomiesManagerCache> {
 
@@ -171,14 +168,6 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			throw new TaxonomyMustBeAddedBeforeSettingItHasPrincipal();
 		}
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(taxonomy.getCollection());
-		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			for (Metadata metadata : type.getAllReferencesToTaxonomySchemas(asList(taxonomy))) {
-				if (metadata.isMultivalue()) {
-					throw new TaxonomySchemaIsReferencedInMultivalueReference();
-				}
-			}
-		}
 	}
 
 	public List<String> getSecondaryTaxonomySchemaTypes(String collection) {
@@ -394,7 +383,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			for (Metadata metadatas : type.getAllMetadatas().onlyTaxonomyReferences()) {
 				String referenceTypeCode = metadatas.getAllowedReferences().getTypeWithAllowedSchemas();
 				Taxonomy taxonomy = getTaxonomyFor(user.getCollection(), referenceTypeCode);
-				if(hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
+				if (hasCurrentUserRightsOnTaxonomy(taxonomy, user)) {
 					taxonomies.add(taxonomy);
 				}
 			}
@@ -414,13 +403,13 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private boolean hasCurrentUserRightsOnTaxonomy(Taxonomy taxonomy, User currentUser) {
 		String userid = currentUser.getId();
 
-		if(taxonomy != null) {
+		if (taxonomy != null) {
 			List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 			List<String> taxonomyUserIds = taxonomy.getUserIds();
 			List<String> userGroups = currentUser.getUserGroups();
-			for(String group: taxonomyGroupIds) {
-				for(String userGroup: userGroups) {
-					if(userGroup.equals(group)) {
+			for (String group : taxonomyGroupIds) {
+				for (String userGroup : userGroups) {
+					if (userGroup.equals(group)) {
 						return true;
 					}
 				}

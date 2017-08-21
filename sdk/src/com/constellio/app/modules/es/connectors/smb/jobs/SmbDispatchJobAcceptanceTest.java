@@ -1,7 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
@@ -12,7 +11,6 @@ import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.testutils.FakeSmbService;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -47,7 +45,6 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 	private SmbRecordService smbRecordService;
 
 	@Mock private ConnectorSmbUtils smbUtils;
-	@Mock private SmbConnectorContext context;
 
 	private String SHARE_URL = SmbTestParams.EXISTING_SHARE;
 	private String FILE_URL = SHARE_URL + SmbTestParams.FILE_NAME;
@@ -81,18 +78,6 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
-	}
-
-	@Test
-	public void givenNullJobInsteadOfRetrievalJobWhenExecutingDispatchThenDoNothing() {
-		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService,smbRecordService, updater, null, FILE_URL, SHARE_URL));
-		SmbNullJob nullJob = new SmbNullJob(jobParams);
-		when(jobParams.getJobFactory()).thenReturn(new FakeSmbJobFactory(nullJob));
-		SmbDispatchJob dispatchJob = new SmbDispatchJob(jobParams);
-		dispatchJob.execute(connector);
-
-		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.isEmpty();
 	}
 
 	@Test
@@ -225,24 +210,6 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
 				.isEmpty();
-	}
-
-	@Test
-	public void givenResumeIgnoreJobInsteadOfRetrievalJobWhenExecutingDispatchThenDoNothing() {
-		JobParams jobParams = spy(new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null));
-		SmbUnmodifiedRetrievalJob retrievalJob = new SmbUnmodifiedRetrievalJob(jobParams);
-		SmbJobFactory factory = spy(new FakeSmbJobFactory(retrievalJob));
-		when(jobParams.getJobFactory()).thenReturn(factory);
-		when(jobParams.getSmbShareService()).thenReturn(new FakeSmbService(new ArrayList<String>()));
-
-		SmbDispatchJob dispatchJob = new SmbDispatchJob(jobParams);
-		dispatchJob.execute(connector);
-
-		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.isEmpty();
-
-		assertThat(connectorInstance.getResumeUrl()).isNull();
-		verify(connector, times(1)).queueJob(retrievalJob);
 	}
 
 	@After

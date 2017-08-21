@@ -1,7 +1,11 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.model.entities.records.wrappers.Report;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReportVO implements Serializable{
     String title;
@@ -38,6 +42,14 @@ public class ReportVO implements Serializable{
 
     public List<ReportedMetadataVO> getReportedMetadataVOList() {
         return reportedMetadataVOList;
+    }
+
+    public List<String> getReportedMetadataVOCodeList() {
+       List<String> codes = new ArrayList<>();
+       for(ReportedMetadataVO reportedMetadataVO : reportedMetadataVOList) {
+           codes.add(reportedMetadataVO.getMetadataCode());
+       }
+       return codes;
     }
 
     public ReportVO setReportedMetadataVOList(List<ReportedMetadataVO> reportedMetadataVOList) {

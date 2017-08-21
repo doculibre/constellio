@@ -23,6 +23,17 @@ public class DummyImportDataProvider implements ImportDataProvider {
 		this.data = data;
 	}
 
+	public DummyImportDataProvider() {
+		this.data = new HashMap<>();
+	}
+
+	public void add(String schemaType, ImportDataBuilder record) {
+		if (!data.containsKey(schemaType)) {
+			data.put(schemaType, new ArrayList<ImportDataBuilder>());
+		}
+		data.get(schemaType).add(record);
+	}
+
 	@Override
 	public void initialize() {
 

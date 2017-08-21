@@ -19,6 +19,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -27,6 +28,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class TasksMigrationCombo implements ComboMigrationScript {
@@ -37,6 +39,9 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		scripts.add(new TasksMigrationTo5_1_2());
 		scripts.add(new TasksMigrationTo5_1_3());
 		scripts.add(new TasksMigrationTo6_0());
+		scripts.add(new TasksMigrationTo6_5_33());
+		scripts.add(new TasksMigrationTo7_0());
+		scripts.add(new TasksMigrationTo7_2());
 		return scripts;
 	}
 
@@ -69,12 +74,12 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		recordServices.execute(transaction);
 
 		//TODO Uncomment after supporting up to 7.2 in migration combo
-		//		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
-		//			@Override
-		//			public void alter(MetadataSchemaTypesBuilder types) {
-		//				types.getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).setDefaultValue(standById);
-		//			}
-		//		});
+		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).setDefaultValue(standById);
+			}
+		});
 	}
 
 	private String createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,

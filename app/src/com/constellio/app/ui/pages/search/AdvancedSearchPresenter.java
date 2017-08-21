@@ -177,14 +177,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchExpression;
 	}
 
-	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value) {
+	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(selectedRecordIds);
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, "userBatchProcess");
+		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
 		manager.markAsPending(process);
 	}
 
@@ -198,7 +199,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return false;
 	}
 
-	public List<MetadataVO> getMetadataAllowedInBatchEdit() {
+	public List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType) {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
@@ -446,17 +447,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType() {
+	public String getOriginType(String schemaType) {
 		return batchProcessingPresenterService().getOriginType(buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
-	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+	public RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext) {
 		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, buildBatchProcessLogicalSearchQuery());
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.simulate(selectedType, buildBatchProcessLogicalSearchQuery().setNumberOfRows(100), viewObject, getCurrentUser());
@@ -464,7 +465,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, RecordVO viewObject)
+	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
@@ -503,14 +504,14 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords() {
+	public boolean hasWriteAccessOnAllRecords(String schemaType) {
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		return searchServices().getResultsCount(query.filteredWithUserWrite(getCurrentUser())) == searchServices()
 				.getResultsCount(query);
 	}
 
 	@Override
-	public long getNumberOfRecords() {
+	public long getNumberOfRecords(String schemaType) {
 		return (int) searchServices().getResultsCount(buildBatchProcessLogicalSearchQuery());
 	}
 
@@ -658,4 +659,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return recordsVO;
 	}
 
+	public void fireSomeRecordsSelected() {
+		view.fireSomeRecordsSelected();
+	}
+
+	public void fireNoRecordSelected() {
+		view.fireNoRecordSelected();
+	}
 }

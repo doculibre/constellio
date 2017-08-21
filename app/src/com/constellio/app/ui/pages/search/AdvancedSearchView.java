@@ -24,4 +24,8 @@ public interface AdvancedSearchView extends SearchView {
 	void closeBatchProcessingWindow();
 
 	List<String> getUnselectedRecordIds();
+
+    void fireSomeRecordsSelected();
+
+	void fireNoRecordSelected();
 }

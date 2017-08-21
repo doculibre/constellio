@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.buttons.ReportButton;
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -38,6 +41,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.vaadin.peter.contextmenu.ContextMenu;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -57,6 +61,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean checkInButtonVisible;
 	private boolean alertWhenAvailableButtonVisible;
 	private boolean checkOutButtonVisible;
+	private boolean metadataReportButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
 
@@ -256,6 +261,20 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				}
 			});
 		}
+
+		if(presenter.hasMetadataReport()) {
+			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"));
+			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
+
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+					View parentView = ConstellioUI.getCurrent().getCurrentView();
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					button.setRecordVoList(presenter.getDocumentVO());
+					button.click();
+				}
+			});
+		}
 	}
 
 	@Override
@@ -374,6 +393,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	@Override
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButtonVisible = state.isEnabled();
+	}
+
+	@Override
+	public void setGenerateMetadataButtonState(ComponentState state) {
+		metadataReportButtonVisible = presenter.hasMetadataReport();
 	}
 
 	@Override
