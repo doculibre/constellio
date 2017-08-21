@@ -40,6 +40,8 @@ import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
 import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -84,9 +86,9 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo6_4(),
 				new ESMigrationTo6_5_42(),
 				new ESMigrationTo6_5_58(),
-				new ESMigrationTo7_1_3()
-				//new ESMigrationTo7_4_1(),
-				//new ESMigrationTo7_4_2()
+				new ESMigrationTo7_1_3(),
+				new ESMigrationTo7_4_1(),
+				new ESMigrationTo7_4_2()
 		);
 	}
 
