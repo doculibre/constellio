@@ -71,6 +71,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return cache.insert(record);
 	}
 
+	public CacheInsertionStatus forceInsert(Record record) {
+		RecordsCache cache = getCache(record.getCollection());
+		return cache.forceInsert(record);
+	}
+
 	public Record getRecord(String id) {
 		for (RecordsCache cache : collectionsCache.values()) {
 			Record record = cache.get(id);

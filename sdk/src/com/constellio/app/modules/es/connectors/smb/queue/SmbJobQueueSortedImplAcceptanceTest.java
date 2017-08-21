@@ -1,9 +1,7 @@
 package com.constellio.app.modules.es.connectors.smb.queue;
 
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobType;
 import com.constellio.app.modules.es.connectors.smb.jobs.SmbDispatchJob;
 import com.constellio.app.modules.es.connectors.smb.jobs.SmbNewRetrievalJob;
-import com.constellio.app.modules.es.connectors.smb.jobs.SmbUnmodifiedRetrievalJob;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -35,19 +33,15 @@ public class SmbJobQueueSortedImplAcceptanceTest extends ConstellioTest {
 
 		SmbNewRetrievalJob shareRetrievalJob = Mockito.mock(SmbNewRetrievalJob.class);
 		when(shareRetrievalJob.getUrl()).thenReturn("smb://ip/share/");
-		when(shareRetrievalJob.getType()).thenReturn(SmbJobType.NEW_FOLDER_JOB);
 
 		SmbNewRetrievalJob file3RetrievalJob = Mockito.mock(SmbNewRetrievalJob.class);
 		when(file3RetrievalJob.getUrl()).thenReturn("smb://ip/share/file3.txt");
-		when(file3RetrievalJob.getType()).thenReturn(SmbJobType.NEW_DOCUMENT_JOB);
 
 		SmbNewRetrievalJob fileRetrievalJob = Mockito.mock(SmbNewRetrievalJob.class);
 		when(fileRetrievalJob.getUrl()).thenReturn("smb://ip/share/file.txt");
-		when(fileRetrievalJob.getType()).thenReturn(SmbJobType.NEW_DOCUMENT_JOB);
 
 		SmbDispatchJob folder2DispatchJob = Mockito.mock(SmbDispatchJob.class);
 		when(folder2DispatchJob.getUrl()).thenReturn("smb://ip/share/folder/");
-		when(folder2DispatchJob.getType()).thenReturn(SmbJobType.DISPATCH_JOB);
 
 		// Add jobs in any (wrong) order
 		jobQueue.add(folder2DispatchJob);
@@ -69,23 +63,15 @@ public class SmbJobQueueSortedImplAcceptanceTest extends ConstellioTest {
 
 		SmbNewRetrievalJob file4RetrievalJob = Mockito.mock(SmbNewRetrievalJob.class);
 		when(file4RetrievalJob.getUrl()).thenReturn("smb://ip/share/file4.txt");
-		when(file4RetrievalJob.getType()).thenReturn(SmbJobType.NEW_DOCUMENT_JOB);
-
-		SmbUnmodifiedRetrievalJob fileRetrievalJob = Mockito.mock(SmbUnmodifiedRetrievalJob.class);
-		when(fileRetrievalJob.getUrl()).thenReturn("smb://ip/share/file.txt");
-		when(fileRetrievalJob.getType()).thenReturn(SmbJobType.UNMODIFIED_JOB);
 
 		SmbDispatchJob folder2DispatchJob = Mockito.mock(SmbDispatchJob.class);
 		when(folder2DispatchJob.getUrl()).thenReturn("smb://ip/share/folder2/");
-		when(folder2DispatchJob.getType()).thenReturn(SmbJobType.DISPATCH_JOB);
 
 		// Add jobs in any (wrong) order
 		jobQueue.add(folder2DispatchJob);
-		jobQueue.add(fileRetrievalJob);
 		jobQueue.add(file4RetrievalJob);
 
 		// Get jobs in the expected order
-		assertThat(jobQueue.poll()).isEqualTo(fileRetrievalJob);
 		assertThat(jobQueue.poll()).isEqualTo(file4RetrievalJob);
 		assertThat(jobQueue.poll()).isEqualTo(folder2DispatchJob);
 

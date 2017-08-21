@@ -1,6 +1,7 @@
 package com.constellio.app.modules.robots.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
 import com.constellio.app.modules.robots.model.services.RobotsService;
@@ -44,6 +45,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 
 import java.io.IOException;
 import java.util.*;
@@ -252,6 +254,12 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	@Override
 	public MetadataVO getMetadataVO(String metadataCode) {
 		return presenterService().getMetadataVO(metadataCode, view.getSessionContext());
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 
 	public boolean isAddMode() {

@@ -196,7 +196,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 			if (!indexedDocuments.isEmpty()) {
 				for (ConnectorSmbDocument indexedDocument : indexedDocuments) {
 					if (indexedDocument.getUrl().endsWith("smbFile2.txt")) {
-						System.out.println(indexedDocument.getParent());
+						System.out.println(indexedDocument.getParentConnectorUrl());
 						connectorSmbDocument = indexedDocument;
 						ok = true;
 						break;

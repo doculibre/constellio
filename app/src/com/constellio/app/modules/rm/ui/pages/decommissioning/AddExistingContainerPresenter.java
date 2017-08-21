@@ -7,6 +7,8 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,5 +301,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		}
 
 		return null;
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 }

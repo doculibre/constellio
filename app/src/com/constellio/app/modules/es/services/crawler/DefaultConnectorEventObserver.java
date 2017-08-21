@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +26,6 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.BulkRecordTransactionHandler;
-import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 
@@ -54,6 +53,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.resourceName = resourceName;
 		this.userServices = es.getModelLayerFactory().newUserServices();
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().withRecordsPerBatch(50);
+		options.getTransactionOptions().setUnicityValidationsEnabled(false);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
 		this.mappingService = new ConnectorMappingService(es);
 	}
@@ -212,8 +212,17 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	public void deleteEvents(DeleteEventOptions options, List<ConnectorDocument> documents) {
 		for (ConnectorDocument document : documents) {
 			try {
-				es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
-				es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+				if(document.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE)
+						|| document.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE)) {
+//					RecordDeleteServices recordDeleteServices = new RecordDeleteServices(es.getModelLayerFactory().getDataLayerFactory().newRecordDao(), es.getModelLayerFactory());
+//					recordDeleteServices.logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+//					recordDeleteServices.physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+					es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+				} else {
+					es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+				}
 			} catch (RecordServicesRuntimeException e) {
 				String title = "Cannot delete document '" + document.getWrappedRecord().getIdTitle() + "'";
 				String description = ConnectorsUtils.getStackTrace(e);
@@ -242,5 +251,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	@Override
 	public void cleanup() {
 		handler.resetException();
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return es.getModelLayerFactory();
 	}
 }
