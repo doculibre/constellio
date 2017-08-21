@@ -65,6 +65,8 @@ import com.vaadin.ui.themes.ValoTheme;
 @Theme("constellio")
 public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
+	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
+
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
@@ -84,7 +86,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	@Override
 	protected void init(VaadinRequest request) {
-		getSession().addRequestHandler(new ConstellioResourceHandler());
+
+		if (!getSession().getRequestHandlers().contains(CONSTELLIO_RESSOURCE_HANDLER)) {
+			getSession().addRequestHandler(CONSTELLIO_RESSOURCE_HANDLER);
+		}
 
 		ssoServices = SSOServices.getInstance();
 
