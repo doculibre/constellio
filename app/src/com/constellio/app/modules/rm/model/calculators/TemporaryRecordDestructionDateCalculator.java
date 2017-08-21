@@ -13,11 +13,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class TemporaryRecordDestructionDateCalculator implements MetadataValueCalculator<LocalDateTime> {
-    private static final int DEFAULT_NUMBER_OF_DAYS_BEFORE_DESTRUCTION = 7;
+    private static final double DEFAULT_NUMBER_OF_DAYS_BEFORE_DESTRUCTION = 7.0;
     public LocalDependency<Double> numberOfDaysParams = LocalDependency.toANumber(TemporaryRecord.DAY_BEFORE_DESTRUCTION);
     @Override
     public LocalDateTime calculate(CalculatorParameters parameters) {
-        return addDaysToCurrentDate(Integer.parseInt(parameters.get(numberOfDaysParams).toString()));
+        return addDaysToCurrentDate(parameters.get(numberOfDaysParams));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class TemporaryRecordDestructionDateCalculator implements MetadataValueCa
         return Collections.singletonList(numberOfDaysParams);
     }
 
-    private LocalDateTime addDaysToCurrentDate(int numberOfDays) {
-        return new LocalDateTime().millisOfDay().withMaximumValue().plusDays(numberOfDays);
+    private LocalDateTime addDaysToCurrentDate(Double numberOfDays) {
+        return numberOfDays >= 0 ? new LocalDateTime().millisOfDay().withMaximumValue().plusDays(numberOfDays.intValue()) : new LocalDateTime().millisOfDay().withMaximumValue().minusDays(Math.abs(numberOfDays.intValue()));
     }
 }

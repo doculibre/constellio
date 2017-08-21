@@ -23,8 +23,6 @@ public class TemporaryRecordsDeletionBackgroundAction implements Runnable {
 	private RecordServices recordServices;
 	private CollectionsListManager collectionsListManager;
 
-	private final int NUMBER_OF_DAYS_BEFORE_DELETION=5;
-
 	public TemporaryRecordsDeletionBackgroundAction(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();

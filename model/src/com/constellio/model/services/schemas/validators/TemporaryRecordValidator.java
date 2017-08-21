@@ -8,14 +8,14 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TemporaryRecordValidator implements RecordMetadataValidator<Integer> {
+public class TemporaryRecordValidator implements RecordMetadataValidator<Double> {
 
-    public static final int MIN_NUMBER_OF_DAYS = 0;
+    public static final int MIN_NUMBER_OF_DAYS = -1;
 
     public static final int MAX_NUMBER_OF_DAYS = 14;
 
     @Override
-    public void validate(Metadata metadata, Integer value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+    public void validate(Metadata metadata, Double value, ConfigProvider configProvider, ValidationErrors validationErrors) {
         if(value != null && !validateNumberOfDays(value)) {
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("NUMBER_OF_DAYS", value);
@@ -23,7 +23,7 @@ public class TemporaryRecordValidator implements RecordMetadataValidator<Integer
         }
     }
 
-    public boolean validateNumberOfDays(int value) {
+    public boolean validateNumberOfDays(Double value) {
         return value <= MAX_NUMBER_OF_DAYS && value >= MIN_NUMBER_OF_DAYS;
     }
 }
