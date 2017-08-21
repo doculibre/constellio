@@ -1371,6 +1371,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		final Record record = mock(Record.class, schemaType + "-" + id);
 		when(record.getId()).thenReturn(id);
 		when(record.getSchemaCode()).thenReturn(schema);
+		when(record.getTypeCode()).thenReturn(schemaType);
 		when(record.getVersion()).thenReturn(version);
 		when(record.isDirty()).thenReturn(false);
 		when(record.isFullyLoaded()).thenReturn(true);

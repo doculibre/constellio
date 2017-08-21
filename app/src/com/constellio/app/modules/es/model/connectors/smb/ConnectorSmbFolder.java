@@ -17,12 +17,14 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 
 	public static final String CONNECTOR = ConnectorDocument.CONNECTOR;
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
+	public static final String CONNECTOR_URL = "connectorUrl";
+	public static final String PARENT_CONNECTOR_URL = "parentConnectorUrl";
+	public static final String PARENT_URL = "parentUrl";
 
 	public static final String URL = "url";
-	public static final String PARENT = "parent";
+	public static final String PERMISSIONS_HASH = "permissionsHash";
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String LAST_FETCHED_STATUS = "lastFetchedStatus";
-	public static final String UNRETRIEVED_COUNT = "unretrievedCount";
 
 	public ConnectorSmbFolder(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -41,23 +43,17 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	public String getParent() {
-		return get(PARENT);
-	}
-
-	public ConnectorSmbFolder setParent(String parent) {
-		set(PARENT, parent);
+	public ConnectorSmbFolder setParentUrl(String url) {
+		set(PARENT_URL, url);
 		return this;
 	}
 
-	public ConnectorSmbFolder setParent(Record parent) {
-		set(PARENT, parent);
-		return this;
+	public String getParentConnectorUrl() {
+		return get(PARENT_CONNECTOR_URL);
 	}
 
-	public ConnectorSmbFolder setParent(ConnectorSmbFolder parent) {
-		set(PARENT, parent);
-		return this;
+	public String getConnectorUrl() {
+		return get(CONNECTOR_URL);
 	}
 
 	public LocalDateTime getLastFetched() {
@@ -78,20 +74,18 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	public long getUnretrievedCount() {
-		double count = get(UNRETRIEVED_COUNT);
-		Double d = new Double(count);
-		return d.longValue();
+	public String getPermissionsHash() {
+		return get(PERMISSIONS_HASH);
 	}
 
-	public ConnectorSmbFolder setUnretrievedCount(long unretrievedCount) {
-		set(UNRETRIEVED_COUNT, unretrievedCount);
+	public ConnectorSmbFolder setPermissionsHash(String permissionsHash) {
+		set(PERMISSIONS_HASH, permissionsHash);
 		return this;
 	}
 
 	@Override
 	public List<String> getDefaultMetadata() {
-		return Arrays.asList(CONNECTOR, CONNECTOR_TYPE, URL, PARENT);
+		return Arrays.asList(CONNECTOR, CONNECTOR_TYPE, URL, PARENT_CONNECTOR_URL);
 	}
 
 }

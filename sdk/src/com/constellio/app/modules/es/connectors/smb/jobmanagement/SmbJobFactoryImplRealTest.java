@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
@@ -85,9 +83,6 @@ public class SmbJobFactoryImplRealTest extends ConstellioTest {
 			throws RecordServicesException, IOException, InterruptedException {
 		testUtils = new SmbServiceTestUtils();
 		smbService = new SmbShareServiceSimpleImpl(testUtils.getValidCredentials(), testUtils.getFetchValidShare(), smbUtils, logger, es);
-
-		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
-		SmbConnectorContext context = contextServices.createContext(connectorInstance.getId());
 
 		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
 

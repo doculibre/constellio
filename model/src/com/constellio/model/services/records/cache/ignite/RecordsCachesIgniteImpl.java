@@ -68,6 +68,11 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 		return cache.insert(record);
 	}
 
+	public CacheInsertionStatus forceInsert(Record record) {
+		RecordsCache cache = getCache(record.getCollection());
+		return cache.forceInsert(record);
+	}
+
 	public Record getRecord(String id) {
 		long start = new Date().getTime();
 		for (RecordsCache cache : collectionsCache.values()) {

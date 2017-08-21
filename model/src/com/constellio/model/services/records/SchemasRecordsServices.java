@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -199,6 +200,20 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public EmailToSend newEmailToSend() {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
+	}
+
+	public MetadataSchema temporaryRecord() { return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA); }
+
+	public TemporaryRecord newTemporaryRecord() {
+		return new TemporaryRecord(create(defaultSchema(TemporaryRecord.SCHEMA_TYPE)), getTypes());
+	}
+
+	public ImportAudit newImportAudit() {
+		return new ImportAudit(create(getTypes().getSchema(ImportAudit.FULL_SCHEMA)), getTypes());
+	}
+
+	public ExportAudit newExportAudit() {
+		return new ExportAudit(create(getTypes().getSchema(ExportAudit.FULL_SCHEMA)), getTypes());
 	}
 
 	//Groups

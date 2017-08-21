@@ -1598,6 +1598,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
+			throw new RuntimeException("unsupported");
+		}
+
+		@Override
 		public String getIdTitle() {
 			return null;
 		}

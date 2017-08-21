@@ -16,10 +16,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -30,7 +27,6 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 	public static final String SAVE_BUTTON = "base-form-save";
 	public static final String CANCEL_BUTTON = "base-form_cancel";
 	public static final String DELETE_BUTTON = "base-form_delete";
-	private ComboBox selectedReportField;
 	private Field newReportTitle;
 	private Component tables;
 	private Button deleteButton;
@@ -51,31 +47,11 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		presenter.setParameters(params);
 
 		newReportTitle = new TextField($("ReportConfigurationView.newReportTitle"));
+		if(presenter.isEditMode()) {
+			newReportTitle.setValue(presenter.getReport().getTitle());
+		}
 
 		final VerticalLayout viewLayout = new VerticalLayout();
-		selectedReportField = new ComboBox($("ReportConfigurationView.selectedReport"));
-		Container container = new BeanItemContainer<>(ReportVO.class, presenter.getReports());
-		selectedReportField.setContainerDataSource(container);
-		selectedReportField.setInputPrompt($("ReportConfigurationView.newReport"));
-		selectedReportField.setItemCaptionMode(AbstractSelect.ItemCaptionMode.PROPERTY);
-		selectedReportField.setItemCaptionPropertyId("title");
-		selectedReportField.addValueChangeListener(new Property.ValueChangeListener() {
-			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
-				if (selectedReportField.getValue() != null){
-					newReportTitle.setVisible(false);
-					deleteButton.setVisible(true);
-				} else{
-					deleteButton.setVisible(false);
-					newReportTitle.setVisible(true);
-				}
-				//Replace tables after setting visible or not because visibility is checked while building
-				Component newTable = buildTables(deleteButton.isVisible());
-				viewLayout.replaceComponent(tables, newTable);
-				tables = newTable;
-			}
-		});
-		viewLayout.addComponent(selectedReportField);
 		viewLayout.addComponent(newReportTitle);
 
 		viewLayout.setSizeFull();
@@ -99,9 +75,20 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 				duplicatedTitles.add(form.getLabel());
 			}
 		}
-
+		select.setValue(new ArrayList<MetadataVO>());
+		List<String> selectedMetadataCodes = null;
+		if(presenter.isEditMode()) {
+			 selectedMetadataCodes = presenter.getReport().getReportedMetadataVOCodeList();
+		}
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
 			select.addItem(form);
+			if(presenter.isEditMode() && selectedMetadataCodes != null) {
+				if(selectedMetadataCodes.contains(form.getCode())) {
+					List<MetadataVO> currentSelectedItem = new ArrayList<>((Collection<? extends MetadataVO>) select.getValue());
+					currentSelectedItem.add(form);
+					select.setValue(currentSelectedItem);
+				}
+			}
 			if(!duplicatedTitles.contains(form.getLabel())) {
 				select.setItemCaption(form, form.getLabel() );
 			}
@@ -174,13 +161,6 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 
 	@Override
 	public String getSelectedReport() {
-		if(newReportTitle != null && newReportTitle.isVisible()){
-			return (String) newReportTitle.getValue();
-		}
-		if(selectedReportField != null && selectedReportField.getValue() != null){
-			return ((ReportVO) selectedReportField.getValue()).getTitle();
-		}else{
-			return null;
-		}
+		return (String) newReportTitle.getValue();
 	}
 }

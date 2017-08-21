@@ -483,7 +483,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			folderSchemaType = migration.newConnectorDocumentSchemaType(ConnectorSmbFolder.SCHEMA_TYPE,
 					ConnectorSmbInstance.SCHEMA_CODE);
 			folderSchema = folderSchemaType.getDefaultSchema();
-			folderSchema.createUndeletable(ConnectorSmbFolder.PARENT).defineReferencesTo(folderSchemaType)
+			folderSchema.createUndeletable("parent").defineReferencesTo(folderSchemaType)
 					.setChildOfRelationship(true);
 			folderSchema.createUndeletable(ConnectorSmbFolder.LAST_FETCH_ATTEMPT).setType(DATE_TIME).setSearchable(true);
 			folderSchema.createUndeletable(ConnectorSmbFolder.LAST_FETCHED_STATUS).defineAsEnum(LastFetchedStatus.class)
@@ -497,7 +497,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			documentSchema.createUndeletable(ConnectorSmbDocument.SIZE).setType(NUMBER).setSearchable(true);
 			documentSchema.createUndeletable(ConnectorSmbDocument.PERMISSIONS_HASH).setType(STRING);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LAST_FETCH_ATTEMPT).setType(DATE_TIME).setSearchable(true);
-			documentSchema.createUndeletable(ConnectorSmbDocument.PARENT).defineReferencesTo(folderSchemaType)
+			documentSchema.createUndeletable("parent").defineReferencesTo(folderSchemaType)
 					.setTaxonomyRelationship(true);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS).defineAsEnum(LastFetchedStatus.class)
 					.setSearchable(true);
@@ -544,10 +544,10 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
 				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
 
-		recordServices.add(es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
+//		recordServices.add(es.newFacetField()
+//				.setUsedByModule(ConstellioESModule.ID)
+//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
+//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)

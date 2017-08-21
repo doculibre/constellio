@@ -51,7 +51,7 @@ public class ReportSelector extends HorizontalLayout {
 		ComboBox comboBox = new ComboBox();
 		List<String> supportedReports = presenter.getSupportedReports();
 		if (supportedReports.isEmpty()) {
-			throw new UnsupportedReportException();
+			setVisible(false);
 		} else {
 			for (String report : supportedReports) {
 				comboBox.addItem(report);

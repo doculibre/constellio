@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.records.Record;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -685,7 +686,8 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 	private String getParentForDocument(SmbResult result, String url) {
 		for (ConnectorSmbDocument document : result.getDocuments()) {
 			if (StringUtils.equals(document.getUrl(), url)) {
-				return document.getParent();
+				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), document.getParentConnectorUrl());
+				return parentRecord != null? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for document";
@@ -694,7 +696,8 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 	private String getParentForFolder(SmbResult result, String url) {
 		for (ConnectorSmbFolder folder : result.getFolders()) {
 			if (StringUtils.equals(folder.getUrl(), url)) {
-				return folder.getParent();
+				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), folder.getParentConnectorUrl());
+				return parentRecord != null? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for folder";

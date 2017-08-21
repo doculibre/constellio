@@ -29,8 +29,8 @@ public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup
         CssLayout layout = new CssLayout();
         Button manageLabels = newLabelManagementLink();
         Button managePrintableReport = newPrintableReportManagementLink();
-        layout.addComponents(manageLabels);
-        layout.addComponent(managePrintableReport);
+        Button manageExcelReport = newExcelReportManagementLink();
+        layout.addComponents(manageLabels, manageExcelReport, managePrintableReport);
         return layout;
     }
 
@@ -52,6 +52,15 @@ public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup
                 navigate().to().managePrintableReport();
             }
         }, "report-print");
+    }
+
+    private Button newExcelReportManagementLink() {
+        return createLink($("ExcelReport.title"), new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().manageExcelReport();
+            }
+        }, "excel-templates");
     }
 
     private Button createLink(String caption, final Button.ClickListener listener, String iconName) {

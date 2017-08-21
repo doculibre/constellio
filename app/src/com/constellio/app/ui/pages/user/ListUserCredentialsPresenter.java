@@ -64,7 +64,7 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 	}
 
 	public boolean canAddOrModify() {
-		return userServices.canAddOrModifyUserAndGroup();
+		return true;
 	}
 
 	public boolean canModifyPassword(String usernameInEdition) {

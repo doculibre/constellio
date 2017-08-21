@@ -34,6 +34,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
+	public Record getSummary(String id) {
+		return get(id);
+	}
+
+	@Override
 	public Record get(String id) {
 		Record recordFromRequestCache = null;
 		if (cache.containsKey(id)) {
@@ -171,6 +176,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	public void invalidateAll() {
 		cache.clear();
 		nested.invalidateAll();
+	}
+
+	@Override
+	public Record getSummaryByMetadata(Metadata metadata, String value) {
+		return getByMetadata(metadata, value);
 	}
 
 	@Override
