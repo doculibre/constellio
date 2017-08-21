@@ -20,11 +20,7 @@ import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
-import com.constellio.app.ui.pages.imports.ExportViewImpl;
-import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
+import com.constellio.app.ui.pages.imports.*;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
@@ -34,6 +30,7 @@ import com.constellio.app.ui.pages.management.ExcelReport.ListExcelReportViewImp
 import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
+import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
@@ -186,6 +183,8 @@ public class NavigatorConfigurationService implements Serializable {
 
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
+	public static final String LIST_IMPORT_EXPORT = "importExport";
+	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -291,6 +290,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EXCEL_REPORT_MANAGE, ListExcelReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EXCEL_REPORT_DISPLAY, DisplayExcelReportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.data.event.category.EventsListDataProvide
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.server.Page;
 import org.joda.time.LocalDateTime;
 
 import java.util.HashMap;

@@ -410,6 +410,10 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void listTemporaryRecord() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_TEMPORARY_RECORDS);
+	}
+
 	public void declareUserFolder(String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userFolderId", userDocumentId);
@@ -573,6 +577,10 @@ public class CoreViews {
 
 	public void batchProcesses() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
+	}
+
+	public void listImportExport() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_IMPORT_EXPORT);
 	}
 
 }

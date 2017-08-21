@@ -649,8 +649,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return record == null ? null : new RMUserFolder(record, getTypes());
 	}
 
-	public List<RMUserFolder> wrapUserFolders(List<Record> records) {
-		List<RMUserFolder> userFolders = new ArrayList<>();
+	public List<UserFolder> wrapUserFolders(List<Record> records) {
+		List<UserFolder> userFolders = new ArrayList<>();
 		for (Record record : records) {
 			userFolders.add(wrapUserFolder(record));
 		}
