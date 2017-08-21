@@ -8,10 +8,12 @@ import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -70,6 +72,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private OptionGroup startTabField;
 	@PropertyId("defaultTabInFolderDisplay")
 	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
+	@PropertyId("defaultPageLength")
+	private EnumWithSmallCodeComboBox defaultPageLength;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
 	@PropertyId("defaultAdministrativeUnit")
@@ -303,6 +307,15 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
 				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
 
+		defaultPageLength = new EnumWithSmallCodeComboBox<SearchPageLength>(SearchPageLength.class);
+		defaultPageLength.setCaption($("ModifyProfileView.searchPageLength"));
+		defaultPageLength.setId("defaultPageLength");
+		defaultPageLength.setNullSelectionAllowed(false);
+//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
+//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
+//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.METADATA,
+//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
+
 		taxonomyField = new ListOptionGroup($("ModifyProfileView.defaultTaxonomy"));
 		taxonomyField.addStyleName("defaultTaxonomy");
 		taxonomyField.setId("defaultTaxonomy");
@@ -330,7 +343,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
         form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
                 phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-                taxonomyField, defaultAdministrativeUnitField, agentManuallyDisabledField) {
+                taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {

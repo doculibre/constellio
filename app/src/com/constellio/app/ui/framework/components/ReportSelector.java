@@ -4,8 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.app.modules.rm.reports.model.search.NoSuchReportRuntimeException;
-import com.constellio.app.modules.rm.reports.model.search.UnsupportedReport;
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -30,8 +29,12 @@ public class ReportSelector extends HorizontalLayout {
 		setSpacing(true);
 		this.presenter = presenter;
 		button = buildActivationButton();
-		selector = buildSelector();
-		addComponents(selector, button);
+		try {
+			selector = buildSelector();
+			addComponents(selector, button);
+		} catch (UnsupportedReportException e) {
+			setVisible(false);
+		}
 	}
 
 	@Override

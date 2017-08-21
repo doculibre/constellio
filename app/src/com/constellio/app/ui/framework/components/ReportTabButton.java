@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
-import com.constellio.app.modules.rm.reports.model.search.UnsupportedReport;
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -101,7 +101,7 @@ public class ReportTabButton extends WindowButton {
             AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
             presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
             verticalLayout.addComponent(new ReportSelector(presenter));
-        }catch (UnsupportedReport unsupportedReport ){
+        }catch (UnsupportedReportException unsupportedReport ){
             view.showErrorMessage($("ReportTabButton.noExcelReport"));
         }
         return verticalLayout;

@@ -795,6 +795,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		try {
 			EmailToSend emailToSend = newEmailToSend();
+			String constellioUrl = eimConfigs.getConstellioUrl();
 			User borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
@@ -809,6 +810,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
 					+ folderVO.getTitle() + "\"");
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
 			emailToSend.setParameters(parameters);
 
 			recordServices.add(emailToSend);

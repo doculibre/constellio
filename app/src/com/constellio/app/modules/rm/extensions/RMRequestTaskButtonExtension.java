@@ -105,13 +105,18 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		}
 	}
 
+	private String getCurrentCollection(BaseView view) {
+		return view.getCollection();
+	}
+
 	public void adjustButtons(BaseViewImpl view, Folder folder, ContainerRecord containerRecord, User currentUser) {
 		List<Button> actionMenuButtons = view.getActionMenuButtons();
+		String collection = getCurrentCollection(view);
 		for (Button button : actionMenuButtons) {
 			if (button.getId() != null) {
 				switch (button.getId()) {
 				case BorrowRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser));
+					button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
 					break;
 				case ReturnRequest.SCHEMA_NAME:
 					button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
@@ -149,7 +154,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		return false;
 	}
 
-	private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser) {
+	private boolean isFolderBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
 		if (folder != null) {
 			try {
 				this.borrowingServices.validateCanBorrow(currentUser, folder, LocalDate.now());
@@ -157,7 +162,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				return false;
 			}
 		}
-		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollectionOf(folder);
+		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
 				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
@@ -175,9 +180,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
 	}
 
-	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser) {
+	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
 		if (folder != null) {
-			return isFolderBorrowable(folder, container, currentUser);
+			return isFolderBorrowable(folder, container, currentUser, collection);
 		} else {
 			return isContainerBorrowable(container, currentUser);
 		}
@@ -259,7 +264,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 					@Override
 					public boolean isVisible() {
-						return isFolderBorrowable(folder, container, currentUser);
+						return isFolderBorrowable(folder, container, currentUser, view.getCollection());
 					}
 				};
 				borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);

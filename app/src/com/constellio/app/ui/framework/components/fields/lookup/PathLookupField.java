@@ -1,8 +1,11 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,6 +100,29 @@ public class PathLookupField extends LookupField<String> {
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
 	}
 
+	public static List<String> getTaxonomyCodesForUser() {
+
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		String collection = sessionContext.getCurrentCollection();
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
+		List<Taxonomy> taxonomies = taxonomiesManager.getAvailableTaxonomiesInHomePage(currentUser);
+		List<String> taxonomyCodes = new ArrayList<>();
+		for (Taxonomy taxonomy : taxonomies) {
+			String taxonomyCode = taxonomy.getCode();
+			if (StringUtils.isNotBlank(taxonomyCode)) {
+				taxonomyCodes.add(taxonomyCode);
+			}
+		}
+		return taxonomyCodes;
+	}
+
 	public static class PathInputDataProvider extends TextInputDataProvider<String> {
 
 		private transient int lastStartIndex;
@@ -145,8 +171,20 @@ public class PathLookupField extends LookupField<String> {
 		}
 
 		private SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
+			List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
+
 			LogicalSearchCondition condition = fromAllSchemasIn(sessionContext.getCurrentCollection())
 					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
+			if(!taxonomyCodesForUser.isEmpty()) {
+				List<LogicalSearchCondition> conditionList = new ArrayList<>();
+				for(String taxonomyCode: taxonomyCodesForUser) {
+					conditionList.add(fromAllSchemasIn(sessionContext.getCurrentCollection())
+							.where(Schemas.PATH).isStartingWithText("/"+taxonomyCode+"/"));
+				}
+				LogicalSearchCondition taxonomyCondition = fromAllSchemasIn(sessionContext.getCurrentCollection()).whereAnyCondition(conditionList);
+				condition = fromAllSchemasIn(sessionContext.getCurrentCollection()).whereAllConditions(asList(condition, taxonomyCondition));
+			}
+
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
 					.filteredWithUser(user).filteredByStatus(StatusFilter.ACTIVES)
 					.setStartRow(startIndex).setNumberOfRows(count);

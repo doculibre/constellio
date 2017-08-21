@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class AddEditMetadataPresenterWithRMModuleAcceptanceTest extends Constell
 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
-		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+		doReturn(getConstellioFactories()).when(view).getConstellioFactories();
 		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new AddEditMetadataPresenter(view);

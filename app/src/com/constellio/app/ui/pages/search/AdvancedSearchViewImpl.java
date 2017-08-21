@@ -353,4 +353,26 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             reportButton.addRecordToVoList((RecordVO) arg);
         }
     }
+
+    @Override
+    public void fireSomeRecordsSelected() {
+        if(batchProcessingButton != null) {
+            if(batchProcessingButton instanceof BatchProcessingButton) {
+                ((BatchProcessingButton) batchProcessingButton).hasResultSelected(true);
+            } else if(batchProcessingButton instanceof BatchProcessingModifyingOneMetadataButton) {
+                ((BatchProcessingModifyingOneMetadataButton) batchProcessingButton).hasResultSelected(true);
+            }
+        }
+    }
+
+    @Override
+    public void fireNoRecordSelected() {
+        if(batchProcessingButton != null) {
+            if(batchProcessingButton instanceof BatchProcessingButton) {
+                ((BatchProcessingButton) batchProcessingButton).hasResultSelected(false);
+            } else if(batchProcessingButton instanceof BatchProcessingModifyingOneMetadataButton) {
+                ((BatchProcessingModifyingOneMetadataButton) batchProcessingButton).hasResultSelected(false);
+            }
+        }
+    }
 }
