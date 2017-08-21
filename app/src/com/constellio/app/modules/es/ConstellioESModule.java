@@ -21,12 +21,16 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
-import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.*;
+import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExtension;
+import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
+import com.constellio.app.modules.es.extensions.ESSMBParentConnectorUrlCriterionExtension;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
+import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.ESMigrationCombo;
 import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
@@ -80,9 +84,9 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo6_4(),
 				new ESMigrationTo6_5_42(),
 				new ESMigrationTo6_5_58(),
-				new ESMigrationTo7_1_3(),
-				new ESMigrationTo7_4_1(),
-				new ESMigrationTo7_4_2()
+				new ESMigrationTo7_1_3()
+				//new ESMigrationTo7_4_1(),
+				//new ESMigrationTo7_4_2()
 		);
 	}
 
@@ -172,7 +176,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
-		recordsCache.configureCache(permanentCacheNotLoadedInitially(ConnectorSmbFolder.SCHEMA_TYPE, es.connectorSmbFolder.schemaType().getAllMetadatas()));
+		recordsCache.configureCache(permanentCacheNotLoadedInitially(ConnectorSmbFolder.SCHEMA_TYPE,
+				es.connectorSmbFolder.schemaType().getAllMetadatas()));
 		recordsCache.configureCache(permanentEssentialMetadatasCacheNotLoadedInitially(es.connectorSmbDocument.schemaType()));
 		recordsCache.configureCache(permanentCache(es.connectorType.schemaType()));
 
