@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -35,6 +36,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -187,7 +189,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             addListenerToButton(results);
         }
 
-        if(ConnectorHttpDocument.SCHEMA_TYPE.equals(schemaType) || ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaType) || StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
+        if(ConnectorHttpDocument.SCHEMA_TYPE.equals(schemaType) || ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaType) || StorageSpace.SCHEMA_TYPE.equals(schemaType) || ConnectorLDAPUserDocument.SCHEMA_TYPE.equals(schemaType)) {
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
             reportButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(reportButton);
