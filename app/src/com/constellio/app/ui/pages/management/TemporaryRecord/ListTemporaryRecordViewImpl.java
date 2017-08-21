@@ -34,8 +34,8 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
         TabSheet tabSheet = new TabSheet();
-        tabSheet.addTab(newImportTable(), $("ListImportExportView.importTable"));
-        tabSheet.addTab(newExportTable(), $("ListImportExportView.exportTable"));
+        tabSheet.addTab(newImportTable(), $("ListTemporaryRecordViewImpl.importTable"));
+        tabSheet.addTab(newExportTable(), $("ListTemporaryRecordViewImpl.exportTable"));
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }

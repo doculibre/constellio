@@ -27,16 +27,16 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
         return true;
     }
 
-    private RecordVODataProvider getDataProviderFromType(final TemporaryRecordType type) {
+    private RecordVODataProvider getDataProviderFromType(final String schema) {
         final MetadataSchemaType temporaryRecordSchemaType = types().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
-        MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(type.getSchema()),
+        MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(schema),
                 RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
         return new RecordVODataProvider(
                 schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
             protected LogicalSearchQuery getQuery() {
 
-                return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(type.getSchema()))
+                return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(schema))
                         .returnAll())
                         .sortDesc(Schemas.CREATED_ON);
             }
@@ -44,10 +44,10 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
     }
 
     public RecordVODataProvider getExportDataProvider(){
-        return getDataProviderFromType(TemporaryRecordType.EXPORT);
+        return getDataProviderFromType(TemporaryRecordType.EXPORT.getSchema());
     }
 
     public RecordVODataProvider getImportDataProvider(){
-        return getDataProviderFromType(TemporaryRecordType.IMPORT);
+        return getDataProviderFromType(TemporaryRecordType.IMPORT.getSchema());
     }
 }
