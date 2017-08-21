@@ -21,12 +21,16 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
-import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.*;
+import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExtension;
+import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
+import com.constellio.app.modules.es.extensions.ESSMBParentConnectorUrlCriterionExtension;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
+import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.ESMigrationCombo;
 import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
@@ -36,6 +40,8 @@ import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
 import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -172,7 +178,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
-		recordsCache.configureCache(permanentCacheNotLoadedInitially(ConnectorSmbFolder.SCHEMA_TYPE, es.connectorSmbFolder.schemaType().getAllMetadatas()));
+		recordsCache.configureCache(permanentCacheNotLoadedInitially(ConnectorSmbFolder.SCHEMA_TYPE,
+				es.connectorSmbFolder.schemaType().getAllMetadatas()));
 		recordsCache.configureCache(permanentEssentialMetadatasCacheNotLoadedInitially(es.connectorSmbDocument.schemaType()));
 		recordsCache.configureCache(permanentCache(es.connectorType.schemaType()));
 
