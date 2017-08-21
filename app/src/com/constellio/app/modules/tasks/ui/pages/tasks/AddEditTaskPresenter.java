@@ -427,4 +427,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public boolean isEditMode() {
 		return editMode;
 	}
+
+	public Record getWorkflow(String workflowId) {
+		return recordServices().getDocumentById(workflowId);
+	}
 }

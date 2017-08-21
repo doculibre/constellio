@@ -4,6 +4,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.viewGroups.TasksViewGroup;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.entities.records.Record;
 
 public interface AddEditTaskView extends BaseView, TasksViewGroup {
 
@@ -14,4 +15,6 @@ public interface AddEditTaskView extends BaseView, TasksViewGroup {
 	void adjustAcceptedField(boolean b);
 
 	void navigateToWorkflow(String workflowId);
+
+	Record getWorkflow(String workflowId);
 }
