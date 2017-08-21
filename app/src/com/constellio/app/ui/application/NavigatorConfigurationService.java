@@ -27,6 +27,7 @@ import com.constellio.app.ui.pages.management.AdminViewImpl;
 import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
+import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
@@ -178,6 +179,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
+	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -282,6 +284,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(REPORT_VIEW, ReportConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
