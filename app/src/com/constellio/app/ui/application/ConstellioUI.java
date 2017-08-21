@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vaadin.annotations.PreserveOnRefresh;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -73,51 +74,17 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	
 	private Map<String, Object> uiContext = new HashMap<>();
 
-	public final ConstellioResourceHandler resourceRequestHandler = new ConstellioResourceHandler();
-
 	private SSOServices ssoServices;
 	
 	private View currentView;
-	
-	public RequestHandler getRequestHandler(Class<? extends RequestHandler> clazz) {
-		RequestHandler match = null;
-		for (RequestHandler requestHandler : getSession().getRequestHandlers()) {
-			if (clazz.isAssignableFrom(requestHandler.getClass())) {
-				match = requestHandler;
-				break;
-			}
-		}
-		return match;
-	}
-	
-	public boolean isRequestHandler(Class<? extends RequestHandler> clazz) {
-		boolean requestHandlerFound = false;
-		for (RequestHandler requestHandler : getSession().getRequestHandlers()) {
-			if (clazz.isAssignableFrom(requestHandler.getClass())) {
-				requestHandlerFound = true;
-				break;
-			}
-		}
-		return requestHandlerFound;
-	}
-	
+
 	public void addRequestHandler(RequestHandler handler) {
 		getSession().addRequestHandler(handler);
-	}
-	
-	public Collection<RequestHandler> getRequestHandlers() {
-		return getSession().getRequestHandlers();
-	}
-	
-	public void removeRequestHandler(RequestHandler handler) {
-		getSession().removeRequestHandler(handler);
 	}
 
 	@Override
 	protected void init(VaadinRequest request) {
-		if (!isRequestHandler(ConstellioResourceHandler.class)) {
-			addRequestHandler(resourceRequestHandler);
-		}
+		getSession().addRequestHandler(new ConstellioResourceHandler());
 
 		ssoServices = SSOServices.getInstance();
 
@@ -164,12 +131,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		for (InitUIListener initUIListener : initUIListeners) {
 			initUIListener.afterInitialize(this);
 		}
-	}
-
-	@Override
-	public void detach() {
-		super.detach();
-		removeRequestHandler(resourceRequestHandler);
 	}
 
 	private UserVO ssoAuthenticate() {
