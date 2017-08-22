@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,8 +28,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -521,6 +522,12 @@ public class MetadataSchemaBuilder {
 				if (sortedMetadataCode.equals(metadata.getLocalCode())) {
 					sortedMetadatas.add(metadata);
 				}
+			}
+		}
+
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
+				sortedMetadatas.add(metadata);
 			}
 		}
 

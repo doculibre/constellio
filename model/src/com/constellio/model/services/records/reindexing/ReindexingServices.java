@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.reindexing;
 
+import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -26,10 +27,14 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.utils.Octets;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -87,6 +92,8 @@ public class ReindexingServices {
 	}
 
 	public void reindexCollections(ReindexationParams params) {
+
+		dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
 		try {
 			if (params.isBackground()) {
 				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -142,7 +149,10 @@ public class ReindexingServices {
 
 		} finally {
 			REINDEXING_INFOS = null;
+
+			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
 		}
+
 	}
 
 	private void deleteMetadatasMarkedForDeletion() {
@@ -228,18 +238,25 @@ public class ReindexingServices {
 			recreateIndexes(collection);
 		}
 
-		int batchSize = params.getBatchSize();
-		if (batchSize == 0) {
-			batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
-		}
-
 		int level = 0;
 		while (isReindexingLevel(level, types)) {
 
 			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
 					.setTransactionOptions(transactionOptions)
-					.withRecordsPerBatch(batchSize);
+					.showProgressionInConsole(false);
+
+			if (Toggle.FASTER_REINDEXING.isEnabled()) {
+				options.withRecordsPerBatch(100000);
+				options.setMaxRecordsTotalSizePerBatch(Octets.megaoctets(25).getOctets());
+
+			} else {
+				int batchSize = params.getBatchSize();
+				if (batchSize == 0) {
+					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+				}
+				options.withRecordsPerBatch(batchSize);
+			}
 
 			BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
 					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
@@ -249,9 +266,10 @@ public class ReindexingServices {
 				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
 					if (isReindexingOfTypeRequired(level, types, typeCode)) {
 						if (level == 0) {
-							LOGGER.info("Indexing '" + typeCode + "'");
+							LOGGER.info("Collection '" + collection + "' - Indexing '" + typeCode + "'");
 						} else {
-							LOGGER.info("Indexing '" + typeCode + "' (Dependency level " + level + ")");
+							LOGGER.info("Collection '" + collection + "' - Indexing '" + typeCode + "' (Dependency level " + level
+									+ ")");
 						}
 						reindexCollectionType(bulkTransactionHandler, types, typeCode, params);
 					}
@@ -296,21 +314,33 @@ public class ReindexingServices {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaType type = types.getSchemaType(typeCode);
 		boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager().getValue(WRITE_ZZRECORDS_IN_TLOG);
-		if (type.isInTransactionLog() || writeZZrecords) {
+
+		boolean typeReindexed = type.isInTransactionLog() || writeZZrecords;
+
+		FoldersLocator foldersLocator = new FoldersLocator();
+		if (typeReindexed && foldersLocator.getFoldersLocatorMode() == PROJECT) {
+			//Running on dev computer
+			typeReindexed = !Event.SCHEMA_TYPE.equals(type.getCode());
+		}
+
+		int skipped = 0;
+
+		if (typeReindexed) {
 
 			List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
 			List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
 			Set<String> ids = new HashSet<>();
 
-			long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
+			//long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
 			long current = 0;
 			while (true) {
 				Set<String> idsInCurrentBatch = new HashSet<>();
-				Iterator<Record> records = searchServices
+				long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
+				Iterator<Record> recordsIterator = searchServices
 						.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), mainThreadQueryRows);
-				while (records.hasNext()) {
+				while (recordsIterator.hasNext()) {
 					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), typeCode, current, counter);
-					Record record = records.next();
+					Record record = recordsIterator.next();
 					for (Metadata metadata : metadatasMarkedForDeletion) {
 						if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
 							record.set(metadata, null);
@@ -320,20 +350,34 @@ public class ReindexingServices {
 						if (metadatas.isEmpty()) {
 							current++;
 							if (current % 1000 == 0 || current == counter) {
-								LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
+								LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
+										+ current + "/" + counter);
 							}
 							bulkTransactionHandler.append(record);
 						} else {
 							String parentId = getParentIdOfSameType(metadatas, record);
 
 							if (parentId == null || ids.contains(parentId)) {
+								current++;
+								if (current % 100 == 0 || current == counter) {
+									LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
+											+ current + "/" + counter);
+								}
 								bulkTransactionHandler.append(record);
 								idsInCurrentBatch.add(record.getId());
+
+							} else {
+								skipped++;
+								if (skipped % 100 == 0) {
+									LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
+											+ skipped + " records skipped (will be reindexed in another iteration)");
+								}
 							}
 						}
 
 					}
 				}
+
 				bulkTransactionHandler.barrier();
 				modelLayerFactory.newRecordServices().flush();
 				ids.addAll(idsInCurrentBatch);

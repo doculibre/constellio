@@ -2,6 +2,8 @@ package com.constellio.model.entities.calculators;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -48,6 +50,47 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenStringCalculatedFromPatternUsingMultivalueReferenceAndStringLocalThenHasValidCalculatorDependencies()
+			throws Exception {
+
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + referenceMetadata.stringMetadata[0] + stringMetadata + ' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) zeSchema.anotherStringMetadata().getDataEntry())
+				.getCalculator();
+
+		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
+				LocalDependency.toAString("stringMetadata"),
+				ReferenceDependency.toAString("referenceMetadata", "stringMetadata").whichIsMultivalue()
+		);
+
+	}
+
+	@Test
+	public void givenStringCalculatedFromPatternUsingMultivalueReferenceThenHasValidCalculatorDependencies()
+			throws Exception {
+
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + referenceMetadata.stringMetadata[0] + ' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) zeSchema.anotherStringMetadata().getDataEntry())
+				.getCalculator();
+
+		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
+				ReferenceDependency.toAString("referenceMetadata", "stringMetadata").whichIsMultivalue()
+		);
+
+	}
+
+	@Test
 	public void givenStringCalculatedFromPatternThenOnlyCalculatedIfEveryDependenciesNotNull()
 			throws Exception {
 
@@ -81,8 +124,205 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		assertThat(zeSchemaRecord.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe zeValue - 666 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
-		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isNull();
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe  - zeValue Suffixe");
+		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe zeValue -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe  - 42 Suffixe");
+	}
+
+	@Test
+	public void givenMultivalueReferencedDependenciesThenCalculated()
+			throws Exception {
+
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + referenceMetadata.stringMetadata[0] +' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		Transaction transaction = new Transaction();
+		Record zeSchemaRecordWithOneReference = transaction.add(new TestRecord(zeSchema, "record1")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithTwoReference = transaction.add(new TestRecord(zeSchema, "record2")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1", "anotherSchemaRecord2")));
+
+		Record zeSchemaRecordWithoutReferencedStringMetadata = transaction.add(new TestRecord(zeSchema, "record3")
+				.set(zeSchema.stringMetadata(), "zeValue")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecordWithoutStringMetadata")));
+
+		Record zeSchemaRecordWithoutStringMetadata = transaction.add(new TestRecord(zeSchema, "record4")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithoutReference = transaction.add(new TestRecord(zeSchema, "record5")
+				.set(zeSchema.stringMetadata(), "42"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1")
+				.set(anotherSchema.stringMetadata(), "value1"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2")
+				.set(anotherSchema.stringMetadata(), "value2"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecordWithoutStringMetadata"));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [null] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+	}
+
+	@Test
+	public void givenMultivalueReferencedDependenciesWhenUsingFirstOrEmptyThenCalculated()
+			throws Exception {
+
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + utils.firstOrEmptyString(referenceMetadata.stringMetadata) +' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		Transaction transaction = new Transaction();
+		Record zeSchemaRecordWithOneReference = transaction.add(new TestRecord(zeSchema, "record1")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithTwoReference = transaction.add(new TestRecord(zeSchema, "record2")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1", "anotherSchemaRecord2")));
+
+		Record zeSchemaRecordWithoutReferencedStringMetadata = transaction.add(new TestRecord(zeSchema, "record3")
+				.set(zeSchema.stringMetadata(), "zeValue")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecordWithoutStringMetadata")));
+
+		Record zeSchemaRecordWithoutStringMetadata = transaction.add(new TestRecord(zeSchema, "record4")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithoutReference = transaction.add(new TestRecord(zeSchema, "record5")
+				.set(zeSchema.stringMetadata(), "42"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1")
+				.set(anotherSchema.stringMetadata(), "value1"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2")
+				.set(anotherSchema.stringMetadata(), "value2"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecordWithoutStringMetadata"));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [null] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+	}
+
+	@Test
+	public void givenStrictMultivalueReferencedDependenciesWhenUsingFirstOrEmptyThenCalculated()
+			throws Exception {
+
+		String pattern = "#STRICT:'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + utils.firstOrEmptyString(referenceMetadata.stringMetadata) +' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		Transaction transaction = new Transaction();
+		Record zeSchemaRecordWithOneReference = transaction.add(new TestRecord(zeSchema, "record1")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithTwoReference = transaction.add(new TestRecord(zeSchema, "record2")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1", "anotherSchemaRecord2")));
+
+		Record zeSchemaRecordWithoutReferencedStringMetadata = transaction.add(new TestRecord(zeSchema, "record3")
+				.set(zeSchema.stringMetadata(), "zeValue")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecordWithoutStringMetadata")));
+
+		Record zeSchemaRecordWithoutReference = transaction.add(new TestRecord(zeSchema, "record5")
+				.set(zeSchema.stringMetadata(), "42"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1")
+				.set(anotherSchema.stringMetadata(), "value1"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2")
+				.set(anotherSchema.stringMetadata(), "value2"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecordWithoutStringMetadata"));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [null] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+	}
+
+	@Test
+	public void givenMultivalueReferencedDependenciesAndLocalDependencyThenCalculated()
+			throws Exception {
+
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + stringMetadata + ' Suffixe'";
+		defineSchemasManager().using(setup
+				.withAStringMetadata()
+				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema, whichIsMultivalue)
+				.withAnotherSchemaStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern(pattern)));
+
+		Transaction transaction = new Transaction();
+		Record zeSchemaRecordWithOneReference = transaction.add(new TestRecord(zeSchema, "record1")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1")));
+
+		Record zeSchemaRecordWithTwoReference = transaction.add(new TestRecord(zeSchema, "record2")
+				.set(zeSchema.stringMetadata(), "666")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecord1", "anotherSchemaRecord2")));
+
+		Record zeSchemaRecordWithoutReferencedStringMetadata = transaction.add(new TestRecord(zeSchema, "record3")
+				.set(zeSchema.stringMetadata(), "zeValue")
+				.set(zeSchema.referenceMetadata(), asList("anotherSchemaRecordWithoutStringMetadata")));
+
+		Record zeSchemaRecordWithoutReference = transaction.add(new TestRecord(zeSchema, "record5")
+				.set(zeSchema.stringMetadata(), "42"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1")
+				.set(anotherSchema.stringMetadata(), "value1"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2")
+				.set(anotherSchema.stringMetadata(), "value2"));
+
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecordWithoutStringMetadata"));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1] - 666 Suffixe");
+		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [value1, value2] - 666 Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [null] - zeValue Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata()))
+				.isEqualTo("Prefixe [] - 42 Suffixe");
 	}
 }
