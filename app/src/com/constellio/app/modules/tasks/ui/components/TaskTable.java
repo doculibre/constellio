@@ -3,7 +3,9 @@ package com.constellio.app.modules.tasks.ui.components;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.ui.application.ConstellioUI;
-import com.vaadin.ui.Component;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -26,8 +28,6 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
-
-import java.util.List;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -80,13 +80,13 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							ConfirmDialog.show(ConstellioUI.getCurrent(), $("windowCaption"), $("message"),
-									$("quickComplete"), $("cancel"), $("slowComplete"),
+							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), $("DisplayTaskView.completeTaskDialogMessage"),
+									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
 									new ConfirmDialog.Listener() {
 										@Override
 										public void onClose(ConfirmDialog dialog) {
 											if(dialog.isConfirmed()) {
-												presenter.completeQuicklyButtonClicked();
+												presenter.completeQuicklyButtonClicked(recordVO);
 											} else if(dialog.isCanceled()) {
 
 											} else {
@@ -145,8 +145,6 @@ public class TaskTable extends RecordVOTable {
 
 		void deleteButtonClicked(RecordVO record);
 
-		void completeQuicklyButtonClicked(RecordVO record, String decision, Boolean accepted, String reason);
-
 		void completeButtonClicked(RecordVO record);
 
 		void closeButtonClicked(RecordVO record);
@@ -173,7 +171,11 @@ public class TaskTable extends RecordVOTable {
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
 
-		Component completeQuicklyButtonClicked();
+		void completeQuicklyButtonClicked(RecordVO recordVO);
+
+		public BaseView getView();
+
+		void reloadTaskModified(Task task);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

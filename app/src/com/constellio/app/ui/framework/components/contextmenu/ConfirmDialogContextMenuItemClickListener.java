@@ -26,8 +26,9 @@ public abstract class ConfirmDialogContextMenuItemClickListener implements BaseC
 				dialogMode, 
 				getConfirmDialogTitle(), 
 				getConfirmDialogMessage(), 
-				getConfirmDialogOKCaption(), 
-				getConfirmDialogCancelCaption(), 
+				getConfirmDialogOKCaption(),
+				null,
+				getConfirmDialogCancelCaption(),
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
 						if (dialog.isConfirmed()) {

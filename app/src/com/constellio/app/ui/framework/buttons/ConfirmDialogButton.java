@@ -65,6 +65,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 				getConfirmDialogTitle(),
 				getConfirmDialogMessage(),
 				getConfirmDialogOKCaption(),
+				getConfirmDialogNotOkCaption(),
 				getConfirmDialogCancelCaption(),
 				new ConfirmDialog.Listener() {
 					public void onClose(ConfirmDialog dialog) {
@@ -77,7 +78,8 @@ public abstract class ConfirmDialogButton extends IconButton {
 				});
 	}
 	
-	public static void showDialog(DialogMode dialogMode, String title, String message, String okCaption, String cancelCaption, ConfirmDialog.Listener closeListener) {
+	public static void showDialog(DialogMode dialogMode, String title, String message, String okCaption, String notOkCaption,
+								  String cancelCaption, ConfirmDialog.Listener closeListener) {
 		String iconName;
 		switch (dialogMode) {
 		case INFO:
@@ -106,13 +108,25 @@ public abstract class ConfirmDialogButton extends IconButton {
 			html.append("</span>");
 			message = html.toString();
 		}
-		ConfirmDialog.show(
-				UI.getCurrent(),
-				title,
-				message,
-				okCaption,
-				cancelCaption,
-				closeListener);
+
+		if(notOkCaption != null) {
+			ConfirmDialog.show(
+					UI.getCurrent(),
+					title,
+					message,
+					okCaption,
+					cancelCaption,
+					notOkCaption,
+					closeListener);
+		} else {
+			ConfirmDialog.show(
+					UI.getCurrent(),
+					title,
+					message,
+					okCaption,
+					cancelCaption,
+					closeListener);
+		}
 	}
 
 	protected String getConfirmDialogTitle() {
@@ -125,6 +139,10 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 	protected String getConfirmDialogCancelCaption() {
 		return $("ConfirmDialog.no");
+	}
+
+	protected String getConfirmDialogNotOkCaption() {
+		return null;
 	}
 
 	protected void dialogClosedWitoutConfirm(ConfirmDialog dialog) {
