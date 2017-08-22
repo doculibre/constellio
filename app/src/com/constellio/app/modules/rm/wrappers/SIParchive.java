@@ -4,6 +4,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
@@ -20,7 +21,7 @@ public class SIParchive extends TemporaryRecord {
     public static final String USER = "user";
 
     public SIParchive(Record record, MetadataSchemaTypes types) {
-        super(record, types);
+        super(record, types, SCHEMA);
     }
 
     public String getName(){
@@ -38,6 +39,15 @@ public class SIParchive extends TemporaryRecord {
 
     public SIParchive setCreationDate(LocalDateTime localDateTime) {
         set(CREATION_DATE, localDateTime);
+        return this;
+    }
+
+    public User getUser(){
+        return get(USER);
+    }
+
+    public SIParchive setUser(User user) {
+        set(USER, user);
         return this;
     }
 

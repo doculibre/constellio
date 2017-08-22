@@ -119,7 +119,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(PrintableReport.SCHEMA_NAME, PrintableReport.class);
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
 		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
-		wrappers.put(SIParchive.DEFAULT_SCHEMA, SIParchive.class);
+		wrappers.put(SIParchive.SCHEMA, SIParchive.class);
 
 		System.out.println(header());
 

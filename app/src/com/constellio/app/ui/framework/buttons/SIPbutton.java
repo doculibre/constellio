@@ -173,18 +173,20 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         if (!metsObjectsProvider.list().isEmpty()) {
             ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
             constellioSIP.build(outFile);
-            SIParchive siParchive = rm.newSIParchive();
+            SIParchive sipArchive = rm.newSIParchive();
             ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory();
 
             //Create SIParchive record
             ContentManager contentManager = modelLayerFactory.getContentManager();
             User currentUser = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
             ContentVersionDataSummary summary = contentManager.upload(outFile);
-            siParchive.setContent(contentManager.createMajor(currentUser, nomSipDossier, summary));
-            siParchive.setName(nomSipDossier);
-            siParchive.setCreationDate(new LocalDateTime());
+            sipArchive.setContent(contentManager.createMajor(currentUser, nomSipDossier, summary));
+            User user = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
+            sipArchive.setUser(user);
+            sipArchive.setCreatedBy(user.getId());
+            sipArchive.setCreationDate(new LocalDateTime());
             Transaction transaction = new Transaction();
-            transaction.add(siParchive);
+            transaction.add(sipArchive);
             modelLayerFactory.newRecordServices().execute(transaction);
 
             //download ZIP

@@ -8,10 +8,12 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.joda.time.LocalDateTime;
 
 public class RMMigrationTo7_5 extends MigrationHelper implements MigrationScript {
     @Override
@@ -35,11 +37,12 @@ public class RMMigrationTo7_5 extends MigrationHelper implements MigrationScript
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-            metadataSchemaBuilder.create(Folder.IS_RESTRICTED_ACCESS).setType(MetadataValueType.BOOLEAN).setUndeletable(true).isSystemReserved();
+            metadataSchemaBuilder.createSystemReserved(Folder.IS_RESTRICTED_ACCESS).setType(MetadataValueType.BOOLEAN).setUndeletable(true);
 
-            MetadataSchemaBuilder builder = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(SIParchive.SCHEMA);
-            builder.create(SIParchive.NAME).setType(MetadataValueType.STRING).setEssential(true).setUndeletable(true);
-            builder.create(SIParchive.CREATION_DATE).setType(MetadataValueType.DATE_TIME).setEssential(true).setUndeletable(true);
+            MetadataSchemaBuilder builder = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(SIParchive.SCHEMA_NAME);
+            builder.createUndeletable(SIParchive.NAME).setType(MetadataValueType.STRING).defineDataEntry().asManual();
+            builder.createUndeletable(SIParchive.CREATION_DATE).setType(MetadataValueType.DATE_TIME).setDefaultValue(new LocalDateTime()).setEssential(true);
+            builder.createUndeletable(SIParchive.USER).setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).defineDataEntry().asManual();
         }
 
     }

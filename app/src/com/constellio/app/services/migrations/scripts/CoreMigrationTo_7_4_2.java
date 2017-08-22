@@ -9,6 +9,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -34,6 +35,7 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor7_4_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new CoreSchemaAlterationFor7_4_2_createMetadata(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, TemporaryRecord.DEFAULT_SCHEMA)
@@ -61,6 +63,18 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
                     .defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
 
 		    MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaType(TemporaryRecord.SCHEMA_TYPE);
+		}
+	}
+
+	private class CoreSchemaAlterationFor7_4_2_createMetadata extends MetadataSchemasAlterationHelper {
+
+		protected CoreSchemaAlterationFor7_4_2_createMetadata(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			MetadataSchemaTypeBuilder schemaType = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 			defaultSchema.createUndeletable(TemporaryRecord.DESTRUCTION_DATE).setType(MetadataValueType.DATE_TIME).defineDataEntry().asCalculated(TemporaryRecordDestructionDateCalculator.class).setSystemReserved(true);
