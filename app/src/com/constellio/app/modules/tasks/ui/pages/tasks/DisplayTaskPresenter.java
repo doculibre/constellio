@@ -3,6 +3,8 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -23,7 +25,9 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.ui.Component;
 
 import java.io.IOException;
 import java.util.List;
@@ -181,6 +185,30 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		reloadCurrentTask();
 	}
 
+	@Override
+	public void completeQuicklyButtonClicked(RecordVO record, String decision, Boolean accepted, String reason) {
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = new Task(toRecord(record), types());
+		TaskStatus finishedStatus = tasksSearchServices
+				.getFirstFinishedStatus();
+		if (finishedStatus != null) {
+			task.setStatus(finishedStatus.getId());
+		}
+		if (tasksSchemas.isRequestTask(task)) {
+			task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
+			task.set(RequestTask.ACCEPTED, true);
+			task.set(RequestTask.REASON, reason);
+		}
+
+		task.setDecision(decision);
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		reloadCurrentTask();
+	}
+
 	void initSubTaskDataProvider() {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(defaultSchema(), VIEW_MODE.TABLE, asList(TITLE, ASSIGNEE, DUE_DATE), view.getSessionContext());
@@ -254,6 +282,11 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public boolean isMetadataReportAllowed(RecordVO recordVO) {
 		return true;
+	}
+
+	@Override
+	public Component completeQuicklyButtonClicked() {
+		return null;
 	}
 
 	public String getTaskTitle() {

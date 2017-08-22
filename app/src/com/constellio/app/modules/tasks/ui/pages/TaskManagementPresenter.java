@@ -17,9 +17,11 @@ import java.util.Map;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -39,10 +41,12 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Component;
+import org.camunda.bpm.model.bpmn.instance.UserTask;
 import org.joda.time.LocalDate;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
@@ -119,6 +123,30 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
 		taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
+		view.reloadCurrentTab();
+	}
+
+	@Override
+	public void completeQuicklyButtonClicked(RecordVO record, String decision, Boolean accepted, String reason) {
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = new Task(toRecord(record), types());
+		TaskStatus finishedStatus = tasksSearchServices
+				.getFirstFinishedStatus();
+		if (finishedStatus != null) {
+			task.setStatus(finishedStatus.getId());
+		}
+		if (tasksSchemas.isRequestTask(task)) {
+			task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
+			task.set(RequestTask.ACCEPTED, true);
+			task.set(RequestTask.REASON, reason);
+		}
+
+		task.setDecision(decision);
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 		view.reloadCurrentTab();
 	}
 
@@ -351,6 +379,16 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public boolean isMetadataReportAllowed(RecordVO recordVO) {
 		return true;
+	}
+
+	@Override
+	public Component completeQuicklyButtonClicked() {
+		return null;
+	}
+
+	public Component buildQuickCompleteComponent() {
+
+		return (Component) new ArrayList<>();
 	}
 
 	public String getDueDateCaption() {

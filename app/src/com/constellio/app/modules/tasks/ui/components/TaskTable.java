@@ -2,7 +2,8 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.model.entities.records.Record;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.vaadin.ui.Component;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -25,6 +26,8 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
+
+import java.util.List;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -77,7 +80,20 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							presenter.completeButtonClicked(recordVO);
+							ConfirmDialog.show(ConstellioUI.getCurrent(), $("windowCaption"), $("message"),
+									$("quickComplete"), $("cancel"), $("slowComplete"),
+									new ConfirmDialog.Listener() {
+										@Override
+										public void onClose(ConfirmDialog dialog) {
+											if(dialog.isConfirmed()) {
+												presenter.completeQuicklyButtonClicked();
+											} else if(dialog.isCanceled()) {
+
+											} else {
+												presenter.completeButtonClicked(recordVO);
+											}
+										}
+									});
 						}
 					});
 				}
@@ -129,6 +145,8 @@ public class TaskTable extends RecordVOTable {
 
 		void deleteButtonClicked(RecordVO record);
 
+		void completeQuicklyButtonClicked(RecordVO record, String decision, Boolean accepted, String reason);
+
 		void completeButtonClicked(RecordVO record);
 
 		void closeButtonClicked(RecordVO record);
@@ -154,7 +172,8 @@ public class TaskTable extends RecordVOTable {
 		boolean isDeleteButtonVisible(RecordVO recordVO);
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
-		
+
+		Component completeQuicklyButtonClicked();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
