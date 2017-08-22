@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -44,6 +45,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -65,6 +67,7 @@ public class ReindexingServices {
 
 	private static final String REINDEX_TYPES = "reindexTypes";
 
+	private RecordServices recordServices;
 	private ModelLayerFactory modelLayerFactory;
 	private DataLayerFactory dataLayerFactory;
 
@@ -74,6 +77,7 @@ public class ReindexingServices {
 
 	public ReindexingServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+		this.recordServices = modelLayerFactory.newRecordServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
 		this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
@@ -323,8 +327,6 @@ public class ReindexingServices {
 			typeReindexed = !Event.SCHEMA_TYPE.equals(type.getCode());
 		}
 
-		int skipped = 0;
-
 		if (typeReindexed) {
 
 			List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
@@ -333,11 +335,25 @@ public class ReindexingServices {
 
 			//long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
 			long current = 0;
+			int iteration = 0;
+			Set<String> skipped = new HashSet<>();
 			while (true) {
+
+				iteration++;
 				Set<String> idsInCurrentBatch = new HashSet<>();
 				long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
-				Iterator<Record> recordsIterator = searchServices
-						.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), mainThreadQueryRows);
+
+				Iterator<Record> recordsIterator;
+				if (!skipped.isEmpty() && skipped.size() < 1000) {
+					recordsIterator = searchServices.recordsIterator(
+							new LogicalSearchQuery(from(type).where(IDENTIFIER).isIn(new ArrayList<>(skipped))), 1000);
+
+				} else {
+					recordsIterator = searchServices
+							.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), mainThreadQueryRows);
+				}
+				skipped.clear();
+
 				while (recordsIterator.hasNext()) {
 					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), typeCode, current, counter);
 					Record record = recordsIterator.next();
@@ -367,10 +383,10 @@ public class ReindexingServices {
 								idsInCurrentBatch.add(record.getId());
 
 							} else {
-								skipped++;
-								if (skipped % 100 == 0) {
+								skipped.add(record.getId());
+								if (skipped.size() % 100 == 0) {
 									LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
-											+ skipped + " records skipped (will be reindexed in another iteration)");
+											+ skipped.size() + " records skipped");
 								}
 							}
 						}
@@ -383,6 +399,12 @@ public class ReindexingServices {
 				ids.addAll(idsInCurrentBatch);
 				if (metadatas.isEmpty() || ids.size() == counter) {
 					break;
+				}
+
+				if (!skipped.isEmpty()) {
+					LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : Iteration "
+							+ iteration + " has finished with " + skipped.size()
+							+ " records skipped, iterating an other time...");
 				}
 			}
 		}
