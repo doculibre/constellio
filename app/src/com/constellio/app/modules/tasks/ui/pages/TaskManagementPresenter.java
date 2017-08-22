@@ -8,11 +8,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -28,9 +24,13 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
+import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -38,15 +38,20 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.ui.Component;
-import org.camunda.bpm.model.bpmn.instance.UserTask;
+import com.vaadin.data.Validator;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
@@ -123,30 +128,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
 		taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
-		view.reloadCurrentTab();
-	}
-
-	@Override
-	public void completeQuicklyButtonClicked(RecordVO record, String decision, Boolean accepted, String reason) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = new Task(toRecord(record), types());
-		TaskStatus finishedStatus = tasksSearchServices
-				.getFirstFinishedStatus();
-		if (finishedStatus != null) {
-			task.setStatus(finishedStatus.getId());
-		}
-		if (tasksSchemas.isRequestTask(task)) {
-			task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
-			task.set(RequestTask.ACCEPTED, true);
-			task.set(RequestTask.REASON, reason);
-		}
-
-		task.setDecision(decision);
-		try {
-			recordServices().update(task);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-		}
 		view.reloadCurrentTab();
 	}
 
@@ -382,13 +363,27 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
-	public Component completeQuicklyButtonClicked() {
-		return null;
+	public void completeQuicklyButtonClicked(RecordVO recordVO) {
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = tasksSchemas.getTask(recordVO.getId());
+		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty()) || tasksSchemas.isRequestTask(task)) {
+			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
+			quickCompleteWindow.show();
+		} else {
+			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
+			refreshCurrentTab();
+		}
 	}
 
-	public Component buildQuickCompleteComponent() {
+	@Override
+	public BaseView getView() {
+		return view;
+	}
 
-		return (Component) new ArrayList<>();
+	@Override
+	public void reloadTaskModified(Task task) {
+		view.reloadCurrentTab();
 	}
 
 	public String getDueDateCaption() {
