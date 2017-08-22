@@ -1,3 +1,5 @@
+$.ajaxSetup({ cache: false });
+
 $(document).ready(function() {
 
     setTimeout(function() {
