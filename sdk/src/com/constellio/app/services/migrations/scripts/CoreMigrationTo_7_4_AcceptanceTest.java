@@ -1,6 +1,9 @@
 package com.constellio.app.services.migrations.scripts;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -22,5 +25,8 @@ public class CoreMigrationTo_7_4_AcceptanceTest extends ConstellioTest {
         MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
         assertThat(manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata")).isNotNull();
         assertThat(manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata").getDataEntry().getType()).isEqualTo(DataEntryType.CALCULATED);
+        MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata").getDataEntry()).getCalculator();
+        String currentScript = ((JEXLMetadataValueCalculator) calculator).getJexlScript().getSourceText();
+        assertThat(currentScript).isEqualTo("#STRICT:title + '-test'");
     }
 }

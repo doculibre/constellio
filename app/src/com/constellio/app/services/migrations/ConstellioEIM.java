@@ -50,6 +50,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_7_3_0_1());
 		scripts.add(new CoreMigrationTo_7_4());
 		scripts.add(new CoreMigrationTo_7_4_2());
+		scripts.add(new CoreMigrationTo_7_4_3());
 
 		return scripts;
 	}
