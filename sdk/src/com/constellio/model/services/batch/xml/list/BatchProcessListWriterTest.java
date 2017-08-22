@@ -14,9 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessListWriterTest extends ConstellioTest {
@@ -33,9 +33,9 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	Document document;
 	BatchProcessListWriter listWriter;
 	Element rootElement;
-	@Mock BatchProcess batchProcess1;
-	@Mock BatchProcess batchProcess2;
-	@Mock BatchProcess inexistentBatchProcess;
+	@Mock RecordBatchProcess batchProcess1;
+	@Mock RecordBatchProcess batchProcess2;
+	@Mock RecordBatchProcess inexistentBatchProcess;
 
 	@Mock BatchProcessAction action;
 
@@ -45,7 +45,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 
-		when(action.getInstanceParameters()).thenReturn(new Object[] { });
+		when(action.getInstanceParameters()).thenReturn(new Object[] {});
 
 		document = new Document();
 		listWriter = spy(new BatchProcessListWriter(document));
@@ -70,7 +70,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void whenAddOneBatchProcessThenItIsAddedInPreviousBatchProcessesList()
 			throws Exception {
 
-		listWriter.addBatchProcess("1", "zeQuery", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 
 		assertThat(rootElement.getChild(STANDBY_BATCH_PROCESSES).getChildren()).hasSize(1);
 		assertThat(rootElement.getChild(STANDBY_BATCH_PROCESSES).getChild(BATCH_PROCESS).getAttributeValue(ID)).isEqualTo("1");
@@ -84,8 +84,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void whenAddTwoBatchProcessesThenTheyAreAddedInStandbyBatchProcessesList()
 			throws Exception {
 
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 
 		assertThat(rootElement.getChild(STANDBY_BATCH_PROCESSES).getChildren()).hasSize(2);
 		assertThat(rootElement.getChild(CURRENT_BATCH_PROCESS).getContent()).isEmpty();
@@ -98,8 +98,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void givenTwoStandbyBatchProcessesWhenCancellingOneThenDeletedAndOtherStillInStandby()
 			throws Exception {
 
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 
 		listWriter.cancelStandByBatchProcess("2");
 
@@ -117,8 +117,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void givenTwoPendingBatchProcessesWhenStartNextBatchProcessThenNextBatchIsMovedToCurrentBactchProcessAndStartTimeIsUpdate()
 			throws Exception {
 
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markAllBatchProcessAsPending();
 
 		listWriter.startNextBatchProcess(localDateTime);
@@ -151,8 +151,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void givenABatchProcessInCurrentBatchProcessListWhenStartNextBatchProcessThenException()
 			throws Exception {
 
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markAllBatchProcessAsPending();
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -171,8 +171,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markAllBatchProcessAsPending();
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -189,8 +189,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess2.getId()).thenReturn("2");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("2");
 		;
 		listWriter.startNextBatchProcess(localDateTime);
@@ -207,8 +207,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess2.getId()).thenReturn("2");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("2");
 		listWriter.startNextBatchProcess(localDateTime);
 		listWriter.markBatchProcessAsFinished(batchProcess2, 0);
@@ -230,8 +230,8 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(inexistentBatchProcess.getId()).thenReturn("3");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
-		listWriter.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("2", "zeQuery2", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.markBatchProcessAsPending("2");
 
@@ -249,7 +249,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 		listWriter.incrementProgression(batchProcess1, 50, 0);
@@ -269,7 +269,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 
 		when(batchProcess1.getId()).thenReturn("1");
 		when(batchProcess2.getId()).thenReturn("2");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -281,7 +281,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -296,7 +296,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 100, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -311,7 +311,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -326,7 +326,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 
@@ -341,7 +341,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 			throws Exception {
 
 		when(batchProcess1.getId()).thenReturn("1");
-		listWriter.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
+		listWriter.addRecordBatchProcess("1", "zeQuery1", "zeUltimateCollection", new LocalDateTime(), 1000, action);
 		listWriter.markBatchProcessAsPending("1");
 		listWriter.startNextBatchProcess(localDateTime);
 

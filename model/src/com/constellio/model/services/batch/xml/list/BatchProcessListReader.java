@@ -1,10 +1,9 @@
 package com.constellio.model.services.batch.xml.list;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.services.batch.xml.list.BatchProcessListReaderException.NoBatchProcessesInList;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filter;
@@ -14,9 +13,15 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.services.batch.xml.list.BatchProcessListReaderException.NoBatchProcessesInList;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class BatchProcessListReader {
 
@@ -61,23 +66,47 @@ public class BatchProcessListReader {
 		return batchProcess;
 	}
 
-	private BatchProcess toBatchProcess(String id, Element nextBatchProcess) {
-		BatchProcess batchProcess;
-		BatchProcessStatus status = getStatus(nextBatchProcess);
-		LocalDateTime requestDateTime = getRequestDateTime(nextBatchProcess);
-		LocalDateTime startDateTime = getStartDateTime(nextBatchProcess);
-		String username = getUsername(nextBatchProcess);
-		String title = getTitle(nextBatchProcess);
-		String query = getQuery(nextBatchProcess);
-		List<String> records = getRecords(nextBatchProcess);
-		int totalRecordsCount = Integer.parseInt(nextBatchProcess.getChild(RECORDS_COUNT).getText());
-		int errors = getErrors(nextBatchProcess);
-		int handledRecordsCount = getHandledRecords(nextBatchProcess, status, totalRecordsCount);
-		String collection = getCollection(nextBatchProcess);
-		BatchProcessAction batchProcessAction = getBatchProcessActions(nextBatchProcess);
-		batchProcess = new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount,
+	private BatchProcess toBatchProcess(String id, Element batchProcessElement) {
+		String type = batchProcessElement.getAttributeValue("type");
+		if (type == null || "record".equals(type)) {
+			return toRecordBatchProcess(id, batchProcessElement);
+
+		} else if ("task".equals(type)) {
+			return toAsyncTaskBatchProcess(id, batchProcessElement);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unrecognized batch process with type " + type);
+		}
+	}
+
+	private BatchProcess toRecordBatchProcess(String id, Element batchProcessElement) {
+		BatchProcessStatus status = getStatus(batchProcessElement);
+		LocalDateTime requestDateTime = getRequestDateTime(batchProcessElement);
+		LocalDateTime startDateTime = getStartDateTime(batchProcessElement);
+		String username = getUsername(batchProcessElement);
+		String title = getTitle(batchProcessElement);
+		String query = getQuery(batchProcessElement);
+		List<String> records = getRecords(batchProcessElement);
+		int totalRecordsCount = Integer.parseInt(batchProcessElement.getChild(RECORDS_COUNT).getText());
+		int errors = getErrors(batchProcessElement);
+		int handledRecordsCount = getHandledRecords(batchProcessElement, status, totalRecordsCount);
+		String collection = getCollection(batchProcessElement);
+		BatchProcessAction batchProcessAction = getBatchProcessActions(batchProcessElement);
+		return new RecordBatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount,
 				totalRecordsCount, errors, batchProcessAction, collection, query, records, username, title);
-		return batchProcess;
+	}
+
+	private BatchProcess toAsyncTaskBatchProcess(String id, Element batchProcessElement) {
+		BatchProcessStatus status = getStatus(batchProcessElement);
+		LocalDateTime requestDateTime = getRequestDateTime(batchProcessElement);
+		LocalDateTime startDateTime = getStartDateTime(batchProcessElement);
+		String username = getUsername(batchProcessElement);
+		String title = getTitle(batchProcessElement);
+		int errors = getErrors(batchProcessElement);
+		String collection = getCollection(batchProcessElement);
+		AsyncTask batchProcessAction = getBatchProcessTaskAction(batchProcessElement);
+		return new AsyncTaskBatchProcess(id, status, requestDateTime, startDateTime, errors, batchProcessAction,
+				username, title, collection);
 	}
 
 	private int getHandledRecords(Element nextBatchProcess, BatchProcessStatus status, int totalRecordsCount) {
@@ -159,6 +188,11 @@ public class BatchProcessListReader {
 		return newParametrizedInstanceUtils().toObject(actionElement, BatchProcessAction.class);
 	}
 
+	private AsyncTask getBatchProcessTaskAction(Element nextBatchProcess) {
+		Element actionElement = nextBatchProcess.getChild(ACTION);
+		return newParametrizedInstanceUtils().toObject(actionElement, AsyncTask.class);
+	}
+
 	private String getCollection(Element nextBatchProcess) {
 		Element collectionElement = nextBatchProcess.getChild(COLLECTION);
 		return collectionElement.getText();
@@ -225,25 +259,26 @@ public class BatchProcessListReader {
 
 	private String getTitle(Element nextBatchProcess) {
 		Element title = nextBatchProcess.getChild(TITLE);
-		return title == null? null : title.getText();
+		return title == null ? null : title.getText();
 	}
 
 	private String getUsername(Element nextBatchProcess) {
 		Element username = nextBatchProcess.getChild(USERNAME);
-		return username == null? null : username.getText();
+		return username == null ? null : username.getText();
 	}
 
 	private List<String> getRecords(Element nextBatchProcess) {
 		Element records = nextBatchProcess.getChild(RECORDS);
-		return records == null? null : buildListFromString(records.getText());
+		return records == null ? null : buildListFromString(records.getText());
 	}
 
 	private List<String> buildListFromString(String text) {
-		if(text == null) {
+		if (text == null) {
 			return null;
 		}
-		StringBuilder stringBuilder = new StringBuilder(text.replaceFirst("\\[",""));
-		return Arrays.asList(new StringBuilder(stringBuilder.reverse().toString().replaceFirst("\\]","")).reverse().toString().split(", "));
+		StringBuilder stringBuilder = new StringBuilder(text.replaceFirst("\\[", ""));
+		return Arrays.asList(new StringBuilder(stringBuilder.reverse().toString().replaceFirst("\\]", "")).reverse().toString()
+				.split(", "));
 	}
 
 	ParametrizedInstanceUtils newParametrizedInstanceUtils() {

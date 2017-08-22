@@ -36,6 +36,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
@@ -68,13 +69,13 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Mock BatchProcessListWriter batchProcessListWriter;
 	String aBatchProcessPath = "/batchProcesses/aBatchProcess.xml";
 	String aBatchProcessId = "aBatchProcess";
-	@Mock BatchProcess aBatchProcess;
+	@Mock RecordBatchProcess aBatchProcess;
 	@Mock Document aBatchProcessDocument;
 	@Mock XMLConfiguration aBatchProcessConfiguration;
 	//@Mock BatchProcessReader aBatchProcessReader;
 	String anotherBatchProcessPath = "/batchProcesses/anotherBatchProcess.xml";
 	String anotherBatchProcessId = "anotherBatchProcess";
-	@Mock BatchProcess anotherBatchProcess;
+	@Mock RecordBatchProcess anotherBatchProcess;
 	@Mock Document anotherBatchProcessDocument;
 	@Mock XMLConfiguration anotherBatchProcessConfiguration;
 	@Mock BatchProcessReader anotherBatchProcessReader;
@@ -308,7 +309,8 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		createManager();
 		givenExistingBatchProcessList();
 
-		when(batchProcessListReader.readPendingBatchProcesses()).thenReturn(asList(aBatchProcess, anotherBatchProcess));
+		when(batchProcessListReader.readPendingBatchProcesses())
+				.thenReturn(asList((BatchProcess) aBatchProcess, anotherBatchProcess));
 		when(batchProcessListReader.readCurrent()).thenReturn(BatchProcessListReader.NO_CURRENT_BATCH_PROCESS).thenReturn(
 				aBatchProcess);
 
