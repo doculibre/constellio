@@ -412,10 +412,13 @@ public class DecommissioningList extends RecordWrapper {
 	}
 
 	public DecommissioningList addContainerDetailsFrom(List<ContainerRecord> containers) {
+		List<String> previousContainers = getContainers();
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
 		for (ContainerRecord container : containers) {
-			DecomListContainerDetail detail = new DecomListContainerDetail(container);
-			details.add(detail);
+			if(!(previousContainers != null && previousContainers.contains(container.getId()))) {
+				DecomListContainerDetail detail = new DecomListContainerDetail(container);
+				details.add(detail);
+			}
 		}
 		return setContainerDetails(details);
 	}
