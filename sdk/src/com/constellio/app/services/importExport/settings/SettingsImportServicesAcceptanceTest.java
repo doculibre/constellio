@@ -291,7 +291,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataValueCalculator<?> calculator = calculatedDataEntry.getCalculator();
 		assertThat(calculator).isInstanceOf(JEXLMetadataValueCalculator.class);
 		assertThat(calculator.getReturnType()).isEqualTo(STRING);
-		assertThat(((JEXLMetadataValueCalculator) calculator).getJexlScript().getSourceText()).isEqualTo(pattern);
+		assertThat(((JEXLMetadataValueCalculator) calculator).getExpression()).isEqualTo(pattern);
 
 	}
 
