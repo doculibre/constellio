@@ -277,8 +277,7 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
 		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
-				.isEqualTo("Prefixe [null] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
 		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
 	}
 
