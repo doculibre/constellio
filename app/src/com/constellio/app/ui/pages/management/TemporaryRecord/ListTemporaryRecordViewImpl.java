@@ -1,29 +1,37 @@
 package com.constellio.app.ui.pages.management.TemporaryRecord;
 
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.components.TitlePanel;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLanguage;
 
 public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTemporaryRecordView{
 
     private ListTemporaryRecordPresenter presenter;
+
+    private Map<String, String> tabs = new HashMap<>();
 
     public ListTemporaryRecordViewImpl() {presenter = new ListTemporaryRecordPresenter(this); }
 
@@ -33,16 +41,24 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         mainLayout.addStyleName("batch-processes");
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
+        initTabWithDefaultValues();
         TabSheet tabSheet = new TabSheet();
-        tabSheet.addTab(newImportTable(), $("ListTemporaryRecordViewImpl.importTable"));
-        tabSheet.addTab(newExportTable(), $("ListTemporaryRecordViewImpl.exportTable"));
-        tabSheet.addTab(newSIPArchivesTable(), $("ListTemporaryRecordViewImpl.SIParchivesTable"));
-        mainLayout.addComponent(tabSheet);
+        for(Map.Entry<String, String> currentTabs : tabs.entrySet()) {
+            RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
+            if(provider.size() > 0 ) {
+                tabSheet.addTab(buildTable(provider), currentTabs.getValue());
+            }
+        }
+        if(tabSheet.getComponentCount() > 0) {
+            mainLayout.addComponent(tabSheet);
+        } else {
+            mainLayout.addComponent(new TitlePanel($("ListTemporaryRecordViewImpl.noTemporaryReportAvailable")));
+        }
         return mainLayout;
     }
 
-    private BaseTable newImportTable() {
-        RecordVOTable importTable = new RecordVOTable(presenter.getImportDataProvider()) {
+    private BaseTable buildTable(RecordVODataProvider provider) {
+        RecordVOTable importTable = new RecordVOTable(provider) {
             @Override
             protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
                 return super.buildMetadataComponent(metadataValue, recordVO);
@@ -52,39 +68,6 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         importTable.setCellStyleGenerator(newImportStyleGenerator());
 
         return importTable;
-    }
-
-    private BaseTable newExportTable() {
-        RecordVOTable exportTable = new RecordVOTable(presenter.getExportDataProvider()) {
-            @Override
-            protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-                if(metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT) && metadataValue.getValue() != null) {
-                    ContentVersionVO content = metadataValue.getValue();
-                    return new DownloadContentVersionLink(content, content.getFileName());
-                } else {
-                    return super.buildMetadataComponent(metadataValue, recordVO);
-                }
-            }
-        };
-        exportTable.setWidth("98%");
-
-        return exportTable;
-    }
-
-    private BaseTable newSIPArchivesTable(){
-        RecordVOTable sipArchivesTable = new RecordVOTable(presenter.getSIPArchivesDataProvider()) {
-            @Override
-            protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-                if(metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT) && metadataValue.getValue() != null) {
-                    ContentVersionVO content = metadataValue.getValue();
-                    return new DownloadContentVersionLink(content, content.getFileName());
-                } else {
-                    return super.buildMetadataComponent(metadataValue, recordVO);
-                }
-            }
-        };
-        sipArchivesTable.setWidth("98%");
-        return sipArchivesTable;
     }
 
     private Table.CellStyleGenerator newImportStyleGenerator() {
@@ -105,5 +88,12 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
                 return null;
             }
         };
+    }
+
+    private void initTabWithDefaultValues(){
+        MetadataSchemasManager manager = getConstellioFactories().getModelLayerFactory().getMetadataSchemasManager();
+        for(MetadataSchema schema : manager.getSchemaTypes(getCollection()).getSchemaType(TemporaryRecord.SCHEMA_TYPE).getCustomSchemas()) {
+            tabs.put(schema.getCode(), schema.getLabel(getLanguage()));
+        }
     }
 }

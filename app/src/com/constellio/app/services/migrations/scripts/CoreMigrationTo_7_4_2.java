@@ -35,16 +35,6 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor7_4_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		new CoreSchemaAlterationFor7_4_2_createMetadata(collection, migrationResourcesProvider, appLayerFactory).migrate();
-
-		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, TemporaryRecord.DEFAULT_SCHEMA)
-				.withTableMetadataCodes(asList(
-						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
-						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
-						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
-						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT
-				)));
 	}
 
 	private class CoreSchemaAlterationFor7_4_2 extends MetadataSchemasAlterationHelper {
@@ -61,32 +51,6 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 		private void migrateTemporaryRecord(MetadataSchemaTypesBuilder typesBuilder) {
             typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DEFAULT_PAGE_LENGTH).setType(MetadataValueType.ENUM)
                     .defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
-
-		    MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaType(TemporaryRecord.SCHEMA_TYPE);
-		}
-	}
-
-	private class CoreSchemaAlterationFor7_4_2_createMetadata extends MetadataSchemasAlterationHelper {
-
-		protected CoreSchemaAlterationFor7_4_2_createMetadata(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
-			super(collection, migrationResourcesProvider, appLayerFactory);
-		}
-
-		@Override
-		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder schemaType = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
-			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
-
-			defaultSchema.createUndeletable(TemporaryRecord.DESTRUCTION_DATE).setType(MetadataValueType.DATE_TIME).defineDataEntry().asCalculated(TemporaryRecordDestructionDateCalculator.class).setSystemReserved(true);
-			defaultSchema.createUndeletable(TemporaryRecord.CONTENT).setType(MetadataValueType.CONTENT).setSystemReserved(true);
-			defaultSchema.createUndeletable(TemporaryRecord.DAY_BEFORE_DESTRUCTION).setType(MetadataValueType.NUMBER).setDefaultValue(7).addValidator(TemporaryRecordValidator.class);
-
-			MetadataSchemaBuilder importAuditSchema = schemaType.createCustomSchema(ImportAudit.SCHEMA);
-			importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
-			importAuditSchema.createUndeletable(ImportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
-
-			MetadataSchemaBuilder exportAuditSchema = schemaType.createCustomSchema(ExportAudit.SCHEMA);
-			exportAuditSchema.createUndeletable(ImportAudit.END_DATE).setType(MetadataValueType.DATE_TIME).setSystemReserved(true);
 		}
 	}
 }

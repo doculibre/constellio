@@ -289,7 +289,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.MANAGE_TEMPORARY_REPORT));
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
 			}
 		});
 	}

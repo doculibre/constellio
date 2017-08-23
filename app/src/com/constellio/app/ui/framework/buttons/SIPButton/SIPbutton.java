@@ -1,4 +1,4 @@
-package com.constellio.app.ui.framework.buttons;
+package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
@@ -10,11 +10,18 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
@@ -90,6 +97,11 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         objectList.addAll(asList(objects));
     }
 
+    public void setAllObject(RecordVO... objects) {
+        objectList = new ArrayList<>();
+        objectList.addAll(asList(objects));
+    }
+
     private HorizontalLayout buildDeleteItemCheckbox() {
         HorizontalLayout layout = new HorizontalLayout();
         deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
@@ -158,41 +170,17 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     }
 
     private void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException, RecordServicesException {
-        File outFolder = ioServices.newTemporaryFolder("SIPArchives");
         String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-        final File outFile = new File(outFolder, nomSipDossier);
         InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
         List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
         bagInfoIn.close();
         List<String> documentList = getDocumentIDListFromObjectList();
         List<String> folderList = getFolderIDListFromObjectList();
-        SIPFilter filter = new SIPFilter(view.getCollection(), view.getConstellioFactories().getAppLayerFactory())
-                .withIncludeDocumentIds(documentList)
-                .withIncludeFolderIds(folderList);
-        IntelliGIDSIPObjectsProvider metsObjectsProvider = new IntelliGIDSIPObjectsProvider(view.getCollection(), view.getConstellioFactories().getAppLayerFactory(), filter);
-        if (!metsObjectsProvider.list().isEmpty()) {
-            ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, packageInfoLines, limitSizeCheckbox.getValue());
-            constellioSIP.build(outFile);
-            SIParchive sipArchive = rm.newSIParchive();
-            ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory();
 
-            //Create SIParchive record
-            ContentManager contentManager = modelLayerFactory.getContentManager();
-            User currentUser = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
-            ContentVersionDataSummary summary = contentManager.upload(outFile);
-            sipArchive.setContent(contentManager.createMajor(currentUser, nomSipDossier, summary));
-            User user = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
-            sipArchive.setUser(user);
-            sipArchive.setCreatedBy(user.getId());
-            sipArchive.setCreationDate(new LocalDateTime());
-            Transaction transaction = new Transaction();
-            transaction.add(sipArchive);
-            modelLayerFactory.newRecordServices().execute(transaction);
-
-            //download ZIP
-            FileResource res = new FileResource(outFile);
-            Page.getCurrent().open(res, null, false);
-        }
+        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername());
+        view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "com.constellio.app.ui.framework.buttons.SIPbutton#continueButtonClicked"));
+        view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+        getWindow().close();
     }
 
     @Override

@@ -20,7 +20,7 @@ import javax.mail.internet.MimeMessage;
 
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.ui.framework.buttons.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.io.IOUtils;

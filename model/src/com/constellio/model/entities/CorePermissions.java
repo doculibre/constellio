@@ -55,5 +55,6 @@ public class CorePermissions {
 	public static final String OTHERS = "others";
 	public static final String USE_EXTERNAL_APIS_FOR_COLLECTION = permission(OTHERS, "useExternalAPIS");
 
-	public static final String MANAGE_TEMPORARY_REPORT = permission(SYSTEM, "managerTemporaryReport");
+	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM, "managerTemporaryRecords");
+	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM, "seeAllTemporaryRecords");
 }
