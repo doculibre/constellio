@@ -1,4 +1,4 @@
-package com.constellio.app.services.migrations;
+package com.constellio.app.services.migrations.scripts;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
