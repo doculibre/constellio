@@ -1,7 +1,6 @@
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -525,11 +524,14 @@ public class MetadataSchemaBuilder {
 			}
 		}
 
-		for (Metadata metadata : metadatas) {
-			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
-				sortedMetadatas.add(metadata);
-			}
-		}
+//		for (Metadata metadata : metadatas) {
+		//			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
+		//				if (!metadata.isGlobal()) {
+		//					System.out.println(metadata.getLocalCode());
+		//					sortedMetadatas.add(metadata);
+		//				}
+		//			}
+		//		}
 
 		return Collections.unmodifiableList(sortedMetadatas);
 	}

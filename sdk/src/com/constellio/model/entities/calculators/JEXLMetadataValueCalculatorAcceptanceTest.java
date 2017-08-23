@@ -44,6 +44,7 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
 				LocalDependency.toAString("stringMetadata"),
+				LocalDependency.toAReference("referenceMetadata"),
 				ReferenceDependency.toAString("referenceMetadata", "stringMetadata")
 		);
 
@@ -65,6 +66,7 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
 				LocalDependency.toAString("stringMetadata"),
+				LocalDependency.toAReference("referenceMetadata").whichIsMultivalue(),
 				ReferenceDependency.toAString("referenceMetadata", "stringMetadata").whichIsMultivalue()
 		);
 
@@ -85,6 +87,7 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 				.getCalculator();
 
 		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
+				LocalDependency.toAReference("referenceMetadata").whichIsMultivalue(),
 				ReferenceDependency.toAString("referenceMetadata", "stringMetadata").whichIsMultivalue()
 		);
 

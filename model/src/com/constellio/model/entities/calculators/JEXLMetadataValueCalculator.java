@@ -194,7 +194,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 		if (variables != null) {
 			for (List<String> variable : jexlScript.getVariables()) {
-				if (variable.size() == 1 && !"utils".equals(variable.get(0))) {
+				if (!variable.isEmpty() && !"utils".equals(variable.get(0))) {
 					dependencies.add(toLocalDependency(schemaMetadatas, variable));
 
 				}
