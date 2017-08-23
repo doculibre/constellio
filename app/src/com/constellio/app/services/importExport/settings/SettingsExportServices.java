@@ -1,12 +1,30 @@
 package com.constellio.app.services.importExport.settings;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -14,7 +32,11 @@ import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -25,15 +47,6 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 public class SettingsExportServices {
 
@@ -41,7 +54,8 @@ public class SettingsExportServices {
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
 	ValidationErrors validationErrors;
-	static final private List<String> nonUSRTaxonomies = asList(ArrayUtils.addAll(RMTaxonomies.ALL_RM_TAXONOMIES, ESTaxonomies.ALL_EN_TAXONOMIES));
+	static final private List<String> nonUSRTaxonomies = asList(
+			ArrayUtils.addAll(RMTaxonomies.ALL_RM_TAXONOMIES, ESTaxonomies.ALL_EN_TAXONOMIES));
 	static final public String CURRENT_COLLECTION_IMPORTATION_MODE = "%current%";
 
 	public SettingsExportServices(AppLayerFactory appLayerFactory) {
@@ -59,12 +73,12 @@ public class SettingsExportServices {
 
 		ImportedSettings settings = new ImportedSettings();
 
-		if(options.isExportingConfigs()) {
+		if (options.isExportingConfigs()) {
 			appendSystemConfigurations(settings);
 		}
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings();
-		if(options.isExportingAsCurrentCollection()) {
+		if (options.isExportingAsCurrentCollection()) {
 			collectionSettings.setCode(CURRENT_COLLECTION_IMPORTATION_MODE);
 		} else {
 			collectionSettings.setCode(collection);
@@ -88,7 +102,7 @@ public class SettingsExportServices {
 
 		ImportedSettings settings = new ImportedSettings();
 
-		if(options.isExportingConfigs()) {
+		if (options.isExportingConfigs()) {
 			appendSystemConfigurations(settings);
 		}
 
@@ -123,7 +137,7 @@ public class SettingsExportServices {
 	}
 
 	private ImportedType getImportedTypeFrom(String collection,
-											 SchemasDisplayManager displayManager, MetadataSchemaType type, SettingsExportOptions options) {
+			SchemasDisplayManager displayManager, MetadataSchemaType type, SettingsExportOptions options) {
 
 		ImportedType importedType = new ImportedType().setCode(type.getCode());
 		if (StringUtils.isNotBlank(type.getLabel(Language.French))) {
@@ -131,23 +145,24 @@ public class SettingsExportServices {
 		}
 		SchemaDisplayConfig schemaDisplayConfig = displayManager.getSchema(collection, type.getCode() + "_default");
 
-
 		// add tabs
 		List<ImportedTab> tabs = getImportedTabs(collection, type);
 		importedType.setTabs(tabs);
 
 		// add default-schema
-		importedType.setDefaultSchema(getImportedTypeDefaultSchema(collection, displayManager, type, schemaDisplayConfig, options));
+		importedType
+				.setDefaultSchema(getImportedTypeDefaultSchema(collection, displayManager, type, schemaDisplayConfig, options));
 
 		// add custom schemata
-		List<ImportedMetadataSchema> list = getImportedTypeCustomSchemata(collection, displayManager, type, schemaDisplayConfig, options);
+		List<ImportedMetadataSchema> list = getImportedTypeCustomSchemata(collection, displayManager, type, schemaDisplayConfig,
+				options);
 		importedType.setCustomSchemata(list);
 
 		return importedType;
 	}
 
 	private List<ImportedMetadataSchema> getImportedTypeCustomSchemata(String collection, SchemasDisplayManager displayManager,
-																	   MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
+			MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
 		List<ImportedMetadataSchema> list = new ArrayList<>();
 		for (MetadataSchema customSchema : type.getCustomSchemas()) {
 			ImportedMetadataSchema importedSchema = new ImportedMetadataSchema().setCode(customSchema.getLocalCode());
@@ -156,14 +171,14 @@ public class SettingsExportServices {
 			}
 
 			MetadataList metadata = customSchema.getMetadatas();
-			if(options.isOnlyUSR()) {
+			if (options.isOnlyUSR()) {
 				metadata = metadata.onlyUSR();
 			}
 			List<ImportedMetadata> importedMetadata =
 					getImportedMetadataFromList(collection, displayManager, schemaDisplayConfig, metadata);
 			importedSchema.setAllMetadatas(importedMetadata);
-			if(options.isOnlyUSR()) {
-				if(!importedSchema.getCode().contains("USR") && importedMetadata.isEmpty()) {
+			if (options.isOnlyUSR()) {
+				if (!importedSchema.getCode().contains("USR") && importedMetadata.isEmpty()) {
 					continue;
 				}
 			}
@@ -174,7 +189,7 @@ public class SettingsExportServices {
 	}
 
 	private ImportedMetadataSchema getImportedTypeDefaultSchema(String collection, SchemasDisplayManager displayManager,
-																MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
+			MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
 		MetadataSchema defaultSchema = type.getDefaultSchema();
 
 		ImportedMetadataSchema importedDefaultMetadataSchema = new ImportedMetadataSchema().setCode("default");
@@ -182,16 +197,16 @@ public class SettingsExportServices {
 			importedDefaultMetadataSchema.setLabel(defaultSchema.getLabel(Language.French));
 		}
 		MetadataList metadata = defaultSchema.getMetadatas();
-		if(options.isOnlyUSR()) {
-			if(defaultSchema.getCode().startsWith("ddv")) {
+		if (options.isOnlyUSR()) {
+			if (defaultSchema.getCode().startsWith("ddv")) {
 				ArrayList<Metadata> defaultMetadatasToImport = new ArrayList<>();
-				if(metadata.getMetadataWithLocalCode("code") != null) {
+				if (metadata.getMetadataWithLocalCode("code") != null) {
 					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("code"));
 				}
-				if(metadata.getMetadataWithLocalCode("title") != null) {
+				if (metadata.getMetadataWithLocalCode("title") != null) {
 					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("title"));
 				}
-				if(metadata.getMetadataWithLocalCode("description") != null) {
+				if (metadata.getMetadataWithLocalCode("description") != null) {
 					defaultMetadatasToImport.add(metadata.getMetadataWithLocalCode("description"));
 				}
 				metadata = metadata.onlyUSR();
@@ -210,7 +225,7 @@ public class SettingsExportServices {
 	}
 
 	private List<ImportedMetadata> getImportedMetadataFromList(String collection,
-															   SchemasDisplayManager displayManager, SchemaDisplayConfig schemaDisplayConfig, MetadataList metadataList) {
+			SchemasDisplayManager displayManager, SchemaDisplayConfig schemaDisplayConfig, MetadataList metadataList) {
 
 		List<ImportedMetadata> importedMetadata = new ArrayList<>();
 		for (Metadata metadatum : metadataList) {
@@ -224,7 +239,7 @@ public class SettingsExportServices {
 	}
 
 	private ImportedMetadata getImportedMetadatumFrom(String collection, SchemasDisplayManager displayManager,
-													  SchemaDisplayConfig schemaDisplayConfig, Metadata metadata) {
+			SchemaDisplayConfig schemaDisplayConfig, Metadata metadata) {
 		ImportedMetadata importedMetadata = new ImportedMetadata()
 				.setCode(metadata.getLocalCode()).setLabel(metadata.getLabel(Language.French));
 
@@ -232,7 +247,7 @@ public class SettingsExportServices {
 
 		importedMetadata.setEnabled(metadata.isEnabled());
 
-		if(!metadata.inheritDefaultSchema()) {
+		if (!metadata.inheritDefaultSchema()) {
 			importedMetadata.setAdvanceSearchable(displayConfig.isVisibleInAdvancedSearch());
 
 			setImportedDataEntry(metadata, importedMetadata);
@@ -289,34 +304,34 @@ public class SettingsExportServices {
 
 		ImportedDataEntry importedDataEntry = null;
 		switch (dataEntry.getType()) {
-			case CALCULATED:
-				if (((CalculatedDataEntry) dataEntry).getCalculator() instanceof JEXLMetadataValueCalculator) {
-					importedDataEntry =
-							ImportedDataEntry
-									.asJEXLScript(((JEXLMetadataValueCalculator) dataEntry).getJexlScript().getSourceText());
-				} else {
-					importedDataEntry =
-							ImportedDataEntry
-									.asCalculated(((CalculatedDataEntry) dataEntry).getCalculator().getClass().getName());
-				}
-				break;
+		case CALCULATED:
+			if (((CalculatedDataEntry) dataEntry).getCalculator() instanceof JEXLMetadataValueCalculator) {
+				importedDataEntry =
+						ImportedDataEntry
+								.asJEXLScript(((JEXLMetadataValueCalculator) dataEntry).getExpression());
+			} else {
+				importedDataEntry =
+						ImportedDataEntry
+								.asCalculated(((CalculatedDataEntry) dataEntry).getCalculator().getClass().getName());
+			}
+			break;
 
-			case COPIED:
-				importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata(),
-						(((CopiedDataEntry) dataEntry).getCopiedMetadata()));
-				break;
+		case COPIED:
+			importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata(),
+					(((CopiedDataEntry) dataEntry).getCopiedMetadata()));
+			break;
 
-			case SEQUENCE:
-				if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getFixedSequenceCode())) {
-					importedDataEntry = ImportedDataEntry.asFixedSequence(((SequenceDataEntry) dataEntry).getFixedSequenceCode());
-				} else if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode())) {
-					importedDataEntry = ImportedDataEntry
-							.asMetadataProvidingSequence(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode());
-				}
-				break;
+		case SEQUENCE:
+			if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getFixedSequenceCode())) {
+				importedDataEntry = ImportedDataEntry.asFixedSequence(((SequenceDataEntry) dataEntry).getFixedSequenceCode());
+			} else if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode())) {
+				importedDataEntry = ImportedDataEntry
+						.asMetadataProvidingSequence(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode());
+			}
+			break;
 
-			default:
-				break;
+		default:
+			break;
 		}
 
 		if (importedDataEntry != null) {
@@ -340,7 +355,7 @@ public class SettingsExportServices {
 		ValueListServices valueListServices = new ValueListServices(appLayerFactory, code);
 		List<ImportedTaxonomy> list = new ArrayList<>();
 		for (Taxonomy taxonomy : valueListServices.getTaxonomies()) {
-			if(options.isOnlyUSR() && nonUSRTaxonomies.contains(taxonomy.getCode())) {
+			if (options.isOnlyUSR() && nonUSRTaxonomies.contains(taxonomy.getCode())) {
 				continue;
 			}
 			list.add(getImportTaxonomyFor(taxonomy));

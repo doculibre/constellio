@@ -32,6 +32,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	MetadataValueType type;
 	String metadataCode;
+
 	transient JexlScript jexlScript;
 	Set<List<String>> variables;
 
@@ -48,13 +49,14 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	private void initTransient() {
 
 		boolean strict = false;
+		String script = expression;
 		if (expression.startsWith("#STRICT:")) {
 			strict = true;
-			expression = expression.substring(8);
+			script = expression.substring(8);
 		}
 
 		JexlEngine jexl = new JexlBuilder().strict(strict).create();
-		jexlScript = jexl.createScript(expression);
+		jexlScript = jexl.createScript(script);
 	}
 
 	private void readObject(ObjectInputStream in)
@@ -63,8 +65,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		initTransient();
 	}
 
-	public JexlScript getJexlScript() {
-		return jexlScript;
+	public String getExpression() {
+		return expression;
 	}
 
 	@Override
@@ -78,6 +80,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		} catch (JexlException e) {
 			logJexlException(e);
 			return null;
+
 		} catch (Exception e) {
 
 			Throwable t = e.getCause();
@@ -95,6 +98,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		if (e.getCause() == null) {
 			cause = StringUtils.substringAfterLast(e.getClass().getName(), ".");
 			causeMessage = e.getMessage();
+
 		} else {
 			cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
 			causeMessage = e.getCause().getMessage();

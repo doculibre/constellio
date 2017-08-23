@@ -12,31 +12,33 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class CoreMigrationTo_7_4_3 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.4.3";
-    }
+	@Override
+	public String getVersion() {
+		return "7.4.3";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new CoreSchemaAlterationFor7_4_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
-    }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+			throws Exception {
+		new CoreSchemaAlterationFor7_4_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+	}
 
-    private class CoreSchemaAlterationFor7_4_3 extends MetadataSchemasAlterationHelper {
-        public CoreSchemaAlterationFor7_4_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                            AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+	private class CoreSchemaAlterationFor7_4_3 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor7_4_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            for (MetadataBuilder temp : typesBuilder.getAllCalculatedMetadatas()) {
-                if(temp.getDataEntry().getType().equals(DataEntryType.CALCULATED) && ((CalculatedDataEntry) temp.getDataEntry()).getCalculator() instanceof JEXLMetadataValueCalculator) {
-                    MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) temp.getDataEntry()).getCalculator();
-                    String currentScript = ((JEXLMetadataValueCalculator) calculator).getJexlScript().getSourceText();
-                    temp.defineDataEntry().asJexlScript("#STRICT:" + currentScript);
-                }
-            }
-        }
-    }
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			for (MetadataBuilder temp : typesBuilder.getAllCalculatedMetadatas()) {
+				if (temp.getDataEntry().getType().equals(DataEntryType.CALCULATED) && ((CalculatedDataEntry) temp.getDataEntry())
+						.getCalculator() instanceof JEXLMetadataValueCalculator) {
+					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) temp.getDataEntry()).getCalculator();
+					String currentScript = ((JEXLMetadataValueCalculator) calculator).getExpression();
+					temp.defineDataEntry().asJexlScript("#STRICT:" + currentScript);
+				}
+			}
+		}
+	}
 }
