@@ -20,6 +20,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;
@@ -124,5 +126,9 @@ public class TasksSearchServices {
 		TaskType taskType = new TaskType(schemaRecord, tasksSchemas.getTypes());
 		String linkedSchemaCode = taskType.getLinkedSchema();
 		return linkedSchemaCode;
+	}
+
+	public void addDateFilterToQuery(LogicalSearchQuery query, LocalDate date) {
+		query.setCondition(query.getCondition().andWhere(tasksSchemas.userTask.dueDate()).isLessThan(date.plusDays(1)));
 	}
 }

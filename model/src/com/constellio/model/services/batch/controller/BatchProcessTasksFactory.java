@@ -1,6 +1,9 @@
 package com.constellio.model.services.batch.controller;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -9,9 +12,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BatchProcessTasksFactory {
 
@@ -27,7 +27,7 @@ public class BatchProcessTasksFactory {
 		this.taskList = taskList;
 	}
 
-	public List<BatchProcessTask> createBatchProcessTasks(BatchProcess batchProcess, List<Record> records, List<String> errorList,
+	public List<BatchProcessTask> createBatchProcessTasks(RecordBatchProcess batchProcess, List<Record> records, List<String> errorList,
 			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager) {
 		MetadataSchemaTypes metadataSchemaTypes = schemasManager.getSchemaTypes(batchProcess.getCollection());
 		User user = null;
