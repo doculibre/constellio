@@ -416,6 +416,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(Task.STARRED_BY_USERS);
 		LogicalSearchQuerySort sortField
 				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
-		query.sort(sortField);
+		query.sortFirstOn(sortField);
 	}
 }

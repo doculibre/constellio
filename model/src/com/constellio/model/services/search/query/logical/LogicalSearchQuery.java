@@ -217,9 +217,9 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public LogicalSearchQuery sort(LogicalSearchQuerySort logicalSearchQuerySort) {
+	public LogicalSearchQuery sortFirstOn(LogicalSearchQuerySort logicalSearchQuerySort) {
 		if (logicalSearchQuerySort != null) {
-			sortFields.add(logicalSearchQuerySort);
+			sortFields.add(0, logicalSearchQuerySort);
 		}
 		return this;
 	}
