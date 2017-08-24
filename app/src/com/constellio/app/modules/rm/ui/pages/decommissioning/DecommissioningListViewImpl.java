@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -173,6 +174,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildFoldersCertificateButton());
 		buttons.add(buildAddFoldersButton());
 		buttons.add(buildRemoveFoldersButton());
+		buttons.add(buildCreateSIPARchivesButton());
 		return buttons;
 	}
 
@@ -597,6 +599,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		layout.setSpacing(true);
 
 		return layout;
+	}
+
+	private Button buildCreateSIPARchivesButton(){
+		SIPbutton button = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+//		button.setAllObject(presenter.get);
+		return button;
 	}
 
 	private Component buildProcessableFolderComponent(List<FolderDetailVO> folders) {
