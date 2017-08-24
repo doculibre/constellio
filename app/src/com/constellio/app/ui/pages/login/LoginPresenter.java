@@ -41,8 +41,12 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(LoginPresenter.class);
 
 	private UserToVOBuilder voBuilder = new UserToVOBuilder();
 
@@ -109,14 +113,16 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 				}
 
 				if (userInLastCollection != null) {
+					//FIXME Disabled / Optimistic locking in load testing
+					/*
 					try {
 						modelLayerFactory.newRecordServices().update(userInLastCollection
 								.setLastLogin(TimeProvider.getLocalDateTime())
 								.setLastIPAddress(view.getSessionContext().getCurrentUserIPAddress()).getWrappedRecord(), new RecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER));
-
 					} catch (RecordServicesException e) {
-						throw new RuntimeException(e);
+						LOGGER.error("Unable to update user : " + username, e);
 					}
+					*/
 
 					modelLayerFactory.newLoggingServices().login(userInLastCollection);
 					Locale userLocale = getSessionLanguage(userInLastCollection);
