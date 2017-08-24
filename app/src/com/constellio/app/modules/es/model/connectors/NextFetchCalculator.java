@@ -23,7 +23,7 @@ public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTim
 	public LocalDateTime calculate(CalculatorParameters parameters) {
 		LocalDateTime fetchedDateTime = parameters.get(fetchedDateTimeParam);
 		Double fetchDelay = parameters.get(fetchDelayParam);
-		return fetchedDateTime == null ? null : fetchedDateTime.plusDays(fetchDelay.intValue());
+		return fetchedDateTime == null || fetchDelay == null ? null : fetchedDateTime.plusDays(fetchDelay.intValue());
 	}
 
 	@Override
