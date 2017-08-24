@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailT
 import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
@@ -603,7 +604,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private Button buildCreateSIPARchivesButton(){
 		SIPbutton button = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
-//		button.setAllObject(presenter.get);
+		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
 		return button;
 	}
 

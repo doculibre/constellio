@@ -36,6 +36,11 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
     public ListTemporaryRecordViewImpl() {presenter = new ListTemporaryRecordPresenter(this); }
 
     @Override
+    protected String getTitle() {
+        return $("ListTemporaryRecordViewImpl.title");
+    }
+
+    @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.addStyleName("batch-processes");

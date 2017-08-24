@@ -1,17 +1,11 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.ConstellioSIP;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.exceptions.SIPMaxReachedException;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -19,19 +13,9 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.vaadin.server.FileDownloader;
-import com.vaadin.server.FileResource;
-import com.vaadin.server.Page;
-import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -177,16 +161,14 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         List<String> documentList = getDocumentIDListFromObjectList();
         List<String> folderList = getFolderIDListFromObjectList();
 
-        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername());
+        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue());
         view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "com.constellio.app.ui.framework.buttons.SIPbutton#continueButtonClicked"));
         view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
         getWindow().close();
     }
 
     @Override
-    public void uploadFailed(Upload.FailedEvent event) {
-
-    }
+    public void uploadFailed(Upload.FailedEvent event) {}
 
     @Override
     public OutputStream receiveUpload(String filename, String mimeType) {
@@ -205,21 +187,5 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     }
 
     @Override
-    public void uploadSucceeded(Upload.SucceededEvent event) {
-
-    }
-
-    private StreamResource.StreamSource buildSource(final File file) {
-        return new StreamResource.StreamSource() {
-            @Override
-            public InputStream getStream() {
-                try{
-                    return new FileInputStream(file);
-                }catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
-    }
+    public void uploadSucceeded(Upload.SucceededEvent event) {}
 }
