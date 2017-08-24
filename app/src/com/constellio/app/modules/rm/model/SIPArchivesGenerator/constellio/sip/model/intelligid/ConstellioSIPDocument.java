@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees implements SIPDocument {
+public class ConstellioSIPDocument extends ConstellioSIPFicheMetadonnees implements SIPDocument {
 	
 	private SIPFolder folder;
 	
@@ -28,7 +28,7 @@ public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees impleme
 	
 	private File sipFile;
 	
-	public IntelliGIDSIPDocument(Document ficheDocument, List<Metadata> metadonneesDocument, List<Metadata> metadonneesDossier, EntityRetriever entityRetriever) {
+	public ConstellioSIPDocument(Document ficheDocument, List<Metadata> metadonneesDocument, List<Metadata> metadonneesDossier, EntityRetriever entityRetriever) {
 		super(ficheDocument, metadonneesDocument, metadonneesDossier);
 		
 		Content fichierElectronique = ficheDocument.getContent();
@@ -42,7 +42,7 @@ public class IntelliGIDSIPDocument extends IntelliGIDSIPFicheMetadonnees impleme
 		if(ficheDocument.getFolder() != null){
 			Folder ficheDossier = entityRetriever.getFoldersFromString(ficheDocument.getFolder());
 			if (ficheDossier != null) {
-				folder = new IntelliGIDSIPFolder(ficheDossier, metadonneesDossier, entityRetriever);
+				folder = new ConstellioSIPFolder(ficheDossier, metadonneesDossier, entityRetriever);
 			}
 		}
 	}

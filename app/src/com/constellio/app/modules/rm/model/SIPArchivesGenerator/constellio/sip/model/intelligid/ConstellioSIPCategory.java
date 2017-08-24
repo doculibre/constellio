@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class IntelliGIDSIPCategory implements SIPCategory {
+public class ConstellioSIPCategory implements SIPCategory {
 	
 	private String id;
 	
@@ -21,7 +21,7 @@ public class IntelliGIDSIPCategory implements SIPCategory {
 
 	private EntityRetriever entityRetriever;
 
-	public IntelliGIDSIPCategory(Category processusActivite, EntityRetriever entityRetriever) {
+	public ConstellioSIPCategory(Category processusActivite, EntityRetriever entityRetriever) {
 		this.id = "" + processusActivite.getId();
 		this.code = processusActivite.getCode();
 		this.title = processusActivite.getTitle();
@@ -29,7 +29,7 @@ public class IntelliGIDSIPCategory implements SIPCategory {
 		this.entityRetriever = entityRetriever;
 		Category processusActiviteParent = entityRetriever.getCategoryById(processusActivite.getParent());
 		if (processusActiviteParent != null) {
-			parentCategory = new IntelliGIDSIPCategory(processusActiviteParent, entityRetriever);
+			parentCategory = new ConstellioSIPCategory(processusActiviteParent, entityRetriever);
 		}
 	}
 

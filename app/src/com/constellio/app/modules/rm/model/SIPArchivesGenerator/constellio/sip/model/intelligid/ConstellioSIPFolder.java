@@ -9,7 +9,7 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
-public class IntelliGIDSIPFolder extends IntelliGIDSIPFicheMetadonnees implements SIPFolder {
+public class ConstellioSIPFolder extends ConstellioSIPFicheMetadonnees implements SIPFolder {
 	
 	private String title;
 	
@@ -19,16 +19,16 @@ public class IntelliGIDSIPFolder extends IntelliGIDSIPFicheMetadonnees implement
 
 	private EntityRetriever entityRetriever;
 	
-	public IntelliGIDSIPFolder(Folder ficheDossier, List<Metadata> metadonneesDossier, EntityRetriever entityRetriever) {
+	public ConstellioSIPFolder(Folder ficheDossier, List<Metadata> metadonneesDossier, EntityRetriever entityRetriever) {
 		super(adjust(ficheDossier), metadonneesDossier, metadonneesDossier);
 		this.title = ficheDossier.getTitle();
 		this.entityRetriever = entityRetriever;
 		Folder ficheDossierParent = entityRetriever.getFoldersFromString(ficheDossier.getParentFolder());
 		if (ficheDossierParent != null) {
-			parentFolder = new IntelliGIDSIPFolder(ficheDossierParent, metadonneesDossier, entityRetriever);
+			parentFolder = new ConstellioSIPFolder(ficheDossierParent, metadonneesDossier, entityRetriever);
 		} else {
 			Category processusActivite = entityRetriever.getCategoryById(ficheDossier.getCategory());
-			category = new IntelliGIDSIPCategory(processusActivite, entityRetriever);
+			category = new ConstellioSIPCategory(processusActivite, entityRetriever);
 		}
 	}
 	

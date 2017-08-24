@@ -1,13 +1,12 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.ConstellioSIP;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.IntelliGIDSIPObjectsProvider;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.ConstellioSIPObjectsProvider;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Record;
@@ -56,7 +55,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
             final File outFile = new File(outFolder, this.sipFileName);
 
             SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds).withIncludeFolderIds(this.includeFolderIds);
-            IntelliGIDSIPObjectsProvider metsObjectsProvider = new IntelliGIDSIPObjectsProvider(collection, appLayerFactory, filter);
+            ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter);
             if (!metsObjectsProvider.list().isEmpty()) {
                 ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize);
                 constellioSIP.build(outFile);
@@ -73,7 +72,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
                         }catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
                             //No need to delete it.
                         }
-
                     }
                 }
 

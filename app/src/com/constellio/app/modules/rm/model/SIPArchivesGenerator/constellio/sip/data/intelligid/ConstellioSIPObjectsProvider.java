@@ -6,8 +6,8 @@ import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.e
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.SIPObject;
 import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.intelligid.EntityRetriever;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.intelligid.IntelliGIDSIPDocument;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.intelligid.IntelliGIDSIPFolder;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.intelligid.ConstellioSIPDocument;
+import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.model.intelligid.ConstellioSIPFolder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -33,7 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
+public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
     public static final String CLE_FICHIERS_JOINTS = "fichiersJoints";
 
     private List<Metadata> metadonneesDossier;
@@ -54,7 +54,7 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
 
     private SIPFilter filter;
 
-    public IntelliGIDSIPObjectsProvider(String collection, AppLayerFactory factory, SIPFilter filter) {
+    public ConstellioSIPObjectsProvider(String collection, AppLayerFactory factory, SIPFilter filter) {
         this.collection = collection;
         this.factory = factory;
         this.filter = filter;
@@ -88,11 +88,11 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
     @Override
     public List<String> getMetadataIds(SIPObject sipObject) {
         List<String> metadataIds = new ArrayList<>();
-        if (sipObject instanceof IntelliGIDSIPFolder) {
+        if (sipObject instanceof ConstellioSIPFolder) {
             metadataIds.add("numeroRegleConservation");
             metadataIds.add("regleConservation");
-        } else if (sipObject instanceof IntelliGIDSIPDocument) {
-            IntelliGIDSIPDocument sipDocument = (IntelliGIDSIPDocument) sipObject;
+        } else if (sipObject instanceof ConstellioSIPDocument) {
+            ConstellioSIPDocument sipDocument = (ConstellioSIPDocument) sipObject;
             Document ficheDocument = sipDocument.getFicheMetadonnees();
             boolean isCourriel = ficheDocument.getSchema().getCode().equals(Email.SCHEMA);
             if (isCourriel) {
@@ -112,8 +112,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
     @Override
     public List<String> getMetadataValues(SIPObject sipObject, String metadataId) {
         List<String> metadataValues = new ArrayList<>();
-        if (sipObject instanceof IntelliGIDSIPFolder) {
-            IntelliGIDSIPFolder sipFolder = (IntelliGIDSIPFolder) sipObject;
+        if (sipObject instanceof ConstellioSIPFolder) {
+            ConstellioSIPFolder sipFolder = (ConstellioSIPFolder) sipObject;
             Folder ficheDossier = sipFolder.getFicheMetadonnees();
             Folder ficheDossierCourante = ficheDossier;
             while (ficheDossierCourante.getParentFolder() != null) {
@@ -126,8 +126,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             } else if ("regleConservation".equals(metadataId)) {
                 metadataValues.add(delai.getTitle());
             }
-        } else if (sipObject instanceof IntelliGIDSIPDocument) {
-            IntelliGIDSIPDocument sipDocument = (IntelliGIDSIPDocument) sipObject;
+        } else if (sipObject instanceof ConstellioSIPDocument) {
+            ConstellioSIPDocument sipDocument = (ConstellioSIPDocument) sipObject;
             Document ficheDocument = sipDocument.getFicheMetadonnees();
             boolean isCourriel = ficheDocument.getSchema().getCode().equals(Email.SCHEMA);
             if (isCourriel) {
@@ -172,7 +172,7 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             public SIPObject get(int index) {
                 System.out.println("Document " + (index + 1) + " de " + fichesDocuments.size());
                 Document ficheDocument = fichesDocuments.get(index);
-                return new IntelliGIDSIPDocument(ficheDocument, metadonneesDocument, metadonneesDossier, new EntityRetriever(collection, factory));
+                return new ConstellioSIPDocument(ficheDocument, metadonneesDocument, metadonneesDossier, new EntityRetriever(collection, factory));
             }
 
             @Override
@@ -186,8 +186,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
     @Override
     public Map<String, byte[]> getExtraFiles(SIPObject sipObject) {
         Map<String, byte[]> result;
-        if (sipObject instanceof IntelliGIDSIPDocument) {
-            IntelliGIDSIPDocument sipDocument = (IntelliGIDSIPDocument) sipObject;
+        if (sipObject instanceof ConstellioSIPDocument) {
+            ConstellioSIPDocument sipDocument = (ConstellioSIPDocument) sipObject;
             Document ficheDocument = sipDocument.getFicheMetadonnees();
             boolean isCourriel = ficheDocument.getSchema().getCode().equals(Email.SCHEMA);
             if (isCourriel && ficheDocument.getContent() != null) {
@@ -229,8 +229,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
     @Override
     public EADArchdesc getEADArchdesc(SIPObject sipObject) {
         EADArchdesc archdesc;
-        if (sipObject instanceof IntelliGIDSIPDocument) {
-            IntelliGIDSIPDocument sipDocument = (IntelliGIDSIPDocument) sipObject;
+        if (sipObject instanceof ConstellioSIPDocument) {
+            ConstellioSIPDocument sipDocument = (ConstellioSIPDocument) sipObject;
             Document ficheDocument = sipDocument.getFicheMetadonnees();
             Folder ficheDossier = rm.getFolder(ficheDocument.getFolder());
 
@@ -264,8 +264,8 @@ public class IntelliGIDSIPObjectsProvider implements SIPObjectsProvider {
             }
             //archdesc.setAccessRestrictLegalStatus(ficheDossier.get(Folder.IS_RESTRICTED_ACCESS).toString());
 
-        } else if (sipObject instanceof IntelliGIDSIPFolder) {
-            IntelliGIDSIPFolder sipFolder = (IntelliGIDSIPFolder) sipObject;
+        } else if (sipObject instanceof ConstellioSIPFolder) {
+            ConstellioSIPFolder sipFolder = (ConstellioSIPFolder) sipObject;
             Folder ficheDossier = sipFolder.getFicheMetadonnees();
 
             archdesc = new EADArchdesc();

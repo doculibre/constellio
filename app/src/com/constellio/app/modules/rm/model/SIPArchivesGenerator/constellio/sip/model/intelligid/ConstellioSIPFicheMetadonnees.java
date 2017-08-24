@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-public abstract class IntelliGIDSIPFicheMetadonnees implements SIPObject {
+public abstract class ConstellioSIPFicheMetadonnees implements SIPObject {
 	
 	private MetadataSchemasManager indexHelper = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 	
@@ -22,7 +22,7 @@ public abstract class IntelliGIDSIPFicheMetadonnees implements SIPObject {
 	
 	private Map<String, List<String>> metadataValuesMap = new LinkedHashMap<>();
 	
-	public IntelliGIDSIPFicheMetadonnees(RMObject ficheMetadonnees, List<Metadata> metadonneesFiche, List<Metadata> metadonneesDossier) {
+	public ConstellioSIPFicheMetadonnees(RMObject ficheMetadonnees, List<Metadata> metadonneesFiche, List<Metadata> metadonneesDossier) {
 		this.ficheMetadonnees = ficheMetadonnees;
 		if (ficheMetadonnees == null) {
 			throw new NullPointerException("La fiche de métadonnées est nulle");
