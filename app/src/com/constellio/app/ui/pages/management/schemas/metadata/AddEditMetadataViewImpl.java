@@ -471,7 +471,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputMask.setEnabled(false);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
+				inputType, inputMask, metadataGroup, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete));
 
 		for (CheckBox customAttributeField : customAttributesField) {
