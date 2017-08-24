@@ -1,24 +1,30 @@
 package com.constellio.app.ui.pages.management.TemporaryRecord;
 
 import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.TitlePanel;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.utils.FileLengthUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,8 +77,27 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         };
         importTable.setWidth("98%");
         importTable.setCellStyleGenerator(newImportStyleGenerator());
+        importTable.setContainerDataSource(buildContainer(importTable, provider));
 
         return importTable;
+    }
+
+    private Container buildContainer(Table table, RecordVODataProvider provider) {
+        return addContentLength(table, new RecordVOLazyContainer(provider));
+    }
+
+    private Container addContentLength(Table table, final RecordVOLazyContainer records) {
+        String columnId = "menuBar";
+        table.addGeneratedColumn(columnId, new Table.ColumnGenerator() {
+            @Override
+            public Object generateCell(Table source, final Object itemId, Object columnId) {
+                final RecordVO recordVO = records.getRecordVO((int) itemId);
+                ContentVersionVO content = recordVO.get(TemporaryRecord.CONTENT);
+                return new Label(FileLengthUtils.readableFileSize(content.getLength()));
+            }
+        });
+        table.setColumnHeader(columnId, $("ListTemporaryRecordViewImpl.contentLength"));
+        return records;
     }
 
     private Table.CellStyleGenerator newImportStyleGenerator() {
