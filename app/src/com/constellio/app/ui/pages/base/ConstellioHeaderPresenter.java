@@ -5,6 +5,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -23,6 +24,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
@@ -233,6 +235,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			return null;
 		}
 
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(header.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 
 	private MetadataSchemaTypes types() {

@@ -14,6 +14,8 @@ public interface RecordsCaches {
 
 	CacheInsertionStatus insert(Record record);
 
+	CacheInsertionStatus forceInsert(Record record);
+
 	Record getRecord(String id);
 
 	void invalidateAll();

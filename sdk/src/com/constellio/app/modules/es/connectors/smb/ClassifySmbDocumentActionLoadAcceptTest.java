@@ -133,21 +133,21 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 				.setTitle("X100")
 				.setUrl(SMB + "X/X100/")
 				.setFetched(true)
-				.setParent(x)
+				.setParentUrl(x.getUrl())
 				.setManualTokens(PUBLIC_TOKEN);
 
 		ConnectorSmbFolder x110 = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
 				.setTitle("X110")
 				.setUrl(SMB + "X/X100/X110/")
 				.setFetched(true)
-				.setParent(x100)
+				.setParentUrl(x100.getUrl())
 				.setManualTokens(PUBLIC_TOKEN);
 
 		ConnectorSmbFolder baleine = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
 				.setTitle("Baleine")
 				.setUrl(SMB + "X/X100/X110/Baleine/")
 				.setFetched(true)
-				.setParent(x110)
+				.setParentUrl(x110.getUrl())
 				.setManualTokens(PUBLIC_TOKEN);
 
 		Folder baleineRMFolder = (Folder) records.getFolder_A04().setLegacyId("smb://X/X100/X110/Baleine/");
@@ -213,7 +213,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 		return (ConnectorSmbDocument) es.newConnectorSmbDocument(connectorInstance)
 				.setTitle("Document #" + parent.getTitle() + "-" + position)
 				.setUrl(parent.getUrl() + position + ".txt")
-				.setParent(parent)
+				.setParentUrl(parent.getUrl())
 				.setFetched(true)
 				.setSearchable(true)
 				.setManualTokens(PUBLIC_TOKEN);
@@ -231,7 +231,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 			return (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
 					.setTitle("Folder #" + parent.getTitle() + "-" + position)
 					.setUrl(parent.getUrl() + position + "/")
-					.setParent(parent)
+					.setParentUrl(parent.getUrl())
 					.setFetched(true)
 					.setSearchable(true)
 					.setManualTokens(PUBLIC_TOKEN);

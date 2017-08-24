@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.jobs.*;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
@@ -49,7 +47,6 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	private SmbRecordService smbRecordService;
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbJobFactory jobFactory;
-	private SmbConnectorContext context;
 
 	@Before
 	public void setup() {
@@ -80,10 +77,6 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
-
-		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
-		context = contextServices.createContext(connectorInstance.getId());
-		when(connector.getContext()).thenReturn(context);
 
 		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
 	}
@@ -127,46 +120,6 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
 
 		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
-	}
-
-	@Test
-	public void givenAnAcceptedNonModifiedDocumentUrlWhenCreatingRetrievalJobThenGetRetrievalJob()
-			throws RecordServicesException {
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);
-		folder.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		es.getRecordServices()
-				.update(folder.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		String url = SmbTestParams.EXISTING_SHARE + "nonModifiedFile.txt";
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		SmbModificationIndicator modInfo = new SmbModificationIndicator(permissionsHash, 10, lastModified);
-		modInfo.setParentId(folder.getId());
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(url);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-		document.setParent(folder.getId());
-
-		when(smbService.getModificationIndicator(anyString())).thenReturn(modInfo);
-
-		es.getRecordServices()
-				.update(document.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		context.traverseModified(url, modInfo, folder.getUrl(), null);
-
-		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, folder.getUrl());
-		assertThat(job).isInstanceOf(SmbUnmodifiedRetrievalJob.class);
 	}
 
 	@Test
@@ -232,28 +185,18 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	public void givenFactoryResetWhenGettingJobForGivenUrlThenGetJobForGivenUrl() {
 
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, "");
-		assertThat(job).isNotNull()
-				.isNotInstanceOf(SmbNullJob.class);
+		assertThat(job).isNotNull();
 		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
 		ConnectorJob job2 = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, "");
-		assertThat(job2).isNotInstanceOf(SmbNullJob.class);
 		assertThat(job2).isInstanceOf(SmbNewRetrievalJob.class);
-	}
-
-	@Test
-	public void givenAnAcceptedUrlWhenCreatingSeedJobThenGetSeedJob() {
-		ConnectorJob job = jobFactory.get(SmbJobCategory.SEED, SmbTestParams.EXISTING_SHARE, "");
-		assertThat(job).isInstanceOf(SmbSeedJob.class);
 	}
 
 	@Test
 	public void givenDuplicatesFoldersThenGetDeleteJob()
 			throws RecordServicesException {
 		String url = SmbTestParams.EXISTING_SHARE + "test/";
-		String permissionsHash = "someHash";
 		long lastModified = System.currentTimeMillis();
 
-		context.traverseModified(url, new SmbModificationIndicator(permissionsHash, 0, lastModified), "001", "code");
 		when(connector.getDuplicateUrls()).thenReturn(Collections.singleton(url));
 
 		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);

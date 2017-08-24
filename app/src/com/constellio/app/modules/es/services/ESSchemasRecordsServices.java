@@ -270,6 +270,11 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return record == null ? null : wrapConnectorDocument(record);
 	}
 
+	public ConnectorSmbFolder getConnectorSmbFolder(String id) {
+		Record record = getRecordServices().getDocumentById(id);
+		return record == null ? null : wrapConnectorSmbFolder(record);
+	}
+
 	@Override
 	public ConnectorInstance wrapConnectorInstance(Record record) {
 		if (record == null) {
@@ -415,6 +420,10 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 
 		public Metadata url() {
 			return Metadata.newGlobalMetadata("url_s", STRING, false, false);
+		}
+
+		public Metadata connectorUrl() {
+			return Metadata.newGlobalMetadata("connectorUrl_s", STRING, false, false);
 		}
 
 		public Metadata mimetype() {

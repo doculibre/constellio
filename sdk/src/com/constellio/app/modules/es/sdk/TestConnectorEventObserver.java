@@ -10,6 +10,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class TestConnectorEventObserver implements ConnectorEventObserver {
 
@@ -133,5 +134,10 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 	@Override
 	public void cleanup() {
 		nestedObserver.cleanup();
+	}
+
+	@Override
+	public ModelLayerFactory getModelLayerFactory() {
+		return null;
 	}
 }

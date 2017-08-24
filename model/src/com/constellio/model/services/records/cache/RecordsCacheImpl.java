@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,18 +66,17 @@ public class RecordsCacheImpl implements RecordsCache {
 		return holder != null && holder.getCopy() != null;
 	}
 
-	static AtomicInteger compteur = new AtomicInteger();
-
-	static Set<String> ids = new HashSet<>();
+	@Override
+	public Record getSummary(String id) {
+		return getByIdNoMatterIfSummary(id);
+	}
 
 	@Override
 	public Record get(String id) {
+		return onlyIfNotSummary(getByIdNoMatterIfSummary(id));
+	}
 
-		compteur.incrementAndGet();
-		synchronized (RecordsCacheImpl.class) {
-			ids.add(id);
-		}
-
+	private Record getByIdNoMatterIfSummary(String id) {
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -225,10 +223,9 @@ public class RecordsCacheImpl implements RecordsCache {
 						+ insertedRecord.getVersion()).printStackTrace();
 			}
 		}
+		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getSchemaCode());
+		Record recordCopy = RecordsCachesUtils.prepareRecordForCacheInsert(insertedRecord, cacheConfig);
 
-		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
-
-		CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
@@ -265,7 +262,12 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord) {
 
-		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord);
+		if (insertedRecord == null) {
+			return CacheInsertionStatus.REFUSED_NULL;
+		}
+
+		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
+		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
 
 		if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
 			invalidate(insertedRecord.getId());
@@ -398,6 +400,15 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
+		return onlyIfNotSummary(getByMetadataNoMatterIfSummary(metadata, value));
+	}
+
+	@Override
+	public Record getSummaryByMetadata(Metadata metadata, String value) {
+		return getByMetadataNoMatterIfSummary(metadata, value);
+	}
+
+	private Record getByMetadataNoMatterIfSummary(Metadata metadata, String value) {
 		String schemaTypeCode = schemaUtils.getSchemaTypeCode(metadata);
 		RecordByMetadataCache recordByMetadataCache = this.recordByMetadataCache.get(schemaTypeCode);
 
@@ -612,8 +623,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		void insert(Record previousRecord, RecordHolder recordHolder) {
 
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
-				String value = null;
-				String previousValue = null;
+				Object value = null;
+				Object previousValue = null;
 
 				if (previousRecord != null) {
 					previousValue = previousRecord.get(supportedMetadata);
@@ -625,14 +636,14 @@ public class RecordsCacheImpl implements RecordsCache {
 					map.get(supportedMetadata.getLocalCode()).remove(previousValue);
 				}
 				if (value != null && !value.equals(previousValue)) {
-					map.get(supportedMetadata.getLocalCode()).put(value, recordHolder);
+					map.get(supportedMetadata.getLocalCode()).put(value.toString(), recordHolder);
 				}
 			}
 		}
 
 		void invalidate(Record record) {
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
-				String value = record.get(supportedMetadata);
+				Object value = record.get(supportedMetadata);
 
 				if (value != null) {
 					map.get(supportedMetadata.getLocalCode()).remove(value);
@@ -684,5 +695,20 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 	}
+
+	private Record onlyIfNotSummary(Record record) {
+		if (record == null) {
+			return null;
+
+		} else {
+			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
+			if (!config.getPersistedMetadatas().isEmpty()) {
+				return null;
+			} else {
+				return record;
+			}
+		}
+	}
+
 }
 
