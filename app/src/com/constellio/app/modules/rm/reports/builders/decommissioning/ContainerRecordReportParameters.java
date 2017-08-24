@@ -1,12 +1,14 @@
 package com.constellio.app.modules.rm.reports.builders.decommissioning;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+
 public class ContainerRecordReportParameters {
     private String containerId;
-    private boolean transfer;
+    private DecommissioningType decommissioningType;
 
-    public ContainerRecordReportParameters(String containerId, boolean transfer) {
+    public ContainerRecordReportParameters(String containerId, DecommissioningType decommissioningType) {
         this.containerId = containerId;
-        this.transfer = transfer;
+        this.decommissioningType = decommissioningType;
     }
 
     public String getContainerId() {
@@ -14,6 +16,10 @@ public class ContainerRecordReportParameters {
     }
 
     public boolean isTransfer() {
-        return transfer;
+        return decommissioningType == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+    }
+
+    public boolean isDestruction() {
+        return decommissioningType == DecommissioningType.DESTRUCTION;
     }
 }

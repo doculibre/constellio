@@ -178,19 +178,6 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 	}
 
 	@Test
-	public void givenNoPrincipalTaxonomyWhenSettingTaxoUsedByMultivalueMetadatasThenException()
-			throws Exception {
-		givenTaxo1And2();
-		try {
-			taxonomiesManager.setPrincipalTaxonomy(taxo2, schemasManager);
-			fail("TaxonomySchemaIsReferencedInMultivalueReference expected");
-		} catch (TaxonomiesManagerRuntimeException.TaxonomySchemaIsReferencedInMultivalueReference e) {
-			//OK
-		}
-		assertThat(taxonomiesManager.getPrincipalTaxonomy("zeCollection")).isNull();
-	}
-
-	@Test
 	public void givenTaxonomyAlreadyDefinedThenCannotDefineItAnotherTime()
 			throws Exception {
 		givenTaxo1And2();

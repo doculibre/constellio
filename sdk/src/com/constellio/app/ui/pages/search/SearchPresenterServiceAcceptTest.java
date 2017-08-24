@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.assertj.core.api.Condition;
@@ -89,7 +90,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives"));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFolders, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFolders, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(1)).has(label("Règles de conservations")).has(
 				values(value(records.getRule2()), value(records.getRule4()), value(records.getRule1()),
 						value(records.getRule3())));
@@ -125,7 +126,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives"));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 
 		assertThat(facets.get(0)).has(label("Type")).has(values(
 				value("schema_s:document*", "Documents"),
@@ -155,7 +156,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives").setOrderResult(FacetOrderType.ALPHABETICAL));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 
 		assertThat(facets.get(0)).has(label("Règles de conservations")).has(
 				values(value(records.getRule1()), value(records.getRule2()), value(records.getRule3()),
@@ -174,17 +175,17 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void givenSchemaFacetThenValuesAreObtainedFromSchemaLabels()
 			throws Exception {
 
+		Locale.setDefault(Locale.FRENCH);
+
 		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze folder");
-		//typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).setLabels(asMap(Language.French, "Folder"));
 		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze document");
-		//typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setLabels(asMap(Language.French, "Document"));
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));
 
 		List<FacetVO> facets = new SearchPresenterService(zeCollection, getModelLayerFactory()).getFacets(allFoldersAndDocuments,
-				facetStatus);
+				facetStatus, Locale.FRENCH);
 
 		assertThat(facets.get(0)).has(label("Ze type")).has(
 				values(value(Document.DEFAULT_SCHEMA, "Ze document"), value(Folder.DEFAULT_SCHEMA, "Ze folder")));
@@ -196,7 +197,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
 				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
 
@@ -205,7 +206,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
 				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isFalse();
 	}
 
@@ -216,7 +217,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
 				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
 		facetStatus.put(facet.getId(), false);
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isFalse();
 	}
 
@@ -227,7 +228,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
 				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
 		facetStatus.put(facet.getId(), true);
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
 

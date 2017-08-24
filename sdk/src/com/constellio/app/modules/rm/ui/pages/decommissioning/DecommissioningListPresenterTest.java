@@ -228,6 +228,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 	@Test
 	public void givenPackageableFoldersAskedThenReturnThePackageableFolders() {
+		doReturn(null).when(presenter).getFolderDetailTableExtension();
 		givenTwoProcessableFoldersAndTwoUnprocessableFolders();
 		assertThat(presenter.getPackageableFolders()).containsExactly(packageable1, packageable2);
 	}

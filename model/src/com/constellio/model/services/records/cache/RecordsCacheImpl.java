@@ -483,10 +483,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		void insert(RecordHolder holder) {
 
-			if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
-					&& holder.getCopy().getTypeCode().equals("savedSearch")) {
-				System.out.println("inserting savedSearch " + holder.getCopy().getId());
-			}
 
 			holder.volatileCacheOccurences = 1;
 			holders.add(holder);
