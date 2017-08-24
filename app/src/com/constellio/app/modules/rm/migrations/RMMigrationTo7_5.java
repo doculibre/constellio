@@ -1,4 +1,4 @@
-package com.constellio.app.modules.es.migrations;
+package com.constellio.app.modules.rm.migrations;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
@@ -7,20 +7,20 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class ESMigrationTo7_4_3 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo7_5 extends MigrationHelper implements MigrationScript {
     @Override
     public String getVersion() {
-        return "7.4.3";
+        return "7.5";
     }
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new SchemaAlterationFor7_4_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        new SchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
     }
 
-    static class SchemaAlterationFor7_4_3 extends MetadataSchemasAlterationHelper {
+    class SchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_4_3(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+        protected SchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
         }
 
