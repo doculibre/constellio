@@ -19,6 +19,8 @@ public class DocumentReportModel {
 
 	private String printDate = "";
 
+	private boolean isDestruction;
+
 	public StreamFactory<InputStream> getHeaderLogo() {
 		return headerLogo;
 	}
@@ -26,6 +28,15 @@ public class DocumentReportModel {
 	public DocumentReportModel setHeaderLogo(StreamFactory<InputStream> headerLogo) {
 		this.headerLogo = headerLogo;
 		return this;
+	}
+
+	public DocumentReportModel setIsDestruction(boolean isDestruction) {
+		this.isDestruction = isDestruction;
+		return this;
+	}
+
+	public boolean isDestruction() {
+		return isDestruction;
 	}
 
 	public List<DocumentTransfertModel_Document> getDocumentList() {
@@ -69,6 +80,8 @@ public class DocumentReportModel {
 
 		private String extremeDate;
 
+		private boolean isDestruction;
+
 		public String getCalendarNumber() {
 			return calendarNumber;
 		}
@@ -99,6 +112,15 @@ public class DocumentReportModel {
 
 		public String getExtremeDate() {
 			return extremeDate;
+		}
+
+		public DocumentTransfertModel_Calendar setDestruction(boolean isDestruction) {
+			this.isDestruction = isDestruction;
+			return this;
+		}
+
+		public boolean isDestruction() {
+			return isDestruction;
 		}
 
 		public DocumentTransfertModel_Calendar setCalendarNumber(String calendarNumber) {

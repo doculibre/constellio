@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,7 +109,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 
 		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
 
-		assertThat(steps).extracting("class.name").containsExactly(
+		assertThat(steps).extracting("class.name").isEqualTo(asList(
 				UpdateCreationModificationUsersAndDateRecordPreparationStep.class.getName(),
 				ValidateMetadatasRecordPreparationStep.class.getName(),
 				CalculateMetadatasRecordPreparationStep.class.getName(),
@@ -118,7 +119,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 				ValidateUsingSchemaValidatorsRecordPreparationStep.class.getName(),
 
 				SequenceRecordPreparationStep.class.getName()
-		);
+		));
 
 		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(1)).getMetadatasCodes())
 				.contains(zeSchema.stringMetadata().getCode());

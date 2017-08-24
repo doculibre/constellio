@@ -76,6 +76,12 @@ public class LookupRecordField extends LookupField<String> {
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
+	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
+							 LookupTreeDataProvider<String>[] lookupTreeDataProviders, TaxonomyRecordIdToContextCaptionConverter itemConverter) {
+		super(recordTextInputDataProvider, lookupTreeDataProviders);
+		setItemConverter(itemConverter);
+	}
+
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
 			boolean writeAccess) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();

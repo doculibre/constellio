@@ -1,5 +1,19 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.Language.withLocale;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -22,13 +36,6 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.*;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchPresenterService {
 	private SchemasRecordsServices schemas;
@@ -43,19 +50,19 @@ public class SearchPresenterService {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
-	List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus) {
+	List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus, Locale locale) {
 		LogicalSearchQuery facetQuery = prepareFacetQuery(query);
-		return buildFacetVOs(searchServices.query(facetQuery), facetStatus);
+		return buildFacetVOs(searchServices.query(facetQuery), facetStatus, locale);
 	}
 
-	private List<FacetVO> buildFacetVOs(SPEQueryResponse response, Map<String, Boolean> facetStatus) {
+	private List<FacetVO> buildFacetVOs(SPEQueryResponse response, Map<String, Boolean> facetStatus, Locale locale) {
 		List<FacetVO> result = new ArrayList<>();
 
 		for (Facet facet : getActiveFacets()) {
 			List<FacetValueVO> values = new ArrayList<>();
 
 			if (facet.getFacetType() == FacetType.FIELD) {
-				buildFieldFacet(response, facet, values);
+				buildFieldFacet(response, facet, values, locale);
 			} else {
 				buildQueryFacet(response, facet, values);
 			}
@@ -83,11 +90,11 @@ public class SearchPresenterService {
 		}
 	}
 
-	private void buildFieldFacet(SPEQueryResponse response, Facet facet, List<FacetValueVO> values) {
+	private void buildFieldFacet(SPEQueryResponse response, Facet facet, List<FacetValueVO> values, Locale locale) {
 		for (FacetValue facetValue : response.getFieldFacetValues(facet.getFieldDataStoreCode())) {
 			values.add(new FacetValueVO(facet.getId(), facetValue));
 		}
-		setFieldFacetValuesLabels(facet, values);
+		setFieldFacetValuesLabels(facet, values, locale);
 	}
 
 	private LogicalSearchQuery prepareFacetQuery(LogicalSearchQuery query) {
@@ -114,7 +121,7 @@ public class SearchPresenterService {
 		}
 	}
 
-	private void setFieldFacetValuesLabels(Facet facet, List<FacetValueVO> facetValueVOs) {
+	private void setFieldFacetValuesLabels(Facet facet, List<FacetValueVO> facetValueVOs, Locale locale) {
 		Map<String, String> enumMetadatas = findEnumMetadatasLabels(facet.getFieldDataStoreCode());
 
 		String datastoreCode = facet.getFieldDataStoreCode();
@@ -125,12 +132,17 @@ public class SearchPresenterService {
 
 			if (datastoreCode.equals(Schemas.SCHEMA.getDataStoreCode())) {
 				List<Language> languages = metadataSchemasManager.getSchemaTypes(facet.getCollection()).getLanguages();
+				facetValueVO.setLabel(types.getSchema(value).getLabel(withLocale(locale)));
+
 				for (Language language : languages) {
-					facetValueVO.setLabel(types.getSchema(value).getLabel(language));
+					if (facetValueVO.getValue() == null) {
+						facetValueVO.setLabel(types.getSchema(value).getLabel(language));
+					}
 				}
+
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
-				if(Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
 					facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
 				} else {
 					facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
@@ -165,6 +177,6 @@ public class SearchPresenterService {
 	List<Facet> getActiveFacets() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.facetSchemaType()).where(schemas.facetActive()).isTrue())
 				.sortAsc(schemas.facetOrder());
-		return schemas.wrapFacets(searchServices.search(query));
+		return schemas.wrapFacets(searchServices.cachedSearch(query));
 	}
 }

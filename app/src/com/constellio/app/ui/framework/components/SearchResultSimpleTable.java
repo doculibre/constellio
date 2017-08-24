@@ -22,6 +22,8 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.vaadin.data.Validator;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -48,10 +50,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer recordVOContainer;
 	private boolean allItemsSelected;
+	private AdvancedSearchPresenter presenter;
 
 	public SearchResultSimpleTable(RecordVOLazyContainer container, final AdvancedSearchPresenter presenter) {
 		super();
 		this.recordVOContainer = container;
+		this.presenter = presenter;
 		
 		RecordVOTable adaptee = new RecordVOTable(container);
 		adaptee.setWidth("100%");
@@ -146,7 +150,11 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
-			component.setEnabled(selectedItemIds.size() > 0);
+			if(component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
+				component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
+			} else {
+				component.setEnabled(selectedItemIds.size() > 0);
+			}
 			selection.addComponent(component);
 			selection.setComponentAlignment(component, Alignment.MIDDLE_LEFT);
 		}
@@ -159,7 +167,11 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 			public void selectionChanged(SelectionChangeEvent event) {
 				boolean somethingSelected = event.isSelectAll() || !event.getSelected().isEmpty();
 				for (Component component : extra) {
-					component.setEnabled(somethingSelected);
+					if(component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
+						component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
+					} else {
+						component.setEnabled(somethingSelected);
+					}
 				}
 			}
 		});
@@ -260,9 +272,13 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		if (selected) {
 			this.selectedItemIds.add(itemId);
 			deselectedItemIds.remove(itemId);
+			presenter.fireSomeRecordsSelected();
 		} else {
 			this.selectedItemIds.remove(itemId);
 			deselectedItemIds.add(itemId);
+			if(selectedItemIds.isEmpty()) {
+				presenter.fireNoRecordSelected();
+			}
 		}
 		if (fireSelectionChangeEvent) {
 			fireSelectionChangeEvent();

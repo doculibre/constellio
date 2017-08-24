@@ -3,6 +3,12 @@ package com.constellio.app.ui.pages.management.schemaRecords;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +25,6 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
@@ -30,6 +32,8 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		implements FieldOverridePresenter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditSchemaRecordPresenter.class);
+
+	private static final String CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED = "cannotChangeLinkedSchemaWhenReferenced";
 
 	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view) {
 		super(view);
@@ -51,6 +55,17 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		String schemaCode = getSchemaCode();
 		try {
 			Record record = toRecord(recordVO);
+			if(record.isModified(Schemas.LINKED_SCHEMA)) {
+				LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(view.getCollection())
+						.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId());
+				long resultsCount = searchServices().getResultsCount(condition);
+				if(resultsCount != 0) {
+					ValidationErrors validationErrors = new ValidationErrors();
+					validationErrors.add(getClass(), CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED);
+					throw new RecordServicesException.ValidationException(record, validationErrors);
+				}
+			}
+
 			addOrUpdate(record);
 			view.navigate().to().listSchemaRecords(schemaCode);
 		} catch (Exception e) {

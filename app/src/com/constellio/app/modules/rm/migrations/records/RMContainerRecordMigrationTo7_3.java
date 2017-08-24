@@ -54,7 +54,9 @@ public class RMContainerRecordMigrationTo7_3 extends RecordMigrationScript {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder containerRecordSchema = types.getSchema(ContainerRecord.DEFAULT_SCHEMA);
-				containerRecordSchema.deleteMetadataWithoutValidation("administrativeUnit");
+				if (containerRecordSchema.hasMetadata("administrativeUnit")) {
+					containerRecordSchema.deleteMetadataWithoutValidation("administrativeUnit");
+				}
 			}
 		});
 	}

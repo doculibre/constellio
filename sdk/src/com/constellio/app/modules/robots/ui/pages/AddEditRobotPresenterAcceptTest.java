@@ -391,19 +391,19 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 				.setTitle("B").setUrl("smb://B/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance))
-				.setTitle("AA").setUrl("smb://A/A/").setParent(folderA);
+				.setTitle("AA").setUrl("smb://A/A/").setParentUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance))
-				.setTitle("AAA").setUrl("smb://A/A/A/").setParent(folderAA);
+				.setTitle("AAA").setUrl("smb://A/A/A/").setParentUrl("smb://A/A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance))
-				.setTitle("AAB").setUrl("smb://A/A/B/").setParent(folderAA);
+				.setTitle("AAB").setUrl("smb://A/A/B/").setParentUrl("smb://A/A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance))
-				.setTitle("AB").setUrl("smb://A/B/").setParent(folderA);
+				.setTitle("AB").setUrl("smb://A/B/").setParentUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderABA, connectorInstance))
-				.setTitle("ABA").setUrl("smb://A/B/A/").setParent(folderAB);
+				.setTitle("ABA").setUrl("smb://A/B/A/").setParentUrl("smb://A/B/");
 
 		//		SmbFile localfile;
 		//		try {
@@ -415,40 +415,39 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		String url = "smb://A/1.txt";
 		//		String url = localfile.getURL().getFile();
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				.setTitle("1.txt").setUrl(url).setParsedContent("Document A1 content").setParent(
-				folderA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("1.txt").setUrl(url).setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl("smb://A/2.txt").setParsedContent("Document A2 content").setParent(folderA)
+				.setTitle("2.txt").setUrl("smb://A/2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl("smb://B/3.txt").setParsedContent("Document B3 content").setParent(folderB)
+				.setTitle("3.txt").setUrl("smb://B/3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3JustDeleted, connectorInstance))
 				.setTitle("justDeleted.txt").setUrl("smb://B/justDeleted.txt").setParsedContent("Document B3")
-				.setParent(folderB)
+                .setParentUrl("smb://B/")
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParsedContent("Document AA4 content").setParent(folderAA)
+				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParent(folderAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAA6, connectorInstance))
-				.setTitle("6.txt").setUrl("smb://A/A/A/6.txt").setParent(folderAAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("6.txt").setUrl("smb://A/A/A/6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAB7, connectorInstance))
-				.setTitle("7.txt").setUrl("smb://A/A/B/7.txt").setParent(folderAAB).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("7.txt").setUrl("smb://A/A/B/7.txt").setParentUrl("smb://A/A/B").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAB8, connectorInstance))
-				.setTitle("8.txt").setUrl("smb://A/B/8.txt").setParent(folderAB).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("8.txt").setUrl("smb://A/B/8.txt").setParentUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentABA9, connectorInstance))
-				.setTitle("9.txt").setUrl("smb://A/B/A/9.txt").setParent(folderABA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("9.txt").setUrl("smb://A/B/A/9.txt").setParentUrl("smb://A/B/A/").setManualTokens(PUBLIC_TOKEN);
 
 		recordServices.execute(transaction);
 	}

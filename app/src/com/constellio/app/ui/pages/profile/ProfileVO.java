@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.profile;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.model.entities.enums.SearchPageLength;
 
 import java.io.Serializable;
 
@@ -20,6 +21,7 @@ public class ProfileVO implements Serializable {
 	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
 	String defaultTaxonomy;
 	String defaultAdministrativeUnit;
+	SearchPageLength defaultPageLength;
 	String loginLanguageCode;
 	String jobTitle;
 	String fax;
@@ -44,6 +46,7 @@ public class ProfileVO implements Serializable {
 		this.oldPassword = oldPassword;
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
+		this.defaultPageLength = null;
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String startTab,
@@ -63,10 +66,11 @@ public class ProfileVO implements Serializable {
 		this.oldPassword = oldPassword;
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
+		this.defaultPageLength = null;
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
-					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
+					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, SearchPageLength defaultPageLength, String password, String confirmPassword,
 					 String oldPassword, boolean agentManuallyDisabled, String defaultAdministrativeUnit) {
 		this.username = username;
 		this.firstName = firstName;
@@ -85,6 +89,7 @@ public class ProfileVO implements Serializable {
 		this.oldPassword = oldPassword;
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = defaultAdministrativeUnit;
+		this.defaultPageLength = defaultPageLength;
 	}
 
 	public String getUsername() {
@@ -237,5 +242,13 @@ public class ProfileVO implements Serializable {
 
 	public void setDefaultAdministrativeUnit(String defaultAdministrativeUnit) {
 		this.defaultAdministrativeUnit = defaultAdministrativeUnit;
+	}
+
+	public SearchPageLength getDefaultPageLength() {
+		return defaultPageLength;
+	}
+
+	public void setDefaultPageLength(SearchPageLength defaultPageLength) {
+		this.defaultPageLength = defaultPageLength;
 	}
 }

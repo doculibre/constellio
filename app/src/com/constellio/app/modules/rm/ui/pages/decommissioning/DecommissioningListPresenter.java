@@ -586,6 +586,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList().getStatus() == DecomListStatus.IN_APPROVAL;
 	}
 
+	public boolean isGenerated() {
+		return decommissioningList.getStatus() == DecomListStatus.GENERATED;
+	}
+
 	public boolean isValidationRequestedForCurrentUser() {
 		return decommissioningService().isValidationRequestedFor(decommissioningList(), getCurrentUser());
 	}
@@ -805,4 +809,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
 	}
 
+	public boolean areContainersHidden() {
+		return decommissioningList().getDecommissioningListType().isDestroyal() && getFolderDetailTableExtension() != null;
+	}
 }

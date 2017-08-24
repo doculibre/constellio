@@ -7,6 +7,9 @@ import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADA
 import java.io.InputStream;
 import java.util.*;
 
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -33,6 +36,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -156,6 +160,12 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 }
             });
             selectionActions.add(labelsButton);
+
+            //Excel report
+            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
+            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(reportButton);
+            addListenerToButton(results);
         }
 
         if (Document.SCHEMA_TYPE.equals(schemaType)) {
@@ -164,6 +174,13 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             zipButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(zipButton);
         }
+
+//        if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+//            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
+//            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+//            selectionActions.add(reportButton);
+//            addListenerToButton(results);
+//        }
 
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
@@ -174,6 +191,13 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
         if(Task.SCHEMA_TYPE.equals(schemaType)) {
             reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, true);
+            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(reportButton);
+            addListenerToButton(results);
+        }
+
+        if(ConnectorHttpDocument.SCHEMA_TYPE.equals(schemaType) || ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaType) || StorageSpace.SCHEMA_TYPE.equals(schemaType) || ConnectorLDAPUserDocument.SCHEMA_TYPE.equals(schemaType)) {
+            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
             reportButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(reportButton);
             addListenerToButton(results);
@@ -344,6 +368,28 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     public void update(Observable o, Object arg) {
         if (reportButton != null) {
             reportButton.addRecordToVoList((RecordVO) arg);
+        }
+    }
+
+    @Override
+    public void fireSomeRecordsSelected() {
+        if(batchProcessingButton != null) {
+            if(batchProcessingButton instanceof BatchProcessingButton) {
+                ((BatchProcessingButton) batchProcessingButton).hasResultSelected(true);
+            } else if(batchProcessingButton instanceof BatchProcessingModifyingOneMetadataButton) {
+                ((BatchProcessingModifyingOneMetadataButton) batchProcessingButton).hasResultSelected(true);
+            }
+        }
+    }
+
+    @Override
+    public void fireNoRecordSelected() {
+        if(batchProcessingButton != null) {
+            if(batchProcessingButton instanceof BatchProcessingButton) {
+                ((BatchProcessingButton) batchProcessingButton).hasResultSelected(false);
+            } else if(batchProcessingButton instanceof BatchProcessingModifyingOneMetadataButton) {
+                ((BatchProcessingModifyingOneMetadataButton) batchProcessingButton).hasResultSelected(false);
+            }
         }
     }
 }

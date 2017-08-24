@@ -93,7 +93,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
 
-		if (packageable) {
+		if (!(presenter.isInApprobation() || presenter.isApproved() || presenter.isProcessed())) {
 			table.addGeneratedColumn(CHECKBOX, this);
 			table.setColumnHeader(CHECKBOX, "");
 			table.setColumnAlignment(CHECKBOX, Align.CENTER);
@@ -155,7 +155,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
 		visibleColumns.add(MEDIUM);
 
-		if (presenter.canCurrentUserManageContainers()) {
+		if (presenter.canCurrentUserManageContainers() && !presenter.areContainersHidden()) {
 			table.addGeneratedColumn(CONTAINER, this);
 			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
 			visibleColumns.add(CONTAINER);

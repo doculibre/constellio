@@ -197,7 +197,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		int selectedPageLength = presenter.getSelectedPageLength();
 		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
 		}
 		presenter.setSelectedPageLength(selectedPageLength);
 		

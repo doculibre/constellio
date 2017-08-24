@@ -36,7 +36,9 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -345,6 +347,7 @@ public abstract class Decommissioner {
 
 	private void processContainers() {
 		List<String> containerIdUsed = new ArrayList<>();
+		Map<String, DecomListContainerDetail> detailsToProcess = new HashMap<>();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
 				continue;
@@ -354,10 +357,27 @@ public abstract class Decommissioner {
 
 		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
 		for (DecomListContainerDetail detail : containerDetails) {
-			if (containerIdUsed.contains(detail.getContainerRecordId())) {
-				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+			String containerRecordId = detail.getContainerRecordId();
+			if (containerIdUsed.contains(containerRecordId)) {
+				if(!detailsToProcess.containsKey(containerRecordId)) {
+					detailsToProcess.put(containerRecordId, detail);
+				} else {
+					DecomListContainerDetail previousDetail = detailsToProcess.get(containerRecordId);
+					if(!previousDetail.isFull() && detail.isFull()) {
+						detailsToProcess.put(containerRecordId, detail);
+					}
+				}
+			}
+		}
+
+		for (DecomListContainerDetail detail : containerDetails) {
+			String containerRecordId = detail.getContainerRecordId();
+			if (containerIdUsed.contains(containerRecordId)) {
+				if(detailsToProcess.get(containerRecordId) == detail) {
+					processContainer(rm.getContainerRecord(containerRecordId), detail);
+				}
 			} else {
-				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
+				decommissioningList.removeContainerDetail(containerRecordId);
 			}
 		}
 

@@ -91,6 +91,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
+	public static final String TEMPORARY_REPORT = "temporaryReport";
+	public static final String TEMPORARY_REPORT_ICON = "temporaryReport";
+
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
 		configureSystemAdmin(config);
@@ -272,6 +275,21 @@ public class CoreNavigationConfiguration implements Serializable {
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY,
 						CorePermissions.MANAGE_SYSTEM_SERVERS));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecord();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+						CorePermissions.MANAGE_TEMPORARY_REPORT));
 			}
 		});
 	}

@@ -32,6 +32,8 @@ public class Toggle {
 
 	public static AvailableToggle RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS = newToggle(true);
 
+	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

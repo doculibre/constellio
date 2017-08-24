@@ -172,6 +172,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			if (criterion.getMetadataCode() == null) {
 				return null;
 			}
+			Component extensionComponentForCriterion = presenter.getExtensionComponentForCriterion(criterion);
+			if(extensionComponentForCriterion != null) {
+				return extensionComponentForCriterion;
+			}
+
 			switch (criterion.getMetadataType()) {
 			case STRING:
 			case TEXT:
@@ -295,6 +300,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildHierarchyValueCriterion(final Criterion criterion) {
+			//getPathField
 			final PathLookupField lookup = new PathLookupField();
 			lookup.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			lookup.setValue((String) criterion.getValue());
@@ -762,5 +768,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		List<MetadataVO> getMetadataAllowedInCriteria();
 
 		MetadataVO getMetadataVO(String metadataCode);
+
+		Component getExtensionComponentForCriterion(Criterion criterion);
 	}
 }

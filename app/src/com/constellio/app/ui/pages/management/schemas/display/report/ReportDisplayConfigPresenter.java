@@ -2,8 +2,10 @@ package com.constellio.app.ui.pages.management.schemas.display.report;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -19,6 +21,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -27,11 +31,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurationView>{
 
 	private Map<String, String> parameters;
 
 	private boolean isAddMode = true;
+
+	private ReportVO report;
 
 	public ReportDisplayConfigPresenter(ReportConfigurationView view) {
 		super(view);
@@ -77,27 +85,29 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	public void setParameters(Map<String, String> params) {
 		this.parameters = params;
+		checkForId();
 	}
 
 	public void saveButtonClicked(List<MetadataVO> metadataVOs) {
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		String reportTile = getSelectedReport();
 		String schemaTypeCode = getSchemaTypeCode();
-		Report report = reportServices.getReport(schemaTypeCode, reportTile);
+		Report newReport;
 		if(report == null){
 			MetadataSchema reportSchema = schemaType(Report.SCHEMA_TYPE).getDefaultSchema();
 			Record newReportRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(reportSchema);
-			report = new Report(newReportRecord, types());
-			report.setTitle(reportTile);
-			report.setSchemaTypeCode(schemaTypeCode);
+			newReport = new Report(newReportRecord, types());
+			newReport.setSchemaTypeCode(schemaTypeCode);
+		} else {
+			newReport = reportServices.getReport(report.getSchemaTypeCode(), report.getTitle());
 		}
-		report.setColumnsCount(metadataVOs.size());
-		report.setLinesCount(1);
+		newReport.setColumnsCount(metadataVOs.size());
+		newReport.setLinesCount(1);
+		newReport.setTitle(reportTile);
 		List<ReportedMetadata> reportedMetadataList = buildReportedMetadataList(metadataVOs);
-		report.setReportedMetadata(reportedMetadataList);
-		reportServices.saveReport(getCurrentUser(), report);
-
-		view.navigate().to().listSchemaTypes();
+		newReport.setReportedMetadata(reportedMetadataList);
+		reportServices.saveReport(getCurrentUser(), newReport);
+		view.navigate().to().previousView();
 	}
 
 	private List<ReportedMetadata> buildReportedMetadataList(List<MetadataVO> metadataVOs) {
@@ -117,11 +127,11 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		Report report = reportServices.getReport(schemaTypeCode, reportTile);
 		reportServices.deleteReport(getCurrentUser(), report);
 
-		view.navigate().to().listSchemaTypes();
+		view.navigate().to().previousView();
 	}
 
 	public void cancelButtonClicked() {
-		view.navigate().to().listSchemaTypes();
+		view.navigate().to().previousView();
 	}
 
 	private MetadataSchemasManager getMetadataSchemasManager() {
@@ -177,5 +187,25 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	public void setAddMode(boolean addMode) {
 		isAddMode = addMode;
+	}
+
+	public void checkForId(){
+		if(this.parameters.containsKey("id")) {
+			String id = this.parameters.get("id");
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			ReportToVOBuilder builder = new ReportToVOBuilder();
+			MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+			LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Report.SCHEMA_TYPE).getDefaultSchema()).where(Schemas.IDENTIFIER).isEqualTo(id);
+			this.report = builder.build(rm.wrapReport(searchServices.searchSingleResult(condition)));
+		}
+	}
+
+	public ReportVO getReport() {
+		return this.report;
+	}
+
+	public boolean isEditMode() {
+		return this.report != null;
 	}
 }

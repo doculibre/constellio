@@ -624,6 +624,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setGenerateMetadataButtonState(ComponentState state) {
+		reportGeneratorButton.setVisible(state.isVisible());
+		reportGeneratorButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
 	public void setFinalizeButtonVisible(boolean visible) {
 		finalizeButton.setVisible(visible);
 	}
