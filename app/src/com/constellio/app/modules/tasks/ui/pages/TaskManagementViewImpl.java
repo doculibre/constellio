@@ -98,6 +98,13 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		presenter.tabSelected(sheet.getSelectedTab().getId());
 	}
 
+	public void resortTable() {
+//		VerticalLayout tab = (VerticalLayout) sheet.getSelectedTab();
+//		TaskTable table = (TaskTable) tab.getComponent(0);
+//		table.resort();
+		reloadCurrentTab();
+	}
+
 	@Override
 	public Component getSelectedTab() {
 		return sheet.getSelectedTab();
@@ -108,6 +115,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		VerticalLayout layout = getEmptiedSelectedTab();
 		layout.addComponent(new TaskTable(provider, presenter));
 	}
+
+//	@Override
+//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
+//		VerticalLayout layout = getEmptiedSelectedTab();
+//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
+//	}
 
 	@Override
 	public void displayWorkflows(RecordVODataProvider provider) {
