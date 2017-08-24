@@ -32,22 +32,26 @@ public class DataLayerLogger {
 
 	private boolean logAllTransactions = false;
 
+	private boolean queryLoggingEnabled = true;
+
 	public void logQueryResponse(SolrParams params, QueryResponse response) {
 
-		String prefix = null;
-		if (response.getQTime() >= verySlowQueryDuration) {
-			prefix = "VERY SLOW QUERY : ";
+		if (queryLoggingEnabled) {
+			String prefix = null;
+			if (response.getQTime() >= verySlowQueryDuration) {
+				prefix = "VERY SLOW QUERY : ";
 
-		} else if (response.getQTime() >= slowQueryDuration) {
-			prefix = "SLOW QUERY : ";
+			} else if (response.getQTime() >= slowQueryDuration) {
+				prefix = "SLOW QUERY : ";
 
-		} else if (response.getQTime() >= printAllQueriesLongerThanMS) {
-			prefix = "QUERY : ";
-		}
+			} else if (response.getQTime() >= printAllQueriesLongerThanMS) {
+				prefix = "QUERY : ";
+			}
 
-		if (prefix != null) {
-			LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
-					+ ", query=' : '" + LoggerUtils.toParamsString(params) + "'");
+			if (prefix != null) {
+				LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
+						+ ", query=' : '" + LoggerUtils.toParamsString(params) + "'");
+			}
 		}
 	}
 
@@ -178,5 +182,14 @@ public class DataLayerLogger {
 
 	public void setVerySlowQueryDuration(int verySlowQueryDuration) {
 		this.verySlowQueryDuration = verySlowQueryDuration;
+	}
+
+	public boolean isQueryLoggingEnabled() {
+		return queryLoggingEnabled;
+	}
+
+	public DataLayerLogger setQueryLoggingEnabled(boolean queryLoggingEnabled) {
+		this.queryLoggingEnabled = queryLoggingEnabled;
+		return this;
 	}
 }
