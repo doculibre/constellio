@@ -214,11 +214,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 			try {
 				if(document.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE)
 						|| document.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE)) {
-					RecordDeleteServices recordDeleteServices = new RecordDeleteServices(es.getModelLayerFactory().getDataLayerFactory().newRecordDao(), es.getModelLayerFactory());
-					recordDeleteServices.logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
-//					recordDeleteServices.physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
-//					es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
-					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+//					RecordDeleteServices recordDeleteServices = new RecordDeleteServices(es.getModelLayerFactory().getDataLayerFactory().newRecordDao(), es.getModelLayerFactory());
+//					recordDeleteServices.logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+//					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
 				} else {
 					es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
 					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
