@@ -508,7 +508,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 			if (!link.getToMetadata().isGlobal()
 					&& !link.getFromMetadata().isGlobal()
 					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")) {
+					&& !link.getFromMetadata().getCode().startsWith("user_")
+					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple();
 				tuple.addData(link.getFromMetadata().getCode());
 				tuple.addData(link.getToMetadata().getCode());
