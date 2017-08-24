@@ -639,7 +639,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		void invalidate(Record record) {
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
-				String value = record.get(supportedMetadata);
+				Object value = record.get(supportedMetadata);
 
 				if (value != null) {
 					map.get(supportedMetadata.getLocalCode()).remove(value);
