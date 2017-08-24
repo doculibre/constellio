@@ -69,11 +69,13 @@ public class SmbConnectorContextServices {
 
 		ObjectInputStream binaryConfigurationInputStream = null;
 
+		if (!fetchedUrls.exists()) {
+			return this.createContext(connectorId);
+		}
+
 		try (FileInputStream is = FileUtils.openInputStream(fetchedUrls)) {
 			binaryConfigurationInputStream = new ObjectInputStream(new BufferedInputStream(is));
 			return (SmbConnectorContext) binaryConfigurationInputStream.readObject();
-		} catch (FileNotFoundException e) {
-			return this.createContext(connectorId);
 		} catch (IOException | ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		} finally {
