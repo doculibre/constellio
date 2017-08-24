@@ -24,7 +24,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -390,65 +389,6 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		Record record = getModelLayerFactory().newRecordServices().getDocumentById("zeUltimateRecordWithEmptyValue");
 		assertThat(record.get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
-
-	}
-
-	@Test
-	public void givenASchemaTypeIsCachedThenAddWithDelayedFlushingButNotUpdate()
-			throws Exception {
-
-		givenTestRecords();
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.add(newRecordOf("6", zeCollectionSchemaWithVolatileCache));
-		transaction.add(newRecordOf("7", zeCollectionSchemaWithPermanentCache));
-		cachelessRecordServices.execute(transaction);
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.update(record2.withTitle("modified1"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record2.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.update(record3.withTitle("modified1"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record3.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record1.withTitle("newTitle"));
-		transaction.update(record3.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
 
 	}
 
