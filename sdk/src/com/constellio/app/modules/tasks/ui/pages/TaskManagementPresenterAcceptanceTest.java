@@ -59,6 +59,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
+		when(view.getTimestamp()).thenReturn(TaskManagementViewImpl.Timestamp.ALL);
 
 		bobHasReadAccessOnTask = users.bobIn(zeCollection);
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);

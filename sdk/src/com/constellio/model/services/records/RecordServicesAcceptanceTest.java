@@ -1787,7 +1787,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+				.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));

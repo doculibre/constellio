@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -17,7 +16,6 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -30,6 +28,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -132,8 +131,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		presenter.saveButtonClicked(metadataVOList);
 		Report report = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
 		assertThat(report).isNotNull();
-		assertThat(report.getReportedMetadata().size()).isEqualTo(1);
-		assertThat(report.getReportedMetadata().get(0).getMetadataCode()).isEqualTo(folderTitleMetadata.getCode());
+		assertThat(report.getReportedMetadata()).extracting("metadataCode").containsOnly(folderTitleMetadata.getCode());
 	}
 
 	@Test

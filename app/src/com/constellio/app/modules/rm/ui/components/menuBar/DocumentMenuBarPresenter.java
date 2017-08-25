@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
+import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -7,10 +8,14 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.List;
 
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
 	
@@ -76,6 +81,10 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 
 	public boolean openForRequested(RecordVO recordVO) {
 		return openForRequested(recordVO.getId());
+	}
+
+	public boolean hasMetadataReport(){
+		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 
 }

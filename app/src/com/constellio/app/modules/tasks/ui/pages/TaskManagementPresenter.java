@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
@@ -37,9 +38,12 @@ import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Component;
+import org.joda.time.LocalDate;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -54,7 +58,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient BetaWorkflowServices workflowServices;
 
 	public TaskManagementPresenter(TaskManagementView view) {
-		super(view, Task.DEFAULT_SCHEMA);
+		super(view, DEFAULT_SCHEMA);
 		initTransientObjects();
 	}
 
@@ -222,32 +226,57 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
-					return tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
+					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
+					addTimeStampToQuery(query);
+					return query;
 				}
 			};
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
 			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
-					return tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
+					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
+					addTimeStampToQuery(query);
+					return query;
 				}
 			};
 		case TASKS_NOT_ASSIGNED:
 			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
-					return tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
+					LogicalSearchQuery query = tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
+					addTimeStampToQuery(query);
+					return query;
 				}
 			};
 		case TASKS_RECENTLY_COMPLETED:
 			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
-					return tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
+					LogicalSearchQuery query = tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
+					addTimeStampToQuery(query);
+					return query;
 				}
 			};
 		default:
 			throw new RuntimeException("BUG: Unknown tabId + " + tabId);
+		}
+	}
+
+	private void addTimeStampToQuery(LogicalSearchQuery query) {
+		TaskManagementViewImpl.Timestamp timestamp = view.getTimestamp();
+		switch (timestamp) {
+			case ALL:
+				break;
+			case TODAY:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now());
+				break;
+			case WEEK:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusWeeks(1));
+				break;
+			case MONTH:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusMonths(1));
+				break;
 		}
 	}
 
@@ -271,13 +300,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
 		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return Arrays.asList(TITLE, ASSIGNER, DUE_DATE);
+			return Arrays.asList(TITLE, ASSIGNER, DUE_DATE, STATUS);
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return Arrays.asList(TITLE, ASSIGNEE, DUE_DATE);
+			return Arrays.asList(TITLE, ASSIGNEE, DUE_DATE, STATUS);
 		case TASKS_NOT_ASSIGNED:
-			return Arrays.asList(TITLE, DUE_DATE);
+			return Arrays.asList(TITLE, DUE_DATE, STATUS);
 		default:
-			return Arrays.asList(TITLE, ASSIGNER, ASSIGNEE, DUE_DATE);
+			return Arrays.asList(TITLE, ASSIGNER, ASSIGNEE, DUE_DATE, STATUS);
 		}
 	}
 
@@ -322,5 +351,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public boolean isMetadataReportAllowed(RecordVO recordVO) {
 		return true;
+	}
+
+	public String getDueDateCaption() {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
+				.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
 	}
 }

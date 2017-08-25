@@ -150,7 +150,7 @@ public class ConnectorCrawler {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(es.connectorInstance.schemaType()).where(es.connectorInstance.enabled()).isTrue());
 		query.sortAsc(es.connectorInstance.code());
-		return es.wrapConnectorInstances(es.getSearchServices().search(query));
+		return es.wrapConnectorInstances(es.getSearchServices().cachedSearch(query));
 	}
 
 	private void initializeStartAndStopConnectors(List<ConnectorInstance> connectorInstances) {

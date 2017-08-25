@@ -1,10 +1,14 @@
 package com.constellio.data.dao.dto.records;
 
+import static java.util.Arrays.asList;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException;
 
@@ -74,5 +78,26 @@ public class RecordDTO implements RecordsOperationDTO, Serializable {
 
 	public RecordDTO withVersion(long version) {
 		return new RecordDTO(id, version, loadedFields, fields, copyfields);
+	}
+
+	private static List<String> alwaysCopiedFields = asList("collection_s", "schema_s");
+
+	public RecordDTO createCopyOnlyKeeping(Set<String> metadatasDataStoreCodes) {
+
+		Map<String, Object> newFields = new HashMap<>();
+		for (Map.Entry<String, Object> entry : fields.entrySet()) {
+			if (metadatasDataStoreCodes.contains(entry.getKey()) || alwaysCopiedFields.contains(entry.getKey())) {
+				newFields.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		Map<String, Object> newCopyFields = new HashMap<>();
+		for (Map.Entry<String, Object> entry : copyfields.entrySet()) {
+			if (metadatasDataStoreCodes.contains(entry.getKey())) {
+				newCopyFields.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return new RecordDTO(id, version, new ArrayList<>(metadatasDataStoreCodes), newFields, newCopyFields);
 	}
 }

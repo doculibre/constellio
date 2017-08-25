@@ -31,6 +31,7 @@ public class DecomValidationRequestWindowButton extends WindowButton {
         users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
         users.setCaption($("DecomAskForValidationWindowButton.usersCaption"));
         users.setRequired(true);
+
         //users.setRequiredError($("DecomAskForValidationWindowButton.error.users"));
         layout.addComponent(users);
         checkBox = new CheckBox($("DecomAskForValidationWindowButton.addCommentToDecomlistCaption"));

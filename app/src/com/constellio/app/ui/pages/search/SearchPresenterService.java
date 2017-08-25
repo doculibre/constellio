@@ -177,6 +177,6 @@ public class SearchPresenterService {
 	List<Facet> getActiveFacets() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.facetSchemaType()).where(schemas.facetActive()).isTrue())
 				.sortAsc(schemas.facetOrder());
-		return schemas.wrapFacets(searchServices.search(query));
+		return schemas.wrapFacets(searchServices.cachedSearch(query));
 	}
 }

@@ -181,10 +181,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(selectedRecordIds);
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, "userBatchProcess");
+		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
 		manager.markAsPending(process);
 	}
 

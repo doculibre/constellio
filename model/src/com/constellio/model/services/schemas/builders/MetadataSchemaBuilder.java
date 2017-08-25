@@ -27,8 +27,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -523,6 +523,15 @@ public class MetadataSchemaBuilder {
 				}
 			}
 		}
+
+//		for (Metadata metadata : metadatas) {
+		//			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
+		//				if (!metadata.isGlobal()) {
+		//					System.out.println(metadata.getLocalCode());
+		//					sortedMetadatas.add(metadata);
+		//				}
+		//			}
+		//		}
 
 		return Collections.unmodifiableList(sortedMetadatas);
 	}
