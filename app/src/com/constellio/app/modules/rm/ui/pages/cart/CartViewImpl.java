@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -485,7 +486,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Button buildCreateSIPArchivesButton(){
 		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
-//		siPbutton.setAllObject(presenter.getCartFolders());
+		siPbutton.setAllObject(presenter.getCartFoldersVO().toArray(new FolderVO[0]));
 		return siPbutton;
 	}
 

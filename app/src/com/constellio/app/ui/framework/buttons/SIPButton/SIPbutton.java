@@ -162,7 +162,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         List<String> folderList = getFolderIDListFromObjectList();
 
         SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue());
-        view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "com.constellio.app.ui.framework.buttons.SIPbutton#continueButtonClicked"));
+        view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
         view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
         getWindow().close();
     }
