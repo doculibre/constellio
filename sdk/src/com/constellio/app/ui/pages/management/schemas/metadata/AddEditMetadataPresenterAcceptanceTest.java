@@ -255,6 +255,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isTrue();
 		assertThat(result.isDuplicable()).isFalse();
+		assertThat(result.isUniqueValue()).isFalse();
 	}
 
 	@Test
@@ -284,6 +285,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isTrue();
 		assertThat(result.isDuplicable()).isFalse();
+		assertThat(result.isUniqueValue()).isTrue();
 	}
 
 	@Test
