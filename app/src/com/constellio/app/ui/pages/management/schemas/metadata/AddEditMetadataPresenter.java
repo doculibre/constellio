@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -186,12 +187,20 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				});
 	}
 
-	private boolean isShowUniqueComboBox() {
+	public boolean isShowUniqueComboBox() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode)).returnAll();
+		Metadata metadata = types.getMetadata(metadataCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 		logicalSearchQuery.setNumberOfRows(0);
-		//logicalSearchQuery.
+		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
+
+		List<FacetValue> response = modelLayerFactory.newSearchServices().query(logicalSearchQuery).getFieldFacetValues(metadata.getDataStoreCode());
+		for(FacetValue facetValue : response) {
+			if(facetValue.getQuantity() > 1 ) {
+				return false;
+			}
+		}
 		return true;
 	}
 
