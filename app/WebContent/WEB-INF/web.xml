@@ -89,6 +89,14 @@
     </filter-mapping>
     -->
 
+    <filter>
+        <filter-name>GzipFilter</filter-name>
+        <filter-class>org.eclipse.jetty.servlets.GzipFilter</filter-class>
+        <init-param>
+            <param-name>mimeTypes</param-name>
+            <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml</param-value>
+        </init-param>
+    </filter>
 
     <servlet>
         <servlet-name>serviceMonitoring</servlet-name>
@@ -342,6 +350,10 @@
     <!--<load-on-startup>1</load-on-startup>-->
     <!--</servlet>-->
 
+    <filter-mapping>
+        <filter-name>GzipFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <servlet-mapping>
         <servlet-name>serviceMonitoring</servlet-name>
