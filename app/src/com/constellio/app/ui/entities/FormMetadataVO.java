@@ -38,14 +38,14 @@ public class FormMetadataVO implements Serializable {
 	boolean duplicable;
 	Set<String> customAttributes;
 	FormMetadataVO inheritance;
+	boolean uniqueValue;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
 			boolean facet,
 			MetadataInputType input, MetadataDisplayType displayType, boolean highlight, boolean autocomplete, boolean enabled,
 			String metadataGroup,
-			Object defaultValue, String inputMask, boolean duplicable, Set<String> customAttributes,
-			SessionContext sessionContext) {
+			Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue, Set<String> customAttributes, SessionContext sessionContext) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -74,6 +74,7 @@ public class FormMetadataVO implements Serializable {
 		this.duplicable = duplicable;
 		this.customAttributes = new HashSet<>(customAttributes);
 		this.inheritance = null;
+		this.uniqueValue = uniqueValue;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -101,6 +102,14 @@ public class FormMetadataVO implements Serializable {
 		this.duplicable = false;
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
+	}
+
+	public boolean isUniqueValue() {
+		return uniqueValue;
+	}
+
+	public void setUniqueValue(boolean uniqueValue) {
+		this.uniqueValue = uniqueValue;
 	}
 
 	public String getCode() {
