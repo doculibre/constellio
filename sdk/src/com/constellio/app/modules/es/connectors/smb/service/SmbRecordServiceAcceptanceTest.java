@@ -61,7 +61,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
 
-		assertThat(smbRecordService.getDocuments(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE)).isNull();
+		assertThat(smbRecordService.getDocuments(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE)).isEmpty();
 	}
 
 	@Test
@@ -125,56 +125,6 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		String resumeUrl = "resumeUrl";
 		smbRecordService.updateResumeUrl(resumeUrl);
 		assertThat(connectorInstance.getResumeUrl()).isEqualTo(resumeUrl);
-	}
-
-	@Test
-	public void givenDuplicateFoldersThenGetDuplicates()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		ConnectorSmbFolder folder2 = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		ConnectorSmbFolder folder3 = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + "/test/");
-
-		recordService.add(folder);
-		recordService.add(folder2);
-		recordService.add(folder3);
-		recordService.flush();
-
-		assertThat(smbRecordService.getFolders(SmbTestParams.EXISTING_SHARE)).hasSize(2);
-
-		Set<String> urls = smbRecordService.duplicateDocuments();
-		assertThat(urls).containsExactly(SmbTestParams.EXISTING_SHARE);
-	}
-
-	@Test
-	public void givenDuplicateDocumentsThenGetDuplicates()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
-
-		ConnectorSmbDocument document2 = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
-
-		ConnectorSmbDocument document3 = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + SmbTestParams.ANOTHER_FILE_NAME);
-
-		recordService.add(document);
-		recordService.add(document2);
-		recordService.add(document3);
-		recordService.flush();
-
-		assertThat(smbRecordService.getDocuments(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE)).hasSize(2);
-
-		Set<String> urls = smbRecordService.duplicateDocuments();
-		assertThat(urls).containsExactly(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
 	}
 
 	@Test
