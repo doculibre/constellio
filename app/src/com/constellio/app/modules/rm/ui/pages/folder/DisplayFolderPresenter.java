@@ -287,6 +287,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void disableMenuItems(Folder folder) {
 
+		if(folder.isLogicallyDeletedStatus()) {
+			view.hideAllActionMenuButtons();
+			return;
+		}
+
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 
 		User user = getCurrentUser();

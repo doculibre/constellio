@@ -408,6 +408,17 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return actionMenuButtons;
 	}
 
+	@Override
+	public void hideAllActionMenuButtons() {
+		List<Button> actionMenuButtons = getActionMenuButtons();
+		if(actionMenuButtons != null) {
+			for(Button button: actionMenuButtons) {
+				button.setVisible(false);
+				button.setEnabled(false);
+			}
+		}
+	}
+
 	private WindowButton buildAddToCartButton() {
 		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "50%");
 		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart"), configuration) {
