@@ -6,9 +6,13 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -16,6 +20,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
+import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -42,6 +47,27 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     private String collection;
     private BaseUploadField upload;
     private RMSchemasRecordsServices rm;
+    private BeanFieldGroup<BagInfoVO> binder;
+
+    private BagInfoVO bagInfoVO;
+
+    private FormLayout formLayout;
+
+    private TextArea noteTextArea, descriptionSommaire;
+
+    private TextField
+            identificationOrganismeTextField,
+            IDOrganismeTextField,
+            adresseTextField,
+            regionAdministrativeTextField,
+            entiteResponsableTextField,
+            identificationEntiteResponsableTextField,
+            courrielResponsableTextField,
+            telephoneResponsableTextField,
+            categoryDocumentTextField,
+            methodeTransfereTextField,
+            restrictionAccessibiliteTextField,
+            encodingTextField;
 
     public SIPbutton(String caption, String windowCaption, BaseView view) {
         super(caption, windowCaption);
@@ -55,63 +81,14 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
                 super.setVisible(false);
             }
+
         }
     }
 
     @Override
     protected Component buildWindowContent() {
         VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.addComponent(buildCheckboxComponent());
-        mainLayout.addComponent(buildUploadComponent());
-        mainLayout.addComponent(buildButtonComponent());
-        mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
-        mainLayout.setSpacing(true);
-        return mainLayout;
-    }
-
-    private VerticalLayout buildCheckboxComponent() {
-        VerticalLayout layout = new VerticalLayout();
-        layout.addComponent(buildDeleteItemCheckbox());
-        layout.addComponent(buildLimitSizeComponent());
-        return layout;
-    }
-
-    public void addAllObject(RecordVO... objects) {
-        objectList.addAll(asList(objects));
-    }
-
-    public void setAllObject(RecordVO... objects) {
-        objectList = new ArrayList<>();
-        objectList.addAll(asList(objects));
-    }
-
-    private HorizontalLayout buildDeleteItemCheckbox() {
-        HorizontalLayout layout = new HorizontalLayout();
-        deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
-        layout.addComponents(deleteCheckBox);
-        layout.setWidth("100%");
-        return layout;
-    }
-
-    private HorizontalLayout buildLimitSizeComponent() {
-        HorizontalLayout layout = new HorizontalLayout();
-        limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
-        layout.addComponents(limitSizeCheckbox);
-        layout.setWidth("100%");
-        return layout;
-    }
-
-    private HorizontalLayout buildUploadComponent() {
-        HorizontalLayout layout = new HorizontalLayout();
-        upload = new BaseUploadField(true, false);
-        layout.addComponents(upload);
-        layout.setWidth("100%");
-        return layout;
-    }
-
-    private HorizontalLayout buildButtonComponent() {
-        HorizontalLayout buttonLayout = new HorizontalLayout();
+        SIPForm form = new SIPForm(build());
         Button cancelButton = new BaseButton($("cancel")) {
             @Override
             protected void buttonClick(ClickEvent event) {
@@ -128,9 +105,22 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                 }
             }
         };
-        buttonLayout.addComponents(cancelButton, continueButton);
-        buttonLayout.setWidth("100%");
-        return buttonLayout;
+        form.getFooter().addComponents(cancelButton, continueButton);
+        form.getFooter().setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
+        form.getFooter().setComponentAlignment(continueButton, Alignment.MIDDLE_RIGHT);
+        mainLayout.addComponent(form);
+        mainLayout.setWidth("100%");
+        mainLayout.setHeight("100%");
+        return mainLayout;
+    }
+
+    public void addAllObject(RecordVO... objects) {
+        objectList.addAll(asList(objects));
+    }
+
+    public void setAllObject(RecordVO... objects) {
+        objectList = new ArrayList<>();
+        objectList.addAll(asList(objects));
     }
 
     private List<String> getDocumentIDListFromObjectList() {
@@ -155,13 +145,26 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     private void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException, RecordServicesException {
         String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-        InputStream bagInfoIn = new FileInputStream(((TempFileUpload) upload.getValue()).getTempFile());
-        List<String> packageInfoLines = IOUtils.readLines(bagInfoIn);
-        bagInfoIn.close();
+
+        List<String> packageInfoLines = asList(
+                $("BagInfoForm.note") + ":" + noteTextArea.getValue(),
+                $("BagInfoForm.identificationOrganisme") + ":" + identificationOrganismeTextField.getValue(),
+                $("BagInfoForm.IDOrganisme") + ":" + IDOrganismeTextField.getValue(),
+                $("BagInfoForm.address") + ":" + adresseTextField.getValue(),
+                $("BagInfoForm.regionAdministrative") + ":" + regionAdministrativeTextField.getValue(),
+                $("BagInfoForm.entiteResponsable") + ":" + entiteResponsableTextField.getValue(),
+                $("BagInfoForm.identificationEntiteResponsable") + ":" + identificationEntiteResponsableTextField.getValue(),
+                $("BagInfoForm.courrielResponsable") + ":" + courrielResponsableTextField.getValue(),
+                $("BagInfoForm.telephoneResponsable") + ":" + telephoneResponsableTextField.getValue(),
+                $("BagInfoForm.descriptionSommaire") + ":" + descriptionSommaire.getValue(),
+                $("BagInfoForm.categoryDocument") + ":" + categoryDocumentTextField.getValue(),
+                $("BagInfoForm.methodeTransfere") + ":" + methodeTransfereTextField.getValue(),
+                $("BagInfoForm.restrictionAccessibilite") + ":" + restrictionAccessibiliteTextField.getValue(),
+                $("BagInfoForm.encoding") + ":" + encodingTextField.getValue());
         List<String> documentList = getDocumentIDListFromObjectList();
         List<String> folderList = getFolderIDListFromObjectList();
 
-        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue());
+        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
         view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
         view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
         getWindow().close();
@@ -188,4 +191,61 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     @Override
     public void uploadSucceeded(Upload.SucceededEvent event) {}
+
+    public FormLayout build(){
+        bagInfoVO = new BagInfoVO();
+        formLayout = new FormLayout();
+        binder = new BeanFieldGroup<>(BagInfoVO.class);
+        binder.setItemDataSource(bagInfoVO);
+
+        deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
+        limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
+        deleteCheckBox.setWidth("100%");
+        limitSizeCheckbox.setWidth("100%");
+        formLayout.addComponent(deleteCheckBox);
+        formLayout.addComponent(limitSizeCheckbox);
+
+        noteTextArea = new TextArea($("BagInfoForm.note"));
+        formLayout.addComponent(noteTextArea);
+
+        identificationOrganismeTextField = new TextField($("BagInfoForm.identificationOrganisme"));
+        formLayout.addComponent(identificationOrganismeTextField);
+
+        IDOrganismeTextField = new TextField($("BagInfoForm.IDOrganisme"));
+        formLayout.addComponent(IDOrganismeTextField);
+
+        adresseTextField = new TextField($("BagInfoForm.address"));
+        formLayout.addComponent(adresseTextField);
+
+        regionAdministrativeTextField = new TextField($("BagInfoForm.regionAdministrative"));
+        formLayout.addComponent(regionAdministrativeTextField);
+
+        entiteResponsableTextField = new TextField($("BagInfoForm.entiteResponsable"));
+        formLayout.addComponent(entiteResponsableTextField);
+
+        identificationEntiteResponsableTextField = new TextField($("BagInfoForm.identificationEntiteResponsable"));
+        formLayout.addComponent(identificationEntiteResponsableTextField);
+
+        courrielResponsableTextField = new TextField($("BagInfoForm.courrielResponsable"));
+        formLayout.addComponent(courrielResponsableTextField);
+
+        telephoneResponsableTextField = new TextField($("BagInfoForm.telephoneResponsable"));
+        formLayout.addComponent(telephoneResponsableTextField);
+
+        descriptionSommaire = new TextArea($("BagInfoForm.descriptionSommaire"));
+        formLayout.addComponent(descriptionSommaire);
+
+        categoryDocumentTextField = new TextField($("BagInfoForm.categoryDocument"));
+        formLayout.addComponent(categoryDocumentTextField);
+
+        methodeTransfereTextField = new TextField($("BagInfoForm.methodeTransfere"));
+        formLayout.addComponent(methodeTransfereTextField);
+
+        restrictionAccessibiliteTextField = new TextField($("BagInfoForm.restrictionAccessibilite"));
+        formLayout.addComponent(restrictionAccessibiliteTextField);
+
+        encodingTextField = new TextField($("BagInfoForm.encoding"));
+        formLayout.addComponent(encodingTextField);
+        return formLayout;
+    }
 }

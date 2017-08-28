@@ -33,8 +33,9 @@ public class SIPBuildAsyncTask implements AsyncTask {
     private boolean limitSize;
     private String username;
     private boolean deleteFiles;
+    private String currentVersion;
 
-    public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles){
+    public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion){
         this.bagInfoLines = bagInfoLines;
         this.includeDocumentIds = includeDocumentIds;
         this.includeFolderIds = includeFolderIds;
@@ -42,6 +43,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
         this.limitSize = limitSize;
         this.username = username;
         this.deleteFiles = deleteFiles;
+        this.currentVersion = currentVersion;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
             SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds).withIncludeFolderIds(this.includeFolderIds);
             ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter);
             if (!metsObjectsProvider.list().isEmpty()) {
-                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize);
+                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion);
                 constellioSIP.build(outFile);
                 User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
 
@@ -96,6 +98,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
     @Override
     public Object[] getInstanceParameters() {
-        return new Object[] {sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles};
+        return new Object[] {sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles, currentVersion};
     }
 }

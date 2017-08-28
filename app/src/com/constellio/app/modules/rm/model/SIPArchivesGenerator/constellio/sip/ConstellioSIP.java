@@ -203,11 +203,14 @@ public class ConstellioSIP {
 
     private boolean limitSize;
 
-    public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize) {
+    private String currentVersion;
+
+    public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize, String currentVersion) {
         this.sipObjectsProvider = sipObjectsProvider;
         this.providedBagInfoLines = bagInfoLines;
         this.currentDocumentIndex = sipObjectsProvider.getStartIndex();
         this.limitSize = limitSize;
+        this.currentVersion = currentVersion;
     }
 
     public void build(File zipFile) throws IOException, JDOMException, SIPMaxReachedException {
@@ -743,7 +746,7 @@ public class ConstellioSIP {
         bagInfoLines.add("");
         bagInfoLines.add("Logiciel : Constellio");
         bagInfoLines.add("Site web de l’éditeur : http://www.constellio.com");
-        bagInfoLines.add("Version du logiciel : 5.1.1");
+        bagInfoLines.add("Version du logiciel : " + currentVersion);
         bagInfoLines.add("Date de création du paquet : " + sdfDate.format(new Date()));
         bagInfoLines.add("");
     }
