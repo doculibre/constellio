@@ -266,20 +266,21 @@ public class ConnectorSmb extends Connector {
 	}
 
 	private void changeTraversalCodeToMarkEndOfTraversal() {
-		String oldTraversalCode = connectorInstance.getTraversalCode();
+		connectorInstance = es.getConnectorSmbInstance(connectorId);
+		String oldTraversalCode = this.connectorInstance.getTraversalCode();
 		String newTraversalCode = UUID.randomUUID()
 				.toString();
 
-		connectorInstance.setTraversalCode(newTraversalCode);
-		connectorInstance.setResumeUrl("");
+		this.connectorInstance.setTraversalCode(newTraversalCode);
+		this.connectorInstance.setResumeUrl("");
 
 		try {
-			es.getRecordServices().update(connectorInstance);
+			es.getRecordServices().update(this.connectorInstance);
 		} catch (RecordServicesException e) {
 			logger.errorUnexpected(e);
 		}
 
-		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + connectorInstance.getId() +
+		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + this.connectorInstance.getId() +
 						" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
