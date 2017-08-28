@@ -15,6 +15,4 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	com.vaadin.ui.Component getSelectedTab();
 
 	TaskManagementViewImpl.Timestamp getTimestamp();
-
-	void resortTable();
 }

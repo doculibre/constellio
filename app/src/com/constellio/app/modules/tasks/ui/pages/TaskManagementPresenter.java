@@ -59,6 +59,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient TasksSearchServices tasksSearchServices;
 	private transient TaskPresenterServices taskPresenterServices;
 	private transient BetaWorkflowServices workflowServices;
+	private RecordVODataProvider provider;
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
@@ -86,10 +87,10 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public void tabSelected(String tabId) {
 		if (isWorkflowTab(tabId)) {
-			RecordVODataProvider provider = getWorkflowInstances(tabId);
+			provider = getWorkflowInstances(tabId);
 			view.displayWorkflows(provider);
 		} else if (isTaskTab(tabId)) {
-			RecordVODataProvider provider = getTasks(tabId);
+			provider = getTasks(tabId);
 			view.displayTasks(provider);
 		} else {
 			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getSelectedTab());
@@ -403,7 +404,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		view.resortTable();
+		provider.fireDataRefreshEvent();
 	}
 
 	public String getDueDateCaption() {
