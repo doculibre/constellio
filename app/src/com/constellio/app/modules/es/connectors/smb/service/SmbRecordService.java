@@ -96,6 +96,11 @@ public class SmbRecordService {
 				.getByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
 	}
 
+	public void removeFromCache(ConnectorDocument connectorDocument) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		recordServices.getRecordsCaches().getCache(connectorInstance.getCollection()).invalidate(connectorDocument.getId());
+	}
+
 	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {
 		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
