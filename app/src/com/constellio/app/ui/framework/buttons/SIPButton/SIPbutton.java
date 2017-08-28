@@ -1,20 +1,16 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.exceptions.SIPMaxReachedException;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
-import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -24,7 +20,6 @@ import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import org.apache.commons.io.IOUtils;
 import org.jdom2.JDOMException;
 import org.joda.time.LocalDateTime;
 
@@ -100,7 +95,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             protected void buttonClick(ClickEvent event) {
                 try {
                     continueButtonClicked();
-                } catch (IOException | JDOMException | SIPMaxReachedException | RecordServicesException e) {
+                } catch (IOException | JDOMException | RecordServicesException e) {
                     view.showErrorMessage(e.getMessage());
                 }
             }
@@ -143,7 +138,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         return folders;
     }
 
-    private void continueButtonClicked() throws IOException, SIPMaxReachedException, JDOMException, RecordServicesException {
+    private void continueButtonClicked() throws IOException, JDOMException, RecordServicesException {
         String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
 
         List<String> packageInfoLines = asList(

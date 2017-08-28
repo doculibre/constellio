@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.ConstellioSIP;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.data.intelligid.ConstellioSIPObjectsProvider;
-import com.constellio.app.modules.rm.model.SIPArchivesGenerator.constellio.sip.filter.SIPFilter;
+import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
+import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
