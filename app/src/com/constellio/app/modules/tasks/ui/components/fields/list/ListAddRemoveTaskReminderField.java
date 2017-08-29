@@ -31,4 +31,13 @@ public class ListAddRemoveTaskReminderField extends ListAddRemoveField<TaskRemin
 				taskReminder.getRelativeDateMetadataCode(), taskReminder.isBeforeRelativeDate());
 	}
 
+	@Override
+	protected TaskReminderVO getConvertedValueFor(Object value) {
+		if(value instanceof TaskReminder) {
+			TaskReminder taskReminder = (TaskReminder) value;
+			return new TaskReminderVO(taskReminder.getFixedDate(), taskReminder.getNumberOfDaysToRelativeDate(),
+					taskReminder.getRelativeDateMetadataCode(), taskReminder.isBeforeRelativeDate());
+		}
+		return super.getConvertedValueFor(value);
+	}
 }
