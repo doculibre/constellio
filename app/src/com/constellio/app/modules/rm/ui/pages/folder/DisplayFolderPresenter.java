@@ -287,29 +287,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void disableMenuItems(Folder folder) {
 
-		if(folder.isLogicallyDeletedStatus()) {
-			view.hideAllActionMenuButtons();
-			return;
+		if(!folder.isLogicallyDeletedStatus()) {
+			RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+
+			User user = getCurrentUser();
+			view.setLogicallyDeletable(getDeleteButtonState(user, folder));
+			view.setEditButtonState(getEditButtonState(user, folder));
+			view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
+			view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
+			view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
+			view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
+			view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
+			view.setShareFolderButtonState(getShareButtonState(user, folder));
+			view.setPrintButtonState(getPrintButtonState(user, folder));
+			view.setBorrowButtonState(getBorrowButtonState(user, folder));
+			view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
+			view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
+			view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
+			view.setBorrowedMessage(getBorrowMessageState(folder));
+			view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 		}
-
-		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-
-		User user = getCurrentUser();
-		view.setLogicallyDeletable(getDeleteButtonState(user, folder));
-		view.setEditButtonState(getEditButtonState(user, folder));
-		view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
-		view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
-		view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
-		view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
-		view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
-		view.setShareFolderButtonState(getShareButtonState(user, folder));
-		view.setPrintButtonState(getPrintButtonState(user, folder));
-		view.setBorrowButtonState(getBorrowButtonState(user, folder));
-		view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
-		view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
-		view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
-		view.setBorrowedMessage(getBorrowMessageState(folder));
-		view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 	}
 
 	String getBorrowMessageState(Folder folder) {
@@ -1054,5 +1051,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+	public boolean isLogicallyDeleted() {
+		return Boolean.TRUE.equals(folderVO.getMetadataValue(folderVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
 	}
 }

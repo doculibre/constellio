@@ -196,215 +196,218 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
-		addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addDocumentButtonClicked();
-			}
-		};
+		if(!presenter.isLogicallyDeleted()) {
+			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.addDocumentButtonClicked();
+				}
+			};
 
-		moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
-				, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout.setSpacing(true);
-				final LookupFolderField field = new LookupFolderField();
-				verticalLayout.addComponent(field);
-				BaseButton saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						String parentId = field.getValue();
-						try {
-							presenter.parentFolderButtonClicked(parentId);
-						} catch (Throwable e) {
-							LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-							showErrorMessage("DisplayFolderView.parentFolderException");
+			moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
+					, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout verticalLayout = new VerticalLayout();
+					verticalLayout.setSpacing(true);
+					final LookupFolderField field = new LookupFolderField();
+					verticalLayout.addComponent(field);
+					BaseButton saveButton = new BaseButton($("save")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							String parentId = field.getValue();
+							try {
+								presenter.parentFolderButtonClicked(parentId);
+							} catch (Throwable e) {
+								LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
+								showErrorMessage("DisplayFolderView.parentFolderException");
+							}
+							moveInFolderButton.getWindow().close();
 						}
-						moveInFolderButton.getWindow().close();
-					}
-				};
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				HorizontalLayout hLayout = new HorizontalLayout();
-				hLayout.setSizeFull();
-				hLayout.addComponent(saveButton);
-				hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
-				verticalLayout.addComponent(hLayout);
-				return verticalLayout;
+					};
+					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+					HorizontalLayout hLayout = new HorizontalLayout();
+					hLayout.setSizeFull();
+					hLayout.addComponent(saveButton);
+					hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+					verticalLayout.addComponent(hLayout);
+					return verticalLayout;
+				}
+			};
+
+			addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.addSubFolderButtonClicked();
+				}
+			};
+
+			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editFolderButtonClicked();
+				}
+			};
+
+			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
+				@Override
+				protected void deletionConfirmed(String reason) {
+					presenter.deleteFolderButtonClicked(reason);
+				}
+			};
+
+			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
+					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
+				@Override
+				protected Component buildWindowContent() {
+					BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.duplicateFolderButtonClicked();
+							getWindow().close();
+						}
+					};
+
+					BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.duplicateStructureButtonClicked();
+							getWindow().close();
+						}
+					};
+
+					BaseButton cancel = new BaseButton($("cancel")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
+					cancel.addStyleName(ValoTheme.BUTTON_LINK);
+
+					HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
+					layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
+					layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
+					layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
+					layout.setExpandRatio(cancel, 1);
+
+					layout.setWidth("95%");
+					layout.setSpacing(true);
+
+					VerticalLayout wrapper = new VerticalLayout(layout);
+					wrapper.setSizeFull();
+
+					return wrapper;
+				}
+			};
+
+			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.linkToFolderButtonClicked();
+				}
+			};
+			linkToFolderButton.setVisible(false);
+
+			addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.addAuthorizationButtonClicked();
+				}
+			};
+
+			shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.shareFolderButtonClicked();
+				}
+			};
+
+			addToCartButton = buildAddToCartButton();
+
+			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO, getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
+
+			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getCustomTemplates();
+				}
+			};
+			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getDefaultTemplates();
+				}
+			};
+			try {
+				printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
+						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
+			} catch (Exception e) {
+				showErrorMessage(e.getMessage());
 			}
-		};
 
-		addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addSubFolderButtonClicked();
-			}
-		};
+			borrowButton = buildBorrowButton();
 
-		editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editFolderButtonClicked();
-			}
-		};
+			returnFolderButton = buildReturnFolderButton();
 
-		deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-			@Override
-			protected void deletionConfirmed(String reason) {
-				presenter.deleteFolderButtonClicked(reason);
-			}
-		};
+			reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.reminderReturnFolder();
+				}
+			};
 
-		duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
-			@Override
-			protected Component buildWindowContent() {
-				BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.duplicateFolderButtonClicked();
-						getWindow().close();
-					}
-				};
+			alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.alertWhenAvailable();
+				}
+			};
 
-				BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.duplicateStructureButtonClicked();
-						getWindow().close();
-					}
-				};
+			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.FOLDER,  getRecord());
 
-				BaseButton cancel = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancel.addStyleName(ValoTheme.BUTTON_LINK);
-
-				HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
-				layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-				layout.setExpandRatio(cancel, 1);
-
-				layout.setWidth("95%");
-				layout.setSpacing(true);
-
-				VerticalLayout wrapper = new VerticalLayout(layout);
-				wrapper.setSizeFull();
-
-				return wrapper;
-			}
-		};
-
-		linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.linkToFolderButtonClicked();
-			}
-		};
-		linkToFolderButton.setVisible(false);
-
-		addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addAuthorizationButtonClicked();
-			}
-		};
-
-		shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.shareFolderButtonClicked();
-			}
-		};
-
-		addToCartButton = buildAddToCartButton();
-		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO, getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
-
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getCustomTemplates();
-			}
-		};
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getDefaultTemplates();
-			}
-		};
-		try {
-			printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
-					$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
-		} catch (Exception e) {
-			showErrorMessage(e.getMessage());
-		}
-
-		borrowButton = buildBorrowButton();
-
-		returnFolderButton = buildReturnFolderButton();
-
-		reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.reminderReturnFolder();
-			}
-		};
-
-		alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.alertWhenAvailable();
-			}
-		};
-
-		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.FOLDER,  getRecord());
-
-		startWorkflowButton = new StartWorkflowButton();
-		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+			startWorkflowButton = new StartWorkflowButton();
+			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
 //		actionMenuButtons.add(addDocumentButton);
 //		actionMenuButtons.add(addSubFolderButton);
 
-		boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
-				&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
+					&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 
-		actionMenuButtons.add(editFolderButton);
+			actionMenuButtons.add(editFolderButton);
 
-		if(!isAFolderAndDestroyed)
-		{
-			actionMenuButtons.add(moveInFolderButton);
-			actionMenuButtons.add(deleteFolderButton);
-			actionMenuButtons.add(duplicateFolderButton);
-			actionMenuButtons.add(linkToFolderButton);
-			actionMenuButtons.add(addAuthorizationButton);
-			actionMenuButtons.add(shareFolderButton);
-			if (presenter.hasCurrentUserPermissionToUseCart()) {
-				actionMenuButtons.add(addToCartButton);
+			if(!isAFolderAndDestroyed)
+			{
+				actionMenuButtons.add(moveInFolderButton);
+				actionMenuButtons.add(deleteFolderButton);
+				actionMenuButtons.add(duplicateFolderButton);
+				actionMenuButtons.add(linkToFolderButton);
+				actionMenuButtons.add(addAuthorizationButton);
+				actionMenuButtons.add(shareFolderButton);
+				if (presenter.hasCurrentUserPermissionToUseCart()) {
+					actionMenuButtons.add(addToCartButton);
+				}
+				actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 			}
-			actionMenuButtons.add(addToOrRemoveFromSelectionButton);
-		}
-		if(!isAFolderAndDestroyed) {
-			actionMenuButtons.add(printLabelButton);
-			actionMenuButtons.add(borrowButton);
-		}
+			if(!isAFolderAndDestroyed) {
+				actionMenuButtons.add(printLabelButton);
+				actionMenuButtons.add(borrowButton);
+			}
 			actionMenuButtons.add(returnFolderButton);
-		    actionMenuButtons.add(reminderReturnFolderButton);
+			actionMenuButtons.add(reminderReturnFolderButton);
 
-		if(!isAFolderAndDestroyed) {
+			if(!isAFolderAndDestroyed) {
 
-			actionMenuButtons.add(alertWhenAvailableButton);
+				actionMenuButtons.add(alertWhenAvailableButton);
+			}
+
+			if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
+				actionMenuButtons.add(startWorkflowButton);
+			}
+
+			actionMenuButtons.add(reportGeneratorButton);
 		}
 
-		if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
-			actionMenuButtons.add(startWorkflowButton);
-		}
-
-		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 
