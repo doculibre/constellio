@@ -159,7 +159,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
 
-	@Override
+    @Override
 	public boolean isCloseButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
