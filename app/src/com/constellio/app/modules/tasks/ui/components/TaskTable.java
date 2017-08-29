@@ -72,7 +72,16 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-				
+
+				if (presenter.isCompleteOneClickEnabled(recordVO)) {
+					rootItem.addItem($("TaskTable.completeOneClick"), COMPLETE_ICON, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.completeOneClick(recordVO);
+						}
+					});
+				}
+
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
@@ -129,6 +138,8 @@ public class TaskTable extends RecordVOTable {
 
 		void deleteButtonClicked(RecordVO record);
 
+		void completeOneClick(RecordVO record);
+
 		void completeButtonClicked(RecordVO record);
 
 		void closeButtonClicked(RecordVO record);
@@ -146,6 +157,8 @@ public class TaskTable extends RecordVOTable {
 		boolean isEditButtonEnabled(RecordVO recordVO);
 
 		boolean isCompleteButtonEnabled(RecordVO recordVO);
+
+		boolean isCompleteOneClickEnabled(RecordVO recordVO);
 
 		boolean isCloseButtonEnabled(RecordVO recordVO);
 
