@@ -15,8 +15,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class SerializedCacheSearchService {
-	private static Map<String, List<FacetValue>> emptyFieldFacetValues = Collections.emptyMap();
-	private static Map<String, Integer> emptyQueryFacetsValues = Collections.emptyMap();
+	private static Map<Record, Map<Record, Double>> emptyRecordsWithMoreLikeThis = Collections.emptyMap();
 	private static Map<String, Map<String, Object>> emptyStatisticsValues = Collections.emptyMap();
 	private static List<String> emptySpellcheckerSuggestions = Collections.emptyList();
 	boolean correctlySpelt = true;
@@ -43,22 +42,35 @@ public class SerializedCacheSearchService {
 		return query(query, 10);
 	}
 
-	public SPEQueryResponse query(LogicalSearchQuery query, int batch) {
+	public SPEQueryResponse query(LogicalSearchQuery query, final int batch) {
 		long qtime = 0L;
 		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
 		List<Record> records = search(duplicateQuery, batch);
 		Map<String, Map<String, List<String>>> highlights = unmodifiableMap(cache.getHighlightingMap());
 
 		long numFound = records.size();
-		return new SPEQueryResponse(emptyFieldFacetValues, emptyStatisticsValues, emptyQueryFacetsValues, qtime, numFound,
-				records, highlights, correctlySpelt, emptySpellcheckerSuggestions, new HashMap<Record, Map<Record, Double>>());
+
+		//		Map<String, List<FacetValue>> fieldFacetValues = new LazyMap<String, List<FacetValue>>() {
+		//			@Override
+		//			Map<String, List<FacetValue>> getMap() {
+		//				return getFieldFacetValues(batch);
+		//			}
+		//		};
+		//		Map<String, Integer> queryFacetsValues = new LazyMap<String, Integer>() {
+		//			@Override
+		//			Map<String, Integer> getMap() {
+		//				return getQueryFacetsValues(batch);
+		//			}
+		//		};
+
+		Map<String, List<FacetValue>> fieldFacetValues = cache.getFieldFacetValues();
+		Map<String, Integer> queryFacetsValues = cache.getQueryFacetsValues();
+
+		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, qtime,
+				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 
 	private void validateQueryNotUsingUnsupportedFeatures(LogicalSearchQuery query) {
-		if (!query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty()) {
-			throw new IllegalArgumentException("This service doesn't support facetting");
-		}
-
 		if (!query.getStatisticFields().isEmpty()) {
 			throw new IllegalArgumentException("This service doesn't support stats");
 		}
@@ -81,5 +93,13 @@ public class SerializedCacheSearchService {
 		validateQueryNotUsingUnsupportedFeatures(query);
 		cache.initializeFor(query);
 		return new LazyRecordList(batch, cache, modelLayerFactory, query, serializeRecords);
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
+		return cache.getFieldFacetValues();
+	}
+
+	public Map<String, Integer> getQueryFacetsValues() {
+		return cache.getQueryFacetsValues();
 	}
 }

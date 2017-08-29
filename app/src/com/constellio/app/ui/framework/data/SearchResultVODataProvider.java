@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.data;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -43,6 +45,16 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			SessionContext sessionContext) {
 		this.voBuilder = voBuilder;
 		init(appLayerFactory, sessionContext);
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getFieldFacetValues();
+	}
+
+	public Map<String, Integer> getQueryFacetsValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getQueryFacetsValues();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -93,7 +105,9 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
-			size = searchServices.search(query, DEFAULT_PAGE_SIZE).size();
+			SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
+
+			size = response.getRecords().size();
 		}
 		return size;
 	}
@@ -110,6 +124,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public List<SearchResultVO> listSearchResultVOs(int startIndex, int numberOfItems) {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
+
 		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
@@ -118,6 +133,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
 		}
+
 		return results;
 	}
 

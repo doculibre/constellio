@@ -58,7 +58,16 @@ public class LazyRecordList extends AbstractList<Record> {
 	}
 
 	private Record fetchIndex(int index) {
-		SPEQueryResponse speQueryResponse = searchServices.query(query.setNumberOfRows(batchSize).setStartRow(index));
+
+		LogicalSearchQuery fetchIndexQuery = new LogicalSearchQuery(query);
+		fetchIndexQuery.setNumberOfRows(batchSize).setStartRow(index);
+
+		boolean facetComputedInThisQuery = !cache.isFacetsComputed();
+		if (!facetComputedInThisQuery) {
+			fetchIndexQuery.clearFacets();
+		}
+
+		SPEQueryResponse speQueryResponse = searchServices.query(fetchIndexQuery);
 		cache.setSize((int) speQueryResponse.getNumFound());
 
 		List<Record> recordsToInsert = new ArrayList<>();
@@ -83,6 +92,11 @@ public class LazyRecordList extends AbstractList<Record> {
 
 		}
 
+		if (facetComputedInThisQuery) {
+			cache.setFieldFacetValues(speQueryResponse.getFieldFacetValues());
+			cache.setQueryFacetsValues(speQueryResponse.getQueryFacetsValues());
+			cache.setFacetsComputed(true);
+		}
 		return returnedRecord;
 	}
 
