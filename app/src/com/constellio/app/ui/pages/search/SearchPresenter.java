@@ -279,16 +279,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
+
+				if (facets) {
+					service.configureQueryToComputeFacets(query);
+				}
+
 				if (sortCriterion == null) {
 					if (StringUtils.isNotBlank(getUserSearchExpression())) {
 						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
 						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
 					}
 					return query;
-				}
-
-				if (facets) {
-					service.configureQueryToComputeFacets(query);
 				}
 
 				Metadata metadata = getMetadata(sortCriterion);
