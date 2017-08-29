@@ -140,29 +140,35 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     private void continueButtonClicked() throws IOException, JDOMException, RecordServicesException {
         String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-
-        List<String> packageInfoLines = asList(
-                $("BagInfoForm.note") + ":" + noteTextArea.getValue(),
-                $("BagInfoForm.identificationOrganisme") + ":" + identificationOrganismeTextField.getValue(),
-                $("BagInfoForm.IDOrganisme") + ":" + IDOrganismeTextField.getValue(),
-                $("BagInfoForm.address") + ":" + adresseTextField.getValue(),
-                $("BagInfoForm.regionAdministrative") + ":" + regionAdministrativeTextField.getValue(),
-                $("BagInfoForm.entiteResponsable") + ":" + entiteResponsableTextField.getValue(),
-                $("BagInfoForm.identificationEntiteResponsable") + ":" + identificationEntiteResponsableTextField.getValue(),
-                $("BagInfoForm.courrielResponsable") + ":" + courrielResponsableTextField.getValue(),
-                $("BagInfoForm.telephoneResponsable") + ":" + telephoneResponsableTextField.getValue(),
-                $("BagInfoForm.descriptionSommaire") + ":" + descriptionSommaire.getValue(),
-                $("BagInfoForm.categoryDocument") + ":" + categoryDocumentTextField.getValue(),
-                $("BagInfoForm.methodeTransfere") + ":" + methodeTransfereTextField.getValue(),
-                $("BagInfoForm.restrictionAccessibilite") + ":" + restrictionAccessibiliteTextField.getValue(),
-                $("BagInfoForm.encoding") + ":" + encodingTextField.getValue());
-        List<String> documentList = getDocumentIDListFromObjectList();
-        List<String> folderList = getFolderIDListFromObjectList();
-
-        SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-        view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
-        view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-        getWindow().close();
+        if(validateBagInfoLines()){
+            List<String> packageInfoLines = asList(
+                    $("BagInfoForm.note") + ":" + noteTextArea.getValue(),
+                    $("BagInfoForm.identificationOrganisme") + ":" + identificationOrganismeTextField.getValue(),
+                    $("BagInfoForm.IDOrganisme") + ":" + IDOrganismeTextField.getValue(),
+                    $("BagInfoForm.address") + ":" + adresseTextField.getValue(),
+                    $("BagInfoForm.regionAdministrative") + ":" + regionAdministrativeTextField.getValue(),
+                    $("BagInfoForm.entiteResponsable") + ":" + entiteResponsableTextField.getValue(),
+                    $("BagInfoForm.identificationEntiteResponsable") + ":" + identificationEntiteResponsableTextField.getValue(),
+                    $("BagInfoForm.courrielResponsable") + ":" + courrielResponsableTextField.getValue(),
+                    $("BagInfoForm.telephoneResponsable") + ":" + telephoneResponsableTextField.getValue(),
+                    $("BagInfoForm.descriptionSommaire") + ":" + descriptionSommaire.getValue(),
+                    $("BagInfoForm.categoryDocument") + ":" + categoryDocumentTextField.getValue(),
+                    $("BagInfoForm.methodeTransfere") + ":" + methodeTransfereTextField.getValue(),
+                    $("BagInfoForm.restrictionAccessibilite") + ":" + restrictionAccessibiliteTextField.getValue(),
+                    $("BagInfoForm.encoding") + ":" + encodingTextField.getValue());
+            List<String> documentList = getDocumentIDListFromObjectList();
+            List<String> folderList = getFolderIDListFromObjectList();
+            if(!documentList.isEmpty() || !folderList.isEmpty()) {
+                SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
+                view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
+                view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                getWindow().close();
+            } else {
+                view.showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
+            }
+        } else {
+            view.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+        }
     }
 
     @Override
@@ -242,5 +248,28 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         encodingTextField = new TextField($("BagInfoForm.encoding"));
         formLayout.addComponent(encodingTextField);
         return formLayout;
+    }
+
+    private boolean validateBagInfoLines(){
+        List<String> lines = asList(noteTextArea.getValue(),
+                identificationOrganismeTextField.getValue(),
+                IDOrganismeTextField.getValue(),
+                adresseTextField.getValue(),
+                regionAdministrativeTextField.getValue(),
+                entiteResponsableTextField.getValue(),
+                identificationEntiteResponsableTextField.getValue(),
+                courrielResponsableTextField.getValue(),
+                telephoneResponsableTextField.getValue(),
+                descriptionSommaire.getValue(),
+                categoryDocumentTextField.getValue(),
+                methodeTransfereTextField.getValue(),
+                restrictionAccessibiliteTextField.getValue(),
+                encodingTextField.getValue());
+        for(String line : lines) {
+            if(!line.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
