@@ -109,6 +109,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		layout.addComponent(new TaskTable(provider, presenter));
 	}
 
+//	@Override
+//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
+//		VerticalLayout layout = getEmptiedSelectedTab();
+//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
+//	}
+
 	@Override
 	public void displayWorkflows(RecordVODataProvider provider) {
 		VerticalLayout layout = getEmptiedSelectedTab();

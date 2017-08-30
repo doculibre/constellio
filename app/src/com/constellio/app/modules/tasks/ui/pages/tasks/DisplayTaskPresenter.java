@@ -23,6 +23,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.IOException;
@@ -254,6 +255,27 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public boolean isMetadataReportAllowed(RecordVO recordVO) {
 		return true;
+	}
+
+	@Override
+	public String getCurrentUserId() {
+		return getCurrentUser().getId();
+	}
+
+	@Override
+	public void updateTaskStarred(boolean isStarred, String taskId) {
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = taskSchemas.getTask(taskId);
+		if(isStarred) {
+			task.addStarredBy(getCurrentUser().getId());
+		} else {
+			task.removeStarredBy(getCurrentUser().getId());
+		}
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public String getTaskTitle() {
