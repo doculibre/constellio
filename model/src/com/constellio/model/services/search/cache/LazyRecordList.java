@@ -68,6 +68,7 @@ public class LazyRecordList extends AbstractList<Record> {
 		}
 
 		SPEQueryResponse speQueryResponse = searchServices.query(fetchIndexQuery);
+		cache.incrementQTime((int)speQueryResponse.getQtime());
 		cache.setSize((int) speQueryResponse.getNumFound());
 
 		List<Record> recordsToInsert = new ArrayList<>();

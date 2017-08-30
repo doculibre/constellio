@@ -17,6 +17,7 @@ public class SerializableSearchCache implements Serializable {
 	private Map<String, List<FacetValue>> fieldFacetValues = new HashMap<>();
 	private Map<String, Integer> queryFacetsValues = new HashMap<>();
 	private boolean facetsComputed = false;
+	private int totalQTime;
 
 	private LogicalSearchQuerySignature previousQuery;
 
@@ -110,5 +111,20 @@ public class SerializableSearchCache implements Serializable {
 	public SerializableSearchCache setFacetsComputed(boolean facetsComputed) {
 		this.facetsComputed = facetsComputed;
 		return this;
+	}
+
+	public void incrementQTime(int increment) {
+		System.out.println("incrementQTime : " + totalQTime + "+=" + increment);
+		this.totalQTime += increment;
+	}
+
+	public int getTotalQTime() {
+		System.out.println("getTotalQTime : " + totalQTime);
+		return totalQTime;
+	}
+
+	public void resetTotalQTime() {
+		System.out.println("resetTotalQTime : ");
+		totalQTime = 0;
 	}
 }

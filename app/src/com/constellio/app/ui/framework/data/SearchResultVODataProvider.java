@@ -26,8 +26,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
 
-	private static int DEFAULT_PAGE_SIZE = 10;
-
 	transient LogicalSearchQuery query;
 	transient boolean serializeRecords;
 	transient Integer size = null;
@@ -36,6 +34,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	protected transient AppLayerFactory appLayerFactory;
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
+	private int resultsPerPage;
 
 	RecordToVOBuilder voBuilder;
 
@@ -44,6 +43,13 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
 			SessionContext sessionContext) {
 		this.voBuilder = voBuilder;
+		//		String username = sessionContext.getCurrentUser().getUsername();
+		//
+		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
+		//				.getUserCredential(username);
+
+		this.resultsPerPage = sessionContext.getCurrentUser().getDefaultPageLength();
+
 		init(appLayerFactory, sessionContext);
 	}
 
@@ -105,7 +111,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
-			SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
+			SPEQueryResponse response = searchServices.query(query, resultsPerPage);
 
 			size = response.getRecords().size();
 		}
@@ -125,7 +131,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 
-		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
+		SPEQueryResponse response = searchServices.query(query, resultsPerPage);
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
@@ -156,6 +162,13 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			}
 		}
 
+	}
+
+	public int getQTime() {
+
+		int qtime = queryCache.getTotalQTime();
+		queryCache.resetTotalQTime();
+		return qtime;
 	}
 
 	protected abstract LogicalSearchQuery getQuery();

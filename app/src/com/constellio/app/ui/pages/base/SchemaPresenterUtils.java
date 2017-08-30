@@ -102,10 +102,10 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		createTransaction.setToReindexAll();
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
-		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
-				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
-			createTransaction.setRecordFlushing(recordFlushing);
-		}
+		//		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
+		//				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
+		createTransaction.setRecordFlushing(recordFlushing);
+		//		}
 		try {
 			return recordServices().executeHandlingImpactsAsync(createTransaction);
 		} catch (RecordServicesException e) {

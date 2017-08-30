@@ -2,6 +2,7 @@ package com.constellio.app.ui.entities;
 
 import java.util.List;
 
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
 
 @SuppressWarnings("serial")
@@ -21,6 +22,16 @@ public class UserVO extends RecordVO {
 
 	public String getFirstName() {
 		return get(User.FIRSTNAME);
+	}
+
+	public int getDefaultPageLength() {
+		try {
+			SearchPageLength searchPageLength = get(User.DEFAULT_PAGE_LENGTH);
+			return searchPageLength == null ? 10 : searchPageLength.getValue();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 10;
+		}
 	}
 
 	public void setFirstName(String firstName) {
