@@ -18,7 +18,9 @@ import com.vaadin.server.VaadinServlet;
 public class ConstellioVaadinServlet extends VaadinServlet {
 
     boolean initialized = false;
-	Thread initThread;@Override
+	Thread initThread;
+	
+	@Override
 	public void init(ServletConfig servletConfig)
 			throws ServletException {
     	super.init(servletConfig);
@@ -36,23 +38,26 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
-		if (!initialized) {
-			try {
-				initThread.join();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		
-		
-		ConstellioFactories.getInstance().onRequestStarted();
-
+        if (handleContextRootWithoutSlash(request, response)) {
+            return;
+        }
+        boolean staticResourceRequest = isStaticResourceRequest(request);
+        if (!staticResourceRequest) {
+    		if (!initialized) {
+    			try {
+    				initThread.join();
+    			} catch (InterruptedException e) {
+    				throw new RuntimeException(e);
+    			}
+    		}
+    		ConstellioFactories.getInstance().onRequestStarted();
+        }
 		try {
 			super.service(request, response);
-
 		} finally {
-			ConstellioFactories.getInstance().onRequestEnded();
+	        if (!staticResourceRequest) {
+	        	ConstellioFactories.getInstance().onRequestEnded();
+	        }	
 		}
 	}
 
