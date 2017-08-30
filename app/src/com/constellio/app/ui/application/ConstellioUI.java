@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
@@ -85,9 +86,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		ssoServices = SSOServices.getInstance();
 
 		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
-
-		// Important to allow update of components in current UI from another Thread
-		UI.getCurrent().setPollInterval(1000);
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -239,6 +237,17 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						}
 
 						View newView = event.getNewView();
+						if (newView instanceof BaseViewImpl) {
+							if (((BaseViewImpl) newView).isBackgroundViewMonitor()) {
+								// Important to allow update of components in current UI from another Thread
+								setPollInterval(1000);
+							}
+						} else if (newView instanceof PollListener) {
+							// Important to allow update of components in current UI from another Thread
+							setPollInterval(1000);
+						} else {
+							setPollInterval(-1);
+						}
 						ConstellioUI.this.currentView = newView;
 						
 						ConstellioFactories constellioFactories = getConstellioFactories();

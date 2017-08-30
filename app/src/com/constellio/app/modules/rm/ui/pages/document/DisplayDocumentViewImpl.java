@@ -193,7 +193,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 

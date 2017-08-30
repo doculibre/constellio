@@ -109,7 +109,7 @@ public class BaseProgressView extends BaseViewImpl {
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 
