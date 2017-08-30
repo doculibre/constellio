@@ -255,10 +255,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			return false;
 		}
 
-		if (searchServices().getResultsCount(getSearchQuery()) != 0) {
-			return false;
-		}
-
 		SPEQueryResponse suggestionsResponse = searchServices()
 				.query(getSearchQuery().setNumberOfRows(0).setSpellcheck(true));
 		if (suggestionsResponse.isCorrectlySpelt()) {
