@@ -224,6 +224,16 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         return result;
     }
 
+    @Override
+    public String getCollection() {
+        return this.collection;
+    }
+
+    @Override
+    public AppLayerFactory getAppLayerCollection() {
+        return this.factory;
+    }
+
     private String formatDate(LocalDate date) {
         return date != null ? new SimpleDateFormat("yyyyMMdd").format(date.toDate()) : null;
     }

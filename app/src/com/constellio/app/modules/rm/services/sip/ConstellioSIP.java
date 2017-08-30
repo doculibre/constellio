@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -337,172 +338,181 @@ public class ConstellioSIP {
         }
     }
 
-    private void addToSIP(SIPObject sipObject, METS mets, FileGrp documentFileGroup, Div bagDiv, ValidationErrors errors) throws IOException, METSException {
-        String dmdSecId = getDmdSecId(sipObject);
-        DmdSec dmdSec = mets.newDmdSec();
-        dmdSec.setID(dmdSecId);
+    private void addToSIP(SIPObject sipObject, METS mets, FileGrp documentFileGroup, Div bagDiv, ValidationErrors errors) throws METSException {
+        File file = null;
+        try {
+            String dmdSecId = getDmdSecId(sipObject);
+            DmdSec dmdSec = mets.newDmdSec();
+            dmdSec.setID(dmdSecId);
 
-        MdWrap mdWrap = dmdSec.newMdWrap();
-        dmdSec.setMdWrap(mdWrap);
-        mdWrap.setMDType("OTHER");
-        Node xmlData = toXmlData(sipObject);
-        mdWrap.setXmlData(xmlData);
+            MdWrap mdWrap = dmdSec.newMdWrap();
+            dmdSec.setMdWrap(mdWrap);
+            mdWrap.setMDType("OTHER");
+            Node xmlData = toXmlData(sipObject);
+            mdWrap.setXmlData(xmlData);
 
-        if (sipObject instanceof SIPDocument) {
-            long documentFilesLength = 0;
-            int documentFilesCount = 1;
+            if (sipObject instanceof SIPDocument) {
+                long documentFilesLength = 0;
+                int documentFilesCount = 1;
 
-            SIPDocument sipDocument = (SIPDocument) sipObject;
-            SIPFolder sipFolder = sipDocument.getFolder();
+                SIPDocument sipDocument = (SIPDocument) sipObject;
+                SIPFolder sipFolder = sipDocument.getFolder();
 
-            String fileId = "_" + sipDocument.getFileId();
-            String filename = sipDocument.getFilename();
-            File file = sipDocument.getFile();
+                String fileId = "_" + sipDocument.getFileId();
+                String filename = sipDocument.getFilename();
+                file = sipDocument.getFile();
 
-            long length = sipDocument.getLength();
-            documentFilesLength += length;
-            Map<String, byte[]> extraFiles = sipObjectsProvider.getExtraFiles(sipDocument);
-            if (extraFiles != null) {
-                for (byte[] extraFileBytes : extraFiles.values()) {
-                    documentFilesLength += extraFileBytes.length;
-                    documentFilesCount++;
+                long length = sipDocument.getLength();
+                documentFilesLength += length;
+                Map<String, byte[]> extraFiles = sipObjectsProvider.getExtraFiles(sipDocument);
+                if (extraFiles != null) {
+                    for (byte[] extraFileBytes : extraFiles.values()) {
+                        documentFilesLength += extraFileBytes.length;
+                        documentFilesCount++;
+                    }
                 }
-            }
 
-            if (limitSize) {
-                Map<String, Object> errorsMap = new HashMap<>();
-                if (sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
-                    errorsMap.put("sipObjectType", sipObject.getType());
-                    errorsMap.put("sipObjectId", sipObject.getId());
-                    errorsMap.put("sipObjectTitle", sipObject.getTitle());
-                    errorsMap.put("sipFilesLength", sipFilesLength + documentFilesLength);
-                    errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
-                    errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-                    errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
-                } else if (sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
-                    errorsMap.put("sipObjectType", sipObject.getType());
-                    errorsMap.put("sipObjectId", sipObject.getId());
-                    errorsMap.put("sipObjectTitle", sipObject.getTitle());
-                    errorsMap.put("sipFilesCount", sipFilesCount + documentFilesCount);
-                    errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
-                    errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-                    errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
+                if (limitSize) {
+                    Map<String, Object> errorsMap = new HashMap<>();
+                    if (sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
+                        errorsMap.put("sipObjectType", sipObject.getType());
+                        errorsMap.put("sipObjectId", sipObject.getId());
+                        errorsMap.put("sipObjectTitle", sipObject.getTitle());
+                        errorsMap.put("sipFilesLength", sipFilesLength + documentFilesLength);
+                        errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
+                        errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+                        errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
+                    } else if (sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
+                        errorsMap.put("sipObjectType", sipObject.getType());
+                        errorsMap.put("sipObjectId", sipObject.getId());
+                        errorsMap.put("sipObjectTitle", sipObject.getTitle());
+                        errorsMap.put("sipFilesCount", sipFilesCount + documentFilesCount);
+                        errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
+                        errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+                        errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
+                    } else {
+                        currentDocumentIndex++;
+                    }
                 } else {
                     currentDocumentIndex++;
                 }
-            } else {
-                currentDocumentIndex++;
-            }
-            String hash = null;
-            if(file != null) {
-                hash = getHash(file);
-            }
-            String extension = FilenameUtils.getExtension(filename);
-            Integer extensionCount = extensionCounts.get(extension);
-            if (extensionCount == null) {
-                extensionCounts.put(extension, 1);
-            } else {
-                extensionCounts.put(extension, extensionCount + 1);
-            }
+                String hash = null;
+                if (file != null) {
+                    hash = getHash(file);
+                }
+                String extension = FilenameUtils.getExtension(filename);
+                Integer extensionCount = extensionCounts.get(extension);
+                if (extensionCount == null) {
+                    extensionCounts.put(extension, 1);
+                } else {
+                    extensionCounts.put(extension, extensionCount + 1);
+                }
 
-            String folderDmdSecId = getDmdSecId(sipFolder);
-            if (mets.getDmdSec(folderDmdSecId) == null) {
-                addToSIP(sipFolder, mets, documentFileGroup, bagDiv, errors);
-            }
+                String folderDmdSecId = getDmdSecId(sipFolder);
+                if (mets.getDmdSec(folderDmdSecId) == null) {
+                    addToSIP(sipFolder, mets, documentFileGroup, bagDiv, errors);
+                }
 
-            String zipFilePath = getZipPath(sipDocument);
+                String zipFilePath = getZipPath(sipDocument);
 
-            au.edu.apsr.mtk.base.File documentFile = documentFileGroup.newFile();
-            documentFileGroup.addFile(documentFile);
-            documentFile.setID(fileId);
-            documentFile.setDmdID(dmdSecId);
-            documentFile.setSize(length);
-            if(hash != null) {
-                documentFile.setChecksum(hash);
-            }
-            documentFile.setChecksumType("SHA-256");
+                au.edu.apsr.mtk.base.File documentFile = documentFileGroup.newFile();
+                documentFileGroup.addFile(documentFile);
+                documentFile.setID(fileId);
+                documentFile.setDmdID(dmdSecId);
+                documentFile.setSize(length);
+                if (hash != null) {
+                    documentFile.setChecksum(hash);
+                }
+                documentFile.setChecksumType("SHA-256");
 
-            FLocat documentFileFLocat = documentFile.newFLocat();
-            documentFile.addFLocat(documentFileFLocat);
-            documentFileFLocat.setLocType("URL");
-            documentFileFLocat.setHref(zipFilePath);
-            documentFileFLocat.setTitle(filename);
+                FLocat documentFileFLocat = documentFile.newFLocat();
+                documentFile.addFLocat(documentFileFLocat);
+                documentFileFLocat.setLocType("URL");
+                documentFileFLocat.setHref(zipFilePath);
+                documentFileFLocat.setTitle(filename);
 
-            Div folderDiv = findOrCreateFolderDiv(sipDocument, bagDiv);
-            Fptr fileFptr = folderDiv.newFptr();
-            fileFptr.setFileID(fileId);
-            folderDiv.addFptr(fileFptr);
+                Div folderDiv = findOrCreateFolderDiv(sipDocument, bagDiv);
+                Fptr fileFptr = folderDiv.newFptr();
+                fileFptr.setFileID(fileId);
+                folderDiv.addFptr(fileFptr);
 
-            if(file != null) {
+                if (file != null) {
 
-                addToZip(file, zipFilePath);
-            }
-            addManifestLine(hash, zipFilePath);
+                    addToZip(file, zipFilePath);
+                }
+                addManifestLine(hash, zipFilePath);
 
-            if (extraFiles != null) {
-                int i = 1;
-                for (Entry<String, byte[]> entry : extraFiles.entrySet()) {
-                    String extraFileId = fileId + "-" + i;
-                    String extraFilename = entry.getKey();
-                    String extraFileExtension = FilenameUtils.getExtension(extraFilename);
-                    if (StringUtils.isNotBlank(extraFileExtension)) {
-                        File extraTempFile = File.createTempFile(ConstellioSIP.class.getName(), extraFilename);
+                if (extraFiles != null) {
+                    int i = 1;
+                    for (Entry<String, byte[]> entry : extraFiles.entrySet()) {
+                        String extraFileId = fileId + "-" + i;
+                        String extraFilename = entry.getKey();
+                        String extraFileExtension = FilenameUtils.getExtension(extraFilename);
+                        if (StringUtils.isNotBlank(extraFileExtension)) {
+                            File extraTempFile = File.createTempFile(ConstellioSIP.class.getName(), extraFilename);
 
-                        byte[] extraFileBytes = entry.getValue();
-                        FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
+                            byte[] extraFileBytes = entry.getValue();
+                            FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
 
-                        String extraFileHash = getHash(extraTempFile);
-                        String extraZipFilePath = StringUtils.substringBeforeLast(zipFilePath, ".") + "-" + i + "." + extraFileExtension;
+                            String extraFileHash = getHash(extraTempFile);
+                            String extraZipFilePath = StringUtils.substringBeforeLast(zipFilePath, ".") + "-" + i + "." + extraFileExtension;
 
-                        au.edu.apsr.mtk.base.File extraDocumentFile = documentFileGroup.newFile();
-                        documentFileGroup.addFile(extraDocumentFile);
-                        extraDocumentFile.setID(extraFileId);
-                        extraDocumentFile.setSize(extraFileBytes.length);
-                        extraDocumentFile.setChecksum(extraFileHash);
-                        extraDocumentFile.setChecksumType("SHA-256");
+                            au.edu.apsr.mtk.base.File extraDocumentFile = documentFileGroup.newFile();
+                            documentFileGroup.addFile(extraDocumentFile);
+                            extraDocumentFile.setID(extraFileId);
+                            extraDocumentFile.setSize(extraFileBytes.length);
+                            extraDocumentFile.setChecksum(extraFileHash);
+                            extraDocumentFile.setChecksumType("SHA-256");
 
-                        FLocat extraDocumentFileFLocat = extraDocumentFile.newFLocat();
-                        extraDocumentFile.addFLocat(extraDocumentFileFLocat);
-                        extraDocumentFileFLocat.setLocType("URL");
-                        extraDocumentFileFLocat.setHref(extraZipFilePath);
-                        extraDocumentFileFLocat.setTitle(extraFilename);
+                            FLocat extraDocumentFileFLocat = extraDocumentFile.newFLocat();
+                            extraDocumentFile.addFLocat(extraDocumentFileFLocat);
+                            extraDocumentFileFLocat.setLocType("URL");
+                            extraDocumentFileFLocat.setHref(extraZipFilePath);
+                            extraDocumentFileFLocat.setTitle(extraFilename);
 
-                        Fptr extraFileFptr = folderDiv.newFptr();
-                        extraFileFptr.setFileID(extraFileId);
-                        folderDiv.addFptr(extraFileFptr);
+                            Fptr extraFileFptr = folderDiv.newFptr();
+                            extraFileFptr.setFileID(extraFileId);
+                            folderDiv.addFptr(extraFileFptr);
 
-                        addToZip(extraTempFile, extraZipFilePath);
-                        addManifestLine(extraFileHash, extraZipFilePath);
-                        extraTempFile.delete();
+                            addToZip(extraTempFile, extraZipFilePath);
+                            addManifestLine(extraFileHash, extraZipFilePath);
+                            extraTempFile.delete();
 
-                        i++;
+                            i++;
+                        }
                     }
                 }
-            }
 
-            List<Div> subDivs = new ArrayList<Div>(folderDiv.getDivs());
-            for (Div subDiv : subDivs) {
-                String subDivId = subDiv.getID();
-                folderDiv.removeDiv(subDivId);
-                folderDiv.addDiv(subDiv);
-            }
-            sipSlip.add(sipDocument);
-        } else if (sipObject instanceof SIPFolder) {
-            SIPFolder folder = (SIPFolder) sipObject;
-
-            SIPFolder currentFolder = folder.getParentFolder();
-            while (currentFolder != null) {
-                String currentFolderId = getDmdSecId(currentFolder);
-                DmdSec currentFolderDmdSec = mets.getDmdSec(currentFolderId);
-                if (currentFolderDmdSec == null) {
-                    // Recursive call
-                    addToSIP(currentFolder, mets, documentFileGroup, bagDiv, errors);
+                List<Div> subDivs = new ArrayList<Div>(folderDiv.getDivs());
+                for (Div subDiv : subDivs) {
+                    String subDivId = subDiv.getID();
+                    folderDiv.removeDiv(subDivId);
+                    folderDiv.addDiv(subDiv);
                 }
-                currentFolder = currentFolder.getParentFolder();
+                sipSlip.add(sipDocument);
+            } else if (sipObject instanceof SIPFolder) {
+                SIPFolder folder = (SIPFolder) sipObject;
+
+                SIPFolder currentFolder = folder.getParentFolder();
+                while (currentFolder != null) {
+                    String currentFolderId = getDmdSecId(currentFolder);
+                    DmdSec currentFolderDmdSec = mets.getDmdSec(currentFolderId);
+                    if (currentFolderDmdSec == null) {
+                        // Recursive call
+                        addToSIP(currentFolder, mets, documentFileGroup, bagDiv, errors);
+                    }
+                    currentFolder = currentFolder.getParentFolder();
+                }
             }
+            mets.addDmdSec(dmdSec);
+            addMdRefAndGenerateEAD(sipObject, dmdSec);
+        } catch (IOException e) {
+            errors.add(IOException.class , e.getMessage());
+        } finally {
+            IOServices ioServices = sipObjectsProvider.getAppLayerCollection().getModelLayerFactory().getIOServicesFactory().newIOServices();
+            ioServices.deleteQuietly(file);
         }
-        mets.addDmdSec(dmdSec);
-        addMdRefAndGenerateEAD(sipObject, dmdSec);
+
     }
 
     private String getDmdSecId(SIPObject sipObject) {
