@@ -510,7 +510,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
+//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
@@ -518,7 +518,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| isTextOrString && metadata.isSearchable())) {
+						|| isTextOrString && metadata.isSearchable() || Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
