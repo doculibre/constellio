@@ -390,7 +390,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.addStyleName("sortable");
 		sortableField.setEnabled(!inherited);
 
-		advancedSearchField = new CheckBox();
+		advancedSearchField = new CheckBox() {
+			@Override
+			public void setEnabled(boolean enabled) {
+				if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+					super.setEnabled(enabled);
+				}
+				super.setEnabled(true);
+			}
+		};
 		advancedSearchField.setCaption($("AddEditMetadataView.advanced"));
 		advancedSearchField.setRequired(false);
 		advancedSearchField.setId("advancedSearch");
@@ -584,7 +592,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		if (!formMetadataVO.getLocalcode().equals(Schemas.LEGACY_ID.getLocalCode())) {
 			requiredField.setEnabled(false);
 			searchableField.setEnabled(false);
-			advancedSearchField.setEnabled(false);
+			if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+				advancedSearchField.setEnabled(false);
+			}
 		}
 	}
 }
