@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
@@ -51,11 +52,13 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
     @Override
     public void execute(AsyncTaskExecutionParams params) throws ImpossibleRuntimeException {
+        ValidationErrors errors = new ValidationErrors();
+        AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+        String collection = params.getCollection();
+        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+        File outFolder = null;
+        File outFile = null;
         try {
-            ValidationErrors errors = new ValidationErrors();
-            AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-            String collection = params.getCollection();
-            ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
             List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
             User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
             if (ids.isEmpty()) {
@@ -76,8 +79,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
             }
 
             RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            File outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
-            final File outFile = new File(outFolder, this.sipFileName);
+            outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
+            outFile = new File(outFolder, this.sipFileName);
             SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds).withIncludeFolderIds(this.includeFolderIds);
             ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter);
             if (!metsObjectsProvider.list().isEmpty()) {
@@ -100,6 +103,10 @@ public class SIPBuildAsyncTask implements AsyncTask {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+            ioServices.deleteQuietly(outFile);
+            ioServices.deleteQuietly(outFolder);
         }
     }
 

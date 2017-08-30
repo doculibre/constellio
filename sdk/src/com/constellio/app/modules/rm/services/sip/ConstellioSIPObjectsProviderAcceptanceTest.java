@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -20,10 +21,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Collections;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);
@@ -31,6 +36,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
     RMSchemasRecordsServices rm;
     RecordServices recordServices;
     ContentManager contentManager;
+    IOServices ioServices;
 
     @Before
     public void setup(){
@@ -42,6 +48,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
         this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         this.contentManager = getModelLayerFactory().getContentManager();
         this.recordServices = getModelLayerFactory().newRecordServices();
+        this.ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
     }
 
     @Test
@@ -49,7 +56,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
         File emailFile = getTestResourceFile("testFile.msg");
         ContentVersionDataSummary summary = contentManager.upload(emailFile);
         Email email = rm.newEmail();
-        email.setContent(contentManager.createMajor(records.getAdmin(), "emailTest", summary));
+        email.setContent(contentManager.createMajor(records.getAdmin(), "emailTest.msg", summary));
         email.setFolder(records.getFolder_A01());
         Transaction transaction = new Transaction();
         transaction.add(email);
@@ -63,7 +70,16 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
         LogicalSearchCondition allCondition = LogicalSearchQueryOperators.from(sipArchiveSchema).where(ALL);
         SIParchive records = rm.wrapSIParchive(searchServices.searchSingleResult(allCondition));
         Content zipContent = records.getContent();
-        zipContent.getLastMajorContentVersion().getHash();
+        InputStream is = getModelLayerFactory().getContentManager().getContentInputStream(zipContent.getLastMajorContentVersion().getHash(), "com.constellio.app.modules.rm.services.sip.ConstellioSIPObjectsProviderAcceptanceTest.testSIPGenerationWithEmail");
+        ZipInputStream zis = new ZipInputStream(is);
+
+        ZipEntry ze;
+        ze = zis.getNextEntry();
+        while (ze != null) {
+            ze = zis.getNextEntry();
+        }
+        ioServices.closeQuietly(is);
+        ioServices.closeQuietly(zis);
     }
 
 }

@@ -229,6 +229,7 @@ public class ConstellioSIP {
         try {
             buildMetsFileAndBagDir(errors);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
 

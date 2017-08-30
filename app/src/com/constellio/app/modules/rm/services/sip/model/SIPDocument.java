@@ -26,15 +26,15 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
 
     public SIPDocument(Document document, List<Metadata> documentMetadata, List<Metadata> folderMetadata, EntityRetriever entityRetriever) {
         super(document, documentMetadata);
+        this.entityRetriever = entityRetriever;
 
         Content content = document.getContent();
         if (content != null) {
-            contentLength = content.getLastMajorContentVersion().getLength();
-            sipFilename = content.getLastMajorContentVersion().getFilename();
+            contentLength = content.getCurrentVersion().getLength();
+            sipFilename = content.getCurrentVersion().getFilename();
             findCommonsTransactionFilename(content);
         }
 
-        this.entityRetriever = entityRetriever;
         if (document.getFolder() != null) {
             Folder ficheDossier = entityRetriever.getFoldersFromString(document.getFolder());
             if (ficheDossier != null) {
@@ -46,7 +46,7 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
     private void findCommonsTransactionFilename(Content content) {
         InputStream inputStream = null;
         try {
-            inputStream = entityRetriever.getContentFromHash(content.getLastMajorContentVersion().getHash());
+            inputStream = entityRetriever.getContentFromHash(content.getCurrentVersion().getHash());
             sipFile = entityRetriever.newTempFile();
             FileUtils.copyInputStreamToFile(inputStream, sipFile);
 //		// FIXME
@@ -57,7 +57,7 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
                     sipFile = new File("in/Baginfo.txt");
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (inputStream != null) {

@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
-    public static final String JOINT_FILES_KEY = "fichiersJoints";
+    public static final String JOINT_FILES_KEY = "attachments";
 
     private List<Metadata> folderMetadatas;
 
@@ -148,9 +148,12 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
                     metadataName = null;
                 }
                 if (metadataName != null) {
-                    String metadataValue = document.get(metadataName);
-                    if (StringUtils.isNotBlank(metadataValue)) {
-                        metadataValues.add(metadataValue);
+                    Object metadataValue = document.get(metadataName);
+                    if(metadataValue != null) {
+                        String metadataValueAsString = metadataValue instanceof List ? String.join(", ", (List<String>) metadataValue) : metadataValue.toString();
+                        if (StringUtils.isNotBlank(metadataValueAsString)) {
+                            metadataValues.add(metadataValueAsString);
+                        }
                     }
                 }
             } else {
