@@ -160,7 +160,7 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 

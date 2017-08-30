@@ -126,7 +126,7 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 

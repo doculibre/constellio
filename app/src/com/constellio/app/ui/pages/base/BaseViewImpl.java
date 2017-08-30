@@ -196,7 +196,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return null;
 	}
 
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return false;
 	}
 

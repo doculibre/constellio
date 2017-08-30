@@ -85,7 +85,7 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 
