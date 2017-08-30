@@ -45,7 +45,7 @@ public class TasksMigrationTo7_4_2 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING).addLabel(Language.French,"Fréquence de rappele").addLabel(Language.English,"Reminder frequency");
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING).addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
 					.setSystemReserved(true);
 		}

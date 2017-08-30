@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.services.background;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskReminderFrequencyFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -22,6 +23,7 @@ import org.joda.time.LocalTime;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class AlertOverdueTasksBackgroundAction implements Runnable {
+	public final static String PARAMETER_SEPARATOR = ";";
 
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
@@ -66,7 +68,7 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 	}
 
 	private LocalDateTime addFrequencyToDueDate(LocalDateTime dueDate, String reminderFrequency, LocalDateTime lastReminder) {
-		String[] parameters = reminderFrequency.split(":");
+		String[] parameters = reminderFrequency.split(PARAMETER_SEPARATOR);
 		LocalDateTime returnedValue = null;
 		LocalDateTime reminderDate = lastReminder == null? dueDate:lastReminder;
 		if(parameters.length == 2) {
