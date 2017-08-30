@@ -19,6 +19,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.FragmentConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
@@ -57,6 +58,7 @@ public class ApplicationStarter {
 		resources.add(params.getWebContentDir().getAbsolutePath());
 
 		server = newServer(params);
+		server.setThreadPool(new QueuedThreadPool(1000));
 
 		// Static file handler
 		handler = new WebAppContext();
