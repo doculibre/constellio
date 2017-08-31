@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPO
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.services.sip.model.EntityRetriever;
 import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
+import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
@@ -13,20 +14,25 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.lowagie.text.Meta;
 import jdk.internal.util.xml.impl.Input;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Strings;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
@@ -116,7 +122,62 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
                 ioServices.closeQuietly(fileinputstream);
             }
         }
+    }
 
+    @Test
+    public void testGetMetadataValues() throws Exception {
+        SIPDocument sipDocument = null;
+        InputStream fileinputstream = null;
+        try{
+            String emailTo = "emailToTest";
+            String emailFrom = "emailFromTest";
+            String emailInNameOf = "emailInNameOf";
+            String emailCCTo = "emailCCTo";
+            String emailBCCTo = "emailBCCTo";
+            String emailObject = "emailObjectTEst";
+            File emailFile = getTestResourceFile("testFile.msg");
+            ContentVersionDataSummary summary = contentManager.upload(emailFile);
+            String emailFileName = "emailTest.msg";
+            Email email = rm.newEmail();
+            email.setEmailTo(asList(emailTo));
+            email.setEmailFrom(emailFrom);
+            email.setEmailInNameOf(emailInNameOf);
+            email.setEmailCCTo(asList(emailCCTo));
+            email.setEmailBCCTo(asList(emailBCCTo));
+            email.setEmailObject(emailObject);
+            email.setContent(contentManager.createMajor(records.getAdmin(), emailFileName, summary));
+            email.setFolder(records.getFolder_A01());
+            Transaction transaction = new Transaction();
+            transaction.add(email);
+            recordServices.execute(transaction);
+            sipDocument = new SIPDocument(email, this.documentMetadata, this.folderMetadata, this.entityRetriever);
+            fileinputstream = newFileInputStream(emailFile);
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailTo").get(0)).isEqualTo(email.getEmailTo().get(0));
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailFrom").get(0)).isEqualTo(email.getEmailFrom());
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailInNameOf").get(0)).isEqualTo(email.getEmailInNameOf());
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailCCTo").get(0)).isEqualTo(email.getEmailCCTo().get(0));
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailBCCTo").get(0)).isEqualTo(email.getEmailBCCTo().get(0));
+            assertThat(objectsProvider.getMetadataValues(sipDocument, "emailObject").get(0)).isEqualTo(email.getEmailObject());
+        } finally {
+            if(sipDocument != null) {
+                ioServices.deleteQuietly(sipDocument.getFile());
+                ioServices.closeQuietly(fileinputstream);
+            }
+        }
+    }
+
+    @Test
+    public void testIfListReturnListOfObjects(){
+        List<String> documentsIds = new ArrayList<>();
+        MetadataSchemaType documentType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE);
+        LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentType)
+                .where(documentType.getDefaultSchema().getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER))
+                .isEqualTo(records.getFolder_A01());
+        List<Record>  documentsRecords = searchServices.search(new LogicalSearchQuery(condition));
+        for(Record record : documentsRecords) {
+            documentsIds.add(record.getId());
+        }
+        assertThat(this.objectsProvider.list()).extracting("id").containsOnly(documentsIds.toArray(new String[0]));
     }
 
     private String[] getCodeFromMetadatas(List<Metadata> list){
