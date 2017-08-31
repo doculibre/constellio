@@ -351,7 +351,8 @@ public class Task extends RecordWrapper {
 	}
 
 	public int getNumberOfReminders() {
-		return get(NUMBER_OF_REMINDERS);
+		Double number = get(NUMBER_OF_REMINDERS);
+		return number == null? 0: number.intValue();
 	}
 
 	public Task setNumberOfReminders(int numberOfReminder) {

@@ -52,7 +52,7 @@ public class TasksMigrationTo7_4_2 implements MigrationScript {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING).addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
 					.setSystemReserved(true);
-			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.INTEGER)
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.NUMBER)
 					.setSystemReserved(true).setDefaultValue(0);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.ESCALATION_ASSIGNEE).setType(MetadataValueType.REFERENCE)
 					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).addLabel(Language.French,"Personne assignée à l'escalade").addLabel(Language.English,"Escalation assignee");
