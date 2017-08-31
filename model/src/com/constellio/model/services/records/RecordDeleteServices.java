@@ -539,6 +539,7 @@ public class RecordDeleteServices {
 		//			record.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 		//			transaction.add(record);
 		//		}
+		transaction.setRecordFlushing(options.getRecordsFlushing());
 		transaction.setUser(user);
 		try {
 			recordServices.execute(transaction);

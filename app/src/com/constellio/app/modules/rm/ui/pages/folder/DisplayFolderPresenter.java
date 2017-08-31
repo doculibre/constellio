@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -98,6 +97,7 @@ import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 
+	private static final int WAIT_ONE_SECOND = 1;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -271,7 +271,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put(RMTask.LINKED_FOLDERS, asList(folderVO.getId()));
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+				.getBetaWorkflow(record.getId());
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
@@ -342,7 +343,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			borrowingServices.validateCanBorrow(user, folder, null);
 			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder) && !extensions.isModifyBlocked(folder.getWrappedRecord(), user));
+					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder)
+							&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -398,9 +400,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				}
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
 			}
-//			if(rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue() == null) {
-//				return ComponentState.DISABLED;
-//			}
+			//			if(rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue() == null) {
+			//				return ComponentState.DISABLED;
+			//			}
 			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
@@ -471,7 +473,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return ComponentState.INVISIBLE;
 		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
-				&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
+				&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions
+				.isRecordModifiableBy(folder.getWrappedRecord(), user));
 
 	}
 
@@ -539,7 +542,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return schema(Task.DEFAULT_SCHEMA);
 	}
 
-
 	public void viewAssembled() {
 		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
@@ -574,7 +576,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-			delete(record, reason, false);
+			delete(record, reason, false, WAIT_ONE_SECOND);
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
@@ -667,7 +669,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		return searchServices.query(query).getNumFound() > 0;
 	}
-	
+
 	private Record currentFolder() {
 		return recordServices.getDocumentById(folderVO.getId());
 	}
@@ -687,7 +689,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
-						StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
+						StringBuilder message = new StringBuilder(
+								$("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
 						message.append("<br>");
 						for (Document document : duplicateDocuments) {
 							message.append("<br>-");
@@ -717,7 +720,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String schemaCode = newRecord.getSchemaCode();
 				ConstellioFactories constellioFactories = view.getConstellioFactories();
 				SessionContext sessionContext = view.getSessionContext();
-				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
+				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
+						sessionContext);
 				newRecord = documentPresenterUtils.toRecord(documentVO);
 
 				documentPresenterUtils.addOrUpdate(newRecord);
@@ -811,7 +815,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
 					+ folderVO.getTitle() + "\"");
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
+					+ RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
 			emailToSend.setParameters(parameters);
 
 			recordServices.add(emailToSend);

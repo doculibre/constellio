@@ -38,6 +38,7 @@ import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -133,9 +134,33 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason, boolean physically, User user) {
+		delete(record, reason, physically, user, 0);
+	}
+
+	public final void delete(Record record, String reason, boolean physically, int waitInSeconds) {
+		delete(record, reason, physically, getCurrentUser(), waitInSeconds);
+	}
+
+	public final void delete(Record record, String reason, boolean physically, User user, int waitInSeconds) {
 		boolean putFirstInTrash = putFirstInTrash(record);
 		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
-			recordServices().logicallyDelete(record, user);
+
+			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
+
+			if (waitInSeconds > 0) {
+				options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
+			}
+
+			recordServices().logicallyDelete(record, user, options);
+
+			if (waitInSeconds > 0) {
+				try {
+					Thread.sleep(1000 * waitInSeconds);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
 			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices().physicallyDelete(record, user);

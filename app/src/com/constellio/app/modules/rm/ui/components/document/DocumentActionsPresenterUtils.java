@@ -52,6 +52,8 @@ import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
+	private static final int WAIT_ONE_SECOND = 1;
+
 	protected SchemaPresenterUtils presenterUtils;
 
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -191,7 +193,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
-				presenterUtils.delete(document.getWrappedRecord(), null);
+				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				Content content = document.getContent();
 				String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
