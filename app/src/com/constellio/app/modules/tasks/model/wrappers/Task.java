@@ -31,6 +31,8 @@ public class Task extends RecordWrapper {
 	public static final String NEXT_REMINDER_ON = "nextReminderOn";
 	public static final String REMINDER_FREQUENCY = "reminderFrequency";
 	public static final String LAST_REMINDER = "lastReminder";
+	public static final String ESCALATION_ASSIGNEE = "escalationAssignee";
+	public static final String NUMBER_OF_REMINDERS = "numberOfReminders";
 	public static final String REMINDERS = "reminders";
 	public static final String START_DATE = "startDate";
 	public static final String DUE_DATE = "dueDate";
@@ -345,6 +347,24 @@ public class Task extends RecordWrapper {
 
 	public Task setLastReminder(LocalDateTime datetime) {
 		set(LAST_REMINDER, datetime);
+		return this;
+	}
+
+	public int getNumberOfReminders() {
+		return get(NUMBER_OF_REMINDERS);
+	}
+
+	public Task setNumberOfReminders(int numberOfReminder) {
+		set(NUMBER_OF_REMINDERS, numberOfReminder);
+		return this;
+	}
+
+	public String getEscalationAssignee() {
+		return get(ESCALATION_ASSIGNEE);
+	}
+
+	public Task setEscalationAssignee(String userId) {
+		set(ESCALATION_ASSIGNEE, userId);
 		return this;
 	}
 }

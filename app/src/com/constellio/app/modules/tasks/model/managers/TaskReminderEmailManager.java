@@ -139,7 +139,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		return task.setReminders(newReminders);
 	}
 
-	private EmailToSend createEmailToSend(Task task, List<EmailAddress> validEmailAddresses) {
+	public EmailToSend createEmailToSend(Task task, List<EmailAddress> validEmailAddresses) {
 		List<String> parameters = new ArrayList<>();
 		EmailToSend emailToSend = taskSchemas.newEmailToSend().setTryingCount(0d)
 				.setTemplate(TasksEmailTemplates.TASK_REMINDER)
