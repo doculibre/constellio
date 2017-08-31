@@ -38,6 +38,8 @@ public class TasksMigrationTo7_4_2 implements MigrationScript {
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDER_FREQUENCY)
 				.withMetadataGroup(remindersTab));
+        transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ESCALATION_ASSIGNEE)
+                .withMetadataGroup(remindersTab));
 		manager.execute(transaction);
 	}
 
