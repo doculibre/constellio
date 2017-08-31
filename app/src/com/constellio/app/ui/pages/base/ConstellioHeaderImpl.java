@@ -433,7 +433,9 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 
 	@Override
 	public void recordIdAdded(String recordId) {
+		getSession().lock();
 		presenter.selectedRecordIdAdded(recordId);
+		getSession().unlock();
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -785,6 +787,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	@Override
 	public void setSelectionButtonEnabled(boolean enabled) {
 		if (selectionButton != null) {
+
 			selectionButton.setEnabled(enabled);
 			setSelectionButtonIcon();
 		} else {

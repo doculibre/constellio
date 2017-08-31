@@ -2,7 +2,14 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -26,6 +33,11 @@ import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
 	public static final ThemeResource COMPLETE_ICON = new ThemeResource(PREFIX + "task.png");
@@ -42,6 +54,11 @@ public class TaskTable extends RecordVOTable {
 		setCellStyleGenerator(new TaskStyleGenerator());
 		setPageLength(Math.min(15, provider.size()));
 		setWidth("100%");
+	}
+
+	@Override
+	protected String getTitleColumnStyle(RecordVO recordVO) {
+		return super.getTitleColumnStyle(recordVO);
 	}
 
 	private Container buildContainer(RecordVODataProvider provider) {
@@ -122,6 +139,17 @@ public class TaskTable extends RecordVOTable {
 		return records;
 	}
 
+	@Override
+	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+		if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+			return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), presenter.getCurrentUserId(), presenter);
+		} else {
+			return super.buildMetadataComponent(metadataValue, recordVO);
+		}
+	}
+
+
+
 	public interface TaskPresenter {
 		
 		void displayButtonClicked(RecordVO record);
@@ -155,7 +183,11 @@ public class TaskTable extends RecordVOTable {
 		boolean isDeleteButtonVisible(RecordVO recordVO);
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
-		
+
+		String getCurrentUserId();
+
+		void updateTaskStarred(boolean isStarred, String taskId);
+
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
@@ -188,5 +220,41 @@ public class TaskTable extends RecordVOTable {
 			MetadataVO metadata = (MetadataVO) propertyId;
 			return Task.DUE_DATE.equals(MetadataVO.getCodeWithoutPrefix(metadata.getCode()));
 		}
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new RecordVOTableColumnsManager() {
+			@Override
+			protected String toColumnId(Object propertyId) {
+				if(propertyId instanceof MetadataVO) {
+					if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+						setColumnHeader(propertyId, "");
+						setColumnWidth(propertyId, 60);
+					}
+				}
+				return super.toColumnId(propertyId);
+			}
+		};
+	}
+
+	@Override
+	public Collection<?> getSortableContainerPropertyIds() {
+		Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+		Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+		while (iterator.hasNext()) {
+			Object property = iterator.next();
+			if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+				iterator.remove();
+			}
+		}
+		return sortableContainerPropertyIds;
+	}
+
+	public void resort() {
+		sort();
+		resetPageBuffer();
+		enableContentRefreshing(true);
+		refreshRenderedCells();
 	}
 }

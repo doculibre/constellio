@@ -40,8 +40,11 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
 import org.joda.time.LocalDate;
 
@@ -56,6 +59,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient TasksSearchServices tasksSearchServices;
 	private transient TaskPresenterServices taskPresenterServices;
 	private transient BetaWorkflowServices workflowServices;
+	private RecordVODataProvider provider;
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
@@ -83,10 +87,10 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public void tabSelected(String tabId) {
 		if (isWorkflowTab(tabId)) {
-			RecordVODataProvider provider = getWorkflowInstances(tabId);
+			provider = getWorkflowInstances(tabId);
 			view.displayWorkflows(provider);
 		} else if (isTaskTab(tabId)) {
-			RecordVODataProvider provider = getTasks(tabId);
+			provider = getTasks(tabId);
 			view.displayTasks(provider);
 		} else {
 			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getSelectedTab());
@@ -228,7 +232,14 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				protected LogicalSearchQuery getQuery() {
 					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
 					addTimeStampToQuery(query);
+					addStarredSortToQuery(query);
 					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
 				}
 			};
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
@@ -237,7 +248,14 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				protected LogicalSearchQuery getQuery() {
 					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
 					addTimeStampToQuery(query);
+					addStarredSortToQuery(query);
 					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
 				}
 			};
 		case TASKS_NOT_ASSIGNED:
@@ -246,7 +264,14 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				protected LogicalSearchQuery getQuery() {
 					LogicalSearchQuery query = tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
 					addTimeStampToQuery(query);
+					addStarredSortToQuery(query);
 					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
 				}
 			};
 		case TASKS_RECENTLY_COMPLETED:
@@ -255,7 +280,14 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				protected LogicalSearchQuery getQuery() {
 					LogicalSearchQuery query = tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
 					addTimeStampToQuery(query);
+					addStarredSortToQuery(query);
 					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
 				}
 			};
 		default:
@@ -300,13 +332,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
 		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return Arrays.asList(TITLE, ASSIGNER, DUE_DATE, STATUS);
+			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, DUE_DATE, STATUS);
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return Arrays.asList(TITLE, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNEE, DUE_DATE, STATUS);
 		case TASKS_NOT_ASSIGNED:
-			return Arrays.asList(TITLE, DUE_DATE, STATUS);
+			return Arrays.asList(STARRED_BY_USERS, TITLE, DUE_DATE, STATUS);
 		default:
-			return Arrays.asList(TITLE, ASSIGNER, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, ASSIGNEE, DUE_DATE, STATUS);
 		}
 	}
 
@@ -353,9 +385,38 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		return true;
 	}
 
+	@Override
+	public String getCurrentUserId() {
+		return getCurrentUser().getId();
+	}
+
+	@Override
+	public void updateTaskStarred(boolean isStarred, String taskId) {
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = taskSchemas.getTask(taskId);
+		if(isStarred) {
+			task.addStarredBy(getCurrentUser().getId());
+		} else {
+			task.removeStarredBy(getCurrentUser().getId());
+		}
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		provider.fireDataRefreshEvent();
+	}
+
 	public String getDueDateCaption() {
 		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
 				.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+	}
+
+	private void addStarredSortToQuery(LogicalSearchQuery query) {
+		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(Task.STARRED_BY_USERS);
+		LogicalSearchQuerySort sortField
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
+		query.sortFirstOn(sortField);
 	}
 }

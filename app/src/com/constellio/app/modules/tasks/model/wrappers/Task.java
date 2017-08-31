@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -45,6 +46,7 @@ public class Task extends RecordWrapper {
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 	public static final String LINKED_CONTAINERS = "linkedContainers";
 	public static final String REASON = "reason";
+	public static final String STARRED_BY_USERS = "starredByUsers";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
@@ -328,6 +330,26 @@ public class Task extends RecordWrapper {
 	public Task setLinkedDocuments(List<?> documentIds) {
 		set(LINKED_DOCUMENTS, documentIds);
 		return this;
+	}
+
+	public void addStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(!list.contains(userId)) {
+			list.add(userId);
+			set(STARRED_BY_USERS, list);
+		}
+	}
+
+	public void removeStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(list.contains(userId)) {
+			list.remove(userId);
+			if(list.isEmpty()) {
+				set(STARRED_BY_USERS, null);
+			} else {
+				set(STARRED_BY_USERS, list);
+			}
+		}
 	}
 
 	public String getReminderFrequency() {
