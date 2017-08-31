@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.ExcelReport;
 
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.wrappers.*;
@@ -13,11 +14,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
@@ -52,39 +52,15 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
 
     public Map<String, String> initPossibleTab(Locale locale){
         Map<String, String> map = new HashMap<>();
-        MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 
-        //container
-        MetadataSchemaVO containerSchemaVO = builder.build(schemaType(ContainerRecord.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(containerSchemaVO.getLabel(locale), containerSchemaVO.getTypeCode());
+        //get All metadata schema
+        List<MetadataSchemaType> allMetadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes();
+        for(MetadataSchemaType schemaType : allMetadataSchemaTypes) {
+            if(isMetadataSchemaTypesSearchable(schemaType)) {
+                map.put(schemaType.getLabel(Language.withLocale(locale)), schemaType.getCode());
+            }
+        }
 
-        //Document
-        MetadataSchemaVO documentSchemaVO = builder.build(schemaType(Document.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(documentSchemaVO.getLabel(locale), documentSchemaVO.getTypeCode());
-
-        //internetDocument
-        MetadataSchemaVO httpDocumentSchemaVO = builder.build(schemaType(ConnectorHttpDocument.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(httpDocumentSchemaVO.getLabel(locale), httpDocumentSchemaVO.getTypeCode());
-
-        //smbConnector
-        MetadataSchemaVO SmbDocumentSchemaVO = builder.build(schemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(SmbDocumentSchemaVO.getLabel(locale), SmbDocumentSchemaVO.getTypeCode());
-
-        //folder
-        MetadataSchemaVO folderSchemaVO = builder.build(schemaType(Folder.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(folderSchemaVO.getLabel(locale), folderSchemaVO.getTypeCode());
-
-        //StorageSpace
-        MetadataSchemaVO storageSpaceSchemaVO = builder.build(schemaType(StorageSpace.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(storageSpaceSchemaVO.getLabel(locale), storageSpaceSchemaVO.getTypeCode());
-
-        //Task
-        MetadataSchemaVO taskSchemaVO = builder.build(schemaType(Task.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(taskSchemaVO.getLabel(locale), taskSchemaVO.getTypeCode());
-
-        //User
-        MetadataSchemaVO userSchemaVO = builder.build(schemaType(User.SCHEMA_TYPE).getDefaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        map.put(userSchemaVO.getLabel(locale), userSchemaVO.getTypeCode());
         map = sortByValue(map);
         return map;
     }
@@ -129,6 +105,10 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
     public RecordVO getRecordsWithIndex(String schema, String itemIndex) {
         RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema);
         return itemIndex == null ?  null : dataProvider.getRecordVO(Integer.parseInt(itemIndex));
+    }
+
+    private boolean isMetadataSchemaTypesSearchable(MetadataSchemaType types) {
+        return schemasDisplayManager().getType(collection, types.getCode()).isAdvancedSearch();
     }
 
     //copy paste from stack overflow. credit: https://stackoverflow.com/a/2581754/5784924
