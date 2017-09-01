@@ -158,7 +158,12 @@ public class TaskTable extends RecordVOTable {
 	@Override
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 		if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-			return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), presenter.getCurrentUserId(), presenter);
+			return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), presenter.getCurrentUserId()) {
+				@Override
+				public void updateTaskStarred(boolean isStarred, String taskId) {
+					presenter.updateTaskStarred(isStarred, taskId);
+				}
+			};
 		} else {
 			return super.buildMetadataComponent(metadataValue, recordVO);
 		}

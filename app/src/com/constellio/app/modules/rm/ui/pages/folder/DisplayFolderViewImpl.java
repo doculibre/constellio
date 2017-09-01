@@ -9,7 +9,11 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -27,6 +31,7 @@ import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUp
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -59,6 +64,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
@@ -622,8 +629,51 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void setTasks(RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable(dataProvider);
+	public void setTasks(final RecordVODataProvider dataProvider) {
+		Table table = new RecordVOTable(dataProvider) {
+			@Override
+			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+						@Override
+						public void updateTaskStarred(boolean isStarred, String taskId) {
+							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
+						}
+					};
+				} else {
+					return super.buildMetadataComponent(metadataValue, recordVO);
+				}
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new RecordVOTableColumnsManager() {
+					@Override
+					protected String toColumnId(Object propertyId) {
+						if(propertyId instanceof MetadataVO) {
+							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+								setColumnHeader(propertyId, "");
+								setColumnWidth(propertyId, 60);
+							}
+						}
+						return super.toColumnId(propertyId);
+					}
+				};
+			}
+
+			@Override
+			public Collection<?> getSortableContainerPropertyIds() {
+				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+				while (iterator.hasNext()) {
+					Object property = iterator.next();
+					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+						iterator.remove();
+					}
+				}
+				return sortableContainerPropertyIds;
+			}
+		};
 		table.setSizeFull();
 		table.addItemClickListener(new ItemClickListener() {
 			@Override
