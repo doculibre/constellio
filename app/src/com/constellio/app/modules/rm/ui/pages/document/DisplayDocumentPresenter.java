@@ -43,11 +43,13 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.InputStream;
 import java.util.*;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -99,7 +101,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext());
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -110,8 +112,16 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
 				query.filteredByStatus(StatusFilter.ACTIVES);
 				query.filteredWithUser(getCurrentUser());
+				addStarredSortToQuery(query);
 				query.sortDesc(Schemas.MODIFIED_ON);
+
 				return query;
+			}
+
+			@Override
+			protected void clearSort(LogicalSearchQuery query) {
+				super.clearSort(query);
+				addStarredSortToQuery(query);
 			}
 		};
 		eventsDataProvider = getEventsDataProvider();
@@ -190,7 +200,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
-	private void updateContentVersions() {
+	public void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		Record record = getRecord(documentVO.getId());
@@ -421,5 +431,28 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public AppLayerFactory getAppLayerFactory() {
 		return appLayerFactory;
+	}
+
+	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = taskSchemas.getTask(taskId);
+		if(isStarred) {
+			task.addStarredBy(getCurrentUser().getId());
+		} else {
+			task.removeStarredBy(getCurrentUser().getId());
+		}
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		dataProvider.fireDataRefreshEvent();
+	}
+
+	private void addStarredSortToQuery(LogicalSearchQuery query) {
+		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
+		LogicalSearchQuerySort sortField
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+		query.sortFirstOn(sortField);
 	}
 }

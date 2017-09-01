@@ -11,7 +11,7 @@ import java.util.List;
 public class StarredFieldImpl extends Button {
 	boolean isStarred = false;
 
-	public StarredFieldImpl(final String taskId, List<String> value, String currentUser, final TaskTable.TaskPresenter presenter) {
+	public StarredFieldImpl(final String taskId, List<String> value, String currentUser) {
 		super();
 		this.setStyleName(ValoTheme.BUTTON_BORDERLESS);
 		if(value != null && value.contains(currentUser)) {
@@ -26,7 +26,7 @@ public class StarredFieldImpl extends Button {
 			public void buttonClick(ClickEvent event) {
 				isStarred = !isStarred;
 				updateIcon();
-				presenter.updateTaskStarred(isStarred, taskId);
+				updateTaskStarred(isStarred, taskId);
 			}
 		});
 	}
@@ -37,5 +37,9 @@ public class StarredFieldImpl extends Button {
 		} else {
 			setIcon(FontAwesome.STAR_O);
 		}
+	}
+
+	public void updateTaskStarred(boolean isStarred, String taskId) {
+
 	}
 }
