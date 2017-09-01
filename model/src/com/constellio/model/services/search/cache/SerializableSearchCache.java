@@ -114,17 +114,14 @@ public class SerializableSearchCache implements Serializable {
 	}
 
 	public void incrementQTime(int increment) {
-		System.out.println("incrementQTime : " + totalQTime + "+=" + increment);
 		this.totalQTime += increment;
 	}
 
 	public int getTotalQTime() {
-		System.out.println("getTotalQTime : " + totalQTime);
 		return totalQTime;
 	}
 
 	public void resetTotalQTime() {
-		System.out.println("resetTotalQTime : ");
 		totalQTime = 0;
 	}
 }

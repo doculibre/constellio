@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -27,7 +27,7 @@ public class PropertyFileUtils {
 	public static void writeMap(File indexProperties, Map<String, String> map) {
 		Properties properties = new Properties();
 		properties.putAll(map);
-		try (FileWriter fw = new FileWriter(indexProperties)){
+		try (FileWriter fw = new FileWriter(indexProperties)) {
 			properties.store(fw, null);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -36,7 +36,7 @@ public class PropertyFileUtils {
 	}
 
 	private static Map<String, String> loadPropertiesInAMap(Properties properties) {
-		Map<String, String> configs = new HashMap<>();
+		Map<String, String> configs = new LinkedHashMap<>();
 
 		for (String name : properties.stringPropertyNames()) {
 			configs.put(name, properties.getProperty(name));
