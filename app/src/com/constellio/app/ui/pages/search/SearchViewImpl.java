@@ -1,5 +1,12 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -7,11 +14,15 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.*;
+import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
+import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
@@ -21,18 +32,24 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
@@ -50,7 +67,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
-	private HashMap<Integer,Boolean> hashMapAllSelection = new HashMap<>();
+	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -85,26 +102,26 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public void refreshSearchResultsAndFacets(boolean temporarySave) {
-		refreshSearchResults(temporarySave);
-		refreshFacets();
+		SearchResultVODataProvider dataProvider = refreshSearchResults(temporarySave, true);
+		refreshFacets(dataProvider);
 	}
 
 	@Override
 	public void refreshSearchResultsAndFacets() {
-		refreshSearchResults(true);
-		refreshFacets();
+		SearchResultVODataProvider dataProvider = refreshSearchResults(true, true);
+		refreshFacets(dataProvider);
 	}
 
 	@Override
-	public void refreshSearchResults(boolean temporarySave) {
+	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
 			presenter.saveTemporarySearch(false);
 		}
 
+		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		suggestions.removeAllComponents();
-		buildSuggestions();
-
-		results = buildResultTable();
+		results = buildResultTable(dataProvider);
+		buildSuggestions(dataProvider);
 
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
@@ -117,6 +134,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			resultsArea.removeAllComponents();
 			resultsArea.addComponent(results);
 		}
+
+		return dataProvider;
 	}
 
 	private boolean isDetailedView() {
@@ -124,9 +143,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	public void refreshFacets() {
+	public void refreshFacets(SearchResultVODataProvider dataProvider) {
 		facetsArea.removeAllComponents();
-		addFacetComponents(facetsArea);
+		addFacetComponents(facetsArea, dataProvider);
 		presenter.setPageNumber(1);
 	}
 
@@ -161,7 +180,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		resultsArea = new VerticalLayout();
 		resultsArea.addStyleName("search-result-area");
-//		resultsArea.setWidth("100%");
+		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
 		facetsArea = new VerticalLayout();
@@ -183,16 +202,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return main;
 	}
 
-	protected SearchResultTable buildResultTable() {
-		return buildDetailedResultsTable();
+	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
+		return buildDetailedResultsTable(dataProvider);
 	}
 
-	protected SearchResultTable buildDetailedResultsTable() {
-		SearchResultContainer container = buildResultContainer();
+	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
+		SearchResultContainer container = buildResultContainer(dataProvider);
 		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
 
 		int totalResults = container.size();
-		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
+		int totalAmountOfPages = srTable.getTotalAmountOfPages();
 		int currentPage = presenter.getPageNumber();
 
 		int selectedPageLength = presenter.getSelectedPageLength();
@@ -200,11 +219,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
 		}
 		presenter.setSelectedPageLength(selectedPageLength);
-		
+
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-
 
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
@@ -234,15 +252,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return srTable;
 	}
 
-	protected SearchResultContainer buildResultContainer() {
+	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
-		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(presenter.getSearchResults());
+		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		return new SearchResultContainer(results, displayFactory);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void buildSuggestions() {
-		if (!presenter.mustDisplaySuggestions()) {
+	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
+		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);
 			return;
 		}
@@ -281,7 +299,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			criterion.addItem(metadata.getCode());
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
-//		criterion.setPageLength(criterion.size());
+		//		criterion.setPageLength(criterion.size());
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
@@ -315,10 +333,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@SuppressWarnings("unchecked")
-	private void addFacetComponents(ComponentContainer container) {
+	private void addFacetComponents(ComponentContainer container, SearchResultVODataProvider dataProvider) {
 		container.addComponent(buildSortComponent());
 
-		List<FacetVO> facets = presenter.getFacets();
+		List<FacetVO> facets = presenter.getFacets(dataProvider);
 		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
 		for (FacetVO facet : facets) {
 			container.addComponent(buildFacetComponent(facet, facetSelections.get(facet.getId())));

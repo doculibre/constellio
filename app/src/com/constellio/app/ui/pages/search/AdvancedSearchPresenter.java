@@ -115,7 +115,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			schemaTypeCode = view.getSchemaType();
 			pageNumber = 1;
 			resultsViewMode = SearchResultsViewMode.DETAILED;
-			saveTemporarySearch(true);
+			saveTemporarySearch(false);
 		}
 		return this;
 	}

@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.data;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -13,6 +14,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -24,8 +26,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
 
-	private static int DEFAULT_PAGE_SIZE = 10;
-
 	transient LogicalSearchQuery query;
 	transient boolean serializeRecords;
 	transient Integer size = null;
@@ -34,6 +34,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	protected transient AppLayerFactory appLayerFactory;
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
+	private int resultsPerPage;
 
 	RecordToVOBuilder voBuilder;
 
@@ -42,7 +43,24 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
 			SessionContext sessionContext) {
 		this.voBuilder = voBuilder;
+		//		String username = sessionContext.getCurrentUser().getUsername();
+		//
+		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
+		//				.getUserCredential(username);
+
+		this.resultsPerPage = sessionContext.getCurrentUser().getDefaultPageLength();
+
 		init(appLayerFactory, sessionContext);
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getFieldFacetValues();
+	}
+
+	public Map<String, Integer> getQueryFacetsValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getQueryFacetsValues();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -93,7 +111,9 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
-			size = searchServices.search(query, DEFAULT_PAGE_SIZE).size();
+			SPEQueryResponse response = searchServices.query(query, resultsPerPage);
+
+			size = response.getRecords().size();
 		}
 		return size;
 	}
@@ -110,7 +130,8 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public List<SearchResultVO> listSearchResultVOs(int startIndex, int numberOfItems) {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
-		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
+
+		SPEQueryResponse response = searchServices.query(query, resultsPerPage);
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
@@ -118,6 +139,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
 		}
+
 		return results;
 	}
 
@@ -140,6 +162,13 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			}
 		}
 
+	}
+
+	public int getQTime() {
+
+		int qtime = queryCache.getTotalQTime();
+		queryCache.resetTotalQTime();
+		return qtime;
 	}
 
 	protected abstract LogicalSearchQuery getQuery();

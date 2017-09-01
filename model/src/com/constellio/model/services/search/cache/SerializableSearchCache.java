@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
@@ -13,6 +14,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySign
 public class SerializableSearchCache implements Serializable {
 
 	Map<String, Map<String, List<String>>> highlights = new HashMap<>();
+	private Map<String, List<FacetValue>> fieldFacetValues = new HashMap<>();
+	private Map<String, Integer> queryFacetsValues = new HashMap<>();
+	private boolean facetsComputed = false;
+	private int totalQTime;
+
 	private LogicalSearchQuerySignature previousQuery;
 
 	private List<Record> results = new ArrayList<>();
@@ -79,4 +85,46 @@ public class SerializableSearchCache implements Serializable {
 		return highlights;
 	}
 
+	public SerializableSearchCache setFieldFacetValues(
+			Map<String, List<FacetValue>> fieldFacetValues) {
+		this.fieldFacetValues = fieldFacetValues;
+		return this;
+	}
+
+	public SerializableSearchCache setQueryFacetsValues(Map<String, Integer> queryFacetsValues) {
+		this.queryFacetsValues = queryFacetsValues;
+		return this;
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
+		return fieldFacetValues;
+	}
+
+	public Map<String, Integer> getQueryFacetsValues() {
+		return queryFacetsValues;
+	}
+
+	public boolean isFacetsComputed() {
+		return facetsComputed;
+	}
+
+	public SerializableSearchCache setFacetsComputed(boolean facetsComputed) {
+		this.facetsComputed = facetsComputed;
+		return this;
+	}
+
+	public void incrementQTime(int increment) {
+		System.out.println("incrementQTime : " + totalQTime + "+=" + increment);
+		this.totalQTime += increment;
+	}
+
+	public int getTotalQTime() {
+		System.out.println("getTotalQTime : " + totalQTime);
+		return totalQTime;
+	}
+
+	public void resetTotalQTime() {
+		System.out.println("resetTotalQTime : ");
+		totalQTime = 0;
+	}
 }

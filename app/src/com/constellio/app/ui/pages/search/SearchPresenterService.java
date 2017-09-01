@@ -51,20 +51,30 @@ public class SearchPresenterService {
 	}
 
 	List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus, Locale locale) {
-		LogicalSearchQuery facetQuery = prepareFacetQuery(query);
-		return buildFacetVOs(searchServices.query(facetQuery), facetStatus, locale);
+		LogicalSearchQuery facetQuery = cloneQueryReturningOneWithFacetQuery(query);
+		SPEQueryResponse response = searchServices.query(facetQuery);
+		return buildFacetVOs(response.getFieldFacetValues(), response.getQueryFacetsValues(), facetStatus, locale);
 	}
 
-	private List<FacetVO> buildFacetVOs(SPEQueryResponse response, Map<String, Boolean> facetStatus, Locale locale) {
+	public List<FacetVO> buildFacetVOs(Map<String, List<FacetValue>> fieldFacetValues, Map<String, Integer> queryFacetsValues,
+			Map<String, Boolean> facetStatus, Locale locale) {
 		List<FacetVO> result = new ArrayList<>();
 
 		for (Facet facet : getActiveFacets()) {
 			List<FacetValueVO> values = new ArrayList<>();
 
 			if (facet.getFacetType() == FacetType.FIELD) {
-				buildFieldFacet(response, facet, values, locale);
+
+				List<FacetValue> facetValues;
+				if (fieldFacetValues.containsKey(facet.getFieldDataStoreCode())) {
+					facetValues = fieldFacetValues.get(facet.getFieldDataStoreCode());
+				} else {
+					facetValues = Collections.emptyList();
+				}
+				buildFieldFacet(facetValues, facet, values, locale);
 			} else {
-				buildQueryFacet(response, facet, values);
+
+				buildQueryFacet(queryFacetsValues, facet, values);
 			}
 
 			if (!values.isEmpty()) {
@@ -81,24 +91,30 @@ public class SearchPresenterService {
 
 	}
 
-	private void buildQueryFacet(SPEQueryResponse response, Facet facet, List<FacetValueVO> values) {
+	private void buildQueryFacet(Map<String, Integer> queryFacetsValues, Facet facet, List<FacetValueVO> values) {
 		for (Entry<String, String> queryFacet : facet.getListQueries().entrySet()) {
-			FacetValue facetValue = response.getQueryFacetValue(queryFacet.getKey());
+			int count = !queryFacetsValues.containsKey(queryFacet.getKey()) ? 0 : queryFacetsValues.get(queryFacet.getKey());
+			FacetValue facetValue = new FacetValue(queryFacet.getKey(), count);
 			if (facetValue.getQuantity() > 0) {
 				values.add(new FacetValueVO(facet.getId(), facetValue, queryFacet.getValue()));
 			}
 		}
 	}
 
-	private void buildFieldFacet(SPEQueryResponse response, Facet facet, List<FacetValueVO> values, Locale locale) {
-		for (FacetValue facetValue : response.getFieldFacetValues(facet.getFieldDataStoreCode())) {
+	private void buildFieldFacet(List<FacetValue> facetValues, Facet facet, List<FacetValueVO> values, Locale locale) {
+		for (FacetValue facetValue : facetValues) {
 			values.add(new FacetValueVO(facet.getId(), facetValue));
 		}
 		setFieldFacetValuesLabels(facet, values, locale);
 	}
 
-	private LogicalSearchQuery prepareFacetQuery(LogicalSearchQuery query) {
+	private LogicalSearchQuery cloneQueryReturningOneWithFacetQuery(LogicalSearchQuery query) {
 		LogicalSearchQuery facetQuery = new LogicalSearchQuery(query).setNumberOfRows(0);
+		configureQueryToComputeFacets(facetQuery);
+		return facetQuery;
+	}
+
+	public void configureQueryToComputeFacets(LogicalSearchQuery facetQuery) {
 
 		for (Facet facet : getActiveFacets()) {
 			if (facet.getFacetType() == FacetType.FIELD) {
@@ -110,7 +126,6 @@ public class SearchPresenterService {
 			}
 		}
 		facetQuery.setFieldFacetLimit(100);
-		return facetQuery;
 	}
 
 	private static class ComparatorByLabel extends AbstractTextComparator<FacetValueVO> {

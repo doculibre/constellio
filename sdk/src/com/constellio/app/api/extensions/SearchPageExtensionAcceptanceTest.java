@@ -91,7 +91,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 				return query;
 			}
 		};
-		simpleSearchPresenter.getSearchResults().listSearchResultVOs(0, 10);
+		simpleSearchPresenter.getSearchResults(false).listSearchResultVOs(0, 10);
 
 		ArgumentCaptor<UserSearchEvent> paramCaptor = ArgumentCaptor.forClass(UserSearchEvent.class);
 		verify(searchPageExtension).notifyNewUserSearch(paramCaptor.capture());
@@ -121,7 +121,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 				return query;
 			}
 		};
-		advancedSearchPresenter.getSearchResults().listSearchResultVOs(0, 10);
+		advancedSearchPresenter.getSearchResults(false).listSearchResultVOs(0, 10);
 
 		ArgumentCaptor<UserSearchEvent> paramCaptor = ArgumentCaptor.forClass(UserSearchEvent.class);
 		verify(searchPageExtension).notifyNewUserSearch(paramCaptor.capture());

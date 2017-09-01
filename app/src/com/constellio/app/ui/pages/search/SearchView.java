@@ -1,16 +1,17 @@
 package com.constellio.app.ui.pages.search;
 
-import com.constellio.app.ui.pages.base.BaseView;
-
 import java.util.List;
 
+import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.pages.base.BaseView;
+
 public interface SearchView extends BaseView {
-	
+
 	void refreshSearchResultsAndFacets();
 
-	void refreshSearchResults(boolean temporarySave);
+	SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets);
 
-	void refreshFacets();
+	void refreshFacets(SearchResultVODataProvider dataProvider);
 
 	List<String> getSelectedRecordIds();
 
