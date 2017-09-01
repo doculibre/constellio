@@ -21,6 +21,7 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -43,7 +44,7 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 	@Mock Metadata reindexedMetadata;
 	List<Metadata> reindexedMetadatas;
 	@Mock ModificationImpact modificationImpact;
-	@Mock BatchProcess theBatchProcess;
+	@Mock RecordBatchProcess theBatchProcess;
 
 	AddToBatchProcessImpactHandler handler;
 

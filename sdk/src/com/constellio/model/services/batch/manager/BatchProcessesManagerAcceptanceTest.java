@@ -17,9 +17,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -93,7 +96,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 		BatchProcessesManager newBatchProcessManager = newBatchProcessManager(zeComputer, 2);
 
-		BatchProcess loadedBatchProcess = newBatchProcessManager.get(batchProcess.getId());
+		RecordBatchProcess loadedBatchProcess = (RecordBatchProcess) newBatchProcessManager.get(batchProcess.getId());
 
 		assertThat(loadedBatchProcess.getId()).isNotNull();
 		assertThat(loadedBatchProcess.getHandledRecordsCount()).isEqualTo(0);
@@ -111,7 +114,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(indexedRecordsCondition, action, null);
 		assertThat(batchProcess.getStatus()).isEqualTo(BatchProcessStatus.STANDBY);
 		batchProcessManager.markAsPending(batchProcess);
-		BatchProcess loadedBatchProcess = batchProcessManager.get(batchProcess.getId());
+		RecordBatchProcess loadedBatchProcess = (RecordBatchProcess) batchProcessManager.get(batchProcess.getId());
 
 		assertThat(loadedBatchProcess.getId()).isNotNull();
 		assertThat(loadedBatchProcess.getHandledRecordsCount()).isEqualTo(0);
@@ -192,6 +195,28 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 		BatchProcess currentBatchProcess = batchProcessManager.getCurrentBatchProcess();
 		assertThat(currentBatchProcess).isEqualTo(startedBatchProcess);
+	}
+
+	public static String words = "";
+
+	public static class WordAsyncTask implements AsyncTask {
+
+		String wordsToAdd;
+
+		public WordAsyncTask(String wordsToAdd) {
+			this.wordsToAdd = wordsToAdd;
+		}
+
+		@Override
+		public void execute(AsyncTaskExecutionParams params) {
+
+			BatchProcessesManagerAcceptanceTest.words = BatchProcessesManagerAcceptanceTest.words + wordsToAdd;
+		}
+
+		@Override
+		public Object[] getInstanceParameters() {
+			return new Object[] { wordsToAdd };
+		}
 	}
 
 	//	@Test

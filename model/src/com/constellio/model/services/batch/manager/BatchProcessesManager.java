@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
@@ -24,14 +23,18 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -83,33 +86,35 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	}
 
-	public BatchProcess addPendingBatchProcess(LogicalSearchCondition condition, BatchProcessAction action, String title) {
+	public RecordBatchProcess addPendingBatchProcess(LogicalSearchCondition condition, BatchProcessAction action, String title) {
 		BatchProcess batchProcess = addBatchProcessInStandby(condition, action, title);
 		markAsPending(batchProcess);
-		return get(batchProcess.getId());
+		return (RecordBatchProcess) get(batchProcess.getId());
 	}
 
-	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String username,
+	public RecordBatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String username,
 			String title) {
 		BatchProcess batchProcess = addBatchProcessInStandby(query, action, username, title);
 		markAsPending(batchProcess);
-		return get(batchProcess.getId());
+		return (RecordBatchProcess) get(batchProcess.getId());
 	}
 
-	public BatchProcess addPendingBatchProcess(List<String> records, BatchProcessAction action, String username, String title,
+	public RecordBatchProcess addPendingBatchProcess(List<String> records, BatchProcessAction action, String username,
+			String title,
 			String collection) {
 		BatchProcess batchProcess = addBatchProcessInStandby(records, action, username, title, collection);
 		markAsPending(batchProcess);
-		return get(batchProcess.getId());
+		return (RecordBatchProcess) get(batchProcess.getId());
 	}
 
-	public BatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String title) {
+	public RecordBatchProcess addPendingBatchProcess(LogicalSearchQuery query, BatchProcessAction action, String title) {
 		BatchProcess batchProcess = addBatchProcessInStandby(query, action, title);
 		markAsPending(batchProcess);
-		return get(batchProcess.getId());
+		return (RecordBatchProcess) get(batchProcess.getId());
 	}
 
-	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action, String title) {
+	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
+			String title) {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		String collection = condition.getCollection();
 		String id = newBatchProcessId();
@@ -117,7 +122,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return addBatchProcessInStandby(query, action, title);
 	}
 
-	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
+	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
 		String collection = logicalQuery.getCondition().getCollection();
 		String id = newBatchProcessId();
 
@@ -131,10 +136,12 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, null,
 						title));
 
-		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+		return (RecordBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
 
-	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action, String username, String title) {
+	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
+			String username,
+			String title) {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		String collection = condition.getCollection();
 		String id = newBatchProcessId();
@@ -142,8 +149,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return addBatchProcessInStandby(query, action, username, title);
 	}
 
-
-	public BatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String username,
+	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action,
+			String username,
 			String title) {
 		String collection = logicalQuery.getCondition().getCollection();
 		String id = newBatchProcessId();
@@ -158,10 +165,11 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action,
 						username, title));
 
-		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+		return (RecordBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
 
-	public BatchProcess addBatchProcessInStandby(List<String> records, BatchProcessAction action, String username, String title,
+	public RecordBatchProcess addBatchProcessInStandby(List<String> records, BatchProcessAction action, String username,
+			String title,
 			String collection) {
 		String id = newBatchProcessId();
 
@@ -172,7 +180,28 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				newAddBatchProcessDocumentAlteration(id, records, collection, requestDateTime, (int) recordsCount, action,
 						username, title));
 
-		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+		return (RecordBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+	}
+
+	public AsyncTaskBatchProcess addAsyncTask(final AsyncTaskCreationRequest request) {
+
+		final String id = newBatchProcessId();
+		final LocalDateTime requestDateTime = getCurrentTime();
+
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).addAsyncTaskBatchProcess(id, requestDateTime, request);
+			}
+		};
+
+		updateBatchProcesses(alteration);
+		if (!request.isInStandby()) {
+			markAsPending(newBatchProcessListReader(getProcessListXMLDocument()).read(id));
+		}
+
+		return (AsyncTaskBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+
 	}
 
 	public void markAsPending(List<BatchProcess> batchProcesses) {
@@ -204,12 +233,17 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	private BatchProcess withQueryIfBatchProcessFromPreviousFramework(BatchProcess batchProcess) {
-		if (batchProcess != null && batchProcess.getQuery() == null && batchProcess.getRecords() == null) {
-			List<String> records = getRecords(batchProcess);
-			LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER).isIn(records);
-			ModifiableSolrParams params = searchServices.addSolrModifiableParams(new LogicalSearchQuery(condition));
-			String query = SolrUtils.toSingleQueryString(params);
-			batchProcess = batchProcess.withQuery(query);
+		if (batchProcess != null && batchProcess instanceof RecordBatchProcess) {
+
+			RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
+			if (recordBatchProcess.getQuery() == null && recordBatchProcess.getRecords() == null) {
+				List<String> records = getRecords(batchProcess);
+				LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER)
+						.isIn(records);
+				ModifiableSolrParams params = searchServices.addSolrModifiableParams(new LogicalSearchQuery(condition));
+				String query = SolrUtils.toSingleQueryString(params);
+				batchProcess = recordBatchProcess.withQuery(query);
+			}
 		}
 		return batchProcess;
 	}
@@ -311,7 +345,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 			@Override
 			public void alter(Document document) {
-				newBatchProcessListWriter(document).addBatchProcess(id, query, collection, requestDateTime, recordsCount, action);
+				newBatchProcessListWriter(document)
+						.addRecordBatchProcess(id, query, collection, requestDateTime, recordsCount, action);
 			}
 		};
 	}
@@ -325,7 +360,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			@Override
 			public void alter(Document document) {
 				newBatchProcessListWriter(document)
-						.addBatchProcess(id, query, collection, requestDateTime, recordsCount, action, username, title);
+						.addRecordBatchProcess(id, query, collection, requestDateTime, recordsCount, action, username, title);
 			}
 		};
 	}
@@ -339,7 +374,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			@Override
 			public void alter(Document document) {
 				newBatchProcessListWriter(document)
-						.addBatchProcess(id, records, collection, requestDateTime, recordsCount, action, username, title);
+						.addRecordBatchProcess(id, records, collection, requestDateTime, recordsCount, action, username, title);
 			}
 		};
 	}
