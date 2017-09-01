@@ -1,8 +1,8 @@
 package com.constellio.model.services.batch.xml.list;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.collections.IteratorUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -11,8 +11,11 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class BatchProcessListWriter {
 
@@ -47,7 +50,7 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(new Element(PENDING_BATCH_PROCESSES));
 	}
 
-	public void addBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
+	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
 			BatchProcessAction batchProcessAction) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
@@ -68,8 +71,8 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(pendingBatchProcessesElement);
 	}
 
-	public void addBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
-								BatchProcessAction batchProcessAction, String username, String title) {
+	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
+			BatchProcessAction batchProcessAction, String username, String title) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
@@ -93,8 +96,9 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(pendingBatchProcessesElement);
 	}
 
-	public void addBatchProcess(String id, List<String> records, String collection, LocalDateTime requestDateTime, int recordsCount,
-								BatchProcessAction batchProcessAction, String username, String title) {
+	public void addRecordBatchProcess(String id, List<String> records, String collection, LocalDateTime requestDateTime,
+			int recordsCount,
+			BatchProcessAction batchProcessAction, String username, String title) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
@@ -151,7 +155,7 @@ public class BatchProcessListWriter {
 		throw new BatchProcessListWriterRuntimeException.BatchProcessNotFound(id);
 	}
 
-	public void incrementProgression(BatchProcess batchProcess, int progressionIncrement, int errorsIncrement) {
+	public void incrementProgression(RecordBatchProcess batchProcess, int progressionIncrement, int errorsIncrement) {
 		String recordsCount = null;
 
 		Element batchProcessElement = getBatchProcessElementWithId(batchProcess.getId());
@@ -278,5 +282,29 @@ public class BatchProcessListWriter {
 		for (Element element : elementsToDelete) {
 			element.detach();
 		}
+	}
+
+	public void addAsyncTaskBatchProcess(String id, LocalDateTime requestDateTime, AsyncTaskCreationRequest request) {
+
+		Element actionElement = newParametrizedInstanceUtils().toElement(request.getTask(), ACTION);
+
+		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
+		Element collectionElement = new Element(COLLECTION).setText(request.getCollection());
+		Element batchProcess = new Element(BATCH_PROCESS);
+		batchProcess.setAttribute(ID, id);
+		batchProcess.setAttribute("type", "task");
+		Element usernameElement = new Element(USERNAME).setText(request.getUsername());
+		Element titleElement = new Element(TITLE).setText(request.getTitle());
+
+		batchProcess.addContent(requestDateTimeElement);
+		batchProcess.addContent(actionElement);
+		batchProcess.addContent(collectionElement);
+		batchProcess.addContent(usernameElement);
+		batchProcess.addContent(titleElement);
+
+		Element pendingBatchProcessesElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES).detach();
+		pendingBatchProcessesElement.addContent(batchProcess);
+		document.getRootElement().addContent(pendingBatchProcessesElement);
+
 	}
 }
