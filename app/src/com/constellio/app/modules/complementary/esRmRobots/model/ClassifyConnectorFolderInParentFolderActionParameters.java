@@ -19,6 +19,8 @@ public class ClassifyConnectorFolderInParentFolderActionParameters extends Actio
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
 	public static final String FOLDER_MAPPING = "folderMapping";
 	public static final String DOCUMENT_MAPPING = "documentMapping";
+	public static final String FOLDER_TYPE = "folderType";
+	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String DEFAULT_PARENT_FOLDER = "defaultParentFolder";
 	public static final String DEFAULT_OPEN_DATE = "defaultOpenDate";
 
@@ -119,6 +121,16 @@ public class ClassifyConnectorFolderInParentFolderActionParameters extends Actio
 	public static ClassifyConnectorFolderInParentFolderActionParameters wrap(ActionParameters actionParameters) {
 		return new ClassifyConnectorFolderInParentFolderActionParameters(
 				actionParameters.getWrappedRecord(), actionParameters.getMetadataSchemaTypes());
+	}
+
+	@Override
+	public String getFolderTypeId() {
+		return get(FOLDER_TYPE);
+	}
+
+	@Override
+	public String getDocumentTypeId() {
+		return get(DOCUMENT_TYPE);
 	}
 
 }
