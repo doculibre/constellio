@@ -12,6 +12,11 @@ public class BulkRecordTransactionHandlerOptions {
 	BulkRecordTransactionImpactHandling recordModificationImpactHandling;
 	boolean continueOnExceptions = false;
 
+	public BulkRecordTransactionHandlerOptions setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+		return this;
+	}
+
 	public BulkRecordTransactionHandlerOptions() {
 		recordsPerBatch = 1000;
 		numberOfThreads = Runtime.getRuntime().availableProcessors();
