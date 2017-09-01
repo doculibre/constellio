@@ -190,7 +190,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
-	private void updateContentVersions() {
+	public void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		Record record = getRecord(documentVO.getId());
