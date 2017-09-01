@@ -58,9 +58,10 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 	public synchronized void run() {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(tasksSchemas.userTask.schemaType())
-				.where(tasksSchemas.userTask.dueDate()).isLessThan(LocalDate.now())
+				.where(tasksSchemas.userTask.dueDate()).isLessThan(getCurrentDate())
 				.andWhere(tasksSchemas.userTask.status()).isNotIn(tasksSchemas.getFinishedOrClosedStatuses())
-				.andWhere(tasksSchemas.userTask.reminderFrequency()).isNotNull());
+				.andWhere(tasksSchemas.userTask.reminderFrequency()).isNotNull()
+				.andWhere(Schemas.COLLECTION).isEqualTo(collection));
 
 		SearchResponseIterator<Record> overdueTaskIterator = searchServices.recordsIterator(query, 1000);
 		while (overdueTaskIterator.hasNext()) {
@@ -69,7 +70,7 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 			String reminderFrequency = task.getReminderFrequency();
 			LocalDateTime lastReminder = task.getLastReminder();
 			LocalDateTime reminderDate = addFrequencyToDueDate(dueDate.toLocalDateTime(LocalTime.MIDNIGHT), reminderFrequency, lastReminder);
-			if (reminderDate.isBefore(LocalDateTime.now())) {
+			if (reminderDate.isBefore(getCurrentDateTime())) {
 				String userIdToSendEmailTo = task.getAssignee();
 				int numberOfRemindersAlreadySent = task.getNumberOfReminders();
 
@@ -82,7 +83,7 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 					}
 					sendEmail(task, userIdToSendEmailTo);
 					try {
-						recordServices.update(task.setLastReminder(LocalDateTime.now()).setNumberOfReminders(numberOfRemindersAlreadySent++));
+						recordServices.update(task.setLastReminder(getCurrentDateTime()).setNumberOfReminders(numberOfRemindersAlreadySent++));
 					} catch (RecordServicesException e) {
 						e.printStackTrace();
 					}
@@ -91,7 +92,7 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 		}
 	}
 
-	private void sendEmail(Task task, String userId) {
+	protected void sendEmail(Task task, String userId) {
 		TaskReminderEmailManager taskReminderEmailManager = new TaskReminderEmailManager(appLayerFactory, collection);
 		User userToSendMessageTo = new SchemasRecordsServices(collection, modelLayerFactory).getUser(userId);
 		String email = userToSendMessageTo.getEmail();
@@ -136,17 +137,27 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 		} else {
 			String[] parameters = reminderFrequency.split(PARAMETER_SEPARATOR);
 			if(parameters.length == 4) {
-				String reminderDurationType = parameters[3];
-				String reminderDurationValue = parameters[4];
+				String reminderDurationType = parameters[2];
+				String reminderDurationValue = parameters[3];
 
 				switch (reminderDurationType) {
 					case "Times":
 						isLimitAttained = numberOfReminders >= Integer.parseInt(reminderDurationValue);
+						break;
 					case "Date":
-						isLimitAttained = LocalDate.now().isAfter(LocalDate.parse(reminderDurationValue));
+						isLimitAttained = getCurrentDate().isAfter(LocalDate.parse(reminderDurationValue));
+						break;
 				}
 			}
 		}
 		return isLimitAttained;
+	}
+
+	public LocalDateTime getCurrentDateTime() {
+		return LocalDateTime.now();
+	}
+
+	public LocalDate getCurrentDate() {
+		return LocalDate.now();
 	}
 }
