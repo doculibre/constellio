@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
@@ -362,7 +363,7 @@ public class RecordVOTable extends BaseTable {
 		super.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT || contextMenu != null) {
+				if (event.getButton() == MouseButton.LEFT || getContextMenu() != null) {
 					listener.itemClick(event);
 				}
 			}
@@ -384,7 +385,7 @@ public class RecordVOTable extends BaseTable {
 		}
 	}
 
-	public RecordContextMenu getContextMenu() {
+	public ContextMenu getContextMenu() {
 		return contextMenu;
 	}
 	

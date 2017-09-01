@@ -57,4 +57,8 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	public TemporaryRecordsDeletionBackgroundAction getTemporaryRecordsDeletionBackgroundAction() {
 		return temporaryRecordsDeletionBackgroundAction;
 	}
+
+	public void configureBackgroundThreadConfiguration(BackgroundThreadConfiguration configuration) {
+		backgroundThreadsManager.configure(configuration);
+	}
 }

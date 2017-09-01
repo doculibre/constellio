@@ -89,7 +89,8 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-				
+
+
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override

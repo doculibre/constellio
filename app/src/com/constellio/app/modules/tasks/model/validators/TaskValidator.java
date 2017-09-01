@@ -21,11 +21,8 @@ public class TaskValidator implements RecordValidator {
 	}
 
 	public void validate(Task task, MetadataSchema schema, ConfigProvider configProvider, ValidationErrors validationErrors) {
-		boolean taskAssignationIsNull = taskAssignationIsNull(task);
-		if (task.getAssigner() == null || task.getAssignedOn() == null || taskAssignationIsNull) {
-			if (!(task.getAssigner() == null && task.getAssignedOn() == null && task.getAssignee() == null)) {
-				validationErrors.add(getClass(), ASSIGNATION_DATE_AND_ASSIGNED_ON_ASSIGNER_SHOULD_BE_ALL_NULL_OR_ALL_NOT_NULL);
-			}
+		if(!areAssignationsValid(task)) {
+			validationErrors.add(getClass(), ASSIGNATION_DATE_AND_ASSIGNED_ON_ASSIGNER_SHOULD_BE_ALL_NULL_OR_ALL_NOT_NULL);
 		}
 
 		if (task.getDueDate() != null && task.getParentTaskDueDate() != null
@@ -44,9 +41,19 @@ public class TaskValidator implements RecordValidator {
 		}
 	}
 
-	private boolean taskAssignationIsNull(Task task) {
+	static private boolean taskAssignationIsNull(Task task) {
 		return task.getAssignee() == null && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates()
 				.isEmpty())
 				&& (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().isEmpty());
+	}
+
+	static public boolean areAssignationsValid(Task task) {
+		boolean taskAssignationIsNull = taskAssignationIsNull(task);
+		if (task.getAssigner() == null || task.getAssignedOn() == null || taskAssignationIsNull) {
+			if (!(task.getAssigner() == null && task.getAssignedOn() == null && task.getAssignee() == null)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
