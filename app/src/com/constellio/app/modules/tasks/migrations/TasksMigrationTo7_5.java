@@ -16,6 +16,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
@@ -46,11 +47,25 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 			throws Exception {
 		new TaskSchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
+		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
 
-		transaction.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
+		transactionBuilder.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
-		displayManager.execute(transaction.build());
+		displayManager.execute(transactionBuilder.build());
+
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		manager.saveSchema(manager.getSchema(collection, Task.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(
+				Task.DEFAULT_SCHEMA + "_" + Task.REMINDER_FREQUENCY,
+				Task.DEFAULT_SCHEMA + "_" + Task.ESCALATION_ASSIGNEE
+		));
+
+		String remindersTab = "init.userTask.remindersTab";
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDER_FREQUENCY)
+				.withMetadataGroup(remindersTab));
+		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ESCALATION_ASSIGNEE)
+				.withMetadataGroup(remindersTab));
+		manager.execute(transaction);
 	}
 
 	private class TaskSchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
@@ -65,6 +80,13 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 			MetadataSchemaBuilder taskSchema = typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE);
 			taskSchema.createUndeletable(Task.STARRED_BY_USERS).setSystemReserved(true)
 					.setType(MetadataValueType.STRING).setMultivalue(true);
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING).addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
+					.setSystemReserved(true);
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.NUMBER)
+					.setSystemReserved(true).setDefaultValue(0);
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.ESCALATION_ASSIGNEE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).addLabel(Language.French,"Personne assignée à l'escalade").addLabel(Language.English,"Escalation assignee");
 		}
 	}
 }
