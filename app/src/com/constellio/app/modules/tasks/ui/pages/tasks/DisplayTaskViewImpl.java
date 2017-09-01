@@ -129,10 +129,30 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 					return $("DisplayTaskView.completeTaskDialogMessage");
 				}
 
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.completeButtonClicked();
+			@Override
+			protected String getConfirmDialogOKCaption() {
+				return $("DisplayTaskView.quickComplete");
+			}
+
+			@Override
+			protected String getConfirmDialogCancelCaption() {
+				return $("cancel");
+			}
+
+			@Override
+			protected String getConfirmDialogNotOkCaption() {
+				return $("DisplayTaskView.slowComplete");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				if(dialog.isConfirmed()) {
+					presenter.completeQuicklyButtonClicked(presenter.getTask());
+				} else if(dialog.isCanceled()) {
+
+				} else {presenter.completeButtonClicked(presenter.getTask());
 				}
+			}
 
 				@Override
 				public boolean isVisible() {
