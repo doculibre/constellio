@@ -26,11 +26,11 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 
 public class BatchProcessContainer extends DataContainer<BatchProcessDataProvider> {
-	
+
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
+
 	public static final String RANK = "rank";
-	
+
 	public static final String TITLE = "title";
 
 	private static final String STATUS = "status";
@@ -48,11 +48,11 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	private static final String USERNAME = "username";
 
 	private static final String COLLECTION = "collection";
-	
+
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
-	
+
 	private boolean systemBatchProcesses;
-	
+
 	public BatchProcessContainer(BatchProcessDataProvider dataProvider) {
 		this(dataProvider, true);
 	}
@@ -85,7 +85,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		containerPropertyIds.add(HANDLED_RECORDS_COUNT);
 		containerPropertyIds.add(TOTAL_RECORDS_COUNT);
 		containerPropertyIds.add(PROGRESS);
-		
+
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -94,7 +94,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		String username = sessionContext.getCurrentUser().getUsername();
 		UserCredential userCredentials = userServices.getUser(username);
-		
+
 		if (systemBatchProcesses) {
 			containerPropertyIds.add(USERNAME);
 			if (collections.size() > 1) {
@@ -113,21 +113,21 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			type = Integer.class;
 		} else if (TITLE.equals(propertyId)) {
 			type = String.class;
-		} else if (STATUS.equals(propertyId)) {	
+		} else if (STATUS.equals(propertyId)) {
 			type = String.class;
-		} else if (REQUEST_DATE_TIME.equals(propertyId)) {	
+		} else if (REQUEST_DATE_TIME.equals(propertyId)) {
 			type = String.class;
-		} else if (START_DATE_TIME.equals(propertyId)) {	
+		} else if (START_DATE_TIME.equals(propertyId)) {
 			type = String.class;
-		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {	
+		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {
 			type = Integer.class;
-		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
+		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {
 			type = Integer.class;
-		} else if (PROGRESS.equals(propertyId)) {	
+		} else if (PROGRESS.equals(propertyId)) {
 			type = String.class;
-		} else if (USERNAME.equals(propertyId)) {	
+		} else if (USERNAME.equals(propertyId)) {
 			type = String.class;
-		} else if (COLLECTION.equals(propertyId)) {	
+		} else if (COLLECTION.equals(propertyId)) {
 			type = String.class;
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
@@ -144,30 +144,31 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			value = batchProcessVO.getRank();
 		} else if (TITLE.equals(propertyId)) {
 			value = getTitle(batchProcessVO);
-		} else if (STATUS.equals(propertyId)) {	
+		} else if (STATUS.equals(propertyId)) {
 			BatchProcessStatus status = batchProcessVO.getStatus();
 			value = $("BatchProcess.status." + status.toString());
-		} else if (REQUEST_DATE_TIME.equals(propertyId)) {	
+		} else if (REQUEST_DATE_TIME.equals(propertyId)) {
 			value = format(batchProcessVO.getRequestDateTime());
-		} else if (START_DATE_TIME.equals(propertyId)) {	
+		} else if (START_DATE_TIME.equals(propertyId)) {
 			value = format(batchProcessVO.getStartDateTime());
-		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {	
+		} else if (HANDLED_RECORDS_COUNT.equals(propertyId)) {
 			value = batchProcessVO.getHandledRecordsCount();
-		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {	
+		} else if (TOTAL_RECORDS_COUNT.equals(propertyId)) {
 			value = batchProcessVO.getTotalRecordsCount();
-		} else if (PROGRESS.equals(propertyId)) {	
+		} else if (PROGRESS.equals(propertyId)) {
 			value = getProgress(batchProcessVO);
-		} else if (USERNAME.equals(propertyId)) {	
+		} else if (USERNAME.equals(propertyId)) {
 			value = batchProcessVO.getUsername();
-		} else if (COLLECTION.equals(propertyId)) {	
-			value = collectionCodeToLabelConverter.convertToPresentation(batchProcessVO.getCollection(), String.class, i18n.getLocale());
+		} else if (COLLECTION.equals(propertyId)) {
+			value = collectionCodeToLabelConverter
+					.convertToPresentation(batchProcessVO.getCollection(), String.class, i18n.getLocale());
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}
 		Class<?> type = getType(propertyId);
 		return new ObjectProperty(value, type);
 	}
-	
+
 	private String getTitle(BatchProcessVO batchProcessVO) {
 		String title;
 		String titleCode = batchProcessVO.getTitle();
@@ -180,16 +181,21 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		} else {
 			title = $("BatchProcess.title." + titleCode);
 		}
+
+		if (title.startsWith("BatchProcess.title")) {
+			title = titleCode;
+		}
+
 		return title;
 	}
-	
+
 	private String getProgress(BatchProcessVO batchProcessVO) {
 		String progress;
 		int handledRecordsCount = batchProcessVO.getHandledRecordsCount();
 		int totalRecordsCount = batchProcessVO.getTotalRecordsCount();
 		if (totalRecordsCount > 0) {
 			if (handledRecordsCount > 0) {
-				progress = (int) ((handledRecordsCount * 100.f) / totalRecordsCount) + "%"; 
+				progress = (int) ((handledRecordsCount * 100.f) / totalRecordsCount) + "%";
 			} else {
 				progress = "0%";
 			}
@@ -198,7 +204,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		}
 		return progress;
 	}
-	
+
 	private String format(LocalDateTime localDateTime) {
 		String result;
 		if (localDateTime != null) {

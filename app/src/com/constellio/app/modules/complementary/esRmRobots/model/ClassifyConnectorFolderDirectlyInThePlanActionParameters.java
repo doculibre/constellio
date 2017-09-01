@@ -22,6 +22,8 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
 	public static final String FOLDER_MAPPING = "folderMapping";
 	public static final String DOCUMENT_MAPPING = "documentMapping";
+	public static final String FOLDER_TYPE = "folderType";
+	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String DEFAULT_ADMIN_UNIT = "defaultAdminUnit";
 	public static final String DEFAULT_UNIFORM_SUBDIVISION = "defaultUniformSubdivision";
 	public static final String DEFAULT_CATEGORY = "defaultCategory";
@@ -175,6 +177,16 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 	public static ClassifyConnectorFolderDirectlyInThePlanActionParameters wrap(ActionParameters actionParameters) {
 		return new ClassifyConnectorFolderDirectlyInThePlanActionParameters(
 				actionParameters.getWrappedRecord(), actionParameters.getMetadataSchemaTypes());
+	}
+
+	@Override
+	public String getFolderTypeId() {
+		return get(FOLDER_TYPE);
+	}
+
+	@Override
+	public String getDocumentTypeId() {
+		return get(DOCUMENT_TYPE);
 	}
 
 }

@@ -15,18 +15,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsActionParametersFieldFactoryExtension;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsMappingExtension;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationCombo;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_2;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_5;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_6;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_7;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_9;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_0;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_1;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_2_2_1;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo7_0_1;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo7_1;
-import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo7_3_1;
+import com.constellio.app.modules.complementary.esRmRobots.migrations.*;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -68,6 +57,7 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 		migrations.add(new ESRMRobotsMigrationTo7_0_1());
 		migrations.add(new ESRMRobotsMigrationTo7_1());
 		migrations.add(new ESRMRobotsMigrationTo7_3_1());
+		migrations.add(new ESRMRobotsMigrationTo7_5());
 
 		return migrations;
 	}

@@ -2,10 +2,12 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
@@ -93,6 +95,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
 		//buttons.add(buildPrintMetadataReportButton());
+		buttons.add(buildCreateSIPArchivesButton());
 		return buttons;
 	}
 
@@ -479,6 +482,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		});
 		return container;
+	}
+
+	private Button buildCreateSIPArchivesButton(){
+		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+		siPbutton.setAllObject(presenter.getCartFoldersVO().toArray(new FolderVO[0]));
+		return siPbutton;
 	}
 
 	@Override

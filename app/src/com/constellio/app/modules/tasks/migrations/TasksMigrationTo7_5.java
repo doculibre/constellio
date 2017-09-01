@@ -16,6 +16,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
@@ -46,11 +47,11 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 			throws Exception {
 		new TaskSchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
+		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
 
-		transaction.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
+		transactionBuilder.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
 				.withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
-		displayManager.execute(transaction.build());
+		displayManager.execute(transactionBuilder.build());
 	}
 
 	private class TaskSchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {

@@ -106,6 +106,7 @@ public class Folder extends RMObject {
 	public static final String REACTIVATION_USERS = "reactivationUsers";
 	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
 	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
+	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {

@@ -27,7 +27,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		super(collection, modelLayerFactory);
 	}
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+    /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
@@ -1339,6 +1339,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("inactiveDisposalType");
 		}
 
+		public Metadata isRestrictedAccess() {
+			return metadata("isRestrictedAccess");
+		}
+
 		public Metadata keywords() {
 			return metadata("keywords");
 		}
@@ -1563,12 +1567,12 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
-		public Metadata reportSchema() {
-			return metadata("reportSchema");
+		public Metadata recordSchema() {
+			return metadata("recordSchema");
 		}
 
-		public Metadata reportType() {
-			return metadata("reportType");
+		public Metadata recordType() {
+			return metadata("recordType");
 		}
 	}
 	public RetentionRule wrapRetentionRule(Record record) {
@@ -1831,6 +1835,68 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
+	public SIParchive wrapSIParchive(Record record) {
+		return record == null ? null : new SIParchive(record, getTypes());
+	}
+
+	public List<SIParchive> wrapSIParchives(List<Record> records) {
+		List<SIParchive> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new SIParchive(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<SIParchive> searchSIParchives(LogicalSearchQuery query) {
+		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<SIParchive> searchSIParchives(LogicalSearchCondition condition) {
+		MetadataSchemaType type = temporaryRecord.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public SIParchive getSIParchive(String id) {
+		return wrapSIParchive(get(id));
+	}
+
+	public List<SIParchive> getSIParchives(List<String> ids) {
+		return wrapSIParchives(get(ids));
+	}
+
+	public SIParchive getSIParchiveWithLegacyId(String legacyId) {
+		return wrapSIParchive(getByLegacyId(temporaryRecord.schemaType(),  legacyId));
+	}
+
+	public SIParchive newSIParchive() {
+		return wrapSIParchive(create(temporaryRecord_sipArchive.schema()));
+	}
+
+	public SIParchive newSIParchiveWithId(String id) {
+		return wrapSIParchive(create(temporaryRecord_sipArchive.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_temporaryRecord_sipArchive temporaryRecord_sipArchive
+			= new SchemaTypeShortcuts_temporaryRecord_sipArchive("temporaryRecord_sipArchive");
+	public class SchemaTypeShortcuts_temporaryRecord_sipArchive extends SchemaTypeShortcuts_temporaryRecord_default {
+		protected SchemaTypeShortcuts_temporaryRecord_sipArchive(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata creationDate() {
+			return metadata("creationDate");
+		}
+
+		public Metadata name() {
+			return metadata("name");
+		}
+
+		public Metadata user() {
+			return metadata("user");
+		}
+	}
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
 		return record == null ? null : new UniformSubdivision(record, getTypes());
 	}
@@ -2029,8 +2095,9 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedFolders");
 		}
 	}
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
 
 }

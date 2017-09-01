@@ -6,6 +6,9 @@ import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Component;
@@ -95,7 +98,20 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							presenter.completeButtonClicked(recordVO);
+							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), $("DisplayTaskView.completeTaskDialogMessage"),
+									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
+									new ConfirmDialog.Listener() {
+										@Override
+										public void onClose(ConfirmDialog dialog) {
+											if(dialog.isConfirmed()) {
+												presenter.completeQuicklyButtonClicked(recordVO);
+											} else if(dialog.isCanceled()) {
+
+											} else {
+												presenter.completeButtonClicked(recordVO);
+											}
+										}
+									});
 						}
 					});
 				}
@@ -183,6 +199,12 @@ public class TaskTable extends RecordVOTable {
 		boolean isDeleteButtonVisible(RecordVO recordVO);
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
+
+		void completeQuicklyButtonClicked(RecordVO recordVO);
+
+		public BaseView getView();
+
+		void reloadTaskModified(Task task);
 
 		String getCurrentUserId();
 

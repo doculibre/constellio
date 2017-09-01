@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -334,26 +333,6 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public void addStarredBy(String userId) {
-		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
-		if(!list.contains(userId)) {
-			list.add(userId);
-			set(STARRED_BY_USERS, list);
-		}
-	}
-
-	public void removeStarredBy(String userId) {
-		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
-		if(list.contains(userId)) {
-			list.remove(userId);
-			if(list.isEmpty()) {
-				set(STARRED_BY_USERS, null);
-			} else {
-				set(STARRED_BY_USERS, list);
-			}
-		}
-	}
-
 	public String getReminderFrequency() {
 		return get(REMINDER_FREQUENCY);
 	}
@@ -389,5 +368,25 @@ public class Task extends RecordWrapper {
 	public Task setEscalationAssignee(String userId) {
 		set(ESCALATION_ASSIGNEE, userId);
 		return this;
+	}
+
+	public void addStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(!list.contains(userId)) {
+			list.add(userId);
+			set(STARRED_BY_USERS, list);
+		}
+	}
+
+	public void removeStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(list.contains(userId)) {
+			list.remove(userId);
+			if(list.isEmpty()) {
+				set(STARRED_BY_USERS, null);
+			} else {
+				set(STARRED_BY_USERS, list);
+			}
+		}
 	}
 }

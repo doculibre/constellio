@@ -11,8 +11,10 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.Decommissi
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.*;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -811,5 +813,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean areContainersHidden() {
 		return decommissioningList().getDecommissioningListType().isDestroyal() && getFolderDetailTableExtension() != null;
+	}
+
+	public List<FolderVO> getFoldersVO(){
+		List<Folder> foldersIds = rmRecordsServices().getFolders(decommissioningList().getFolders());
+		List<FolderVO> folderVOList = new ArrayList<>();
+		FolderToVOBuilder builder = new FolderToVOBuilder();
+		for(Folder folder : foldersIds){
+			folderVOList.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.TABLE, view.getSessionContext()));
+		}
+		return folderVOList;
 	}
 }
