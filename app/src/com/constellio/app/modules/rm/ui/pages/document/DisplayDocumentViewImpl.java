@@ -563,6 +563,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public void close() {
 						super.close();
 						presenter.updateWindowClosed();
+						presenter.updateContentVersions();
+						versionTable.refreshRowCache();
 					}
 				};
 			}
@@ -710,7 +712,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
 	}
-	
+
 	public void addTabSheetDecorator(TabSheetDecorator decorator) {
 		this.tabSheetDecorators.add(decorator);
 	}
