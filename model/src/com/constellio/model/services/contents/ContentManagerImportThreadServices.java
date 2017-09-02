@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -204,7 +205,7 @@ public class ContentManagerImportThreadServices {
 			}
 		} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
 			throw new RuntimeException(contentManagerException_contentNotParsed);
-			
+
 		} finally {
 			writeNewEntriesInIndex(newEntriesInIndex);
 		}
@@ -347,7 +348,7 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
-		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
+		Map<String, Factory<ContentVersionDataSummary>> map = new LinkedHashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
 			final String value = entry.getValue();
 			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
