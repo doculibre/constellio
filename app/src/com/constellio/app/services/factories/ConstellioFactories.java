@@ -208,4 +208,8 @@ public class ConstellioFactories {
 		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
 		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
 	}
+
+	public AppLayerFactory getUncachedAppLayerFactory() {
+		return appLayerFactory;
+	}
 }
