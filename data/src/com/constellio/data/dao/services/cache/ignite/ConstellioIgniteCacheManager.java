@@ -70,7 +70,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
 		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
-		partitionedCacheCfg.setBackups(0);
+		partitionedCacheCfg.setBackups(1);
 		partitionedCacheCfg.setReadFromBackup(true);
 		partitionedCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
 
