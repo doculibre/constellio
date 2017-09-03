@@ -10,4 +10,6 @@ public interface ConstellioCacheManager extends StatefulService {
 	
 	ConstellioCache getCache(String name);
 	
+	void clearAll();
+	
 }

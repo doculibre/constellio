@@ -40,4 +40,11 @@ public class ConstellioMapCacheManager implements ConstellioCacheManager {
 	public void close() {
 	}
 
+	@Override
+	public void clearAll() {
+		for (ConstellioCache cache : caches.values()) {
+			cache.clear();
+		}
+	}
+
 }
