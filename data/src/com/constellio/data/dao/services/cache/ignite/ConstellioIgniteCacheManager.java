@@ -92,15 +92,14 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	}
 	
 	private String versionedCacheName(String name) {
-		return name;
-//		String versionedCacheName;
-//		String prefix = constellioVersion + "_";
-//		if (name.startsWith(prefix)) {
-//			versionedCacheName = name;
-//		} else {
-//			versionedCacheName = prefix + name;
-//		}
-//		return versionedCacheName;
+		String versionedCacheName;
+		String prefix = constellioVersion + "_";
+		if (name.startsWith(prefix)) {
+			versionedCacheName = name;
+		} else {
+			versionedCacheName = prefix + name;
+		}
+		return versionedCacheName;
 	}
 	
 	@Override
