@@ -98,28 +98,32 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = new CacheConfiguration<>(permanentQueryResultsCacheName);
 		permanentQueryResultsCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentQueryResultsCacheCfg.setReadFromBackup(true);
-		permanentQueryResultsCacheCfg.setBackups(1);
+		permanentQueryResultsCacheCfg.setBackups(0);
 		permanentQueryResultsCacheCfg.setIndexedTypes(String.class, QueryResultsHolder.class);
 
 		CacheConfiguration<String, Object> volatileQueryResultsCacheCfg = new CacheConfiguration<>(volatileQueryResultsCacheName);
 		volatileQueryResultsCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		volatileQueryResultsCacheCfg.setOnheapCacheEnabled(true);
+		volatileQueryResultsCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
 		volatileQueryResultsCacheCfg.setIndexedTypes(String.class, QueryResultsHolder.class);
 
 		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = new CacheConfiguration<>(permanentByIdRecordHoldersCacheName);
 		permanentByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentByIdRecordHoldersCacheCfg.setReadFromBackup(true);
-		permanentByIdRecordHoldersCacheCfg.setBackups(1);
+		permanentByIdRecordHoldersCacheCfg.setBackups(0);
 		permanentByIdRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
 		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = new CacheConfiguration<>(volatileByIdRecordHoldersCacheName);
 		volatileByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		volatileByIdRecordHoldersCacheCfg.setOnheapCacheEnabled(true);
+		volatileByIdRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
 		volatileByIdRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
 		CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = new CacheConfiguration<>(
 				permanentRecordHoldersCacheName);
 		permanentRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentRecordHoldersCacheCfg.setReadFromBackup(true);
-		permanentRecordHoldersCacheCfg.setBackups(1);
+		permanentRecordHoldersCacheCfg.setBackups(0);
 		permanentRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
 		CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = new CacheConfiguration<>(
@@ -132,6 +136,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = new CacheConfiguration<>(
 				permanentRecordByMetadataCacheName);
 		permanentRecordByMetadataCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		permanentRecordByMetadataCacheCfg.setReadFromBackup(true);
+		permanentRecordByMetadataCacheCfg.setBackups(0);
 		permanentRecordByMetadataCacheCfg.setIndexedTypes(String.class, RecordByMetadata.class);
 
 		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = new CacheConfiguration<>(
