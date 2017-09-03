@@ -164,7 +164,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 				EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		igniteClient.message(igniteClient.cluster().forRemotes())
-				.remoteListen(ConstellioIgniteCache.CLEAR_MESSAGE_TOPIC, new IgniteBiPredicate<UUID, String>() {
+				.localListen(ConstellioIgniteCache.CLEAR_MESSAGE_TOPIC, new IgniteBiPredicate<UUID, String>() {
 					@Override
 					public boolean apply(UUID nodeId, String cacheName) {
 						if (caches.containsKey(cacheName)) {
@@ -173,7 +173,6 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 						}
 						return true;
 					}
-
 				});
 	}
 
