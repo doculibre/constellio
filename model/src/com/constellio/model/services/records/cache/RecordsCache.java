@@ -51,4 +51,6 @@ public interface RecordsCache {
 	int getCacheObjectsCount(String typeCode);
 
 	long getCacheObjectsSize(String typeCode);
+
+	boolean isEmpty();
 }

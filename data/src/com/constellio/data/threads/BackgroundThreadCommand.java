@@ -21,12 +21,14 @@ public class BackgroundThreadCommand implements Runnable {
 	AtomicBoolean stopRequested;
 	AtomicBoolean systemStarted;
 	Semaphore tasksSemaphore;
+	DataLayerFactory dataLayerFactory;
 
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
 			AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory) {
 		this.configuration = configuration;
 		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
+		this.dataLayerFactory = dataLayerFactory;
 		this.threadName = dataLayerFactory
 				.toResourceName(configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")");
 		this.stopRequested = stopRequested;
@@ -46,15 +48,20 @@ public class BackgroundThreadCommand implements Runnable {
 
 		if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
 				&& !stopRequested.get()) {
-			try {
-				tasksSemaphore.acquire();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				runAndHandleException();
-			} finally {
-				tasksSemaphore.release();
+
+			if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
+
+				try {
+					tasksSemaphore.acquire();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					runAndHandleException();
+				} finally {
+					tasksSemaphore.release();
+				}
+
 			}
 		}
 

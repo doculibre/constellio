@@ -1,19 +1,22 @@
 package com.constellio.data.threads;
 
-import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.quartz.JobDetail;
-import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.managers.StatefulService;
 
 /**
  *
@@ -38,7 +41,8 @@ public class ConstellioJobManager implements StatefulService {
 
 				scheduler.start();
 			} catch (final SchedulerException e) {
-				throw new RuntimeException(e);
+				e.printStackTrace();
+				//throw new RuntimeException(e);
 			}
 		}
 	}

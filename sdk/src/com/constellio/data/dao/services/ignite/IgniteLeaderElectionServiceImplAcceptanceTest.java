@@ -10,13 +10,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class IgniteLeaderElectionServiceImplTest {
-	private IgniteLeaderElectionService service;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class IgniteLeaderElectionServiceImplAcceptanceTest extends ConstellioTest {
+	private DefaultLeaderElectionServiceImpl service;
 	private Ignite server;
 
 	@Before
-	public void setUp() throws Exception {
-		service = new IgniteLeaderElectionServiceImpl();
+	public void setUp()
+			throws Exception {
+		service = new DefaultLeaderElectionServiceImpl(getDataLayerFactory());
 		server = Ignition.start(createConfiguration("server", false));
 	}
 
@@ -28,7 +31,8 @@ public class IgniteLeaderElectionServiceImplTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown()
+			throws Exception {
 		server.close();
 	}
 
@@ -44,40 +48,40 @@ public class IgniteLeaderElectionServiceImplTest {
 	@Test
 	public void givenMultipleIgniteClientsWhenValidatingThenFirstIsTrueAndOthersAreFalse() {
 		Ignite client1 = null, client2 = null, client3 = null, client4 = null;
-		
+
 		try {
 			client1 = Ignition.start(createConfiguration("client1", true));
 			client2 = Ignition.start(createConfiguration("client2", true));
 			client3 = Ignition.start(createConfiguration("client3", true));
 			client4 = Ignition.start(createConfiguration("client4", true));
-			
+
 			assertThat(service.isCurrentNodeLeader(client1)).isTrue();
 			assertThat(service.isCurrentNodeLeader(client2)).isFalse();
 			assertThat(service.isCurrentNodeLeader(client3)).isFalse();
 			assertThat(service.isCurrentNodeLeader(client4)).isFalse();
-			
+
 			closeQuitely(client1);
-			
+
 			assertThat(service.isCurrentNodeLeader(client2)).isTrue();
 			assertThat(service.isCurrentNodeLeader(client3)).isFalse();
 			assertThat(service.isCurrentNodeLeader(client4)).isFalse();
-			
+
 			closeQuitely(client2);
-			
+
 			assertThat(service.isCurrentNodeLeader(client3)).isTrue();
 			assertThat(service.isCurrentNodeLeader(client4)).isFalse();
-			
+
 			closeQuitely(client3);
-			
+
 			assertThat(service.isCurrentNodeLeader(client4)).isTrue();
-			
+
 			closeQuitely(client4);
 		} catch (IgniteException e) {
 			closeQuitely(client1);
 			closeQuitely(client2);
 			closeQuitely(client3);
 			closeQuitely(client4);
-			
+
 			throw e;
 		}
 	}

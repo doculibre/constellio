@@ -689,7 +689,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		if (schemaTypeCode.contains("_")) {
 			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(schemaTypeCode);
 		}
-		if (cachedTypes.containsKey(schemaTypeCode)) {
+		if (!cachedTypes.containsKey(schemaTypeCode)) {
 			removeCache(schemaTypeCode);
 		}
 
@@ -697,7 +697,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 		cachedMetadatasBySchemaType.put(schemaTypeCode, cacheConfig.getIndexes());
 
-		if (cacheConfig.isLoadedInitially()) {
+		if (cacheConfig.isLoadedInitially() && getByIdRecordHoldersCount(schemaTypeCode) == 0) {
 			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
@@ -760,6 +760,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	public boolean isConfigured(String typeCode) {
 		return cachedTypes.containsKey(typeCode);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return permanentRecordHoldersCache.size() == 0 && volatileRecordHoldersCache.size() == 0;
 	}
 
 	@Override

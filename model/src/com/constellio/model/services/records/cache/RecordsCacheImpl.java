@@ -129,6 +129,23 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 	}
 
+	@Override
+	public boolean isEmpty() {
+		for (VolatileCache cache : volatileCaches.values()) {
+			if (cache.recordsInCache > 0) {
+				return false;
+			}
+		}
+
+		for (PermanentCache cache : permanentCaches.values()) {
+			if (!cache.holders.isEmpty()) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
 			for (Record record : records) {

@@ -174,8 +174,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
-				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getConstellioJobManager()));
+				new LDAPUserSyncManager(this));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
 						ioServicesFactory.newHashingService(BASE64), newUserServices()));

@@ -1,5 +1,16 @@
 package com.constellio.model.services.batch.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -15,16 +26,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 import com.constellio.model.services.users.UserServices;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -51,7 +52,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
-		this.userServices =  modelLayerFactory.newUserServices();
+		this.userServices = modelLayerFactory.newUserServices();
 	}
 
 	@Override
@@ -68,24 +69,26 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	void process()
 			throws Exception {
 
-		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
-		if (batchProcess != null) {
-			try {
-				if (batchProcess.getRecords() != null) {
-					processFromIds(batchProcess);
-				} else {
-					processFromQuery(batchProcess);
+		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
+			BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+			if (batchProcess != null) {
+				try {
+					if (batchProcess.getRecords() != null) {
+						processFromIds(batchProcess);
+					} else {
+						processFromQuery(batchProcess);
+					}
+				} catch (Exception e) {
+					batchProcessesManager.markAsFinished(batchProcess, 1);
+					throw e;
 				}
-			} catch (Exception e) {
-				batchProcessesManager.markAsFinished(batchProcess, 1);
-				throw e;
 			}
 		}
-		//newEventSemaphore.release();
 		waitUntilNotified();
 	}
 
-	private void processFromIds(BatchProcess batchProcess) throws Exception{
+	private void processFromIds(BatchProcess batchProcess)
+			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);

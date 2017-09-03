@@ -40,6 +40,8 @@ import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
+import com.constellio.data.dao.services.ignite.LeaderElectionService;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -91,7 +93,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public static int countInit;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
 
 		super(statefullServiceDecorator, instanceName);
 		countConstructor++;
@@ -111,6 +113,21 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
+
+		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
+			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
+		}
+		add(settingsCacheManager);
+		add(recordsCacheManager);
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
@@ -164,9 +181,13 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			secondTransactionLogManager = null;
 		}
 	}
-	
+
 	public void setConstellioVersion(String constellioVersion) {
 		this.constellioVersion = constellioVersion;
+	}
+
+	public LeaderElectionService getLeaderElectionService() {
+		return new DefaultLeaderElectionServiceImpl(this);
 	}
 
 	public DataLayerExtensions getExtensions() {
@@ -246,22 +267,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 					.printStackTrace();
 		}
 		super.initialize();
-		
-		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
-			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), constellioVersion);
-			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), constellioVersion);
-		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
-			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
-			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
-		}
-		add(settingsCacheManager);
-		add(recordsCacheManager);
-		
+
 		newRecordDao().removeOldLocks();
 	}
 

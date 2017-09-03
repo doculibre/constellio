@@ -56,7 +56,6 @@ import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
-import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -65,7 +64,6 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
-import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class AppManagementService {
@@ -142,11 +140,7 @@ public class AppManagementService {
 				throw new RuntimeException(e);
 			}
 			String warVersion = findWarVersion(tempFolder);
-
-			String currentWarVersion = getWarVersion();
-			if (currentWarVersion == null || currentWarVersion.equals("5.0.5")) {
-				currentWarVersion = GradleFileVersionParser.getVersion();
-			}
+			String currentWarVersion = GetWarVersionUtils.getWarVersionUsingGradleAsFallback(null);
 
 			currentStep = "Based on jar file, the version of the new war is '" + warVersion + "', current version is '"
 					+ currentWarVersion + "'";
@@ -340,7 +334,7 @@ public class AppManagementService {
 	private Map<String, File> getExistingVersionsFoldersMappedByVersion(File webAppsFolder, File deployFolder) {
 		Map<String, File> existingWebAppsMappedByVersion = new HashMap<>();
 		for (File webApp : webAppsFolder.listFiles(new WebAppFileNameFilter())) {
-			String version = getWarVersionFromFileName(webApp);
+			String version = GetWarVersionUtils.getWarVersionFromFileName(webApp);
 			if (VersionValidator.isValidVersion(version) && !webApp.getName().equals(deployFolder.getName())) {
 				File associatedWebAppFolder = existingWebAppsMappedByVersion.get(version);
 				if (associatedWebAppFolder != null) {
@@ -441,39 +435,7 @@ public class AppManagementService {
 	}
 
 	public String getWarVersion() {
-		return getWarVersion(null);
-	}
-
-	private String getWarVersion(File webAppFolder) {
-		try {
-			File webappLibs;
-			if (webAppFolder == null) {
-				webappLibs = foldersLocator.getLibFolder();
-			} else {
-				webappLibs = foldersLocator.getLibFolder(webAppFolder);
-			}
-
-			if (webappLibs.exists()) {
-				for (File lib : webappLibs.listFiles()) {
-					if (lib.getName().startsWith("core-model-") && lib.getName().endsWith(".jar")) {
-						return lib.getName().replace("core-model-", "").replace(".jar", "");
-					}
-				}
-			}
-		} catch (FoldersLocatorRuntimeException.NotAvailableInGitMode e) {
-		}
-
-		return "5.0.0";
-	}
-
-	private String getWarVersionFromFileName(File webAppFolder) {
-		String folderName = webAppFolder.getName();
-		if (folderName.startsWith("webapp-")) {
-			return StringUtils.substringAfter(folderName, "webapp-");
-
-		} else {
-			return getWarVersion(webAppFolder);
-		}
+		return GetWarVersionUtils.getWarVersion(null);
 	}
 
 	public String getChangelogURLFromServer()
@@ -669,7 +631,7 @@ public class AppManagementService {
 
 	private ConstellioVersionInfo getCurrentInstalledVersionInfo() {
 		File versionDirectory = foldersLocator.getConstellioWebappFolder();
-		String version = getWarVersion(versionDirectory);
+		String version = GetWarVersionUtils.getWarVersion(versionDirectory);
 		return new ConstellioVersionInfo(version, versionDirectory.getAbsolutePath());
 	}
 

@@ -45,19 +45,12 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				List<Record> records = searchServices.search(query);
 
 				if (!records.isEmpty()) {
-					System.out.println("---------------------------------------");
-					for (Record record : records) {
-						System.out.println("Reindexing : " + record.getId());
-					}
-
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
 							.setOptimisticLockingResolution(EXCEPTION));
 					executeTransaction(transaction);
 				}
 			}
-		} else {
-			System.out.println("Reindexing!");
 		}
 	}
 

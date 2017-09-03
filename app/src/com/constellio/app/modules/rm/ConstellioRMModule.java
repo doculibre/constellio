@@ -76,7 +76,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public static final String NAME = "Constellio RM";
 
 	public static final int DEFAULT_VOLATILE_EVENTS_CACHE_SIZE = 10000;
-	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE = 100000;
 	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
 
 	@Override

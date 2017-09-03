@@ -242,6 +242,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		return 0;
 	}
 
+	@Override
+	public boolean isEmpty() {
+		return cache.isEmpty() && nested.isEmpty();
+	}
+
 	public void disconnect() {
 		disconnected = true;
 		cache.clear();

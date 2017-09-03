@@ -1,5 +1,11 @@
 package com.constellio.data.threads;
 
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.quartz.CronExpression;
@@ -18,11 +24,7 @@ import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 /**
  *
@@ -30,106 +32,115 @@ import java.util.TreeSet;
 @DisallowConcurrentExecution
 public abstract class ConstellioJob implements Job {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    @Override
-    public final void execute(JobExecutionContext context) throws JobExecutionException {
-        final JobKey jobKey = context.getJobDetail().getKey();
+	DataLayerFactory dataLayerFactory;
 
-        try {
-            LOGGER.info("job fired");
+	public ConstellioJob(DataLayerFactory dataLayerFactory) {
+		this.dataLayerFactory = dataLayerFactory;
+	}
 
-            action().run();
+	@Override
+	public final void execute(JobExecutionContext context)
+			throws JobExecutionException {
+		if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
+			final JobKey jobKey = context.getJobDetail().getKey();
 
-            LOGGER.info("job finished");
-        } catch (final Throwable t) {
-            final JobExecutionException jobExecutionException = new JobExecutionException(t);
-            jobExecutionException.setUnscheduleFiringTrigger(unscheduleOnException());
-            throw jobExecutionException;
-        }
-    }
+			try {
+				LOGGER.info("job fired");
 
-    protected abstract String name();
+				action().run();
 
-    protected abstract Runnable action();
+				LOGGER.info("job finished");
+			} catch (final Throwable t) {
+				final JobExecutionException jobExecutionException = new JobExecutionException(t);
+				jobExecutionException.setUnscheduleFiringTrigger(unscheduleOnException());
+				throw jobExecutionException;
+			}
+		}
+	}
 
-    protected abstract boolean unscheduleOnException();
+	protected abstract String name();
 
-    protected abstract Set<Integer> intervals();
+	protected abstract Runnable action();
 
-    protected abstract Set<String> cronExpressions();
+	protected abstract boolean unscheduleOnException();
 
-    protected Date startTime() {
-        return null;
-    }
+	protected abstract Set<Integer> intervals();
 
-    JobDetail buildJobDetail() {
-        return JobBuilder.
-                newJob(getClass()).
-                withIdentity(name(), Scheduler.DEFAULT_GROUP).
-                build();
-    }
+	protected abstract Set<String> cronExpressions();
 
-    Set<Trigger> buildIntervalTriggers() {
-        final Set<Trigger> triggers = new HashSet<>();
+	protected Date startTime() {
+		return null;
+	}
 
-        Set<Integer> intervals = intervals();
+	JobDetail buildJobDetail() {
+		return JobBuilder.
+				newJob(getClass()).
+				withIdentity(name(), Scheduler.DEFAULT_GROUP).
+				build();
+	}
 
-        if (CollectionUtils.isNotEmpty(intervals)) {
-            intervals = new TreeSet<>(intervals);
+	Set<Trigger> buildIntervalTriggers() {
+		final Set<Trigger> triggers = new HashSet<>();
 
-            for (final int interval : intervals) {
-                final TriggerBuilder triggerBuilder = TriggerBuilder.
-                        newTrigger().
-                        withIdentity(name() + "-Trigger-" + interval, Scheduler.DEFAULT_GROUP).
-                        withSchedule(SimpleScheduleBuilder.
-                                simpleSchedule().
-                                withIntervalInSeconds(interval).
-                                repeatForever());
+		Set<Integer> intervals = intervals();
 
-                if (startTime() == null) {
-                    triggerBuilder.startAt(DateTime.now().plusSeconds(interval).toDate());
-                } else {
-                    triggerBuilder.startAt(startTime());
-                }
+		if (CollectionUtils.isNotEmpty(intervals)) {
+			intervals = new TreeSet<>(intervals);
 
-                triggers.add(triggerBuilder.build());
-            }
-        }
+			for (final int interval : intervals) {
+				final TriggerBuilder triggerBuilder = TriggerBuilder.
+						newTrigger().
+						withIdentity(name() + "-Trigger-" + interval, Scheduler.DEFAULT_GROUP).
+						withSchedule(SimpleScheduleBuilder.
+								simpleSchedule().
+								withIntervalInSeconds(interval).
+								repeatForever());
 
-        return triggers;
-    }
+				if (startTime() == null) {
+					triggerBuilder.startAt(DateTime.now().plusSeconds(interval).toDate());
+				} else {
+					triggerBuilder.startAt(startTime());
+				}
 
-    Set<Trigger> buildCronTriggers() {
-        final Set<Trigger> triggers = new HashSet<>();
+				triggers.add(triggerBuilder.build());
+			}
+		}
 
-        Set<String> cronExpressions = cronExpressions();
+		return triggers;
+	}
 
-        if (CollectionUtils.isNotEmpty(cronExpressions)) {
-            cronExpressions = new TreeSet<>(cronExpressions);
+	Set<Trigger> buildCronTriggers() {
+		final Set<Trigger> triggers = new HashSet<>();
 
-            for (final String cronExpression : cronExpressions) {
-                try {
-                    final TriggerBuilder triggerBuilder = TriggerBuilder.
-                            newTrigger().
-                            withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
-                            withSchedule(CronScheduleBuilder.
-                                    cronSchedule(cronExpression));
-                    ;
-                    if (startTime() == null) {
-                        triggerBuilder.startAt( new CronExpression(cronExpression).getNextValidTimeAfter(new Date()));
-                    } else {
-                        triggerBuilder.startAt(startTime());
-                    }
+		Set<String> cronExpressions = cronExpressions();
 
-                    triggers.add(triggerBuilder.build());
-                } catch (final ParseException e) {
-                    LOGGER.error("invalid cron expression " + cronExpression , e);
-                }
-            }
-        }
+		if (CollectionUtils.isNotEmpty(cronExpressions)) {
+			cronExpressions = new TreeSet<>(cronExpressions);
 
-        return triggers;
-    }
+			for (final String cronExpression : cronExpressions) {
+				try {
+					final TriggerBuilder triggerBuilder = TriggerBuilder.
+							newTrigger().
+							withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
+							withSchedule(CronScheduleBuilder.
+									cronSchedule(cronExpression));
+					;
+					if (startTime() == null) {
+						triggerBuilder.startAt(new CronExpression(cronExpression).getNextValidTimeAfter(new Date()));
+					} else {
+						triggerBuilder.startAt(startTime());
+					}
+
+					triggers.add(triggerBuilder.build());
+				} catch (final ParseException e) {
+					LOGGER.error("invalid cron expression " + cronExpression, e);
+				}
+			}
+		}
+
+		return triggers;
+	}
 
 }
