@@ -992,6 +992,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
+		if (selectedRecordIds.isEmpty()) {
+			allItemsSelected = false;
+			return;
+		}
+
 		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
 		for (String subFolderId : subFolderIds) {
 			if (!selectedRecordIds.contains(subFolderId)) {

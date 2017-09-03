@@ -106,6 +106,14 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.toRecord(recordVO, newMinorEmpty);
 	}
 
+	protected Record toNewRecord(RecordVO recordVO) {
+		return schemaPresenterUtils.toNewRecord(recordVO);
+	}
+
+	protected Record toNewRecord(RecordVO recordVO, boolean newMinorEmpty) {
+		return schemaPresenterUtils.toNewRecord(recordVO, newMinorEmpty);
+	}
+
 	protected Content toContent(ContentVersionVO contentVersionVO) {
 		return schemaPresenterUtils.toContent(contentVersionVO);
 	}

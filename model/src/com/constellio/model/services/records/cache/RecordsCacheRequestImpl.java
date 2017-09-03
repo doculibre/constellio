@@ -83,8 +83,18 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
+	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
+		nested.insertQueryResultIds(query, recordIds);
+	}
+
+	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		return nested.getQueryResults(query);
+	}
+
+	@Override
+	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+		return nested.getQueryResultIds(query);
 	}
 
 	@Override

@@ -87,7 +87,9 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-					LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+					LOGGER.info(
+							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
+									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
 						connectorJobsMap.put(crawledConnector, connectorJobs);
@@ -125,7 +127,6 @@ public class ConnectorCrawler {
 				waitSinceNoJobs();
 			}
 
-
 			if (crawledConnectors.isEmpty()) {
 				waitSinceNoJobs();
 			}
@@ -150,7 +151,7 @@ public class ConnectorCrawler {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(es.connectorInstance.schemaType()).where(es.connectorInstance.enabled()).isTrue());
 		query.sortAsc(es.connectorInstance.code());
-		return es.wrapConnectorInstances(es.getSearchServices().search(query));
+		return es.wrapConnectorInstances(es.getSearchServices().cachedSearch(query));
 	}
 
 	private void initializeStartAndStopConnectors(List<ConnectorInstance> connectorInstances) {
@@ -226,7 +227,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorLogger logger,
-														   ConnectorEventObserver eventObserver) {
+			ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new SimpleConnectorJobCrawler(), logger, eventObserver);
 	}
 
@@ -235,7 +236,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorLogger logger,
-														 ConnectorEventObserver eventObserver) {
+			ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new MultithreadConnectorJobCrawler(), logger, eventObserver);
 	}
 

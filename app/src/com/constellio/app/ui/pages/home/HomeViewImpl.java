@@ -33,6 +33,7 @@ import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAd
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
+import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -62,11 +63,11 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
-	
+
 	private final HomePresenter presenter;
 	private List<PageItem> tabs;
 	private TabSheet tabSheet;
-	
+
 	private List<ContextMenuDecorator> contextMenuDecorators = new ArrayList<>();
 
 	public HomeViewImpl() {
@@ -179,7 +180,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			public boolean isAllItemsDeselected() {
 				return isAllItemsDeselectedByItemId();
 			}
-			
+
 			@Override
 			public void setSelected(Object itemId, boolean selected) {
 				RecordVO recordVO = recentTable.getRecordVO(itemId);
@@ -187,7 +188,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				presenter.selectionChanged(recordId, selected);
 				adjustSelectAllButton(selected);
 			}
-			
+
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVO recordVO = recentTable.getRecordVO(itemId);
@@ -198,7 +199,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildRecordTable(final RecordTable recordTable) {
-		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		RecordVODataProvider dataProvider = recordTable
+				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
 		table.addStyleName("record-table");
@@ -241,7 +243,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			public boolean isAllItemsDeselected() {
 				return isAllItemsDeselectedByItemId();
 			}
-			
+
 			@Override
 			public boolean isSelected(Object itemId) {
 				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
@@ -277,7 +279,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
-	
+
 	private static int getBufferSizeFromConfig() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -286,12 +288,20 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private RecordLazyTree buildRecordTree(RecordTree recordTree, final RecordLazyTreeDataProvider provider) {
 		RecordLazyTree tree = new RecordLazyTree(provider, getBufferSizeFromConfig());
-		tree.addItemClickListener(new ItemClickListener() {
+		tree.addItemClickListener(new TreeItemClickListener() {
+
+			boolean clickNavigating;
+
+			@Override
+			public boolean shouldExpandOrCollapse(ItemClickEvent event) {
+				return !clickNavigating;
+			}
+
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
 					String recordId = (String) event.getItemId();
-					presenter.recordClicked(recordId, provider.getTaxonomyCode());
+					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode());
 				}
 			}
 		});
@@ -312,7 +322,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		});
 
 		tree.loadAndExpand(recordTree.getExpandedRecordIds());
-		
+
 		return tree;
 	}
 
@@ -324,15 +334,15 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		component.setSizeFull();
 		return component;
 	}
-	
+
 	public void addContextMenuDecorator(ContextMenuDecorator decorator) {
 		this.contextMenuDecorators.add(decorator);
 	}
-	
+
 	public List<ContextMenuDecorator> getContextMenuDecorators() {
 		return this.contextMenuDecorators;
 	}
-	
+
 	public void removeContextMenuDecorator(ContextMenuDecorator decorator) {
 		this.contextMenuDecorators.remove(decorator);
 	}
@@ -350,13 +360,13 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private class RecentTable extends BaseTable {
-		
+
 		private static final String MENUBAR_PROPERTY_ID = "menuBar";
-		
+
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
-			
+
 			BeanItemContainer container = new BeanItemContainer<>(RecentItem.class, recentItems);
 			setContainerDataSource(container);
 
@@ -394,7 +404,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					return null;
 				}
 			});
-			
+
 			addContextMenuAndMenuBarColumn(recentItems);
 		}
 
@@ -408,16 +418,16 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			}
 			return super.getContainerProperty(itemId, propertyId);
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		private RecordVO getRecordVO(Object itemId) {
 			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
 			RecordVO recordVO = recordVOItem.getBean().getRecord();
 			return recordVO;
 		}
-		
+
 		protected void addContextMenuAndMenuBarColumn(List<RecentItem> recentItems) {
-			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
+			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
 			if (!menuBarColumnGenerated) {
 				boolean menuBarRequired = false;
 				String schemaCode = null;
@@ -433,7 +443,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 				if (menuBarRequired) {
 					RecordContextMenu contextMenu = null;
-					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
+					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent()
+							.getRecordContextMenuHandlers();
 					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
 						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
 							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
@@ -461,14 +472,15 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 						};
 						contextMenu.addContextMenuTableListener(contextMenuTableListener);
 					}
-					
+
 					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
 						@Override
 						public Object generateCell(Table source, Object itemId, Object columnId) {
 							RecordVO recordVO = getRecordVO(itemId);
 
 							MenuBar menuBar = null;
-							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent()
+									.getRecordMenuBarHandlers();
 							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 								menuBar = recordMenuBarHandler.get(recordVO);
 								if (menuBar != null) {
@@ -487,6 +499,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	@Override
 	public void openURL(String url) {
 		Page.getCurrent().open(url, null);
-	}	
+	}
 
 }

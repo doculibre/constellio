@@ -95,6 +95,16 @@ public class SearchServices {
 		return records;
 	}
 
+	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
+		RecordsCache recordsCache = recordsCaches.getCache(query.getCondition().getCollection());
+		List<String> records = recordsCache.getQueryResultIds(query);
+		if (records == null) {
+			records = searchRecordIds(query);
+			recordsCache.insertQueryResultIds(query, records);
+		}
+		return records;
+	}
+
 	public Map<Record, Map<Record, Double>> searchWithMoreLikeThis(LogicalSearchQuery query) {
 		return query(query).getRecordsWithMoreLikeThis();
 	}

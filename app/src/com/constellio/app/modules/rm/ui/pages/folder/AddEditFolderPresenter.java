@@ -61,6 +61,7 @@ import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -268,6 +269,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return folderVO;
 	}
 
+	@Override
+	protected Record toRecord(RecordVO recordVO) {
+		if (addView) {
+			return super.toNewRecord(recordVO);
+		} else {
+			return super.toRecord(recordVO);
+		}
+	}
+
 	public void saveButtonClicked() {
 		Folder folder = rmSchemas().wrapFolder(toRecord(getFolderVO()));
 		if (!canSaveFolder(folder, getCurrentUser())) {
@@ -376,7 +386,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					Object formValue = folderVO.get(metadataVO);
 					Object newDefaultValue = matchingMetadata.getDefaultValue();
 					Object oldDefaultValue = metadataVO.getDefaultValue();
-					if(formValue == null || formValue.equals(oldDefaultValue)) {
+					if (formValue == null || formValue.equals(oldDefaultValue)) {
 						folder.getWrappedRecord().set(matchingMetadata, newDefaultValue);
 					} else {
 						folder.getWrappedRecord().set(matchingMetadata, formValue);
@@ -636,8 +646,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			folder.setRetentionRuleEntered(retentionRuleField.getFieldValue());
 		}
 
-
-		if(folder.getCopyStatus() != null && retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
+		if (folder.getCopyStatus() != null && retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 			try {
 				RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(retentionRuleField.getFieldValue());
 				return !retentionRule.isResponsibleAdministrativeUnits();

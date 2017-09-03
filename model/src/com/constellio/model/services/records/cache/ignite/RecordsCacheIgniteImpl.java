@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.ignite;
 
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.Serializable;
@@ -14,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.cache.Cache;
 
@@ -95,7 +95,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.permanentRecordByMetadataCacheName = collection + ".recordsByMetadata.permanent";
 		this.volatileRecordByMetadataCacheName = collection + ".recordsByMetadata.volatile";
 
-		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = new CacheConfiguration<>(permanentQueryResultsCacheName);
+		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = new CacheConfiguration<>(
+				permanentQueryResultsCacheName);
 		permanentQueryResultsCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentQueryResultsCacheCfg.setReadFromBackup(true);
 		permanentQueryResultsCacheCfg.setBackups(0);
@@ -107,13 +108,15 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		volatileQueryResultsCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
 		volatileQueryResultsCacheCfg.setIndexedTypes(String.class, QueryResultsHolder.class);
 
-		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = new CacheConfiguration<>(permanentByIdRecordHoldersCacheName);
+		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = new CacheConfiguration<>(
+				permanentByIdRecordHoldersCacheName);
 		permanentByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentByIdRecordHoldersCacheCfg.setReadFromBackup(true);
 		permanentByIdRecordHoldersCacheCfg.setBackups(0);
 		permanentByIdRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
-		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = new CacheConfiguration<>(volatileByIdRecordHoldersCacheName);
+		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = new CacheConfiguration<>(
+				volatileByIdRecordHoldersCacheName);
 		volatileByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		volatileByIdRecordHoldersCacheCfg.setOnheapCacheEnabled(true);
 		volatileByIdRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
@@ -149,12 +152,16 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 		this.permanentQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentQueryResultsCacheCfg);
 		this.volatileQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileQueryResultsCacheCfg);
-		this.permanentByIdRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentByIdRecordHoldersCacheCfg);
-		this.volatileByIdRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileByIdRecordHoldersCacheCfg);
+		this.permanentByIdRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(permanentByIdRecordHoldersCacheCfg);
+		this.volatileByIdRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(volatileByIdRecordHoldersCacheCfg);
 		this.permanentRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentRecordHoldersCacheCfg);
 		this.volatileRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileRecordHoldersCacheCfg);
-		this.permanentRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentRecordByMetadataCacheCfg);
-		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileRecordByMetadataCacheCfg);
+		this.permanentRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(permanentRecordByMetadataCacheCfg);
+		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(volatileRecordByMetadataCacheCfg);
 	}
 
 	private boolean isVolatile(String schemaTypeCode) {
@@ -460,17 +467,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return holder != null && holder.getCopy() != null;
 	}
 
-	static AtomicInteger compteur = new AtomicInteger();
-
-	static Set<String> ids = new HashSet<>();
-
 	@Override
 	public Record get(String id) {
-
-		compteur.incrementAndGet();
-		synchronized (RecordsCacheIgniteImpl.class) {
-			ids.add(id);
-		}
 
 		RecordHolder holder = permanentByIdRecordHoldersCache.get(id);
 		if (holder == null) {
@@ -495,7 +493,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
-		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query);
+		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, false);
 		if (schemaTypeCodeForStorageInCache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
@@ -515,7 +513,23 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		}
 	}
 
-	private String getSchemaTypeCodeForStorageInCache(LogicalSearchQuery query) {
+	@Override
+	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
+		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, true);
+		if (schemaTypeCodeForStorageInCache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			long start = new Date().getTime();
+
+			long end = new Date().getTime();
+
+			modelLayerFactory.getExtensions().getSystemWideExtensions()
+					.onPutQueryResultsInCache(signature, recordIds, end - start);
+			putQueryResults(schemaTypeCodeForStorageInCache, signature, recordIds);
+		}
+	}
+
+	private String getSchemaTypeCodeForStorageInCache(LogicalSearchQuery query, boolean onlyIds) {
 		String schemaTypeCodeForStorageInCache;
 		LogicalSearchCondition condition = query.getCondition();
 		DataStoreFilters filters = condition.getFilters();
@@ -523,7 +537,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			SchemaFilters schemaFilters = (SchemaFilters) filters;
 
 			if (schemaFilters.getSchemaTypeFilter() != null
-					&& hasNoUnsupportedFeatureOrFilter(query)) {
+					&& hasNoUnsupportedFeatureOrFilter(query, onlyIds)) {
 				String schemaTypeCode = schemaFilters.getSchemaTypeFilter().getCode();
 				CacheConfig cacheConfig = getCacheConfigOf(schemaTypeCode);
 				if (cacheConfig != null && cacheConfig.isPermanent()) {
@@ -540,35 +554,16 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return schemaTypeCodeForStorageInCache;
 	}
 
-	private boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-				&& query.getFieldBoosts().isEmpty()
-				&& query.getQueryBoosts().isEmpty()
-				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 100000
-				&& query.getStatisticFields().isEmpty()
-				&& !query.isPreferAnalyzedFields()
-				&& query.getResultsProjection() == null
-				&& query.getFieldFacets().isEmpty()
-				&& query.getQueryFacets().isEmpty()
-				&& query.getReturnedMetadatas().isFullyLoaded()
-				&& query.getUserFilter() == null
-				&& !query.isHighlighting();
-	}
-
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		List<Record> cachedResults = null;
-		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query);
+		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, false);
 		if (schemaTypeCodeForStorageInCache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
-			long start = new Date().getTime();
-			List<String> recordIds = getQueryResults(schemaTypeCodeForStorageInCache, signature);
-			long end = new Date().getTime();
+			List<String> recordIds = getQueryResultIds(query);
 			if (recordIds != null) {
 				cachedResults = new ArrayList<>();
-
 				for (String recordId : recordIds) {
 					Record record = get(recordId);
 					if (record != null) {
@@ -576,6 +571,25 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					}
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+			}
+
+		}
+
+		return cachedResults;
+	}
+
+	@Override
+	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+		List<String> cachedResultIds = null;
+		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, true);
+		if (schemaTypeCodeForStorageInCache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			long start = new Date().getTime();
+			cachedResultIds = getQueryResults(schemaTypeCodeForStorageInCache, signature);
+			long end = new Date().getTime();
+			if (cachedResultIds != null) {
+				cachedResultIds = Collections.unmodifiableList(cachedResultIds);
 				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, end - start);
 
 			} else {
@@ -584,7 +598,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 		}
 
-		return cachedResults;
+		return cachedResultIds;
 	}
 
 	@Override

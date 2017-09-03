@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -157,7 +158,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
 
-		PermanentCache cache = getCacheFor(query);
+		PermanentCache cache = getCacheFor(query, false);
 		if (cache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
@@ -172,14 +173,26 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 	}
 
-	PermanentCache getCacheFor(LogicalSearchQuery query) {
+	@Override
+	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
+
+		PermanentCache cache = getCacheFor(query, true);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
+			cache.queryResults.put(signature.toStringSignature(), recordIds);
+		}
+	}
+
+	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
 		LogicalSearchCondition condition = query.getCondition();
 		DataStoreFilters filters = condition.getFilters();
 		if (filters instanceof SchemaFilters) {
 			SchemaFilters schemaFilters = (SchemaFilters) filters;
 
 			if (schemaFilters.getSchemaTypeFilter() != null
-					&& hasNoUnsupportedFeatureOrFilter(query)) {
+					&& hasNoUnsupportedFeatureOrFilter(query, onlyIds)) {
 				CacheConfig cacheConfig = getCacheConfigOf(schemaFilters.getSchemaTypeFilter().getCode());
 				if (cacheConfig != null && cacheConfig.isPermanent()) {
 					return permanentCaches.get(cacheConfig.getSchemaType());
@@ -190,30 +203,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		return null;
 	}
 
-	private boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-				&& query.getFieldBoosts().isEmpty()
-				&& query.getQueryBoosts().isEmpty()
-				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 100000
-				&& query.getStatisticFields().isEmpty()
-				&& !query.isPreferAnalyzedFields()
-				&& query.getResultsProjection() == null
-				&& query.getFieldFacets().isEmpty()
-				&& query.getQueryFacets().isEmpty()
-				&& query.getReturnedMetadatas().isFullyLoaded()
-				&& query.getUserFilter() == null
-				&& !query.isHighlighting();
-	}
-
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		List<Record> cachedResults = null;
-		PermanentCache cache = getCacheFor(query);
+		PermanentCache cache = getCacheFor(query, false);
 		if (cache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
-			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
+			List<String> recordIds = getQueryResultIds(query);
 			if (recordIds != null) {
 				cachedResults = new ArrayList<>();
 
@@ -221,6 +218,22 @@ public class RecordsCacheImpl implements RecordsCache {
 					cachedResults.add(get(recordId));
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+			}
+		}
+
+		return cachedResults;
+	}
+
+	@Override
+	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+		List<String> cachedResults = null;
+		PermanentCache cache = getCacheFor(query, true);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
+			if (recordIds != null) {
+				cachedResults = Collections.unmodifiableList(recordIds);
 				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
 
 			} else {

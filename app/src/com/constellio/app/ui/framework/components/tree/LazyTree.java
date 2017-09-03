@@ -42,7 +42,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
 		this(treeDataProvider, getBufferSizeFromConfig());
 	}
-	
+
 	private static int getBufferSizeFromConfig() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -170,14 +170,23 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 				} else {
 					setValue((T) itemId);
 					// Forward to the adaptee
-					if (isExpanded(itemId)) {
-						adaptee.collapseItem(itemId);
-					} else {
-						adaptee.expandItem(itemId);
-					}
+
+					boolean shouldExpandOrCollapse = true;
 					for (ItemClickListener itemClickListener : itemClickListeners) {
 						itemClickListener.itemClick(event);
+						if (itemClickListener instanceof TreeItemClickListener) {
+							shouldExpandOrCollapse &= ((TreeItemClickListener) itemClickListener).shouldExpandOrCollapse(event);
+						}
 					}
+
+					if (shouldExpandOrCollapse) {
+						if (isExpanded(itemId)) {
+							adaptee.collapseItem(itemId);
+						} else {
+							adaptee.expandItem(itemId);
+						}
+					}
+
 				}
 			}
 		});
@@ -202,7 +211,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 
 		return adaptee;
 	}
-	
+
 	private void adjustLoaderAfterExpand(T itemId) {
 		Object loaderId = getLoaderId(itemId);
 		if (loaderId != null) {
@@ -216,7 +225,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		Resource icon = getItemIcon(itemId);
 		setItemIcon(itemId, icon, "");
 	}
-	
+
 	private void adjustLoaderAfterCollapse(T itemId) {
 		Resource icon = getItemIcon(itemId);
 		setItemIcon(itemId, icon, "");
@@ -470,17 +479,17 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	public boolean isExpanded(Object itemId) {
 		return adaptee.isExpanded(itemId);
 	}
-	
+
 	/**
 	 * Will load the nodes corresponding to the item ids passed. Each item id corresponds to a parent 
 	 * except for the last one, which is the last node, which can be a leaf.
-	 * 
+	 *
 	 * The item ids are ordered from the root level to the leaf level. Omitting any level will prevent 
 	 * the tree from loading the desired node.
-	 * 
+	 *
 	 * Note: The lazy loading of a level will stop after 10 attempts. This is necessary to prevent 
 	 * performance issues.
-	 * 
+	 *
 	 * @param itemIds The item ids to load, from the root level to the leaf level.
 	 * @return
 	 */
@@ -492,19 +501,20 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 			if (itemFound == null) {
 				match = false;
 				break;
-			} 
+			}
 			currentParentId = itemId;
 		}
 		return match;
 	}
-	
+
 	public Item loadUntil(T itemId, T parentId) {
 		// Ensures that initContent() has been called
 		getContent();
-		
+
 		Item match = adaptee.getItem(itemId);
 		if (match == null) {
-			loop1 : for (int i = 0; match == null && i < 10; i++) {
+			loop1:
+			for (int i = 0; match == null && i < 10; i++) {
 				int start;
 				ObjectsResponse<T> extraObjectsResponse;
 				Object lastLoaderItemId = null;
@@ -542,7 +552,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 							}
 						} else {
 							start = 0;
-						}	
+						}
 						extraObjectsResponse = dataProvider.getChildren(parentId, start, bufferSize);
 					} else {
 						break loop1;

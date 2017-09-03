@@ -184,6 +184,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
+	public final Record toNewRecord(RecordVO recordVO) {
+		return toNewRecord(recordVO, false);
+	}
+
+	@SuppressWarnings("unchecked")
 	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
 		Record record;
 		try {
@@ -191,6 +196,19 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			record = newRecord(recordVO.getId());
 		}
+		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
+		return record;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final Record toNewRecord(RecordVO recordVO, boolean newMinorEmpty) {
+		Record record = newRecord(recordVO.getId());
+		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
+		return record;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final void fillRecordUsingRecordVO(Record record, RecordVO recordVO, boolean newMinorEmpty) {
 		String recordSchemaCode = record.getSchemaCode();
 		MetadataSchema currentSchema = schema(recordSchemaCode);
 		MetadataSchema targetSchema = schema(schemaCode);
@@ -267,7 +285,6 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				}
 			}
 		}
-		return record;
 	}
 
 	private Content getContent(String id, List<Content> contentList) {

@@ -43,7 +43,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	private static Logger LOGGER = LoggerFactory.getLogger(HomePresenter.class);
 
 	private String currentTab;
-	
+
 	private List<PageItem> tabItems;
 
 	public HomePresenter(HomeView view) {
@@ -58,20 +58,22 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			String taxonomyCodeParam = paramsMap.get("taxonomyCode");
 			String taxonomyMetadataParam = paramsMap.get("taxonomyMetadata");
 			String expandedRecordIdParam = paramsMap.get("expandedRecordId");
-			
+
 			if (tabParam == null) {
 				currentTab = getDefaultTab();
 			} else {
 				currentTab = tabParam;
 			}
-			
+
 			SessionContext sessionContext = view.getSessionContext();
 			if (taxonomyCodeParam != null) {
 				// Looking for a tree tab matching current tab 
-				loop1 : for (PageItem tabItem : tabItems) {
+				loop1:
+				for (PageItem tabItem : tabItems) {
 					if ((tabItem instanceof RecordTree) && currentTab.equals(tabItem.getCode())) {
 						RecordTree recordTree = (RecordTree) tabItem;
-						List<RecordLazyTreeDataProvider> dataProviders = recordTree.getDataProviders(appLayerFactory, sessionContext);
+						List<RecordLazyTreeDataProvider> dataProviders = recordTree
+								.getDataProviders(appLayerFactory, sessionContext);
 						for (int i = 0; i < dataProviders.size(); i++) {
 							RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
 							String dataProviderTaxonomyCode = dataProvider.getTaxonomyCode();
@@ -80,10 +82,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 								if (expandedRecordIdParam != null) {
 									Record expandedRecord = getRecord(expandedRecordIdParam);
-									
+
 									List<String> expandedRecordIds = new ArrayList<>();
 									expandedRecordIds.add(0, expandedRecordIdParam);
-									
+
 									Record lastAddedParent = null;
 									String currentParentId = expandedRecord.getParentId();
 									while (currentParentId != null) {
@@ -91,7 +93,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 										expandedRecordIds.add(0, currentParentId);
 										currentParentId = lastAddedParent.getParentId();
 									}
-									
+
 									String taxonomyRecordId;
 									if (taxonomyMetadataParam != null) {
 										Record recordWithTaxonomyMetadata;
@@ -101,7 +103,8 @@ public class HomePresenter extends BasePresenter<HomeView> {
 											recordWithTaxonomyMetadata = expandedRecord;
 										}
 										MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-										MetadataSchema expandedRecordSchema = schemasManager.getSchemaOf(recordWithTaxonomyMetadata);
+										MetadataSchema expandedRecordSchema = schemasManager
+												.getSchemaOf(recordWithTaxonomyMetadata);
 										Metadata taxonomyMetadata = expandedRecordSchema.get(taxonomyMetadataParam);
 										taxonomyRecordId = expandedRecord.get(taxonomyMetadata);
 									} else {
@@ -110,7 +113,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 									if (!expandedRecordIds.contains(taxonomyRecordId)) {
 										expandedRecordIds.add(0, taxonomyRecordId);
 									}
-									
+
 									Record taxonomyRecord = getRecord(taxonomyRecordId);
 									String currentTaxonomyRecordParentId = taxonomyRecord.getParentId();
 									while (currentTaxonomyRecordParentId != null) {
@@ -118,10 +121,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 										expandedRecordIds.add(0, currentTaxonomyRecordParentId);
 										currentTaxonomyRecordParentId = taxonomyRecordParent.getParentId();
 									}
-									
+
 									recordTree.setExpandedRecordIds(expandedRecordIds);
 								}
-								
+
 								break loop1;
 							}
 						}
@@ -154,7 +157,8 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		currentTab = tabCode;
 	}
 
-	public void recordClicked(String id, String taxonomyCode) {
+	public boolean recordClicked(String id, String taxonomyCode) {
+		boolean navigating = false;
 		if (id != null && !id.startsWith("dummy")) {
 			try {
 				// Recent folders or documents
@@ -167,43 +171,51 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayFolder(id);
+					navigating = true;
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
 					view.navigate().to(RMViews.class).displayDocument(id);
+					navigating = true;
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);
+					navigating = true;
 				} else if (ConstellioAgentUtils.isAgentSupported()) {
 					String smbMetadataCode;
 					if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
 						smbMetadataCode = ConnectorSmbDocument.URL;
-//					} else if (ConnectorSmbFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-//						smbMetadataCode = ConnectorSmbFolder.URL;
-                    } else {
-                        smbMetadataCode = null;
-                    }
-                    if (smbMetadataCode != null) {
-                        Metadata smbUrlMetadata = types().getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-                        String smbPath = record.get(smbUrlMetadata);
-                        SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-                        RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-                        if (rmConfigs.isAgentEnabled()) {
-                            String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
-                            view.openURL(agentSmbPath);
-                        } else {
+						//					} else if (ConnectorSmbFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+						//						smbMetadataCode = ConnectorSmbFolder.URL;
+					} else {
+						smbMetadataCode = null;
+					}
+					if (smbMetadataCode != null) {
+						Metadata smbUrlMetadata = types().getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
+						String smbPath = record.get(smbUrlMetadata);
+						SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory
+								.getSystemConfigurationsManager();
+						RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+						if (rmConfigs.isAgentEnabled()) {
+							String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
+							view.openURL(agentSmbPath);
+						} else {
 							String path = smbPath;
 							if (StringUtils.startsWith(path, "smb://")) {
 								path = "file://" + StringUtils.removeStart(path, "smb://");
 							}
 							view.openURL(path);
-                        }
-                    }
-                }
-            } catch (NoSuchRecordWithId e) {
-                view.showErrorMessage($("HomeView.noSuchRecord"));
-                LOGGER.warn("Error while clicking on record id " + id, e);
-            }
-        }
-    }
+						}
+						navigating = true;
+					}
+				}
+			} catch (NoSuchRecordWithId e) {
+				view.showErrorMessage($("HomeView.noSuchRecord"));
+				LOGGER.warn("Error while clicking on record id " + id, e);
+				navigating = false;
+			}
+		}
+
+		return navigating;
+	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
@@ -223,14 +235,15 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	void selectionChanged(String recordId, Boolean selected) {
 		SessionContext sessionContext = view.getSessionContext();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		Record record = searchServices.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
-				.where(Schemas.IDENTIFIER).isEqualTo(recordId));
-		String schemaTypeCode = record == null? null:record.getTypeCode();
+		Record record = searchServices
+				.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
+						.where(Schemas.IDENTIFIER).isEqualTo(recordId));
+		String schemaTypeCode = record == null ? null : record.getTypeCode();
 		if (selected) {
 			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
 		} else {
 			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
 		}
 	}
-	
+
 }
