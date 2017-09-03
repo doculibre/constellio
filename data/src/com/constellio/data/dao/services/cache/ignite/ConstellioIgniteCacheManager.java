@@ -73,7 +73,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
 		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
-		partitionedCacheCfg.setBackups(1);
+		partitionedCacheCfg.setBackups(0);
 		partitionedCacheCfg.setReadFromBackup(true);
 		partitionedCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
 
@@ -92,14 +92,15 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	}
 	
 	private String versionedCacheName(String name) {
-		String versionedCacheName;
-		String prefix = constellioVersion + "_";
-		if (name.startsWith(prefix)) {
-			versionedCacheName = name;
-		} else {
-			versionedCacheName = prefix + name;
-		}
-		return versionedCacheName;
+		return name;
+//		String versionedCacheName;
+//		String prefix = constellioVersion + "_";
+//		if (name.startsWith(prefix)) {
+//			versionedCacheName = name;
+//		} else {
+//			versionedCacheName = prefix + name;
+//		}
+//		return versionedCacheName;
 	}
 	
 	@Override
