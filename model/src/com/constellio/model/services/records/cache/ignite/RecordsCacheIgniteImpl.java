@@ -109,11 +109,13 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		volatileRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
 		volatileRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
 
-		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = new CacheConfiguration<>(permanentRecordByMetadataCacheName);
+		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = new CacheConfiguration<>(
+				permanentRecordByMetadataCacheName);
 		permanentRecordByMetadataCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		permanentRecordByMetadataCacheCfg.setIndexedTypes(String.class, RecordByMetadata.class);
 
-		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = new CacheConfiguration<>(volatileRecordByMetadataCacheName);
+		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = new CacheConfiguration<>(
+				volatileRecordByMetadataCacheName);
 		volatileRecordByMetadataCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		volatileRecordByMetadataCacheCfg.setOnheapCacheEnabled(true);
 		volatileRecordByMetadataCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
@@ -123,10 +125,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.byIdRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(byIdRecordHoldersCacheCfg);
 		this.permanentRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentRecordHoldersCacheCfg);
 		this.volatileRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileRecordHoldersCacheCfg);
-		this.permanentRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentRecordByMetadataCacheCfg);
-		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileRecordByMetadataCacheCfg);
+		this.permanentRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(permanentRecordByMetadataCacheCfg);
+		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
+				.getCache(volatileRecordByMetadataCacheCfg);
 	}
-	
+
 	private boolean isVolatile(String schemaTypeCode) {
 		CacheConfig cacheConfig = cachedTypes.get(schemaTypeCode);
 		return cacheConfig.isVolatile();
@@ -689,7 +693,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		if (schemaTypeCode.contains("_")) {
 			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(schemaTypeCode);
 		}
-		if (!cachedTypes.containsKey(schemaTypeCode)) {
+		if (cachedTypes.containsKey(schemaTypeCode)) {
 			removeCache(schemaTypeCode);
 		}
 
