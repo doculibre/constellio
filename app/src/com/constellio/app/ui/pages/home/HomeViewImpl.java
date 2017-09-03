@@ -411,14 +411,20 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 
 		@Override
-		public Property<?> getContainerProperty(Object itemId, Object propertyId) {
+		protected CellKey getCellKey(Object itemId, Object propertyId) {
+			RecentItem recentItem = (RecentItem) itemId;
+			return new CellKey(recentItem.getId(), propertyId);
+		}
+
+		@Override
+		public Property<?> loadContainerProperty(Object itemId, Object propertyId) {
 			if (RecentItem.LAST_ACCESS.equals(propertyId)) {
 				RecentItem recentItem = (RecentItem) itemId;
 				String value = new JodaDateTimeToStringConverter()
 						.convertToPresentation(recentItem.getLastAccess(), String.class, getSessionContext().getCurrentLocale());
 				return new ObjectProperty<>(value);
 			}
-			return super.getContainerProperty(itemId, propertyId);
+			return super.loadContainerProperty(itemId, propertyId);
 		}
 
 		@SuppressWarnings("unchecked")

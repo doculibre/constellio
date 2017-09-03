@@ -1,7 +1,9 @@
 package com.constellio.app.ui.framework.components.table;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -204,12 +206,38 @@ public class RecordVOTable extends BaseTable {
 	}
 
 	@Override
-	public Property<?> getContainerProperty(final Object itemId, final Object propertyId) {
+	protected Object getCellKey(Object itemId, Object propertyId) {
+		RecordVO recordVO;
+		Item item = getItem(itemId);
+		if (item instanceof RecordVOItem) {
+			RecordVOItem recordVOItem = (RecordVOItem) item;
+			recordVO = recordVOItem.getRecord();
+		} else {
+			recordVO = null;
+		}
+		
+		CellKey cellKey;
+		if (recordVO != null) {
+			String recordId = recordVO.getId();
+			if (propertyId instanceof MetadataVO) {
+				MetadataVO metadataVO = (MetadataVO) propertyId;
+				cellKey = new CellKey(recordId, metadataVO.getCode());
+			} else {
+				cellKey = new CellKey(recordId, propertyId);
+			}
+		} else {
+			cellKey = null;
+		}
+		return cellKey;
+	}
+
+	@Override
+	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
 		Property<?> containerProperty;
 		if (propertyId instanceof MetadataVO) {
-			MetadataVO metadataVO = (MetadataVO) propertyId;
 			RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
 			RecordVO recordVO = recordVOItem.getRecord();
+			MetadataVO metadataVO = (MetadataVO) propertyId;
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
 			Component metadataDisplay;
 			if (metadataValue != null) {
@@ -231,7 +259,7 @@ public class RecordVOTable extends BaseTable {
 			}
 			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
-			containerProperty = super.getContainerProperty(itemId, propertyId);
+			containerProperty = super.loadContainerProperty(itemId, propertyId);
 		}
 		return containerProperty;
 	}
@@ -331,13 +359,17 @@ public class RecordVOTable extends BaseTable {
 			}
 			if (menuBarRequired) {
 				addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
+					
+					private Map<String, Object> cellContents = new HashMap<>();
+					
 					@Override
 					public Object generateCell(Table source, Object itemId, Object columnId) {
 						Item item = getItem(itemId);
 						RecordVO recordVO = getRecordVOForTitleColumn(item);
-
-						MenuBar menuBar = null;
-						if (recordVO != null) {
+						String recordId = recordVO != null ? recordVO.getId() : "_NULL_";
+						Object cellContent = cellContents.get(recordId);
+						if (cellContent == null && recordVO != null) {
+							MenuBar menuBar = null;
 							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
 							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 								menuBar = recordMenuBarHandler.get(recordVO);
@@ -345,8 +377,18 @@ public class RecordVOTable extends BaseTable {
 									break;
 								}
 							}
+							if (menuBar == null) {
+								cellContent = new Label("");
+							} else {
+								cellContent = menuBar;
+							}
+						} else if (cellContent == null) {
+							cellContent = new Label(""); 
 						}
-						return menuBar != null ? menuBar : new Label("");
+						if (!cellContents.containsKey(recordId)) {
+							cellContents.put(recordId, cellContent);
+						}
+						return cellContent;
 					}
 				});
 				setColumnHeader(MENUBAR_PROPERTY_ID, "");
