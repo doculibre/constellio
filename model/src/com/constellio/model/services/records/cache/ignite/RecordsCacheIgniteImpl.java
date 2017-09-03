@@ -751,10 +751,13 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public synchronized void removeCache(String schemaType) {
-		clearRecordByMetadataCache(schemaType);
-		clearVolatileCache(schemaType);
-		clearPermanentCache(schemaType);
-		cachedTypes.remove(schemaType);
+		CacheConfig cacheConfig = cachedTypes.get(schemaType);
+		if (cacheConfig != null) {
+			clearRecordByMetadataCache(schemaType);
+			clearVolatileCache(schemaType);
+			clearPermanentCache(schemaType);
+			cachedTypes.remove(schemaType);
+		}
 	}
 
 	@Override
