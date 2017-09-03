@@ -1363,7 +1363,10 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				boolean isCached = cache.isCached(id);
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to be in cache").isTrue();
 				//				RecordHolder holder = cache.cacheById.get(id);
-				RecordHolder holder = cache.byIdRecordHoldersCache.get(id);
+				RecordHolder holder = cache.permanentByIdRecordHoldersCache.get(id);
+				if (holder == null) {
+					holder = cache.volatileByIdRecordHoldersCache.get(id);
+				}
 				assertThat(holder).describedAs("Record holder of '" + id + "'").isNotNull();
 				assertThat(holder.getCopy()).describedAs("Cache record of '" + id + "'").isNotNull();
 			}
