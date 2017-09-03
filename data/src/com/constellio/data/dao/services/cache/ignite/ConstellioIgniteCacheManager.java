@@ -90,6 +90,13 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	public List<String> getCacheNames() {
 		return Collections.unmodifiableList(new ArrayList<>(caches.keySet()));
 	}
+
+	@Override
+	public void clearAll() {
+		for (ConstellioCache cache : caches.values()) {
+			cache.clear();
+		}
+	}
 	
 	private String versionedCacheName(String name) {
 		String versionedCacheName;
