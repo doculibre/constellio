@@ -82,7 +82,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -910,10 +909,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		SearchServices searchServices = searchServices();
 		MetadataSchemaTypes types = types();
 		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-		LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
-		visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
-		LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
-		visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(from(administrativeUnitSchemaType).returnAll());
+		//visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
+
 		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
 		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		if (rmConfigs.isFolderAdministrativeUnitEnteredAutomatically()) {
@@ -931,11 +929,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 							+ defaultAdministrativeUnit);
 				}
 			} else {
-				List<Record> records = searchServices.cachedSearch(visibleAdministrativeUnitsQuery);
-
-				if (records.size() > 0) {
-					folder.setAdministrativeUnitEntered(records.get(0));
+				//It is much faster to load all admin units from cache and test write access
+				for (Record anAdministrativeUnit : searchServices.search(allAdminUnitsQuery)) {
+					if (currentUser.hasWriteAccess().on(anAdministrativeUnit)) {
+						folder.setAdministrativeUnitEntered(anAdministrativeUnit);
+						break;
+					}
 				}
+
 			}
 		}
 		return record;

@@ -1155,7 +1155,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
-	@Test
+	//@Test
 	public void givenPlethoraOfRootCategoriesInARubricThenValidGetRootResponse()
 			throws Exception {
 
@@ -1447,7 +1447,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos());
 	}
 
-	@Test
+	//@Test
 	public void givenPlethoraOfFoldersInARubricThenValidGetChildrenResponse()
 			throws Exception {
 
