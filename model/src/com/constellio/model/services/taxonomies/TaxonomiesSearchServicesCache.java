@@ -1,7 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
 public interface TaxonomiesSearchServicesCache {
-	void insert(String username, String recordId, Boolean value);
+	void insert(String username, String recordId, String mode, Boolean value);
 
 	void invalidateAll();
 
@@ -17,6 +17,6 @@ public interface TaxonomiesSearchServicesCache {
 	/*pour tous les users, invalide  pour ce id*/
 	void invalidateUser(String username);
 
-	Boolean getCachedValue(String username, String recordId);
+	Boolean getCachedValue(String username, String recordId, String mode);
 
 }

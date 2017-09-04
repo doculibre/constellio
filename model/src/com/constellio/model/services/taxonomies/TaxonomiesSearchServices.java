@@ -695,9 +695,11 @@ public class TaxonomiesSearchServices {
 
 			Map<String, Boolean> cachedHasChildren = new HashMap<>();
 
+			String serviceCacheMode =
+					ctx.forSelectionOfSchemaType == null ? "visible" : "select-" + ctx.forSelectionOfSchemaType.getCode();
 			for (Record child : batch) {
 
-				Boolean cachedValue = serviceCache.getCachedValue(ctx.user.getUsername(), child.getId());
+				Boolean cachedValue = serviceCache.getCachedValue(ctx.user.getUsername(), child.getId(), serviceCacheMode);
 				if (cachedValue != null) {
 					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
 				} else {
@@ -725,8 +727,11 @@ public class TaxonomiesSearchServices {
 				boolean hasChildren;
 
 				if (cachedHasChildren.containsKey(child.getId())) {
-				= response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
-
+					hasChildren = cachedHasChildren.get(child.getId());
+				} else {
+					hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
+					serviceCache.insert(user.getUsername(), child.getId(), serviceCacheMode, hasChildren);
+				}
 
 				boolean linkable = NOT_LINKABLE;
 				if (selectingAConcept) {

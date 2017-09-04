@@ -3,7 +3,7 @@ package com.constellio.model.services.taxonomies;
 public class NoTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
 
 	@Override
-	public synchronized void insert(String userId, String recordId, Boolean value) {
+	public synchronized void insert(String userId, String recordId, String mode, Boolean value) {
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class NoTaxonomiesSearchServicesCache implements TaxonomiesSearchServices
 	}
 
 	@Override
-	public synchronized Boolean getCachedValue(String userId, String recordId) {
+	public synchronized Boolean getCachedValue(String userId, String recordId, String mode) {
 		return null;
 	}
 

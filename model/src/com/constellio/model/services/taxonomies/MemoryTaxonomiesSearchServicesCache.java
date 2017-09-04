@@ -10,13 +10,14 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	Map<String, TaxonomyRecordCache> cache = new HashMap<>();
 
 	@Override
-	public synchronized void insert(String username, String recordId, Boolean value) {
+	public synchronized void insert(String username, String recordId, String mode, Boolean value) {
+
 		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
 		if (taxonomyRecordCache == null) {
 			taxonomyRecordCache = new TaxonomyRecordCache();
 			cache.put(recordId, taxonomyRecordCache);
 		}
-		taxonomyRecordCache.usersCache.put(username, value);
+		taxonomyRecordCache.put(username, mode, value);
 	}
 
 	@Override
@@ -49,48 +50,74 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	@Override
 	public synchronized void invalidateUser(String username) {
 		for (TaxonomyRecordCache taxonomyRecordCache : cache.values()) {
-			taxonomyRecordCache.usersCache.remove(username);
+			taxonomyRecordCache.invalidateUser(username);
 		}
 	}
 
 	@Override
-	public synchronized Boolean getCachedValue(String username, String recordId) {
+	public synchronized Boolean getCachedValue(String username, String recordId, String mode) {
 		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-		return taxonomyRecordCache == null ? null : taxonomyRecordCache.usersCache.get(username);
+		return taxonomyRecordCache == null ? null : taxonomyRecordCache.get(username, mode);
 	}
 
 	private static class TaxonomyRecordCache {
 
-		Map<String, Boolean> usersCache = new HashMap<>();
+		Map<String, Map<String, Boolean>> userModesCache = new HashMap<>();
+
+		void put(String username, String mode, Boolean value) {
+			Map<String, Boolean> userCache = userModesCache.get(username);
+			if (userCache == null) {
+				userCache = new HashMap<>();
+				userModesCache.put(username, userCache);
+			}
+			userCache.put(mode, value);
+		}
+
+		public Boolean get(String username, String mode) {
+			Map<String, Boolean> userCache = userModesCache.get(username);
+			if (userCache != null) {
+				return userCache.get(mode);
+			} else {
+				return null;
+			}
+		}
 
 		void invalidateWithChildren() {
 
-			List<String> userIdsToRemove = new ArrayList<>();
-			for (Map.Entry<String, Boolean> entry : usersCache.entrySet()) {
-				if (Boolean.TRUE.equals(entry.getValue())) {
-					userIdsToRemove.add(entry.getKey());
+			for (Map<String, Boolean> userCache : userModesCache.values()) {
+				List<String> modesToRemove = new ArrayList<>();
+				for (Map.Entry<String, Boolean> entry : userCache.entrySet()) {
+					if (Boolean.TRUE.equals(entry.getValue())) {
+						modesToRemove.add(entry.getKey());
+					}
 				}
-			}
 
-			for (String userId : userIdsToRemove) {
-				usersCache.remove(userId);
+				for (String userId : modesToRemove) {
+					userCache.remove(userId);
+				}
 			}
 
 		}
 
 		void removeWithoutChildren() {
 
-			List<String> userIdsToRemove = new ArrayList<>();
-			for (Map.Entry<String, Boolean> entry : usersCache.entrySet()) {
-				if (Boolean.TRUE.equals(entry.getValue())) {
-					userIdsToRemove.add(entry.getKey());
+			for (Map<String, Boolean> userCache : userModesCache.values()) {
+				List<String> modesToRemove = new ArrayList<>();
+				for (Map.Entry<String, Boolean> entry : userCache.entrySet()) {
+					if (Boolean.FALSE.equals(entry.getValue())) {
+						modesToRemove.add(entry.getKey());
+					}
+				}
+
+				for (String userId : modesToRemove) {
+					userCache.remove(userId);
 				}
 			}
 
-			for (String userId : userIdsToRemove) {
-				usersCache.remove(userId);
-			}
 		}
 
+		public void invalidateUser(String username) {
+			userModesCache.remove(username);
+		}
 	}
 }
