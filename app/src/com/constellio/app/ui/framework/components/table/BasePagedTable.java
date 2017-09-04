@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -32,6 +33,8 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	
 	protected T container;
 	protected ComboBox itemsPerPageField;
+	
+	private TablePropertyCache cellProperties = new TablePropertyCache();
 
 	public BasePagedTable(T container) {
 		this.container = container;
@@ -172,6 +175,36 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	@Override
 	public void setPageLength(int pageLength) {
 		super.setPageLength(pageLength);
+	}
+	
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		return null;
+	}
+	
+	@Override
+	public void containerItemSetChange(ItemSetChangeEvent event) {
+		super.containerItemSetChange(event);
+		cellProperties.clear();
+	}
+
+	@Override
+	public final Property<?> getContainerProperty(Object itemId, Object propertyId) {
+		Property<?> containerProperty;
+		CellKey cellKey = getCellKey(itemId, propertyId);
+		if (cellKey != null) {
+			containerProperty = cellProperties.get(cellKey);
+			if (containerProperty == null) {
+				containerProperty = loadContainerProperty(itemId, propertyId);
+				cellProperties.put(cellKey, containerProperty);
+			}
+		} else {
+			containerProperty = loadContainerProperty(itemId, propertyId);
+		}
+		return containerProperty;
+	}
+
+	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
+		return super.getContainerProperty(itemId, propertyId);
 	}
 
 	@SuppressWarnings("deprecation")

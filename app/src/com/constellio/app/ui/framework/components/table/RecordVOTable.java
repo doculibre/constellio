@@ -21,6 +21,7 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTab
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
@@ -206,7 +207,7 @@ public class RecordVOTable extends BaseTable {
 	}
 
 	@Override
-	protected Object getCellKey(Object itemId, Object propertyId) {
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		RecordVO recordVO;
 		Item item = getItem(itemId);
 		if (item instanceof RecordVOItem) {

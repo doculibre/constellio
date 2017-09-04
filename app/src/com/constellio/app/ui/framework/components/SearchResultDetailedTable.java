@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -204,6 +205,12 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		for (SelectionChangeListener listener : listeners) {
 			listener.selectionChanged(event);
 		}
+	}
+
+	@Override
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		RecordVO recordVO = container.getRecordVO((int) itemId);
+		return new CellKey(recordVO.getId(), propertyId);
 	}
 
 	public static class SelectionChangeEvent implements Serializable {
