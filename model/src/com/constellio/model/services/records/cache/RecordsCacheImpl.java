@@ -448,6 +448,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public synchronized void removeCache(String schemaType) {
+		invalidateRecordsOfType(schemaType);
 		recordByMetadataCache.remove(schemaType);
 		if (volatileCaches.containsKey(schemaType)) {
 			volatileCaches.get(schemaType).invalidateAll();
@@ -459,6 +460,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		cachedTypes.remove(schemaType);
+
 	}
 
 	@Override

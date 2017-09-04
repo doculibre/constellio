@@ -502,14 +502,14 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			List<String> recordIds = new ArrayList<>();
 			for (Record record : records) {
 				recordIds.add(record.getId());
-				insert(record);
+				//insert(record);
 			}
-
+			putQueryResults(schemaTypeCodeForStorageInCache, signature, recordIds);
 			long end = new Date().getTime();
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
 					.onPutQueryResultsInCache(signature, recordIds, end - start);
-			putQueryResults(schemaTypeCodeForStorageInCache, signature, recordIds);
+
 		}
 	}
 
@@ -520,12 +520,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
 			long start = new Date().getTime();
-
+			putQueryResults(schemaTypeCodeForStorageInCache, signature, recordIds);
 			long end = new Date().getTime();
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
 					.onPutQueryResultsInCache(signature, recordIds, end - start);
-			putQueryResults(schemaTypeCodeForStorageInCache, signature, recordIds);
+
 		}
 	}
 

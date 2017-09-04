@@ -53,7 +53,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
-public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
+public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
 	String subFolderId;
 
@@ -113,10 +113,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		}
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
-
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -753,7 +749,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(4);
+		assertThat(queryCount.get()).isEqualTo(3);
 	}
 
 	@Test

@@ -48,6 +48,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -69,6 +71,7 @@ public class TaxonomiesSearchServices {
 	RecordServices recordServices;
 	SchemaUtils schemaUtils = new SchemaUtils();
 	ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
+	RecordsCaches caches;
 
 	public TaxonomiesSearchServices(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -77,6 +80,7 @@ public class TaxonomiesSearchServices {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(searchServices, taxonomiesManager,
 				metadataSchemasManager);
+		this.caches = modelLayerFactory.getRecordsCaches();
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -140,6 +144,7 @@ public class TaxonomiesSearchServices {
 		TaxonomiesSearchOptions options;
 		MetadataSchemaType forSelectionOfSchemaType;
 		Taxonomy taxonomy;
+		boolean hasPermanentCache;
 
 		public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 				MetadataSchemaType forSelectionOfSchemaType) {
@@ -148,6 +153,11 @@ public class TaxonomiesSearchServices {
 			this.options = options;
 			this.forSelectionOfSchemaType = forSelectionOfSchemaType;
 			this.taxonomy = getTaxonomyForNavigation(record);
+
+			if (taxonomy.getSchemaTypes().size() == 1) {
+				CacheConfig cacheConfig = caches.getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
+				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
+			}
 		}
 
 		public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
@@ -157,6 +167,11 @@ public class TaxonomiesSearchServices {
 			this.options = options;
 			this.forSelectionOfSchemaType = forSelectionOfSchemaType;
 			this.taxonomy = taxonomy;
+
+			if (taxonomy.getSchemaTypes().size() == 1) {
+				CacheConfig cacheConfig = caches.getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
+				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
+			}
 		}
 
 		public boolean hasRequiredAccessOn(Record record) {
@@ -616,16 +631,35 @@ public class TaxonomiesSearchServices {
 		List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 		int lastIteratedRecordIndex = 0;
 		FastContinueInfos continueInfos = options.getFastContinueInfos();
-		if (continueInfos != null) {
-			lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
-			for (int i = 0; i < options.getStartRow(); i++) {
-				visibleRecords.add(null);
-			}
-			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
-					.inBatches();
 
+		GetChildrenContext ctx = new GetChildrenContext(user, null, options, null, taxonomy);
+
+		if (ctx.hasPermanentCache) {
+			if (continueInfos != null) {
+				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+				for (int i = 0; i < options.getStartRow(); i++) {
+					visibleRecords.add(null);
+				}
+				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 21, continueInfos.lastReturnRecordIndex)
+						.inBatches();
+
+			} else {
+				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 21).inBatches();
+			}
 		} else {
-			iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100).inBatches();
+
+			if (continueInfos != null) {
+				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+				for (int i = 0; i < options.getStartRow(); i++) {
+					visibleRecords.add(null);
+				}
+				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 21, continueInfos.lastReturnRecordIndex)
+						.inBatches();
+
+			} else {
+				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 21).inBatches();
+			}
+
 		}
 
 		int consumed = 0;
@@ -803,16 +837,34 @@ public class TaxonomiesSearchServices {
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 			int lastIteratedRecordIndex = 0;
 			FastContinueInfos continueInfos = ctx.options.getFastContinueInfos();
-			if (continueInfos != null) {
-				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
-				for (int i = 0; i < ctx.options.getStartRow(); i++) {
-					visibleRecords.add(null);
+
+			if (ctx.hasPermanentCache) {
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 21,
+							continueInfos.lastReturnRecordIndex).inBatches();
+
+				} else {
+
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 21).inBatches();
 				}
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
-						continueInfos.lastReturnRecordIndex).inBatches();
 
 			} else {
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 21,
+							continueInfos.lastReturnRecordIndex).inBatches();
+
+				} else {
+
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 21).inBatches();
+				}
 			}
 
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());
