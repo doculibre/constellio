@@ -129,12 +129,6 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 		try {
 			smbFile = smbFactory.getSmbFile(url, auth);
 			smbFile.exists();
-			if(url.endsWith("myNewShare/")) {
-				double d = Math.random();
-				if (d >= 0.9) {
-					throw new Exception("random Exception");
-				}
-			}
 			lastModified = smbFile.getLastModified();
 
 			WindowsPermissions windowsPermissions = permissionsFactory.newWindowsPermissions(smbFile);
