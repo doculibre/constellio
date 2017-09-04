@@ -122,6 +122,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 	private final RecordMigrationsManager recordMigrationsManager;
 
+	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
 			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
@@ -198,6 +200,15 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
+		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
+			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
+
+		} else if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
+			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
+
+		} else {
+			taxonomiesSearchServicesCache = new NoTaxonomiesSearchServicesCache();
+		}
 	}
 
 	public RecordMigrationsManager getRecordMigrationsManager() {
@@ -316,7 +327,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public LanguageDetectionManager getLanguageDetectionManager() {
-
 		return languageDetectionManager;
 	}
 
@@ -446,15 +456,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
+		return taxonomiesSearchServicesCache;
 
-		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
-			return new MemoryTaxonomiesSearchServicesCache();
-
-		} else if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
-			return new MemoryTaxonomiesSearchServicesCache();
-
-		} else {
-			return new NoTaxonomiesSearchServicesCache();
-		}
 	}
 }

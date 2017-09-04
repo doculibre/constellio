@@ -700,12 +700,12 @@ public class TaxonomiesSearchServices {
 
 				Boolean cachedValue = serviceCache.getCachedValue(ctx.user.getUsername(), child.getId(), serviceCacheMode);
 				if (cachedValue != null) {
-					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
-				} else {
 					cachedHasChildren.put(child.getId(), cachedValue);
+				} else {
+					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
 				}
 				if (selectingAConcept) {
-					facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + child.getId());
+					//facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + child.getId());
 				}
 			}
 
@@ -734,7 +734,7 @@ public class TaxonomiesSearchServices {
 
 				boolean linkable = NOT_LINKABLE;
 				if (selectingAConcept) {
-					linkable = response.hasQueryFacetResults("id:" + child.getId());
+					linkable = child.get(Schemas.LINKABLE);// response.hasQueryFacetResults("id:" + child.getId());
 				}
 
 				if (showEvenIfNoChildren || hasChildren || linkable) {
@@ -824,19 +824,39 @@ public class TaxonomiesSearchServices {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(VISIBLE_IN_TREES).isTrueOrNull();
 		LogicalSearchQuery hasChildrenQuery = newQueryForFacets(condition, User.GOD, options);
 
+		Map<String, Boolean> cachedHasChildren = new HashMap<>();
+		String serviceCacheMode =
+				selectedType == null ? "visible" : "select-" + selectedType.getCode();
+
 		for (Record child : mainQueryResponse.getRecords()) {
-			hasChildrenQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
+			Boolean cachedValue = serviceCache.getCachedValue(user.getUsername(), child.getId(), serviceCacheMode);
+			if (cachedValue != null) {
+				cachedHasChildren.put(child.getId(), cachedValue);
+			} else {
+				hasChildrenQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
+			}
 		}
 
-		SPEQueryResponse response = searchServices.query(hasChildrenQuery);
+		SPEQueryResponse response = null;
+		if (!hasChildrenQuery.getQueryFacets().isEmpty()) {
+			response = searchServices.query(hasChildrenQuery);
+		}
 
 		List<TaxonomySearchRecord> records = new ArrayList<>();
 		for (Record rootConcept : mainQueryResponse.getRecords()) {
 
 			boolean sameType = rootConcept.getSchemaCode().startsWith(selectedType.getCode());
 			boolean linkable = isTrueOrNull(rootConcept.get(Schemas.LINKABLE));
-			boolean hasChildren =
-					response.getQueryFacetCount(facetQueryFor(taxonomy, rootConcept)) > 0;
+
+			boolean hasChildren;
+
+			if (cachedHasChildren.containsKey(rootConcept.getId())) {
+				hasChildren = cachedHasChildren.get(rootConcept.getId());
+			} else {
+				hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, rootConcept)) > 0;
+				serviceCache.insert(user.getUsername(), rootConcept.getId(), serviceCacheMode, hasChildren);
+			}
+
 			records.add(new TaxonomySearchRecord(rootConcept, sameType && linkable, hasChildren));
 		}
 		return new LinkableTaxonomySearchResponse(mainQueryResponse.getNumFound(), records);
