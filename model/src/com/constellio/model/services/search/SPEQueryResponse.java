@@ -30,6 +30,19 @@ public class SPEQueryResponse {
 	private final boolean correctlySpelt;
 	private final List<String> spellcheckerSuggestions;
 
+	public SPEQueryResponse(List<Record> records, int numFound) {
+		this.fieldFacetValues = new HashMap<>();
+		this.statisticsValues = new HashMap<>();
+		this.queryFacetsValues = new HashMap<>();
+		this.qtime = -1;
+		this.numFound = numFound;
+		this.records = records;
+		this.highlights = new HashMap<>();
+		this.correctlySpelt = true;
+		this.spellcheckerSuggestions = new ArrayList<>();
+		this.recordsWithMoreLikeThis = new HashMap<>();
+	}
+
 	public SPEQueryResponse(List<Record> records, Map<Record, Map<Record, Double>> recordsWithMoreLikeThis) {
 		this.fieldFacetValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();

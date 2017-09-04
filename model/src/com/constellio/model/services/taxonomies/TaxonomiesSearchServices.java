@@ -78,8 +78,7 @@ public class TaxonomiesSearchServices {
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
-		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(searchServices, taxonomiesManager,
-				metadataSchemasManager);
+		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
 		this.caches = modelLayerFactory.getRecordsCaches();
 	}
 
