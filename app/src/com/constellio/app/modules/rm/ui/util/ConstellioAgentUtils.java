@@ -222,7 +222,10 @@ public class ConstellioAgentUtils {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		Record record = recordServices.getDocumentById(recordVO.getId());
+		Record record = recordVO.getRecord();
+		if (record == null) {
+			record = recordServices.getDocumentById(recordVO.getId());
+		}
 		String schemaCode = record.getSchemaCode();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 

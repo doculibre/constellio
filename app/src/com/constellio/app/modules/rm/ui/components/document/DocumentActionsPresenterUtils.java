@@ -60,6 +60,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected DocumentVO documentVO;
 	protected T actionsComponent;
 
+	private transient User currentUser;
+	private Record currentDocument;
 	protected transient DocumentToVOBuilder voBuilder;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
@@ -100,6 +102,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			this.documentVO = new DocumentVO(recordVO);
 		}
+		this.currentDocument = documentVO.getRecord();
 		presenterUtils.setSchemaCode(recordVO.getSchema().getCode());
 	}
 
@@ -304,6 +307,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = null;
 
 				ContentVersionVO currentVersionVO = buildContentVersionVO(content);
 				documentVO.setContent(currentVersionVO);
@@ -344,7 +348,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public synchronized void createPDFA() {
-		DocumentVO documentVO = getDocumentVO();
 		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
@@ -383,6 +386,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().returnRecord(record, getCurrentUser());
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = null;
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -404,6 +408,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			content.finalizeVersion();
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = null;
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -426,6 +431,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser(), TimeProvider.getLocalDateTime());
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = null;
+				
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
@@ -440,7 +447,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected Content getContent() {
-		Record record = presenterUtils.getRecord(documentVO.getId());
+		Record record = currentDocument();
+		if (record == null) {
+			record = presenterUtils.getRecord(documentVO.getId());
+		}
 		Document document = new Document(record, presenterUtils.types());
 		return document.getContent();
 	}
@@ -554,7 +564,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateActionsComponent() {
-
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
@@ -600,11 +609,17 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	Record currentDocument() {
-		return presenterUtils.toRecord(documentVO);
+		if (currentDocument == null) {
+			currentDocument = presenterUtils.toRecord(documentVO); 
+		}
+		return currentDocument;
 	}
 
 	User getCurrentUser() {
-		return presenterUtils.getCurrentUser();
+		if (currentUser == null) {
+			currentUser = presenterUtils.getCurrentUser();
+		}
+		return currentUser;
 	}
 
 	public String getContentTitle() {

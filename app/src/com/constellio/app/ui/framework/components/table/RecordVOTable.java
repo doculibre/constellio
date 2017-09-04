@@ -360,12 +360,12 @@ public class RecordVOTable extends BaseTable {
 				addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
 					@Override
 					public Object generateCell(Table source, Object itemId, Object columnId) {
+						Component cellContent;
 						Item item = getItem(itemId);
 						RecordVO recordVO = getRecordVOForTitleColumn(item);
 						String recordId = recordVO != null ? recordVO.getId() : "_NULL_";
 						CellKey cellKey = new CellKey(recordId, columnId);
 						Property<?> cellProperty = cellProperties.get(cellKey);
-						Component cellContent;
 						if (cellProperty != null) {
 							cellContent = (Component) cellProperty.getValue();
 						} else {
