@@ -933,9 +933,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			} else {
 				List<Record> records = searchServices.cachedSearch(visibleAdministrativeUnitsQuery);
 
-				if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
-					Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
-					folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+				if (records.size() > 0) {
+					folder.setAdministrativeUnitEntered(records.get(0));
 				}
 			}
 		}
