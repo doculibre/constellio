@@ -72,6 +72,7 @@ public class TaxonomiesSearchServices {
 	SchemaUtils schemaUtils = new SchemaUtils();
 	ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
 	RecordsCaches caches;
+	TaxonomiesSearchServicesCache serviceCache;
 
 	public TaxonomiesSearchServices(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -81,6 +82,7 @@ public class TaxonomiesSearchServices {
 		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(searchServices, taxonomiesManager,
 				metadataSchemasManager);
 		this.caches = modelLayerFactory.getRecordsCaches();
+		this.serviceCache = modelLayerFactory.getTaxonomiesSearchServicesCache();
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -690,13 +692,26 @@ public class TaxonomiesSearchServices {
 			}
 
 			List<Record> batch = iterator.next();
+
+			Map<String, Boolean> cachedHasChildren = new HashMap<>();
+
 			for (Record child : batch) {
-				facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
+
+				Boolean cachedValue = serviceCache.getCachedValue(ctx.user.getUsername(), child.getId());
+				if (cachedValue != null) {
+					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
+				} else {
+					cachedHasChildren.put(child.getId(), cachedValue);
+				}
 				if (selectingAConcept) {
 					facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + child.getId());
 				}
 			}
-			SPEQueryResponse response = searchServices.query(facetQuery);
+
+			SPEQueryResponse response = null;
+			if (!facetQuery.getQueryFacets().isEmpty()) {
+				response = searchServices.query(facetQuery);
+			}
 
 			for (Record child : batch) {
 				consumed++;
@@ -706,7 +721,12 @@ public class TaxonomiesSearchServices {
 				Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(child);
 				boolean showEvenIfNoChildren = options.isAlwaysReturnTaxonomyConceptsWithReadAccess()
 						&& !taxonomyOfRecord.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection));
-				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
+
+				boolean hasChildren;
+
+				if (cachedHasChildren.containsKey(child.getId())) {
+				= response.getQueryFacetCount(facetQueryFor(taxonomy, child)) > 0;
+
 
 				boolean linkable = NOT_LINKABLE;
 				if (selectingAConcept) {

@@ -67,8 +67,11 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCache;
+import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
@@ -439,5 +442,19 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public ModelLayerBackgroundThreadsManager getModelLayerBackgroundThreadsManager() {
 		return modelLayerBackgroundThreadsManager;
+	}
+
+	@Override
+	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
+
+		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
+			return new MemoryTaxonomiesSearchServicesCache();
+
+		} else if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
+			return new MemoryTaxonomiesSearchServicesCache();
+
+		} else {
+			return new NoTaxonomiesSearchServicesCache();
+		}
 	}
 }
