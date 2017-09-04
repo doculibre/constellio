@@ -98,6 +98,12 @@ public interface RecordServices {
 
 	void refresh(List<?> records);
 
+	void refreshUsingCache(Record... records);
+
+	void refreshUsingCache(RecordWrapper... recordWrappers);
+
+	void refreshUsingCache(List<?> records);
+
 	List<BatchProcess> updateAsync(Record record)
 			throws RecordServicesException;
 

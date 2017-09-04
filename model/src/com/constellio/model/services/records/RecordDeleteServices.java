@@ -245,11 +245,11 @@ public class RecordDeleteServices {
 
 		} else {
 			logicallyDelete(record, user);
-			recordServices.refresh(record);
+			recordServices.refreshUsingCache(record);
 			try {
 				physicallyDelete(record, user, options);
 			} catch (RecordServicesRuntimeException e) {
-				recordServices.refresh(record);
+				recordServices.refreshUsingCache(record);
 				restore(record, user);
 				throw e;
 			}
@@ -518,7 +518,7 @@ public class RecordDeleteServices {
 	}
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
-		if (!isLogicallyDeletable(record, user)) {
+		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user)) {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
 		}
 

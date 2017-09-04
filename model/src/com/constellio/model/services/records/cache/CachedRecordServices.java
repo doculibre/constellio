@@ -101,6 +101,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		recordServices.refresh(records);
 	}
 
+	@Override
+	public void refreshUsingCache(List<?> records) {
+		recordServices.refreshUsingCache(records);
+	}
+
 	//These services are not cached
 
 	@Override

@@ -146,7 +146,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
 
 			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
-
+			//Validations are already done
+			options.setSkipValidations(true);
 			if (waitInSeconds > 0) {
 				options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
 			}

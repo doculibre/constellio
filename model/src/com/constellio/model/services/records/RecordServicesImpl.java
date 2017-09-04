@@ -408,7 +408,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
 		RecordUpdateOptions options = transaction.getRecordUpdateOptions();
 		if (transaction.getRecordUpdateOptions().getRecordsFlushing() != RecordsFlushing.NOW()) {
-//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
+			//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
 			//			for (Record record : transaction.getRecords()) {
 			//				if (record.isDirty() && record.isSaved() && cache.getCacheConfigOf(record.getSchemaCode()) != null) {
 			//					throw new RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(record.getSchemaCode(),
@@ -934,6 +934,31 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	@Override
+	public void refreshUsingCache(List<?> records) {
+		for (Object item : records) {
+			Record record;
+
+			if (item instanceof Record) {
+				record = (Record) item;
+			} else {
+				record = ((RecordWrapper) item).getWrappedRecord();
+			}
+
+			if (record != null && record.isSaved()) {
+
+				try {
+					Record recordFromCache = getDocumentById(record.getId());
+					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
+					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					LOGGER.debug("Deleted record is disconnected");
+					((RecordImpl) record).markAsDisconnected();
+				}
+			}
+		}
+	}
+
 	RecordProvider newRecordProvider(RecordProvider nestedProvider, Transaction transaction) {
 		return new RecordProvider(modelLayerFactory.newRecordServices(), nestedProvider, transaction.getRecords(), transaction);
 	}
@@ -988,75 +1013,75 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public boolean isRestorable(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isRestorable(record, user);
 	}
 
 	public void restore(Record record, User user) {
 
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		newRecordDeleteServices().restore(record, user);
 	}
 
 	public boolean isPhysicallyDeletable(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
 	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
 	}
 
 	public void physicallyDelete(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		newRecordDeleteServices().physicallyDelete(record, user);
 	}
 
 	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
 	public void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		newRecordDeleteServices().physicallyDelete(record, user, options);
 	}
 
 	public boolean isLogicallyDeletable(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isLogicallyDeletable(record, user);
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
 	}
 
 	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableExcludingContent(record, user);
 	}
 
 	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record, User user) {
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableIncludingContent(record, user);
 	}
 
@@ -1065,27 +1090,21 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
-		refresh(record);
-		refresh(user);
 
-		//		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		//		if (taxonomy != null && taxonomy.getSchemaTypes().contains(recordSchemaType)) {
-		//			if (options.behaviorForRecordsAttachedToTaxonomy == LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS) {
-		//				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
-		//			} else {
-		//				newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
-		//			}
-		//		} else {
+		//if (options.isSkipRefresh()) {
+		refreshUsingCache(record);
+		refreshUsingCache(user);
+		//}
+
 		newRecordDeleteServices().logicallyDelete(record, user, options);
-		//		}
 
-		refresh(record);
+		refreshUsingCache(record);
 	}
 
 	public List<Record> getVisibleRecordsWithReferenceTo(Record record, User user) {
 
-		refresh(record);
-		refresh(user);
+		refreshUsingCache(record);
+		refreshUsingCache(user);
 		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user);
 	}
 
