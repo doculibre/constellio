@@ -104,6 +104,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
+
+		getModelLayerFactory().getRecordsCaches().invalidateAll();
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
 	}
 
 	@Test
@@ -1100,7 +1104,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(linkable(folderNearEnd.getId()))
 				.has(unlinkable(subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(4);
+		assertThat(queryCount.get()).isEqualTo(5);
 	}
 
 	@Test

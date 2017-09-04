@@ -187,7 +187,7 @@ public class SearchServices {
 		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 
 		//final List<Record> original = search(query);
-		final List<Record> records = search(querCompatibleWithCache);
+		final List<Record> records = cachedSearch(querCompatibleWithCache);
 
 		//		if (original.size() != records.size()) {
 		//			System.out.println("different");

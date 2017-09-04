@@ -149,7 +149,13 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {
-		return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
+
+		if (taxonomy.getSchemaTypes().size() == 1) {
+			return from(metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
+					.getSchemaType(taxonomy.getSchemaTypes().get(0)));
+		} else {
+			return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
+		}
 	}
 
 	static DataStoreFieldLogicalSearchCondition directChildOf(Record record) {
