@@ -33,8 +33,6 @@ public class RMMigrationTo7_4_48 extends MigrationHelper implements MigrationScr
 		new SchemaAlterationFor7_4_48(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-
-
 	class SchemaAlterationFor7_4_48 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_4_48(String collection, MigrationResourcesProvider migrationResourcesProvider,
@@ -44,7 +42,7 @@ public class RMMigrationTo7_4_48 extends MigrationHelper implements MigrationScr
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getMetadata(Document.CONTENT).setEssentialInSummary(true);
+			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Document.CONTENT).setEssentialInSummary(true);
 		}
 
 	}
