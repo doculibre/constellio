@@ -12,12 +12,14 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	@Override
 	public synchronized void insert(String username, String recordId, String mode, Boolean value) {
 
-		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-		if (taxonomyRecordCache == null) {
-			taxonomyRecordCache = new TaxonomyRecordCache();
-			cache.put(recordId, taxonomyRecordCache);
+		if (username != null && recordId != null && mode != null && value != null) {
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
+			if (taxonomyRecordCache == null) {
+				taxonomyRecordCache = new TaxonomyRecordCache();
+				cache.put(recordId, taxonomyRecordCache);
+			}
+			taxonomyRecordCache.put(username, mode, value);
 		}
-		taxonomyRecordCache.put(username, mode, value);
 	}
 
 	@Override
@@ -27,37 +29,51 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 
 	@Override
 	public synchronized void invalidateWithChildren(String recordId) {
-		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-		if (taxonomyRecordCache != null) {
-			taxonomyRecordCache.invalidateWithChildren();
+		if (recordId != null) {
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
+			if (taxonomyRecordCache != null) {
+				taxonomyRecordCache.invalidateWithChildren();
+			}
 		}
 	}
 
 	@Override
 	public synchronized void invalidateWithoutChildren(String recordId) {
-		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-		if (taxonomyRecordCache != null) {
-			taxonomyRecordCache.removeWithoutChildren();
+		if (recordId != null) {
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
+			if (taxonomyRecordCache != null) {
+				taxonomyRecordCache.removeWithoutChildren();
+			}
 		}
 	}
 
 	@Override
 	public synchronized void invalidateRecord(String recordId) {
-		cache.remove(recordId);
+		if (recordId != null) {
+			cache.remove(recordId);
+		}
 
 	}
 
 	@Override
 	public synchronized void invalidateUser(String username) {
-		for (TaxonomyRecordCache taxonomyRecordCache : cache.values()) {
-			taxonomyRecordCache.invalidateUser(username);
+		if (username != null) {
+			for (TaxonomyRecordCache taxonomyRecordCache : cache.values()) {
+				taxonomyRecordCache.invalidateUser(username);
+			}
 		}
 	}
 
 	@Override
 	public synchronized Boolean getCachedValue(String username, String recordId, String mode) {
-		TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
-		return taxonomyRecordCache == null ? null : taxonomyRecordCache.get(username, mode);
+
+		if (username != null && recordId != null && mode != null) {
+
+			TaxonomyRecordCache taxonomyRecordCache = cache.get(recordId);
+			return taxonomyRecordCache == null ? null : taxonomyRecordCache.get(username, mode);
+		} else {
+			return null;
+		}
 	}
 
 	private static class TaxonomyRecordCache {

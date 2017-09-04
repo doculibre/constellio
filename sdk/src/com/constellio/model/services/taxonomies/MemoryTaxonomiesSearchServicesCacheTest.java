@@ -177,4 +177,24 @@ public class MemoryTaxonomiesSearchServicesCacheTest extends ConstellioTest {
 		assertThat(cache.getCachedValue("dakota", "002", "mode3")).isEqualTo(null);
 		assertThat(cache.getCachedValue("bob", "003", "mode3")).isEqualTo(true);
 	}
+
+	@Test
+	public void whenCallingServiceWithNullValuesThenDoNothing()
+			throws Exception {
+
+		cache.insert(null, "001", "mode1", true);
+		cache.insert("chuck", null, "mode1", true);
+		cache.insert("chuck", "001", null, true);
+		cache.insert("chuck", "001", "mode1", null);
+
+		assertThat(cache.getCachedValue(null, "001", "mode1")).isEqualTo(null);
+		assertThat(cache.getCachedValue("chuck", null, "mode1")).isEqualTo(null);
+		assertThat(cache.getCachedValue("chuck", "001", null)).isEqualTo(null);
+
+		cache.invalidateRecord(null);
+		cache.invalidateUser(null);
+		cache.invalidateWithoutChildren(null);
+		cache.invalidateWithChildren(null);
+
+	}
 }
