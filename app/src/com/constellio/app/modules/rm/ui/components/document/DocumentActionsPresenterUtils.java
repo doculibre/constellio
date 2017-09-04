@@ -281,6 +281,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateWindowClosed() {
+		currentDocument = null;
 		updateActionsComponent();
 	}
 
