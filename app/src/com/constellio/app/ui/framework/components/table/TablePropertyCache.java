@@ -24,11 +24,11 @@ public class TablePropertyCache implements Serializable {
 	
 	public static class CellKey implements Serializable {
 		
-		private String objectId;
+		private Object objectId;
 		
 		private Object propertyId;
 		
-		public CellKey(String objectId, Object propertyId) {
+		public CellKey(Object objectId, Object propertyId) {
 			this.objectId = objectId;
 			this.propertyId = propertyId;
 		}

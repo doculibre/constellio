@@ -1,9 +1,7 @@
 package com.constellio.app.ui.framework.components.table;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -360,34 +358,35 @@ public class RecordVOTable extends BaseTable {
 			}
 			if (menuBarRequired) {
 				addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
-					
-					private Map<String, Object> cellContents = new HashMap<>();
-					
 					@Override
 					public Object generateCell(Table source, Object itemId, Object columnId) {
 						Item item = getItem(itemId);
 						RecordVO recordVO = getRecordVOForTitleColumn(item);
 						String recordId = recordVO != null ? recordVO.getId() : "_NULL_";
-						Object cellContent = cellContents.get(recordId);
-						if (cellContent == null && recordVO != null) {
-							MenuBar menuBar = null;
-							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-								menuBar = recordMenuBarHandler.get(recordVO);
-								if (menuBar != null) {
-									break;
+						CellKey cellKey = new CellKey(recordId, columnId);
+						Property<?> cellProperty = cellProperties.get(cellKey);
+						Component cellContent;
+						if (cellProperty != null) {
+							cellContent = (Component) cellProperty.getValue();
+						} else {
+							if (recordVO != null) {
+								MenuBar menuBar = null;
+								List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+								for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+									menuBar = recordMenuBarHandler.get(recordVO);
+									if (menuBar != null) {
+										break;
+									}
 								}
-							}
-							if (menuBar == null) {
-								cellContent = new Label("");
+								if (menuBar == null) {
+									cellContent = new Label("");
+								} else {
+									cellContent = menuBar;
+								}
 							} else {
-								cellContent = menuBar;
+								cellContent = new Label(""); 
 							}
-						} else if (cellContent == null) {
-							cellContent = new Label(""); 
-						}
-						if (!cellContents.containsKey(recordId)) {
-							cellContents.put(recordId, cellContent);
+							cellProperties.put(cellKey, new ObjectProperty<Object>(cellContent));
 						}
 						return cellContent;
 					}

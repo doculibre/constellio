@@ -17,6 +17,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -51,21 +52,29 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 			addGeneratedColumn(CHECKBOX_PROPERTY, new ColumnGenerator() {
 				@Override
 				public Object generateCell(Table source, final Object itemId, Object columnId) {
-					final CheckBox checkBox = new CheckBox();
-					checkBox.setValue(selected.contains(itemId));
-					checkBox.addValueChangeListener(new ValueChangeListener() {
-						@Override
-						public void valueChange(Property.ValueChangeEvent event) {
-							if (checkBox.getValue()) {
-								selected.add(itemId);
-								deselected.remove(itemId);
-							} else {
-								selected.remove(itemId);
-								deselected.add(itemId);
+					final CheckBox checkBox;
+					CellKey cellKey = new CellKey(itemId, columnId);
+					Property<?> cellProperty = cellProperties.get(cellKey);
+					if (cellProperty != null) {
+						checkBox = (CheckBox) cellProperty.getValue();
+					} else {
+						checkBox = new CheckBox();
+						checkBox.setValue(selected.contains(itemId));
+						checkBox.addValueChangeListener(new ValueChangeListener() {
+							@Override
+							public void valueChange(Property.ValueChangeEvent event) {
+								if (checkBox.getValue()) {
+									selected.add(itemId);
+									deselected.remove(itemId);
+								} else {
+									selected.remove(itemId);
+									deselected.add(itemId);
+								}
+								fireSelectionChangeEvent();
 							}
-							fireSelectionChangeEvent();
-						}
-					});
+						});
+						cellProperties.put(cellKey, new ObjectProperty<Object>(checkBox));
+					}
 					return checkBox;
 				}
 			});

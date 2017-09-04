@@ -34,7 +34,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	protected T container;
 	protected ComboBox itemsPerPageField;
 	
-	private TablePropertyCache cellProperties = new TablePropertyCache();
+	protected TablePropertyCache cellProperties = new TablePropertyCache();
 
 	public BasePagedTable(T container) {
 		this.container = container;
