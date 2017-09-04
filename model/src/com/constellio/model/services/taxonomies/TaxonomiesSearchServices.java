@@ -694,8 +694,13 @@ public class TaxonomiesSearchServices {
 
 			Map<String, Boolean> cachedHasChildren = new HashMap<>();
 
-			String serviceCacheMode =
-					ctx.forSelectionOfSchemaType == null ? "visible" : "select-" + ctx.forSelectionOfSchemaType.getCode();
+			//2
+			String serviceCacheMode = null;
+
+			if (!options.hasLinkableConceptFilter()) {
+				serviceCacheMode =
+						ctx.forSelectionOfSchemaType == null ? "visible" : "select-" + ctx.forSelectionOfSchemaType.getCode();
+			}
 			for (Record child : batch) {
 
 				Boolean cachedValue = serviceCache.getCachedValue(ctx.user.getUsername(), child.getId(), serviceCacheMode);
@@ -704,8 +709,8 @@ public class TaxonomiesSearchServices {
 				} else {
 					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, child));
 				}
-				if (selectingAConcept) {
-					//facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + child.getId());
+				if (selectingAConcept && options.hasLinkableConceptFilter()) {
+					facetQuery.addQueryFacet(CHILDREN_QUERY, "id:" + child.getId());
 				}
 			}
 
@@ -734,7 +739,12 @@ public class TaxonomiesSearchServices {
 
 				boolean linkable = NOT_LINKABLE;
 				if (selectingAConcept) {
-					linkable = child.get(Schemas.LINKABLE);// response.hasQueryFacetResults("id:" + child.getId());
+					if (options.hasLinkableConceptFilter()) {
+						linkable = response.hasQueryFacetResults("id:" + child.getId());
+					} else {
+						linkable = options.isAlwaysReturnTaxonomyConceptsWithReadAccess() || isTrueOrNull(
+								child.get(Schemas.LINKABLE));
+					}
 				}
 
 				if (showEvenIfNoChildren || hasChildren || linkable) {
@@ -825,8 +835,11 @@ public class TaxonomiesSearchServices {
 		LogicalSearchQuery hasChildrenQuery = newQueryForFacets(condition, User.GOD, options);
 
 		Map<String, Boolean> cachedHasChildren = new HashMap<>();
-		String serviceCacheMode =
-				selectedType == null ? "visible" : "select-" + selectedType.getCode();
+		String serviceCacheMode = null;
+
+		if (!options.hasLinkableConceptFilter()) {
+			serviceCacheMode = selectedType == null ? "visible" : "select-" + selectedType.getCode();
+		}
 
 		for (Record child : mainQueryResponse.getRecords()) {
 			Boolean cachedValue = serviceCache.getCachedValue(user.getUsername(), child.getId(), serviceCacheMode);

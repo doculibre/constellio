@@ -81,7 +81,7 @@ public class ConceptNodesTaxonomySearchServices {
 			boolean preferCachedQuery) {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 		boolean useCache = false;
-		if (preferCachedQuery && taxonomy.getSchemaTypes().size() == 1) {
+		if (preferCachedQuery && taxonomy.getSchemaTypes().size() == 1 && options.getStartRow() == 0) {
 			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
 			useCache = cacheConfig != null && cacheConfig.isPermanent();
 		}
@@ -91,7 +91,7 @@ public class ConceptNodesTaxonomySearchServices {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredByStatus(options.getIncludeStatus());
 
-		if (!useCache && options.getStartRow() == 0) {
+		if (!useCache) {
 			query.setStartRow(options.getStartRow());
 			query.setNumberOfRows(options.getRows());
 			query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));

@@ -4,7 +4,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TaxonomiesSearchOptions {
 
@@ -162,5 +161,9 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions setFilter(TaxonomiesSearchFilter filter) {
 		this.filter = filter;
 		return this;
+	}
+
+	public boolean hasLinkableConceptFilter() {
+		return filter != null && filter.linkableConceptsCondition != null;
 	}
 }
