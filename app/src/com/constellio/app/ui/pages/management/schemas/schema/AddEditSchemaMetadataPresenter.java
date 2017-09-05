@@ -1,12 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
+import static com.constellio.model.entities.schemas.Schemas.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -63,7 +58,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			protected boolean isAccepted(Metadata metadata) {
 				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
 						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON));
+						CREATED_ON, MODIFIED_ON, PATH));
 			}
 		};
 
@@ -73,7 +68,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
 						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON, LEGACY_ID));
+						CREATED_ON, MODIFIED_ON, LEGACY_ID, PATH));
 			}
 		};
 
@@ -83,7 +78,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata
 						.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-								CREATED_ON, MODIFIED_ON));
+								CREATED_ON, MODIFIED_ON, PATH));
 			}
 		};
 
