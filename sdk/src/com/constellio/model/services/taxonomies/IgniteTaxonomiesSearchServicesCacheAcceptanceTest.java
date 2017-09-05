@@ -2,20 +2,24 @@ package com.constellio.model.services.taxonomies;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.services.taxonomies.ignite.IgniteTaxonomiesSearchServicesCache;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 
+@IgniteTest
 public class IgniteTaxonomiesSearchServicesCacheAcceptanceTest extends ConstellioTest {
 
-	MemoryTaxonomiesSearchServicesCache cache;
+	IgniteTaxonomiesSearchServicesCache cache;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		cache = new MemoryTaxonomiesSearchServicesCache();
+		cache = new IgniteTaxonomiesSearchServicesCache(getModelLayerFactory());
 
 		cache.insert("chuck", "001", "mode1", true);
 		cache.insert("dakota", "002", "mode1", false);
@@ -26,6 +30,12 @@ public class IgniteTaxonomiesSearchServicesCacheAcceptanceTest extends Constelli
 		cache.insert("chuck", "001", "mode3", true);
 		cache.insert("dakota", "002", "mode3", false);
 		cache.insert("bob", "003", "mode3", true);
+	}
+	
+	@After
+	public void tearDown()
+		throws Exception {
+		cache.invalidateAll();
 	}
 
 	@Test
