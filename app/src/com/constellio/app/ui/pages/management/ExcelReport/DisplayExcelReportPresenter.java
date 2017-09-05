@@ -37,4 +37,8 @@ public class DisplayExcelReportPresenter extends BasePresenter<DisplayExcelRepor
     public void setParametersMap(Map<String, String> map){
         this.parametersMap = map;
     }
+
+    protected void backButtonClicked() {
+        view.navigate().to().previousView();
+    }
 }
