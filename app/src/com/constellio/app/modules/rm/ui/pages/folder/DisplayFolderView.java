@@ -27,6 +27,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void selectFolderContentTab();
 
 	void selectTasksTab();
+	
+	void selectEventsTab();
 
 	void setLogicallyDeletable(ComponentState state);
 
