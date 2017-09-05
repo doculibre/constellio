@@ -174,7 +174,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
+//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
@@ -182,7 +182,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| (isTextOrString && metadata.isSearchable()))) {
+						|| (isTextOrString && metadata.isSearchable()) || Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, header.getSessionContext()));
 				}
 			}

@@ -17,7 +17,6 @@ import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -30,17 +29,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
-import org.joda.time.DateTime;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -212,6 +208,32 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
+		try {
+			es.getConnectorManager().getCrawler().getWaitFlushed().acquireUninterruptibly();
+			cleanCache(connectorInstance.getCollection());
+		} finally {
+			es.getConnectorManager().getCrawler().getWaitFlushed().release();
+		}
+	}
+
+	private void cleanCache(String collection) {
+
+		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		RecordsCache cache = recordServices.getRecordsCaches().getCache(collection);
+
+		Iterator<String> smbFoldersIterator = searchServices.recordsIdsIterator(new LogicalSearchQuery().setCondition(from(es.connectorSmbFolder.schemaType())
+				.where(es.connectorSmbFolder.connector()).isEqualTo(connectorId)));
+		while (smbFoldersIterator.hasNext()) {
+			cache.invalidate(smbFoldersIterator.next());
+		}
+
+		Iterator<String> smbDocumentsIterator = searchServices.recordsIdsIterator( new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
+				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId)));
+		while (smbDocumentsIterator.hasNext()) {
+			cache.invalidate(smbDocumentsIterator.next());
+		}
 	}
 
 	@Override
@@ -239,16 +261,6 @@ public class ConnectorSmb extends Connector {
 		return jobs;
 	}
 
-	private List<String> getUrlsToDelete(ConnectorSmbInstance connectorInstance) {
-		LogicalSearchCondition documentsToDeleteCondition = from(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()).where(es.connectorDocument.connector()).isEqualTo(connectorInstance)
-				.andWhere(es.connectorDocument.traversalCode()).isNotEqual(connectorInstance.getTraversalCode());
-		LogicalSearchQuery documentsToDeleteQuery = new LogicalSearchQuery().setCondition(documentsToDeleteCondition).setNumberOfRows(0)
-				.addFieldFacet(es.connectorDocument.url().getDataStoreCode());
-		SearchServices searchServices = es.getModelLayerFactory().newSearchServices();
-		SPEQueryResponse response = searchServices.query(documentsToDeleteQuery);
-		return response.getFieldFacetValuesWithResults(es.connectorDocument.url().getDataStoreCode());
-	}
-
 	private void cleanupInconsistencies() {
         try {
 			this.duplicateUrls.clear();
@@ -260,26 +272,26 @@ public class ConnectorSmb extends Connector {
 
 	public void queueJob(SmbConnectorJob job) {
 		if (job != null) {
-//			logger.info("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
 			jobsQueue.add(job);
 		}
 	}
 
 	private void changeTraversalCodeToMarkEndOfTraversal() {
-		String oldTraversalCode = connectorInstance.getTraversalCode();
+		connectorInstance = es.getConnectorSmbInstance(connectorId);
+		String oldTraversalCode = this.connectorInstance.getTraversalCode();
 		String newTraversalCode = UUID.randomUUID()
 				.toString();
 
-		connectorInstance.setTraversalCode(newTraversalCode);
-		connectorInstance.setResumeUrl("");
+		this.connectorInstance.setTraversalCode(newTraversalCode);
+		this.connectorInstance.setResumeUrl("");
 
 		try {
-			es.getRecordServices().update(connectorInstance);
+			es.getRecordServices().update(this.connectorInstance);
 		} catch (RecordServicesException e) {
 			logger.errorUnexpected(e);
 		}
 
-		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + connectorInstance.getId() +
+		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + this.connectorInstance.getId() +
 						" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
@@ -351,7 +363,6 @@ public class ConnectorSmb extends Connector {
 	private void loadDeleteCache() {
 		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		urlsToDelete.clear();
 
 		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbFolder.url());

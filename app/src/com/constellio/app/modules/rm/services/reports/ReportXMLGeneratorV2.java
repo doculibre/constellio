@@ -15,6 +15,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
@@ -27,6 +28,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.jsoup.Jsoup;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -280,6 +282,8 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             } catch (ParseException e) {
                 return data;
             }
+        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
+            finalData = Jsoup.parse(data).text();
         }
         return replaceBracketsInValueToString.replaceOn(finalData);
     }
