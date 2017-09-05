@@ -37,12 +37,15 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	SessionContext sessionContext;
 	private int batchSize = 20;
 
+	private boolean cachedSearch;
+
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 		init(modelLayerFactory);
+
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,

@@ -948,7 +948,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (record != null && record.isSaved()) {
 
 				try {
-					Record recordFromCache = getDocumentById(record.getId());
+					Record recordFromCache = recordsCaches.getRecord(record.getId());
+
+					if (recordFromCache == null) {
+						recordFromCache = getDocumentById(record.getId());
+					}
 					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
 					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

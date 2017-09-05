@@ -944,6 +944,7 @@ public class TaxonomiesSearchServices {
 				}
 				LogicalSearchQuery facetQuery = newQueryForFacets(condition, ctx.user, ctx.options);
 				for (Record child : batch) {
+					//3
 					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(ctx.taxonomy, child));
 				}
 

@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
-import static com.constellio.model.services.contents.ContentFactory.checkedOut;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static java.util.Arrays.asList;
@@ -124,9 +123,10 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	private ExtensionBooleanResult isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		return ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.document.schemaType())
-				.where(rm.document.content()).is(checkedOut())
+				.where(rm.document.contentCheckedOutBy()).isNotNull()
 				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())
 		));
+
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {

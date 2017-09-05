@@ -930,7 +930,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				}
 			} else {
 				//It is much faster to load all admin units from cache and test write access
-				for (Record anAdministrativeUnit : searchServices.search(allAdminUnitsQuery)) {
+				for (Record anAdministrativeUnit : searchServices.cachedSearch(allAdminUnitsQuery)) {
 					if (currentUser.hasWriteAccess().on(anAdministrativeUnit)) {
 						folder.setAdministrativeUnitEntered(anAdministrativeUnit);
 						break;

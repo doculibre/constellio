@@ -689,7 +689,24 @@ public class RecordDeleteServices {
 
 		if (isPrincipalTaxonomy || !isTaxonomy) {
 			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-				List<Metadata> typeReferencesMetadata = type.getAllNonParentReferences();
+				List<Metadata> typeReferencesMetadata = new ArrayList<>();
+
+				for (Metadata metadata : type.getAllNonParentReferences()) {
+					//FIXME Generic!
+//					if (record.getTypeCode().equals("folder")) {
+					//						if ("folder".equals(metadata.getReferencedSchemaType())
+					//								|| "document".equals(metadata.getReferencedSchemaType())) {
+					//							typeReferencesMetadata.add(metadata);
+					//						}
+					//					} else if (record.getTypeCode().equals("document")) {
+					//						if ("document".equals(metadata.getReferencedSchemaType())) {
+					//							typeReferencesMetadata.add(metadata);
+					//						}
+					//					} else {
+					//						typeReferencesMetadata.add(metadata);
+					//					}
+				}
+
 				if (!typeReferencesMetadata.isEmpty()) {
 					LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
 
