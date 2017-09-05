@@ -108,6 +108,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
+	
+	private List<RecordVODataProvider> folderContentDataProviders;
+	private RecordVODataProvider tasksDataProvider;
+	private RecordVODataProvider eventsDataProvider;
 
 	public DisplayFolderViewImpl() {
 		presenter = new DisplayFolderPresenter(this);
@@ -165,7 +169,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(folderContentComponent,
 				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
-		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -178,8 +182,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
-					presenter.refreshEvents();
+				Component selectedTab = tabSheet.getSelectedTab();
+				if (selectedTab == recordDisplay) {
+					presenter.metadataTabSelected();
+				} else if (selectedTab == folderContentComponent) {
+					presenter.folderContentTabSelected();
+				} else if (selectedTab == tasksComponent) {
+					presenter.tasksTabSelected();
+				} else if (selectedTab == eventsComponent) {
+					presenter.eventsTabSelected();
 				}
 			}
 		});
@@ -495,137 +506,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setEvents(final RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new EventVOTableColumnsManager();
-			}
-		};
-		table.setSizeFull();
-		tabSheet.replaceComponent(eventsComponent, table);
-		eventsComponent = table;
+		this.eventsDataProvider = dataProvider;
 	}
 
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
-		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editDocumentButtonClicked(record);
-					}
-				};
-				if (presenter.isDocument(record)) {
-					button.setEnabled(presenter.canModifyDocument(record));
-				} else {
-					button.setVisible(false);
-				}
-				return button;
-			}
-		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
-						$("DisplayFolderView.download")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.downloadDocumentButtonClicked(record);
-					}
-				};
-				if (presenter.isDocument(record)) {
-					button.setEnabled(record.get(Document.CONTENT) != null);
-				} else {
-					button.setVisible(false);
-				}
-				return button;
-			}
-		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (presenter.isDocument(record)) {
-							presenter.displayDocumentButtonClicked(record);
-						} else {
-							presenter.subFolderClicked(record);
-						}
-					}
-				};
-				return button;
-			}
-		});
-		final Table table = new RecordVOTable();
-		table.setSizeFull();
-		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					RecordVO recordVO = item.getRecord();
-					if (presenter.isDocument(recordVO)) {
-						presenter.documentClicked(recordVO);
-					} else {
-						presenter.subFolderClicked(recordVO);
-					}
-				}
-			}
-		});
-		table.setContainerDataSource(nestedContainer);
-
-		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
-			@Override
-			public void selectAll() {
-				presenter.selectAllClicked();
-			}
-
-			@Override
-			public void deselectAll() {
-				presenter.deselectAllClicked();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return presenter.isAllItemsSelected();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return presenter.isAllItemsDeselected();
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				return presenter.isSelected(recordVO);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				presenter.recordSelectionChanged(recordVO, selected);
-				adjustSelectAllButton(selected);
-			}
-		};
-		tabSheet.replaceComponent(folderContentComponent, tableAdapter);
-		folderContentComponent = tableAdapter;
+		this.folderContentDataProviders = dataProviders;
 	}
 
 	@Override
@@ -636,19 +522,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setTasks(RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable(dataProvider);
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.taskClicked(recordVO);
-			}
-		});
-		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(tasksComponent, table);
-		tasksComponent = table;
+		this.tasksDataProvider = dataProvider;
 	}
 
 	@Override
@@ -658,12 +532,165 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void selectFolderContentTab() {
+		if (!(folderContentComponent instanceof Table)) {
+			final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(folderContentDataProviders);
+
+			ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new EditButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.editDocumentButtonClicked(record);
+						}
+					};
+					if (presenter.isDocument(record)) {
+						button.setEnabled(presenter.canModifyDocument(record));
+					} else {
+						button.setVisible(false);
+					}
+					return button;
+				}
+			});
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
+							$("DisplayFolderView.download")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.downloadDocumentButtonClicked(record);
+						}
+					};
+					if (presenter.isDocument(record)) {
+						button.setEnabled(record.get(Document.CONTENT) != null);
+					} else {
+						button.setVisible(false);
+					}
+					return button;
+				}
+			});
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new DisplayButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							if (presenter.isDocument(record)) {
+								presenter.displayDocumentButtonClicked(record);
+							} else {
+								presenter.subFolderClicked(record);
+							}
+						}
+					};
+					return button;
+				}
+			});
+			final Table table = new RecordVOTable();
+			table.setSizeFull();
+			table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					if (event.getButton() == MouseButton.LEFT) {
+						RecordVOItem item = (RecordVOItem) event.getItem();
+						RecordVO recordVO = item.getRecord();
+						if (presenter.isDocument(recordVO)) {
+							presenter.documentClicked(recordVO);
+						} else {
+							presenter.subFolderClicked(recordVO);
+						}
+					}
+				}
+			});
+			table.setContainerDataSource(nestedContainer);
+
+			//		table.setPageLength(Math.min(15, dataProvider.size()));
+			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
+				@Override
+				public void selectAll() {
+					presenter.selectAllClicked();
+				}
+
+				@Override
+				public void deselectAll() {
+					presenter.deselectAllClicked();
+				}
+
+				@Override
+				public boolean isAllItemsSelected() {
+					return presenter.isAllItemsSelected();
+				}
+
+				@Override
+				public boolean isAllItemsDeselected() {
+					return presenter.isAllItemsDeselected();
+				}
+
+				@Override
+				public boolean isSelected(Object itemId) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					return presenter.isSelected(recordVO);
+				}
+
+				@Override
+				public void setSelected(Object itemId, boolean selected) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					presenter.recordSelectionChanged(recordVO, selected);
+					adjustSelectAllButton(selected);
+				}
+			};
+			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
+			folderContentComponent = tableAdapter;
+
+		}
 		tabSheet.setSelectedTab(folderContentComponent);
 	}
 
 	@Override
 	public void selectTasksTab() {
+		if (!(tasksComponent instanceof Table)) {
+			Table table = new RecordVOTable(tasksDataProvider);
+			table.setSizeFull();
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.taskClicked(recordVO);
+				}
+			});
+			table.setPageLength(Math.min(15, tasksDataProvider.size()));
+			tabSheet.replaceComponent(tasksComponent, table);
+			tasksComponent = table;
+		}
 		tabSheet.setSelectedTab(tasksComponent);
+	}
+
+	@Override
+	public void selectEventsTab() {
+		if (!(eventsComponent instanceof Table)) {
+			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(eventsDataProvider)) {
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new EventVOTableColumnsManager();
+				}
+			};
+			table.setSizeFull();
+			tabSheet.replaceComponent(eventsComponent, table);
+			eventsComponent = table;
+
+		}
+		tabSheet.setSelectedTab(eventsComponent);
 	}
 
 	@Override

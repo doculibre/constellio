@@ -185,8 +185,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return getTasksQuery();
 			}
 		};
+		
+		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
+		view.setTasks(tasksDataProvider);
 
+		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		eventsDataProvider = getEventsDataProvider();
+		view.setEvents(eventsDataProvider);
 
 		computeAllItemsSelected();
 	}
@@ -957,10 +962,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	protected boolean hasCurrentUserPermissionToViewEvents() {
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(toRecord(folderVO));
 	}
+	
+	void metadataTabSelected() {
+		view.selectMetadataTab();
+	}
+	
+	void folderContentTabSelected() {
+		view.selectFolderContentTab();
+	}
+	
+	void tasksTabSelected() {
+		view.selectTasksTab();
+	}
 
-	public void refreshEvents() {
-		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
-		view.setEvents(getEventsDataProvider());
+	void eventsTabSelected() {
+		view.selectEventsTab();
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
