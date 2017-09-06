@@ -8,6 +8,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -47,6 +48,7 @@ public class TemporaryRecordDestructionDateCalculatorAcceptanceTest extends Cons
     @Test
     public void givenParametersThenCalculatorReturnsGoodValue()  {
         when(parameters.get(calculator.numberOfDaysParams)).thenReturn(5D);
+        when(parameters.get(calculator.creationDate)).thenReturn(new LocalDateTime());
         assertThat(calculator.calculate(parameters).toString("dd/MM/yyyy")).isEqualTo(new LocalDate().plusDays(5).toString("dd/MM/yyyy"));
     }
 }

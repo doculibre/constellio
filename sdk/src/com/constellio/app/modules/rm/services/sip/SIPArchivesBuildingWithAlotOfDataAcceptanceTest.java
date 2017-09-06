@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -39,6 +40,7 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
     private RMTestRecords records = new RMTestRecords(zeCollection);
     private SearchServices searchServices;
     private RMSchemasRecordsServices rm;
+    private IOServices ioServices;
 
     @Before
     public void setup(){
@@ -47,6 +49,7 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
         );
         searchServices = getModelLayerFactory().newSearchServices();
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+        ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
     }
 
     @Test
@@ -77,6 +80,8 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
             ze = zis.getNextEntry();
         }
         //assertThat(compteur).isEqualTo(getTotalOfDocumentForFolderList(getAllFolderFromRecords()) + getAllFolderFromRecords().size());
+        zis.doClose();
+        ioServices.closeQuietly(is);
     }
 
     @Test
