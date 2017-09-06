@@ -58,6 +58,7 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchBoostManager;
+import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -118,6 +119,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 	private final RecordMigrationsManager recordMigrationsManager;
+	private final SearchConfigurationsManager searchConfigurationsManager;
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -195,6 +197,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.trashQueueManager = add(new TrashQueueManager(this));
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
+
+		this.searchConfigurationsManager = new SearchConfigurationsManager();
 
 	}
 
@@ -440,5 +444,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public ModelLayerBackgroundThreadsManager getModelLayerBackgroundThreadsManager() {
 		return modelLayerBackgroundThreadsManager;
+	}
+
+	@Override
+	public SearchConfigurationsManager getSearchConfigurationsManager() {
+		return searchConfigurationsManager;
 	}
 }
