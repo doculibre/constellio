@@ -7,67 +7,131 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.entities.ResultsElevation;
+import com.constellio.model.services.search.entities.ResultsExclusion;
 
 public class SearchConfigurationsManager {
 
-	Map<String, List<String>> elevatedRecords = new HashMap<>();
+	Map<String, Map<String, List<String>>> elevatedRecords = new HashMap<>();
 
-	Map<String, List<String>> excludedRecords = new HashMap<>();
+	Map<String, Map<String, List<String>>> excludedRecords = new HashMap<>();
 
 	List<String> synonyms = new ArrayList<>();
 
-	public boolean isElevated(Record record) {
-		List<String> collectionElevatedRecords = elevatedRecords.get(record.getCollection());
-		return collectionElevatedRecords == null ? false : collectionElevatedRecords.contains(record.getId());
-	}
+	public boolean isElevated(String query, Record record) {
+		Map<String, List<String>> collectionElevations = elevatedRecords.get(record.getCollection());
 
-	public boolean isExcluded(Record record) {
-		List<String> collectionExcludedRecords = excludedRecords.get(record.getCollection());
-		return collectionExcludedRecords == null ? false : collectionExcludedRecords.contains(record.getId());
-	}
-
-	public void setElevated(Record record, boolean value) {
-		if (!elevatedRecords.containsKey(record.getCollection())) {
-			elevatedRecords.put(record.getCollection(), new ArrayList<String>());
-		}
-		elevatedRecords.get(record.getCollection()).add(record.getId());
-	}
-
-	public void setExcluded(Record record, boolean value) {
-		if (!excludedRecords.containsKey(record.getCollection())) {
-			excludedRecords.put(record.getCollection(), new ArrayList<String>());
-		}
-		excludedRecords.get(record.getCollection()).add(record.getId());
-	}
-
-	public List<String> getElevatedRecords(String collection) {
-		List<String> collectionElevatedRecords = elevatedRecords.get(collection);
-		return collectionElevatedRecords == null ?
-				Collections.<String>emptyList() :
-				Collections.unmodifiableList(collectionElevatedRecords);
-	}
-
-	public List<String> getExcludedRecords(String collection) {
-		List<String> collectionExcludedRecords = excludedRecords.get(collection);
-		return collectionExcludedRecords == null ?
-				Collections.<String>emptyList() :
-				Collections.unmodifiableList(collectionExcludedRecords);
-	}
-
-	public void setElevatedRecords(String collection, List<String> ids) {
-		if (ids == null || ids.isEmpty()) {
-			elevatedRecords.remove(collection);
+		if (collectionElevations == null) {
+			return false;
 		} else {
-			elevatedRecords.put(collection, new ArrayList<>(ids));
+			List<String> collectionElevatedRecords = collectionElevations.get(query);
+			return collectionElevatedRecords == null ? false : collectionElevatedRecords.contains(record.getId());
+		}
+
+	}
+
+	public boolean isExcluded(String query, Record record) {
+		Map<String, List<String>> collectionExclusions = excludedRecords.get(record.getCollection());
+
+		if (collectionExclusions == null) {
+			return false;
+		} else {
+			List<String> collectionElevatedRecords = collectionExclusions.get(query);
+			return collectionElevatedRecords == null ? false : collectionElevatedRecords.contains(record.getId());
 		}
 	}
 
-	public void setExcludedRecords(String collection, List<String> ids) {
-		if (ids == null || ids.isEmpty()) {
-			excludedRecords.remove(collection);
-		} else {
-			excludedRecords.put(collection, new ArrayList<>(ids));
+	public void setElevated(String query, Record record, boolean value) {
+
+		Map<String, List<String>> collectionElevations = elevatedRecords.get(record.getCollection());
+
+		if (collectionElevations == null) {
+			collectionElevations = new HashMap<>();
+			elevatedRecords.put(record.getCollection(), collectionElevations);
 		}
+
+		if (!collectionElevations.containsKey(record.getCollection())) {
+			collectionElevations.put(record.getCollection(), new ArrayList<String>());
+		}
+		collectionElevations.get(record.getCollection()).add(record.getId());
+	}
+
+	public void setExcluded(String query, Record record, boolean value) {
+		Map<String, List<String>> collectionElevations = excludedRecords.get(record.getCollection());
+
+		if (collectionElevations == null) {
+			collectionElevations = new HashMap<>();
+			excludedRecords.put(record.getCollection(), collectionElevations);
+		}
+
+		if (!collectionElevations.containsKey(record.getCollection())) {
+			collectionElevations.put(record.getCollection(), new ArrayList<String>());
+		}
+		collectionElevations.get(record.getCollection()).add(record.getId());
+	}
+
+	public List<ResultsElevation> getElevations(String collection) {
+		Map<String, List<String>> collectionElevations = elevatedRecords.get(collection);
+		if (collectionElevations == null) {
+			return Collections.emptyList();
+		} else {
+			List<ResultsElevation> elevations = new ArrayList<>();
+
+			for (Map.Entry<String, List<String>> anElevation : collectionElevations.entrySet()) {
+				elevations.add(new ResultsElevation(anElevation.getKey(), new ArrayList<>(anElevation.getValue())));
+			}
+
+			return elevations;
+		}
+	}
+
+	public List<ResultsExclusion> getExclusions(String collection) {
+		Map<String, List<String>> collectionElevations = elevatedRecords.get(collection);
+		if (collectionElevations == null) {
+			return Collections.emptyList();
+		} else {
+			List<ResultsExclusion> elevations = new ArrayList<>();
+
+			for (Map.Entry<String, List<String>> anElevation : collectionElevations.entrySet()) {
+				elevations.add(new ResultsExclusion(anElevation.getKey(), new ArrayList<>(anElevation.getValue())));
+			}
+
+			return elevations;
+		}
+	}
+
+	public void setElevatedRecords(String collection, String query, List<String> ids) {
+		if (ids == null || ids.isEmpty()) {
+			if (elevatedRecords.containsKey(collection)) {
+				elevatedRecords.get(collection).remove(query);
+			}
+		} else {
+			if (!elevatedRecords.containsKey(collection)) {
+				elevatedRecords.put(collection, new HashMap<String, List<String>>());
+			}
+			elevatedRecords.get(collection).put(query, new ArrayList<>(ids));
+		}
+	}
+
+	public void setExcludedRecords(String collection, String query, List<String> ids) {
+		if (ids == null || ids.isEmpty()) {
+			if (excludedRecords.containsKey(collection)) {
+				excludedRecords.get(collection).remove(query);
+			}
+		} else {
+			if (!excludedRecords.containsKey(collection)) {
+				excludedRecords.put(collection, new HashMap<String, List<String>>());
+			}
+			excludedRecords.get(collection).put(query, new ArrayList<>(ids));
+		}
+	}
+
+	public void removeCollectionExclusions(String collection) {
+		excludedRecords.remove(collection);
+	}
+
+	public void removeCollectionElevations(String collection) {
+		elevatedRecords.remove(collection);
 	}
 
 	public List<String> getSynonyms() {
