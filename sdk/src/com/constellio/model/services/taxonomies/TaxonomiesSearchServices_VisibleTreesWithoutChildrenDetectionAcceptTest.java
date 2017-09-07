@@ -32,10 +32,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -204,7 +200,52 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setHasChildrenFlagCalculated(true);
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
+				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(numFoundAndListSize(3));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
+				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(recordsWithChildren(records.categoryId_X100))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(numFoundAndListSize(9));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
+				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(recordsWithChildren(records.categoryId_Z100))
+				.has(numFoundAndListSize(4));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
+				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
+				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(recordsWithChildren(records.categoryId_Z112))
+				.has(numFoundAndListSize(2));
+
+	}
+
+	@Test
+	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsAlwaysDisplayingConceptsWithReadAccessAndNoChildCalculatedThenSeesRecordsAndAllConcepts()
+			throws Exception {
+
+		//TODO Nicolas : Faire passer et ajouter des assertThatSolr().hasCounts(x,y,z);
+		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setHasChildrenFlagCalculated(false)
+				.setHasChildrenFlagCalculated(true);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))

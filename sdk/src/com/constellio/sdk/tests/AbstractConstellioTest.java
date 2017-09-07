@@ -845,10 +845,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected void waitForBatchProcess()
 			throws InterruptedException {
 		long batchProcessStart = new Date().getTime();
+		getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(false);
 		ensureNotUnitTest();
 		getCurrentTestSession().getBatchProcessTestFeature().waitForAllBatchProcessesAndEnsureNoErrors(null);
 		long batchProcessEnd = new Date().getTime();
 		stats.add(this, getTestName(), "waitForBatchProcess", batchProcessEnd - batchProcessStart);
+		getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(true);
 	}
 
 	protected void waitForBatchProcessAndDoSomethingWhenTheFirstBatchProcessIsStarted(Runnable runtimeAction)

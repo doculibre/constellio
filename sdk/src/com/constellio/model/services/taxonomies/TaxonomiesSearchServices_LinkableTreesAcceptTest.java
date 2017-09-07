@@ -1899,7 +1899,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(4))
-				.has(linkable("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X, records.categoryId_Z))
+				.has(linkable())
 				.has(resultsInOrder("rootCategoryWithChild", "rootCategoryWithoutChild", records.categoryId_X,
 						records.categoryId_Z))
 				.has(itemsWithChildren("rootCategoryWithChild", records.categoryId_X, records.categoryId_Z));
