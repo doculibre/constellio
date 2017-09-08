@@ -84,7 +84,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	ScheduledExecutorService newScheduledExecutorService() {
 		return Executors.newScheduledThreadPool(4 * dataLayerConfiguration.getBackgroudThreadsPoolSize());
 	}
-
+	
 }
 
 

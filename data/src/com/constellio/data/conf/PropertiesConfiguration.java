@@ -59,6 +59,10 @@ public abstract class PropertiesConfiguration {
 		writeProperty(key, "" + value);
 	}
 
+	protected void setLong(String key, long value) {
+		writeProperty(key, "" + value);
+	}
+
 	protected void setFile(String key, File value) {
 		writeProperty(key, value == null ? "" : value.getAbsolutePath());
 	}
@@ -137,6 +141,14 @@ public abstract class PropertiesConfiguration {
 	protected int getInt(String key, int defaultValue) {
 		try {
 			return Integer.parseInt(getRequiredString(key));
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	protected long getLong(String key, long defaultValue) {
+		try {
+			return Long.parseLong(getRequiredString(key));
 		} catch (Exception e) {
 			return defaultValue;
 		}

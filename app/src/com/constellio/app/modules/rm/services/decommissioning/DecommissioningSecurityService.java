@@ -34,7 +34,7 @@ public class DecommissioningSecurityService {
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
 		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
-				|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+				|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			return true;
 		}
 		return searchServices.hasResults(
@@ -76,7 +76,7 @@ public class DecommissioningSecurityService {
 
 	public boolean canCreateLists(User user) {
 		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
-				user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
+				user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean canAskApproval(DecommissioningList list, User user) {
@@ -126,10 +126,10 @@ public class DecommissioningSecurityService {
 			tabs = new ArrayList<>(Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE));
 		}
 
-		if(!tabs.contains(DecommissioningMainPresenter.CREATE) && user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+		if(!tabs.contains(DecommissioningMainPresenter.CREATE) && user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			tabs.add(0, DecommissioningMainPresenter.CREATE);
 		}
-		if(!tabs.contains(DecommissioningMainPresenter.GENERATED) && user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally()) {
+		if(!tabs.contains(DecommissioningMainPresenter.GENERATED) && user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			if(tabs.contains(DecommissioningMainPresenter.CREATE)) {
 				tabs.add(1, DecommissioningMainPresenter.GENERATED);
 			}
@@ -141,23 +141,23 @@ public class DecommissioningSecurityService {
 	}
 	
 	public boolean canCreateContainers(User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 	
 	public boolean hasAccessToManageContainersPage(User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 
 	public boolean hasPermissionToCreateTransferOnList(DecommissioningList list, User user) {
 		if(isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
-			return user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
+			return user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 		}
 		return false;
 	}
 
 	public boolean hasPermissionToEditTransferOnList(DecommissioningList list, User user) {
 		if(isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
-			return user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).globally();
+			return user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 		}
 		return false;
 	}

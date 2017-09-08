@@ -22,6 +22,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -161,8 +162,10 @@ public class UpdateContentVersionPresenter implements Serializable {
 						}
 						newVersionVO.setContentId(content.getId());
 
-						ContentVersionDataSummary newVersionDataSummary = getPresenterUtils(recordVO)
-								.uploadContent(inputStream, true, true, fileName);
+						UploadOptions options = new UploadOptions().setFileName(fileName);
+						ContentManager.ContentVersionDataSummaryResponse uploadResponse = getPresenterUtils(recordVO)
+								.uploadContent(inputStream, options);
+						ContentVersionDataSummary newVersionDataSummary = uploadResponse.getContentVersionDataSummary();
 						if (newMajorVersion) {
 							contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
 						} else if (newMinorVersion) {
@@ -187,14 +190,15 @@ public class UpdateContentVersionPresenter implements Serializable {
 				} else {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
+						content.checkIn();
 						content.finalizeVersion();
 					} else if (newMinorVersion) {
 						content.checkIn();
-						modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
 					} else {
 						// TODO Throw appropriate exception
 						throw new RuntimeException("A new version must be specified if no new content is uploaded");
 					}
+					modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
 				}
 
 				try {

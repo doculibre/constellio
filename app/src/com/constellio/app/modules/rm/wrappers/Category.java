@@ -23,6 +23,8 @@ public class Category extends RecordWrapper {
 
 	public static final String KEYWORDS = "keywords";
 
+	public static final String DEACTIVATE = "deactivate";
+
 	public static final String COMMENTS = "comments";
 	public static final String DEFAULT_COPY_RULE_ID = "defaultCopyRuleIdentifier";
 	public static final String DEFAULT_COPY_RULE = "defaultCopyRule";

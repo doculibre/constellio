@@ -14,8 +14,6 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -158,9 +156,8 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 				.containsOnlyOnce(records.folder_A(13, 14));
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToDestroy(records.unitId_30c))
-				.containsOnlyOnce(records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07,
-						records.folder_C08);
+		assertThatResultsOf(factory.activeToDestroy(records.unitId_30c)).containsOnlyOnce(
+				records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07, records.folder_C08);
 	}
 
 	@Test

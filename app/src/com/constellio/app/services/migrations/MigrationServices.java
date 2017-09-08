@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
 import com.constellio.app.entities.modules.Migration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -34,7 +35,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
@@ -111,7 +112,7 @@ public class MigrationServices {
 				for (MigrationScript aMigrationScriptIncludedInCombo : comboMigrationScript.getVersions()) {
 
 					if (completedMigrations.contains(
-							new Migration(collection,module.getId(),aMigrationScriptIncludedInCombo).getMigrationId()))  {
+							new Migration(collection, module.getId(), aMigrationScriptIncludedInCombo).getMigrationId())) {
 						useComboMigration = false;
 						break;
 					}
@@ -153,6 +154,29 @@ public class MigrationServices {
 		}
 
 		Collections.sort(migrations, MigrationScriptsComparator.forModules(modules));
+		return migrations;
+	}
+
+	public List<RecordMigrationScript> getAllRecordMigrationScripts(String collection) {
+		ConstellioModulesManagerImpl modulesManager = getModulesManager();
+		List<RecordMigrationScript> migrations = new ArrayList<>();
+
+		List<InstallableModule> enabledModules = modulesManager.getEnabledModules(collection);
+		List<InstallableModule> modules = new ArrayList<>(enabledModules);
+
+		for (InstallableModule module : modules) {
+			if (module instanceof InstallableSystemModuleWithRecordMigrations) {
+				for (RecordMigrationScript script : ((InstallableSystemModuleWithRecordMigrations) module).
+						getRecordMigrationScripts(collection, appLayerFactory)) {
+					migrations.add(script);
+				}
+			}
+		}
+
+		//		for (MigrationScript script : constellioEIM.getMigrationScripts()) {
+		//			migrations.add(new Migration(collection, null, script));
+		//		}
+
 		return migrations;
 	}
 
@@ -379,7 +403,7 @@ public class MigrationServices {
 		String completedMigrations = properties.get(collection + "_completedMigrations");
 		if (StringUtils.isNotBlank(completedMigrations)) {
 			return asList(completedMigrations.split(","));
-		} else  {
+		} else {
 			return Collections.emptyList();
 		}
 

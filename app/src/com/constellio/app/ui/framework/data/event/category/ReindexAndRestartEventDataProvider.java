@@ -20,9 +20,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-/**
- * Created by Marco on 2017-03-20.
- */
 public class ReindexAndRestartEventDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
     private List<EventStatistics> events;
 
@@ -56,9 +53,9 @@ public class ReindexAndRestartEventDataProvider extends AbstractDataProvider imp
     public String getEventType(Integer index) {
         switch (index) {
             case 0:
-                return EventType.REINDEXING;
-            case 1:
                 return EventType.RESTARTING;
+            case 1:
+                return EventType.REINDEXING;
             default:
                 throw new RuntimeException("Unsupported");
         }

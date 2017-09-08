@@ -2,11 +2,11 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
@@ -21,16 +21,17 @@ public class RMDocumentExtension extends RecordExtension {
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
-	RMSchemasRecordsServices rm;
-	DecommissioningService decommissioningService;
+	private String collection;
 
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
-		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		this.collection = collection;
 	}
 
 	@Override
 	public void setRecordCategory(RecordSetCategoryEvent event) {
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
 
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
@@ -61,6 +62,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
 			Content content = document.getContent();
@@ -71,6 +75,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		if (event.isSchemaType(Document.SCHEMA_TYPE) && event.hasModifiedMetadata(Document.CONTENT)) {
 			Document document = rm.wrapDocument(event.getRecord());
 			Content content = document.getContent();
@@ -81,6 +88,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public ExtensionBooleanResult isRecordModifiableBy(IsRecordModifiableByParams params) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		User user = params.getUser();
 		if (params.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(params.getRecord());
@@ -128,6 +138,9 @@ public class RMDocumentExtension extends RecordExtension {
 
 	@Override
 	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
+				ConstellioFactories.getInstance().getAppLayerFactory());
+
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
 			User user = event.getUser();
@@ -141,5 +154,5 @@ public class RMDocumentExtension extends RecordExtension {
 		}
 		return super.isLogicallyDeletable(event);
 	}
-	
+
 }

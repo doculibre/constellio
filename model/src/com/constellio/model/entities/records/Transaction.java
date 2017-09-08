@@ -42,6 +42,10 @@ public class Transaction {
 	public Transaction() {
 	}
 
+	public Transaction(RecordUpdateOptions options) {
+		this.recordUpdateOptions = new RecordUpdateOptions(options);
+	}
+
 	public Transaction(String id) {
 		this.id = id;
 	}
@@ -191,6 +195,11 @@ public class Transaction {
 		for (Record addUpdateRecord : addUpdateRecords) {
 			update(addUpdateRecord);
 		}
+		return this;
+	}
+
+	public Transaction setToReindexAll() {
+		recordUpdateOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		return this;
 	}
 

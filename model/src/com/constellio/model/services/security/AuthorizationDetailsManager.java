@@ -10,6 +10,8 @@ import org.joda.time.LocalDate;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -26,10 +28,12 @@ public class AuthorizationDetailsManager
 	private OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> oneXMLConfigPerCollectionManager;
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
+	private ConstellioCacheManager cacheManager; 
 
-	public AuthorizationDetailsManager(ConfigManager configManager, CollectionsListManager collectionsListManager) {
+	public AuthorizationDetailsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
+		this.cacheManager = cacheManager;
 	}
 
 	@Override
@@ -38,8 +42,9 @@ public class AuthorizationDetailsManager
 	}
 
 	protected OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> newOneXMLConfigPerCollectionManager() {
+		ConstellioCache cache = cacheManager.getCache(AuthorizationDetailsManager.class.getName());
 		return new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager, AUTHORIZATIONS_CONFIG,
-				xmlConfigReader(), this, newCreateEmptyDocumentDocumentAlteration());
+				xmlConfigReader(), this, newCreateEmptyDocumentDocumentAlteration(), cache);
 	}
 
 	@Override

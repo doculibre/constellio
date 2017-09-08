@@ -19,7 +19,6 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -94,13 +93,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 		when(contentWithoutParsedContentCurrentVersion.getFilename())
 				.thenReturn(contentWithoutParsedContentCurrentVersionFilename);
 
-		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(klingonIntimidationContent1Hash))
+		when(parsedContentProvider.getParsedContentIfAlreadyParsed(klingonIntimidationContent1Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation));
-		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(klingonIntimidationContent2Hash))
+		when(parsedContentProvider.getParsedContentIfAlreadyParsed(klingonIntimidationContent2Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation2));
-		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(oldElvishTextContentHash)).thenReturn(
+		when(parsedContentProvider.getParsedContentIfAlreadyParsed(oldElvishTextContentHash)).thenReturn(
 				elvishParsedContent(oldElvishText));
-		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(contentWithoutParsedContentHash)).thenReturn(null);
+		when(parsedContentProvider.getParsedContentIfAlreadyParsed(contentWithoutParsedContentHash)).thenReturn(null);
 	}
 
 	@Test

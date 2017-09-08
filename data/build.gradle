@@ -20,3 +20,16 @@ eclipse {
 jar {
     baseName = 'core-data'
 }
+
+//create a single Jar with all dependencies
+task uberJar(type: Jar) {
+    zip64 true
+	manifest {
+        attributes 'Implementation-Title': 'Constellio Data With Dependencies',
+        	'Implementation-Version': '1'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+

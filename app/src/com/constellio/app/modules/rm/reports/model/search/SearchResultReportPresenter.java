@@ -178,7 +178,7 @@ public class SearchResultReportPresenter {
 			throw new NoSuchReportRuntimeException(username, schemaTypeCode, reportTitle);
 		}
 		if (report.getLinesCount() != 1) {
-			throw new UnsupportedReport();
+			throw new UnsupportedReportException();
 		}
 		return report.getReportedMetadata();
 	}

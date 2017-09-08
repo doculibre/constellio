@@ -20,8 +20,8 @@
         <description></description>
         <title>test42</title>
         <comments multivalue="true" type="structure">
-            <item message="message test" username="charlocool" userId="007" dateTime="2017-02-28"/>
-            <item message="super message" username="charlocool" userId="007" dateTime="2017-02-28"/>
+            <item message="message test" userName="admin" dateTime="2017-02-28"/>
+            <item message="super message" userName="admin" dateTime="2017-02-28"/>
         </comments>
     </record>
 </records>

@@ -176,4 +176,9 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 			return vLayout;
 		}
 	}
+
+	@Override
+	protected boolean canEditAuthorizations() {
+		return false;
+	}
 }

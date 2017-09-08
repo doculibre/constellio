@@ -1,35 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -39,6 +23,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -46,6 +31,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -57,21 +43,21 @@ import com.vaadin.server.FileDownloader;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.Upload;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 	private VerticalLayout mainLayout;
@@ -94,7 +80,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
-			publicLinkButton;
+			publicLinkButton, reportGeneratorButton;
 	
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
@@ -147,7 +133,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet = new TabSheet();
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
-		versionTable = new ContentVersionVOTable() {
+		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
@@ -228,8 +214,51 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 //	}
 
 	@Override
-	public void setTasks(RecordVODataProvider dataProvider) {
-		Table tasksTable = new RecordVOTable(dataProvider);
+	public void setTasks(final RecordVODataProvider dataProvider) {
+		Table tasksTable = new RecordVOTable(dataProvider) {
+			@Override
+			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+						@Override
+						public void updateTaskStarred(boolean isStarred, String taskId) {
+							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
+						}
+					};
+				} else {
+					return super.buildMetadataComponent(metadataValue, recordVO);
+				}
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new RecordVOTableColumnsManager() {
+					@Override
+					protected String toColumnId(Object propertyId) {
+						if(propertyId instanceof MetadataVO) {
+							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+								setColumnHeader(propertyId, "");
+								setColumnWidth(propertyId, 60);
+							}
+						}
+						return super.toColumnId(propertyId);
+					}
+				};
+			}
+
+			@Override
+			public Collection<?> getSortableContainerPropertyIds() {
+				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+				while (iterator.hasNext()) {
+					Object property = iterator.next();
+					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+						iterator.remove();
+					}
+				}
+				return sortableContainerPropertyIds;
+			}
+		};
 		tasksTable.setSizeFull();
 		tasksTable.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -311,7 +340,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		addToCartButton = buildAddToCartButton();
 		
-		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO);
+		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -355,6 +384,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		actionMenuButtons.add(editDocumentButton);
+
+		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.copyContentButtonClicked();
+			}
+		};
+
+		actionMenuButtons.add(copyContentButton);
+
+		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT,  getDocumentVO());
+
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
 					WindowConfiguration.modalDialog("40%", "100px")) {
@@ -390,13 +431,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					layout.setSizeFull();
 
 					return layout;
-				}
-			};
-
-			copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.copyContentButtonClicked();
 				}
 			};
 
@@ -443,8 +477,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				}
 			};
 
-			actionMenuButtons.add(renameContentButton);
-			actionMenuButtons.add(copyContentButton);
+			actionMenuButtons.add(actionMenuButtons.indexOf(copyContentButton), renameContentButton);
 
 			publishButton = new LinkButton($("DocumentContextMenu.publish")) {
 				@Override
@@ -497,11 +530,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
-		actionMenuButtons.add(finalizeButton);
+
+		if(presenter.hasWritePermission()) {
+			actionMenuButtons.add(finalizeButton);
+		}
+
 		if (presenter.hasPermissionToStartWorkflow()) {
 			actionMenuButtons.add(startWorkflowButton);
 		}
-
+		actionMenuButtons.add(reportGeneratorButton);
 		return actionMenuButtons;
 	}
 
@@ -570,6 +607,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public void close() {
 						super.close();
 						presenter.updateWindowClosed();
+						presenter.updateContentVersions();
+						versionTable.refreshRowCache();
 					}
 				};
 			}
@@ -628,6 +667,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButton.setVisible(state.isVisible());
 		checkOutButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setGenerateMetadataButtonState(ComponentState state) {
+		reportGeneratorButton.setVisible(state.isVisible());
+		reportGeneratorButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -711,7 +756,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
 	}
-	
+
 	public void addTabSheetDecorator(TabSheetDecorator decorator) {
 		this.tabSheetDecorators.add(decorator);
 	}

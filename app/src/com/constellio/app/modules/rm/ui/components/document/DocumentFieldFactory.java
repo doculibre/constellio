@@ -25,11 +25,13 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 	private String folderId;
 	private String currentType;
 	private List<CopyRetentionRuleInRule> copyRules;
+	private boolean isViewOnly;
 
-	public DocumentFieldFactory(String folderId, String currentType, List<CopyRetentionRuleInRule> copyRules) {
+	public DocumentFieldFactory(String folderId, String currentType, List<CopyRetentionRuleInRule> copyRules, boolean isViewOnly) {
 		this.folderId = folderId;
 		this.currentType = currentType;
 		this.copyRules = copyRules;
+		this.isViewOnly = isViewOnly;
 	}
 
 	@Override
@@ -40,7 +42,7 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 			field = new DocumentTypeFieldLookupImpl(folderId, currentType);
 			break;
 		case CONTENT:
-			field = new DocumentContentFieldImpl();
+			field = new DocumentContentFieldImpl(isViewOnly);
 			break;
 		case FOLDER:
 			field = new DocumentFolderFieldImpl();

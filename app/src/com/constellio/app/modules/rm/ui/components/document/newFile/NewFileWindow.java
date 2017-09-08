@@ -29,7 +29,7 @@ public interface NewFileWindow extends Serializable {
 
 	void setSupportedExtensions(List<String> extensions);
 
-	void setTemplates(List<Content> templates);
+	void setTemplateOptions(List<Content> templates);
 
 	void setDocumentTypeId(String documentTypeId);
 
@@ -37,10 +37,14 @@ public interface NewFileWindow extends Serializable {
 
 	void removeNewFileCreatedListener(NewFileCreatedListener listener);
 
-	void notifyNewFileCreated(Content content);
+	void notifyNewFileCreated(Content content, String documentTypeId);
+	
+	void setExtensionFieldValue(String value);
+
+	void setTemplateFieldValue(String value);
 
 	public static interface NewFileCreatedListener extends Serializable {
-		void newFileCreated(Content content);
+		void newFileCreated(Content content, String documentTypeId);
 	}
 
 }

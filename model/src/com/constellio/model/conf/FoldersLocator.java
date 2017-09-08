@@ -24,9 +24,9 @@ public class FoldersLocator {
 		String fullPath = getCurrentClassPath();
 		File finalPath;
 
-		if (fullPath.contains("/file:") && fullPath.contains("!")) {
+		if (fullPath.contains("file:") && fullPath.contains("!")) {
 			String path = fullPath.split("!")[0];
-			path = path.split("/file:")[1];
+			path = path.split("file:")[1];
 
 			File classFolder = new File(path);
 

@@ -474,7 +474,7 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
 	private ConnectorSmbDocument newValidSmbDocumentInFolder(ConnectorSmbFolder folder) {
 		return es.newConnectorSmbDocument(smbConnectorInstance)
-				.setParent(folder)
+                .setParentUrl(folder.getUrl())
 				.setUrl("/" + UUIDV1Generator.newRandomId())
 				.setTraversalCode(UUIDV1Generator.newRandomId());
 	}

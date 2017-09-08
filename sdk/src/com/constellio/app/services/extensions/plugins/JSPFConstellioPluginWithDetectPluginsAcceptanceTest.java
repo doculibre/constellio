@@ -25,7 +25,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends ConstellioTest {
-	private ConstellioPluginManager pluginManager;
+	private JSPFConstellioPluginManager pluginManager;
 
 	@Before
 	public void setUp()
@@ -35,7 +35,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile).withFakeEncryptionServices()
 				.withPasswordsReset()
 				.withSDKPluginFolder();
-		pluginManager = getAppLayerFactory().getPluginManager();
+		pluginManager = (JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager();
 		deletePreviousPluginsFolder();
 	}
 
@@ -55,7 +55,9 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 
 	@Test
 	public void givenInvalidModuleWhenDetectPluginsThenPluginWithAdequateErrorStatus() {
+		pluginManager.detectPluginsInDirectory(new SDKFoldersLocator().getPluginsJarsFolder());
 		List<ConstellioPluginInfo> invalidPlugins = pluginManager.getPlugins(INVALID);
+
 		assertThat(invalidPlugins).extracting("code", "pluginActivationFailureCause").containsOnly(
 				//tuple("InvalidModuleInMigrate", "INVALID_MIGRATION_SCRIPT"),
 				//tuple("InvalidModuleInStart", "INVALID_START"),

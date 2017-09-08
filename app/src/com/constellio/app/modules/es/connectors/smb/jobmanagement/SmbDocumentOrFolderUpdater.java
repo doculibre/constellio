@@ -16,9 +16,9 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.net.URLConnection;
 
 public class SmbDocumentOrFolderUpdater {
+
 	private final ConnectorSmbInstance connectorInstance;
 	private SmbRecordService smbRecordService;
 
@@ -27,28 +27,30 @@ public class SmbDocumentOrFolderUpdater {
 		this.smbRecordService = smbRecordService;
 	}
 
-	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentId) {
+	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentUrl, boolean seed) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFullDocumentDTO(smbFileDTO, smbDocument, parentId);
+			updateFullDocumentDTO(smbFileDTO, smbDocument, parentUrl);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
-
 			if (smbFolder != null) {
-				updateFullFolderDTO(smbFileDTO, smbFolder, parentId);
+				updateFullFolderDTO(smbFileDTO, smbFolder, parentUrl, seed);
 			}
 		}
 	}
 
-	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
+	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
+
+
 
 		// Utility
 		smbDocument.setConnector(connectorInstance)
+				.setConnectorType(connectorInstance.getConnectorType())
 				.setTraversalCode(connectorInstance.getTraversalCode())
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
 				.setFetchedDateTime(TimeProvider.getLocalDateTime())
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		// Mandatory
 		smbDocument.setUrl(smbFileDTO.getUrl())
@@ -87,7 +89,7 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
+	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl, boolean seed) {
 		smbFolder.setTitle(smbFileDTO.getName())
 				.setUrl(smbFileDTO.getUrl())
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -97,20 +99,30 @@ public class SmbDocumentOrFolderUpdater {
 				.setLastFetchedStatus(LastFetchedStatus.OK)
 				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
 				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		// Utility
 		smbFolder.setTraversalCode(connectorInstance.getTraversalCode())
 				.setConnector(connectorInstance)
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()));
+
 		// Mandatory
-		smbFolder.setUrl(smbFileDTO.getUrl());
+		smbFolder.setUrl(smbFileDTO.getUrl())
+				.setPermissionsHash(smbFileDTO.getPermissionsHash())
+				.setManualTokens(smbFileDTO.getAllowTokens())
+				.set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
+				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
+				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
 		// Optional
 
 		// Errors
-		smbFolder.setLastFetchedStatus(LastFetchedStatus.OK);
+		if (parentUrl == null && !seed) {
+			smbFolder.setLastFetchedStatus(LastFetchedStatus.PARTIAL);
+		} else {
+			smbFolder.setLastFetchedStatus(LastFetchedStatus.OK);
+		}
 
 		smbFolder.setErrorCode(null);
 		smbFolder.setErrorMessage(null);
@@ -123,20 +135,20 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentId) {
+	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentUrl) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentId);
+			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentUrl);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
 
 			if (smbFolder != null) {
-				updateFailedFolderDTO(smbFileDTO, smbFolder, parentId);
+				updateFailedFolderDTO(smbFileDTO, smbFolder, parentUrl);
 			}
 		}
 	}
 
-	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
+	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
 
 		smbDocument.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -146,7 +158,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setUrl(smbFileDTO.getUrl())
 				.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
 				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
-				.setParent(parentId);
+				.setParentUrl(parentUrl);
 
 		smbDocument.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
@@ -154,7 +166,7 @@ public class SmbDocumentOrFolderUpdater {
 				.incrementErrorsCount();
 	}
 
-	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
+	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl) {
 
 		smbFolder.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -167,21 +179,6 @@ public class SmbDocumentOrFolderUpdater {
 				.setErrorMessage(smbFileDTO.getErrorMessage())
 				.setErrorStackTrace(smbFileDTO.getErrorMessage())
 				.incrementErrorsCount()
-				.setParent(parentId);
-	}
-
-	public void updateUnmodifiedDocument(SmbFileDTO smbFileDTO, ConnectorDocument<?> document, String parentId) {
-		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(document);
-		if (smbDocument != null) {
-			smbDocument.setTraversalCode(connectorInstance.getTraversalCode());
-			smbDocument.setLastFetched(smbFileDTO.getLastFetchAttempt());
-			smbDocument.setLastFetchAttemptStatus(LastFetchedStatus.OK);
-			smbDocument.setParent(parentId);
-
-			smbDocument.setErrorCode(null);
-			smbDocument.setErrorMessage(null);
-			smbDocument.setErrorStackTrace(null);
-			smbDocument.resetErrorsCount();
-		}
+				.setParentUrl(parentUrl);
 	}
 }

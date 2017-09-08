@@ -1,16 +1,50 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -46,21 +80,11 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class DecommissioningService {
 	private static Logger LOGGER = LoggerFactory.getLogger(DecommissioningService.class);
@@ -235,7 +259,8 @@ public class DecommissioningService {
 	}
 
 	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
-		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal() && isRemovableFromContainer(decommissioningList, folder);
+		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal()
+				&& isRemovableFromContainer(decommissioningList, folder);
 	}
 
 	public boolean isApproved(DecommissioningList decommissioningList) {
@@ -250,11 +275,11 @@ public class DecommissioningService {
 		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
-	public void approvalRequest(DecommissioningList decommissioningList, User approvalUser)
-			throws DecommissioningEmailServiceException, RecordServicesException {
+	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
+			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
-		sendEmailForList(decommissioningList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
+		sendEmailForList(managerList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
 		try {
 			decommissioningList.setApprovalRequest(approvalUser);
 			decommissioningList.setApprovalRequestDate(new LocalDate());
@@ -267,11 +292,45 @@ public class DecommissioningService {
 		}
 	}
 
+	public void sendEmailForList(List<User> userList, User user, String templateID, List<String> parameters) {
+		EmailToSend emailToSend = rm.newEmailToSend();
+		try {
+			List<EmailAddress> toAddresses = getEmailReceivers(userList);
+			String subject = "";
+			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+				subject = $("DecommissionningServices.approvalRequestEmailTitle");
+			} else {
+				subject = $("DecommissionningServices.validationRequest");
+			}
+
+			emailToSend.setSubject(subject)
+					.setSendOn(TimeProvider.getLocalDateTime())
+					.setParameters(parameters)
+					.setTemplate(templateID)
+					.setTo(toAddresses)
+					.setTryingCount(0d);
+
+			Transaction transaction = new Transaction().setUser(user);
+			transaction.add(emailToSend);
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			//TODO Display error about email
+			throw new RuntimeException(e);
+		}
+	}
+
 	public void sendEmailForList(DecommissioningList list, User user, String templateID, List<String> parameters) {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
 			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
-			emailToSend.setSubject($("DecommissionningServices.approvalRequest"))
+			String subject = "";
+			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+				subject = $("DecommissionningServices.approvalRequestEmailTitle");
+			} else {
+				subject = $("DecommissionningServices.validationRequest");
+			}
+
+			emailToSend.setSubject(subject)
 					.setSendOn(TimeProvider.getLocalDateTime())
 					.setParameters(parameters)
 					.setTemplate(templateID)
@@ -289,7 +348,8 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments, boolean saveComment) {
+	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments,
+			boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
 		List<Comment> commentaires = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
@@ -625,7 +685,7 @@ public class DecommissioningService {
 		List<Record> records = getFoldersInContainer(container, rm.folder.expectedDepositDate(),
 				rm.folder.expectedDestructionDate());
 
-		if(getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
+		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
 			for (Record record : records) {
 				comparedDate = getMinimumLocalDate(comparedDate, record);
 			}
@@ -653,15 +713,15 @@ public class DecommissioningService {
 		String fixed = maximalIntervals.get("fixed");
 		String variable888 = maximalIntervals.get("888");
 		String variable999 = maximalIntervals.get("999");
-		if(fixed != null) {
+		if (fixed != null) {
 			interval += fixed + " an(s)";
 			separator = " / ";
 		}
-		if(variable888 != null) {
+		if (variable888 != null) {
 			interval += separator + variable888;
 			separator = " / ";
 		}
-		if(variable999 != null) {
+		if (variable999 != null) {
 			interval += separator + variable999;
 		}
 		return interval;
@@ -704,11 +764,13 @@ public class DecommissioningService {
 		return taxonomiesManager.getEnabledTaxonomyWithCode(collection, ADMINISTRATIVE_UNITS);
 	}
 
-	public Folder duplicateStructureAndSave(Folder folder, User currentUser) throws RecordServicesException {
+	public Folder duplicateStructureAndSave(Folder folder, User currentUser)
+			throws RecordServicesException {
 		return duplicateStructure(folder, currentUser, true);
 	}
 
-	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) throws RecordServicesException {
+	public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)
+			throws RecordServicesException {
 
 		Transaction transaction = new Transaction();
 		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
@@ -716,17 +778,18 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
-    public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
+	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
-        Transaction transaction = new Transaction();
-        Folder duplicatedFolder = duplicateStructureAndDocumentsAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
-        try {
-            recordServices.execute(transaction);
-        } catch (RecordServicesException e) {
-            throw new RuntimeException(e);
-        }
-        return duplicatedFolder;
-    }
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndDocumentsAndAddToTransaction(folder, currentUser, transaction,
+				forceTitleDuplication);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		return duplicatedFolder;
+	}
 
 	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction,
 			boolean forceTitleDuplication) {
@@ -744,14 +807,16 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
-	private Folder duplicateStructureAndDocumentsAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
+	private Folder duplicateStructureAndDocumentsAndAddToTransaction(Folder folder, User currentUser, Transaction transaction,
+			boolean forceTitleDuplication) {
 		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
+					forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
 		}
@@ -759,36 +824,43 @@ public class DecommissioningService {
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
 		for (Document child : childrenDocuments) {
-			Document newDocument = rm.newDocument();
-			for(Metadata metadata: child.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-				newDocument.set(metadata, child.get(metadata));
-			}
+			Document newDocument = createDuplicateOfDocument(child);
 			newDocument.setFolder(duplicatedFolder);
 			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
 	}
 
-    public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
-        Folder newFolder = rm.newFolderWithType(folder.getType());
-        MetadataSchema schema = newFolder.getSchema();
+	public Document createDuplicateOfDocument(Document duplicatedDocument) {
+		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
-        for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-            newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
-        }
+		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
+				.onlyDuplicable()) {
+			newDocument.set(metadata, duplicatedDocument.get(metadata));
+		}
+		return newDocument;
+	}
 
-        if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
-            newFolder.setTitle(folder.getTitle() + " (Copie)");
-        }
+	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
+		Folder newFolder = rm.newFolderWithType(folder.getType());
+		MetadataSchema schema = newFolder.getSchema();
 
-        LocalDateTime localDateTime = TimeProvider.getLocalDateTime();
-        newFolder.setFormCreatedBy(currentUser);
-        newFolder.setFormCreatedOn(localDateTime);
-        newFolder.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
-        newFolder.setCreatedOn(localDateTime).setModifiedOn(localDateTime);
+		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
+		}
 
-        return newFolder;
-    }
+		if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
+			newFolder.setTitle(folder.getTitle() + " (Copie)");
+		}
+
+		LocalDateTime localDateTime = TimeProvider.getLocalDateTime();
+		newFolder.setFormCreatedBy(currentUser);
+		newFolder.setFormCreatedOn(localDateTime);
+		newFolder.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		newFolder.setCreatedOn(localDateTime).setModifiedOn(localDateTime);
+
+		return newFolder;
+	}
 
 	public List<RMUserFolder> getSubUserFolders(RMUserFolder userFolder) {
 		List<RMUserFolder> subUserFolders = new ArrayList<>();
@@ -796,7 +868,8 @@ public class DecommissioningService {
 		Metadata parentUserFolderMetadata = userFolderSchema.getMetadata(UserFolder.PARENT_USER_FOLDER);
 
 		LogicalSearchQuery subFoldersQuery = new LogicalSearchQuery();
-		subFoldersQuery.setCondition(LogicalSearchQueryOperators.from(userFolderSchema).where(parentUserFolderMetadata).isEqualTo(userFolder.getWrappedRecord()));
+		subFoldersQuery.setCondition(LogicalSearchQueryOperators.from(userFolderSchema).where(parentUserFolderMetadata)
+				.isEqualTo(userFolder.getWrappedRecord()));
 		for (Record subFolderRecord : searchServices.search(subFoldersQuery)) {
 			RMUserFolder subUserFolder = rm.wrapUserFolder(subFolderRecord);
 			subUserFolders.add(subUserFolder);
@@ -811,7 +884,8 @@ public class DecommissioningService {
 		Metadata userFolderMetadata = userDocumentSchema.getMetadata(UserDocument.USER_FOLDER);
 
 		LogicalSearchQuery userDocumentsQuery = new LogicalSearchQuery();
-		userDocumentsQuery.setCondition(LogicalSearchQueryOperators.from(userDocumentSchema).where(userFolderMetadata).isEqualTo(userFolder.getWrappedRecord()));
+		userDocumentsQuery.setCondition(LogicalSearchQueryOperators.from(userDocumentSchema).where(userFolderMetadata)
+				.isEqualTo(userFolder.getWrappedRecord()));
 		for (Record userDocumentRecord : searchServices.search(userDocumentsQuery)) {
 			UserDocument userDocument = rm.wrapUserDocument(userDocumentRecord);
 			userDocuments.add(userDocument);
@@ -820,7 +894,8 @@ public class DecommissioningService {
 		return userDocuments;
 	}
 
-	public void duplicateSubStructureAndSave(Folder folder, RMUserFolder userFolder, User currentUser) throws RecordServicesException, IOException {
+	public void duplicateSubStructureAndSave(Folder folder, RMUserFolder userFolder, User currentUser)
+			throws RecordServicesException, IOException {
 		Transaction transaction = new Transaction();
 		List<RMUserFolder> subUserFolders = getSubUserFolders(userFolder);
 		for (RMUserFolder subUserFolder : subUserFolders) {
@@ -836,7 +911,9 @@ public class DecommissioningService {
 		recordServices.execute(transaction);
 	}
 
-	private void duplicateStructureAndSave(RMUserFolder userFolder, Folder parentFolder, User currentUser, Transaction transaction) throws IOException {
+	private void duplicateStructureAndSave(RMUserFolder userFolder, Folder parentFolder, User currentUser,
+			Transaction transaction)
+			throws IOException {
 		Folder folder = rm.newFolder();
 		populateFolderFromUserFolder(folder, userFolder, currentUser);
 		folder.setParentFolder(parentFolder);
@@ -879,13 +956,17 @@ public class DecommissioningService {
 		}
 	}
 
-	public void populateDocumentFromUserDocument(Document document, UserDocument userDocument, User currentUser) throws IOException {
+	public void populateDocumentFromUserDocument(Document document, UserDocument userDocument, User currentUser)
+			throws IOException {
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 
 		String filename = userDocument.getTitle();
 		String contentInputStreamId = userDocument.getContent().getCurrentVersion().getHash();
-		try (InputStream inputStream = contentManager.getContentInputStream(contentInputStreamId, "DecommissioningServices.populateDocumentFromUserDocument.in")) {
-			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
+		try (InputStream inputStream = contentManager
+				.getContentInputStream(contentInputStreamId, "DecommissioningServices.populateDocumentFromUserDocument.in")) {
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager
+					.upload(inputStream, "DecommissioningServices.populateDocumentFromUserDocument.upload");
+			ContentVersionDataSummary contentVersion = uploadResponse.getContentVersionDataSummary();
 			Content content = contentManager.createMajor(currentUser, filename, contentVersion);
 			document.setContent(content);
 		}
@@ -933,7 +1014,7 @@ public class DecommissioningService {
 			return false;
 		}
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
-		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 
@@ -1042,13 +1123,13 @@ public class DecommissioningService {
 				if (retentionPeriod != null) {
 					String interval = org.apache.commons.lang.StringUtils.defaultString(retentionPeriod.toString());
 					String intervalType = "fixed";
-					if(retentionPeriod.is888()) {
+					if (retentionPeriod.is888()) {
 						intervalType = "888";
-					} else if(retentionPeriod.is999()) {
+					} else if (retentionPeriod.is999()) {
 						intervalType = "999";
 					}
 					String maximalInterval = maximalIntervals.get(intervalType);
-					if(maximalInterval == null || interval.compareToIgnoreCase(maximalInterval) > 1) {
+					if (maximalInterval == null || interval.compareToIgnoreCase(maximalInterval) > 1) {
 						maximalIntervals.put(intervalType, interval);
 					}
 				}
@@ -1061,10 +1142,32 @@ public class DecommissioningService {
 	}
 
 	public String getDecommissionningLabel(ContainerRecord record) {
-		return record.getDecommissioningType().getLabel();
+		return getDecommissioningType(record).getLabel();
 	}
 
-	public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User respondant, User applicant, boolean isAccepted)
+	public DecommissioningType getDecommissioningType(ContainerRecord container) {
+		DecommissioningType decommissioningType = container.getDecommissioningType();
+		if (decommissioningType == null) {
+			List<Folder> folderRecords = getFoldersInContainers(container);
+			for (Folder folder : folderRecords) {
+				FolderStatus folderStatus = folder.getArchivisticStatus();
+				if (FolderStatus.SEMI_ACTIVE == folderStatus) {
+					decommissioningType = DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+					break;
+				} else if (FolderStatus.INACTIVE_DEPOSITED == folderStatus) {
+					decommissioningType = DecommissioningType.DEPOSIT;
+					break;
+				} else if (FolderStatus.INACTIVE_DESTROYED == folderStatus) {
+					decommissioningType = DecommissioningType.DESTRUCTION;
+					break;
+				}
+			}
+		}
+		return decommissioningType;
+	}
+
+	public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User respondant, User applicant,
+			boolean isAccepted)
 			throws RecordServicesException {
 
 		Record taskRecord = recordServices.getDocumentById(taskId);
@@ -1073,51 +1176,66 @@ public class DecommissioningService {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
-			for(String folderId: task.getLinkedFolders()) {
+			for (String folderId : task.getLinkedFolders()) {
 				Folder folder = rm.getFolder(folderId);
-				if(isAccepted) {
+				if (isAccepted) {
 					t.add(folder.addReactivation(applicant, LocalDate.now()).setReactivationDecommissioningDate(reactivationDate)
-							.addPreviousDepositDate(folder.getActualDepositDate()).addPreviousTransferDate(folder.getActualTransferDate())
+							.addPreviousDepositDate(folder.getActualDepositDate())
+							.addPreviousTransferDate(folder.getActualTransferDate())
 							.setActualDepositDate(null).setActualTransferDate(null));
 				}
-				loggingServices.completeReactivationRequestTask(recordServices.getDocumentById(folder.getId()), task.getId(), isAccepted, applicant, respondant, task.getReason(), reactivationDate.toString());
-				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, folder.getWrappedRecord(), null, null, reactivationDate, respondant, applicant, null, isAccepted);
+				loggingServices
+						.completeReactivationRequestTask(recordServices.getDocumentById(folder.getId()), task.getId(), isAccepted,
+								applicant, respondant, task.getReason(), reactivationDate.toString());
+				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, folder.getWrappedRecord(), null,
+						null, reactivationDate, respondant, applicant, null, isAccepted);
 			}
 			recordServices.execute(t);
 		}
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
-			for(String containerId: task.getLinkedContainers()) {
+			for (String containerId : task.getLinkedContainers()) {
 				Transaction t = new Transaction();
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
-				List<Folder> folders = rm.searchFolders(LogicalSearchQueryOperators.from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(containerRecord.getId()));
-				if(folders != null) {
-					for(Folder folder: folders) {
-						if(isAccepted && isFolderReactivable(folder, applicant)) {
-							t.add(folder.addReactivation(applicant, LocalDate.now()).setReactivationDecommissioningDate(reactivationDate)
-									.addPreviousDepositDate(folder.getActualDepositDate()).addPreviousTransferDate(folder.getActualTransferDate())
+				List<Folder> folders = rm.searchFolders(
+						LogicalSearchQueryOperators.from(rm.folder.schemaType()).where(rm.folder.container())
+								.isEqualTo(containerRecord.getId()));
+				if (folders != null) {
+					for (Folder folder : folders) {
+						if (isAccepted && isFolderReactivable(folder, applicant)) {
+							t.add(folder.addReactivation(applicant, LocalDate.now())
+									.setReactivationDecommissioningDate(reactivationDate)
+									.addPreviousDepositDate(folder.getActualDepositDate())
+									.addPreviousTransferDate(folder.getActualTransferDate())
 									.setActualDepositDate(null).setActualTransferDate(null));
 						}
 					}
 				}
 				recordServices.execute(t);
-				loggingServices.completeReactivationRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted, applicant, respondant, task.getReason(), reactivationDate.toString());
-				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, containerRecord.getWrappedRecord(), null, null, reactivationDate, respondant, applicant, null, isAccepted);
+				loggingServices
+						.completeReactivationRequestTask(recordServices.getDocumentById(containerId), task.getId(), isAccepted,
+								applicant, respondant, task.getReason(), reactivationDate.toString());
+				alertUsers(RMEmailTemplateConstants.ALERT_REACTIVATED, schemaType, taskRecord, containerRecord.getWrappedRecord(),
+						null, null, reactivationDate, respondant, applicant, null, isAccepted);
 			}
 
 		}
 	}
 
 	public boolean isFolderReactivable(Folder folder, User currentUser) {
-		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType().potentiallyHasAnalogMedium()
+		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType()
+				.potentiallyHasAnalogMedium()
 				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 
-	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate, LocalDate returnDate, LocalDate reactivationDate, User currentUser,
-							User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
+	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,
+			LocalDate returnDate, LocalDate reactivationDate, User currentUser,
+			User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
 
 		try {
-			String displayURL = schemaType.equals(Folder.SCHEMA_TYPE) ? RMNavigationConfiguration.DISPLAY_FOLDER : RMNavigationConfiguration.DISPLAY_CONTAINER;
+			String displayURL = schemaType.equals(Folder.SCHEMA_TYPE) ?
+					RMNavigationConfiguration.DISPLAY_FOLDER :
+					RMNavigationConfiguration.DISPLAY_CONTAINER;
 			String subject = "";
 			List<String> parameters = new ArrayList<>();
 			Transaction transaction = new Transaction();
@@ -1147,7 +1265,9 @@ public class DecommissioningService {
 			emailToSend.setTo(toAddress);
 			emailToSend.setSendOn(sendDate);
 			emailToSend.setSubject(subject);
-			String fullTemplate = isAccepted? template+RMEmailTemplateConstants.ACCEPTED: template+RMEmailTemplateConstants.DENIED;
+			String fullTemplate = isAccepted ?
+					template + RMEmailTemplateConstants.ACCEPTED :
+					template + RMEmailTemplateConstants.DENIED;
 			emailToSend.setTemplate(fullTemplate);
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 			String recordTitle = record.getTitle();
@@ -1155,7 +1275,8 @@ public class DecommissioningService {
 			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
-			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
+					.getId());
 			parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $(schemaType).toLowerCase());
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);
@@ -1181,6 +1302,46 @@ public class DecommissioningService {
 		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, types);
+	}
+
+	public String getContainerRecordExtremeDates(ContainerRecord container) {
+
+		LocalDate minimum = null;
+		LocalDate maximum = null;
+		List<Record> records = getFoldersInContainer(container, rm.folder.expectedDepositDate(),
+				rm.folder.expectedDestructionDate());
+
+		for (Record record : records) {
+			minimum = getMinimumLocalDate(minimum, record);
+		}
+		for (Record record : records) {
+			maximum = getMaximalLocalDate(maximum, record);
+		}
+
+		return minimum == null ? "" : minimum.getYear() + "-" + maximum.getYear();
+
+		//		List<Folder> folders = rm.searchFolders(
+		//				new LogicalSearchQuery(from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(con)));
+
+		//		int beginingYear = 10000;
+		//		int endingYear = 10000;
+		//
+		//		for (Folder folder : folders) {
+		//
+		//			if (folder.getOpenDate().getYear() < beginingYear) {
+		//				beginingYear = folder.getOpenDate().getYear();
+		//			}
+		//			if (folder.getCloseDate().getYear() > endingYear) {
+		//				endingYear = folder.getCloseDate().getYear();
+		//			}
+		//
+		//		}
+		//
+		//		if (beginingYear == 10000) {
+		//			return "";
+		//		} else {
+		//			return beginingYear + "-" + endingYear;
+		//		}
 	}
 }
 

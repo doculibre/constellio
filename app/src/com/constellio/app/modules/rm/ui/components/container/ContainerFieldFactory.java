@@ -27,10 +27,14 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		Field<?> field;
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
-				field = new ContainerStorageSpaceLookupField(containerRecordType, containerCapacity, presenter);
-				if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
-					field.setVisible(false);
-					field.setEnabled(false);
+				if(!presenter.isContainerWithMultipleStorageSpaces()) {
+					field = new ContainerStorageSpaceLookupField(containerRecordType, containerCapacity, presenter);
+					if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+						field.setVisible(false);
+						field.setEnabled(false);
+					}
+				} else {
+					field = super.build(recordVO, metadataVO);
 				}
 				break;
 			default:

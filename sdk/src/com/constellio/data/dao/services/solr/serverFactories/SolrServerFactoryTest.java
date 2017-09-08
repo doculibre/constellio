@@ -5,6 +5,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -31,7 +32,7 @@ public class SolrServerFactoryTest {
 	public static Iterable<Object[]> setUpParameters() throws Exception {
 		IOServicesFactory ioServicesFactory = Mockito.mock(IOServicesFactory.class);
 		Object[][] params = new Object[][]{new Object[]{new HttpSolrServerFactory("http://localhost/", ioServicesFactory)}, new Object[]{new CloudSolrServerFactory("http://zkhost.com")}};
-		return Arrays.asList(params); 
+		return Arrays.asList(params);
 	}
 
 	private AbstractSolrServerFactory solrServerFactoryUnderTest;
@@ -73,16 +74,16 @@ public class SolrServerFactoryTest {
 
 
 	@Test
-	public void whenClearingSolrServerFactoryThenAllSolrClientAndAtomicFileSystemAreClosed(){
+	public void whenClearingSolrServerFactoryThenAllSolrClientAndAtomicFileSystemAreClosed() throws IOException {
 		solrServerFactoryUnderTest.clear();
 
 		verify(atomicFileSystem1, times(TIMES)).close();
 		verify(atomicFileSystem2, times(TIMES)).close();
 		verify(atomicFileSystemAdmin, times(TIMES)).close();
 
-		verify(solrClient1, times(TIMES)).shutdown();
-		verify(solrClient2, times(TIMES)).shutdown();
-		verify(solrClientAdmin, times(TIMES)).shutdown();
+		verify(solrClient1, times(TIMES)).close();
+		verify(solrClient2, times(TIMES)).close();
+		verify(solrClientAdmin, times(TIMES)).close();
 	}
 
 }

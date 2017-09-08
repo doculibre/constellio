@@ -309,6 +309,16 @@ public abstract class BaseForm<T> extends CustomComponent {
 						firstFieldWithError = field;
 					}
 				}
+				else if (!field.isValid()) {
+					if(missingRequiredFields.length() != 0) {
+						missingRequiredFields.append("<br/>");
+					}
+					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));
+
+					if (firstFieldWithError == null) {
+						firstFieldWithError = field;
+					}
+				}
 			}
 			if (firstFieldWithError != null) {
 				firstFieldWithError.focus();

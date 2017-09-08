@@ -90,4 +90,12 @@ public class RecordExtension {
 		}
 	}
 
+	public boolean isDeleteBlocked(Record record, User user) {
+		return false;
+	}
+
+	public boolean isModifyBlocked(Record record, User user) {
+		return false;
+	}
+
 }

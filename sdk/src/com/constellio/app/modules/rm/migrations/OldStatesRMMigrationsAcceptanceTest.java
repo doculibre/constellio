@@ -31,7 +31,7 @@ public class OldStatesRMMigrationsAcceptanceTest extends RMMigrationsAcceptanceT
 		states.add(new Object[] { "givenNewInstallation" });
 
 		for (String state : getStatesFolder(true).list()) {
-			if (state.endsWith(".zip")) {
+			if (state.endsWith(".zip") && (state.contains("_rm_") || state.contains(",rm_"))) {
 				states.add(new Object[] { state.replace(".zip", "") });
 			}
 		}

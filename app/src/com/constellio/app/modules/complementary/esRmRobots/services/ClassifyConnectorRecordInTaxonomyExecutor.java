@@ -1,5 +1,24 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorHelper.ClassifiedRecordPathInfo;
@@ -11,7 +30,6 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -27,10 +45,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -41,20 +64,6 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 public class ClassifyConnectorRecordInTaxonomyExecutor {
 
@@ -210,13 +219,19 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, fullConnectorDocPath);
 		Folder rmFolder;
 		if (rmRecord == null) {
+			String folderTypeId = params.getFolderTypeId();
 			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
 			if (parentConcept != null) {
-				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept);
+				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept, folderTypeId);
 			} else if (targetTaxonomy != null) {
-				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName);
+				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName, folderTypeId);
 			} else {
-				rmFolder = rm.newFolder();
+				if(folderTypeId != null) {
+					rmFolder = rm.newFolderWithType(folderTypeId);
+				} else {
+					rmFolder = rm.newFolder();
+				}
+
 				rmFolder.setCreatedByRobot(robotId);
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
@@ -247,7 +262,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 
 		if (rmRecord == null) {
-			rmFolder = rm.newFolder().setTitle(folderName);
+			String folderTypeId = params.getFolderTypeId();
+			if(folderTypeId != null) {
+				rmFolder = rm.newFolderWithType(folderTypeId);
+			} else {
+				rmFolder = rm.newFolder();
+			}
+			rmFolder.setTitle(folderName);
 			rmFolder.setLegacyId(url);
 
 		} else {
@@ -321,11 +342,16 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return mappedEntries;
 	}
 
-	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart) {
+	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId) {
 		String parentPath = getParentPath(fullConnectorDocPath, pathPart);
 
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
-		Folder newRmFolder = rm.newFolder();
+		Folder newRmFolder;
+		if(folderTypeId != null) {
+			newRmFolder = rm.newFolderWithType(folderTypeId);
+		} else {
+			newRmFolder = rm.newFolder();
+		}
 		newRmFolder.setCreatedByRobot(robotId);
 		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 		newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
@@ -338,8 +364,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-			MetadataSchema folderSchema, Record parentConcept) {
-		Folder newRmFolder = rm.newFolder();
+										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
+		Folder newRmFolder;
+		if(folderTypeId != null) {
+			newRmFolder = rm.newFolderWithType(folderTypeId);
+		} else {
+			newRmFolder = rm.newFolder();
+		}
+
 		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy)).get(0);
 		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
@@ -394,7 +426,6 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				}
 			}
 		}
-
 
 		try {
 			transaction.add(rmDocument);
@@ -629,7 +660,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			Document document = rm.getDocumentByLegacyId(connectorDocument.getUrl());
 
 			if (document == null) {
-				document = rm.newDocument();
+				String documentTypeId = params.getDocumentTypeId();
+				if(documentTypeId != null) {
+					document = rm.newDocumentWithType(documentTypeId);
+				} else {
+					document = rm.newDocument();
+				}
 				document.setCreatedByRobot(robotId);
 				document.setLegacyId(connectorDocument.getUrl());
 			}
@@ -646,7 +682,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument,
 							CLASSIFY_DOCUMENT, availableVersion);
-					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle());
+
+					UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+							.setHandleDeletionOfUnreferencedHashes(false);
+					newVersionDataSummary = contentManager.upload(versionStream, options)
+							.getContentVersionDataSummary();
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
@@ -660,7 +700,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					version = (majorVersions ? "1.0" : "0.1");
 				}
 
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
+				UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+						.setHandleDeletionOfUnreferencedHashes(false);
+				newVersionDataSummary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 

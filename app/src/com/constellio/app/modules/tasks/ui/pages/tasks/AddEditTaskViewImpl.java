@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
@@ -8,6 +9,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -66,7 +68,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	}
 
 	private TaskFormImpl newForm() {
-		recordForm = new TaskFormImpl(taskVO) {
+		recordForm = new TaskFormImpl(taskVO, presenter.isEditMode()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -113,5 +115,15 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public TaskForm getForm() {
 		return recordForm;
+	}
+
+	@Override
+	public void navigateToWorkflow(String workflowId) {
+		navigate().to(TaskViews.class).displayWorkflow(workflowId);
+	}
+
+	@Override
+	public Record getWorkflow(String workflowId) {
+		return presenter.getWorkflow(workflowId);
 	}
 }

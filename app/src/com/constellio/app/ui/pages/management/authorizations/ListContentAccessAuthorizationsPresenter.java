@@ -41,7 +41,7 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
-		String schemaType = new SchemaUtils().getSchemaTypeCode(restrictedRecord.getSchemaCode());
+		String schemaType = SchemaUtils.getSchemaTypeCode(restrictedRecord.getSchemaCode());
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(user.getCollection(), schemaType);
 		if (taxonomy != null && taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(user.getCollection()))) {
 			return user.has(CorePermissions.MANAGE_SECURITY).globally();

@@ -35,7 +35,7 @@ public class ApplicationStarter {
 
 	private static Server server;
 	private static WebAppContext handler;
-	private static Map<String, List<Servlet>> servletMappings = new HashMap<>();
+	private static Map<String, List<ServletHolder>> servletMappings = new HashMap<>();
 	private static Map<String, List<Filter>> filterMappings = new HashMap<>();
 
 	private ApplicationStarter() {
@@ -70,6 +70,7 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		server.setHandler(handler);
+
 		try {
 			server.start();
 
@@ -81,9 +82,9 @@ public class ApplicationStarter {
 			}
 
 			for (String pathSpec : servletMappings.keySet()) {
-				List<Servlet> servlets = servletMappings.get(pathSpec);
-				for (Servlet servlet : servlets) {
-					handler.addServlet(new ServletHolder(servlet), pathSpec);
+				List<ServletHolder> servlets = servletMappings.get(pathSpec);
+				for (ServletHolder servlet : servlets) {
+					handler.addServlet(servlet, pathSpec);
 				}
 			}
 		} catch (Exception e) {
@@ -107,7 +108,7 @@ public class ApplicationStarter {
 			connector.setPort(params.getPort());
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-			Server server =  new Server();
+			Server server = new Server();
 			server.setConnectors(new Connector[] { connector });
 			return server;
 		}
@@ -161,15 +162,19 @@ public class ApplicationStarter {
 		return sslServer;
 	}
 
-	public static void registerServlet(String pathRelativeToConstellioContext, Servlet servlet) {
+	public static void registerServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
 		if (handler == null) {
 			if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
-				servletMappings.put(pathRelativeToConstellioContext, new ArrayList<Servlet>());
+				servletMappings.put(pathRelativeToConstellioContext, new ArrayList<ServletHolder>());
 			}
-			servletMappings.get(pathRelativeToConstellioContext).add(servlet);
+			servletMappings.get(pathRelativeToConstellioContext).add(servletHolder);
 		} else {
-			handler.addServlet(new ServletHolder(servlet), pathRelativeToConstellioContext);
+			handler.addServlet(servletHolder, pathRelativeToConstellioContext);
 		}
+	}
+
+	public static void registerServlet(String pathRelativeToConstellioContext, Servlet servlet) {
+		registerServlet(pathRelativeToConstellioContext, new ServletHolder(servlet));
 	}
 
 	public static void registerFilter(String pathRelativeToConstellioContext, Filter filter) {

@@ -40,6 +40,22 @@ public class LDAPServicesImpl implements LDAPServices {
 	public LDAPServicesImpl() {
 	}
 
+	public List<String> getRootContexts(LdapContext context) {
+		List<String> rootContexts = new ArrayList<>();
+		try {
+			Attributes attributes = context.getAttributes("", new String[]{"namingContexts"});
+			for (NamingEnumeration attributesEnum = attributes.getAll(); attributesEnum.hasMore(); ) {
+				Attribute attribute = (Attribute) attributesEnum.next();
+				for (NamingEnumeration attributeEnum = attribute.getAll(); attributeEnum.hasMore(); ) {
+					rootContexts.add("" + attributeEnum.next());
+				}
+			}
+		} catch (NamingException ne) {
+			System.err.println("Error getting root contexts: " + ne.getMessage());
+		}
+		return rootContexts;
+	}
+
 	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList) {
 		Set<LDAPGroup> returnList = new HashSet<>();
 		if (baseContextList == null || baseContextList.isEmpty()) {

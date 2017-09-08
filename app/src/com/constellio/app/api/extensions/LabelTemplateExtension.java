@@ -1,11 +1,17 @@
 package com.constellio.app.api.extensions;
 
-import java.util.List;
+import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import java.io.File;
 
-public abstract class LabelTemplateExtension {
+public class LabelTemplateExtension {
 
-	public abstract void addLabelTemplates(String schemaType, List<LabelTemplate> labelTemplates);
+	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {
+
+	}
+
+	public File changeDownloadableTemplate() {
+		return null;
+	}
 
 }

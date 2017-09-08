@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.imports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -13,18 +7,16 @@ import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.ProgressBar;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 
@@ -38,6 +30,7 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 	private Panel messagesPanel;
 	private EnumWithSmallCodeComboBox mode;
 	private VerticalLayout messagesLayout;
+	private CheckBox allowReferencesToNonExistingUsersCheckBox;
 	private int total;
 
 	public ImportFileViewImpl() {
@@ -73,6 +66,9 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		mode.setWidth("200px");
 		mode.setConvertedValue(ImportFileMode.STRICT);
 
+		allowReferencesToNonExistingUsersCheckBox = new CheckBox($("ImportFileView.allowReferencesToNonExistingUsersCheckBox"));
+		allowReferencesToNonExistingUsersCheckBox.setValue(false);
+
 		progressBar = new ProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
@@ -84,7 +80,7 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		messagesPanel = new Panel($("ImportFileView.errors"), messagesLayout);
 		messagesPanel.setVisible(false);
 
-		mainLayout.addComponents(mode, uploadField, uploadButton, progressBar, messagesPanel);
+		mainLayout.addComponents(mode, allowReferencesToNonExistingUsersCheckBox, uploadField, uploadButton, progressBar, messagesPanel);
 		mainLayout.setExpandRatio(messagesPanel, 1);
 		//mainLayout.setComponentAlignment(exampleExcelFileLink, Alignment.TOP_RIGHT);
 		mainLayout.setComponentAlignment(uploadButton, Alignment.BOTTOM_RIGHT);
@@ -153,5 +149,9 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		messageLabel.setContentMode(ContentMode.HTML);
 		messagesPanel.setVisible(true);
 		messagesLayout.addComponentAsFirst(messageLabel);
+	}
+
+	public boolean isAllowingReferencesToNonExistingUsers() {
+		return Boolean.TRUE.equals(allowReferencesToNonExistingUsersCheckBox.getValue());
 	}
 }

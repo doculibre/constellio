@@ -15,7 +15,7 @@ import com.constellio.data.dao.services.transactionLog.TransactionLogReadWriteSe
 
 public class TransactionLogReplayServices {
 
-	public static int PARALLELISM = 2;
+	public static int PARALLELISM = 8;
 
 	public static int MAX_TRANSACTION_SIZE = BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
 

@@ -1,6 +1,9 @@
 package com.constellio.model.services.search.entities;
 
-public class SearchBoost {
+import java.io.Serializable;
+
+public class SearchBoost implements Serializable {
+	
 	public static final String METADATA_TYPE = "metadata";
 	public static final String QUERY_TYPE = "query";
 

@@ -10,7 +10,6 @@ import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordProvider;
-import com.constellio.model.services.schemas.MetadataList;
 
 public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 
@@ -28,11 +27,19 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 		return new ReindexMetadatasBatchProcessAction(codes);
 	}
 
+	public static ReindexMetadatasBatchProcessAction allMetadatas() {
+		return new ReindexMetadatasBatchProcessAction(null);
+	}
+
 	@Override
 	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		Transaction transaction = new Transaction();
-		MetadataList reindexedMetadatas = schemaTypes.getMetadatas(reindexedMetadataCodes);
-		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(new TransactionRecordsReindexation(reindexedMetadatas));
+		if (reindexedMetadataCodes == null) {
+			transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		} else {
+			transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(
+					new TransactionRecordsReindexation(schemaTypes.getMetadatas(reindexedMetadataCodes)));
+		}
 		transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		transaction.setSkippingRequiredValuesValidation(true);
 		transaction.addUpdate(batch);

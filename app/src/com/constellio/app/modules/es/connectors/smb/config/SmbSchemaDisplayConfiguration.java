@@ -30,7 +30,6 @@ public class SmbSchemaDisplayConfiguration {
 	}
 
 	public void setupMetadatasDisplay() {
-		// TODO Benoit. Update only once / if needed
 		SchemasDisplayManager manager = getEs().getMetadataSchemasDisplayManager();
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
@@ -38,36 +37,17 @@ public class SmbSchemaDisplayConfiguration {
 		// Connector SMB Config/Instance
 		SchemaDisplayConfig schemaFormFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "form",
 				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
+				ConnectorSmbDocument.URL, "parent");
 
 		SchemaDisplayConfig schemaDisplayFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "display",
 				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
+				ConnectorSmbDocument.URL, "parent");
 
 		transaction.add(schemaDisplayFolderTypeConfig.withFormMetadataCodes(schemaFormFolderTypeConfig.getFormMetadataCodes()));
 
 		manager.execute(transaction);
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(connectorInstance.getCollection());
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.URL)
-		//				.afterMetadata(ConnectorDocument.TITLE);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.PARENT)
-		//				.afterMetadata(ConnectorSmbDocument.TITLE);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.EXTENSION)
-		//				.afterMetadata(ConnectorSmbDocument.PARENT);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LANGUAGE)
-		//				.afterMetadata(ConnectorSmbDocument.EXTENSION);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.SIZE)
-		//				.afterMetadata(ConnectorSmbDocument.LANGUAGE);
 
 		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
 				.addToSearchResult(ConnectorSmbDocument.LAST_MODIFIED)
@@ -76,18 +56,6 @@ public class SmbSchemaDisplayConfiguration {
 		String modifiedOn = Schemas.MODIFIED_ON.getLocalCode();
 
 		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE).removeFromSearchResult(modifiedOn);
-
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_MODIFIED);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT);
-		//
-		//		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-		//				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_DETAILS)
-		//				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS);
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -134,10 +102,7 @@ public class SmbSchemaDisplayConfiguration {
 			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
 		}
 
-		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-		manager.saveMetadata(manager.getMetadata(collection, getEs().getConnectorSmbDocumentSchemaCode(connectorInstance),
-				ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-				.withVisibleInAdvancedSearchStatus(true));
 		return newSchema;
+
 	}
 }

@@ -34,8 +34,7 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 		when(customSchema2AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 
 		type = new MetadataSchemaType(aString(), aString(), asMap(Language.French, "label"), asList(customSchema1, customSchema2),
-				defaultSchema,
-				false, true, true);
+				defaultSchema, false, true, true, false);
 	}
 
 	@Test

@@ -1,15 +1,18 @@
 package com.constellio.app.modules.complementary;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorDocumentInFolderActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderDirectlyInThePlanActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInParentFolderActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsActionParametersFieldFactoryExtension;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsMappingExtension;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.*;
@@ -18,17 +21,8 @@ import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
-import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
-import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigration {
 	public static final String ID = "es_rm_robots";
@@ -62,6 +56,8 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 		migrations.add(new ESRMRobotsMigrationTo6_2_2_1());
 		migrations.add(new ESRMRobotsMigrationTo7_0_1());
 		migrations.add(new ESRMRobotsMigrationTo7_1());
+		migrations.add(new ESRMRobotsMigrationTo7_3_1());
+		migrations.add(new ESRMRobotsMigrationTo7_5());
 
 		return migrations;
 	}

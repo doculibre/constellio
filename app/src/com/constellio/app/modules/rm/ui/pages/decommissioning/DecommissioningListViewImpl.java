@@ -1,30 +1,33 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
-import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -169,6 +172,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildFoldersCertificateButton());
 		buttons.add(buildAddFoldersButton());
 		buttons.add(buildRemoveFoldersButton());
+		buttons.add(buildCreateSIPARchivesButton());
 		return buttons;
 	}
 
@@ -398,17 +402,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildApprovalRequestButton() {
-		approvalRequest = new ConfirmDialogButton(null, $("DecommissioningListView.approvalRequest"), false) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DecommissioningListView.confirmApprovalRequest");
-			}
-
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.approvalRequestButtonClicked();
-			}
-		};
+		approvalRequest = new DecomApprobationRequestWindowButton(presenter, this, getConstellioFactories());
 		approvalRequest.setEnabled(presenter.canSendApprovalRequest());
 		approvalRequest.addStyleName(APPROVAL_REQUEST_BUTTON);
 		return approvalRequest;
@@ -499,12 +493,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		if (containerComboBox.size() > 0) {
 			containerComboBox.setValue(containerVOs.getIdByIndex(containerComboBox.size() - 1));
 		}
-		containerComboBox.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		containerComboBox.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		containerComboBox.setEnabled(presenter.canCurrentUserManageContainers());
+		containerComboBox.setVisible(presenter.canCurrentUserManageContainers());
 
 		Button placeFolders = new Button($("DecommissioningListView.placeInContainer"));
-		placeFolders.setEnabled(containerComboBox.size() > 0 && presenter.canCurrentUserManageStorageSpaces());
-		placeFolders.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		placeFolders.setEnabled(containerComboBox.size() > 0 && presenter.canCurrentUserManageContainers());
+		placeFolders.setVisible(presenter.canCurrentUserManageContainers());
 		placeFolders.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -529,8 +523,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		Button createContainer = new Button($("DecommissioningListView.createContainer"));
 		createContainer.addStyleName(ValoTheme.BUTTON_LINK);
-		createContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		createContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		createContainer.setEnabled(presenter.canCurrentUserManageContainers());
+		createContainer.setVisible(presenter.canCurrentUserManageContainers());
 		createContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -540,8 +534,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		Button searchContainer = new Button($("DecommissioningListView.searchContainer"));
 		searchContainer.addStyleName(ValoTheme.BUTTON_LINK);
-		searchContainer.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		searchContainer.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		searchContainer.setEnabled(presenter.canCurrentUserManageContainers());
+		searchContainer.setVisible(presenter.canCurrentUserManageContainers());
 		searchContainer.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -567,8 +561,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				presenter.refreshView();
 			}
 		});
-		autoFillContainers.setEnabled(presenter.canCurrentUserManageStorageSpaces());
-		autoFillContainers.setVisible(presenter.canCurrentUserManageStorageSpaces());
+		autoFillContainers.setEnabled(presenter.canCurrentUserManageContainers());
+		autoFillContainers.setVisible(presenter.canCurrentUserManageContainers());
 
 		HorizontalLayout controls = new HorizontalLayout(label, containerComboBox, placeFolders, createContainer, searchContainer, autoFillContainers);
 		controls.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
@@ -587,12 +581,18 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Label header = new Label($("DecommissioningListView.foldersToValidate"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
-		foldersToValidate = buildFolderTable(folders, false);
+		foldersToValidate = buildFolderTable(folders, true);
 
 		VerticalLayout layout = new VerticalLayout(header, foldersToValidate, buildOrderFoldersToValidateButton());
 		layout.setSpacing(true);
 
 		return layout;
+	}
+
+	private Button buildCreateSIPARchivesButton(){
+		SIPbutton button = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+		return button;
 	}
 
 	private Component buildProcessableFolderComponent(List<FolderDetailVO> folders) {
@@ -603,7 +603,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		BaseButton removeFromFolderButton = new BaseButton($("DecommissioningListView.removeFromFolder")) {
+		BaseButton removeFromTheBox = new BaseButton($("DecommissioningListView.removeFromFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				List<FolderDetailVO> selected = new ArrayList<>();
@@ -631,8 +631,17 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				}
 			}
 		};
+		removeFromTheBox.setEnabled(presenter.canCurrentUserManageContainers());
+		removeFromTheBox.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
 
-		VerticalLayout layout = new VerticalLayout(header, removeFromFolderButton, processableFolders, buildOrderProcessableFoldersButton());
+		VerticalLayout layout = new VerticalLayout(header);
+
+		if(!presenter.isInValidation() && !presenter.isInApprobation()) {
+			layout.addComponent(removeFromTheBox);
+		}
+
+		layout.addComponents(processableFolders, buildOrderProcessableFoldersButton());
+
 		layout.setSpacing(true);
 
 		return layout;
@@ -652,7 +661,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
 		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<>(FolderDetailVO.class, folders);
-		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
+		container.setItemSorter(buildItemSorter());
+		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container) {
+
+		};
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
@@ -664,6 +676,75 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingValidation(presenter.shouldDisplayValidation())
 				.displayingOrderNumber(true)
 				.attachTo(table);
+	}
+
+	private DefaultItemSorter buildItemSorter() {
+		if (presenter.getFolderDetailTableExtension() != null) {
+			return 	new DefaultItemSorter() {
+				@Override
+				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
+					// Get the properties to compare
+
+					final Property<?> property1 = item1.getItemProperty(propertyId);
+					final Property<?> property2 = item2.getItemProperty(propertyId);
+
+					// Get the values to compare
+					final Object value1 = (property1 == null) ? null : property1.getValue();
+					final Object value2 = (property2 == null) ? null : property2.getValue();
+
+					if(FolderDetailTableGenerator.FOLDER_ID.equals(propertyId) && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
+						try {
+							if(sortDirection) {
+								return Integer.compare(Integer.parseInt((String) value1), Integer.parseInt((String) value2));
+							} else {
+								return Integer.compare(Integer.parseInt((String) value2), Integer.parseInt((String) value1));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
+
+					if (value1 == null) {
+						if (value2 == null) {
+							return 0;
+						} else {
+							return -returnedValue;
+						}
+					} else if (value2 == null) {
+						return -returnedValue;
+					}
+
+					return returnedValue;
+				}
+			};
+		} else {
+			return 	new DefaultItemSorter() {
+				@Override
+				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
+					// Get the properties to compare
+					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
+					final Property<?> property1 = item1.getItemProperty(propertyId);
+					final Property<?> property2 = item2.getItemProperty(propertyId);
+
+					// Get the values to compare
+					final Object value1 = (property1 == null) ? null : property1.getValue();
+					final Object value2 = (property2 == null) ? null : property2.getValue();
+					if (value1 == null) {
+						if (value2 == null) {
+							return 0;
+						} else {
+							return -returnedValue;
+						}
+					} else if (value2 == null) {
+						return -returnedValue;
+					}
+
+					return returnedValue;
+				}
+			};
+		}
 	}
 
 	private Component  buildContainerComponent(List<DecomListContainerDetail> containerDetails) {

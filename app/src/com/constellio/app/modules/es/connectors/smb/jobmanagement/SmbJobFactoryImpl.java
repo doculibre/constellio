@@ -1,7 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
 import com.constellio.app.modules.es.connectors.smb.jobs.*;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
@@ -9,20 +8,12 @@ import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class SmbJobFactoryImpl implements SmbJobFactory {
-	public static enum SmbJobCategory {
-		SEED, DISPATCH, RETRIEVAL, DELETE
-	}
-
-	public enum SmbJobType {
-		SEED_JOB, NEW_DOCUMENT_JOB, NEW_FOLDER_JOB, DISPATCH_JOB, UNMODIFIED_JOB, DELETE_JOB, NULL_JOB;
+	public enum SmbJobCategory {
+		DISPATCH, RETRIEVAL, DELETE
 	}
 
 	private final ConnectorSmb connector;
@@ -50,45 +41,33 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 	@Override
 	public SmbConnectorJob get(SmbJobCategory jobType, String url, String parentUrl) {
 		JobParams params = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbShareService, smbRecordService, updater, this, url, parentUrl);
-		SmbConnectorJob job = new SmbNullJob(params);
+		SmbConnectorJob job = null;
 
 		if (smbUtils.isAccepted(url, connectorInstance)) {
 			switch (jobType) {
-			case SEED:
-				job = new SmbSeedJob(params);
-				break;
 			case DISPATCH:
 				job = new SmbDispatchJob(params);
 				break;
 			case RETRIEVAL:
-				SmbConnectorContext context = this.connector.getContext();
-				SmbModificationIndicator contextIndicator = context.getModificationIndicator(url);
-
-				if (smbUtils.isFolder(url)) {
-					if (contextIndicator == null) {
-						job = new SmbNewFolderRetrievalJob(params);
-					} else {
-						SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
-						if (shareIndicator == null) {
-							job = new SmbDeleteJob(params);
-						} else if (contextIndicator.getParentId() == null || !contextIndicator.equals(shareIndicator)) {
-							job = new SmbNewFolderRetrievalJob(params);
-						}
-					}
-				} else {
-					if (contextIndicator == null) {
-						job = new SmbNewDocumentRetrievalJob(params);
-					} else {
-						SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
-						if (shareIndicator == null) {
-							job = new SmbDeleteJob(params);
-						} else if (contextIndicator.getParentId() == null || !contextIndicator.equals(shareIndicator)) {
-							job = new SmbNewDocumentRetrievalJob(params);
-						}
-					}
+				if (this.connector.getDuplicateUrls().contains(url)) {
+					job = new SmbDeleteJob(params);
+					markUrlAsFound(url);
+					break;
 				}
-				if (job instanceof SmbNullJob) {
-					job = new SmbUnmodifiedRetrievalJob(params);
+
+				SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(connectorInstance, url);
+				SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
+
+				if (shareIndicator == null) {
+					job = new SmbDeleteJob(params);
+				} else if (recordSmbDocument == null) {
+					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
+				} else if (!recordSmbDocument.equals(shareIndicator)) {
+					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
+				}
+
+				if(shareIndicator != null) {
+					markUrlAsFound(url);
 				}
 				break;
 			case DELETE:
@@ -101,5 +80,9 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 			job = new SmbDeleteJob(params);
 		}
 		return job;
+	}
+
+	private void markUrlAsFound(String url) {
+		connector.markUrlAsFound(url);
 	}
 }

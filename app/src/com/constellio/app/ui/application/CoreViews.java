@@ -33,6 +33,10 @@ public class CoreViews {
 		javascript.execute("window.history.back();");
 	}
 
+	public void serviceMonitoring() {
+		navigator.getUI().getPage().setLocation("/constellio/serviceMonitoring");
+	}
+
 	public void home() {
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
 	}
@@ -43,7 +47,7 @@ public class CoreViews {
 		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
 		navigator.navigateTo("/" + fragment);
 	}
-	
+
 	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
@@ -347,6 +351,39 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void managePrintableReport() {
+		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_MANAGE);
+	}
+
+	public void addPrintableReport() {
+		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_ADD);
+	}
+
+	public void editPrintableReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.PRINTABLE_REPORT_ADD, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void displayPrintableReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.PRINTABLE_REPORT_VIEW, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void manageExcelReport() {
+		navigator.navigateTo(NavigatorConfigurationService.EXCEL_REPORT_MANAGE);
+	}
+
+	public void displayExcelReport(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EXCEL_REPORT_DISPLAY, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void manageLabels() {
 		navigator.navigateTo(NavigatorConfigurationService.LABEL_CONFIG);
 	}
@@ -371,6 +408,10 @@ public class CoreViews {
 		params.put("id", id);
 		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.LABEL_VIEW, params);
 		navigator.navigateTo(viewPath);
+	}
+
+	public void listTemporaryRecord() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_TEMPORARY_RECORDS);
 	}
 
 	public void declareUserFolder(String userDocumentId) {
@@ -533,9 +574,13 @@ public class CoreViews {
 	public void systemCheck() {
 		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
 	}
-	
+
 	public void batchProcesses() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_BATCH_PROCESSES);
 	}
-	
+
+	public void listImportExport() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_IMPORT_EXPORT);
+	}
+
 }

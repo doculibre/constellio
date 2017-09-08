@@ -1,5 +1,11 @@
 package com.constellio.app.ui.pages.base;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -12,6 +18,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 public class PresenterService {
 	private ModelLayerFactory modelLayerFactory;
@@ -54,6 +61,15 @@ public class PresenterService {
 	
 	public ConstellioEIMConfigs getSystemConfigs() {
 		return modelLayerFactory.getSystemConfigs();
+	}
+
+	public List<String> getConceptsWithPermissionsForUser(User user, String...permissions) {
+		Set<String> recordIds = new HashSet<>();
+		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		for (String permission : permissions) {
+			recordIds.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
+		}
+		return new ArrayList<>(recordIds);
 	}
 	
 }

@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
+
+import com.constellio.model.entities.records.ParsedContent;
 
 public class ParsedContentProvider {
 
@@ -20,10 +23,24 @@ public class ParsedContentProvider {
 		this.cache = cache;
 	}
 
+	public ParsedContent getParsedContentIfAlreadyParsed(String hash) {
+		ParsedContent parsedContent = cache.get(hash);
+		if (parsedContent == null) {
+			try {
+				parsedContent = contentManager.getParsedContent(hash);
+			} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+				parsedContent = null;
+			}
+			cache.put(hash, parsedContent);
+		}
+
+		return parsedContent;
+	}
+
 	public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
 		ParsedContent parsedContent = cache.get(hash);
 		if (parsedContent == null) {
-			parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
+			parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash).getParsedContent();
 			cache.put(hash, parsedContent);
 		}
 

@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.StructureFactory;
 public class CommentFactory implements StructureFactory {
 
 	private static final String NULL = "~null~";
+	public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
 	@Override
 	public ModifiableStructure build(String string) {
@@ -37,7 +38,7 @@ public class CommentFactory implements StructureFactory {
 				"" :
 				comment.getUsername());
 		if (comment.getDateTime() != null) {
-			writeString(stringBuilder, comment.getDateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+			writeString(stringBuilder, comment.getDateTime().toString(DATE_PATTERN));
 		} else {
 			writeString(stringBuilder, NULL);
 		}

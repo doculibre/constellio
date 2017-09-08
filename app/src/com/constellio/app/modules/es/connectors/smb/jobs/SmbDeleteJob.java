@@ -1,86 +1,90 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobType;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
+import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 
 public class SmbDeleteJob extends SmbConnectorJob {
-	private static final String jobName = SmbDeleteJob.class.getSimpleName();
-	private final JobParams jobParams;
+    private static final String jobName = SmbDeleteJob.class.getSimpleName();
+    private final JobParams jobParams;
 
-	public SmbDeleteJob(JobParams jobParams) {
-		super(jobParams.getConnector(), jobName);
-		this.jobParams = jobParams;
-	}
+    public SmbDeleteJob(JobParams jobParams) {
+        super(jobParams.getConnector(), jobName);
+        this.jobParams = jobParams;
+    }
 
-	@Override
-	public void execute(Connector connector) {
-		String url = jobParams.getUrl();
-		if (jobParams.getSmbUtils().isAccepted(url, jobParams.getConnectorInstance())) {
-			SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
-			SmbFileDTOStatus status = smbFileDTO.getStatus();
-			switch (status) {
-			case DELETE_DTO:
-				deleteRecords();
-				break;
-			case FAILED_DTO:
-				// Do nothing
-				break;
-			case FULL_DTO:
-				// Do nothing
-				break;
-			default:
-				connector.getLogger()
-						.error("Unexpected DTO status when deleting : " + url, "", new LinkedHashMap<String, String>());
-				break;
-			}
-		} else {
-			deleteRecords();
-		}
-	}
+    @Override
+    public void execute(Connector connector) {
+        String url = jobParams.getUrl();
+        try {
+            SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
+            if(smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
+                if (jobParams.getSmbUtils().isFolder(url)) {
+                    ConnectorSmbFolder folderToDelete = jobParams.getSmbRecordService().getFolderFromCache(url, jobParams.getConnectorInstance());
+                    if(folderToDelete != null) {
+                        jobParams.getSmbRecordService().removeFromCache(folderToDelete);
+                        deleteByUrl(folderToDelete.getUrl());
+                        DeleteEventOptions options = new DeleteEventOptions();
+                        jobParams.getEventObserver().deleteEvents(options, folderToDelete);
+                    }
+                } else {
+                    ConnectorSmbDocument documentToDelete = jobParams.getSmbRecordService().getDocumentFromCache(url, jobParams.getConnectorInstance());
+                    if(documentToDelete != null) {
+                        jobParams.getEventObserver().deleteEvents(documentToDelete);
+                        jobParams.getSmbRecordService().removeFromCache(documentToDelete);
+                        deleteByUrl(url);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            this.connector.getLogger().errorUnexpected(e);
+        }
+    }
 
-	private void deleteRecords() {
-		String url = jobParams.getUrl();
-		if (jobParams.getSmbUtils().isFolder(url)) {
-			ConnectorSmbFolder folderToDelete = jobParams.getSmbRecordService().getFolder(url);
-			if (folderToDelete != null) {
-				DeleteEventOptions options = new DeleteEventOptions();
-				options.getPhysicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
-				options.getLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(LOGICALLY_DELETE_THEM);
-				jobParams.getEventObserver().deleteEvents(options, folderToDelete);
-			}
-		} else {
-			ConnectorSmbDocument documentToDelete = jobParams.getSmbRecordService().getDocument(url);
-			if (documentToDelete != null) {
-				jobParams.getEventObserver().deleteEvents(documentToDelete);
-			}
-		}
-		jobParams.getConnector().getContext().delete(url);
-	}
+    public void deleteByUrl(String url) {
+        ModelLayerFactory modelLayerFactory = jobParams.getEventObserver().getModelLayerFactory();
+        RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
+        TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+        ConnectorSmbInstance connectorInstance = jobParams.getConnectorInstance();
+        String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+        ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+        connectorUrl = ClientUtils.escapeQueryChars(connectorUrl);
+        modifiableSolrParams.set("q", "connectorUrl_s:"+connectorUrl+"*");
+        modifiableSolrParams.add("fq", "id:*ZZ");
+        modifiableSolrParams.add("fq", "collection_s:"+connectorInstance.getCollection());
+        transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+        try {
+            recordDao.execute(transaction);
+        } catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+            optimisticLocking.printStackTrace();
+        }
+    }
 
-	@Override
-	public String toString() {
-		return jobName + '@' + Integer.toHexString(hashCode()) + " - " + jobParams.getUrl();
-	}
+    @Override
+    public String toString() {
+        return jobName + '@' + Integer.toHexString(hashCode()) + " - " + jobParams.getUrl();
+    }
 
-	@Override
-	public String getUrl() {
-		return jobParams.getUrl();
-	}
-
-	@Override
-	public SmbJobType getType() {
-		return SmbJobType.DELETE_JOB;
-	}
+    @Override
+    public String getUrl() {
+        return jobParams.getUrl();
+    }
 }

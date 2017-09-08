@@ -84,14 +84,14 @@ public class NewFilePresenterAcceptTest extends ConstellioTest {
 
 		Content content = givenTemplateAndFileName();
 		givenDocumentTypeWithTemplateAndLinkedToEmailSchema(content);
-		presenter.setTemplatesByDocumentTypeId(rmRecords.documentTypeId_1);
+		presenter.documentTypeIdSet(rmRecords.documentTypeId_1);
 
 		presenter.newFileNameSubmitted();
 
 		assertThat(content.getCurrentVersion().getFilename()).isEqualTo("test.docx");
 		assertThat(presenter.getFilename()).isEqualTo("newName.docx");
 		assertThat(presenter.getFileContent().getCurrentVersion().getFilename()).isEqualTo("newName.docx");
-		verify(view).notifyNewFileCreated(presenter.getFileContent());
+		verify(view).notifyNewFileCreated(presenter.getFileContent(), presenter.getDocumentTypeId());
 	}
 
 	private void givenDocumentTypeWithTemplateAndLinkedToEmailSchema(Content content1)

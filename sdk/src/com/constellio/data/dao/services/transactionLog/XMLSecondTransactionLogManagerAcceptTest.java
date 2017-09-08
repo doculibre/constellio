@@ -96,6 +96,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(SecondTransactionLogManager.class);

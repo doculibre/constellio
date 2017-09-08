@@ -1,6 +1,8 @@
 package com.constellio.data.conf;
 
 import java.io.File;
+import java.util.List;
+import java.io.Serializable;
 
 import org.joda.time.Duration;
 
@@ -26,13 +28,23 @@ public interface DataLayerConfiguration {
 
 	File getContentDaoFileSystemFolder();
 
+    void setContentDaoFileSystemFolder(File contentsFolder);
+
 	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
 
 	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
 
-	File getTempFolder();
+    String getContentDaoReplicatedVaultMountPoint();
+
+    void setContentDaoReplicatedVaultMountPoint(String replicatedVaultMountPoint);
+
+    File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();
+
+	CacheType getCacheType();
+
+	String getCacheUrl();
 
 	String getSettingsZookeeperAddress();
 
@@ -71,4 +83,12 @@ public interface DataLayerConfiguration {
 	String createRandomUniqueKey();
 
 	void setHashingEncoding(HashingEncoding encoding);
+
+	String getKafkaServers();
+
+	String getSecondTransactionLogMode();
+
+	String getKafkaTopic();
+
+	long getReplayTransactionStartVersion();
 }

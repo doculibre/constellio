@@ -28,6 +28,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void selectTasksTab();
 
+	void hideAllActionMenuButtons();
+
 	void setLogicallyDeletable(ComponentState state);
 
 	void setEditButtonState(ComponentState state);

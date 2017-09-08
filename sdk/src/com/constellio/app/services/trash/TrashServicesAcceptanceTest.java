@@ -25,11 +25,9 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -38,7 +36,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.trash.TrashServices;
-import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -129,7 +126,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		Document document = records.getDocumentWithContent_A49();
 		documentDeletedLogicallyId = document.getId();
 		recordServices.logicallyDelete(document.getWrappedRecord(), adminUser);
-		recordServices.add(folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
+		recordServices.add((RecordWrapper)folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
 	}
 
 	@Test

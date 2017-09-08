@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -105,6 +106,7 @@ public class Folder extends RMObject {
 	public static final String REACTIVATION_USERS = "reactivationUsers";
 	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
 	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
+	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -754,7 +756,7 @@ public class Folder extends RMObject {
 	}
 
 	public Folder addPreviousTransferDate(LocalDate date) {
-		if(date != null) {
+		if (date != null) {
 			ArrayList<LocalDate> localDates = new ArrayList<>(getPreviousTransferDates());
 			localDates.add(date);
 			setPreviousTransferDate(localDates);
@@ -776,7 +778,7 @@ public class Folder extends RMObject {
 	}
 
 	public Folder addPreviousDepositDate(LocalDate date) {
-		if(date != null) {
+		if (date != null) {
 			ArrayList<LocalDate> localDates = new ArrayList<>(getPreviousDepositDates());
 			localDates.add(date);
 			setPreviousDepositDate(localDates);

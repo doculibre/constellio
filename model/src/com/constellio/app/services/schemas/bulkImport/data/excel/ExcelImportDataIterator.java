@@ -1,18 +1,24 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
-import com.constellio.data.utils.LazyIterator;
-import com.drew.metadata.MetadataException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.util.*;
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.utils.LazyIterator;
+import com.drew.metadata.MetadataException;
 
 public class ExcelImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
@@ -280,7 +286,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		if (cell.isDate()) {
 			Date date = cell.getDate();
 			DateTime dateTime = new DateTime(date).withZone(DateTimeZone.UTC);
-			return dateTime.toLocalDate();
+			if ("dateTime".equals(type.getDateType())) {
+				return dateTime.toLocalDateTime();
+			} else {
+				return dateTime.toLocalDate();
+			}
 		} else {
 			return readValue(cellContent, type);
 		}

@@ -27,6 +27,11 @@ public class ContainerRecordAvailableSizeCalculator implements MetadataValueCalc
         } else if(linearSizeParam == null) {
             return capacityParam;
         }
+
+        if (Math.abs(linearSizeParam - capacityParam) < 0.001) {
+            return 0d;
+        }
+
         return capacityParam - linearSizeParam;
     }
 

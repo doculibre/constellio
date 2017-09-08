@@ -152,16 +152,19 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		containerRecordDesctruction.setIdentifier("D1");
 		containerRecordDesctruction.setTemporaryIdentifier("D1");
 		containerRecordDesctruction.setType(records.containerTypeId_boite22x22);
+		containerRecordDesctruction.setAdministrativeUnits(asList(records.unitId_10a));
 		ContainerRecord containerRecordTransfert = rm.newContainerRecord();
 		containerRecordTransfert.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
 		containerRecordTransfert.setIdentifier("T1");
 		containerRecordTransfert.setTemporaryIdentifier("T1");
 		containerRecordTransfert.setType(records.containerTypeId_boite22x22);
+		containerRecordTransfert.setAdministrativeUnits(asList(records.unitId_10a));
 		ContainerRecord containerRecordDeposit = rm.newContainerRecord();
 		containerRecordDeposit.setDecommissioningType(DecommissioningType.DEPOSIT);
 		containerRecordDeposit.setIdentifier("C1");
 		containerRecordDeposit.setTemporaryIdentifier("C1");
 		containerRecordDeposit.setType(records.containerTypeId_boite22x22);
+		containerRecordDeposit.setAdministrativeUnits(asList(records.unitId_10a));
 
 		Transaction t = new Transaction();
 		t.addAll(containerRecordDeposit, containerRecordDesctruction, containerRecordTransfert);

@@ -11,20 +11,26 @@ import com.constellio.data.io.concurrent.exception.AtomicIOException;
 import com.constellio.data.io.concurrent.exception.FileNotFoundException;
 import com.constellio.data.io.concurrent.exception.OptimisticLockingException;
 
-public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
-	private SolrZkClient zkClient;
+public class ZookeeperAtomicFileSystem implements AtomicFileSystem {
+	private volatile static SolrZkClient ZK_CLIENT;
 	private boolean retryOnConnLoss;
 	
 	public ZookeeperAtomicFileSystem(String zkServerAddress, Integer zkClientTimeout){
-		zkClient = new SolrZkClient(zkServerAddress, zkClientTimeout);
+		init(zkServerAddress, zkClientTimeout);
 		retryOnConnLoss = true;
+	}
+
+	private static synchronized void init(String zkServerAddress, Integer zkClientTimeout) {
+		if (ZK_CLIENT == null) {
+			ZK_CLIENT = new SolrZkClient(zkServerAddress, zkClientTimeout);
+		}
 	}
 
 	@Override
 	public synchronized DataWithVersion readData(String path) {
 		org.apache.zookeeper.data.Stat zookeeprStat = new org.apache.zookeeper.data.Stat();
 		try {
-			byte[] data = zkClient.getData(path, null, zookeeprStat, retryOnConnLoss);
+			byte[] data = ZK_CLIENT.getData(path, null, zookeeprStat, retryOnConnLoss);
 			return new DataWithVersion(data, zookeeprStat.getVersion());
 		} catch (KeeperException.NoNodeException e){
 			throw new FileNotFoundException(e);
@@ -39,13 +45,13 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 		try {
 			Integer newVersion = -1;
 			if (!exists(path))
-				zkClient.makePath(path, retryOnConnLoss);
+				ZK_CLIENT.makePath(path, retryOnConnLoss);
 			
 			byte[] data = dataWithVersion.getData();
 			if (dataWithVersion.getVersion() == null)
-				newVersion = zkClient.setData(path, data, retryOnConnLoss).getVersion();
+				newVersion = ZK_CLIENT.setData(path, data, retryOnConnLoss).getVersion();
 			else
-				newVersion = zkClient.setData(path, data, (Integer)dataWithVersion.getVersion(), retryOnConnLoss).getVersion();
+				newVersion = ZK_CLIENT.setData(path, data, (Integer)dataWithVersion.getVersion(), retryOnConnLoss).getVersion();
 			return new DataWithVersion(data, newVersion);
 		} catch (KeeperException.BadVersionException e){
 			throw new OptimisticLockingException(e);
@@ -68,9 +74,9 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 			} 
 			if (!path.equals("/")){
 				if (version == null)
-					zkClient.delete(path, -1, retryOnConnLoss);
+					ZK_CLIENT.delete(path, -1, retryOnConnLoss);
 				else
-					zkClient.delete(path, (Integer)version, retryOnConnLoss);
+					ZK_CLIENT.delete(path, (Integer)version, retryOnConnLoss);
 			}
 		} catch (KeeperException e) {
 			throw new OptimisticLockingException(e);
@@ -83,7 +89,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 	public synchronized List<String> list(String path) {
 		try {
 			path = makePathCompatibleWithZookeeper(path);
-			List<String> children = zkClient.getChildren(path, null, retryOnConnLoss);
+			List<String> children = ZK_CLIENT.getChildren(path, null, retryOnConnLoss);
 			if (children.size() == 0 && !isDirectory(path)){
 				return null;
 			}
@@ -114,7 +120,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 	public synchronized boolean exists(String path) {
 		try {
 			path = makePathCompatibleWithZookeeper(path);
-			return zkClient.exists(path, retryOnConnLoss);
+			return ZK_CLIENT.exists(path, retryOnConnLoss);
 		} catch (KeeperException | InterruptedException e) {
 			throw new AtomicIOException(e);
 		}
@@ -147,7 +153,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 			return false;
 		
 		try {
-			zkClient.makePath(path, true);
+			ZK_CLIENT.makePath(path, true);
 		} catch (KeeperException | InterruptedException e) {
 			throw new AtomicIOException(e);
 		}
@@ -156,7 +162,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 
 	@Override
 	public void close(){
-		zkClient.close();
+		//ZK_CLIENT.close();
 	}
 
 }

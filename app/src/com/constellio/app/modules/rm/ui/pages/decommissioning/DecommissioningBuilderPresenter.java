@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -29,6 +29,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,8 @@ import java.io.Serializable;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
@@ -50,8 +52,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	SearchType searchType;
 	String adminUnitId;
 	String decommissioningListId;
-	List<String> foldersToExclude;
-	List<String> documentsToExclude;
 	boolean displayResults;
 	boolean addMode;
 	int pageNumber;
@@ -84,13 +84,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			view.addEmptyCriterion();
 			this.displayResults = false;
 			pageNumber = 1;
-		}
-		if(searchType.isFolderSearch()) {
-			foldersToExclude = getFoldersAlreadyInNonProcessedDecommissioningLists();
-			documentsToExclude = null;
-		} else {
-			foldersToExclude = null;
-			documentsToExclude = getDocumentsAlreadyInNonProcessedDecommissioningLists();
 		}
 
 		return this;
@@ -186,11 +179,15 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		params.setAdministrativeUnit(adminUnitId);
 		params.setSearchType(searchType);
 		try {
-			DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
-			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+			if(params.getSelectedRecordIds() != null && params.getSelectedRecordIds().size() > 1000) {
+				view.showErrorMessage($("DecommissioningBuilderView.cannotBuildADecommissioningListWithMoreThan1000Records"));
 			} else {
-				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
+				if (decommissioningList.getDecommissioningListType().isFolderList()) {
+					view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+				} else {
+					view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while creating decommissioning list", e);
@@ -201,14 +198,27 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public void addToListButtonClicked(List<String> selected) {
 		try {
 			DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(decommissioningListId);
-			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
-				recordServices().update(decommissioningList.getWrappedRecord());
-				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+			Set<String> allIds = new HashSet<>(decommissioningList.getFolders());
+			if(decommissioningList.getFolders() != null) {
+				allIds = new HashSet<>(decommissioningList.getFolders());
 			} else {
-				decommissioningList.addDocuments(selected.toArray(new String[0]));
-				recordServices().update(decommissioningList.getWrappedRecord());
-				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				allIds = new HashSet<String>();
+			}
+			allIds.addAll(selected);
+
+			if(allIds.size() > 1000) {
+				view.showErrorMessage($("DecommissioningBuilderView.cannotBuildADecommissioningListWithMoreThan1000Records"));
+			} else {
+
+				if (decommissioningList.getDecommissioningListType().isFolderList()) {
+					decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+					recordServices().update(decommissioningList.getWrappedRecord());
+					view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+				} else {
+					decommissioningList.addDocuments(selected.toArray(new String[0]));
+					recordServices().update(decommissioningList.getWrappedRecord());
+					view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while creating decommissioning list", e);
@@ -283,9 +293,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 		if(searchType.isFolderSearch()) {
 			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
-			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(foldersToExclude);
-		} else {
-			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(documentsToExclude);
 		}
 
 		if (!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
@@ -297,27 +304,27 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return condition;
 	}
 
-	protected List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
-		RMSchemasRecordsServices rm = rmRecordServices();
-		Set<String> foldersToHide = new HashSet<>();
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
-				.andWhere(rm.decommissioningList.folders()).isNotNull());
-		for(DecommissioningList list: decommissioningLists) {
-			foldersToHide.addAll(list.getFolders());
-		}
-		return new ArrayList<>(foldersToHide);
-	}
-
-	protected List<String> getDocumentsAlreadyInNonProcessedDecommissioningLists() {
-		RMSchemasRecordsServices rm = rmRecordServices();
-		Set<String> documentsToHide = new HashSet<>();
-		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
-				.andWhere(rm.decommissioningList.documents()).isNotNull());
-		for(DecommissioningList list: decommissioningLists) {
-			documentsToHide.addAll(list.getFolders());
-		}
-		return new ArrayList<>(documentsToHide);
-	}
+//	protected List<String> getFoldersAlreadyInNonProcessedDecommissioningLists() {
+//		RMSchemasRecordsServices rm = rmRecordServices();
+//		Set<String> foldersToHide = new HashSet<>();
+//		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
+//				.andWhere(rm.decommissioningList.folders()).isNotNull());
+//		for(DecommissioningList list: decommissioningLists) {
+//			foldersToHide.addAll(list.getFolders());
+//		}
+//		return new ArrayList<>(foldersToHide);
+//	}
+//
+//	protected List<String> getDocumentsAlreadyInNonProcessedDecommissioningLists() {
+//		RMSchemasRecordsServices rm = rmRecordServices();
+//		Set<String> documentsToHide = new HashSet<>();
+//		List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(where(rm.decommissioningList.status()).isNotEqual(DecomListStatus.PROCESSED)
+//				.andWhere(rm.decommissioningList.documents()).isNotNull());
+//		for(DecommissioningList list: decommissioningLists) {
+//			documentsToHide.addAll(list.getFolders());
+//		}
+//		return new ArrayList<>(documentsToHide);
+//	}
 
 	private String getSchemaType() {
 		return searchType.isFolderSearch() ? Folder.SCHEMA_TYPE : Document.SCHEMA_TYPE;
@@ -412,5 +419,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	public boolean isAddMode() {
 		return addMode;
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 }

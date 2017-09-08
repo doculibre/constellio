@@ -91,6 +91,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
+	public static final String TEMPORARY_REPORT = "temporaryRecords";
+	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
+
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
 		configureSystemAdmin(config);
@@ -141,20 +144,6 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PRINTABLE_MANAGEMENT, PRINTABLE_MANAGEMENT_ICON) {
-
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().viewReport();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
-				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
-			}
-		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -288,6 +277,21 @@ public class CoreNavigationConfiguration implements Serializable {
 						CorePermissions.MANAGE_SYSTEM_SERVERS));
 			}
 		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecord();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
+			}
+		});
 	}
 
 	private void configureCollectionAdmin(NavigationConfig config) {
@@ -326,6 +330,22 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 		});
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(PRINTABLE_MANAGEMENT, PRINTABLE_MANAGEMENT_ICON) {
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().viewReport();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
+			}
+		});
+
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(METADATA_SCHEMAS, METADATA_SCHEMAS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -448,6 +468,21 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+			}
+		});
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecord();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
 			}
 		});
 	}

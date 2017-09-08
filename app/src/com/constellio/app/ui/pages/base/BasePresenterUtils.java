@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -15,7 +17,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -24,8 +27,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.Roles;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BasePresenterUtils implements Serializable {
 
@@ -88,7 +89,7 @@ public class BasePresenterUtils implements Serializable {
 		}
 		return currentUser;
 	}
-	
+
 	public final void clearCurrentUserCache() {
 		currentUser = null;
 	}
@@ -106,10 +107,10 @@ public class BasePresenterUtils implements Serializable {
 	}
 
 	public final RecordServices recordServices() {
-		if (recordServices == null) {
-			recordServices = modelLayerFactory.newRecordServices();
-		}
-		return recordServices;
+		//if (recordServices == null) {
+		return modelLayerFactory.newRecordServices();
+		//}
+		//return recordServices;
 	}
 
 	public final PresenterService presenterService() {
@@ -168,20 +169,25 @@ public class BasePresenterUtils implements Serializable {
 		return appLayerFactory.getCollectionsManager();
 	}
 
-
-	public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
 		try {
-			return modelLayerFactory.getContentManager().upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+			return modelLayerFactory.getContentManager().upload(inputStream, options);
 		} catch (final IcapException e) {
 			if (e instanceof IcapException.ThreatFoundException) {
-				throw new IcapException($(e, e.getFileName(),((IcapException.ThreatFoundException) e).getThreatName()));
+				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
 			}
 
-            if (e.getCause() == null) {
-                throw new IcapException($(e, e.getFileName()));
-            } else {
-                throw new IcapException($(e, e.getFileName()), e.getCause());
-            }
+			if (e.getCause() == null) {
+				throw new IcapException($(e, e.getFileName()));
+			} else {
+				throw new IcapException($(e, e.getFileName()), e.getCause());
+			}
 		}
 	}
+
+	public List<String> getConceptsWithPermissionsForCurrentUser(String... permissions) {
+		User user = getCurrentUser();
+		return presenterService.getConceptsWithPermissionsForUser(user, permissions);
+	}
+
 }

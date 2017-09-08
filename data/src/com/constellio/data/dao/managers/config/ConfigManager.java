@@ -72,4 +72,8 @@ public interface ConfigManager {
 	void copySettingsFrom(File setting);
 
 	void move(String src, String dest);
+
+	void importFrom(File settingsFolder);
+
+	void exportTo(File settingsFolder);
 }

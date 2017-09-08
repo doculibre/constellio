@@ -4,6 +4,7 @@ import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getC
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +27,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class SchemasDisplayManagerCache {
+public class SchemasDisplayManagerCache implements Serializable {
 
 	private String collection;
 	private SchemaTypesDisplayConfig collectionTypes;

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -76,8 +77,12 @@ public class BulkUploader {
 				try {
 
 					inputStream = streamFactory.create(READ_STREAM_RESOURCE);
-					ContentVersionDataSummary summary = contentManager
-							.upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+
+					UploadOptions options = new UploadOptions(fileName).setParse(parse)
+							.setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes);
+
+					ContentVersionDataSummary summary = contentManager.upload(inputStream, options)
+							.getContentVersionDataSummary();
 					writeToMap(key, summary);
 
 				} catch (ContentManagerRuntimeException_CannotReadParsedContent e) {

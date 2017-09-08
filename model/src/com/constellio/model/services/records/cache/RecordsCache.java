@@ -12,6 +12,8 @@ public interface RecordsCache {
 
 	Record get(String id);
 
+	Record getSummary(String id);
+
 	boolean isCached(String id);
 
 	void insert(List<Record> record);
@@ -20,9 +22,9 @@ public interface RecordsCache {
 
 	List<Record> getQueryResults(LogicalSearchQuery query);
 
-	Record insert(Record record);
+	CacheInsertionStatus insert(Record record);
 
-	Record forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record);
 
 	void invalidateRecordsOfType(String recordType);
 
@@ -40,6 +42,8 @@ public interface RecordsCache {
 
 	Record getByMetadata(Metadata metadata, String value);
 
+	Record getSummaryByMetadata(Metadata metadata, String value);
+
 	void removeCache(String schemaType);
 
 	boolean isConfigured(MetadataSchemaType type);
@@ -47,4 +51,8 @@ public interface RecordsCache {
 	boolean isConfigured(String typeCode);
 
 	int getCacheObjectsCount();
+
+	int getCacheObjectsCount(String typeCode);
+
+	long getCacheObjectsSize(String typeCode);
 }

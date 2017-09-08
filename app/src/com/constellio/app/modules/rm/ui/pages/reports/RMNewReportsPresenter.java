@@ -123,6 +123,11 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
         }
     }
 
+    public String getSchemaTypeValue()
+    {
+        return schemaTypeValue;
+    }
+
     public void setSchemaTypeValue(String schemaTypeValue) {
         this.schemaTypeValue = schemaTypeValue;
     }

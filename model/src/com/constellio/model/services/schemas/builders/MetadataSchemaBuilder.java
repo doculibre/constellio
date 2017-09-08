@@ -27,8 +27,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -94,9 +94,9 @@ public class MetadataSchemaBuilder {
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.inheritDefaultSchema()) {
 				MetadataBuilder inheritance = builder.defaultSchema.getMetadata(metadata.getLocalCode());
-				builder.metadatas.add(MetadataBuilder.modifyMetadataWithInheritance(metadata, inheritance));
+				builder.metadatas.add(MetadataBuilder.modifyMetadataWithInheritance(builder, metadata, inheritance));
 			} else {
-				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
+				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
 			}
 		}
 
@@ -127,7 +127,7 @@ public class MetadataSchemaBuilder {
 		builder.setSchemaTypeBuilder(typeBuilder);
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
-			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
+			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
 		}
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class,
 				defaultSchema.getValidators());
@@ -145,7 +145,7 @@ public class MetadataSchemaBuilder {
 		builder.setCode(defaultSchema.getSchemaTypeBuilder().getCode() + UNDERSCORE + localCode);
 
 		for (MetadataBuilder metadata : defaultSchema.metadatas) {
-			builder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(metadata, localCode));
+			builder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(builder, metadata, localCode));
 		}
 
 		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
@@ -524,6 +524,15 @@ public class MetadataSchemaBuilder {
 			}
 		}
 
+//		for (Metadata metadata : metadatas) {
+		//			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
+		//				if (!metadata.isGlobal()) {
+		//					System.out.println(metadata.getLocalCode());
+		//					sortedMetadatas.add(metadata);
+		//				}
+		//			}
+		//		}
+
 		return Collections.unmodifiableList(sortedMetadatas);
 	}
 
@@ -608,7 +617,7 @@ public class MetadataSchemaBuilder {
 		MetadataBuilder metadata = MetadataBuilder.createMetadataWithoutInheritance(localCode, this);
 		this.metadatas.add(metadata);
 		for (MetadataSchemaBuilder customSchemaBuilder : schemaTypeBuilder.getCustomSchemas()) {
-			customSchemaBuilder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(metadata,
+			customSchemaBuilder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(customSchemaBuilder, metadata,
 					customSchemaBuilder.localCode));
 		}
 		return metadata;
@@ -636,6 +645,10 @@ public class MetadataSchemaBuilder {
 
 	public void createUniqueCodeMetadata() {
 		createUndeletable("code").setEssential(true).setDefaultRequirement(true).setType(STRING).setUniqueValue(true);
+	}
+
+	public void deleteMetadataWithoutValidation(String localCode) {
+		deleteMetadataWithoutValidation(getMetadata(localCode));
 	}
 
 	public void deleteMetadataWithoutValidation(MetadataBuilder metadataToDelete) {
@@ -675,7 +688,8 @@ public class MetadataSchemaBuilder {
 	}
 
 	public MetadataBuilder createMetadataCopying(MetadataBuilder metadataBuilder) {
-		MetadataBuilder metadata = MetadataBuilder.createCustomMetadataFromOriginalCustomMetadata(metadataBuilder, this.code);
+		MetadataBuilder metadata = MetadataBuilder
+				.createCustomMetadataFromOriginalCustomMetadata(this, metadataBuilder, this.code);
 		metadatas.add(metadata);
 		return metadata;
 	}

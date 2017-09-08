@@ -2,6 +2,10 @@ package com.constellio.app.services.factories;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
@@ -12,13 +16,17 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 
 public class ConstellioFactories {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioFactories.class);
 
 	public static ConstellioFactoriesInstanceProvider instanceProvider = new SingletonConstellioFactoriesInstanceProvider();
 
@@ -38,8 +46,18 @@ public class ConstellioFactories {
 
 	private AppLayerFactory appLayerFactory;
 
+	private ThreadLocal<AppLayerFactory> requestCachedFactories = new ThreadLocal<>();
+
 	private ConstellioFactories() {
 
+	}
+
+	public static ConstellioFactories getInstanceIfAlreadyStarted() {
+		return instanceProvider.getInstance(null);
+	}
+
+	public static boolean isInitialized() {
+		return instanceProvider.isInitialized();
 	}
 
 	public static ConstellioFactories getInstance() {
@@ -104,11 +122,11 @@ public class ConstellioFactories {
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
 				decorator.getStatefullServiceDecorator(), instanceName));
 
-		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactory(dataLayerFactory, foldersLocator,
+		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
 				new ModelLayerFactoryFactory()));
 
-		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactory(appLayerConfiguration, modelLayerFactory,
+		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName));
 
 		modulesManager.set(appLayerFactory.getModulesManager());
@@ -130,16 +148,44 @@ public class ConstellioFactories {
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
 	}
 
+	private static AtomicInteger factoryIdSeq = new AtomicInteger();
+
+	public void onRequestStarted() {
+
+		long factoryId = factoryIdSeq.incrementAndGet();
+
+		AppLayerFactoryImpl appLayerFactory = (AppLayerFactoryImpl) getAppLayerFactory();
+		AppLayerFactoryWithRequestCacheImpl requestCachedAppLayerFactory = new AppLayerFactoryWithRequestCacheImpl(
+				appLayerFactory, "" + factoryId);
+
+		requestCachedFactories.set(requestCachedAppLayerFactory);
+		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+			LOGGER.info("onRequestStarted() - " + requestCachedAppLayerFactory.toString());
+		}
+	}
+
+	public void onRequestEnded() {
+
+		AppLayerFactory appLayerFactory = requestCachedFactories.get();
+		if (appLayerFactory != null && appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl) {
+			((AppLayerFactoryWithRequestCacheImpl) appLayerFactory).disconnect();
+			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+				LOGGER.info("onRequestEnded() - " + appLayerFactory.toString());
+			}
+		}
+		requestCachedFactories.set(null);
+	}
+
 	public IOServicesFactory getIoServicesFactory() {
 		return ioServicesFactory;
 	}
 
 	public DataLayerFactory getDataLayerFactory() {
-		return dataLayerFactory;
+		return getModelLayerFactory().getDataLayerFactory();
 	}
 
 	public ModelLayerFactory getModelLayerFactory() {
-		return modelLayerFactory;
+		return getAppLayerFactory().getModelLayerFactory();
 	}
 
 	public DataLayerConfiguration getDataLayerConfiguration() {
@@ -159,6 +205,7 @@ public class ConstellioFactories {
 	}
 
 	public AppLayerFactory getAppLayerFactory() {
-		return appLayerFactory;
+		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
+		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
 	}
 }

@@ -35,7 +35,9 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -78,18 +80,17 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
@@ -136,22 +137,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void executeWithoutImpactHandling(Transaction transaction)
 			throws RecordServicesException {
-		executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
-			@Override
-			public void prepareToHandle(ModificationImpact modificationImpact) {
+		if (!transaction.getRecords().isEmpty()) {
+			executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
+				@Override
+				public void prepareToHandle(ModificationImpact modificationImpact) {
 
-			}
+				}
 
-			@Override
-			public void handle() {
+				@Override
+				public void handle() {
 
-			}
+				}
 
-			@Override
-			public void cancel() {
+				@Override
+				public void cancel() {
 
-			}
-		});
+				}
+			});
+		}
 	}
 
 	public void execute(Transaction transaction)
@@ -259,6 +262,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (resolution == OptimisticLockingResolution.EXCEPTION || transaction.getModifiedRecords().isEmpty()) {
 			throw new RecordServicesException.OptimisticLocking(transactionDTO, e);
 		} else if (resolution == OptimisticLockingResolution.TRY_MERGE) {
+
 			mergeRecords(transaction, e.getId());
 			if (handler == null) {
 				execute(transaction, attempt + 1);
@@ -366,12 +370,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new RecordUpdateOptions());
-			recordsCaches.insert(record);
+			insertInCache(record);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
+	}
+
+	public void insertInCache(Record record) {
+		recordsCaches.insert(record);
+	}
+
+	public void insertInCache(String collection, List<Record> records) {
+		recordsCaches.insert(collection, records);
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
@@ -396,13 +408,33 @@ public class RecordServicesImpl extends BaseRecordServices {
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
 		RecordUpdateOptions options = transaction.getRecordUpdateOptions();
 		if (transaction.getRecordUpdateOptions().getRecordsFlushing() != RecordsFlushing.NOW()) {
-			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
-			for (Record record : transaction.getRecords()) {
-				if (record.isDirty() && record.isSaved() && cache.getCacheConfigOf(record.getSchemaCode()) != null) {
-					throw new RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(record.getSchemaCode(),
-							record.getId());
-				}
+//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
+			//			for (Record record : transaction.getRecords()) {
+			//				if (record.isDirty() && record.isSaved() && cache.getCacheConfigOf(record.getSchemaCode()) != null) {
+			//					throw new RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(record.getSchemaCode(),
+			//							record.getId());
+			//				}
+			//			}
+		}
+
+		for (Record record : transaction.getRecords()) {
+			MetadataSchemaType schemaType = types.getSchemaType(record.getTypeCode());
+			if (schemaType.isReadOnlyLocked() && !options.isAllowSchemaTypeLockedRecordsModification()) {
+				throw new RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock(record.getTypeCode(), record.getId());
 			}
+		}
+
+		for (Record record : transaction.getRecords()) {
+			if (record.get(Schemas.MIGRATION_DATA_VERSION) == null) {
+				if (record.isSaved()) {
+					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
+				} else {
+					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
+							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
+				}
+
+			}
+
 		}
 
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(transaction.getCollection());
@@ -436,10 +468,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 				for (RecordPreparationStep step : schema.getPreparationSteps()) {
 
 					if (step instanceof CalculateMetadatasRecordPreparationStep) {
+						TransactionRecordsReindexation reindexationOptionForThisRecord = reindexation;
+						RequiredRecordMigrations migrations =
+								modelLayerFactory.getRecordMigrationsManager().getRecordMigrationsFor(record);
+
+						if (!migrations.getScripts().isEmpty()) {
+
+							for (RecordMigrationScript script : migrations.getScripts()) {
+								script.migrate(record);
+							}
+							record.set(Schemas.MIGRATION_DATA_VERSION, migrations.getVersion());
+
+							reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
+						}
+
 						try {
 							for (Metadata metadata : step.getMetadatas()) {
 								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
-										reindexation, types, transaction.getRecordUpdateOptions());
+										reindexationOptionForThisRecord, types, transaction.getRecordUpdateOptions());
 							}
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
@@ -505,9 +551,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			boolean allParsed = true;
+			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
+				for (Content aContent : record.<Content>getValues(contentMetadata)) {
+					allParsed &= parsedContentProvider
+							.getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+				}
+			}
+
+			if (allParsed) {
+				record.set(Schemas.MARKED_FOR_PARSING, null);
+			} else {
+				record.set(Schemas.MARKED_FOR_PARSING, true);
+			}
+
 		}
 
-		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
+			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+		}
 
 		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
@@ -621,7 +683,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				recordsToInsert.add(record);
 			}
 		}
-		recordsCaches.insert(collection, recordsToInsert);
+		insertInCache(collection, recordsToInsert);
 
 	}
 

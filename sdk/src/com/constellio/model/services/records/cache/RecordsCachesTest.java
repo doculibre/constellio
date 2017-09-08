@@ -16,7 +16,7 @@ public class RecordsCachesTest extends ConstellioTest {
 	public void whenGetRecordsCacheThenReturnSameInstance()
 			throws Exception {
 
-		RecordsCaches allCollectionsCaches = new RecordsCaches(modelLayerFactory);
+		RecordsCaches allCollectionsCaches = new RecordsCachesMemoryImpl(modelLayerFactory);
 
 		RecordsCache collection1Cache = allCollectionsCaches.getCache("collection1");
 		RecordsCache collection1CacheSecondCall = allCollectionsCaches.getCache("collection1");

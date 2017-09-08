@@ -189,10 +189,10 @@ public class ESMigrationCombo implements ComboMigrationScript {
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
 				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
 
-		transaction.add(es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
+//		transaction.add(es.newFacetField()
+//				.setUsedByModule(ConstellioESModule.ID)
+//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
+//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)

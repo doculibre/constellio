@@ -26,7 +26,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
-	public static final String FOLDER_ID = "id";
+	public static final String FOLDER_ID = "folderId";
 	public static final String PREVIOUS_ID = "previousId";
 	public static final String FOLDER = "folder";
 	public static final String RETENTION_RULE = "rule";
@@ -93,7 +93,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
 
-		if (packageable) {
+		if (!(presenter.isInApprobation() || presenter.isApproved() || presenter.isProcessed())) {
 			table.addGeneratedColumn(CHECKBOX, this);
 			table.setColumnHeader(CHECKBOX, "");
 			table.setColumnAlignment(CHECKBOX, Align.CENTER);
@@ -145,26 +145,29 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			table.addGeneratedColumn(CATEGORY_CODE, this);
 			table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
 			visibleColumns.add(CATEGORY_CODE);
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 		}
 
-		if (!inValidationStatus) {
-			table.addGeneratedColumn(LINEAR_SIZE, this);
-			table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
-			visibleColumns.add(LINEAR_SIZE);
-		}
+		table.addGeneratedColumn(LINEAR_SIZE, this);
+		table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
+		visibleColumns.add(LINEAR_SIZE);
 
 		table.addGeneratedColumn(MEDIUM, this);
 		table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
 		visibleColumns.add(MEDIUM);
 
-		if (!inValidationStatus && presenter.canCurrentUserManageStorageSpaces()) {
+		if (presenter.canCurrentUserManageContainers() && !presenter.areContainersHidden()) {
 			table.addGeneratedColumn(CONTAINER, this);
 			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
 			visibleColumns.add(CONTAINER);
 		}
 
 		table.setVisibleColumns(visibleColumns.toArray());
+
+		if(extension != null) {
+			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		} else {
+			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
+		}
 
 		return table;
 	}
@@ -246,7 +249,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			return null;
 		}
 
-		if (!(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
+		if (!(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable() && !presenter.isInValidation())) {
 			Double linearSize = presenter.getLinearSize(detail);
 			if (linearSize == null) {
 				return null;
@@ -290,7 +293,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 
 		String containerRecordId = detail.getContainerRecordId();
-		if (containerRecordId != null && !(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
+		if (containerRecordId != null && !(packageable && presenter.shouldAllowContainerEditing() && detail.isPackageable() && !presenter.isInValidation())) {
 			return new ReferenceDisplay(containerRecordId);
 		}
 

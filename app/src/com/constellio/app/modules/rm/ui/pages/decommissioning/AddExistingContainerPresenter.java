@@ -3,10 +3,12 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
-import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -96,15 +99,18 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			restricted = params;
 		}
 
-		return Arrays.asList(restricted);
+		return asList(restricted);
 	}
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordServices().wrapDecommissioningList(restrictedRecord);
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord) ||
-				new DecommissioningSecurityService(view.getCollection(), appLayerFactory)
-						.hasPermissionToCreateTransferOnList(decommissioningList, user);
+		AdministrativeUnit administrativeUnit = rmRecordServices()
+				.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(),
+				appLayerFactory);
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService
+				.hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 
 	@Override
@@ -232,7 +238,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
 		return from(rmRecordServices().containerRecord.schemaType())
-				.where(rmRecordServices().containerRecord.administrativeUnit()).isEqualTo(adminUnitId)
+				.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId))
 				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 	}
 
@@ -272,7 +278,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
-		((RecordImpl) search.getWrappedRecord()).markAsSaved(1, search.getSchema());
+		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
 		//recordServices().update(search);
 		if (refreshPage) {
@@ -295,5 +301,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		}
 
 		return null;
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 }

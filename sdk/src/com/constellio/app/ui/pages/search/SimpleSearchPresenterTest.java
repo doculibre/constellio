@@ -16,6 +16,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -28,6 +29,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 	public static final String EXPRESSION = "zexpression";
 	public static final String FACET_CODE = "zeField_s";
 
+	@Mock ConstellioModulesManager modulesManager;
 	@Mock SimpleSearchView view;
 	MockedNavigation navigator;
 	@Mock LanguageDetectionManager detectionManager;
@@ -53,6 +55,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 		when(schemasDisplayManager.getTypes(zeCollection)).thenReturn(typesDisplayConfig);
 		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
+		when(factories.getAppLayerFactory().getModulesManager()).thenReturn(modulesManager);
 		presenter = spy(new SimpleSearchPresenter(view));
 	}
 

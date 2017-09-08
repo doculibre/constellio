@@ -12,6 +12,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -114,7 +115,9 @@ public class RMMigrationTo7_2_0_2 implements MigrationScript {
 		InputStream inputStream = null;
 		try {
 			inputStream = ioServices.newFileInputStream(jasperFile, "installLabel");
-			ContentVersionDataSummary summary = contentManager.upload(inputStream, false, false, "jasperFile.jasper");
+			UploadOptions options = new UploadOptions("jasperFile.jasper").setHandleDeletionOfUnreferencedHashes(false)
+					.setParse(false);
+			ContentVersionDataSummary summary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 			Content newContent = contentManager.createFileSystem(content.getCurrentVersion().getFilename(), summary);
 			printableLabel.setJasperFile(newContent);
 			try {

@@ -314,6 +314,16 @@ public class DecommissioningList extends RecordWrapper {
 		return setFolderDetails(details);
 	}
 
+	public DecommissioningList removeFolderDetails(List<String> folderIds) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (DecomListFolderDetail detail : getFolderDetails()) {
+			if (!folderIds.contains(detail.getFolderId())) {
+				details.add(detail);
+			}
+		}
+		return setFolderDetails(details);
+	}
+
 	public DecommissioningList addFolderDetailsFor(Folder... folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		details.addAll(getFolderDetails());
@@ -402,10 +412,13 @@ public class DecommissioningList extends RecordWrapper {
 	}
 
 	public DecommissioningList addContainerDetailsFrom(List<ContainerRecord> containers) {
+		List<String> previousContainers = getContainers();
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
 		for (ContainerRecord container : containers) {
-			DecomListContainerDetail detail = new DecomListContainerDetail(container);
-			details.add(detail);
+			if(!(previousContainers != null && previousContainers.contains(container.getId()))) {
+				DecomListContainerDetail detail = new DecomListContainerDetail(container);
+				details.add(detail);
+			}
 		}
 		return setContainerDetails(details);
 	}
@@ -567,5 +580,22 @@ public class DecommissioningList extends RecordWrapper {
 		ArrayList<String> ids = new ArrayList<>(getDocuments());
 		ids.remove(id);
 		return setDocuments(ids);
+	}
+
+	public DecommissioningList removeReferences(Record... recordsToRemove) {
+		List<String> documentsToRemove = new ArrayList<>();
+		List<String> foldersToRemove = new ArrayList<>();
+
+		for(Record record: recordsToRemove) {
+			if(record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+				foldersToRemove.add(record.getId());
+			} else if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+				documentsToRemove.add(record.getId());
+			}
+		}
+
+		removeDocuments(documentsToRemove.toArray(new String[0]));
+		removeFolderDetails(foldersToRemove);
+		return this;
 	}
 }

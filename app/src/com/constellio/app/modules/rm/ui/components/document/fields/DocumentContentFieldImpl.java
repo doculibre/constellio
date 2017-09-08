@@ -25,8 +25,13 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 
 	private List<ContentUploadedListener> contentUploadedListeners = new ArrayList<>();
 
-	public DocumentContentFieldImpl() {
-		super();
+	public DocumentContentFieldImpl(){
+		this(false);
+	}
+
+	public DocumentContentFieldImpl(boolean isViewOnly) {
+		super(false, false, isViewOnly);
+
 
 		addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -37,7 +42,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 			}
 		});
 
-		newFileButton = new Button($("DocumentContentField.newFile"));
+        newFileButton = new Button($("DocumentContentField.newFile"));
 		newFileButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -46,6 +51,8 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 				}
 			}
 		});
+
+		newFileButton.setVisible(!isViewOnly);
 
 		getMainLayout().addComponent(newFileButton, 0);
 		getMainLayout().setComponentAlignment(newFileButton, Alignment.TOP_RIGHT);

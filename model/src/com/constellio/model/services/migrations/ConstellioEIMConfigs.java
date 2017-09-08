@@ -11,11 +11,7 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.enums.MetadataPopulatePriority;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.entities.enums.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -26,6 +22,11 @@ public class ConstellioEIMConfigs {
 	public static List<SystemConfiguration> configurations;
 
 	//Retention calendar configs
+
+	public static final SystemConfiguration DEFAULT_PARSING_BEHAVIOR;
+
+	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
+
 	public static final SystemConfiguration USER_TITLE_PATTERN;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
@@ -67,6 +68,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
+	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -93,6 +96,9 @@ public class ConstellioEIMConfigs {
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
+		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
+				.withDefaultValue(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS));
+		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
 
@@ -122,7 +128,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA).whichIsHidden());
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
@@ -131,6 +137,7 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
+		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -154,7 +161,7 @@ public class ConstellioEIMConfigs {
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
 				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
 
-		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(10));
+		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -234,6 +241,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
 	}
 
+	public ParsingBehavior getDefaultParsingBehavior() {
+		return manager.getValue(DEFAULT_PARSING_BEHAVIOR);
+	}
+
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
 		return configurations;
 	}
@@ -299,6 +310,14 @@ public class ConstellioEIMConfigs {
 
 	public int getLazyTreeBufferSize() {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
+	}
+
+	public boolean isIncludeContentsInSavestate() {
+		return manager.getValue(INCLUDE_CONTENTS_IN_SAVESTATE);
+	}
+
+	public boolean isReplaceSpacesInSimpleSearchForAnds() {
+		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }

@@ -30,6 +30,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 	@Mock SessionContext sessionContext;
 	ContainersByAdministrativeUnitsPresenter presenter;
 	RMSchemasRecordsServices rmSchemasRecordsServices;
+	User admin;
 
 	@Before
 	public void setUp()
@@ -51,8 +52,14 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		admin = records.getAdmin();
 
-		presenter = new ContainersByAdministrativeUnitsPresenter(view);
+		presenter = new ContainersByAdministrativeUnitsPresenter(view) {
+			@Override
+			protected User getCurrentUser() {
+				return admin;
+			}
+		};
 	}
 
 	@Test

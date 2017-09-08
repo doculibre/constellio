@@ -35,17 +35,17 @@ public class UserPhotosServices {
 	private final String WRITE_LOG_FILE_TO_TEMP_FOLDER_RESOURCENAME = "UserFilesServices-writeLogFileToTempFolderOutputStream";
 	private final String READ_LOG_FILE_RESOURCENAME = "UserFilesServices-readLogFileInputStream";
 
-	private IOServices ioServices;
+	private DataLayerFactory dataLayerFactory;
 
-	private ContentDao contentDao;
+	private IOServices ioServices;
 
 	private ConfigManager configManager;
 
 	private ZipService zipService;
 
 	public UserPhotosServices(DataLayerFactory dataLayerFactory) {
+		this.dataLayerFactory = dataLayerFactory;
 		this.configManager = dataLayerFactory.getConfigManager();
-		this.contentDao = dataLayerFactory.getContentsDao();
 		this.ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
 		this.zipService = dataLayerFactory.getIOServicesFactory().newZipService();
 
@@ -102,11 +102,16 @@ public class UserPhotosServices {
 
 	public void addLogFile(String username, String logName, InputStream inputStream) {
 		String path = getLogId(username, logName);
-		contentDao.add(path, inputStream);
+        getContentDao().add(path, inputStream);
+	}
+
+	public ContentDao getContentDao() {
+		return dataLayerFactory.getContentsDao();
 	}
 
 	public List<String> getUserLogs(String username) {
 		String folderId = getLogFolderId(username);
+        ContentDao contentDao = getContentDao();
 		if (contentDao.isFolderExisting(folderId)) {
 			List<String> logs = new ArrayList<>();
 			for (String file : contentDao.getFolderContents(folderId)) {
@@ -121,7 +126,7 @@ public class UserPhotosServices {
 	public InputStream newUserLogInputStream(String username, String log, String resourceName) {
 		String logPath = getLogId(username, log);
 		try {
-			return contentDao.getContentInputStream(logPath, resourceName);
+			return getContentDao().getContentInputStream(logPath, resourceName);
 		} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
 			throw new UserPhotosServicesRuntimeException_NoSuchUserLog(username, log);
 		}
@@ -174,6 +179,6 @@ public class UserPhotosServices {
 
 	public void deleteUserLog(String username, String log) {
 		String logPath = getLogId(username, log);
-		contentDao.delete(asList(logPath));
+        getContentDao().delete(asList(logPath));
 	}
 }

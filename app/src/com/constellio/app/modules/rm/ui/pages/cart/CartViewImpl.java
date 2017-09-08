@@ -2,10 +2,13 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -20,8 +23,10 @@ import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvi
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
@@ -41,6 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
@@ -87,6 +94,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
+		//buttons.add(buildPrintMetadataReportButton());
+		buttons.add(buildCreateSIPArchivesButton());
 		return buttons;
 	}
 
@@ -115,17 +124,15 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return presenter.getDefaultTemplates(schemaType);
 			}
 		};
-		LabelsButton labelsButton = new LabelsButton(
+		LabelButtonV2 labelsButton = new LabelButtonV2(
 				$("SearchView.labels"),
 				$("SearchView.printLabels"),
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(),
-				Folder.SCHEMA_TYPE,
-				presenter.getRecordsIds(Folder.SCHEMA_TYPE),
-				getSessionContext().getCurrentUser().getUsername()
+				getSessionContext().getCurrentCollection()
 		);
+		labelsButton.setElementsWithIds(presenter.getRecordsIds(schemaType), schemaType, getSessionContext());
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;
@@ -138,13 +145,15 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchProcessingButton(final String schemaType) {
-		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType)) {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.setBatchProcessSchemaType(schemaType);
-				super.buttonClick(event);
-			}
-		};
+		BatchProcessingMode mode = presenter.getBatchProcessingMode();
+		WindowButton button;
+		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
+			button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else if (mode.equals(ONE_METADATA)) {
+			button = new BatchProcessingModifyingOneMetadataButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else {
+			throw new RuntimeException("Unsupported mode " + mode);
+		}
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
@@ -230,6 +239,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return filterComponent;
 	}
 
+	private Button buildPrintMetadataReportButton() {
+		//ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), Print.ANY);
+		return null;
+	}
+
 		private Button buildDecommissionButton() {
 			WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
 
@@ -281,7 +295,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		TabSheet tabSheet = new TabSheet();
+		FireableTabSheet tabSheet = new FireableTabSheet();
 		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
@@ -311,8 +325,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		});
 		if(!folderTab.isVisible() && !documentTab.isVisible() && !containerTab.isVisible()) {
 			mainLayout.addComponent(new Label($("CartView.emptyCart")));
+			reportSelector.setVisible(false);
 		} else {
 			mainLayout.addComponent(tabSheet);
+			tabSheet.fireTabSelectionChanged();
 		}
 		return mainLayout;
 	}
@@ -347,13 +363,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	public void startDownload(final InputStream stream) {
+	public void startDownload(final InputStream stream, String filename) {
 		Resource resource = new DownloadStreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return stream;
 			}
-		}, "cart.eml");
+		}, filename);
 		Page.getCurrent().open(resource, null, false);
 	}
 
@@ -468,6 +484,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return container;
 	}
 
+	private Button buildCreateSIPArchivesButton(){
+		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+		siPbutton.setAllObject(presenter.getCartFoldersVO().toArray(new FolderVO[0]));
+		return siPbutton;
+	}
+
 	@Override
 	public String getCurrentSchemaType() {
 		return currentSchemaType;
@@ -521,17 +543,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		}
 	}
 
-	private class LabelsRecordSelectorImpl implements LabelsButton.RecordSelector {
-		private final String schemaType;
-
-		public LabelsRecordSelectorImpl(String schemaType) {
-			this.schemaType = schemaType;
-		}
-
-		@Override
-		public List<String> getSelectedRecordIds() {
-			return presenter.getRecordsIds(schemaType);
+	private class FireableTabSheet extends TabSheet {
+		public void fireTabSelectionChanged() {
+			fireSelectedTabChange();
 		}
 	}
-	
 }

@@ -3,46 +3,54 @@ package com.constellio.app.ui.framework.components;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.services.contents.ContentManager;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.vaadin.server.DownloadStream;
+import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Embedded;
+import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import org.omg.CORBA.Object;
 
 public class LabelViewer extends VerticalLayout {
-    private ContentManager contentManager;
 
-    public LabelViewer(Content PDF, String filename) {
-        contentManager = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getContentManager();
-        StreamSource source = buildSource(PDF);
+    public LabelViewer(File PDF, String filename, IOServices ioServices) {
+		addStyleName("no-scroll");
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(PDF);
+            byte[] PDFbytes = IOUtils.toByteArray(inputStream);
+            StreamSource source = buildSource(PDFbytes);
+            BrowserFrame viewer = new BrowserFrame();
+            viewer.setSource(new StreamResource(source, filename));
 
-        Embedded viewer = new Embedded();
-        viewer.setSource(new StreamResource(source, filename));
-        viewer.setType(Embedded.TYPE_BROWSER);
+            viewer.setWidth("100%");
+//            viewer.setHeight("900px");
+            int adjustedHeight = Page.getCurrent().getBrowserWindowHeight() - 200;
+            viewer.setHeight(adjustedHeight + "px");
 
-        viewer.setWidth("100%");
-        viewer.setHeight("1024px");
+            Link download = new Link($("ReportViewer.download", filename),
+                    new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
-        Link download = new Link($("ReportViewer.download", filename),
-                new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
+            addComponents(download, viewer);
+            setWidth("100%");
+            setHeight("100%");
+            setExpandRatio(viewer, 1);
 
-        addComponents(download, viewer);
-        setWidth("100%");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            ioServices.closeQuietly(inputStream);
+            ioServices.deleteQuietly(PDF);
+        }
     }
 
     static String getMimeTypeFromFileName(String filename) {
@@ -63,28 +71,16 @@ public class LabelViewer extends VerticalLayout {
         return DownloadStreamResource.PDF_MIMETYPE;
     }
 
-    @Deprecated
-    private StreamSource buildSource(final NewReportWriterFactory factory) {
+    private StreamSource buildSource(final byte[] PDF) {
         return new StreamSource() {
             @Override
             public InputStream getStream() {
-                ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
                 try {
-                    factory.getReportBuilder(modelLayerFactory).write(output);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    return new ByteArrayInputStream(PDF);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                return new ByteArrayInputStream(output.toByteArray());
-            }
-        };
-    }
-
-    private StreamSource buildSource(final Content PDF) {
-        return new StreamSource() {
-            @Override
-            public InputStream getStream() {
-                return contentManager.getContentInputStream(PDF.getCurrentVersion().getHash(), PDF.getId());
+                return null;
             }
         };
     }

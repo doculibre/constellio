@@ -1,20 +1,24 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 
-public interface BaseView extends Serializable, SessionContextProvider, UIContextProvider {
+import java.io.Serializable;
+import java.util.List;
+
+public interface BaseView extends ViewComponent {
 
 	String getCollection();
 
 	//@Deprecated
 	//CoreViews navigateTo();
 
+	@Override
 	void showMessage(String message);
 
+	void showClickableMessage(String message);
+
+	@Override
 	void showErrorMessage(String errorMessage);
 
 	SessionContext getSessionContext();
@@ -25,6 +29,7 @@ public interface BaseView extends Serializable, SessionContextProvider, UIContex
 
 	List<ViewEnterListener> getViewEnterListeners();
 
+	@Override
 	Navigation navigate();
 
 	void updateUI();

@@ -148,6 +148,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		principals.addAll(authorizationVO.getUsers());
 		principals.addAll(authorizationVO.getGroups());
 		request = request.withNewPrincipalIds(principals);
+		request = request.setExecutedBy(getCurrentUser());
 
 		return request;
 

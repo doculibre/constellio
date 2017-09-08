@@ -47,7 +47,7 @@ public class SaveStateFeature {
 		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
 		File contentFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 
-		FileUtils.copyDirectory(settingsFolder, tempSettingsFolder);
+		dataLayerFactory.getConfigManager().exportTo(tempSettingsFolder);
 		FileUtils.copyDirectory(contentFolder, tempContentFolder);
 		//plugins are not saved during tests since we have to restart system
 
@@ -57,7 +57,7 @@ public class SaveStateFeature {
 
 	}
 
-	public static void loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, File pluginsFolder,
+	public static File loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, File pluginsFolder,
 			File tlogWorkFolder, boolean resetPasswords)
 			throws Exception {
 
@@ -97,7 +97,7 @@ public class SaveStateFeature {
 
 		}
 
-		FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);
+		//FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);
 		FileUtils.copyDirectory(tempUnzipContentFolder, contentFolder);
 		if (tempUnzipPluginsFolder.exists()) {
 			FileUtils.copyDirectory(tempUnzipPluginsFolder, pluginsFolder);
@@ -107,6 +107,7 @@ public class SaveStateFeature {
 			FileUtils.copyDirectory(tempUnzipTlogWorkFolder, tlogWorkFolder);
 		}
 
+		return tempUnzipSettingsFolder;
 	}
 
 	public void saveStateAfterTestWithTitle(String title) {

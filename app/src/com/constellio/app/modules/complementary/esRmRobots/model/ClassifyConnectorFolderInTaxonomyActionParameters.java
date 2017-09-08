@@ -23,6 +23,8 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
 	public static final String DELIMITER = "delimiter";
 	public static final String FOLDER_MAPPING = "folderMapping";
+	public static final String FOLDER_TYPE = "folderType";
+	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String DOCUMENT_MAPPING = "documentMapping";
 	public static final String DEFAULT_ADMIN_UNIT = "defaultAdminUnit";
 	public static final String DEFAULT_UNIFORM_SUBDIVISION = "defaultUniformSubdivision";
@@ -189,6 +191,16 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 
 	public String getPathPrefix() {
 		return get(PATH_PREFIX);
+	}
+
+	@Override
+	public String getFolderTypeId() {
+		return get(FOLDER_TYPE);
+	}
+
+	@Override
+	public String getDocumentTypeId() {
+		return get(DOCUMENT_TYPE);
 	}
 
 	public ClassifyConnectorFolderInTaxonomyActionParameters setPathPrefix(String pathPrefix) {

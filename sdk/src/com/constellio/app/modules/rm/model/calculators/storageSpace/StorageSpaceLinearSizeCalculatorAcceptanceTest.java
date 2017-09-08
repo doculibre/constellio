@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.model.calculators.storageSpace;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
@@ -15,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -39,17 +43,16 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
     CalculatorParameters parameters;
 
     @Before
-    public void setUp() {
-        givenBackgroundThreadsEnabled();
+    public void setUp() throws RecordServicesException {
         calculator = spy(new StorageSpaceLinearSizeCalculator());
         prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+                withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
         );
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         recordServices = getModelLayerFactory().newRecordServices();
         searchServices = getModelLayerFactory().newSearchServices();
+        recordServices.add(buildDefaultContainerType());
     }
 
     @Test
@@ -119,6 +122,21 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
     }
 
     @Test
+    public void givenContainerIsMultivalueAndWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
+            throws RecordServicesException {
+        givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
+        StorageSpace storageRecord = buildDefaultStorageSpace();
+        recordServices.add(storageRecord);
+        addContainersLinkedToStorageSpace(storageRecord.getId());
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
+        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
+        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(6));
+    }
+
+    @Test
     public void givenContainerWithLinearSizeLinkedToStorageSpaceWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue()
             throws RecordServicesException {
 
@@ -173,13 +191,23 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
             throws RecordServicesException {
 
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary1")
+                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary2")
+                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
         recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary3")
+                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
+                .setAdministrativeUnits(asList(records.unitId_10))
+                .setDecommissioningType(DecommissioningType.DEPOSIT)
         );
+    }
+
+    public ContainerRecordType buildDefaultContainerType() {
+        return rm.newContainerRecordTypeWithId("containerTypeTest").setTitle("containerTypeTest").setCode("containerTypeTest");
     }
 }

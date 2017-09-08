@@ -1,7 +1,5 @@
 package com.constellio.model.services.emails;
 
-import static com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_CannotGetStore;
-import static com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_MessagingException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -28,6 +26,8 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_CannotGetStore;
+import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_MessagingException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -38,7 +38,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 	EmailServices emailServices;
 	SmtpServerTestConfig serverConfig;
 	Session session;
-	Message email;
+	MimeMessage email;
 	String subject;
 	Map<String, String> from;
 	private long MAX_TRY = 10;

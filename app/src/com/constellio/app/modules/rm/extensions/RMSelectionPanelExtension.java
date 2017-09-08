@@ -1,14 +1,40 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.pages.base.BaseView;
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlServiceRuntimeException;
+import com.constellio.app.modules.rm.services.cart.CartEmailService;
+import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -26,6 +52,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -35,7 +62,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -49,19 +78,15 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.IOUtils;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import java.io.*;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -81,6 +106,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
+        addMetadataReportButton(param);
+        addSIPbutton(param);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -178,6 +205,26 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         duplicateButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         duplicateButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(duplicateButton);
+    }
+
+    public void addMetadataReportButton(final AvailableActionsParam param) {
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
+        tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+        setStyles(tabButton);
+        tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout)param.getComponent()).addComponent(tabButton);
+    }
+
+    public void addSIPbutton(final AvailableActionsParam param) {
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), (BaseView) ConstellioUI.getCurrent().getCurrentView());
+        setStyles(tabButton);
+        tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
+        tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
+        tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
+        ((VerticalLayout)param.getComponent()).addComponent(tabButton);
     }
 
     public void addClassifyButton(final AvailableActionsParam param) {
@@ -346,16 +393,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     final int numberOfRecords = records.size();
                     if(numberOfRecords > 0) {
                         final UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(records) {
+
                             @Override
                             public void close() {
                                 super.close();
-                                if (numberOfRecords != param.getIds().size()) {
-                                    RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
-                                } else {
-                                    RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
+                                if(!this.isCancel()) {
+                                    if (numberOfRecords != param.getIds().size()) {
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
+                                    } else {
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
+                                    }
                                 }
                             }
                         };
+
                         uploadWindow.open(true);
                     } else {
                         showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
@@ -449,7 +500,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         }
     }
 
-    public void duplicateButtonClicked(String parentId, AvailableActionsParam param) {
+    public void duplicateButtonClicked(String parentId, final AvailableActionsParam param) {
         List<String> recordIds = param.getIds();
         List<String> couldNotDuplicate = new ArrayList<>();
         if (isNotBlank(parentId)) {
@@ -466,8 +517,21 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             break;
                         case Document.SCHEMA_TYPE:
                             Document newDocument = rmSchemas.newDocument();
-                            for(Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
+                            }
+                            if (newDocument.getContent() != null) {
+                            	User user = param.getUser();
+                            	Content content = newDocument.getContent();
+                            	ContentVersion contentVersion = content.getCurrentVersion();
+                            	String filename = contentVersion.getFilename();
+                            	ContentManager contentManager = rmSchemas.getModelLayerFactory().getContentManager();
+                            	ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(contentVersion.getHash()).getContentVersionDataSummary();
+                            	Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
+                            	newDocument.setContent(newContent);
+                            }
+                            if (Boolean.TRUE == newDocument.getBorrowed()) {
+                                newDocument.setBorrowed(false);
                             }
                             String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";
                             newDocument.setTitle(title);
@@ -585,45 +649,54 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     private void emailPreparationRequested(AvailableActionsParam param) {
-        InputStream stream = createEml(param);
-        startDownload(stream);
+        EmailMessage emailMessage = createEmail(param);
+        String filename = emailMessage.getFilename();
+    	InputStream stream = emailMessage.getInputStream();
+        startDownload(stream, filename);
     }
 
-    private InputStream createEml(AvailableActionsParam param) {
-        File newTempFolder = null;
+    private EmailMessage createEmail(AvailableActionsParam param) {
+        File newTempFile = null;
         try {
-            newTempFolder = ioServices.newTemporaryFile("CartEmlService-emlFile");
-            return createEml(param, newTempFolder);
+            newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile");
+            return createEmail(param, newTempFile);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            ioServices.deleteQuietly(newTempFolder);
+            ioServices.deleteQuietly(newTempFile);
         }
     }
 
-    private InputStream createEml(AvailableActionsParam param, File emlFile) {
-        try {
-            OutputStream outputStream = new FileOutputStream(emlFile);
+    private EmailMessage createEmail(AvailableActionsParam param, File messageFile) {
+    	try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, RMSelectionPanelExtension.class.getSimpleName() + ".createMessage.out")) {
             User user = param.getUser();
             String signature = getSignature(user);
             String subject = "";
             String from = user.getEmail();
             List<EmailServices.MessageAttachment> attachments = getAttachments(param);
-            if(attachments == null || attachments.isEmpty()) {
+            if (attachments == null || attachments.isEmpty()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.noApplicableRecords"));
                 return null;
             } else if(attachments.size() != param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.couldNotSendEmail", attachments.size(), param.getIds().size()));
             }
-            Message message = new EmailServices().createMessage(from, subject, signature, attachments);
-            message.addHeader("X-Unsent", "1");
-            message.writeTo(outputStream);
-            IOUtils.closeQuietly(outputStream);
-            closeAllInputStreams(attachments);
-            if(attachments.size() == param.getIds().size()) {
+            
+            AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+            EmailMessageParams params = new EmailMessageParams("selection", signature, subject, from, attachments);
+			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
+			if (emailMessage == null) {
+				EmailServices emailServices = new EmailServices();
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				message.writeTo(outputStream);
+				String filename = "cart.eml";
+				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
+				emailMessage = new EmailMessage(filename, inputStream);
+				closeAllInputStreams(attachments);
+			}
+            if (attachments.size() == param.getIds().size()) {
                 showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", attachments.size()));
             }
-            return new FileInputStream(emlFile);
+			return emailMessage;
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -658,7 +731,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         returnList.add(contentFile);
                     }
                 } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-                    throw new CartEmlServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
+                    throw new CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId(e);
                 }
             }
         }
@@ -672,7 +745,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
         InputStream inputStream = contentManager.getContentInputStream(hash, content.getCurrentVersion().getFilename());
         String mimeType = content.getCurrentVersion().getMimetype();
-        String attachmentName = document.getTitle();
+        String attachmentName = content.getCurrentVersion().getFilename();
         return new EmailServices.MessageAttachment().setMimeType(mimeType).setAttachmentName(attachmentName).setInputStream(inputStream);
     }
 
@@ -684,13 +757,13 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     @SuppressWarnings("deprecation")
-	private void startDownload(final InputStream stream) {
+	private void startDownload(final InputStream stream, String filename) {
         Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
                 return stream;
             }
-        }, "cart.eml");
+        }, filename);
         Page.getCurrent().open(resource, null, false);
     }
 
@@ -769,5 +842,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             defaultAdministrativeUnit = null;
         }
         return defaultAdministrativeUnit;
+    }
+
+    private List<RecordVO> getRecordVOFromIds(List<String> ids) {
+        List<RecordVO> recordVOS = new ArrayList<>();
+        RecordServices recordServices = recordServices();
+        RecordToVOBuilder builder = new RecordToVOBuilder();
+        for(String id : ids) {
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+        }
+        return recordVOS;
     }
 }

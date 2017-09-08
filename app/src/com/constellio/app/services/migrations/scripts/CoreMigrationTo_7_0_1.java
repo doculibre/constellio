@@ -41,7 +41,7 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			if(!typesBuilder.getSchema(User.DEFAULT_SCHEMA).hasMetadata(User.AGENT_ENABLED)) {
+			if (!typesBuilder.getSchema(User.DEFAULT_SCHEMA).hasMetadata(User.AGENT_ENABLED)) {
 				typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.AGENT_ENABLED).setType(MetadataValueType.BOOLEAN)
 						.setDefaultValue(true);
 
@@ -56,7 +56,8 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 						.defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
 
 				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.USER_FOLDER).setEssential(false)
-						.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
+						.setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE));
 				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_CREATED_ON).setEssential(false)
 						.setType(MetadataValueType.DATE_TIME);
 				typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).create(UserDocument.FORM_MODIFIED_ON).setEssential(false)

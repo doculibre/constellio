@@ -1,7 +1,6 @@
 package com.constellio.model.services.contents;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.fail;
@@ -20,6 +19,7 @@ import org.junit.Test;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -514,7 +514,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 			try {
 				contentManager.getParsedContent(hash);
 				fail("Content " + hash + " was found");
-			} catch (ContentManagerRuntimeException_NoSuchContent e) {
+			} catch (ContentManagerException_ContentNotParsed e) {
 				//OK
 			}
 		}
@@ -551,7 +551,11 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	private void assertContentAndParsedContentWithHash(String... hashes) {
 		for (String hash : hashes) {
 			contentManager.getContentInputStream(hash, SDK_STREAM);
-			contentManager.getParsedContent(hash);
+			try {
+				contentManager.getParsedContent(hash);
+			} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+				throw new RuntimeException(contentManagerException_contentNotParsed);
+			}
 		}
 	}
 

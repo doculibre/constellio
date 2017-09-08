@@ -1,5 +1,12 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.Metadata;
@@ -7,13 +14,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import java.awt.print.Printable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices {
 	public GeneratedSchemasRecordsServices(String collection,
@@ -155,12 +155,20 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("code");
 		}
 
+		public Metadata conservationCalendarNumber() {
+			return metadata("conservationCalendarNumber");
+		}
+
 		public Metadata languages() {
 			return metadata("languages");
 		}
 
 		public Metadata name() {
 			return metadata("name");
+		}
+
+		public Metadata organizationNumber() {
+			return metadata("organizationNumber");
 		}
 	}
 	public EmailToSend wrapEmailToSend(Record record) {
@@ -516,13 +524,13 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		}
 	}
 	public Printable wrapPrintable(Record record) {
-		return record == null ? null : null;//new Printable(record, getTypes());
+		return record == null ? null : new Printable(record, getTypes());
 	}
 
 	public List<Printable> wrapPrintables(List<Record> records) {
 		List<Printable> wrapped = new ArrayList<>();
 		for (Record record : records) {
-//			wrapped.add(new Printable(record, getTypes()));
+			wrapped.add(new Printable(record, getTypes()));
 		}
 
 		return wrapped;
@@ -571,6 +579,68 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 		public Metadata jasperfile() {
 			return metadata("jasperfile");
+		}
+	}
+	public TemporaryRecord wrapTemporaryRecord(Record record) {
+		return record == null ? null : new TemporaryRecord(record, getTypes());
+	}
+
+	public List<TemporaryRecord> wrapTemporaryRecords(List<Record> records) {
+		List<TemporaryRecord> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new TemporaryRecord(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<TemporaryRecord> searchTemporaryRecords(LogicalSearchQuery query) {
+		return wrapTemporaryRecords(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<TemporaryRecord> searchTemporaryRecords(LogicalSearchCondition condition) {
+		MetadataSchemaType type = temporaryRecord.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapTemporaryRecords(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public TemporaryRecord getTemporaryRecord(String id) {
+		return wrapTemporaryRecord(get(id));
+	}
+
+	public List<TemporaryRecord> getTemporaryRecords(List<String> ids) {
+		return wrapTemporaryRecords(get(ids));
+	}
+
+	public TemporaryRecord getTemporaryRecordWithLegacyId(String legacyId) {
+		return wrapTemporaryRecord(getByLegacyId(temporaryRecord.schemaType(),  legacyId));
+	}
+
+	public TemporaryRecord newTemporaryRecord() {
+		return wrapTemporaryRecord(create(temporaryRecord.schema()));
+	}
+
+	public TemporaryRecord newTemporaryRecordWithId(String id) {
+		return wrapTemporaryRecord(create(temporaryRecord.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_temporaryRecord_default temporaryRecord
+			= new SchemaTypeShortcuts_temporaryRecord_default("temporaryRecord_default");
+	public class SchemaTypeShortcuts_temporaryRecord_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_temporaryRecord_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata content() {
+			return metadata("content");
+		}
+
+		public Metadata destructionDate() {
+			return metadata("destructionDate");
+		}
+
+		public Metadata title() {
+			return metadata("title");
 		}
 	}
 	public User wrapUser(Record record) {
@@ -623,6 +693,14 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			super(schemaCode);
 		}
 
+		public Metadata address() {
+			return metadata("address");
+		}
+
+		public Metadata agentEnabled() {
+			return metadata("agentEnabled");
+		}
+
 		public Metadata allroles() {
 			return metadata("allroles");
 		}
@@ -653,6 +731,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 		public Metadata email() {
 			return metadata("email");
+		}
+
+		public Metadata fax() {
+			return metadata("fax");
 		}
 
 		public Metadata firstname() {
@@ -779,6 +861,84 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 		public Metadata content() {
 			return metadata("content");
+		}
+
+		public Metadata formCreatedOn() {
+			return metadata("formCreatedOn");
+		}
+
+		public Metadata formModifiedOn() {
+			return metadata("formModifiedOn");
+		}
+
+		public Metadata user() {
+			return metadata("user");
+		}
+
+		public Metadata userFolder() {
+			return metadata("userFolder");
+		}
+	}
+	public UserFolder wrapUserFolder(Record record) {
+		return record == null ? null : new UserFolder(record, getTypes());
+	}
+
+	public List<UserFolder> wrapUserFolders(List<Record> records) {
+		List<UserFolder> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new UserFolder(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<UserFolder> searchUserFolders(LogicalSearchQuery query) {
+		return wrapUserFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<UserFolder> searchUserFolders(LogicalSearchCondition condition) {
+		MetadataSchemaType type = userFolder.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapUserFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public UserFolder getUserFolder(String id) {
+		return wrapUserFolder(get(id));
+	}
+
+	public List<UserFolder> getUserFolders(List<String> ids) {
+		return wrapUserFolders(get(ids));
+	}
+
+	public UserFolder getUserFolderWithLegacyId(String legacyId) {
+		return wrapUserFolder(getByLegacyId(userFolder.schemaType(),  legacyId));
+	}
+
+	public UserFolder newUserFolder() {
+		return wrapUserFolder(create(userFolder.schema()));
+	}
+
+	public UserFolder newUserFolderWithId(String id) {
+		return wrapUserFolder(create(userFolder.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_userFolder_default userFolder
+			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
+	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata formCreatedOn() {
+			return metadata("formCreatedOn");
+		}
+
+		public Metadata formModifiedOn() {
+			return metadata("formModifiedOn");
+		}
+
+		public Metadata parentUserFolder() {
+			return metadata("parentUserFolder");
 		}
 
 		public Metadata user() {

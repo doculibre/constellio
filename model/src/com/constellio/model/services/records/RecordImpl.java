@@ -2,15 +2,18 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,8 +34,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -81,6 +84,11 @@ public class RecordImpl implements Record {
 
 	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues) {
 		this(recordDTO, true);
+		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded) {
+		this(recordDTO, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
@@ -425,6 +433,20 @@ public class RecordImpl implements Record {
 		}
 	}
 
+	public <T> List<T> getValues(Metadata metadata) {
+		Object value = get(metadata);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				List<T> values = asList((T) value);
+				return values;
+			}
+		}
+	}
+
 	public void refresh(long version, RecordDTO recordDTO) {
 		if (recordDTO == null) {
 			throw new RecordRuntimeException.RecordDTORequired();
@@ -452,6 +474,12 @@ public class RecordImpl implements Record {
 	@Override
 	public long getVersion() {
 		return version;
+	}
+
+	@Override
+	public long getDataMigrationVersion() {
+		Double value = get(Schemas.MIGRATION_DATA_VERSION);
+		return value == null ? 0 : value.longValue();
 	}
 
 	@Override
@@ -581,14 +609,17 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+
 			try {
 				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
-				Record originalRecord = getCopyOfOriginalRecord();
-				try {
-					modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
-				} catch (NoSuchMetadata e2) {
+				if (isSaved()) {
+					Record originalRecord = getCopyOfOriginalRecord();
+					try {
+						modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
+					} catch (NoSuchMetadata e2) {
 
+					}
 				}
 			}
 		}
@@ -604,9 +635,6 @@ public class RecordImpl implements Record {
 
 		for (FieldsPopulator populator : copyfieldsPopulators) {
 			for (Map.Entry<String, Object> entry : populator.populateCopyfields(schema, this).entrySet()) {
-				if (entry.getValue() == null) {
-					throw new RecordImplException_PopulatorReturnedNullValue(populator, entry.getKey());
-				}
 				copyfields.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -847,7 +875,28 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues);
+		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded);
+	}
+
+	@Override
+	public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
+		if (recordDTO == null) {
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+		}
+
+		Set<String> metadatasDataStoreCodes = new HashSet<>();
+		for (Metadata metadata : metadatas) {
+			metadatasDataStoreCodes.add(metadata.getDataStoreCode());
+		}
+
+		Map<String, Object> newEagerTransientValues = new HashMap<>();
+		for (Map.Entry<String, Object> eagerTransientValue : eagerTransientValues.entrySet()) {
+			if (metadatasDataStoreCodes.contains(eagerTransientValue.getKey())) {
+				newEagerTransientValues.put(eagerTransientValue.getKey(), eagerTransientValue.getValue());
+			}
+		}
+
+		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), newEagerTransientValues, false);
 	}
 
 	@Override
@@ -904,8 +953,9 @@ public class RecordImpl implements Record {
 	//	}
 
 	@Override
-	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
+	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
 		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
@@ -914,7 +964,13 @@ public class RecordImpl implements Record {
 			if (wasMetadata.getDataEntry().getType() == MANUAL) {
 				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
 				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
+
+					Object value = get(wasMetadata);
+					if (!(value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata))) {
+						lostMetadataValues = true;
+					}
 					set(wasMetadata, null);
+
 				} else {
 					Object value = get(wasMetadata);
 					if (value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata)) {
@@ -942,6 +998,8 @@ public class RecordImpl implements Record {
 			}
 		}
 		markAsModified(Schemas.SCHEMA);
+
+		return lostMetadataValues;
 	}
 
 	@Override

@@ -316,6 +316,7 @@ public class TestUtils {
 		String localCode = code.split("_")[2];
 		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
+		when(metadata.getSchemaCode()).thenReturn(code.replace("_" + localCode, ""));
 		when(metadata.getLocalCode()).thenReturn(localCode);
 
 		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
@@ -672,9 +673,23 @@ public class TestUtils {
 						objects[i] = ((RecordWrapper) record).get(metadata);
 
 						if (refMetadata != null && objects[i] != null) {
-							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-									.getDocumentById((String) objects[i]);
-							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+							if (objects[i] instanceof String) {
+
+								Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
+										.newRecordServices().getDocumentById((String) objects[i]);
+								objects[i] = getMetadataValue(referencedRecord, refMetadata);
+							} else if (objects[i] instanceof List) {
+								List<Object> referencedMetas = new ArrayList<>();
+
+								for (String id : (List<String>) objects[i]) {
+									Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
+											.newRecordServices().getDocumentById(id);
+									referencedMetas.add(getMetadataValue(referencedRecord, refMetadata));
+								}
+
+								objects[i] = referencedMetas;
+
+							}
 						}
 					}
 				} else {

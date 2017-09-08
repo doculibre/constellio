@@ -22,11 +22,19 @@ public class MapStringListStringStructureFactory implements StructureFactory {
 
 	@Override
 	public String toString(ModifiableStructure structure) {
+		if (gson == null) {
+			gsonBuilder = new GsonBuilder();
+			gson = gsonBuilder.create();
+		}
 		return gson.toJson(structure);
 	}
 
 	@Override
 	public ModifiableStructure build(String structure) {
+		if (gson == null) {
+			gsonBuilder = new GsonBuilder();
+			gson = gsonBuilder.create();
+		}
 		MapStringListStringStructure mapStringListStringStructure = new MapStringListStringStructure();
 		if (StringUtils.isNotBlank(structure)) {
 			TypeToken<MapStringListStringStructure> listTypeToken = new TypeToken<MapStringListStringStructure>() {

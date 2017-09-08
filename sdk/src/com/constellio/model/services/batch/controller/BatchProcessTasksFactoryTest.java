@@ -12,14 +12,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessTasksFactoryTest extends ConstellioTest {
@@ -32,11 +33,12 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 
 	int numberOfRecordsPerTask = anInteger();
 	@Mock RecordServices recordServices;
-	@Mock BatchProcess aBatchProcess;
+	@Mock RecordBatchProcess aBatchProcess;
 
 	BatchProcessTasksFactory tasksFactory;
 
 	@Mock SearchServices searchServices;
+	@Mock UserServices userServices;
 
 	@Mock ForkJoinPool pool;
 
@@ -63,7 +65,7 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 
-		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, taskList));
+		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList));
 		records.add(record1);
 		records.add(record2);
 		tasks.add(aTask);

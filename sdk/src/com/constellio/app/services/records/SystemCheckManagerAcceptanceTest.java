@@ -11,9 +11,7 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static com.constellio.sdk.tests.TestUtils.*;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,11 +19,19 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,21 +39,31 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -67,12 +83,262 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
+	}
 
+	@Test
+	public void givenDocumentWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema1");
+				types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("USRdocumentSchema2");
+			}
+		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		DocumentType documentType = rm.newDocumentType();
+		documentType.setLinkedSchema("document_USRdocumentSchema1");
+		documentType.setCode("USRdocumentSchema");
+		documentType.setTitle("USRdocumentSchema");
+
+		recordServices.add(documentType);
+
+		Document document = rm.newDocumentWithTypeAndId(documentType, "MyDocument").setTitle("Document").setFolder(records.folder_A01);
+		document.setCreatedOn(LocalDateTime.now());
+
+		documentType.setLinkedSchema("document_USRdocumentSchema2");
+		recordServices.update(documentType);
+		recordServices.add(document);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(results.getRepairedRecords().size()).isEqualTo(1);
+		assertThat(results.getRepairedRecords().contains("MyDocument")).isTrue();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
+
+		Document documentResult = rm.getDocument("MyDocument");
+		assertThat(documentResult.getSchema().getCode()).isEqualTo("document_USRdocumentSchema2");
+	}
+
+	@Test
+	public void givenFolderWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
+			}
+		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		FolderType folderType = rm.newFolderType();
+		folderType.setLinkedSchema("folder_USRfolderSchema1");
+		folderType.setCode("USRfolderSchema");
+		folderType.setTitle("USRfolderSchema");
+		recordServices.add(folderType);
+
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		folder.setType(folderType);
+		folder.setOpenDate(LocalDate.now());
+		folder.setCreatedOn(LocalDateTime.now());
+
+		folderType.setLinkedSchema("folder_USRfolderSchema2");
+		recordServices.update(folderType);
+		recordServices.add(folder);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(results.getRepairedRecords().size()).isEqualTo(1);
+		assertThat(results.getRepairedRecords().contains("MyFolder")).isTrue();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
+
+		Folder documentResult = rm.getFolder("MyFolder");
+		assertThat(documentResult.getSchema().getCode()).isEqualTo("folder_USRfolderSchema2");
+	}
+
+	@Test
+	public void givenFolderWithSchemaAndWrongTypeThenRepairFail() throws RecordServicesException {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
+				types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("USRfolderSchema1").create("metadataInSchema1").setType(MetadataValueType.STRING);
+			}
+
+		});
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		FolderType folderType = rm.newFolderType();
+		folderType.setLinkedSchema("folder_USRfolderSchema1");
+		folderType.setCode("USRfolderSchema");
+		folderType.setTitle("USRfolderSchema");
+		recordServices.add(folderType);
+
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		folder.setType(folderType);
+		folder.setOpenDate(LocalDate.now());
+		folder.setCreatedOn(LocalDateTime.now());
+		folder.set("metadataInSchema1", "StringValue");
+
+		folderType.setLinkedSchema("folder_USRfolderSchema2");
+		recordServices.update(folderType);
+		recordServices.add(folder);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		assertThat(frenchMessages(results.errors)).contains("Le schéma de l'enregistrement MyFolder n’a pas pu être modifié pour celui de son type");
+		assertThat(results.getRepairedRecords().size()).isEqualTo(0);
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
+	}
+
+	@Test
+	public void testdocumentAndFolderSchemaCodeThen5Errors() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
+				"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
+				"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
+	}
+
+	@Test
+	public void givenSystemWithSubfolderWithShouldBeNullMetadataThenRepair()
+			throws RecordServicesException, InterruptedException, RecordDaoException.NoSuchRecordWithId, RecordDaoException.OptimisticLocking {
+		final String ID = "MonDossier";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Folder folder = rm.newFolderWithId(ID);
+		folder.setTitle(TITLE);
+
+		folder.setOpenDate(new LocalDate());
+		folder.setMainCopyRuleEntered(records.principal42_5_CId);
+		folder.setUniformSubdivisionEntered(records.getUniformSubdivision1());
+		folder.setAdministrativeUnitEntered(records.getUnit10());
+		folder.setCategoryEntered(records.getCategory_X());
+		folder.setRetentionRuleEntered(records.getRule1());
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+
+		Transaction transaction = new Transaction();
+		transaction.add(folder);
+
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+
+		Map<String, Object> modifiedValues = new HashMap<>();
+		modifiedValues.put("parentFolderPId_s", records.folder_A01);
+
+		RecordDTO record = recordDao.get(ID);
+		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		waitForBatchProcess();
+
+		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
+
+		Folder folder2 = rm.getFolder(ID);
+
+		assertThat(folder2.getMainCopyRuleIdEntered()).isNull();
+		assertThat(folder2.getUniformSubdivisionEntered()).isNull();
+		assertThat(folder2.getAdministrativeUnitEntered()).isNull();
+		assertThat(folder2.getCategoryEntered()).isNull();
+		assertThat(folder2.getRetentionRuleEntered()).isNull();
+		assertThat(folder2.getCopyStatusEntered()).isNull();
+		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL)).isEqualTo(1);
+
+	}
+
+	@Test
+	public void givenSystemWithCheckoutedEmailThenCheckIntheseEmail()
+			throws RecordServicesException {
+		final String ID = "000001";
+		final String TITLE = "TITLE";
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Email email = rm.newEmailWithId(ID);
+		email.setTitle(TITLE);
+		email.setFolder(records.folder_A01);
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary newDocumentsVersions = contentManager.upload(getTestResourceInputStream("testMessage.msg"));
+		Content documentContent = contentManager.createMajor(records.getAdmin(), "testMessage.msg", newDocumentsVersions);
+
+		email.setContent(documentContent);
+		email.getContent().checkOut(records.getAdmin());
+
+		Transaction transaction = new Transaction();
+		transaction.add(email);
+
+		recordServices.execute(transaction);
+
+		Email emailCheckouted = rm.getEmail(ID);
+
+		// Still checkouted
+		assertThat(emailCheckouted.getContent().getCurrentCheckedOutVersion() == null).isFalse();
+
+		systemCheckManager.runSystemCheck(true);
+
+		Email emailCheckinByRepairService = rm.getEmail(ID);
+
+		// Not checkouted anymore.
+		assertThat(emailCheckinByRepairService.getContent().getCurrentCheckedOutVersion() == null).isTrue();
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).contains("000001");
 	}
 
 	@Test
@@ -128,9 +394,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : bad",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : notGood"
 		);
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<String>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo("bad");
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<String>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo("notGood");
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage1);
 
@@ -146,9 +414,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "notGood")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<Object>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage2);
 
@@ -205,9 +475,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem1 référence un enregistrement inexistant : recordC",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema de l'enregistrement recordWithProblem2 référence un enregistrement inexistant : recordC"
 		);
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordC", "recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordC"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage3);
 
@@ -224,9 +496,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordWithProblem2", "recordC")
 				);
 
-		assertThat(recordServices.getDocumentById("recordWithProblem1").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem1").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordB"));
-		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
+		assertThat(recordServices.getDocumentById("recordWithProblem2").<List<String>>get(
+				anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA"));
 		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage4);
 
@@ -298,7 +572,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 						tuple("SystemCheckResultsBuilder_brokenLinkInDefaultValues",
 								"anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema", "recordD")
 				);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordA",
 				"La métadonnée anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema référence un enregistrement inexistant dans sa valeur par défaut : recordD"
 		);
@@ -348,26 +622,27 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		Transaction tx = new Transaction();
 		tx.add(schemas.newSolrAuthorizationDetailsWithId("zeInvalidAuth").setTarget("anInvalidRecord").setRoles(asList("R")));
-		tx.add(dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
+		tx.add((RecordWrapper) dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
 		getModelLayerFactory().newRecordServices().execute(tx);
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).containsOnly("zeInvalidAuth");
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
 
 		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
+
 
 	@Test
 	public void givenLogicallyDeletedAdministrativeUnitsAndCategoriesThenRepairRestoreThem()
@@ -380,12 +655,12 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		recordServices.add(rm.newFolder().setTitle("My folder").setAdministrativeUnitEntered(records.unitId_20)
 				.setOpenDate(now()).setCategoryEntered(records.categoryId_Z100).setRetentionRuleEntered(records.ruleId_1));
 		for (Category category : rm.searchCategorys(ALL)) {
-			recordServices.update(category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
+			recordServices.update((RecordWrapper) category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
 		}
 		recordServices.logicallyDelete(records.getUnit12c().getWrappedRecord(), User.GOD);
 		recordServices.logicallyDelete(records.getUnit20d().getWrappedRecord(), User.GOD);
 		recordServices.logicallyDelete(records.getUnit20e().getWrappedRecord(), User.GOD);
-		recordServices.update(records.getUnit20().set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
+		recordServices.update((RecordWrapper) records.getUnit20().set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
 		assertThat(records.getUnit20().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getUnit12c().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getCategory_X13().isLogicallyDeletedStatus()).isTrue();
@@ -398,9 +673,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnits);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly(
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnitsErrorMessages
 		);
 		assertThat(statusOf(records.unitId_20)).isEqualTo(RecordStatus.LOGICALLY_DELETED);
@@ -414,7 +689,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(18);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).contains(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnits);
 		assertThat(statusOf(records.unitId_20)).isEqualTo(RecordStatus.ACTIVE);
 		assertThat(statusOf(records.unitId_12c)).isEqualTo(RecordStatus.DELETED);
@@ -427,7 +702,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).isEmpty();
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).hasSize(5);
 	}
 
 	@Test
@@ -468,7 +743,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 	}
 
 	@Test
@@ -525,7 +800,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 	}
 
 	@Test
@@ -555,17 +830,17 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).isEmpty();
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(0);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 

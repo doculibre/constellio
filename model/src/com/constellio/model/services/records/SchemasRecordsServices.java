@@ -1,6 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -8,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -24,7 +24,6 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
@@ -203,6 +202,20 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
+	public MetadataSchema temporaryRecord() { return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA); }
+
+	public TemporaryRecord newTemporaryRecord() {
+		return new TemporaryRecord(create(defaultSchema(TemporaryRecord.SCHEMA_TYPE)), getTypes());
+	}
+
+	public ImportAudit newImportAudit() {
+		return new ImportAudit(create(getTypes().getSchema(ImportAudit.FULL_SCHEMA)), getTypes());
+	}
+
+	public ExportAudit newExportAudit() {
+		return new ExportAudit(create(getTypes().getSchema(ExportAudit.FULL_SCHEMA)), getTypes());
+	}
+
 	//Groups
 
 	public MetadataSchema groupSchema() {
@@ -361,7 +374,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	private Roles getRoles() {
-		return modelLayerFactory.getRolesManager().getCollectionRoles(getCollection());
+		return modelLayerFactory.getRolesManager().getCollectionRoles(getCollection(), modelLayerFactory);
 	}
 
 }

@@ -5,10 +5,15 @@ import static com.constellio.data.utils.SimpleDateFormatSingleton.getSimpleDateF
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
@@ -16,9 +21,12 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.servlet.SolrRequestParsers;
+import org.apache.solr.common.util.NamedList;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
+
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 
 public class SolrUtils {
 
@@ -202,10 +210,50 @@ public class SolrUtils {
 		params.remove("bq");
 		return params.toString();
 	}
-	
+
 	public static ModifiableSolrParams parseQueryString(String queryString) {
 		MultiMapSolrParams multiMapSolrParams = SolrRequestParsers.parseQueryString(queryString);
 		return new ModifiableSolrParams(multiMapSolrParams);
 	}
-	
+
+	public static TransactionResponseDTO createTransactionResponseDTO(UpdateResponse updateResponse) {
+		return new TransactionResponseDTO(SolrUtils.retrieveQTime(updateResponse), SolrUtils.retrieveNewDocumentVersions(updateResponse));
+	}
+
+	public static int retrieveQTime(UpdateResponse updateResponse) {
+		NamedList header = updateResponse.getResponseHeader();
+		if (header != null) {
+			return ((Number) header.get("QTime")).intValue();
+		} else {
+			return 0;
+		}
+
+	}
+
+	public static Map<String, Long> retrieveNewDocumentVersions(UpdateResponse updateResponse) {
+		Map<String, Long> newVersions = new HashMap<>();
+		NamedList responseNamedlist = updateResponse.getResponse();
+		if (updateResponse.getResponse() instanceof RouteResponse) {
+			RouteResponse routeResponses = (RouteResponse) responseNamedlist;
+			NamedList<NamedList<Object>> routeResponsesNamedlist = routeResponses.getRouteResponses();
+
+			for (Entry<String, NamedList<Object>> routeResponseNamedlistEntry : routeResponsesNamedlist) {
+				SolrUtils.retrieveVersionsFromNamedlist(routeResponseNamedlistEntry.getValue(), newVersions);
+			}
+
+		} else {
+			SolrUtils.retrieveVersionsFromNamedlist(responseNamedlist, newVersions);
+		}
+		return newVersions;
+	}
+
+	static void retrieveVersionsFromNamedlist(NamedList<Object> response, Map<String, Long> newVersions) {
+		NamedList<Long> idNewVersionPairs = (NamedList<Long>) response.get("adds");
+
+		if (idNewVersionPairs != null) {
+			for (Entry<String, Long> entry : idNewVersionPairs) {
+				newVersions.put(entry.getKey(), entry.getValue());
+			}
+		}
+	}
 }

@@ -126,6 +126,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
+
 	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 

@@ -1,12 +1,13 @@
 package com.constellio.model.entities.security;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Role {
+public class Role implements Serializable {
 
 	private final String code;
 

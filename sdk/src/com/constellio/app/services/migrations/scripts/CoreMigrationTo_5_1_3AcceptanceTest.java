@@ -105,7 +105,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_1_2WithManualSMTPConfiguration() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "veryOlds");
 		File state = new File(statesFolder, "given_system_in_5.1.2_with_ManualEmailServerConfiguration.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -113,7 +113,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_1_2WithManualInvalidSMTPConfiguration() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "veryOlds");
 		File state = new File(statesFolder, "given_system_in_5.1.2_with_ManualInvalidEmailServerConfiguration.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -121,7 +121,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_1_2withTokens() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "veryOlds");
 		File state = new File(statesFolder, "given_system_in_5.1.2.2_with_tasks,rm_modules__with_tokens.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

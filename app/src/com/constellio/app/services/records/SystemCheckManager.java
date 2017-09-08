@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
@@ -141,11 +142,19 @@ public class SystemCheckManager implements StatefulService {
 						e.printStackTrace();
 						//TODO
 					}
-					if (recordsRepaired) {
+
+					ValidateRecordsCheckParams validateRecordsCheckParams = new ValidateRecordsCheckParams(record, repair,
+							builder);
+					boolean recordsRepaired2 = appLayerFactory.getExtensions().forCollection(collection)
+							.validateRecord(validateRecordsCheckParams);
+
+					if (recordsRepaired || recordsRepaired2) {
 
 						try {
 							Transaction transaction = new Transaction();
 							record.markAsModified(Schemas.TITLE);
+							transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true)
+									.setSkipMaskedMetadataValidations(true);
 							transaction.getRecordUpdateOptions().setFullRewrite(true);
 							transaction.getRecordUpdateOptions().setUpdateModificationInfos(false);
 							transaction.add(record);
@@ -159,7 +168,6 @@ public class SystemCheckManager implements StatefulService {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-
 					}
 				}
 			}

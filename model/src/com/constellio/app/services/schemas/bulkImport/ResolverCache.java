@@ -1,27 +1,21 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ResolverCache {
 
@@ -90,13 +84,23 @@ public class ResolverCache {
 		return !getSchemaTypeCache(schemaType, metadata).recordsInFile.contains(legacyId);
 	}
 
-	public synchronized boolean isRecordUpdate(String schemaType, String legacyId) {
-		if (!typesRecordsCount.containsKey(schemaType)) {
-			MetadataSchemaType type = types.getSchemaType(schemaType);
-			typesRecordsCount.put(schemaType, searchServices.getResultsCount(from(type).where(LEGACY_ID).isNotNull()));
+	public synchronized boolean isRecordUpdate(String schemaType, String legacyId, boolean importAsLegacyId) {
+		if (importAsLegacyId) {
+			if (!typesRecordsCount.containsKey(schemaType)) {
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				typesRecordsCount.put(schemaType, searchServices.getResultsCount(from(type).where(LEGACY_ID).isNotNull()));
+			}
+			return typesRecordsCount.get(schemaType) > 0 &&
+					getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).isRecordUpdate(legacyId);
+		} else {
+			if (!typesRecordsCount.containsKey(schemaType)) {
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				typesRecordsCount
+						.put(schemaType, searchServices.getResultsCount(from(type).where(Schemas.IDENTIFIER).isNotNull()));
+			}
+			return typesRecordsCount.get(schemaType) > 0 &&
+					getSchemaTypeCache(schemaType, Schemas.IDENTIFIER.getLocalCode()).isRecordUpdate(legacyId);
 		}
-		return typesRecordsCount.get(schemaType) > 0 &&
-				getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).isRecordUpdate(legacyId);
 	}
 
 	public String resolve(String schemaType, String resolver) {
@@ -107,7 +111,9 @@ public class ResolverCache {
 			if (colonIndex != -1) {
 				String resolverMetadata = resolver.substring(0, colonIndex);
 				String resolverValue = resolver.substring(colonIndex + 1);
-				String id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
+				String id;
+				id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
+
 				if (id == null) {
 					MetadataSchemaType type = types.getSchemaType(schemaType);
 					Metadata metadata = type.getAllMetadatas().getMetadataWithLocalCode(resolverMetadata);
@@ -131,8 +137,12 @@ public class ResolverCache {
 		return getSchemaTypeCache(schemaType, metadata).getUnresolvableLegacyIds();
 	}
 
-	public Set<String> getNotYetImportedLegacyIds(String schemaType) {
-		return getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).recordsInFile;
+	public Set<String> getNotYetImportedLegacyIds(String schemaType, boolean importAsLegacyId) {
+		if (importAsLegacyId) {
+			return getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).recordsInFile;
+		} else {
+			return getSchemaTypeCache(schemaType, Schemas.IDENTIFIER.getLocalCode()).recordsInFile;
+		}
 	}
 
 	public boolean isNewUniqueValue(String schemaType, String metadata, String legacyId) {
@@ -164,6 +174,7 @@ public class ResolverCache {
 
 		public synchronized void mapIds(String legacyId, String id) {
 			idsMapping.put(legacyId, id);
+			mapSearch(legacyId, id);
 			recordsInFile.remove(legacyId);
 			unresolvedLegacyIds.remove(legacyId);
 		}
@@ -205,7 +216,9 @@ public class ResolverCache {
 
 		public synchronized void markAsRecordInFile(String legacyId) {
 			recordsInFile.add(legacyId);
+
 			unresolvedLegacyIds.remove(legacyId);
+
 		}
 
 		public synchronized boolean isNewLegacyId(String legacyId) {

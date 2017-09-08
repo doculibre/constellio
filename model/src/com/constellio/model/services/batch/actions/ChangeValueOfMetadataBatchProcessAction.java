@@ -40,6 +40,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 					record.set(metadata, entry.getValue());
 					if (schemaTypes.isRecordTypeMetadata(metadata)) {
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, metadata);
+						schemaCode = record.getSchemaCode();
 					}
 				}
 			}

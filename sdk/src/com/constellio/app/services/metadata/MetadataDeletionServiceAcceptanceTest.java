@@ -40,6 +40,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
@@ -133,7 +134,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 				.setDefaultValue("facet default value");
 
 		schemaManager.saveUpdateSchemaTypes(schemaTypesBuilder);
-		recordServices.add(records.getFolder_A02()
+		recordServices.add((RecordWrapper) records.getFolder_A02()
 				.set(populatedMetadataBuilder.getLocalCode(), "directly populated metadata value")
 				.set(userEncryptedMetadataBuilderWithDefaultValue.getLocalCode(), "encrypted"));
 		recordServices.add(rm.newFacetField().setFieldDataStoreCode(facetMetadataBuilder.getCode()).setTitle("Ze Facet"));
@@ -143,7 +144,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 				.getMetadata(folderSchema.getCode() + "_" + "populatedMetadataInInheritance");
 
 		Folder customFolder = new Folder(rm.create(types.getSchema(customFolderSchema.getCode())), types);
-		recordServices.add(customFolder.setTitle("customFolder").setOpenDate(TimeProvider.getLocalDate())
+		recordServices.add((RecordWrapper) customFolder.setTitle("customFolder").setOpenDate(TimeProvider.getLocalDate())
 				.setAdministrativeUnitEntered(records.getUnit10())
 				.setCategoryEntered(records.getCategory_X()).setRetentionRuleEntered(records.getRule1())
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL)

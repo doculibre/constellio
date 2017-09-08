@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -136,6 +137,9 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
                 taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du contenant: 10_A_06");
         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
 
+        //Delete task because only one borrowTask from same user can be created.
+        recordServices.physicallyDeleteNoMatterTheStatus(task.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+
 
         containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
         extension.borrowRequest(containerView, true, "7");
@@ -222,7 +226,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
         assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED,
                 RequestTask.APPLICANT, Task.TYPE, Task.TITLE, ExtensionRequest.EXTENSION_VALUE).containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
                 taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_EXTENSION_REQUEST).getId(), "Demande de renouvellement d'emprunt du dossier: Crocodile",  LocalDate.now());
-        assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
+         assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
     }
 
     @Test

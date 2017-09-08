@@ -291,7 +291,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataValueCalculator<?> calculator = calculatedDataEntry.getCalculator();
 		assertThat(calculator).isInstanceOf(JEXLMetadataValueCalculator.class);
 		assertThat(calculator.getReturnType()).isEqualTo(STRING);
-		assertThat(((JEXLMetadataValueCalculator) calculator).getJexlScript().getSourceText()).isEqualTo(pattern);
+		assertThat(((JEXLMetadataValueCalculator) calculator).getExpression()).isEqualTo(pattern);
 
 	}
 
@@ -466,21 +466,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
 				.contains("L'identifiant de la séquence est vide ou null")
 				.doesNotContain("The id of the sequence is null or empty");
-	}
-
-	@Test
-	public void givenEnglishLocaleWhenImportSequencesWithNonNumericalSequenceIdThenError()
-			throws Exception {
-
-		i18n.setLocale(Locale.CANADA);
-		settings.addSequence(new ImportedSequence().setKey("a").setValue("1"));
-
-		assertThatErrorsWhileImportingSettingsExtracting()
-				.contains(tuple("SettingsImportServices_sequenceIdNotNumerical"));
-
-		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
-				.contains("The id of the sequence id is non numerical")
-				.doesNotContain("L''identifiant de la séquence n''est pas numérique");
 	}
 
 	@Test
@@ -809,23 +794,24 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodePrefix"));
 	}
 
-	@Test
-	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
-			throws Exception {
-
-		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
-				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
-						.setTitle(TAXO_1_TITLE_FR)
-						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-						.setVisibleOnHomePage(true)
-						.setUserIds(TAXO_USERS)
-						.setGroupIds(TAXO_GROUPS)
-				));
-
-		assertThatErrorsWhileImportingSettingsExtracting()
-				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
-
-	}
+	//TODO REMOVED VERIFICATION, SHOULD CHECK TAXONOMY SCHEMATYPE CODE INSTEAD OF TAXONOMY CODE
+	//	@Test
+	//	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
+	//			throws Exception {
+	//
+	//		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
+	//				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
+	//						.setTitle(TAXO_1_TITLE_FR)
+	//						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+	//						.setVisibleOnHomePage(true)
+	//						.setUserIds(TAXO_USERS)
+	//						.setGroupIds(TAXO_GROUPS)
+	//				));
+	//
+	//		assertThatErrorsWhileImportingSettingsExtracting()
+	//				.contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
+	//
+	//	}
 
 	@Test
 	public void whenImportingTaxonomyConfigSettingsThenConfigsAreSaved()
@@ -833,7 +819,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
@@ -841,7 +827,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
-		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
+		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE.replace("Type", ""))
 				.setTitle(TAXO_2_TITLE_FR);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
@@ -897,7 +883,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
@@ -952,7 +938,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -989,7 +975,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setVisibleOnHomePage(false);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -1026,7 +1012,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setUserIds(asList(gandalf, robin))
 				.setGroupIds(asList("group1"));
 
@@ -1069,7 +1055,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
 				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 

@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -21,8 +11,10 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -41,6 +33,16 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
@@ -76,7 +78,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		boolean access = false;
+		ContainerRecord containerRecord = rmRecordServices().wrapContainerRecord(restrictedRecord);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+		if (!adminUnitIds.isEmpty()) {
+			for (String adminUnitId : adminUnitIds) {
+				AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
+				access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
+				if (access) {
+					break;
+				}
+			}
+		} else {
+			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+		}
+		return access;
 	}
 
 	@Override
@@ -122,6 +141,16 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		view.navigate().to(RMViews.class).displayContainer(containerId);
 	}
 
+	public void deleteButtonClicked() {
+		try {
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			recordServices().logicallyDelete(container.getWrappedRecord(), getCurrentUser());
+		} catch (Exception e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
+		view.navigate().to(CoreViews.class).home();
+	}
+
 	public void displayFolderButtonClicked(RecordVO folder) {
 		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
@@ -144,14 +173,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public ContainerRecordReportParameters getReportParameters(String report) {
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 
-		return new ContainerRecordReportParameters(containerId,
-				record.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
+		return new ContainerRecordReportParameters(containerId, record.getDecommissioningType());
 	}
 
 	public boolean canPrintReports() {
-		if (!searchServices().hasResults(getFoldersQuery())) {
-			return false;
-		}
 		try {
 			getReport("");
 		} catch (RuntimeException e) {
@@ -207,8 +232,44 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	private boolean canEmpty() {
-		return getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally() &&
-				searchServices().hasResults(getFoldersQuery());
+		boolean approveDecommissioningListPermission = false;
+		if (getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+			approveDecommissioningListPermission = true;
+		} else {
+			ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+			List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+			if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+				adminUnitIds.add(containerRecord.getAdministrativeUnit());
+			}
+			for (String adminUnitId : adminUnitIds) {
+				if (adminUnitIdsWithPermissions.contains(adminUnitId)) {
+					approveDecommissioningListPermission = true;
+					break;
+				}
+			}
+		}
+		return approveDecommissioningListPermission && searchServices().hasResults(getFoldersQuery());
+	}
+
+	public boolean canDelete() {
+		ContainerRecord containerRecord = rmRecordServices().getContainerRecord(containerId);
+		List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DELETE_CONTAINERS);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+
+		if(adminUnitIdsWithPermissions.isEmpty()) {
+			return false;
+		}
+
+		for (String adminUnitId : adminUnitIds) {
+			if (!adminUnitIdsWithPermissions.contains(adminUnitId)) {
+				return false;
+			}
+		}
+		return !containerRecord.isLogicallyDeletedStatus();
 	}
 
 	private Double getSum(Map<String, Object> result) {
@@ -247,6 +308,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		} else {
 			containerRecord.setFirstDepositReportDate(LocalDate.now());
 		}
+		containerRecord.setDocumentResponsible(getCurrentUser().getId());
 		try {
 			recordServices().update(containerRecord);
 		} catch (RecordServicesException e) {

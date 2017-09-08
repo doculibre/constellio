@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,19 +16,25 @@ public class CacheConfig {
 
 	private boolean permanent;
 
+	private List<Metadata> persistedMetadatas;
+
 	private int volatileMaxSize;
 
 	private List<Metadata> indexes;
 
 	private boolean loadedInitially;
 
-	private CacheConfig(String schemaType, boolean permanent, int volatileMaxSize, List<Metadata> indexes,
-			boolean loadedInitially) {
+	private VolatileCacheInvalidationMethod invalidationMethod;
+
+	private CacheConfig(String schemaType, boolean permanent, List<Metadata> persistedMetadatas, int volatileMaxSize,
+			List<Metadata> indexes, boolean loadedInitially, VolatileCacheInvalidationMethod invalidationMethod) {
 		this.schemaType = schemaType;
 		this.permanent = permanent;
 		this.volatileMaxSize = volatileMaxSize;
 		this.indexes = Collections.unmodifiableList(indexes);
 		this.loadedInitially = loadedInitially;
+		this.invalidationMethod = invalidationMethod;
+		this.persistedMetadatas = Collections.unmodifiableList(persistedMetadatas);
 	}
 
 	public String getSchemaType() {
@@ -54,16 +61,35 @@ public class CacheConfig {
 		return loadedInitially;
 	}
 
+	public List<Metadata> getPersistedMetadatas() {
+		return persistedMetadatas;
+	}
+
+	public VolatileCacheInvalidationMethod getInvalidationMethod() {
+		return invalidationMethod;
+	}
+
+	public static CacheConfig permanentEssentialMetadatasCache(MetadataSchemaType schemaType) {
+		return new CacheConfig(schemaType.getCode(), true, schemaType.getAllMetadatas().onlyEssentialInSummary(),
+				0, schemaType.getAllMetadatas().onlyUniques(), true, null);
+
+	}
+
+	public static CacheConfig permanentEssentialMetadatasCacheNotLoadedInitially(MetadataSchemaType schemaType) {
+		return new CacheConfig(schemaType.getCode(), true, schemaType.getAllMetadatas().onlyEssentialInSummary(),
+				0, schemaType.getAllMetadatas().onlyUniques(), false, null);
+	}
+
 	public static CacheConfig permanentCache(MetadataSchemaType schemaType) {
 		return permanentCache(schemaType.getCode(), schemaType.getDefaultSchema().getMetadatas().onlyUniques());
 	}
 
 	public static CacheConfig permanentCache(String schemaType, List<Metadata> indexes) {
-		return new CacheConfig(schemaType, true, 0, indexes, true);
+		return new CacheConfig(schemaType, true, new ArrayList<Metadata>(), 0, indexes, true, null);
 	}
 
 	public static CacheConfig permanentCacheNotLoadedInitially(String schemaType, List<Metadata> indexes) {
-		return new CacheConfig(schemaType, true, 0, indexes, false);
+		return new CacheConfig(schemaType, true, new ArrayList<Metadata>(), 0, indexes, false, null);
 	}
 
 	public static CacheConfig volatileCache(MetadataSchemaType schemaType, int maxSize) {
@@ -71,7 +97,19 @@ public class CacheConfig {
 	}
 
 	public static CacheConfig volatileCache(String schemaType, int maxSize, List<Metadata> indexes) {
-		return new CacheConfig(schemaType, false, maxSize, indexes, false);
+		return new CacheConfig(schemaType, false, new ArrayList<Metadata>(), maxSize, indexes, false,
+				VolatileCacheInvalidationMethod.LRU);
+	}
+
+	public static CacheConfig volatileCache(MetadataSchemaType schemaType, int maxSize,
+			VolatileCacheInvalidationMethod invalidationMethod) {
+		return volatileCache(schemaType.getCode(), maxSize, schemaType.getDefaultSchema().getMetadatas().onlyUniques(),
+				invalidationMethod);
+	}
+
+	public static CacheConfig volatileCache(String schemaType, int maxSize, List<Metadata> indexes,
+			VolatileCacheInvalidationMethod invalidationMethod) {
+		return new CacheConfig(schemaType, false, new ArrayList<Metadata>(), maxSize, indexes, false, invalidationMethod);
 	}
 
 	@Override

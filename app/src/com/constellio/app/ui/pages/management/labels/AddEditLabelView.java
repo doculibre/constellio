@@ -4,13 +4,11 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.PrintableViewGroup;
 
 import java.util.List;
 
-/**
- * Created by Marco on 2017-01-19.
- */
-public interface AddEditLabelView extends BaseView, AdminViewGroup {
+public interface AddEditLabelView extends BaseView, PrintableViewGroup{
 
     public void setLabels(List<LabelVO> list);
 

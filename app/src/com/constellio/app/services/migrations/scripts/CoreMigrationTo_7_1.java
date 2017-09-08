@@ -3,13 +3,13 @@ package com.constellio.app.services.migrations.scripts;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Printable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.reports.wrapper.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;

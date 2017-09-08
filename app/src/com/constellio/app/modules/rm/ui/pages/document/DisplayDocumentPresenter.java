@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -27,10 +13,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.WorkflowServices;
+import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -56,6 +43,16 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -66,6 +63,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 	private RMSchemasRecordsServices rm;
+	private boolean hasWriteAccess;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -93,6 +91,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
+
+		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
+
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
@@ -100,7 +101,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext());
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -111,8 +112,16 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
 				query.filteredByStatus(StatusFilter.ACTIVES);
 				query.filteredWithUser(getCurrentUser());
+				addStarredSortToQuery(query);
 				query.sortDesc(Schemas.MODIFIED_ON);
+
 				return query;
+			}
+
+			@Override
+			protected void clearSort(LogicalSearchQuery query) {
+				super.clearSort(query);
+				addStarredSortToQuery(query);
 			}
 		};
 		eventsDataProvider = getEventsDataProvider();
@@ -174,12 +183,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public RecordVODataProvider getWorkflows() {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
-				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+				schema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new WorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
+				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
 	}
@@ -187,11 +196,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
-		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
-		new WorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
-	private void updateContentVersions() {
+	public void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		Record record = getRecord(documentVO.getId());
@@ -375,6 +384,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public boolean hasWritePermission()
+	{
+		return hasWriteAccess;
+	}
+
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
 		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
 				.on(getRecord(presenterUtils.getDocumentVO().getId()));
@@ -402,6 +416,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 
+	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
+		return getCurrentUser().has(RMPermissionsTo.VIEW_SYSTEM_FILENAME).globally();
+	}
+
 	public void refreshEvents() {
 		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
@@ -409,5 +427,32 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasPermissionToStartWorkflow() {
 		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
+	}
+
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
+	}
+
+	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = taskSchemas.getTask(taskId);
+		if(isStarred) {
+			task.addStarredBy(getCurrentUser().getId());
+		} else {
+			task.removeStarredBy(getCurrentUser().getId());
+		}
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		dataProvider.fireDataRefreshEvent();
+	}
+
+	private void addStarredSortToQuery(LogicalSearchQuery query) {
+		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
+		LogicalSearchQuerySort sortField
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+		query.sortFirstOn(sortField);
 	}
 }

@@ -1,8 +1,15 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -10,12 +17,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
@@ -26,7 +27,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		super(collection, modelLayerFactory);
 	}
 
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+    /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
@@ -258,6 +259,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("copyRetentionRulesOnDocumentTypes");
 		}
 
+		public Metadata deactivate() {
+			return metadata("deactivate");
+		}
+
 		public Metadata description() {
 			return metadata("description");
 		}
@@ -328,10 +333,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
-		public Metadata administrativeUnit() {
-			return metadata("administrativeUnit");
-		}
-
 		public Metadata administrativeUnits() {
 			return metadata("administrativeUnits");
 		}
@@ -376,12 +377,24 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("description");
 		}
 
+		public Metadata documentResponsible() {
+			return metadata("documentResponsible");
+		}
+
 		public Metadata filingSpace() {
 			return metadata("filingSpace");
 		}
 
 		public Metadata fillRatioEntered() {
 			return metadata("fillRatioEntered");
+		}
+
+		public Metadata firstDepositReportDate() {
+			return metadata("firstDepositReportDate");
+		}
+
+		public Metadata firstTransferReportDate() {
+			return metadata("firstTransferReportDate");
 		}
 
 		public Metadata full() {
@@ -553,6 +566,64 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			= new SchemaTypeShortcuts_ddvFolderType_default("ddvFolderType_default");
 	public class SchemaTypeShortcuts_ddvFolderType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvFolderType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata linkedSchema() {
+			return metadata("linkedSchema");
+		}
+	}
+	public StorageSpaceType wrapStorageSpaceType(Record record) {
+		return record == null ? null : new StorageSpaceType(record, getTypes());
+	}
+
+	public List<StorageSpaceType> wrapStorageSpaceTypes(List<Record> records) {
+		List<StorageSpaceType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new StorageSpaceType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<StorageSpaceType> searchStorageSpaceTypes(LogicalSearchQuery query) {
+		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<StorageSpaceType> searchStorageSpaceTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvStorageSpaceType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public StorageSpaceType getStorageSpaceType(String id) {
+		return wrapStorageSpaceType(get(id));
+	}
+
+	public List<StorageSpaceType> getStorageSpaceTypes(List<String> ids) {
+		return wrapStorageSpaceTypes(get(ids));
+	}
+
+	public StorageSpaceType getStorageSpaceTypeWithCode(String code) {
+		return wrapStorageSpaceType(getByCode(ddvStorageSpaceType.schemaType(), code));
+	}
+
+	public StorageSpaceType getStorageSpaceTypeWithLegacyId(String legacyId) {
+		return wrapStorageSpaceType(getByLegacyId(ddvStorageSpaceType.schemaType(),  legacyId));
+	}
+
+	public StorageSpaceType newStorageSpaceType() {
+		return wrapStorageSpaceType(create(ddvStorageSpaceType.schema()));
+	}
+
+	public StorageSpaceType newStorageSpaceTypeWithId(String id) {
+		return wrapStorageSpaceType(create(ddvStorageSpaceType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvStorageSpaceType_default ddvStorageSpaceType
+			= new SchemaTypeShortcuts_ddvStorageSpaceType_default("ddvStorageSpaceType_default");
+	public class SchemaTypeShortcuts_ddvStorageSpaceType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvStorageSpaceType_default(String schemaCode) {
 			super(schemaCode);
 		}
 
@@ -1268,6 +1339,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("inactiveDisposalType");
 		}
 
+		public Metadata isRestrictedAccess() {
+			return metadata("isRestrictedAccess");
+		}
+
 		public Metadata keywords() {
 			return metadata("keywords");
 		}
@@ -1320,6 +1395,26 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("permissionStatus");
 		}
 
+		public Metadata previousDepositDates() {
+			return metadata("previousDepositDates");
+		}
+
+		public Metadata previousTransferDates() {
+			return metadata("previousTransferDates");
+		}
+
+		public Metadata reactivationDates() {
+			return metadata("reactivationDates");
+		}
+
+		public Metadata reactivationDecommissioningDate() {
+			return metadata("reactivationDecommissioningDate");
+		}
+
+		public Metadata reactivationUsers() {
+			return metadata("reactivationUsers");
+		}
+
 		public Metadata retentionRule() {
 			return metadata("retentionRule");
 		}
@@ -1342,6 +1437,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata timerange() {
 			return metadata("timerange");
+		}
+
+		public Metadata title() {
+			return metadata("title");
 		}
 
 		public Metadata type() {
@@ -1416,6 +1515,64 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata typelabel() {
 			return metadata("typelabel");
+		}
+	}
+	public PrintableReport wrapPrintableReport(Record record) {
+		return record == null ? null : new PrintableReport(record, getTypes());
+	}
+
+	public List<PrintableReport> wrapPrintableReports(List<Record> records) {
+		List<PrintableReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new PrintableReport(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<PrintableReport> searchPrintableReports(LogicalSearchQuery query) {
+		return wrapPrintableReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<PrintableReport> searchPrintableReports(LogicalSearchCondition condition) {
+		MetadataSchemaType type = printable.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapPrintableReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public PrintableReport getPrintableReport(String id) {
+		return wrapPrintableReport(get(id));
+	}
+
+	public List<PrintableReport> getPrintableReports(List<String> ids) {
+		return wrapPrintableReports(get(ids));
+	}
+
+	public PrintableReport getPrintableReportWithLegacyId(String legacyId) {
+		return wrapPrintableReport(getByLegacyId(printable.schemaType(),  legacyId));
+	}
+
+	public PrintableReport newPrintableReport() {
+		return wrapPrintableReport(create(printable_report.schema()));
+	}
+
+	public PrintableReport newPrintableReportWithId(String id) {
+		return wrapPrintableReport(create(printable_report.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_printable_report printable_report
+			= new SchemaTypeShortcuts_printable_report("printable_report");
+	public class SchemaTypeShortcuts_printable_report extends SchemaTypeShortcuts_printable_default {
+		protected SchemaTypeShortcuts_printable_report(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata recordSchema() {
+			return metadata("recordSchema");
+		}
+
+		public Metadata recordType() {
+			return metadata("recordType");
 		}
 	}
 	public RetentionRule wrapRetentionRule(Record record) {
@@ -1666,12 +1823,78 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("numberOfChild");
 		}
 
+		public Metadata numberOfContainers() {
+			return metadata("numberOfContainers");
+		}
+
 		public Metadata parentStorageSpace() {
 			return metadata("parentStorageSpace");
 		}
 
 		public Metadata type() {
 			return metadata("type");
+		}
+	}
+	public SIParchive wrapSIParchive(Record record) {
+		return record == null ? null : new SIParchive(record, getTypes());
+	}
+
+	public List<SIParchive> wrapSIParchives(List<Record> records) {
+		List<SIParchive> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new SIParchive(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<SIParchive> searchSIParchives(LogicalSearchQuery query) {
+		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<SIParchive> searchSIParchives(LogicalSearchCondition condition) {
+		MetadataSchemaType type = temporaryRecord.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public SIParchive getSIParchive(String id) {
+		return wrapSIParchive(get(id));
+	}
+
+	public List<SIParchive> getSIParchives(List<String> ids) {
+		return wrapSIParchives(get(ids));
+	}
+
+	public SIParchive getSIParchiveWithLegacyId(String legacyId) {
+		return wrapSIParchive(getByLegacyId(temporaryRecord.schemaType(),  legacyId));
+	}
+
+	public SIParchive newSIParchive() {
+		return wrapSIParchive(create(temporaryRecord_sipArchive.schema()));
+	}
+
+	public SIParchive newSIParchiveWithId(String id) {
+		return wrapSIParchive(create(temporaryRecord_sipArchive.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_temporaryRecord_sipArchive temporaryRecord_sipArchive
+			= new SchemaTypeShortcuts_temporaryRecord_sipArchive("temporaryRecord_sipArchive");
+	public class SchemaTypeShortcuts_temporaryRecord_sipArchive extends SchemaTypeShortcuts_temporaryRecord_default {
+		protected SchemaTypeShortcuts_temporaryRecord_sipArchive(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata creationDate() {
+			return metadata("creationDate");
+		}
+
+		public Metadata name() {
+			return metadata("name");
+		}
+
+		public Metadata user() {
+			return metadata("user");
 		}
 	}
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
@@ -1872,8 +2095,9 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedFolders");
 		}
 	}
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+   /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
 
 }

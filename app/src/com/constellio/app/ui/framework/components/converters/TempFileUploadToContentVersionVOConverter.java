@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -16,6 +8,14 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.vaadin.data.util.converter.Converter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 public class TempFileUploadToContentVersionVOConverter implements Converter<Object, Object> {
 
@@ -73,7 +73,8 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		File tempFile = tempFileUpload.getTempFile();
 		try {
 			InputStream tempFileIn = ioServices.newFileInputStream(tempFile, "TempFileUploadToContentVersionVOConverter.toContentVO");
-			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(tempFileIn, fileName);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(tempFileIn, fileName);
+			ContentVersionDataSummary contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
 			ioServices.closeQuietly(tempFileIn);
 			final String hash = contentVersionDataSummary.getHash();
 			InputStreamProvider inputStreamProvider = new InputStreamProvider() {
@@ -88,9 +89,10 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 				public void deleteTemp() {
 				}
 			};
+			boolean hasFoundDuplicate = uploadResponse.hasFoundDuplicate();
 			return tempFileUpload != null ?
 					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
-							inputStreamProvider) :
+							inputStreamProvider).setHasFoundDuplicate(hasFoundDuplicate).setDuplicatedHash(hasFoundDuplicate? hash:null) :
 					null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

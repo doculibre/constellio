@@ -33,11 +33,9 @@ public class ConnectorSmbUtils {
 
 	public boolean isAccepted(String url, SmbRetrievalConfiguration smbRetrievalConfiguration) {
 		if (!url.startsWith("smb://")) {
-			logger.info("isAccepted rejected does not start with smb:// : ", url, new LinkedHashMap<String, String>());
 			return false;
 		}
 		if (StringUtils.isBlank(url)) {
-			logger.info("isAccepted rejected blank : ", url, new LinkedHashMap<String, String>());
 			return false;
 		}
 
@@ -46,13 +44,11 @@ public class ConnectorSmbUtils {
 			for (String blackRegEx : smbRetrievalConfiguration.getExclusions()) {
 				if (StringUtils.isNotBlank(blackRegEx)) {
 					if (url.startsWith(blackRegEx)) {
-						logger.info("isAccepted rejected exclude start with : ", url, new LinkedHashMap<String, String>());
 						return false;
 					}
 					Pattern pattern = Pattern.compile(blackRegEx, Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(url);
 					if (matcher.find()) {
-						logger.info("isAccepted rejected exclude regex : ", url, new LinkedHashMap<String, String>());
 						return false;
 					}
 				}
@@ -73,7 +69,6 @@ public class ConnectorSmbUtils {
 					}
 				}
 			}
-			logger.info("isAccepted rejected include : ", url, new LinkedHashMap<String, String>());
 			return false;
 		}
 		// Fallback to seeds
@@ -86,7 +81,6 @@ public class ConnectorSmbUtils {
 				}
 			}
 		}
-		logger.info("isAccepted rejected default : ", url, new LinkedHashMap<String, String>());
 		return false;
 	}
 

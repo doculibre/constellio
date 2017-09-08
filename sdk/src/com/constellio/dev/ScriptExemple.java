@@ -1,5 +1,10 @@
 package com.constellio.dev;
 
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.List;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -13,11 +18,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-
-import java.util.List;
-
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 /*
  * Script exemple
@@ -50,7 +50,7 @@ public class ScriptExemple {
 	private static LogicalSearchQuery getQuery() {
 		//TODO Build a query to find records to modify or to return all records
 		return new LogicalSearchQuery(from(rm.folderSchemaType())
-				.where(rm.containerRecord.administrativeUnit()).isEqualTo("42"));
+				.where(rm.containerRecord.administrativeUnits()).isEqualTo("42"));
 
 		//return new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
 

@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.*;
@@ -29,12 +28,13 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, RecordSelector {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -50,6 +50,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
+	private HashMap<Integer,Boolean> hashMapAllSelection = new HashMap<>();
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -143,10 +144,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+		zipButton.setVisible(presenter.isAllowDownloadZip());
 		return results.createSummary(actions, zipButton);
 	}
 
@@ -187,28 +189,36 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable() {
 		SearchResultContainer container = buildResultContainer();
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container);
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
 
 		int totalResults = container.size();
 		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
 		int currentPage = presenter.getPageNumber();
-		
+
 		int selectedPageLength = presenter.getSelectedPageLength();
 		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
 		}
 		presenter.setSelectedPageLength(selectedPageLength);
 		
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-		
+
+
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
+
 				presenter.saveTemporarySearch(false);
 				if (selectDeselectAllButton != null) {
-					selectDeselectAllButton.setSelectAllMode(true);
+					hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+					Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+					boolean isSelectAllMode = true;
+					if (objIsSelectAllMode != null) {
+						isSelectAllMode = objIsSelectAllMode;
+					}
+					selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
 				}
 			}
 		});
@@ -216,6 +226,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+				hashMapAllSelection = new HashMap<>();
 			}
 		});
 
@@ -427,6 +438,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					((SearchResultSimpleTable) results).askSelectionRange();
 				}
 			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+				hashMapAllSelection.put(presenter.getPageNumber(), selectAllMode);
+			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
@@ -495,6 +511,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public boolean isSelectAllMode() {
-		return selectDeselectAllButton == null? null:selectDeselectAllButton.isSelectAllMode();
+		return (selectDeselectAllButton == null) ? null : selectDeselectAllButton.isSelectAllMode();
+	}
+
+	public SearchResultTable getResult() {
+		return this.results;
 	}
 }

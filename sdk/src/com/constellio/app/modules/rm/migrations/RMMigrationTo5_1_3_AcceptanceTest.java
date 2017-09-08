@@ -31,7 +31,7 @@ public class RMMigrationTo5_1_3_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_1_2WithUnfinishedBatchProcesses() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "veryOlds");
 		File state = new File(statesFolder, "given_system_in_5.1.2.2_with_tasks,rm_modules__with_unfinished_batch_processes.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);

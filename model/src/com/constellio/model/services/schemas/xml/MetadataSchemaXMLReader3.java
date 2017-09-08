@@ -1,6 +1,5 @@
 package com.constellio.model.services.schemas.xml;
 
-import static com.constellio.model.entities.schemas.entries.AggregationType.SUM;
 import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
 
 import java.util.ArrayList;
@@ -23,8 +22,8 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -97,6 +96,7 @@ public class MetadataSchemaXMLReader3 {
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
 
+		schemaTypeBuilder.setReadOnlyLocked(getBooleanFlagValueWithFalseAsDefaultValue(element, "readOnlyLocked"));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValueWithFalseAsDefaultValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);

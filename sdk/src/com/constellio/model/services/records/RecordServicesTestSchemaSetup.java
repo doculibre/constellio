@@ -7,6 +7,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
 public class RecordServicesTestSchemaSetup extends TestsSchemasSetup {
 
+	public RecordServicesTestSchemaSetup() {
+	}
+
+	public RecordServicesTestSchemaSetup(String collection) {
+		super(collection);
+	}
+
 	public RecordServicesTestSchemaSetup withAMetadataCopiedInAnotherSchema() {
 		MetadataBuilder copiedMeta = zeDefaultSchemaBuilder.create("copiedMeta").setType(MetadataValueType.STRING);
 		MetadataBuilder referenceToZeSchema = anOtherDefaultSchemaBuilder.create("referenceToZeSchema")

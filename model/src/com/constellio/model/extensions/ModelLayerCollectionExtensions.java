@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -31,6 +30,8 @@ import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ModelLayerCollectionExtensions {
 
@@ -43,8 +44,6 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
-
-
 
 	//----------------- Callers ---------------
 
@@ -196,6 +195,28 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
+	public boolean isModifyBlocked(Record record, User user) {
+		boolean deleteBlocked = false;
+		for (RecordExtension extension : recordExtensions) {
+			deleteBlocked = extension.isModifyBlocked(record, user);
+			if (deleteBlocked) {
+				break;
+			}
+		}
+		return deleteBlocked;
+	}
+
+	public boolean isDeleteBlocked(Record record, User user) {
+		boolean deleteBlocked = false;
+		for (RecordExtension extension : recordExtensions) {
+			deleteBlocked = extension.isDeleteBlocked(record, user);
+			if (deleteBlocked) {
+				break;
+			}
+		}
+		return deleteBlocked;
+	}
+
 	public boolean isLogicallyDeletable(final RecordLogicalDeletionValidationEvent event) {
 		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
 			@Override
@@ -224,6 +245,21 @@ public class ModelLayerCollectionExtensions {
 		return (inTrashFirst == null) ? false : inTrashFirst;
 	}
 
+	public LogicalSearchCondition getPhysicallyDeletableQueryForSchemaType(final SchemaEvent event) {
+		LogicalSearchCondition currentCondition = null;
+		for (SchemaExtension extension : schemaExtensions) {
+			LogicalSearchCondition newCondition = extension.getPhysicallyDeletableRecordsForSchemaType(event);
+			if (newCondition != null) {
+				if (currentCondition != null) {
+					currentCondition = LogicalSearchQueryOperators.allConditions(currentCondition, newCondition);
+				} else {
+					currentCondition = newCondition;
+				}
+			}
+		}
+		return currentCondition;
+	}
+
 	@Deprecated
 	//Use tokens instead
 	public boolean isRecordModifiableBy(final Record record, final User user) {
@@ -234,4 +270,5 @@ public class ModelLayerCollectionExtensions {
 			}
 		});
 	}
+
 }

@@ -14,7 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
@@ -25,6 +28,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
+import com.constellio.model.services.users.UserServices;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -40,6 +44,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private boolean stopRequested;
 	private Semaphore newEventSemaphore;
 	private AtomicLong completed = new AtomicLong();
+	private UserServices userServices;
 
 	public BatchProcessControllerThread(ModelLayerFactory modelLayerFactory, int numberOfRecordsPerTask) {
 		super(modelLayerFactory.toResourceName(RESOURCE_NAME));
@@ -50,6 +55,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
+		this.userServices = modelLayerFactory.newUserServices();
 	}
 
 	@Override
@@ -67,12 +73,27 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 
 		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+
 		if (batchProcess != null) {
 			try {
-				if (batchProcess.getRecords() != null) {
-					processFromIds(batchProcess);
-				} else {
-					processFromQuery(batchProcess);
+				if (batchProcess instanceof RecordBatchProcess) {
+					RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
+					if (recordBatchProcess.getRecords() != null) {
+						processFromIds(recordBatchProcess);
+					} else {
+						processFromQuery(recordBatchProcess);
+					}
+				} else if (batchProcess instanceof AsyncTaskBatchProcess) {
+					final AsyncTaskBatchProcess process = (AsyncTaskBatchProcess) batchProcess;
+					AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
+
+						@Override
+						public String getCollection() {
+							return process.getCollection();
+						}
+					};
+					process.getTask().execute(params);
+					batchProcessesManager.markAsFinished(batchProcess, 0);
 				}
 			} catch (Exception e) {
 				batchProcessesManager.markAsFinished(batchProcess, 1);
@@ -83,7 +104,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		waitUntilNotified();
 	}
 
-	private void processFromIds(BatchProcess batchProcess) throws Exception{
+	private void processFromIds(RecordBatchProcess batchProcess)
+			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);
@@ -123,7 +145,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		batchProcessesManager.markAsFinished(batchProcess, recordsWithErrors.size());
 	}
 
-	private void processFromQuery(BatchProcess batchProcess)
+	private void processFromQuery(RecordBatchProcess batchProcess)
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
@@ -189,7 +211,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	}
 
 	BatchProcessTasksFactory newBatchProcessTasksFactory(TaskList taskList) {
-		return new BatchProcessTasksFactory(recordServices, searchServices, taskList);
+		return new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList);
 	}
 
 	ForkJoinPool newForkJoinPool() {

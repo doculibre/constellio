@@ -4,11 +4,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -27,8 +29,12 @@ public class ReportSelector extends HorizontalLayout {
 		setSpacing(true);
 		this.presenter = presenter;
 		button = buildActivationButton();
-		selector = buildSelector();
-		addComponents(selector, button);
+		try {
+			selector = buildSelector();
+			addComponents(selector, button);
+		} catch (UnsupportedReportException e) {
+			setVisible(false);
+		}
 	}
 
 	@Override
@@ -53,10 +59,19 @@ public class ReportSelector extends HorizontalLayout {
 			}
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
+			comboBox.setValue(supportedReports.get(0));
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
 					button.setEnabled(true);
+				}
+			});
+			comboBox.addValidator(new Validator() {
+				@Override
+				public void validate(Object value) throws InvalidValueException {
+					if(value == null) {
+						throw new InvalidValueException($("ReportTabButton.invalidReportType"));
+					}
 				}
 			});
 		}

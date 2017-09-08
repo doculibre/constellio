@@ -85,7 +85,12 @@ public class FilterUtils {
 
 	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager) {
 		StringBuilder stringBuilder = new StringBuilder();
-
+		UserTokens tokens = securityTokenManager.getTokens(user);
+		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+		boolean deny = stringBuilder.length() > 0;
+		if (deny) {
+			stringBuilder.append(" AND (");
+		}
 		addTokenA38(stringBuilder);
 		if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
 			stringBuilder.append(" OR ");
@@ -114,7 +119,6 @@ public class FilterUtils {
 			stringBuilder.append(aGroup);
 		}
 
-		UserTokens tokens = securityTokenManager.getTokens(user);
 		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.READ_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
@@ -123,8 +127,25 @@ public class FilterUtils {
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
 		stringBuilder.append(":");
 		stringBuilder.append(Record.PUBLIC_TOKEN);
+		if (deny) {
+			stringBuilder.append(")");
+		}
 		return stringBuilder.toString();
 	}
+
+    private static void addDenyTokens(StringBuilder stringBuilder, List<String> tokens, Character type) {
+        for (String token : tokens) {
+            if (token.charAt(0) == type) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append(" AND ");
+                }
+                stringBuilder.append("-");
+                stringBuilder.append(Schemas.DENY_TOKENS.getDataStoreCode());
+                stringBuilder.append(":");
+                stringBuilder.append(token);
+            }
+        }
+    }
 
 	public static String permissionFilter(User user, String permission) {
 		StringBuilder stringBuilder = new StringBuilder();

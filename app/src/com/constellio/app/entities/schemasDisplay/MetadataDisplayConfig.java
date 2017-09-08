@@ -1,11 +1,11 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import java.io.Serializable;
+
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType.VERTICAL;
-
-public class MetadataDisplayConfig {
+public class MetadataDisplayConfig implements Serializable {
 
 	private final String metadataCode;
 

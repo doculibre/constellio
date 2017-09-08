@@ -41,13 +41,14 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 		modelLayerFactory = getModelLayerFactory();
 		dataLayerFactory = getDataLayerFactory();
 
-		factory = spy(new AppLayerFactory(appLayerConfiguration, modelLayerFactory, dataLayerFactory, statefullServiceDecorator,
-				null) {
-			@Override
-			public MigrationServices newMigrationServices() {
-				return migrationServices;
-			}
-		});
+		factory = spy(
+				new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory, dataLayerFactory, statefullServiceDecorator,
+						null) {
+					@Override
+					public MigrationServices newMigrationServices() {
+						return migrationServices;
+					}
+				});
 	}
 
 	@Test

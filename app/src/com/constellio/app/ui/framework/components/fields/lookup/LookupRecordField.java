@@ -37,8 +37,12 @@ public class LookupRecordField extends LookupField<String> {
 		this(schemaTypeCode, null);
 	}
 
+	public LookupRecordField(String schemaTypeCode, boolean writeAccess, boolean showDeactivated) {
+		this(schemaTypeCode, null);
+	}
+
 	public LookupRecordField(String schemaTypeCode, String schemaCode) {
-		this(schemaTypeCode, schemaCode, false);
+		this(schemaTypeCode, schemaCode, false, true);
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess,
@@ -52,12 +56,17 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
-		this(schemaTypeCode, null, writeAccess);
+		this(schemaTypeCode, null, writeAccess, true);
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess),
+		this(schemaTypeCode, schemaCode, writeAccess, true);
+	}
+
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated) {
+		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
+		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
@@ -65,6 +74,12 @@ public class LookupRecordField extends LookupField<String> {
 			LookupTreeDataProvider<String>[] lookupTreeDataProviders) {
 		super(recordTextInputDataProvider, lookupTreeDataProviders);
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
+	}
+
+	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
+							 LookupTreeDataProvider<String>[] lookupTreeDataProviders, TaxonomyRecordIdToContextCaptionConverter itemConverter) {
+		super(recordTextInputDataProvider, lookupTreeDataProviders);
+		setItemConverter(itemConverter);
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,

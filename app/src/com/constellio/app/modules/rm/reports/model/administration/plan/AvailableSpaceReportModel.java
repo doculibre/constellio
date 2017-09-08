@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 /**

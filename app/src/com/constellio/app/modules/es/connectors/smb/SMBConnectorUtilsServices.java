@@ -68,9 +68,13 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 
 	@Override
 	public List<ConnectorDocument<?>> getChildren(ConnectorDocument<?> connectorDocument) {
-		LogicalSearchCondition condition = from(es.connectorSmbDocument.schemaType())
-				.where(es.connectorSmbDocument.parent()).isEqualTo(connectorDocument.getId());
-		return es.searchConnectorDocuments(new LogicalSearchQuery(condition));
+		if(connectorDocument instanceof ConnectorSmbFolder) {
+			LogicalSearchCondition condition = from(es.connectorSmbDocument.schemaType())
+					.where(es.connectorSmbDocument.parentConnectorUrl()).isEqualTo(((ConnectorSmbFolder) connectorDocument).getConnectorUrl());
+			return es.searchConnectorDocuments(new LogicalSearchQuery(condition));
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -120,10 +124,8 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 		}
 		return url;
 	}
-
 	@Override
-	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
-			String availableVersion) {
+	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

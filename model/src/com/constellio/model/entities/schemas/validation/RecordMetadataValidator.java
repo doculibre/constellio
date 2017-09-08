@@ -1,10 +1,12 @@
 package com.constellio.model.entities.schemas.validation;
 
+import java.io.Serializable;
+
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
-public interface RecordMetadataValidator<T> {
+public interface RecordMetadataValidator<T> extends Serializable {
 
 	final String METADATA_CODE = "metadataCode";
 

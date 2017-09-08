@@ -22,6 +22,8 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -48,16 +50,19 @@ public class SchemasDisplayManager
 	private ConfigManager configManager;
 
 	private CollectionsListManager collectionsListManager;
+	
+	private ConstellioCacheManager cacheManager; 
 
 	private OneXMLConfigPerCollectionManager<SchemasDisplayManagerCache> oneXMLConfigPerCollectionManager;
 
 	private MetadataSchemasManager metadataSchemasManager;
 
 	public SchemasDisplayManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-			MetadataSchemasManager metadataSchemasManager) {
+			MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.metadataSchemasManager = metadataSchemasManager;
+		this.cacheManager = cacheManager;
 	}
 
 	public Set<String> getReturnedFieldsForSearch(String collection) {
@@ -228,6 +233,7 @@ public class SchemasDisplayManager
 
 	@Override
 	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(SchemasDisplayManager.class.getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
 				SCHEMAS_DISPLAY_CONFIG, xmlConfigReader(), this, new DocumentAlteration() {
 			@Override
@@ -235,7 +241,7 @@ public class SchemasDisplayManager
 				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
 				writer.writeEmptyDocument();
 			}
-		});
+		}, cache);
 		metadataSchemasManager.registerListener(new MetadataSchemasManagerListener() {
 			@Override
 			public void onCollectionSchemasModified(String collection) {
@@ -295,7 +301,7 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+			if ("id".equals(metadata.getLocalCode()) || "path".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
 					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {
@@ -339,6 +345,16 @@ public class SchemasDisplayManager
 			public void alter(Document document) {
 				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
 				writer.resetSchema(code);
+			}
+		});
+	}
+
+	public void resetMetadata(String collection, final String code) {
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.resetMetadata(code);
 			}
 		});
 	}
@@ -456,4 +472,6 @@ public class SchemasDisplayManager
 			element.addContent(children);
 		}
 	}
+
+
 }

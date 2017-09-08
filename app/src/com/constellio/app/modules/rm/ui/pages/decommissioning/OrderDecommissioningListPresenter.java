@@ -82,7 +82,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).globally();
+		return user.has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {

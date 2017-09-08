@@ -89,6 +89,7 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
+import com.constellio.model.services.records.RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
@@ -101,6 +102,7 @@ import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 
@@ -130,7 +132,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		System.out.println("\n\n--RecordServicesAcceptanceTest.setup--\n\n");
-
+		givenDisabledAfterTestValidations();
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryModelLayerConfiguration configuration) {
@@ -271,19 +273,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGettingRecordsTitlesThenTitlesReturned()
-			throws Exception {
-		defineSchemasManager().using(schemas);
-		Record record1 = new TestRecord(zeSchema);
-		recordServices.add(record1.set(TITLE, "zeTitle1"));
-		Record record2 = new TestRecord(zeSchema);
-		recordServices.add(record2.set(TITLE, "zeTitle2"));
-
-		assertThat(recordServices.getRecordTitles(zeCollection, Arrays.asList(record1.getId(), record2.getId()))).contains(
-				"zeTitle1", "zeTitle2");
-	}
-
-	@Test
 	public void givenSchemaWithEnumListWhenAddingRecordThenValuesPersisted()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));
@@ -312,6 +301,37 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), valueTooLong);
 
 		recordServices.update(record);
+	}
+
+	@Test(expected = SchemaTypeOfARecordHasReadOnlyLock.class)
+	public void whenAddUpdatingRecordWithReadOnlyLockThenException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("zeSchemaType").setReadOnlyLocked(true);
+			}
+		});
+
+		recordServices.add(record.set(zeSchema.stringMetadata(), "Banana"));
+	}
+
+	@Test
+	public void whenAddUpdatingRecordWithReadOnlyLockWithFlagAllowingItThenNoException()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("zeSchemaType").setReadOnlyLocked(true);
+			}
+		});
+
+		Transaction transaction = new Transaction();
+		transaction.getRecordUpdateOptions().setAllowSchemaTypeLockedRecordsModification(true);
+		transaction.add(record.set(zeSchema.stringMetadata(), "Banana"));
+		recordServices.execute(transaction);
 	}
 
 	@Test()
@@ -940,7 +960,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
@@ -952,7 +972,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
@@ -1767,7 +1787,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+				.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
@@ -1893,7 +1913,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBrokenMultivalueReferencesThenCatchedDependingOnTransactionOption()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
 

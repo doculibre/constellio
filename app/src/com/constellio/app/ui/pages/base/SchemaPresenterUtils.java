@@ -34,6 +34,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -98,6 +99,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
+		createTransaction.setToReindexAll();
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
 		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
@@ -147,7 +149,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			return false;
 		}
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
-		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 
@@ -286,7 +288,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName);
+				UploadOptions options = new UploadOptions().setFileName(fileName);
+				ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
+				contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+				contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate())
+						.setDuplicatedHash(contentVersionDataSummary.getHash());
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

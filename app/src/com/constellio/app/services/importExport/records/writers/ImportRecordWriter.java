@@ -21,26 +21,27 @@ public class ImportRecordWriter {
 		this.filter = filter;
 	}
 
-	public void write(ModifiableImportRecord importRecord) {
-
-		if (importRecord.getCollection() == null) {
-			throw new RuntimeException("Collection is required!");
-		}
-
-		if (importRecord.getSchemaType() == null) {
-			throw new RuntimeException("Schema type is required!");
-		}
-
-		if (filter == null || filter.isImported(importRecord)) {
-			ImportRecordOfSameCollectionWriter collectionWriter = writers.get(importRecord.getCollection());
-			if (collectionWriter == null) {
-				File collectionFolder = new File(outputFolder, importRecord.getCollection());
-				collectionFolder.mkdirs();
-				collectionWriter = new ImportRecordOfSameCollectionWriter(collectionFolder);
-				writers.put(importRecord.getCollection(), collectionWriter);
+	public void write(ModifiableImportRecord... importRecords) {
+		for (ModifiableImportRecord importRecord : importRecords) {
+			if (importRecord.getCollection() == null) {
+				throw new RuntimeException("Collection is required!");
 			}
 
-			collectionWriter.write(importRecord);
+			if (importRecord.getSchemaType() == null) {
+				throw new RuntimeException("Schema type is required!");
+			}
+
+			if (filter == null || filter.isImported(importRecord)) {
+				ImportRecordOfSameCollectionWriter collectionWriter = writers.get(importRecord.getCollection());
+				if (collectionWriter == null) {
+					File collectionFolder = new File(outputFolder, importRecord.getCollection());
+					collectionFolder.mkdirs();
+					collectionWriter = new ImportRecordOfSameCollectionWriter(collectionFolder);
+					writers.put(importRecord.getCollection(), collectionWriter);
+				}
+
+				collectionWriter.write(importRecord);
+			}
 		}
 	}
 

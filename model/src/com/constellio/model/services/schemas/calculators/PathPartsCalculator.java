@@ -43,7 +43,7 @@ public class PathPartsCalculator implements MetadataValueCalculator<List<String>
 		return Arrays.asList(pathDependency);
 	}
 
-	private List<String> getPathsParts(String id, List<String> paths) {
+	protected List<String> getPathsParts(String id, List<String> paths) {
 		Set<String> pathsParts = new HashSet<>();
 
 		for (String path : paths) {

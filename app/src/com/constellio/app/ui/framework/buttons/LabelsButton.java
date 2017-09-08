@@ -1,17 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -19,7 +7,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportField;
-import com.constellio.app.modules.rm.services.reports.ReportUtils;
+import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -42,12 +30,18 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 /**
  * FIXME Use a presenter
@@ -213,20 +207,27 @@ public class LabelsButton extends WindowButton {
                 Object ob = formatField.getValue();
                 if (ob instanceof PrintableLabel) {
                     PrintableLabel selected = (PrintableLabel) formatField.getValue();
-                    ReportUtils ru = new ReportUtils(collection, appLayerFactory, user);
+                    ReportXMLGenerator reportXmlGenerator = new ReportXMLGenerator(collection, appLayerFactory, user);
                     try {
                         if ((Integer) startPositionField.getValue() > size) {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));
                         }
-                        ru.setStartingPosition((Integer) startPositionField.getValue() - 1);
-                        ru.setNumberOfCopies(Integer.parseInt(copiesField.getValue()));
-                        String xml = type.equals(Folder.SCHEMA_TYPE) ? ru.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : ru.convertContainerWithIdentifierToXML(ids, null);
+                        reportXmlGenerator.setStartingPosition((Integer) startPositionField.getValue() - 1);
+                        String number = copiesField.getValue();
+                        number = number.replace(" ", "");
+                        int numberOfCopies = Integer.parseInt(number);
+                        if(numberOfCopies >= 1000) {
+                            showErrorMessage($("LabelsButton.cannotPrint1000Labels"));
+                            return;
+                        }
+                        reportXmlGenerator.setNumberOfCopies(numberOfCopies);
+                        String xml = type.equals(Folder.SCHEMA_TYPE) ? reportXmlGenerator.convertFolderWithIdentifierToXML(ids, (ReportField[]) null) : reportXmlGenerator.convertContainerWithIdentifierToXML(ids, null);
                         Content content = selected.get(PrintableLabel.JASPERFILE);
                         InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
                         FileUtils.copyInputStreamToFile(inputStream, new File("jasper.jasper"));
                         File file = new File("jasper.jasper");
-                        Content c = ru.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
-                        getWindow().setContent(new LabelViewer(c, ReportUtils.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf"));
+                        File c = reportXmlGenerator.createPDFFromXmlAndJasperFile(xml, file, ((PrintableLabel) formatField.getValue()).getTitle() + ".pdf");
+                        getWindow().setContent(new LabelViewer(c, ReportXMLGenerator.escapeForXmlTag(((PrintableLabel) formatField.getValue()).getTitle()) + ".pdf", model.getIOServicesFactory().newIOServices()));
                         Page.getCurrent().getJavaScript().execute("$('iframe').find('#print').remove()");
                         getWindow().setHeight("90%");
                         getWindow().center();
@@ -267,7 +268,7 @@ public class LabelsButton extends WindowButton {
     }
 
     public void setIds(List<String> ids) {
-        this.ids.addAll(ids);
+        this.ids = new ArrayList<> (ids);
     }
 
     public void setIds(String id) {

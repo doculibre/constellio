@@ -238,10 +238,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	@org.junit.Before
 	public void invalidateStaticCaches() {
 		FoldersLocator.invalidateCaches();
+		ReindexingServices.markReindexingHasFinished();
+		DataLayerFactory.countInit = 0;
+		DataLayerFactory.countConstructor = 0;
 	}
 
 	@org.junit.Before
 	public void logTest() {
+
 		if (LOGGER == null) {
 			LOGGER = LoggerFactory.getLogger(getClass());
 		}
@@ -401,7 +405,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return resourcesDir;
 	}
 
-	protected File getTestResourceFile(String partialName) {
+	public File getTestResourceFile(String partialName) {
 		return getTestResourceFile(null, partialName);
 	}
 
@@ -416,7 +420,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return file;
 	}
 
-	protected File getTestResourceFile(Class clazz, String partialName) {
+	public File getTestResourceFile(Class clazz, String partialName) {
 		ensureNotUnitTest();
 		return getTestResourceFileWithoutCheckingIfUnitTest(clazz == null ? getClass() : clazz, partialName);
 	}
@@ -883,6 +887,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected abstract ConstellioTestSession getCurrentTestSession();
 
+	public void markAsNotAUnitTest() {
+		notAUnitItest = true;
+	}
+
 	public abstract class SubTest {
 
 		public abstract void run();
@@ -1000,11 +1008,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return record.getId();
 	}
 
-	protected SaveStateFeature getSaveStateFeature() {
+	public SaveStateFeature getSaveStateFeature() {
 		return getCurrentTestSession().getSaveStateFeature();
 	}
 
-	protected void givenTransactionLogIsEnabled() {
+	public void givenTransactionLogIsEnabled() {
 		givenTransactionLogIsEnabled(null);
 	}
 
@@ -1013,7 +1021,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void givenTransactionLogIsEnabled(final SecondTransactionLogReplayFilter filter) {
-		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
+		final File logTempFolder = getCurrentTestSession()
+				.getFileSystemTestFeatures()
+				.newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryDataLayerConfiguration configuration) {
@@ -1149,7 +1159,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.users != null) {
 					preparator.users.setUp(getModelLayerFactory().newUserServices());
 				}
+				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
+					givenInstalledModule(pluginClass);
+				}
 			}
+
 		} else {
 
 			stateFolder.mkdirs();
@@ -1207,6 +1221,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					}
 				}
 
+				for (Class<? extends InstallableModule> pluginClass : preparator.plugins) {
+					givenInstalledModule(pluginClass);
+				}
+
 			}
 			if (mode.isEnabled()) {
 				try {
@@ -1250,6 +1268,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<String> modules = new ArrayList<>();
 
+		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
+
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
 		}
@@ -1275,6 +1295,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		public CollectionPreparator withRobotsModule() {
 			modules.add(ConstellioRobotsModule.ID);
 			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withPlugins(Class<?>... pluginsToAdd) {
+
+			for (Class<?> plugin : pluginsToAdd) {
+				plugins.add((Class<? extends InstallableModule>) plugin);
+			}
+
 			return this;
 		}
 
@@ -1360,6 +1389,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return false;
 			}
 
+			if (!plugins.equals(that.plugins)) {
+				return false;
+			}
+
 			return true;
 		}
 
@@ -1374,6 +1407,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + (allTestUsers ? 1 : 0);
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
+			result = 31 * result + plugins.hashCode();
 			return result;
 		}
 	}
@@ -1391,7 +1425,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getCurrentTestSession().getFileSystemTestFeatures());
 	}
 
-	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
+	public ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
 		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
 	}

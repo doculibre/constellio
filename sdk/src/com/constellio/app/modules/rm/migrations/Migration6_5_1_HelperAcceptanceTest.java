@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1.Migration6_5_1_Helper;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -116,7 +117,7 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		String metadataLocalCode = createNewStringMetadataInFolder();
 		Folder folderA01 = records.getFolder_A01();
-		recordServices.add(folderA01.set(metadataLocalCode, "nonNullValue"));
+		recordServices.add((RecordWrapper) folderA01.set(metadataLocalCode, "nonNullValue"));
 		return metadataLocalCode;
 	}
 
@@ -124,7 +125,7 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		String metadataLocalCode = createNewStringMetadataInFolder();
 		Folder folderA01 = records.getFolder_A01();
-		recordServices.add(folderA01.set(metadataLocalCode, null));
+		recordServices.add((RecordWrapper) folderA01.set(metadataLocalCode, null));
 		return metadataLocalCode;
 	}
 

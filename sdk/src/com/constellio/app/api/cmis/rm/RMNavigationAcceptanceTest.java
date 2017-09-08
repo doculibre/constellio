@@ -43,6 +43,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -68,7 +69,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withDocumentsHavingContent());
@@ -285,7 +286,8 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		);
 
 		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		recordServices.add(tasks.newTask().setTitle("Ze task").set(RMTask.ADMINISTRATIVE_UNIT, records.unitId_11b));
+		recordServices
+				.add((RecordWrapper) tasks.newTask().setTitle("Ze task").set(RMTask.ADMINISTRATIVE_UNIT, records.unitId_11b));
 
 		as(admin).assertThatChildrensOf(folder(records.unitId_11b)).containsOnly(
 				tuple("B31", "folder_default", "Orange"),

@@ -9,6 +9,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,16 +22,14 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
@@ -38,6 +42,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 	private static final String DEPOSIT_DATE_BEFORE_TRANSFER_DATE = "depositDateBeforeTransferDate";
 	private static final String DESTRUCTION_DATE_BEFORE_TRANSFER_DATE = "destructionDateBeforeTransferDate";
+	private static final String ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME = "messageUSRNotPresentInSchemaName";
+	private static final String ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE = "typeCannotBeChangeForTypeType";
 	private static Logger LOGGER = LoggerFactory.getLogger(RMSystemCheckExtension.class);
 
 	String collection;
@@ -49,13 +55,17 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	RecordServices recordServices;
 	IOServices ioServices;
 
-	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
-	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+	public static final String EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckoutedList";
+	public static final String METRIC_EMAIL_CHECKOUTED = "rm.recordValidation.emailCheckouted";
+	public static final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
+	public static final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+	public static final String METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL = "rm.recordValidation.subFolderWithNullFieldsNotNulls";
+	public static final String METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE = "rm.recordValidation.typeDoNotCorrespondToTypeType";
 
-	public final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
-	public final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
-	public final String DELETED_CATEGORIES = "rm.category.deleted";
-	public final String RESTORED_CATEGORIES = "rm.category.restored";
+	public static final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
+	public static final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
+	public static final String DELETED_CATEGORIES = "rm.category.deleted";
+	public static final String RESTORED_CATEGORIES = "rm.category.restored";
 
 	RMSchemasRecordsServices rm;
 
@@ -87,6 +97,132 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	}
 
 	@Override
+	public boolean validateRecord(ValidateRecordsCheckParams validateRecordsCheckParams) {
+
+		Record record = validateRecordsCheckParams.getRecord();
+		boolean isRepair = validateRecordsCheckParams.isRepair();
+		boolean isToBeSaved = false;
+
+		if (record.getSchemaCode().equals(Email.SCHEMA)) // Vérifier qu'il est checkouter.
+		{
+
+			Email email = rm.wrapEmail(record);
+
+			if (email.getContent() != null && email.getContent().getCurrentCheckedOutVersion() != null) {
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_EMAIL_CHECKOUTED);
+				validateRecordsCheckParams.getResultsBuilder().addListItem(EMAIL_CHECKOUTED, record.getId());
+				if (validateRecordsCheckParams.isRepair()) {
+					if (email.getContent() != null) {
+						email.getContent().checkIn();
+
+						isToBeSaved = true;
+					}
+				}
+			}
+		} else if (record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+			Folder folder = rm.wrapFolder(record);
+			boolean incrementMetric = false;
+			FolderType folderType = null;
+			if (folder.getType() != null) {
+				folderType = rm.getFolderType(folder.getType());
+			}
+			if(folderType != null && folderType.getLinkedSchema()!= null && !record.getSchemaCode().equals(folderType.getLinkedSchema())) {
+				boolean isSavechangeSchema;
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
+				if(isRepair) {
+					isSavechangeSchema = record.changeSchema(rm.getTypes().getSchema(record.getSchemaCode()),rm.getTypes().getSchema(folderType.getLinkedSchema()));
+					if(!isSavechangeSchema) {
+						isToBeSaved = true;
+					}
+					else {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("recordId", record.getId());
+						validateRecordsCheckParams.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE, parameter);
+					}
+				}
+			}
+
+			if (folder.getParentFolder() != null) {
+				if (folder.getMainCopyRuleIdEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setMainCopyRuleEntered(null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getUniformSubdivisionEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setUniformSubdivisionEntered((UniformSubdivision) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getAdministrativeUnitEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setAdministrativeUnitEntered((AdministrativeUnit) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getCategoryEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setCategoryEntered((Category) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getRetentionRuleEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setRetentionRuleEntered((RetentionRule) null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (folder.getCopyStatusEntered() != null) {
+					incrementMetric = true;
+					if (isRepair) {
+						folder.setCopyStatusEntered(null);
+						isToBeSaved = true;
+					}
+				}
+
+				if (incrementMetric) {
+					validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_SUB_FOLDER_WITH_NULL_FIELD_NOT_NULL);
+				}
+			}
+ 		} else if (record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
+			Document document = rm.wrapDocument(record);
+
+			DocumentType documentType = null;
+			if (document.getType() != null) {
+				documentType = rm.getDocumentType(document.getType());
+			}
+			if(documentType != null && documentType.getLinkedSchema() != null && !record.getSchemaCode().equals(documentType.getLinkedSchema())) {
+				boolean isSavechangeSchema;
+				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
+				if(isRepair) {
+					isSavechangeSchema = record.changeSchema(rm.getTypes().getSchema(record.getSchemaCode()),rm.getTypes().getSchema(documentType.getLinkedSchema()));
+					if(!isSavechangeSchema) {
+						isToBeSaved = true;
+					}
+					else {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("recordId", record.getId());
+						validateRecordsCheckParams.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE, parameter);
+					}
+				}
+			}
+		}
+
+		return isToBeSaved;
+	}
+
+	@Override
 	public void checkCollection(CollectionSystemCheckParams params) {
 		boolean markedForReindexing = false;
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -99,7 +235,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				try {
 					recordServices.refresh(unit);
 					if (!unit.getWrappedRecord().isDisconnected()) {
-						recordServices.add(unit.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
+						recordServices.add(unit.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 
 						if (recordServices.isLogicallyThenPhysicallyDeletable(unit.getWrappedRecord(), User.GOD)) {
 							recordServices.logicallyDelete(unit.getWrappedRecord(), User.GOD);
@@ -121,6 +257,20 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			}
 		}
 
+		MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		for(MetadataSchemaType metadataSchemaType : metadataSchemaTypes.getSchemaTypes()) {
+			if(metadataSchemaType.getCode().toLowerCase().equals("document") || metadataSchemaType.getCode().toLowerCase().equals("folder")) {
+				for(MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
+					if(!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default")) {
+						Map<String, Object> parameter = new HashMap<>();
+						parameter.put("schemaCode", metadataSchema.getLocalCode());
+						parameter.put("metadataSchemaType", metadataSchemaType.getCode());
+						params.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class, ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME, parameter);
+					}
+				}
+			}
+		}
+
 		List<Category> categories = rm.searchCategorys(where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 
 		for (Category category : categories) {
@@ -132,7 +282,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				try {
 					recordServices.refresh(category);
 					if (!category.getWrappedRecord().isDisconnected()) {
-						recordServices.add(category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
+						recordServices.add(category.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 						if (recordServices.isLogicallyThenPhysicallyDeletable(category.getWrappedRecord(), User.GOD)) {
 							recordServices.logicallyDelete(category.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(category.getWrappedRecord(), User.GOD);

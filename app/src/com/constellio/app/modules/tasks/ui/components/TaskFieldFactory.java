@@ -3,11 +3,7 @@ package com.constellio.app.modules.tasks.ui.components;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
-import com.constellio.app.modules.tasks.ui.components.fields.list.TaskListAddRemoveLinkedDocumentsLookupField;
-import com.constellio.app.modules.tasks.ui.components.fields.list.TaskListAddRemoveLinkedFoldersLookupField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.*;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
@@ -16,6 +12,12 @@ import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
+
+	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
+
+	public TaskFieldFactory(boolean isViewOnly) {
+		super(isViewOnly);
+	}
 
 	@Override
 	public Field<?> build(MetadataVO metadata) {
@@ -60,6 +62,12 @@ public class TaskFieldFactory extends MetadataFieldFactory {
             field = new TaskListAddRemoveLinkedDocumentsLookupField();
 			postBuild(field, metadata);
             break;
+        case INCLUSIVE_DECISION:
+        	field = new ListAddRemoveWorkflowInclusiveDecisionFieldImpl();
+        	break;
+		case REMINDER_FREQUENCY:
+			field = new TaskReminderFrequencyFieldImpl();
+			break;
 		default:
 			field = super.build(metadata);
 		}

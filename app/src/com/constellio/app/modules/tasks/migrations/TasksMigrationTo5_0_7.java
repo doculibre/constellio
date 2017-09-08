@@ -4,6 +4,7 @@ import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.HIDDEN;
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.LOOKUP;
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RICHTEXT;
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
@@ -21,6 +22,7 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -32,8 +34,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
@@ -247,8 +247,8 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 		private MetadataSchemaTypeBuilder createTaskStatusType() {
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, "Statut",
-							ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
+					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, migrationResourcesProvider.getLanguagesString("Statut"),
+							codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
@@ -276,10 +276,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 
 		private MetadataSchemaBuilder createTaskTypeSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-			String label = migrationResourcesProvider.getDefaultLanguageString("init.ddvTaskType");
+			Map<Language, String> labels = migrationResourcesProvider.getLanguagesString("init.ddvTaskType");
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-					.createValueListItemSchema(
-							TaskType.SCHEMA_TYPE, label, ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
+					.createValueListItemSchema(TaskType.SCHEMA_TYPE, labels, codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 			schema.create(TaskType.LINKED_SCHEMA).setType(STRING);

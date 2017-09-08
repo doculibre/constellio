@@ -25,8 +25,12 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forParams(event.getParameters());
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 
@@ -40,7 +44,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 	}
 
 	private Component buildChildrenAdminUnitsTable() {
-		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getChildrenAdminUnitsDataProvider());
+		final RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getChildrenAdminUnitsDataProvider());
 
 		AdminUnitsWithContainersCountContainer adaptedContainer = new AdminUnitsWithContainersCountContainer(
 				recordVOLazyContainer, getCollection(), getSessionContext().getCurrentUser().getId(), presenter.tabName);
@@ -53,7 +57,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
-						RecordVO entity = presenter.getChildrenAdminUnitsDataProvider().getRecordVO(index);
+						RecordVO entity = recordVOLazyContainer.getRecordVO(index);
 						presenter.displayAdminUnitButtonClicked(presenter.tabName, entity);
 					}
 				};
@@ -74,7 +78,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 	}
 
 	private Component buildContainersTable() {
-		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getContainersDataProvider());
+		final RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getContainersDataProvider());
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordVOLazyContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
@@ -83,7 +87,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
-						RecordVO entity = presenter.getContainersDataProvider().getRecordVO(index);
+						RecordVO entity = recordVOLazyContainer.getRecordVO(index);
 						presenter.displayContainerButtonClicked(entity);
 					}
 				};

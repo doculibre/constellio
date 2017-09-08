@@ -47,8 +47,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	public void whenClearingSchemasListInSchemaTypeThenExceptionThrown() {
 		List<MetadataSchema> schemas = Arrays.asList(schema1, schema2);
 		MetadataSchemaType schemaType = new MetadataSchemaType("aCode", "zeCollection", labels, schemas,
-				defaultSchema, false,
-				true, true);
+				defaultSchema, false, true, true, false);
 
 		schemaType.getSchemas().clear();
 	}

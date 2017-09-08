@@ -19,10 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.assertj.core.api.ListAssert;
@@ -493,6 +497,21 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
 				tuple(true, RW, aliceWonderland), tuple(true, RW, charles), tuple(true, RW, dakota), tuple(true, RWD, edouard));
 
+	}
+
+	@Test
+	public void givenRwdAclWhenRemoveDeleteAclThenKeepsRW() {
+		session = givenAdminSessionOnZeCollection();
+		session.getDefaultContext().setIncludeAcls(true);
+		givenFolderInheritingTaxonomyAuthorizations();
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+		cmisFolder2.setAcl(asList(ace(admin, RWD)));
+		assertThatAcesOf(zeCollectionRecords.folder2).contains(tuple(true, RWD, admin));
+//		cmisFolder2.applyAcl(asList(ace(admin, RW)), asList(ace(admin, RWD)), REPOSITORYDETERMINED);
+		cmisFolder2.applyAcl(new ArrayList<Ace>(), asList(ace(admin, RWD)), REPOSITORYDETERMINED);
+		cmisFolder2.applyAcl(asList(ace(admin, RW)), new ArrayList<Ace>(), REPOSITORYDETERMINED);
+		assertThatAcesOf(zeCollectionRecords.folder2).contains(tuple(true, RW, admin));
+		assertThatAcesOf(zeCollectionRecords.folder2).doesNotContain(tuple(true, RWD, admin));
 	}
 
 	private ListAssert<Tuple> assertThatAcesOf(Record record) {

@@ -373,6 +373,47 @@ $popup-view-z-index: 3;
 		@include folder-icon(folder_purple);
 	}
 
+	.v-table-cell-content-file-icon-folder_frozen {
+		@include folder-icon(folder_frozen);
+	}
+	
+	
+	
+
+	.v-table-cell-content-file-icon-folder_orange_frozen {
+		@include folder-icon(folder_orange_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_orange_locked {
+		@include folder-icon(folder_orange_locked);
+	}
+
+	.v-table-cell-content-file-icon-folder_grey_frozen {
+		@include folder-icon(folder_grey_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_grey_locked {
+		@include folder-icon(folder_grey_locked);
+	}
+
+	.v-table-cell-content-file-icon-folder_purple_frozen {
+		@include folder-icon(folder_purple_frozen);
+	}
+
+	.v-table-cell-content-file-icon-folder_purple_locked {
+		@include folder-icon(folder_purple_locked);
+	}
+
+	.v-table-cell-content-file-icon-document_frozen {
+		@include file-icon(unquote("document_frozen.gif"));
+	}
+
+	.v-table-cell-content-file-icon-document_locked {
+		@include file-icon(unquote("document_locked.gif"));
+	}
+
+
+
 	.v-table-cell-content-error {
 		color: #FFFFFF;
 		background-color: #F5A9A9;
@@ -653,6 +694,12 @@ $popup-view-z-index: 3;
 	.base-multifileupload-completed:after {
 		content: " \f00c ";
 	}
+				
+	.v-filterselect-suggestpopup-advanced-search-form-metadata {
+		.popupContent {
+			width: 400px;
+		}
+	}
 
 	.v-popupview-popup-header-popup {
 		width: 100%;
@@ -928,6 +975,14 @@ $popup-view-z-index: 3;
 			display: block;
 			font-weight: bold;
 			color: red;
+		}
+	}
+	
+	.config-management {
+		.config-group {
+			.v-spacing {
+				height: 20px;
+			}
 		}
 	}
 	
@@ -1783,4 +1838,9 @@ $popup-view-z-index: 3;
       border: 2px solid $bg;
     }
   }
+
+}
+
+.warningLabel {
+  color: #ff0000
 }

@@ -31,6 +31,12 @@ public class ContainerRecordLinearSizeCalculator implements MetadataValueCalcula
             return capacityParam;
         }
 
+        if(enteredLinearSizeParam != null && enteredLinearSizeSumParam != null && capacityParam != null) {
+            if (Math.abs(enteredLinearSizeSumParam - capacityParam) < 0.001) {
+                enteredLinearSizeSumParam = capacityParam;
+            }
+        }
+
         return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
     }
 

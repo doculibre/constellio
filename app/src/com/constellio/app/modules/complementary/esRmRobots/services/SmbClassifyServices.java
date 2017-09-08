@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -43,7 +42,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
@@ -121,7 +122,9 @@ public class SmbClassifyServices {
 			Content content;
 			if (StringUtils.isEmpty(versions)) {
 				InputStream inputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
+				UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+						.setHandleDeletionOfUnreferencedHashes(false);
+				newVersionDataSummary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 				//Content content;
 				if (majorVersions) {
 					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
@@ -164,14 +167,15 @@ public class SmbClassifyServices {
 
 			if (e instanceof IcapException) {
 				if (e instanceof IcapException.ThreatFoundException) {
-					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+					exception = new IcapException(
+							$(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
 				} else {
-                    if (e.getCause() == null) {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
-                    } else {
-                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
-                    }
-                }
+					if (e.getCause() == null) {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()));
+					} else {
+						exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+					}
+				}
 			}
 
 			if (newVersionDataSummary != null) {
@@ -190,8 +194,12 @@ public class SmbClassifyServices {
 
 			InputStream availableVersionInputStream = connectorUtilsServices
 					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
-			ContentVersionDataSummary contentVersionDataSummary = contentManager
-					.upload(availableVersionInputStream, false, true, connectorDocument.getTitle());
+
+			UploadOptions options = new UploadOptions(connectorDocument.getTitle())
+					.setHandleDeletionOfUnreferencedHashes(false);
+
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(availableVersionInputStream, options)
+					.getContentVersionDataSummary();
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();
@@ -224,10 +232,12 @@ public class SmbClassifyServices {
 	private List<String> classifyFolder(String smbFolderId, String rmFolderId, List<String> createdDocumentsIds,
 			Boolean majorVersions) {
 
-		for (String childConnectorSmbFolderId : getChildrenConnectorSmbFolders(smbFolderId)) {
-			List<String> newDocumentsRecordsIds = getChildrenDocuments(childConnectorSmbFolderId);
+		ConnectorSmbFolder parentSmbFolder = es
+				.getConnectorSmbFolder(smbFolderId);
+		for (String childConnectorSmbFolderId : getChildrenConnectorSmbFolders(parentSmbFolder)) {
 			ConnectorSmbFolder childConnectorSmbFolder = es
 					.getConnectorSmbFolder(childConnectorSmbFolderId);
+			List<String> newDocumentsRecordsIds = getChildrenDocuments(childConnectorSmbFolder);
 
 			Folder createdFolder = rmSchemasRecordsServices.getFolder(rmFolderId);
 			Folder folder = rmSchemasRecordsServices.newFolder();
@@ -251,7 +261,7 @@ public class SmbClassifyServices {
 			classifyFolder(childConnectorSmbFolderId, folder.getId(), createdDocumentsIds, majorVersions);
 		}
 
-		List<String> newDocumentsRecordsIds = getChildrenDocuments(smbFolderId);
+		List<String> newDocumentsRecordsIds = getChildrenDocuments(parentSmbFolder);
 		createdDocumentsIds.addAll(classifyConnectorDocuments(rmFolderId, null, newDocumentsRecordsIds, majorVersions, true));
 
 		ConnectorSmbFolder connectorSmbFolderToDelete = es
@@ -273,16 +283,16 @@ public class SmbClassifyServices {
 		return createdDocumentsIds;
 	}
 
-	private List<String> getChildrenDocuments(String connectorSmbFolderId) {
+	private List<String> getChildrenDocuments(ConnectorSmbFolder smbFolder) {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(es.connectorSmbDocument.schemaType())
-				.where(es.connectorSmbDocument.parent()).is(connectorSmbFolderId)
+				.where(es.connectorSmbDocument.parentConnectorUrl()).is(smbFolder.getConnectorUrl())
 				.andWhere(Schemas.FETCHED).isTrue());
 		return searchServices.searchRecordIds(query);
 	}
 
-	private List<String> getChildrenConnectorSmbFolders(String connectorSmbFolderId) {
+	private List<String> getChildrenConnectorSmbFolders(ConnectorSmbFolder smbFolder) {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(es.connectorSmbFolder.schemaType())
-				.where(es.connectorSmbFolder.parent()).is(connectorSmbFolderId)
+				.where(es.connectorSmbFolder.parentConnectorUrl()).is(smbFolder.getConnectorUrl())
 				.andWhere(Schemas.FETCHED).isTrue());
 		return searchServices.searchRecordIds(query);
 	}

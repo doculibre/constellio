@@ -19,6 +19,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	public long getVersion();
 
+	public long getDataMigrationVersion();
+
 	public String getSchemaCode();
 
 	String getTypeCode();
@@ -36,6 +38,8 @@ public interface Record extends Serializable, CollectionObject {
 	<T> T getNonNullValueIn(List<Metadata> metadatas);
 
 	<T> List<T> getList(Metadata metadata);
+
+	<T> List<T> getValues(Metadata metadata);
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
@@ -55,13 +59,15 @@ public interface Record extends Serializable, CollectionObject {
 
 	Record getCopyOfOriginalRecord();
 
+	Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas);
+
 	String getIdTitle();
 
 	void removeAllFieldsStartingWith(String field);
 
 	void markAsModified(Metadata metadata);
 
-	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
+	boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
 
 	<T> void addValueToList(Metadata metadata, T value);
 

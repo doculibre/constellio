@@ -50,6 +50,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -68,6 +69,8 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.RecordMigrationsManager;
+import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
@@ -115,6 +118,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock RecordPopulateServices recordPopulateServices;
 	@Mock Factory<EncryptionServices> encryptionServiceFactory;
 	@Mock AuthorizationsServices authorizationServices;
+	@Mock RecordMigrationsManager recordMigrationsManager;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
 
 	long firstVersion = anInteger();
@@ -240,6 +244,11 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.getContentManager()).thenReturn(contentManager);
 		when(modelFactory.newLoggingServices()).thenReturn(loggingServices);
 		when(modelFactory.getExtensions()).thenReturn(extensions);
+		when(modelFactory.getRecordMigrationsManager()).thenReturn(recordMigrationsManager);
+
+		when(recordMigrationsManager.getCurrentDataVersion(anyString(), anyString())).thenReturn(0L);
+		when(recordMigrationsManager.getRecordMigrationsFor(any(Record.class)))
+				.thenReturn(new RequiredRecordMigrations(0L, new ArrayList<RecordMigrationScript>()));
 
 		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
 

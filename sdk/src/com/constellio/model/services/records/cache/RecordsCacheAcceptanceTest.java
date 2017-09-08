@@ -24,7 +24,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -134,7 +133,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPermanentCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+	public void givenPermanentCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOnePassedToTheCacheThenDoesNotAffectTheCachedRecord()
 			throws Exception {
 
 		Transaction transaction = new Transaction();
@@ -144,9 +143,9 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
@@ -156,13 +155,13 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 
 	@Test
-	public void givenVolatileCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+	public void givenVolatileCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOnePassedToTheCacheThenDoesNotAffectTheCachedRecord()
 			throws Exception {
 
 		Transaction transaction = new Transaction();
@@ -172,10 +171,10 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
@@ -184,8 +183,8 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 				.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 
@@ -200,18 +199,18 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record);
 
 		record.set(Schemas.TITLE, "modified title");
-		returnedRecord.set(Schemas.TITLE, "modified title");
+		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
-		assertThat(returnedRecord.isDirty()).isTrue();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
 
 	}
 
@@ -390,65 +389,6 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		Record record = getModelLayerFactory().newRecordServices().getDocumentById("zeUltimateRecordWithEmptyValue");
 		assertThat(record.get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
-
-	}
-
-	@Test
-	public void givenASchemaTypeIsCachedThenAddWithDelayedFlushingButNotUpdate()
-			throws Exception {
-
-		givenTestRecords();
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.add(newRecordOf("6", zeCollectionSchemaWithVolatileCache));
-		transaction.add(newRecordOf("7", zeCollectionSchemaWithPermanentCache));
-		cachelessRecordServices.execute(transaction);
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.update(record2.withTitle("modified1"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record2.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.update(record3.withTitle("modified1"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record3.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
-
-		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record1.withTitle("newTitle"));
-		transaction.update(record3.withTitle("modified2"));
-		try {
-			cachelessRecordServices.execute(transaction);
-			fail("RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache expected");
-		} catch (RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache e) {
-			//OK
-		}
 
 	}
 

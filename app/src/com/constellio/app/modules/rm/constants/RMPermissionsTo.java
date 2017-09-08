@@ -86,6 +86,8 @@ public class RMPermissionsTo {
 
 	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
+	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 
@@ -96,6 +98,7 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+	public static final String DELETE_CONTAINERS = permission(DECOMMISSIONING, "deleteContainers");
 	public static final String DISPLAY_CONTAINERS = permission(DECOMMISSIONING, "displayContainers");
 
 	public static final String BORROW_CONTAINER = permission(DECOMMISSIONING, "borrowContainer");
@@ -104,6 +107,7 @@ public class RMPermissionsTo {
 
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");
+	public static final String GENERATE_SIP_ARCHIVES = permission(DECOMMISSIONING, "generateSIPArchives");
 
 	// Cart
 	private static final String CART_GROUP = "carts";

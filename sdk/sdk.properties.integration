@@ -16,11 +16,11 @@ dao.settings.type=filesystem
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
 skip.uitests=true
-skip.drivertests=false
+skip.drivertests=true
 skip.loadtests=true
-skip.internettests=false
+skip.internettests=true
 skip.indevelopment=true
-skip.testsWithGradle=false
+
 
 tests.whitelist=
-tests.blacklist=com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactoryAcceptanceTest,com.constellio.model.services.search.SearchServiceAcceptanceTest,com.constellio.model.services.emails.EmailServicesAcceptanceTest,com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImplAcceptanceTest,com.constellio.app.modules.es.connectors.sharepoint.ConnectorSharepointUtilsServicesRealTest,com.constellio.app.modules.es.connectors.sharepoint.SharepointSecurityAcceptanceTest
+tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,com.constellio.model.conf.ldap.services.AzureAdClientAcceptanceTest,com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteAcceptanceTest,com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManagerAcceptTest,com.constellio.app.modules.migrations.PluginsComboMigrationsAcceptanceTest

@@ -27,6 +27,7 @@ import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
@@ -35,7 +36,9 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -53,6 +56,7 @@ public abstract class Decommissioner {
 	private ContentConversionManager conversionManager;
 	private Transaction transaction;
 	private List<Record> recordsToDelete;
+	private List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
 
@@ -145,6 +149,10 @@ public abstract class Decommissioner {
 		recordsToDelete.add(record.getWrappedRecord());
 	}
 
+	protected void physicallyDelete(RecordWrapper record) {
+		recordsToDeletePhysically.add(record.getWrappedRecord());
+	}
+
 	private void validate() {
 		if (!decommissioningService.isProcessable(decommissioningList, user)) {
 			// TODO: Proper exception
@@ -158,6 +166,7 @@ public abstract class Decommissioner {
 		this.user = user;
 		transaction = new Transaction();
 		recordsToDelete = new ArrayList<>();
+		recordsToDeletePhysically = new ArrayList<>();
 	}
 
 	private void saveCertificates(DecommissioningList decommissioningList) {
@@ -282,7 +291,7 @@ public abstract class Decommissioner {
 			}
 			add(document.setContent(null));
 			if (configs.deleteDocumentRecordsWithDestruction()) {
-				delete(document);
+				physicallyDelete(document);
 			}
 		}
 	}
@@ -338,6 +347,7 @@ public abstract class Decommissioner {
 
 	private void processContainers() {
 		List<String> containerIdUsed = new ArrayList<>();
+		Map<String, DecomListContainerDetail> detailsToProcess = new HashMap<>();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
 				continue;
@@ -347,10 +357,27 @@ public abstract class Decommissioner {
 
 		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
 		for (DecomListContainerDetail detail : containerDetails) {
-			if(containerIdUsed.contains(detail.getContainerRecordId())) {
-				processContainer(rm.getContainerRecord(detail.getContainerRecordId()), detail);
+			String containerRecordId = detail.getContainerRecordId();
+			if (containerIdUsed.contains(containerRecordId)) {
+				if(!detailsToProcess.containsKey(containerRecordId)) {
+					detailsToProcess.put(containerRecordId, detail);
+				} else {
+					DecomListContainerDetail previousDetail = detailsToProcess.get(containerRecordId);
+					if(!previousDetail.isFull() && detail.isFull()) {
+						detailsToProcess.put(containerRecordId, detail);
+					}
+				}
+			}
+		}
+
+		for (DecomListContainerDetail detail : containerDetails) {
+			String containerRecordId = detail.getContainerRecordId();
+			if (containerIdUsed.contains(containerRecordId)) {
+				if(detailsToProcess.get(containerRecordId) == detail) {
+					processContainer(rm.getContainerRecord(containerRecordId), detail);
+				}
 			} else {
-				decommissioningList.removeContainerDetail(detail.getContainerRecordId());
+				decommissioningList.removeContainerDetail(containerRecordId);
 			}
 		}
 
@@ -375,11 +402,28 @@ public abstract class Decommissioner {
 	protected abstract void processContainer(ContainerRecord container, DecomListContainerDetail detail);
 
 	protected boolean isContainerEmpty(ContainerRecord container, List<String> destroyedFolders) {
+		boolean empty;
 		LogicalSearchCondition condition = from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(container);
 		if (!destroyedFolders.isEmpty()) {
 			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(destroyedFolders);
 		}
-		return searchServices.getResultsCount(condition) == 0;
+		boolean noSearchResult = searchServices.getResultsCount(condition) == 0;
+		if (noSearchResult) {
+			empty = true;
+			// Current transaction folders would not be taken into account otherwise
+			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+				if (detail.isFolderExcluded()) {
+					continue;
+				}
+				if (container.getId().equals(detail.getContainerRecordId())) {
+					empty = false;
+					break;
+				}
+			}	
+		} else {
+			empty = false;
+		}
+		return empty;
 	}
 
 	protected DecommissioningType getDecommissioningTypeForContainer() {
@@ -404,6 +448,17 @@ public abstract class Decommissioner {
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
+			}
+
+			decommissioningList.removeReferences(recordsToDeletePhysically.toArray(new Record[0]));
+			recordServices.recalculate(decommissioningList);
+			recordServices.update(decommissioningList);
+			for (Record record : recordsToDeletePhysically) {
+				try {
+					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+				} catch (Exception e) {
+					recordServices.logicallyDelete(record, user);
+				}
 			}
 			contentManager.deleteUnreferencedContents();
 		} catch (RecordServicesException e) {
@@ -518,7 +573,7 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 		//		}
 		//add(folder);
 		if (configs.deleteFolderRecordsWithDestruction()) {
-			delete(folder);
+			physicallyDelete(folder);
 		}
 		destroyedFolders.add(folder.getId());
 		processDocumentsInDeleted(folder);
@@ -546,13 +601,11 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	}
 
 	protected boolean shouldPurgeMinorVersions() {
-		return decommissioningList.isFromActive() ?
-				configs.purgeMinorVersionsOnTransfer() :
-				configs.purgeMinorVersionsOnDeposit();
+		return configs.purgeMinorVersionsOnTransfer() || configs.purgeMinorVersionsOnDeposit();
 	}
 
 	protected boolean shouldCreatePDFa() {
-		return decommissioningList.isFromActive() ? configs.createPDFaOnTransfer() : configs.createPDFaOnDeposit();
+		return configs.createPDFaOnTransfer() || configs.createPDFaOnDeposit();
 	}
 }
 

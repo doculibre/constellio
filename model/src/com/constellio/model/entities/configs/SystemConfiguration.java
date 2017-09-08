@@ -1,9 +1,11 @@
 package com.constellio.model.entities.configs;
 
+import java.io.Serializable;
+
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 
-public class SystemConfiguration {
+public class SystemConfiguration implements Serializable {
 
 	boolean hidden;
 

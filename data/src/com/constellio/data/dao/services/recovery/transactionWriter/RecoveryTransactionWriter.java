@@ -1,15 +1,16 @@
 package com.constellio.data.dao.services.recovery.transactionWriter;
 
-import static org.apache.solr.client.solrj.util.ClientUtils.toSolrInputDocument;
-
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentBase;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.transactionLog.writer1.TransactionWriterV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import org.apache.solr.common.SolrInputField;
 
 public class RecoveryTransactionWriter extends TransactionWriterV1 {
 
@@ -40,10 +41,8 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
 
 		for (Object document : documents) {
-			if (document instanceof SolrInputDocument) {
-				appendAddUpdateSolrDocument(stringBuilder, (SolrInputDocument) document);
-			} else if (document instanceof SolrDocument) {
-				appendAddUpdateSolrDocument(stringBuilder, toSolrInputDocument((SolrDocument) document));
+			if (document instanceof SolrDocumentBase) {
+				appendAddUpdateSolrDocument(stringBuilder, (SolrDocumentBase) document);
 			} else {
 				throw new RuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
 			}

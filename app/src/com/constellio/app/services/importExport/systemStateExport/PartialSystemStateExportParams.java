@@ -1,6 +1,5 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PartialSystemStateExportParams {

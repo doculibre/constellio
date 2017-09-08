@@ -263,7 +263,7 @@ public class ModificationImpactCalculator {
 			return getReferenceMetadatasUsedByTheGivenReferenceDependencyToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata, (ReferenceDependency) dependency);
 
-		} else if (dependency == SpecialDependencies.HIERARCHY
+		} else if (SpecialDependencies.HIERARCHY.equals(dependency) 
 				&& modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(automaticMetadata, modifiedMetadata)) {
 			return getReferenceMetadatasUsedByTheGivenHierarchyDependencyToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata);

@@ -1,5 +1,7 @@
 package com.constellio.model.entities.calculators;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +32,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	MetadataValueType type;
 	String metadataCode;
-	JexlScript jexlScript;
+
+	transient JexlScript jexlScript;
 	Set<List<String>> variables;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JEXLMetadataValueCalculator.class);
@@ -40,10 +43,30 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	public JEXLMetadataValueCalculator(String expression) {
 		this.expression = expression;
+		initTransient();
 	}
 
-	public JexlScript getJexlScript() {
-		return jexlScript;
+	private void initTransient() {
+
+		boolean strict = false;
+		String script = expression;
+		if (expression.startsWith("#STRICT:")) {
+			strict = true;
+			script = expression.substring(8);
+		}
+
+		JexlEngine jexl = new JexlBuilder().strict(strict).create();
+		jexlScript = jexl.createScript(script);
+	}
+
+	private void readObject(ObjectInputStream in)
+			throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		initTransient();
+	}
+
+	public String getExpression() {
+		return expression;
 	}
 
 	@Override
@@ -57,6 +80,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		} catch (JexlException e) {
 			logJexlException(e);
 			return null;
+
 		} catch (Exception e) {
 
 			Throwable t = e.getCause();
@@ -69,14 +93,23 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	private void logJexlException(JexlException e) {
 		JexlInfo info = e.getInfo();
-		String cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
+		String cause;
+		String causeMessage;
+		if (e.getCause() == null) {
+			cause = StringUtils.substringAfterLast(e.getClass().getName(), ".");
+			causeMessage = e.getMessage();
+
+		} else {
+			cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
+			causeMessage = e.getCause().getMessage();
+		}
 
 		StringBuilder message = new StringBuilder().append("Jexl Script of metadata '").append(metadataCode)
 				.append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
 				.append(" : ").append(cause);
 
-		if (e.getCause().getMessage() != null) {
-			message.append(" ").append(e.getCause().getMessage());
+		if (causeMessage != null) {
+			message.append(" ").append(causeMessage);
 		}
 
 		LOGGER.error(message.toString());
@@ -84,6 +117,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	private JexlContext prepareJexlContext(CalculatorParameters parameters) {
 		JexlContext jc = new MapContext();
+		jc.set("utils", new JEXLCalculatorUtils());
 		for (Dependency dependency : dependencies) {
 			if (dependency instanceof LocalDependency) {
 				LocalDependency<?> localDependency = (LocalDependency<?>) dependency;
@@ -95,7 +129,13 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				String key = referenceDependency.getLocalMetadataCode();
 
 				Map<String, Object> map = new HashMap<>();
-				map.put(referenceDependency.getDependentMetadataCode(), parameters.get(referenceDependency));
+
+				Object value = parameters.get(referenceDependency);
+				if (referenceDependency.isMultivalue() && value == null) {
+					map.put(referenceDependency.getDependentMetadataCode(), new ArrayList<>());
+				} else {
+					map.put(referenceDependency.getDependentMetadataCode(), value);
+				}
 
 				jc.set(key, map);
 			}
@@ -132,14 +172,9 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
 		try {
-
-			JexlEngine jexl = new JexlBuilder().create();
-			jexlScript = jexl.createScript(expression);
-
 			for (List<String> variable : jexlScript.getVariables()) {
-				if (variable.size() == 2) {
+				if (variable.size() >= 2) {
 					dependencies.add(toReferenceDependency(types, schema, variable));
-
 				}
 			}
 
@@ -156,35 +191,30 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		type = calculatedMetadata.getType();
 		dependencies.clear();
 		try {
-
-			JexlEngine jexl = new JexlBuilder().create();
-			jexlScript = jexl.createScript(expression);
 			variables = jexlScript.getVariables();
 		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
 
 		if (variables != null) {
 			for (List<String> variable : jexlScript.getVariables()) {
-				if (variable.size() == 1) {
+				if (!variable.isEmpty() && !"utils".equals(variable.get(0))) {
 					dependencies.add(toLocalDependency(schemaMetadatas, variable));
 
 				}
 			}
-
 		}
 
 	}
 
-	private LocalDependency toLocalDependency(MetadataSchema schema, List<String> variable) {
+	private LocalDependency<?> toLocalDependency(MetadataSchema schema, List<String> variable) {
 		boolean isRequired = false;
 		Metadata metadata = schema.getMetadata(variable.get(0));
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
 				metadata.getType(), false);
 	}
 
-	private LocalDependency toLocalDependency(List<Metadata> metadatas, List<String> variable) {
+	private LocalDependency<?> toLocalDependency(List<Metadata> metadatas, List<String> variable) {
 		boolean isRequired = false;
 		Metadata metadata = null;
 

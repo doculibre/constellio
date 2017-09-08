@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -100,7 +101,8 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		Record administrativeUnit = recordServices().getDocumentById(adminUnitId);
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).on(administrativeUnit);
 	}
 
 	public void displayAdminUnitButtonClicked(String tabName, RecordVO adminUnit) {

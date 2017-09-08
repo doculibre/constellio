@@ -124,24 +124,6 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		return authenticated;
 	}
 
-	private String getUserDomain(String username, String url) {
-		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration();
-		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
-		boolean isAD = (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), url,
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), isAD);
-		String dnForUser = ldapServices
-				.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
-		try {
-			ctx.close();
-		} catch (NamingException e) {
-			//OK
-			LOGGER.warn("Error when trying to extract user dn", e);
-		}
-		return dnForUser;
-	}
-
 	private boolean authenticate(String username, String password, String url) {
 		try {
 			String domain = StringUtils.substringAfter(username, "@");

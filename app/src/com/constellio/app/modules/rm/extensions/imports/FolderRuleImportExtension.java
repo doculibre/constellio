@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -37,6 +38,7 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		Folder folder = rm.wrapFolder(event.getRecord());
 		ajustCreationModificationDates(fields, folder);
 		setEnteredMainCopyId(folder);
+		autoCalculateDates(folder, event);
 		ajusteManualDepositAndDestructionDates(folder);
 		adjustContainer(folder);
 	}
@@ -57,6 +59,27 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 //				folder.setContainer(containerRecord.getId());
 //			}
 //		}
+	}
+
+	private void autoCalculateDates(Folder folder, BuildParams event) {
+		String autoSetStatusTo = event.getImportRecord().getOption("autoSetStatusTo");
+		if (autoSetStatusTo != null) {
+			rm.getModelLayerFactory().newRecordServices().recalculate(folder);
+
+			if (FolderStatus.SEMI_ACTIVE.getCode().equals(autoSetStatusTo.toLowerCase())) {
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+
+			} else if (FolderStatus.INACTIVE_DEPOSITED.getCode().equals(autoSetStatusTo.toLowerCase())) {
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				folder.setActualDepositDate(folder.getExpectedDepositDate());
+
+			} else if (FolderStatus.INACTIVE_DESTROYED.getCode().equals(autoSetStatusTo.toLowerCase())) {
+				folder.setActualTransferDate(folder.getExpectedTransferDate());
+				folder.setActualDestructionDate(folder.getExpectedDestructionDate());
+			}
+
+		}
+
 	}
 
 	private void ajusteManualDepositAndDestructionDates(Folder folder) {
@@ -106,27 +129,26 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 	}
 
 	private void ajustCreationModificationDates(Map<String, Object> fields, Folder folder) {
-		if (folder.getFormCreatedBy() == null) {
-			String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
-			if (createdBy != null) {
-				folder.setFormCreatedBy(folder.getCreatedBy());
-			}
+
+		String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
+		if (createdBy != null) {
+			folder.setFormCreatedBy(folder.getCreatedBy());
 		}
 
-		if (folder.getFormCreatedOn() == null) {
-			LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
+		LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
+
+		if (createdOn != null) {
 			folder.setFormCreatedOn(createdOn);
 		}
 
-		if (folder.getFormModifiedBy() == null) {
-			String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
-			if (modifiedBy != null) {
-				folder.setFormModifiedBy(folder.getModifiedBy());
-			}
+		String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
+		if (modifiedBy != null) {
+			folder.setFormModifiedBy(folder.getModifiedBy());
 		}
 
-		if (folder.getFormModifiedOn() == null) {
-			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
+		LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
+
+		if (modifiedOn != null) {
 			folder.setFormModifiedOn(modifiedOn);
 		}
 	}

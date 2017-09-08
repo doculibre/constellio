@@ -12,12 +12,13 @@ public class BigVaultUpdateRequest extends UpdateRequest {
 	}
 
 	@Override
-	public void writeXML(Writer writer)
+	public UpdateRequest writeXML(Writer writer)
 			throws IOException {
 		// Solr requires the <update> tag when documents are added and deleted in the same request
 		writer.write("<update>");
 		super.writeXML(writer);
 		writer.write("</update>");
+		return this;
 	}
 
 }

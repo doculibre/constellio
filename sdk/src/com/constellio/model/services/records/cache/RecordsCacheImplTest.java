@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -30,6 +31,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
@@ -42,6 +45,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class RecordsCacheImplTest extends ConstellioTest {
+
+	@Mock ModelLayerSystemExtensions systemExtensions;
+	@Mock ModelLayerExtensions extensions;
 
 	@Mock User user;
 	@Mock SearchBoost searchBoost;
@@ -64,6 +70,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);
+
+		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
+		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 	}
 
 	@Test
@@ -71,11 +80,20 @@ public class RecordsCacheImplTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
-		Record record4 = cache.insert(newRecord(zeType, 4));
-		Record record5 = cache.insert(newRecord(zeType, 5));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
+
+		Record record4 = newRecord(zeType, 4);
+		cache.insert(record4);
+
+		Record record5 = newRecord(zeType, 5);
+		cache.insert(record5);
 
 		cache.insert(record1);
 		cache.insert(record2);
@@ -140,9 +158,14 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
@@ -163,9 +186,14 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(anotherType, 2));
-		Record record3 = cache.insert(newRecord(anotherType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(anotherType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(anotherType, 3);
+		cache.insert(record3);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecords("2", "3").areNotInCache();
@@ -178,9 +206,14 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		Record record1 = cache.insert(newRecord(zeType, 1));
-		Record record2 = cache.insert(newRecord(zeType, 2));
-		Record record3 = cache.insert(newRecord(zeType, 3));
+		Record record1 = newRecord(zeType, 1);
+		cache.insert(record1);
+
+		Record record2 = newRecord(zeType, 2);
+		cache.insert(record2);
+
+		Record record3 = newRecord(zeType, 3);
+		cache.insert(record3);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
@@ -236,6 +269,34 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(newRecord(zeType, 1));
 		assertThatRecords("1", "5", "6").areInCache();
 		assertThatRecords("2", "3", "4").areNotInCache();
+
+	}
+
+	@Test
+	public void givenVolatileCacheWithFirstInFirstOutInvalidationWhenARecordIsPlacedThenOldestRemoved()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata, FIFO));
+
+		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 2));
+		cache.insert(newRecord(zeType, 3));
+
+		cache.get("1");
+		cache.get("2");
+
+		cache.insert(newRecord(zeType, 4));
+		cache.insert(newRecord(zeType, 5));
+
+		assertThatRecords("3", "4", "5").areInCache();
+		assertThatRecords("1", "2").areNotInCache();
+
+		cache.get("4");
+		cache.get("5");
+		cache.insert(newRecord(zeType, 6));
+
+		assertThatRecords("4", "5", "6").areInCache();
+		assertThatRecords("1", "2", "3").areNotInCache();
 
 	}
 
@@ -1117,6 +1178,29 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenInsertingRecordInOlderVersionThenRejected()
+			throws Exception {
+
+		givenDisabledRecordDuplications = true;
+
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, asList(zeTypeCodeMetadata)));
+
+		Record record = newRecord(zeType, 1);
+
+		Record recordInNewVersion = newRecord(zeType, 1, 2L);
+
+		assertThat(cache.insert(record)).isEqualTo(CacheInsertionStatus.ACCEPTED);
+		assertThat(cache.get("1").getVersion()).isEqualTo(1L);
+
+		assertThat(cache.insert(recordInNewVersion)).isEqualTo(CacheInsertionStatus.ACCEPTED);
+		assertThat(cache.get("1").getVersion()).isEqualTo(2L);
+
+		assertThat(cache.insert(record)).isEqualTo(CacheInsertionStatus.REFUSED_OLD_VERSION);
+		assertThat(cache.get("1").getVersion()).isEqualTo(2L);
+
+	}
+
+	@Test
 	public void givenCacheWithMetadataIndexesThenCanFindRecordsWithThem()
 			throws Exception {
 
@@ -1164,16 +1248,16 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThat(idOf(cache.getByMetadata(anotherTypeLegacyIdMetadata, "789"))).isEqualTo("6");
 		assertThat(idOf(cache.getByMetadata(anotherTypeLegacyIdMetadata, "666"))).isNull();
 
-		zeType18 = newRecord(zeType, 2);
+		zeType18 = newRecord(zeType, 2, 2L);
 		when(zeType18.get(zeTypeCodeMetadata)).thenReturn("666");
 		cache.insert(asList(zeType18));
 
-		anotherType42 = newRecord(anotherType, 6);
+		anotherType42 = newRecord(anotherType, 6, 2L);
 		when(anotherType42.get(anotherTypeCodeMetadata)).thenReturn("ze42");
 		when(anotherType42.get(anotherTypeLegacyIdMetadata)).thenReturn("666");
 		cache.insert(asList(anotherType42));
 
-		anotherType1 = newRecord(anotherType, 4);
+		anotherType1 = newRecord(anotherType, 4, 2L);
 		when(anotherType1.get(anotherTypeCodeMetadata)).thenReturn(null);
 		when(anotherType1.get(anotherTypeLegacyIdMetadata)).thenReturn("123");
 		cache.insert(asList(anotherType1));
@@ -1287,6 +1371,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		final Record record = mock(Record.class, schemaType + "-" + id);
 		when(record.getId()).thenReturn(id);
 		when(record.getSchemaCode()).thenReturn(schema);
+		when(record.getTypeCode()).thenReturn(schemaType);
 		when(record.getVersion()).thenReturn(version);
 		when(record.isDirty()).thenReturn(false);
 		when(record.isFullyLoaded()).thenReturn(true);

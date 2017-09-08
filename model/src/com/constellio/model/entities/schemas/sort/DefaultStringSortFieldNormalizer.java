@@ -40,4 +40,12 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 	public String normalizeNull() {
 		return null;
 	}
+
+	public static String normalizeNullable(String value) {
+		if (value == null) {
+			return null;
+		} else {
+			return new DefaultStringSortFieldNormalizer().normalize(value);
+		}
+	}
 }

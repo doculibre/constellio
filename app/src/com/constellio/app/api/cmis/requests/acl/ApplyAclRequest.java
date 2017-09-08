@@ -32,11 +32,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
@@ -224,7 +223,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					List<String> principals = new ArrayList<>(authorization.getGrantedToPrincipals());
 					principals.add(principal.getId());
 					authorizationsServices.execute(modifyAuthorizationOnRecord(authorization, objectId)
-							.withNewPrincipalIds(principals));
+							.withNewPrincipalIds(principals).setExecutedBy(user));
 
 					//					List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
 					//					authorizations.add(authorizationDetails.getId());

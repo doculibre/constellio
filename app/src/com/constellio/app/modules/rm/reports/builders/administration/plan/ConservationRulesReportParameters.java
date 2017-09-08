@@ -20,4 +20,8 @@ public class ConservationRulesReportParameters {
     public String getAdministrativeUnit() {
         return administrativeUnit;
     }
+
+    public void setAdministrativeUnit(String administrativeUnit) {
+        this.administrativeUnit = administrativeUnit;
+    }
 }

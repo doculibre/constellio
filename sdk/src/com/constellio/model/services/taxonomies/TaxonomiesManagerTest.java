@@ -21,6 +21,9 @@ import org.mockito.Mock;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -41,6 +44,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock MetadataSchemasManager schemasManager;
 	@Mock ConfigManager configManager;
+	@Mock ConstellioCacheManager cacheManager;
 	@Mock SearchServices searchServices;
 	@Mock TaxonomiesWriter writer;
 	@Mock TaxonomiesReader reader;
@@ -59,14 +63,18 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 
 	TaxonomiesManager taxonomiesManager;
 	ArrayList<String> metadataRelations;
+	
+	ConstellioCache zeCache;
 
 	@Before
 	public void setup()
 			throws Exception {
 
+		zeCache = new SerializationCheckCache("zeCache");
+		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
 		taxonomiesManager = spy(
-				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches));
+				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches, cacheManager));
 		doReturn(oneXMLConfigPerCollectionManager).when(taxonomiesManager).newOneXMLConfigPerCollectionManager();
 		taxonomiesManager.initialize();
 

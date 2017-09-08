@@ -17,6 +17,7 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -41,12 +42,12 @@ public class EmailBuilder {
 		this.systemConfigManager = systemConfigManager;
 	}
 
-	public Message build(EmailToSend messageToSend, Session session, String defaultFrom)
+	public MimeMessage build(EmailToSend messageToSend, Session session, String defaultFrom)
 			throws MessagingException, InvalidBlankEmail {
 
 		EmailAddressFactory factory = new EmailAddressFactory();
 
-		Message message = new SMTPMessage(session);
+		MimeMessage message = new SMTPMessage(session);
 
 		String addressFrom;
 		EmailAddress from = messageToSend.getFrom();

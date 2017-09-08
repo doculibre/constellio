@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -9,16 +13,10 @@ import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class EventImportExtension extends RecordImportExtension {
 
 	public static final String TYPE_REQUIRED = "typeRequired";
-	private static final Logger LOGGER = LoggerFactory.getLogger(EventImportExtension.class);
 
 	RMSchemasRecordsServices rm;
 
@@ -46,15 +44,14 @@ public class EventImportExtension extends RecordImportExtension {
 
 		if (event.getRecordId() != null) {
 			if (event.getType().toLowerCase().contains(Folder.SCHEMA_TYPE.toLowerCase())) {
-				Folder folder = rm.getFolderWithLegacyId(event.getRecordId());
-				if(folder == null) {
-					try {
-						folder = rm.getFolder(event.getRecordId());
-					} catch (Exception e) {
-						LOGGER.error("Could not find folder " + event.getRecordId() + " for event " + event.getLegacyId());
-						event.setRecordId(null);
-					}
+
+				Folder folder;
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					folder = rm.getFolderWithLegacyId(event.getRecordId());
+				} else {
+					folder = rm.getFolder(event.getRecordId());
 				}
+
 				if(folder != null) {
 					event.setRecordId(folder.getId());
 					event.setTitle(folder.getTitle());
@@ -62,14 +59,13 @@ public class EventImportExtension extends RecordImportExtension {
 			}
 
 			if (event.getType().toLowerCase().contains(Document.SCHEMA_TYPE.toLowerCase())) {
-				Document document = rm.getDocumentByLegacyId(event.getRecordId());
-				if(document == null) {
-					try {
-						document = rm.getDocument(event.getRecordId());
-					} catch (Exception e) {
-						LOGGER.error("Could not find document " + event.getRecordId() + " for event " + event.getLegacyId());
-						event.setRecordId(null);
-					}
+				Document document;
+
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					document = rm.getDocumentByLegacyId(event.getRecordId());
+				}
+				else {
+					document = rm.getDocument(event.getRecordId());
 				}
 				if(document != null) {
 					event.setRecordId(document.getId());
@@ -78,14 +74,12 @@ public class EventImportExtension extends RecordImportExtension {
 			}
 
 			if (event.getType().toLowerCase().contains(ContainerRecord.SCHEMA_TYPE.toLowerCase())) {
-				ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
-				if(containerRecord == null) {
-					try {
-						containerRecord = rm.getContainerRecord(event.getRecordId());
-					} catch (Exception e) {
-						LOGGER.error("Could not find container " + event.getRecordId() + " for event " + event.getLegacyId());
-						event.setRecordId(null);
-					}
+				ContainerRecord containerRecord;
+
+				if(params.getImportDataOptions().isImportAsLegacyId()) {
+					containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
+				} else {
+					containerRecord = rm.getContainerRecord(event.getRecordId());
 				}
 				if(containerRecord != null) {
 					event.setRecordId(containerRecord.getId());

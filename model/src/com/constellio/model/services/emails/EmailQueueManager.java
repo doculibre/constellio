@@ -9,6 +9,7 @@ import java.util.List;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
@@ -141,7 +142,7 @@ public class EmailQueueManager implements StatefulService {
 			for (Record record : records) {
 				if (emailConfiguration.isEnabled()) {
 					try {
-						Message email = buildEmail(session, emailBuilder, schemas.wrapEmailToSend(record), defaultEmail);
+						MimeMessage email = buildEmail(session, emailBuilder, schemas.wrapEmailToSend(record), defaultEmail);
 						emailServices.sendEmail(email);
 						deleteEmail(record, "email sent correctly");
 						subsequentFailuresCount = 0;
@@ -185,7 +186,7 @@ public class EmailQueueManager implements StatefulService {
 
 	}
 
-	private Message buildEmail(Session session, EmailBuilder emailBuilder, EmailToSend emailToSend, String defaultEmail)
+	private MimeMessage buildEmail(Session session, EmailBuilder emailBuilder, EmailToSend emailToSend, String defaultEmail)
 			throws Exception {
 		try {
 			return emailBuilder.build(emailToSend, session, defaultEmail);

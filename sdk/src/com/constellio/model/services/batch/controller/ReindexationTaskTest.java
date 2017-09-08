@@ -1,35 +1,26 @@
 package com.constellio.model.services.batch.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.*;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
-import com.constellio.model.services.records.RecordProvider;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class ReindexationTaskTest extends ConstellioTest {
 
@@ -49,6 +40,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	@Mock Record record2;
 	@Mock Record record3;
 	@Mock Record record4;
+	@Mock User user;
 
 	@Mock Transaction transaction;
 
@@ -82,7 +74,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 		when(metadataSchemaTypes.getCollection()).thenReturn(zeCollection);
 
 		reindexationTask = spy(new BatchProcessTask(taskList, batch, action, recordServices, metadataSchemaTypes,
-				searchServices));
+				searchServices, user));
 		doReturn(handler).when(reindexationTask).createSubTaskImpactHandler();
 	}
 

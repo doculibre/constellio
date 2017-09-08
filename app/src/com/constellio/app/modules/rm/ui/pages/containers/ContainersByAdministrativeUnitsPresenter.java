@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsView.ContainersViewTab;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -34,6 +37,8 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	private ContainersViewTab depositWithStorageSpace;
 
 	private List<ContainersViewTab> tabs;
+
+	private transient DecommissioningService decommissioningService;
 
 	public ContainersByAdministrativeUnitsPresenter(ContainersByAdministrativeUnitsView view) {
 		super(view);
@@ -71,10 +76,19 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
-						.where(schema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(AdministrativeUnit.PARENT)).isNull()
-						.andWhere(
-								Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				User user = getCurrentUser();
+				if (!user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
+					return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
+							.where(Schemas.IDENTIFIER).isIn(adminUnitIds)
+							.andWhere(
+									Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				} else {
+					return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
+							.where(schema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(AdministrativeUnit.PARENT)).isNull()
+							.andWhere(
+									Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				}
 			}
 		};
 		return dataProvider;

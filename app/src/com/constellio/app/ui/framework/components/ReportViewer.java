@@ -23,19 +23,22 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ReportViewer extends VerticalLayout {
 
 	public ReportViewer(ReportWriter reportWriter, String filename) {
+		addStyleName("no-scroll");
 		StreamSource source = buildSource(reportWriter);
 
 		Embedded viewer = new Embedded();
 		viewer.setSource(new StreamResource(source, filename));
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
-		viewer.setHeight("1024px");
+		viewer.setHeight("100%");
 
 		Link download = new Link($("ReportViewer.download", filename),
 				new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
 		addComponents(download, viewer);
+		setExpandRatio(viewer, 1);
 		setWidth("100%");
+		setHeight("100%");
 	}
 
 	static String getMimeTypeFromFileName(String filename) {

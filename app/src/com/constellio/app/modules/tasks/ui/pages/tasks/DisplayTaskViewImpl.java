@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -16,6 +17,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -89,103 +91,132 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
 
-		EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editButtonClicked();
-			}
+		if(!presenter.isLogicallyDeleted()) {
+			EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editButtonClicked();
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
-			}
-		};
-		actionMenuButtons.add(editCurrentTask);
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
+				}
+			};
+			actionMenuButtons.add(editCurrentTask);
 
-		ConfirmDialogButton autoAssignTask = new ConfirmDialogButton($("DisplayTaskView.autoAssignTask")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DisplayTaskView.autoAssignTaskDialogMessage");
-			}
+			ConfirmDialogButton autoAssignTask = new ConfirmDialogButton($("DisplayTaskView.autoAssignTask")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("DisplayTaskView.autoAssignTaskDialogMessage");
+				}
 
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.autoAssignButtonClicked();
-			}
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.autoAssignButtonClicked();
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isAutoAssignButtonEnabled();
-			}
-		};
-		actionMenuButtons.add(autoAssignTask);
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isAutoAssignButtonEnabled();
+				}
+			};
+			actionMenuButtons.add(autoAssignTask);
 
-		ConfirmDialogButton completeTask = new ConfirmDialogButton($("DisplayTaskView.completeTask")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DisplayTaskView.completeTaskDialogMessage");
-			}
+			ConfirmDialogButton completeTask = new ConfirmDialogButton($("DisplayTaskView.completeTask")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("DisplayTaskView.completeTaskDialogMessage");
+				}
 
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.completeButtonClicked();
-			}
+				@Override
+				protected String getConfirmDialogOKCaption() {
+					return $("DisplayTaskView.quickComplete");
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isCompleteCurrentTaskButtonVisible();
-			}
-		};
-		actionMenuButtons.add(completeTask);
+				@Override
+				protected String getConfirmDialogCancelCaption() {
+					return $("cancel");
+				}
 
-		ConfirmDialogButton closeTask = new ConfirmDialogButton($("DisplayTaskView.closeTask")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DisplayTaskView.closeTaskDialogMessage");
-			}
+				@Override
+				protected String getConfirmDialogNotOkCaption() {
+					return $("DisplayTaskView.slowComplete");
+				}
 
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.closeButtonClicked();
-			}
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					if(dialog.isConfirmed()) {
+						presenter.completeQuicklyButtonClicked(presenter.getTask());
+					}
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
-			}
+				@Override
+				protected void dialogClosedWitoutConfirm(ConfirmDialog dialog) {
+					if(!dialog.isCanceled()) {
+						presenter.completeButtonClicked(presenter.getTask());
+					}
+				}
 
-			@Override
-			public boolean isEnabled() {
-				return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
-			}
-		};
-		actionMenuButtons.add(closeTask);
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isCompleteCurrentTaskButtonVisible();
+				}
+			};
+			actionMenuButtons.add(completeTask);
 
-		AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.createSubTaskButtonClicked();
-			}
+			ConfirmDialogButton closeTask = new ConfirmDialogButton($("DisplayTaskView.closeTask")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("DisplayTaskView.closeTaskDialogMessage");
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
-			}
-		};
-		actionMenuButtons.add(createSubTask);
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.closeButtonClicked();
+				}
 
-		DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deleteButtonClicked();
-			}
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
+				}
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && presenter.isDeleteCurrentTaskButtonVisible();
-			}
-		};
-		actionMenuButtons.add(deleteTask);
+				@Override
+				public boolean isEnabled() {
+					return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
+				}
+			};
+			actionMenuButtons.add(closeTask);
+
+			AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.createSubTaskButtonClicked();
+				}
+
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
+				}
+			};
+			actionMenuButtons.add(createSubTask);
+
+			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deleteButtonClicked();
+				}
+
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && presenter.isDeleteCurrentTaskButtonVisible();
+				}
+			};
+			actionMenuButtons.add(deleteTask);
+
+			ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.TASK,  presenter.getTask());
+			actionMenuButtons.add(reportGeneratorButton);
+		}
 
 		return actionMenuButtons;
 	}

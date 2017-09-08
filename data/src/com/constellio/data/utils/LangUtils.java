@@ -290,6 +290,16 @@ public class LangUtils {
 			return this;
 		}
 
+		public String replaceFirst(String value) {
+
+			String output = value;
+			for (StringReplacement stringReplacement : stringReplacements) {
+				output = stringReplacement.replaceFirst(output);
+			}
+
+			return output;
+		}
+
 		public String replaceOn(String value) {
 
 			String output = value;
@@ -309,6 +319,10 @@ public class LangUtils {
 		public StringReplacement(Pattern pattern, CharSequence replacement) {
 			this.pattern = pattern;
 			this.replacement = replacement;
+		}
+
+		String replaceFirst(String value) {
+			return pattern.matcher(value).replaceFirst(Matcher.quoteReplacement(replacement.toString()));
 		}
 
 		String replace(String value) {

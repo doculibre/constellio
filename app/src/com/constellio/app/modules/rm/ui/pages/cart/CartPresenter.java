@@ -3,15 +3,15 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -23,17 +23,21 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.cart.CartEmlService;
+import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
@@ -44,15 +48,25 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
@@ -98,8 +112,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		InputStream stream = new CartEmlService(collection, modelLayerFactory).createEmlForCart(cart());
-		view.startDownload(stream);
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart());
+		String filename = emailMessage.getFilename();
+    	InputStream stream = emailMessage.getInputStream();
+		view.startDownload(stream, filename);
 	}
 
 	public boolean canDuplicate() {
@@ -169,9 +185,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				if (getCurrentUser().hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+				User user = getCurrentUser();
+				if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
 					return new LogicalSearchQuery(
 							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+							.filteredByStatus(StatusFilter.ACTIVES)
+							.sortAsc(Schemas.TITLE);
+				} else if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
+					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
+					return new LogicalSearchQuery(
+							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems())
+							.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES)
 							.sortAsc(Schemas.TITLE);
 				} else {
@@ -288,6 +312,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
 	}
 
+	List<FolderVO> getCartFoldersVO(){
+		FolderToVOBuilder builder = new FolderToVOBuilder();
+		List<FolderVO> folderVOS = new ArrayList<>();
+		for(Folder folder : this.getCartFolders()){
+			folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+		}
+		return folderVOS;
+	}
+
 	List<String> getCartFolderIds() {
 		return cart().getFolders();
 	}
@@ -326,8 +359,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public String getOriginType() {
-		return batchProcessingPresenterService().getOriginType(getRecordsIds(batchProcessSchemaType));
+	public String getOriginType(String schemaType) {
+		return batchProcessingPresenterService().getOriginType(getRecordsIds(schemaType));
 	}
 
 	public String getOriginType(List<String> selectedRecordIds) {
@@ -335,8 +368,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
-		return newRecordVO(getRecordsIds(batchProcessSchemaType), schema, sessionContext);
+	public RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext) {
+		return newRecordVO(getRecordsIds(schemaType), schema, sessionContext);
 	}
 
 	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
@@ -344,9 +377,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, RecordVO viewObject)
+	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getRecordsIds(batchProcessSchemaType), viewObject);
+		return simulateButtonClicked(selectedType, getRecordsIds(schemaType), viewObject);
 	}
 
 	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
@@ -357,9 +390,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, RecordVO viewObject)
+	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		processBatchButtonClicked(selectedType, getRecordsIds(batchProcessSchemaType), viewObject);
+		processBatchButtonClicked(selectedType, getRecordsIds(schemaType), viewObject);
 	}
 
 	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
@@ -370,13 +403,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public boolean hasWriteAccessOnAllRecords() {
-		return hasWriteAccessOnAllRecords(getRecordsIds(batchProcessSchemaType));
+	public boolean hasWriteAccessOnAllRecords(String schemaType) {
+		return hasWriteAccessOnAllRecords(getRecordsIds(schemaType));
 	}
 
 	@Override
-	public long getNumberOfRecords() {
-		return (long) getRecordsIds(batchProcessSchemaType).size();
+	public long getNumberOfRecords(String schemaType) {
+		return (long) getRecordsIds(schemaType).size();
 	}
 
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
@@ -405,7 +438,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return newRecordFieldFactory(schemaType, selectedType, getRecordsIds(batchProcessSchemaType));
+		return newRecordFieldFactory(schemaType, selectedType, getRecordsIds(schemaType));
 	}
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
@@ -436,7 +469,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public boolean isBatchProcessingButtonVisible(String schemaType) {
 		boolean hasRightToProcessSchemaType = true;
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType) && !getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS)
-				.globally()) {
+				.onSomething()) {
 			hasRightToProcessSchemaType = false;
 		}
 		return getRecordsIds(schemaType).size() != 0 && hasRightToProcessSchemaType;
@@ -597,9 +630,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				if (getCurrentUser().hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+				User user = getCurrentUser();
+				if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
 					return new LogicalSearchQuery(
 							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
+							.sortAsc(Schemas.TITLE);
+				} else if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
+					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
+					return new LogicalSearchQuery(
+							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems())
+							.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 							.sortAsc(Schemas.TITLE);
 				} else {
@@ -666,5 +707,47 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				from(rm().decommissioningList.schemaType()).where(rm().decommissioningList.status())
 						.isNotEqual(DecomListStatus.PROCESSED)
 						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
+	}
+
+	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value, String schemaType) {
+		Map<String, Object> changes = new HashMap<>();
+		changes.put(code, value);
+		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
+
+		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
+		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getRecordsIds(schemaType));
+		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
+		manager.markAsPending(process);
+	}
+
+	public List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType) {
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
+		List<MetadataVO> result = new ArrayList<>();
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		for (Metadata metadata : types().getSchemaType(schemaType).getAllMetadatas().sortAscTitle(language)) {
+			if (isBatchEditable(metadata)) {
+				result.add(builder.build(metadata, view.getSessionContext()));
+			}
+		}
+		return result;
+	}
+
+	private boolean isBatchEditable(Metadata metadata) {
+		return !metadata.isSystemReserved()
+				&& !metadata.isUnmodifiable()
+				&& metadata.isEnabled()
+				&& !metadata.getType().isStructureOrContent()
+				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				&& isNotHidden(metadata)
+				// XXX: Not supported in the backend
+				&& metadata.getType() != MetadataValueType.ENUM
+				;
+	}
+
+	private boolean isNotHidden(Metadata metadata) {
+		MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
+		return config.getInputType() != MetadataInputType.HIDDEN;
 	}
 }

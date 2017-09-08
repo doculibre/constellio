@@ -9,8 +9,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 
 public abstract class TaskFormImpl extends RecordForm implements TaskForm {
 
-	public TaskFormImpl(RecordVO record) {
-		super(record, new TaskFieldFactory());
+	public TaskFormImpl(RecordVO record, boolean isEditView) {
+		super(record, new TaskFieldFactory(isEditView));
 	}
 
 	@Override

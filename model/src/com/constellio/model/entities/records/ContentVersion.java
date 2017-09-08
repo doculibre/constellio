@@ -1,5 +1,7 @@
 package com.constellio.model.entities.records;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -8,7 +10,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 
-public class ContentVersion {
+public class ContentVersion implements Serializable {
 
 	private final ContentVersionDataSummary contentVersionDataSummary;
 

@@ -11,11 +11,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 
 public abstract class DocumentFormImpl extends RecordForm implements DocumentForm {
 
-	public DocumentFormImpl(RecordVO record) {
+	public DocumentFormImpl(RecordVO record, boolean isEditView) {
 		super(record, new DocumentFieldFactory(record.getMetadataValue(
 				record.getMetadata(Document.FOLDER)).<String>getValue(),
 				record.getMetadataValue(record.getMetadata(Document.TYPE)).<String>getValue(),
-				record.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES)));
+				record.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES),isEditView));
 	}
 
 	@Override

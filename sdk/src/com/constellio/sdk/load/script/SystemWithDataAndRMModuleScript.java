@@ -44,6 +44,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.EventFactory;
@@ -262,15 +263,15 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		ThreadList<DocumentSavehread> threadList = new ThreadList<>();
 		AtomicInteger addedCount = new AtomicInteger();
-		for(int i = 0 ; i < 10 ; i++) {
-			threadList.addAndStart(new DocumentSavehread(addedCount, numberOfDocuments, contentIterator, rm, folderIds, users, transactionHandler));
+		for (int i = 0; i < 10; i++) {
+			threadList.addAndStart(new DocumentSavehread(addedCount, numberOfDocuments, contentIterator, rm, folderIds, users,
+					transactionHandler));
 		}
 		try {
 			threadList.joinAll();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
 
 		transactionHandler.closeAndJoin();
 	}
@@ -282,7 +283,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		private BigFileFolderIterator bigFileFolderIterator;
 
-		private RMSchemasRecordsServices rm ;
+		private RMSchemasRecordsServices rm;
 
 		private LinkableIdsList folderIds;
 		private LinkableRecordsList<User> users;
@@ -294,13 +295,14 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		private EventFactory eventFactory;
 		private User admin;
 
-
-		public DocumentSavehread(AtomicInteger addedCount, int requiredCount, BigFileFolderIterator bigFileFolderIterator, RMSchemasRecordsServices rm, LinkableIdsList folderIds, LinkableRecordsList<User> users, BulkRecordTransactionHandler transactionHandler) {
+		public DocumentSavehread(AtomicInteger addedCount, int requiredCount, BigFileFolderIterator bigFileFolderIterator,
+				RMSchemasRecordsServices rm, LinkableIdsList folderIds, LinkableRecordsList<User> users,
+				BulkRecordTransactionHandler transactionHandler) {
 			this.addedCount = addedCount;
 			this.requiredCount = requiredCount;
 			this.bigFileFolderIterator = bigFileFolderIterator;
 			this.rm = rm;
-			this.folderIds =folderIds;
+			this.folderIds = folderIds;
 			this.users = users;
 			this.transactionHandler = transactionHandler;
 			this.contentManager = rm.getModelLayerFactory().getContentManager();
@@ -309,28 +311,28 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 			this.admin = rm.getModelLayerFactory().newUserServices().getUserInCollection("admin", rm.getCollection());
 		}
 
-
-
 		@Override
 		public void run() {
-			while(addedCount.get() < requiredCount) {
+			while (addedCount.get() < requiredCount) {
 				List<BigFileEntry> entries = new ArrayList<>();
-				Folder  folder = rm.getFolder(folderIds.next());
+				Folder folder = rm.getFolder(folderIds.next());
 				User createdBy = users.next();
 				synchronized (bigFileFolderIterator) {
-					for(int i = 0 ; i < documentsBatch ; i++) {
+					for (int i = 0; i < documentsBatch; i++) {
 						entries.add(bigFileFolderIterator.next());
 					}
 				}
 
 				List<Record> records = new ArrayList<>();
-				for(int i = 0 ; i < documentsBatch ; i++) {
+				for (int i = 0; i < documentsBatch; i++) {
 
 					BigFileEntry entry = contentIterator.next();
 					InputStream in = new ByteArrayInputStream(entry.getBytes());
 					ContentVersionDataSummary contentVersionDataSummary;
 					try {
-						contentVersionDataSummary = contentManager.upload(in, false, true, null);
+						UploadOptions options = new UploadOptions().setHandleDeletionOfUnreferencedHashes(false);
+						contentVersionDataSummary = contentManager.upload(in, options).getContentVersionDataSummary();
+						;
 					} finally {
 						IOUtils.closeQuietly(in);
 					}

@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
+import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -27,6 +30,7 @@ import com.constellio.app.ui.framework.components.content.ContentVersionVOResour
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
@@ -36,6 +40,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import org.vaadin.peter.contextmenu.ContextMenu;
 
 public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	
@@ -57,6 +62,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
+	private boolean metadataReportButtonVisible;
 
 	protected DocumentMenuBarPresenter presenter;
 
@@ -243,6 +249,20 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				}
 			});
 		}
+
+		if(presenter.hasMetadataReport()) {
+		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReport"), null, null);
+			metadataReportGenerator.setCommand(new Command() {
+
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					View parentView = ConstellioUI.getCurrent().getCurrentView();
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					button.setRecordVoList(presenter.getDocumentVO());
+					button.click();
+				}
+			});
+		}
 	}
 
 	@Override
@@ -268,6 +288,11 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	@Override
 	public void showErrorMessage(String errorMessage) {
 		Notification.show(errorMessage, Type.ERROR_MESSAGE);
+	}
+
+	@Override
+	public UIContext getUIContext() {
+		return ConstellioUI.getCurrent();
 	}
 
 	@Override
@@ -356,6 +381,11 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	@Override
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButtonVisible = state.isEnabled();
+	}
+
+	@Override
+	public void setGenerateMetadataButtonState(ComponentState state) {
+		metadataReportButtonVisible = presenter.hasMetadataReport();
 	}
 
 	@Override

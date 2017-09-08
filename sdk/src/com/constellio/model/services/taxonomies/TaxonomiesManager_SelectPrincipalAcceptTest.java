@@ -127,28 +127,28 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy.class)
-	public void givenTaxo1DefinedAsPrincipalWhenCreatingAMultivalueMetadatWithTaxonomyReferenceInAnotherSchemaTypeThenBuildException()
+	public void givenTaxo1DefinedAsPrincipalWhenCreatingAMultivalueMetadataWithTaxonomyReferenceInAnotherSchemaTypeWhichIsSecuredThenException()
 			throws Exception {
 		givenTaxo1And2();
 		taxonomiesManager.setPrincipalTaxonomy(taxo1, schemasManager);
 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2");
-		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref").defineTaxonomyRelationshipToType(
-				taxo1Type2).setMultivalue(true);
+		typesBuilder.getOrCreateNewSchemaType("anotherSchema").setSecurity(true).getDefaultSchema().create("ref")
+				.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
-	@Test(expected = MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy.class)
-	public void givenTaxo1DefinedAsPrincipalWhenCreatingAMultivalueMetadataWithTaxonomyReferenceInAnotherSchemaTypeThenNoException()
+	@Test
+	public void givenTaxo1DefinedAsPrincipalWhenCreatingAMultivalueMetadataWithTaxonomyReferenceInAnotherSchemaTypeWhichIsNotSecuredThenNoException()
 			throws Exception {
 		givenTaxo1And2();
 		taxonomiesManager.setPrincipalTaxonomy(taxo1, schemasManager);
 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2");
-		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref").defineTaxonomyRelationshipToType(
-				taxo1Type2).setMultivalue(true);
+		typesBuilder.getOrCreateNewSchemaType("anotherSchema").setSecurity(false).getDefaultSchema().create("ref")
+				.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
@@ -175,19 +175,6 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref").defineReferencesTo(taxo1Type2)
 				.setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
-	}
-
-	@Test
-	public void givenNoPrincipalTaxonomyWhenSettingTaxoUsedByMultivalueMetadatasThenException()
-			throws Exception {
-		givenTaxo1And2();
-		try {
-			taxonomiesManager.setPrincipalTaxonomy(taxo2, schemasManager);
-			fail("TaxonomySchemaIsReferencedInMultivalueReference expected");
-		} catch (TaxonomiesManagerRuntimeException.TaxonomySchemaIsReferencedInMultivalueReference e) {
-			//OK
-		}
-		assertThat(taxonomiesManager.getPrincipalTaxonomy("zeCollection")).isNull();
 	}
 
 	@Test

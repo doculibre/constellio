@@ -1,16 +1,14 @@
 package com.constellio.model.services.search.query;
 
-import static java.util.Arrays.asList;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.Schemas;
+import static java.util.Arrays.asList;
 
 public class ReturnedMetadatasFilter {
 
@@ -23,6 +21,12 @@ public class ReturnedMetadatasFilter {
 	public ReturnedMetadatasFilter(boolean includeParsedContent, boolean includeLargeText) {
 		this.includeParsedContent = includeParsedContent;
 		this.includeLargeText = includeLargeText;
+	}
+
+	public ReturnedMetadatasFilter(boolean includeParsedContent, boolean includeLargeText, Set<String> acceptedFields) {
+		this.includeParsedContent = includeParsedContent;
+		this.includeLargeText = includeLargeText;
+		this.acceptedFields = acceptedFields;
 	}
 
 	public ReturnedMetadatasFilter(Set<String> acceptedFields) {
@@ -67,6 +71,10 @@ public class ReturnedMetadatasFilter {
 
 	public static ReturnedMetadatasFilter all() {
 		return new ReturnedMetadatasFilter(true, true);
+	}
+
+	public static ReturnedMetadatasFilter allAndWithIncludedFields(Set<String> acceptedFields) {
+		return new ReturnedMetadatasFilter(true, true, acceptedFields);
 	}
 
 	public boolean isIncludeParsedContent() {

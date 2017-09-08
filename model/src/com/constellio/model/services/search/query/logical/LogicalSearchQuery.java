@@ -217,6 +217,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
+	public LogicalSearchQuery sortFirstOn(LogicalSearchQuerySort logicalSearchQuerySort) {
+		if (logicalSearchQuerySort != null) {
+			sortFields.add(0, logicalSearchQuerySort);
+		}
+		return this;
+	}
+
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
@@ -336,7 +343,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public List<String> getFilterQueries() {
 		List<String> filterQueries = new ArrayList<>();
 
-		if (condition.getFilters() != null) {
+		if (condition != null && condition.getFilters() != null) {
 			for (String filterQuery : condition.getFilters().getFilterQueries(userFilter != null)) {
 				filterQueries.add(filterQuery);
 			}

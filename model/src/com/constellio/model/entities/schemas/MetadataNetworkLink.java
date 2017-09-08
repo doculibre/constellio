@@ -1,6 +1,8 @@
 package com.constellio.model.entities.schemas;
 
-public class MetadataNetworkLink {
+import java.io.Serializable;
+
+public class MetadataNetworkLink implements Serializable {
 
 	/**
 	 * Metadata using 'toMetadata'

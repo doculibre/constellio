@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.imports.settings;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-
 import com.constellio.app.services.importExport.settings.SettingsImportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
@@ -26,6 +11,20 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportSettingsPresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
 	
@@ -64,7 +63,7 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			try {
 				if (upload.getFileName().endsWith(".xml")) {
 					Document settingsDocument = getDocumentFromFile(file); //jdom document
-					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument).read();
+					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, view.getCollection()).read();
 					try {
 						settingsImportServices.importSettings(settings);
 						view.showImportCompleteMessage();
