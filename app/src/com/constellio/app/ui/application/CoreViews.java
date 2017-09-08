@@ -501,6 +501,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_METADATAS);
 	}
 
+	public void searchConfiguration(){
+		navigator.navigateTo(NavigatorConfigurationService.SEARCH_CONFIGURATION);
+	}
+
 	public void searchBoostByQuerys() {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_QUERYS);
 	}

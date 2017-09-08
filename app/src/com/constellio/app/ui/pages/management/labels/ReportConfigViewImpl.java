@@ -17,7 +17,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup {
-    public static final String CATEGORY_BUTTON = "seleniumCategoryButton";
 
     @Override
     protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -61,15 +60,6 @@ public class ReportConfigViewImpl extends BaseViewImpl implements AdminViewGroup
                 navigate().to().manageExcelReport();
             }
         }, "excel-templates");
-    }
-
-    private Button createLink(String caption, final Button.ClickListener listener, String iconName) {
-        Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
-        returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-        returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-        returnLink.addStyleName(CATEGORY_BUTTON);
-        returnLink.addClickListener(listener);
-        return returnLink;
     }
 
     @Override

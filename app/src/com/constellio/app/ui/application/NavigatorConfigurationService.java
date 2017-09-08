@@ -69,6 +69,7 @@ import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataVi
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
 import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
@@ -185,6 +186,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
 	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
+	public static final String SEARCH_CONFIGURATION = "searchConfiguration";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -292,6 +294,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SEARCH_CONFIGURATION, SearchConfigurationViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
