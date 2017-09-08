@@ -70,7 +70,8 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(), ACTIVES)
 				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
 				.setShowInvisibleRecordsInLinkingMode(true)
-				.setHasChildrenFlagCalculated(false);
+				.setHasChildrenFlagCalculated(false)
+				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;
 		if (collection.equals(folderId)) {
