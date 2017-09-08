@@ -4,7 +4,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TaxonomiesSearchOptions {
 
@@ -20,6 +19,7 @@ public class TaxonomiesSearchOptions {
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private FastContinueInfos fastContinueInfos;
 	private TaxonomiesSearchFilter filter;
+	private boolean linkableFlagCalculated = true;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -35,6 +35,7 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
 		super();
 		this.hasChildrenFlagCalculated = cloned.hasChildrenFlagCalculated;
+		this.linkableFlagCalculated = cloned.linkableFlagCalculated;
 		this.alwaysReturnTaxonomyConceptsWithReadAccess = cloned.alwaysReturnTaxonomyConceptsWithReadAccess;
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
@@ -49,6 +50,15 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public boolean isLinkableFlagCalculated() {
+		return linkableFlagCalculated;
+	}
+
+	public TaxonomiesSearchOptions setLinkableFlagCalculated(boolean linkableFlagCalculated) {
+		this.linkableFlagCalculated = linkableFlagCalculated;
+		return this;
 	}
 
 	public FastContinueInfos getFastContinueInfos() {

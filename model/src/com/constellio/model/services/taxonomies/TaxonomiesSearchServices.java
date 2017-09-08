@@ -143,6 +143,7 @@ public class TaxonomiesSearchServices {
 		MetadataSchemaType forSelectionOfSchemaType;
 		Taxonomy taxonomy;
 		boolean hasPermanentCache;
+		boolean principalTaxonomy;
 
 		public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
 				MetadataSchemaType forSelectionOfSchemaType) {
@@ -156,6 +157,7 @@ public class TaxonomiesSearchServices {
 				CacheConfig cacheConfig = caches.getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
+			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
 		}
 
 		public GetChildrenContext(User user, Record record, TaxonomiesSearchOptions options,
@@ -170,6 +172,7 @@ public class TaxonomiesSearchServices {
 				CacheConfig cacheConfig = caches.getCache(getCollection()).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
 				hasPermanentCache = cacheConfig != null && cacheConfig.isPermanent();
 			}
+			principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(getCollection()).hasSameCode(taxonomy);
 		}
 
 		public boolean hasRequiredAccessOn(Record record) {
@@ -208,6 +211,10 @@ public class TaxonomiesSearchServices {
 			} else {
 				return condition;
 			}
+		}
+
+		public boolean isNonSecurizedTaxonomyRecord(Record record) {
+			return isConceptOfNavigatedTaxonomy(record) && !principalTaxonomy;
 		}
 	}
 
@@ -442,33 +449,38 @@ public class TaxonomiesSearchServices {
 
 		GetConceptRecordsWithVisibleRecordsResponse methodResponse = new GetConceptRecordsWithVisibleRecordsResponse();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(context.getCollection());
-		LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 		Iterator<List<Record>> iterator;
 		int lastIteratedRecordIndex = 0;
-
-		FastContinueInfos continueInfos = context.options.getFastContinueInfos();
-		if (continueInfos != null) {
-			lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
-		}
-
 		methodResponse.records = new ArrayList<>();
-		if (context.hasPermanentCache) {
-			iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, context.options.getRows()).inBatches();
-		} else {
+		if (context.isConceptOfNavigatedTaxonomy(context.record)) {
+			LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
+			FastContinueInfos continueInfos = context.options.getFastContinueInfos();
 			if (continueInfos != null) {
-				for (int i = 0; i < context.options.getStartRow(); i++) {
-					methodResponse.records.add(null);
-				}
-				int batchSize = context.options.getRows() * 2;
-				iterator = searchServices
-						.recordsIteratorKeepingOrder(mainQuery, batchSize, continueInfos.getLastReturnRecordIndex())
-						.inBatches();
-
-			} else {
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, context.options.getRows()).inBatches();
+				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
 			}
+
+			if (context.hasPermanentCache) {
+				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, context.options.getRows()).inBatches();
+				lastIteratedRecordIndex = 0;
+			} else {
+
+				if (continueInfos != null) {
+					for (int i = 0; i < context.options.getStartRow(); i++) {
+						methodResponse.records.add(null);
+					}
+					int batchSize = context.options.getRows() * 2;
+					iterator = searchServices
+							.recordsIteratorKeepingOrder(mainQuery, batchSize, continueInfos.getLastReturnRecordIndex())
+							.inBatches();
+
+				} else {
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, context.options.getRows()).inBatches();
+				}
+			}
+		} else {
+			iterator = new ArrayList<List<Record>>().iterator();
 		}
 
 		int consumed = 0;
@@ -477,6 +489,12 @@ public class TaxonomiesSearchServices {
 
 			List<Record> batch = iterator.next();
 			consumed += batch.size();
+
+			boolean calculateHasChildren;
+
+			calculateHasChildren = context.options.isHasChildrenFlagCalculated()
+					|| !context.options.isAlwaysReturnTaxonomyConceptsWithReadAccess();
+			boolean calculateLinkability = context.options.isLinkableFlagCalculated();
 
 			LogicalSearchQuery facetQuery;
 			if (context.isSelectingAConcept()) {
@@ -504,13 +522,31 @@ public class TaxonomiesSearchServices {
 
 				facetQuery = newQueryForFacets(condition, context);
 			}
-			facetQuery.addQueryFacets(CHILDREN_QUERY, facetQueriesFor(context.taxonomy, batch));
 
-			SPEQueryResponse response = searchServices.query(facetQuery);
-			for (Record child : batch) {
-				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(context.taxonomy, child)) > 0;
+			boolean[] hasAccess = new boolean[batch.size()];
+			for (int i = 0; i < batch.size(); i++) {
+				Record child = batch.get(i);
+
+				hasAccess[i] = context.isNonSecurizedTaxonomyRecord(child) || context.hasRequiredAccessOn(child);
+
+				if (calculateHasChildren || !hasAccess[i]) {
+					facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(context.taxonomy, child));
+				}
+			}
+
+			SPEQueryResponse response = null;
+
+			if (!facetQuery.getQueryFacets().isEmpty()) {
+				response = searchServices.query(facetQuery);
+			}
+			for (int i = 0; i < batch.size(); i++) {
+				Record child = batch.get(i);
+				boolean hasChildren = true;
+				if (calculateHasChildren || !hasAccess[i]) {
+					hasChildren = response.getQueryFacetCount(facetQueryFor(context.taxonomy, child)) > 0;
+				}
 				boolean linkable;
-				if (context.isSelectingAConcept()) {
+				if (context.isSelectingAConcept() && calculateLinkability) {
 					linkable = response.hasQueryFacetResults("id:" + child.getId());
 				} else {
 					linkable = NOT_LINKABLE;
@@ -672,6 +708,10 @@ public class TaxonomiesSearchServices {
 
 		}
 
+		boolean calculateHasChildren =
+				!options.isAlwaysReturnTaxonomyConceptsWithReadAccess() || options.isHasChildrenFlagCalculated();
+		boolean calculateLinkability = options.isLinkableFlagCalculated();
+
 		int consumed = 0;
 		while (visibleRecords.size() < options.getEndRow() + 1 && iterator.hasNext()) {
 
@@ -698,10 +738,6 @@ public class TaxonomiesSearchServices {
 				LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(taxonomy, true);
 				facetQuery = newQueryForFacets(condition, user, options);
 			}
-
-			boolean calculateHasChildren =
-					!options.isAlwaysReturnTaxonomyConceptsWithReadAccess() || options.isHasChildrenFlagCalculated();
-			boolean calculateLinkability = !options.isShowInvisibleRecordsInLinkingMode();
 
 			List<Record> batch = iterator.next();
 			boolean[] hasAccess = new boolean[batch.size()];
@@ -740,11 +776,9 @@ public class TaxonomiesSearchServices {
 					hasChildren = true;
 				}
 
-				boolean linkable;
+				boolean linkable = false;
 				if (selectingAConcept && calculateLinkability) {
 					linkable = response.hasQueryFacetResults("id:" + child.getId());
-				} else {
-					linkable = isTrueOrNull(child.get(Schemas.LINKABLE)) && hasAccess[i];
 				}
 
 				if (showEvenIfNoChildren || hasChildren || linkable) {
