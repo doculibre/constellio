@@ -172,8 +172,9 @@ public class SeleniumTestFeatures {
 		if (openedWebDriver == null) {
 			WebDriver webDriver;
 			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
-				throw new RuntimeException(
-						"You need to configure 'phantomJSBinary' or 'firefoxBinary' properties in sdk.properties file");
+				return null;
+				//throw new RuntimeException(
+				//		"You need to configure 'phantomJSBinary' or 'firefoxBinary' properties in sdk.properties file");
 			} else if (phantomJSBinaryDir == null || (firefoxBinaryDir != null && preferFirefox)) {
 				webDriver = newFirefoxWebDriver(firefoxBinaryDir);
 
