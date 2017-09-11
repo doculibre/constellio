@@ -60,7 +60,7 @@ public class RecordPopulateServices {
 			MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 			List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
-			if (!contentMetadatas.isEmpty()) {
+			//if (!contentMetadatas.isEmpty() || record.getI) {
 				if (!record.isSaved()) {
 					String category = getCategory(parsedContentProvider, contentMetadatas, record);
 					setCategoryToRecord(record, category);
@@ -84,7 +84,7 @@ public class RecordPopulateServices {
 						}
 					}
 				}
-			}
+			//}
 
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
 			if (LOG_CONTENT_MISSING) {
