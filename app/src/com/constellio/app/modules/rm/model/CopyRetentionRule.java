@@ -34,6 +34,8 @@ public class CopyRetentionRule implements ModifiableStructure {
 	boolean essential;
 	boolean ignoreActivePeriod;
 	boolean dirty;
+	String semiActiveDateTypeId;
+	String inactiveDateTypeId;
 	private String id;
 
 	public String getId() {
@@ -69,6 +71,26 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setTitle(String title) {
 		markAsDirty();
 		this.title = title;
+		return this;
+	}
+
+	public String getSemiActiveDateTypeId() {
+		return semiActiveDateTypeId;
+	}
+
+	public CopyRetentionRule setSemiActiveDateTypeId(String dateTypeId) {
+		markAsDirty();
+		this.semiActiveDateTypeId = dateTypeId;
+		return this;
+	}
+
+	public String getInactiveDateTypeId() {
+		return inactiveDateTypeId;
+	}
+
+	public CopyRetentionRule setInactiveDateTypeId(String dateTypeId) {
+		markAsDirty();
+		this.inactiveDateTypeId = dateTypeId;
 		return this;
 	}
 

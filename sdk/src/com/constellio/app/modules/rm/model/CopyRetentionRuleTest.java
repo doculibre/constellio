@@ -85,6 +85,14 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		rule = new CopyRetentionRule();
 		rule.setEssential(true);
 		assertThat(rule.isDirty()).isTrue();
+
+		rule = new CopyRetentionRule();
+		rule.setSemiActiveDateTypeId("0001");
+		assertThat(rule.isDirty()).isTrue();
+
+		rule = new CopyRetentionRule();
+		rule.setInactiveDateTypeId("0001");
+		assertThat(rule.isDirty()).isTrue();
 	}
 
 	@Test
@@ -106,6 +114,8 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		rule.setTypeId("zeDocumentTypeId");
 		rule.setActiveDateMetadata("codeActiveDate");
 		rule.setSemiActiveDateMetadata("codeSemiActiveDate");
+		rule.setSemiActiveDateTypeId("00000042");
+		rule.setInactiveDateTypeId("00000666");
 
 		String stringValue = factory.toString(rule);
 		CopyRetentionRule builtRule = (CopyRetentionRule) factory.build(stringValue);
@@ -115,6 +125,8 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(stringValue2).isEqualTo(stringValue);
 		assertThat(builtRule.isDirty()).isFalse();
 		assertThat(builtRule.isEssential()).isFalse();
+		assertThat(builtRule.getSemiActiveDateTypeId()).isEqualTo("00000042");
+		assertThat(builtRule.getInactiveDateTypeId()).isEqualTo("00000666");
 	}
 
 	@Test
@@ -208,6 +220,8 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule1.getSemiActiveDateMetadata()).isNull();
 		assertThat(rule1.getOpenActiveRetentionPeriod()).isNull();
 		assertThat(rule1.isEssential()).isFalse();
+		assertThat(rule1.getSemiActiveDateTypeId()).isNull();
+		assertThat(rule1.getInactiveDateTypeId()).isNull();
 
 	}
 
@@ -232,6 +246,8 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule1.getSemiActiveDateMetadata()).isEqualTo("codeSemiActiveDate");
 		assertThat(rule1.getOpenActiveRetentionPeriod()).isNull();
 		assertThat(rule1.isEssential()).isFalse();
+		assertThat(rule1.getSemiActiveDateTypeId()).isNull();
+		assertThat(rule1.getInactiveDateTypeId()).isNull();
 	}
 
 	@Test
