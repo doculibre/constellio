@@ -95,7 +95,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
 
 	public static final String SEARCH_CONFIG = "searchConfig";
-	public static final String SEARCH_CONFIG_ICON = "icon";
+	public static final String SEARCH_CONFIG_ICON = "images/icons/config/configuration-search.png";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);

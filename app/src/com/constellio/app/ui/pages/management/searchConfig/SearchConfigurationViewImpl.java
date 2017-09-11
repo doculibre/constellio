@@ -16,6 +16,11 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
     private User user;
 
     @Override
+    protected String getTitle() {
+        return $("SearchConfigurationViewImpl.title");
+    }
+
+    @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         CssLayout layout = new CssLayout();
         user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
@@ -30,7 +35,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().searchBoostByMetadatas();
             }
-        }, CoreNavigationConfiguration.SEARCH_BOOST_BY_METADATA_ICON) : null;
+        }, "config/boost-metadata-search") : null;
     }
 
     private Button createBoostRequestButton() {
@@ -40,7 +45,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().searchBoostByQuerys();
             }
-        }, CoreNavigationConfiguration.SEARCH_BOOST_BY_QUERY_ICON) : null;
+        }, "config/boost-text-search") : null;
     }
 
     private Button createFacetteButton(){
@@ -50,6 +55,6 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().listFacetConfiguration();
             }
-        }, CoreNavigationConfiguration.FACET_CONFIGURATION_ICON) : null;
+        }, "config/funnel") : null;
     }
 }
