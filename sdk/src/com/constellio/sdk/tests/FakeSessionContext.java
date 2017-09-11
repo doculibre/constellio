@@ -79,8 +79,15 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new FakeSessionContext(userVO, collection);
 	}
 
+
+
 	public static SessionContext dakotaInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
+	public static SessionContext dakotaInCollection(String id, String collection) {
+		UserVO userVO = newUserVO(id, collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
 		return new FakeSessionContext(userVO, collection);
 	}
 
