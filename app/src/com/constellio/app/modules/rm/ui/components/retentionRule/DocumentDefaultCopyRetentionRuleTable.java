@@ -14,11 +14,13 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.modules.rm.wrappers.type.DateType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
@@ -28,6 +30,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -450,9 +453,12 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		private BaseTextField titleField;
 		private BaseTextArea descriptionField;
 		private CheckBox ignoreActivePeriodField;
+		private ComboBox semiActiveDateTypeField;
+		private ComboBox inactiveDateTypeField;
 
 		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
-			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
+			WindowConfiguration windowConfiguration = WindowConfiguration.modalDialog("50%", "550px");
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"), $("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout windowLayout = new VerticalLayout();
@@ -461,12 +467,22 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
 					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
 					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
+					Property<Boolean> semiActiveDateTypeProperty = new MethodProperty<>(copyRetentionRule,"semiActiveDateTypeId");
+					Property<Boolean> inactiveDateTypeProperty = new MethodProperty<>(copyRetentionRule,"inactiveDateTypeId");
 
 					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
 					titleField.setWidth("90%");
 					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
 					descriptionField.setWidth("90%");
 					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
+					
+					semiActiveDateTypeField = new RecordComboBox(DateType.DEFAULT_SCHEMA);
+					semiActiveDateTypeField.setCaption($("DetailsFieldGroup.semiActiveDateType"));
+					semiActiveDateTypeField.setPropertyDataSource(semiActiveDateTypeProperty);
+					
+					inactiveDateTypeField = new RecordComboBox(DateType.DEFAULT_SCHEMA);
+					inactiveDateTypeField.setCaption($("DetailsFieldGroup.inactiveDateType"));
+					inactiveDateTypeField.setPropertyDataSource(inactiveDateTypeProperty);
 
 					Button closeButton = new BaseButton("OK") {
 						@Override
@@ -475,7 +491,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 						}
 					};
 
-					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField,closeButton);
+					windowLayout.addComponents(titleField, descriptionField, ignoreActivePeriodField, semiActiveDateTypeField, inactiveDateTypeField, closeButton);
 					return windowLayout;
 				}
 			};

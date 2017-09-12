@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.components.converters.MediumTypeIdListToCodesConverter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.modules.rm.wrappers.type.DateType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -25,6 +26,7 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseLabel;
 import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.converters.BaseStringToIntegerConverter;
@@ -601,9 +603,12 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		private BaseTextArea descriptionField;
 		private CheckBox ignoreActivePeriodField;
+		private ComboBox semiActiveDateTypeField;
+		private ComboBox inactiveDateTypeField;
 
 		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
-			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
+			WindowConfiguration windowConfiguration = WindowConfiguration.modalDialog("50%", "500px");
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"), $("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout windowLayout = new VerticalLayout();
@@ -612,9 +617,19 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
 					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule, "ignoreActivePeriod");
+					Property<Boolean> semiActiveDateTypeProperty = new MethodProperty<>(copyRetentionRule,"semiActiveDateTypeId");
+					Property<Boolean> inactiveDateTypeProperty = new MethodProperty<>(copyRetentionRule,"inactiveDateTypeId");
 
 					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
 					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
+					
+					semiActiveDateTypeField = new RecordComboBox(DateType.DEFAULT_SCHEMA);
+					semiActiveDateTypeField.setCaption($("DetailsFieldGroup.semiActiveDateType"));
+					semiActiveDateTypeField.setPropertyDataSource(semiActiveDateTypeProperty);
+					
+					inactiveDateTypeField = new RecordComboBox(DateType.DEFAULT_SCHEMA);
+					inactiveDateTypeField.setCaption($("DetailsFieldGroup.inactiveDateType"));
+					inactiveDateTypeField.setPropertyDataSource(inactiveDateTypeProperty);
 					
 					if (DetailsFieldGroup.this.isReadOnly()) {
 						descriptionField.setReadOnly(true);
@@ -630,7 +645,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 						}
 					};
 
-					windowLayout.addComponents(descriptionField,ignoreActivePeriodField,closeButton);
+					windowLayout.addComponents(descriptionField, ignoreActivePeriodField, semiActiveDateTypeField, inactiveDateTypeField, closeButton);
 					return windowLayout;
 				}
 			};
