@@ -4,15 +4,16 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.model.calculators.rule.RuleDateTypesCalculator;
+import com.constellio.app.modules.rm.model.calculators.rule.RuleYearTypesCalculator;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.type.DateType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.MaskUtils;
 
 /**
  * Created by constellios on 2017-07-13.
@@ -49,15 +50,15 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-			MetadataSchemaTypeBuilder dateTypeSchemaType = typesBuilder.createNewSchemaType(DateType.SCHEMA_TYPE);
-			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(DateType.YEAR_END)
-					.setType(MetadataValueType.STRING).setDefaultRequirement(true);
+			MetadataSchemaTypeBuilder dateTypeSchemaType = typesBuilder.createNewSchemaType(YearType.SCHEMA_TYPE);
+			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(YearType.YEAR_END)
+					.setType(MetadataValueType.STRING).setDefaultRequirement(true).setInputMask(MaskUtils.MM_DD);
 
 			MetadataSchemaBuilder retentionRuleSchema = typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE).getDefaultSchema();
-			MetadataBuilder dateTypes = retentionRuleSchema.create(RetentionRule.DATE_TYPES)
+			MetadataBuilder dateTypes = retentionRuleSchema.create(RetentionRule.YEAR_TYPES)
 					.defineReferencesTo(dateTypeSchemaType).setMultivalue(true)
-					.defineDataEntry().asCalculated(RuleDateTypesCalculator.class);
-			retentionRuleSchema.create(RetentionRule.DATE_TYPES_YEAR_END).setType(MetadataValueType.STRING).setMultivalue(true)
+					.defineDataEntry().asCalculated(RuleYearTypesCalculator.class);
+			retentionRuleSchema.create(RetentionRule.YEAR_TYPES_YEAR_END).setType(MetadataValueType.STRING).setMultivalue(true)
 					.defineDataEntry().asCopied(dateTypes, yearEnd);
 		}
 
