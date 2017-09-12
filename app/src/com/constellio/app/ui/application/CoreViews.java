@@ -587,4 +587,25 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_IMPORT_EXPORT);
 	}
 
+	public void listCapsule() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_CAPSULE);
+	}
+
+	public void addEditCapsule(String id) {
+		if(id != null) {
+			Map<String, String> params = new HashMap<>();
+			params.put("id", id);
+			navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_CAPSULE, params));
+		} else {
+			navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_CAPSULE);
+		}
+
+	}
+
+	public void displayCapsule(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_CAPSULE, params));
+	}
+
 }

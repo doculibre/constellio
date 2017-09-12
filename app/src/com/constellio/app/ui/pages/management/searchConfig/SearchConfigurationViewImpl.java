@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
-import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
@@ -22,9 +21,9 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        CssLayout layout = new CssLayout();
+        CssLayout layout = new CustomCssLayout();
         user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
-        layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton());
+        layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton());
         return layout;
     }
 
@@ -50,11 +49,30 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
     private Button createFacetteButton(){
         return user.has(CorePermissions.MANAGE_VALUELIST).globally() ? createLink($("perm.core.manageFacets"), new Button.ClickListener() {
-
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().listFacetConfiguration();
             }
         }, "config/funnel") : null;
+    }
+
+    private Button createCapsuleButton(){
+        return user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally() ? createLink($("ListCapsuleViewImpl.title"), new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().listCapsule();
+            }
+        }, "config/capsule") : null;
+    }
+
+    private class CustomCssLayout extends CssLayout {
+        @Override
+        public void addComponents(Component... components) {
+            for(Component component : components) {
+                if(component != null) {
+                    super.addComponent(component);
+                }
+            }
+        }
     }
 }

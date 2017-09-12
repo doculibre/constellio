@@ -58,4 +58,5 @@ public class CorePermissions {
 
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM, "seeAllTemporaryRecords");
+	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM, "accessSearchCapsule");
 }

@@ -1,19 +1,12 @@
 package com.constellio.app.modules.rm.services.reports;
 
-import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
-import org.joda.time.LocalDate;
 import org.w3c.dom.Document;
 
 import java.io.*;
