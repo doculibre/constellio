@@ -14,6 +14,11 @@ public class EnableOrDisableStorageSpaceTitleCalculatorScript extends
         AbstractSystemConfigurationScript<Boolean> {
 
     @Override
+    public void onNewCollection(Boolean newValue, String collection, ModelLayerFactory modelLayerFactory) {
+        onValueChangedForCollection(newValue, modelLayerFactory, collection);
+    }
+
+    @Override
     public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
         if (newValue == null) {
             newValue = Boolean.FALSE;
