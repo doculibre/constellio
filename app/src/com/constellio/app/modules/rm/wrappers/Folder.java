@@ -799,5 +799,7 @@ public class Folder extends RMObject {
 		set(PREVIOUS_DEPOSIT_DATES, dates);
 		return this;
 	}
+
+
 }
 
