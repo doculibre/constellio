@@ -60,13 +60,10 @@ public class RecordPopulateServices {
 			MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 			List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
-
-			//TODO Causing problem when using regex populators on smb documents (no content metadata)
-			//Should be replaced by something else, since it improve performance
-			//if (!contentMetadatas.isEmpty()) {
-			if (!record.isSaved()) {
-				String category = getCategory(parsedContentProvider, contentMetadatas, record);
-				setCategoryToRecord(record, category);
+			//if (!contentMetadatas.isEmpty() || record.getI) {
+				if (!record.isSaved()) {
+					String category = getCategory(parsedContentProvider, contentMetadatas, record);
+					setCategoryToRecord(record, category);
 
 			}
 			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
@@ -86,7 +83,6 @@ public class RecordPopulateServices {
 						}
 					}
 				}
-			}
 			//}
 
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
