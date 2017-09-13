@@ -6,6 +6,16 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import net.sf.jasperreports.engine.JRException;
 
 import org.apache.commons.io.FileUtils;
@@ -23,6 +33,8 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.model.services.contents.ContentManager;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
@@ -67,19 +79,20 @@ public class ReportGeneratorUtils {
 	public static List<PrintableReportTemplate> getPrintableReportTemplate(AppLayerFactory factory, String collection,
 			String recordSchema, PrintableReportListPossibleType currentSchema) {
 		List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
-		//		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-		//		MetadataSchema printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)
-		//				.getSchemaType(Printable.SCHEMA_TYPE).getCustomSchema(PrintableReport.SCHEMA_NAME);
-		//		LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
-		//				.where(printableReportSchemaType.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(recordSchema);
-		//		LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
-		//				.where(printableReportSchemaType.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
-		//		List<Record> records = factory.getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
-		//				from(printableReportSchemaType).whereAllConditions(conditionCustomSchema, conditionSchemaType)));
-		//		for (Record record : records) {
-		//			printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(),
-		//					record.<Content>get(printableReportSchemaType.getMetadata(PrintableReport.JASPERFILE))));
-		//		}
+				MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+				MetadataSchemaType printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)
+						.getSchemaType(Printable.SCHEMA_TYPE);
+				LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
+						.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_SCHEMA)).isEqualTo(recordSchema);
+				LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
+						.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
+				LogicalSearchCondition schemaCondition = from(printableReportSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME);
+				List<Record> records = factory.getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
+						from(printableReportSchemaType).whereAllConditions(schemaCondition, conditionCustomSchema, conditionSchemaType)));
+				for (Record record : records) {
+					printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(),
+							record.<Content>get(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.JASPERFILE))));
+				}
 		return printableReportTemplateList;
 	}
 }
