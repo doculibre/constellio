@@ -87,27 +87,6 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 			}
 		});
 
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ReportDisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
-						presenter.reportButtonClicked(entity);
-					}
-
-					@Override
-					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
-						return super.isVisible() && presenter.isSearchableSchema(entity.getCode());
-					}
-				};
-			}
-		});
-
 		typeContainer = buttonsContainer;
 
 		Table table = new Table($("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);

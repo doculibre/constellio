@@ -31,12 +31,14 @@ public class CoreMigrationTo_7_4_3 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			for (MetadataBuilder temp : typesBuilder.getAllCalculatedMetadatas()) {
-				if (temp.getDataEntry().getType().equals(DataEntryType.CALCULATED) && ((CalculatedDataEntry) temp.getDataEntry())
+			for (MetadataBuilder metadata : typesBuilder.getAllCalculatedMetadatas()) {
+				if (metadata.getInheritance() == null
+						&& metadata.getDataEntry().getType().equals(DataEntryType.CALCULATED)
+						&& ((CalculatedDataEntry) metadata.getDataEntry())
 						.getCalculator() instanceof JEXLMetadataValueCalculator) {
-					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) temp.getDataEntry()).getCalculator();
+					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator();
 					String currentScript = ((JEXLMetadataValueCalculator) calculator).getExpression();
-					temp.defineDataEntry().asJexlScript("#STRICT:" + currentScript);
+					metadata.defineDataEntry().asJexlScript("#STRICT:" + currentScript);
 				}
 			}
 		}

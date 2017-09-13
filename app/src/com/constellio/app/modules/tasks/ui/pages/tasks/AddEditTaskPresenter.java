@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
+import com.constellio.app.ui.framework.components.RecordForm;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -57,6 +60,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private String parentId;
 	private String workflowId;
 	private TaskToVOBuilder voBuilder = new TaskToVOBuilder();
+
+	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -195,6 +200,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void viewAssembled() {
 		adjustProgressPercentageField();
 		adjustDecisionField();
+		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustAcceptedField();
 		adjustReasonField();
@@ -208,11 +214,21 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustDecisionField() {
 		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
+
 		if (field != null) {
 			try {
 				BetaWorkflowTask task = loadTask();
+				boolean isInclusiveDecision;
 
-				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				try
+				{
+					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
+				} catch (Exception exception) {
+					isInclusiveDecision = false;
+				}
+
+
+				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
 					field.setVisible(false);
 					return;
 				}
@@ -225,6 +241,39 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			} catch (NoSuchRecordWithId e) {
 				field.setVisible(false);
+			}
+		}
+	}
+
+	private void adjustInclusiveDecisionField() {
+		ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
+
+		if(listAddRemoveWorkflowInclusiveDecision != null) {
+
+			try {
+				BetaWorkflowTask task = loadTask();
+				boolean isInclusiveDecision;
+
+				try
+				{
+					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
+				} catch (Exception exception) {
+					isInclusiveDecision = true;
+				}
+
+			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
+					listAddRemoveWorkflowInclusiveDecision.setVisible(false);
+					return;
+			}
+
+			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
+			listAddRemoveWorkflowInclusiveDecision.setVisible(true);
+
+			for (String code : task.getNextTasksDecisionsCodes()) {
+				listAddRemoveWorkflowInclusiveDecision.addItem(code);
+			}
+			} catch (NoSuchRecordWithId e) {
+				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
 			}
 		}
 	}
@@ -377,5 +426,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public boolean isEditMode() {
 		return editMode;
+	}
+
+	public Record getWorkflow(String workflowId) {
+		return recordServices().getDocumentById(workflowId);
 	}
 }

@@ -1,8 +1,10 @@
 package com.constellio.app.ui.pages.management.Report;
 
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -15,6 +17,8 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.labels.CustomLabelField;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
@@ -137,6 +141,17 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
                     break;
                 default:
                     field = new MetadataFieldFactory().build(metadataVO);
+                    if(metadataVO.codeMatches(Printable.JASPERFILE)) {
+                        field.addValidator(new Validator() {
+                            @Override
+                            public void validate(Object value) throws InvalidValueException {
+                                ContentVersionVO contentValue = (ContentVersionVO) value;
+                                if(contentValue != null && !contentValue.getFileName().endsWith(".jasper")) {
+                                    throw new InvalidValueException($("PrintableReport.invalidFileType"));
+                                }
+                            }
+                        });
+                    }
                     break;
             }
             return field;

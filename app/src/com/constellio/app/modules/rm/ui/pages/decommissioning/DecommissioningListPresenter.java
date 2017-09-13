@@ -11,10 +11,13 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.Decommissi
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.*;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
@@ -30,8 +33,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -47,11 +52,13 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	private transient DecommissioningList decommissioningList;
 	private transient FolderDetailToVOBuilder folderDetailToVOBuilder;
 	private DecommissioningEmailService decommissioningEmailService = new DecommissioningEmailService(collection, modelLayerFactory);
+	private SearchServices searchServices;
 
 	String recordId;
 
 	public DecommissioningListPresenter(DecommissioningListView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
+		searchServices = modelLayerFactory.newSearchServices();
 	}
 
 	public DecommissioningListPresenter forRecordId(String recordId) {
@@ -140,6 +147,31 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser());
 	}
 
+	public List<String> haveCheckoutedDocument(){
+		List<String> folders = decommissioningList.getFolders();
+
+		List<Record> totalDocument = new ArrayList<>();
+		List<String> checkoutedDocument = new ArrayList<>();
+
+		for(String folder : folders)
+		{
+			LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType()).where(
+					rmRecordsServices().documentSchemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isEqualTo(folder);
+			List<Record> listDocument = searchServices.search(new LogicalSearchQuery(condition));
+			totalDocument.addAll(listDocument);
+		}
+
+		for(Record documentRecord : totalDocument) {
+			Document document = rmRecordsServices.wrapDocument(documentRecord);
+
+			if(document.getContent() != null && document.getContent().getCheckoutUserId() != null) {
+				checkoutedDocument.add(document.getTitle());
+			}
+		}
+
+		return checkoutedDocument;
+	}
+
 	public void processButtonClicked() {
 		HashMap<String, Double> sizeToBePlacedPerContainer = new HashMap<>();
 		RMSchemasRecordsServices rm = rmRecordsServices();
@@ -175,10 +207,28 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				return;
 			}
 		}
+
+		List<String> checkoutedDocument = haveCheckoutedDocument();
+
+		if(checkoutedDocument.size() > 0) {
+			String message = $("DecommissioningListView.someDocumentsAreBorrowed");
+			for(String documentTitle : checkoutedDocument){
+				message += " " + documentTitle + ",";
+			}
+
+			message.substring(0, message.length() - 1);
+
+			view.showMessage(message);
+			return;
+		}
+
 		if (!isListReadyToBeProcessed()) {
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
+
+
+
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
@@ -811,5 +861,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean areContainersHidden() {
 		return decommissioningList().getDecommissioningListType().isDestroyal() && getFolderDetailTableExtension() != null;
+	}
+
+	public List<FolderVO> getFoldersVO(){
+		List<Folder> foldersIds = rmRecordsServices().getFolders(decommissioningList().getFolders());
+		List<FolderVO> folderVOList = new ArrayList<>();
+		FolderToVOBuilder builder = new FolderToVOBuilder();
+		for(Folder folder : foldersIds){
+			folderVOList.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.TABLE, view.getSessionContext()));
+		}
+		return folderVOList;
 	}
 }

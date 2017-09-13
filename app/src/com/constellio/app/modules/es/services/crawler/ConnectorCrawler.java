@@ -4,6 +4,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -40,6 +41,7 @@ public class ConnectorCrawler {
 	RecordServices recordServices;
 
 	List<CrawledConnector> crawledConnectors = new ArrayList<>();
+	Semaphore waitFlushed = new Semaphore(1);
 
 	ConnectorCrawler(ESSchemasRecordsServices es, ConnectorJobCrawler jobCrawler,
 			ConnectorLogger logger,
@@ -69,6 +71,10 @@ public class ConnectorCrawler {
 		}
 
 		return connector;
+	}
+
+	public Semaphore getWaitFlushed() {
+		return waitFlushed;
 	}
 
 	boolean crawlAllConnectors() {
@@ -104,23 +110,30 @@ public class ConnectorCrawler {
 
 			if (!allJobs.isEmpty()) {
 				try {
-					jobCrawler.crawl(allJobs);
-				} catch (Exception e) {
-					LOGGER.error("Error while executing connector jobs", e);
-				}
-				executedJobs = true;
-
-				for (CrawledConnector crawledConnector : crawledConnectors) {
+					waitFlushed.acquireUninterruptibly();
 					try {
-						ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
-
+						jobCrawler.crawl(allJobs);
 					} catch (Exception e) {
-						LOGGER.warn("Error after connector jobs execution", e);
+						LOGGER.error("Error while executing connector jobs", e);
 					}
-				}
+					executedJobs = true;
 
-				eventObserver.flush();
+					eventObserver.flush();
+
+					for (CrawledConnector crawledConnector : crawledConnectors) {
+						try {
+							ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+							crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
+
+						} catch (Exception e) {
+							LOGGER.warn("Error after connector jobs execution", e);
+						}
+					}
+
+					eventObserver.flush();
+				} finally {
+					waitFlushed.release();
+				}
 			} else {
 				waitSinceNoJobs();
 			}

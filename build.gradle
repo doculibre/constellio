@@ -59,6 +59,7 @@ subprojects {
         compile "com.google.code.gson:gson:2.8.1"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
+        compile name: 'mets-api'
     }
 
     configurations {
@@ -102,6 +103,12 @@ war {
     }
 
     webAppDirName = "app/WebContent"
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 dependencies {

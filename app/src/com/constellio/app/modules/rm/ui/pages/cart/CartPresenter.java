@@ -25,6 +25,8 @@ import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportW
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -308,6 +310,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	List<Folder> getCartFolders() {
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
+	}
+
+	List<FolderVO> getCartFoldersVO(){
+		FolderToVOBuilder builder = new FolderToVOBuilder();
+		List<FolderVO> folderVOS = new ArrayList<>();
+		for(Folder folder : this.getCartFolders()){
+			folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+		}
+		return folderVOS;
 	}
 
 	List<String> getCartFolderIds() {

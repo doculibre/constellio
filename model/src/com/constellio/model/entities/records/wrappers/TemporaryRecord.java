@@ -19,6 +19,10 @@ public class TemporaryRecord extends RecordWrapper {
         super(record, types, SCHEMA_TYPE);
     }
 
+    public TemporaryRecord(Record record, MetadataSchemaTypes types, String schema) {
+        super(record, types, schema);
+    }
+
     public LocalDateTime getCreatedOn() {
         return get(Schemas.CREATED_ON);
     }

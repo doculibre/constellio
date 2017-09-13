@@ -292,7 +292,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.MANAGE_TEMPORARY_REPORT));
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
 			}
 		});
 
@@ -485,6 +485,21 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+			}
+		});
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecord();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
 			}
 		});
 	}

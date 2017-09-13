@@ -9,6 +9,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -119,5 +120,10 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public void navigateToWorkflow(String workflowId) {
 		navigate().to(TaskViews.class).displayWorkflow(workflowId);
+	}
+
+	@Override
+	public Record getWorkflow(String workflowId) {
+		return presenter.getWorkflow(workflowId);
 	}
 }

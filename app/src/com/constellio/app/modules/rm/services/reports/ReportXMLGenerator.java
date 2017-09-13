@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import net.sf.jasperreports.components.barbecue.BarbecueCompiler;
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -64,6 +67,7 @@ public class ReportXMLGenerator {
 	private String username;
 	private UserServices userServices;
 	private List<DataField> otherDataForContainer;
+	private MetadataSchemasManager metadataSchemasManager;
 
 	public ReportXMLGenerator(String collection, AppLayerFactory appLayerFactory, String username) {
 		this.factory = appLayerFactory;
@@ -77,6 +81,7 @@ public class ReportXMLGenerator {
 		this.username = username;
 		this.userServices = factory.getModelLayerFactory().newUserServices();
 		this.otherDataForContainer = getotherDataForContainer();
+		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 
 		JasperReportsContext jasperReportsContext = DefaultJasperReportsContext.getInstance();
 		jasperReportsContext.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
@@ -249,6 +254,18 @@ public class ReportXMLGenerator {
 									"ref_" + reportField.getCode().replace("_default", "") + "_title");
 							refElementTitle.setText(refRecords.get(Schemas.TITLE) + "");
 							metadatas.addContent(asList(refElementCode, refElementTitle));
+
+							if(AdministrativeUnit.SCHEMA_TYPE.equals(refRecords.getTypeCode()) || Category.SCHEMA_TYPE.equals(refRecords.getTypeCode())) {
+								Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(refRecords.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(refRecords).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(refRecords).getDefaultSchema().get(Category.PARENT);
+								String parentId = refRecords.get(parentMetadata);
+								if(parentId != null) {
+									Record parentRecord = recordServices.getDocumentById(parentId);
+									metadatas.addContent(asList(
+											new Element("ref_" + reportField.getCode().replace("_default_", "_") + "_parent" + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
+											new Element("ref_" + reportField.getCode().replace("_default_", "_") + "_parent" + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+									));
+								}
+							}
 						}
 					} else if (reportField.getTypes().equals(MetadataValueType.ENUM)) {
 						if (fol.get(reportField.getCode()) != null) {
