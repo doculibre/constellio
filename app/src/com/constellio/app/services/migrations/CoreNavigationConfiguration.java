@@ -94,8 +94,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
-	public static final String TEMPORARY_REPORT = "temporaryReport";
-	public static final String TEMPORARY_REPORT_ICON = "temporaryReport";
+	public static final String TEMPORARY_REPORT = "temporaryRecords";
+	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
