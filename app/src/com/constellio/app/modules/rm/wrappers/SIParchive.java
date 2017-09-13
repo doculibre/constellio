@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;

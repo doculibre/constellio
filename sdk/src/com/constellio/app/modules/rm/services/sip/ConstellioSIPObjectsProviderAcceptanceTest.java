@@ -6,56 +6,30 @@ import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPO
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.services.sip.model.EntityRetriever;
 import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
-import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.lowagie.text.Meta;
-import jdk.internal.util.xml.impl.Input;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.util.Strings;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.in;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);

@@ -32,7 +32,6 @@ import java.util.zip.ZipInputStream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioTest {
 
