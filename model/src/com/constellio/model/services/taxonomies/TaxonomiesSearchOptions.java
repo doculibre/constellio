@@ -18,6 +18,7 @@ public class TaxonomiesSearchOptions {
 	private String requiredAccess = Role.READ;
 	private boolean hasChildrenFlagCalculated = true;
 	private boolean showInvisibleRecordsInLinkingMode = true;
+	private boolean showAllIfHasAccessToManageSecurity = true;
 	private FastContinueInfos fastContinueInfos;
 	private TaxonomiesSearchFilter filter;
 
@@ -161,6 +162,15 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions setFilter(TaxonomiesSearchFilter filter) {
 		this.filter = filter;
+		return this;
+	}
+
+	public boolean isShowAllIfHasAccessToManageSecurity() {
+		return showAllIfHasAccessToManageSecurity;
+	}
+
+	public TaxonomiesSearchOptions setShowAllIfHasAccessToManageSecurity(boolean showAllIfHasAccessToManageSecurity) {
+		this.showAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
 }
