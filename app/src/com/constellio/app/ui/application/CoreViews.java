@@ -155,6 +155,10 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void synonymsView() {
+		navigator.navigateTo(NavigatorConfigurationService.VIEW_SYNONYMS);
+	}
+
 	public void simpleSearch(String queryExpression) {
 		navigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/" + queryExpression);
 	}

@@ -83,6 +83,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
+	public static final String SYNONYMES_MANAGEMENT = "synonymesManagement";
+	public static final String SYNONYMES_MANAGEMENT_ICON = "images/icons/config/synonymes.png";
+
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
@@ -113,7 +116,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return ComponentState.ENABLED;
 			}
 		});
-	}	
+	}
 
 	private void configureSystemAdmin(NavigationConfig config) {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(CONFIG, CONFIG_ICON) {
@@ -290,6 +293,20 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_TEMPORARY_REPORT));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYNONYMES_MANAGEMENT, SYNONYMES_MANAGEMENT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().synonymsView();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
 	}
