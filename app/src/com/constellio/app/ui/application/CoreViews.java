@@ -155,8 +155,8 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void synonymsView() {
-		navigator.navigateTo(NavigatorConfigurationService.VIEW_SYNONYMS);
+	public void editSynonyms() {
+		navigator.navigateTo(NavigatorConfigurationService.EDIT_SYNONYMS);
 	}
 
 	public void simpleSearch(String queryExpression) {

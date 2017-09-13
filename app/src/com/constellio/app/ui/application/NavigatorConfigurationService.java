@@ -24,7 +24,6 @@ import com.constellio.app.ui.pages.imports.*;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
-import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportView;
 import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportViewImpl;
 import com.constellio.app.ui.pages.management.ExcelReport.ListExcelReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
@@ -82,8 +81,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
-import com.constellio.app.ui.pages.synonyms.ViewSynonymsView;
-import com.constellio.app.ui.pages.synonyms.ViewSynonymsViewImpl;
+import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
@@ -188,7 +186,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_IMPORT_EXPORT = "importExport";
 	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
 
-	public static final String VIEW_SYNONYMS = "viewSynonyms";
+	public static final String EDIT_SYNONYMS = "viewSynonyms";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -296,7 +294,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(VIEW_SYNONYMS, ViewSynonymsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
