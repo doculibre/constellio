@@ -42,8 +42,8 @@ public class RetentionRule extends RecordWrapper {
 	public static final String PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "principalDefaultDocumentCopyRetentionRule";
 	public static final String SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "secondaryDefaultDocumentCopyRetentionRule";
 	public static final String SCOPE = "scope";
-	public static final String DATE_TYPES = "dateTypes";
-	public static final String DATE_TYPES_YEAR_END = "dateTypesYearEnd";
+	public static final String YEAR_TYPES = "yearTypes";
+	public static final String YEAR_TYPES_YEAR_END = "yearTypesYearEnd";
 
 	public RetentionRule(Record record,
 			MetadataSchemaTypes types) {
@@ -334,11 +334,11 @@ public class RetentionRule extends RecordWrapper {
 		return record == null ? null : new RetentionRule(record, types);
 	}
 
-	public List<String> getDateTypes() {
-		return getList(DATE_TYPES);
+	public List<String> getYearTypes() {
+		return getList(YEAR_TYPES);
 	}
 
-	public List<String> getDateTypesYearEnd() {
-		return getList(DATE_TYPES_YEAR_END);
+	public List<String> getYearTypesYearEnd() {
+		return getList(YEAR_TYPES_YEAR_END);
 	}
 }

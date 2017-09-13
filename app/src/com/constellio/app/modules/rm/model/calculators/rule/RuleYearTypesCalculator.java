@@ -16,7 +16,7 @@ import com.constellio.model.entities.calculators.ReferenceListMetadataValueCalcu
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 
-public class RuleDateTypesCalculator extends ReferenceListMetadataValueCalculator {
+public class RuleYearTypesCalculator extends ReferenceListMetadataValueCalculator {
 
 	LocalDependency<List<CopyRetentionRule>> copyRetentionRulesParam = LocalDependency
 			.toAStructure(COPY_RETENTION_RULES).whichIsMultivalue();
@@ -42,25 +42,25 @@ public class RuleDateTypesCalculator extends ReferenceListMetadataValueCalculato
 		};
 
 		for (CopyRetentionRule copyRetentionRule : parameters.get(copyRetentionRulesParam)) {
-			typeIds.add(copyRetentionRule.getSemiActiveDateTypeId());
-			typeIds.add(copyRetentionRule.getInactiveDateTypeId());
+			typeIds.add(copyRetentionRule.getSemiActiveYearTypeId());
+			typeIds.add(copyRetentionRule.getInactiveYearTypeId());
 		}
 
 		for (CopyRetentionRule copyRetentionRule : parameters.get(documentCopyRetentionRulesParam)) {
-			typeIds.add(copyRetentionRule.getSemiActiveDateTypeId());
-			typeIds.add(copyRetentionRule.getInactiveDateTypeId());
+			typeIds.add(copyRetentionRule.getSemiActiveYearTypeId());
+			typeIds.add(copyRetentionRule.getInactiveYearTypeId());
 		}
 
 		CopyRetentionRule documentDefaultPrincipal = parameters.get(documentDefaultPrincipalParam);
 		if (documentDefaultPrincipal != null) {
-			typeIds.add(documentDefaultPrincipal.getSemiActiveDateTypeId());
-			typeIds.add(documentDefaultPrincipal.getInactiveDateTypeId());
+			typeIds.add(documentDefaultPrincipal.getSemiActiveYearTypeId());
+			typeIds.add(documentDefaultPrincipal.getInactiveYearTypeId());
 		}
 
 		CopyRetentionRule documentDefaultSecondary = parameters.get(documentDefaultSecondaryParam);
 		if (documentDefaultSecondary != null) {
-			typeIds.add(documentDefaultSecondary.getSemiActiveDateTypeId());
-			typeIds.add(documentDefaultSecondary.getInactiveDateTypeId());
+			typeIds.add(documentDefaultSecondary.getSemiActiveYearTypeId());
+			typeIds.add(documentDefaultSecondary.getInactiveYearTypeId());
 		}
 
 		List<String> returnedList = new ArrayList<>(typeIds);

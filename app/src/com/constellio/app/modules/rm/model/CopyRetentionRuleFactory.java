@@ -184,8 +184,8 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		copyRetentionRule.setTypeId(readString(stringTokenizer));
 		copyRetentionRule.setActiveDateMetadata(readString(stringTokenizer));
 		copyRetentionRule.setSemiActiveDateMetadata(readString(stringTokenizer));
-		copyRetentionRule.setSemiActiveDateTypeId(readString(stringTokenizer));
-		copyRetentionRule.setInactiveDateTypeId(readString(stringTokenizer));
+		copyRetentionRule.setSemiActiveYearTypeId(readString(stringTokenizer));
+		copyRetentionRule.setInactiveYearTypeId(readString(stringTokenizer));
 
 		List<String> contentTypesCodes = new ArrayList<>();
 		while (stringTokenizer.hasMoreTokens()) {
@@ -271,8 +271,8 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		writeString(stringBuilder, rule.getTypeId());
 		writeString(stringBuilder, rule.getActiveDateMetadata());
 		writeString(stringBuilder, rule.getSemiActiveDateMetadata());
-		writeString(stringBuilder, rule.getSemiActiveDateTypeId());
-		writeString(stringBuilder, rule.getInactiveDateTypeId());
+		writeString(stringBuilder, rule.getSemiActiveYearTypeId());
+		writeString(stringBuilder, rule.getInactiveYearTypeId());
 
 		for (String contentTypeCodes : rule.getMediumTypeIds()) {
 			writeString(stringBuilder, contentTypeCodes);

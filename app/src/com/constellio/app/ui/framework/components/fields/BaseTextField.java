@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.model.utils.MaskUtils;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.data.Property;
 import com.vaadin.ui.TextField;
@@ -12,6 +13,8 @@ import com.vaadin.ui.TextField;
 public class BaseTextField extends TextField {
 	
 	private String inputMask;
+	
+	private boolean maskSet = false;
 	
 	public BaseTextField() {
 		super();
@@ -60,18 +63,22 @@ public class BaseTextField extends TextField {
 	@Override
 	public void attach() {
 		super.attach();
-		if (StringUtils.isNotBlank(inputMask)) {
+		if (!maskSet && StringUtils.isNotBlank(inputMask)) {
 			String id = getId();
 			if (id == null) {
 				id = UUID.randomUUID().toString();
 				setId(id);
 			}
 			StringBuffer js = new StringBuffer();
+			if (MaskUtils.MM_DD.equals(inputMask)) {
+				inputMask = "m/d";
+			}
 			js.append("$(document).ready(function() {");
 			js.append(" $(\"#" + id + "\").inputmask(\"" + inputMask + "\"); ");
 			js.append("})");
 			
 			com.vaadin.ui.JavaScript.eval(js.toString());
+			maskSet = true;
 		}
 	}
 
