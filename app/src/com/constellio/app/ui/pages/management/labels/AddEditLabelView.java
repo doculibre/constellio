@@ -8,7 +8,7 @@ import com.constellio.app.ui.pages.viewGroups.PrintableViewGroup;
 
 import java.util.List;
 
-public interface AddEditLabelView extends BaseView, PrintableViewGroup, AdminViewGroup{
+public interface AddEditLabelView extends BaseView, AdminViewGroup{
 
     public void setLabels(List<LabelVO> list);
 
