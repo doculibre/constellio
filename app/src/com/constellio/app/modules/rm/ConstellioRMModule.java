@@ -44,6 +44,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -319,6 +320,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
 		}
 		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
+
+		if (!cache.isConfigured(Printable.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.printable.schemaType()));
+		}
 
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
 			cache.removeCache(Category.SCHEMA_TYPE);

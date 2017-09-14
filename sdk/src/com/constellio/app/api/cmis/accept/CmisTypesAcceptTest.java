@@ -340,6 +340,10 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		//		assertThat(taxonomyType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(taxonomyType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
+		iterator.next();
+		iterator.next();
+		iterator.next();
+
 		ObjectType userDocument = iterator.next();
 		assertThat(userDocument.getBaseTypeId().value()).isEqualTo("cmis:folder");
 		assertThat(userDocument.getId()).isEqualTo("userDocument_default");

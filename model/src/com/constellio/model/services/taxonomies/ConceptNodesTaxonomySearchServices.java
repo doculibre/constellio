@@ -24,6 +24,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
@@ -41,19 +43,14 @@ public class ConceptNodesTaxonomySearchServices {
 	TaxonomiesManager taxonomiesManager;
 	MetadataSchemasManager metadataSchemasManager;
 	TaxonomySearchQueryConditionFactory queryFactory;
+	RecordsCaches recordsCaches;
 	SchemaUtils schemaUtils = new SchemaUtils();
 
 	public ConceptNodesTaxonomySearchServices(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-	}
-
-	public ConceptNodesTaxonomySearchServices(SearchServices searchServices, TaxonomiesManager taxonomiesManager,
-			MetadataSchemasManager metadataSchemasManager) {
-		this.searchServices = searchServices;
-		this.taxonomiesManager = taxonomiesManager;
-		this.metadataSchemasManager = metadataSchemasManager;
+		this.recordsCaches = modelLayerFactory.getRecordsCaches();
 	}
 
 	public List<Record> getRootConcept(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
@@ -61,18 +58,45 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public SPEQueryResponse getRootConceptResponse(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
-		return searchServices.query(getRootConceptsQuery(collection, taxonomyCode, options));
+		LogicalSearchQuery query = getRootConceptsQuery(collection, taxonomyCode, options, true);
+
+		if (query.getReturnedMetadatas().isFullyLoaded()) {
+			//Using cache
+			List<Record> records = searchServices.cachedSearch(query);
+			int size = records.size();
+			if (records.size() > options.getRows()) {
+				records = records.subList(0, options.getRows());
+			}
+			return new SPEQueryResponse(records, size);
+		} else {
+			return searchServices.query(query);
+		}
 	}
 
 	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
+		return getRootConceptsQuery(collection, taxonomyCode, options, false);
+	}
+
+	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode, TaxonomiesSearchOptions options,
+			boolean preferCachedQuery) {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
+		boolean useCache = false;
+		if (preferCachedQuery && taxonomy.getSchemaTypes().size() == 1 && options.getStartRow() == 0) {
+			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(taxonomy.getSchemaTypes().get(0));
+			useCache = cacheConfig != null && cacheConfig.isPermanent();
+		}
+
 		LogicalSearchCondition condition = fromConceptsOf(taxonomy).where(PATH_PARTS).isEqualTo("R");
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredByStatus(options.getIncludeStatus());
-		query.setStartRow(options.getStartRow());
-		query.setNumberOfRows(options.getRows());
-		query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));
+
+		if (!useCache) {
+			query.setStartRow(options.getStartRow());
+			query.setNumberOfRows(options.getRows());
+			query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));
+		}
+
 		query.sortAsc(CODE).sortAsc(TITLE);
 		return query;
 	}
@@ -149,7 +173,13 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {
-		return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
+
+		if (taxonomy.getSchemaTypes().size() == 1) {
+			return from(metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
+					.getSchemaType(taxonomy.getSchemaTypes().get(0)));
+		} else {
+			return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
+		}
 	}
 
 	static DataStoreFieldLogicalSearchCondition directChildOf(Record record) {
