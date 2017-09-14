@@ -8,6 +8,9 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,6 +21,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
 import com.vaadin.ui.VerticalLayout;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,13 +45,17 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);
     VerticalLayout layout = new VerticalLayout();
     RMSelectionPanelExtension extension;
-
+    BaseView mockHeader;
     @Before
     public void setup() {
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
                         .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
         );
+        mockHeader = mock(BaseViewImpl.class);
+        when(mockHeader.getConstellioFactories()).thenReturn(getConstellioFactories());
+        when(mockHeader.getCollection()).thenReturn(zeCollection);
+        when(mockHeader.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
         appLayerFactory = getAppLayerFactory();
         extension = spy(new RMSelectionPanelExtension(appLayerFactory, zeCollection));
         doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(extension).getSessionContext();
@@ -166,7 +174,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 
     public AvailableActionsParam buildParamWithDocumentsAndFoldersAndContainers() {
         return new AvailableActionsParam(asList(records.document_A79, records.document_B33, records.folder_A01, records.folder_A02, records.containerId_bac01, records.containerId_bac02),
-                asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), records.getAdmin(), layout);
+                asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), records.getAdmin(), layout, mockHeader);
     }
 
     public void buildUserDocumentsAndUserFolders() throws RecordServicesException {
@@ -184,11 +192,11 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 
     public AvailableActionsParam buildParamWithUserDocumentsAndUserFolders() {
         return new AvailableActionsParam(asList("UDoc1", "UDoc2", "UFol1", "UFol2"),
-                asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE), records.getAdmin(), layout);
+                asList(UserDocument.SCHEMA_TYPE, UserFolder.SCHEMA_TYPE), records.getAdmin(), layout,  mockHeader);
     }
 
     public AvailableActionsParam buildParamWithUserFolders() {
         return new AvailableActionsParam(asList("UFol1", "UFol2"),
-                asList(UserFolder.SCHEMA_TYPE), records.getAdmin(), layout);
+                asList(UserFolder.SCHEMA_TYPE), records.getAdmin(), layout, mockHeader);
     }
 }
