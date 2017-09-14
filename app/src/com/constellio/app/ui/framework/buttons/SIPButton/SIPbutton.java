@@ -36,7 +36,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     private List<RecordVO> objectList = new ArrayList<>();
     private CheckBox deleteCheckBox, limitSizeCheckbox;
-    private BaseView view;
+    private ConstellioHeader view;
     private IOServices ioServices;
     private File bagInfoFile;
     private AppLayerFactory factory;
@@ -65,7 +65,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             restrictionAccessibiliteTextField,
             encodingTextField;
 
-    public SIPbutton(String caption, String windowCaption, BaseView view) {
+    public SIPbutton(String caption, String windowCaption, ConstellioHeader view) {
         super(caption, windowCaption);
         this.view = view;
         if (this.view != null) {
@@ -97,7 +97,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                 try {
                     continueButtonClicked();
                 } catch (IOException | JDOMException | RecordServicesException e) {
-                    view.showErrorMessage(e.getMessage());
+                    view.getCurrentView().showErrorMessage(e.getMessage());
                 }
             }
         };
@@ -162,13 +162,13 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             if(!documentList.isEmpty() || !folderList.isEmpty()) {
                 SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
                 view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
-                view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                view.getCurrentView().showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
                 getWindow().close();
             } else {
-                view.showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
+                view.getCurrentView().showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
             }
         } else {
-            view.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+            view.getCurrentView().showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }
     }
 
