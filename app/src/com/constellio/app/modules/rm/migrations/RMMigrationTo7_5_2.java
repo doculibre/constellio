@@ -5,6 +5,8 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleYearTypesCalculator;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -50,7 +52,11 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-			MetadataSchemaTypeBuilder dateTypeSchemaType = typesBuilder.createNewSchemaType(YearType.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder dateTypeSchemaType = new ValueListItemSchemaTypeBuilder(types())
+					.createValueListItemSchema(YearType.SCHEMA_TYPE, (String) null,
+							ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
+					.setSecurity(false);
+
 			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(YearType.YEAR_END)
 					.setType(MetadataValueType.STRING).setDefaultRequirement(true).setInputMask(MaskUtils.MM_DD);
 
@@ -60,6 +66,7 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 					.defineDataEntry().asCalculated(RuleYearTypesCalculator.class);
 			retentionRuleSchema.create(RetentionRule.YEAR_TYPES_YEAR_END).setType(MetadataValueType.STRING).setMultivalue(true)
 					.defineDataEntry().asCopied(dateTypes, yearEnd);
+
 		}
 
 	}

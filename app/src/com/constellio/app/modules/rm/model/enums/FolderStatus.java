@@ -47,6 +47,24 @@ public enum FolderStatus implements EnumWithSmallCode {
 	public boolean isAfter(FolderStatus folderStatus) {
 		switch (this) {
 
+		case INACTIVE_DEPOSITED:
+			return folderStatus == SEMI_ACTIVE || folderStatus == ACTIVE;
+
+		case INACTIVE_DESTROYED:
+			return folderStatus == SEMI_ACTIVE || folderStatus == ACTIVE;
+
+		case SEMI_ACTIVE:
+			return folderStatus == ACTIVE;
+
+		default:
+			return false;
+
+		}
+	}
+
+	public boolean isBefore(FolderStatus folderStatus) {
+		switch (this) {
+
 		case ACTIVE:
 			return folderStatus == SEMI_ACTIVE || folderStatus == INACTIVE_DEPOSITED || folderStatus == INACTIVE_DESTROYED;
 
