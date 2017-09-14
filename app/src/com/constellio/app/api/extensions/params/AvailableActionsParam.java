@@ -1,6 +1,7 @@
 package com.constellio.app.api.extensions.params;
 
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Component;
 
@@ -14,9 +15,9 @@ public class AvailableActionsParam {
     private List<String> schemaTypeCodes;
     private User user;
     private Component component;
-    private BaseView view;
+    private ConstellioHeader view;
 
-    public AvailableActionsParam(List<String> ids, List<String> schemaTypeCodes, User user, Component component, BaseView view) {
+    public AvailableActionsParam(List<String> ids, List<String> schemaTypeCodes, User user, Component component, ConstellioHeader view) {
         this.ids = ids;
         this.schemaTypeCodes = schemaTypeCodes;
         this.user = user;
@@ -40,7 +41,7 @@ public class AvailableActionsParam {
         return component;
     }
 
-    public BaseView getView() {
+    public ConstellioHeader getView() {
         return view;
     }
 }

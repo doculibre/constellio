@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
