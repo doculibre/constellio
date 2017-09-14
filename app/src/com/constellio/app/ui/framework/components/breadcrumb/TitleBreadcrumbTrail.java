@@ -46,9 +46,20 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		if (StringUtils.isNotBlank(viewGroupLabel)) {
 			addItem(new ViewGroupBreadcrumbItem(viewGroupClass, viewGroupLabel)); 
 		}
+
+		if(!getIntermeiateItems().isEmpty()) {
+			for (IntermediateBreadCrumbTailItem item : getIntermeiateItems()) {
+				addItem(item);
+			}
+		}
+
 		if (StringUtils.isNotBlank(viewTitle) && (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle))) {
 			addItem(new CurrentViewItem(viewTitle)); 
 		}
+	}
+
+	public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems(){
+		return new ArrayList<>();
 	}
 
 	@Override
@@ -61,6 +72,9 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 			}
 		} else if (item instanceof CollectionBreadcrumbItem) {
 			navigate().to().home();
+		} else if (item instanceof IntermediateBreadCrumbTailItem) {
+			IntermediateBreadCrumbTailItem intermediateItem = (IntermediateBreadCrumbTailItem) item;
+			intermediateItem.activate(navigate());
 		}
 	}
 	
