@@ -289,6 +289,11 @@ public class ReindexingServices {
 
 	private boolean isReindexingOfTypeRequired(int level, MetadataSchemaTypes types, String typeCode) {
 		MetadataSchemaType type = types.getSchemaType(typeCode);
+
+		if (Event.SCHEMA_TYPE.equals(type.getCode()) && !modelLayerFactory.getConfiguration().isReindexingEvents()) {
+			return false;
+		}
+
 		return types.getMetadataNetwork().getMaxLevelOf(type.getCode()) >= level;
 	}
 
