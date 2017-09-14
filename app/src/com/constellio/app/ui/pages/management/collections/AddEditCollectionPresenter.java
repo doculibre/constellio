@@ -10,6 +10,8 @@ import com.constellio.app.ui.pages.management.collections.AddEditCollectionPrese
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeUnAvailable;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationScript;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
@@ -17,6 +19,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -161,7 +164,27 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
-		return updateCollectionModules(entity, record, collectionCode, modules);
+		Set<String> retunrnValue = updateCollectionModules(entity, record, collectionCode, modules);
+		runScriptsFromConfigs(collectionName);
+
+		return retunrnValue;
+	}
+
+	public void runScriptsFromConfigs(String collection) {
+		SystemConfigurationsManager systemManager = modelLayerFactory.getSystemConfigurationsManager();
+		for(SystemConfiguration systemConfiguration : systemManager.getAllConfigurations()) {
+			Object value = systemManager.getValue(systemConfiguration);
+			Object defaultValue = systemConfiguration.getDefaultValue();
+			Class<? extends SystemConfigurationScript>  scriptClass = systemConfiguration.getScriptClass();
+			if(value != null && !value.equals(defaultValue) && scriptClass != null) {
+				try {
+					SystemConfigurationScript systemConfigurationScript = scriptClass.newInstance();
+					systemConfigurationScript.onNewCollection(value,collection, modelLayerFactory);
+				} catch (Exception e) {
+					throw new RuntimeException("Instanciation exeption", e);
+				}
+			}
+		}
 	}
 
 	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode, Set<String> modules) {
