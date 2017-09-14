@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -70,7 +71,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
+		VerticalLayout layout = new VerticalLayout();
+		layout.addComponent(buildSearchUI());
+		List<RecordVO> capsules = presenter.getCapsuleForCurrentSearch();
+		if(!capsules.isEmpty()) {
+			layout.addComponent(buildCapsuleIU(capsules));
+		}
+		layout.addComponent(buildResultsUI());
 		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
@@ -508,6 +515,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		button.addStyleName(SAVE_SEARCH);
 		return button;
+	}
+
+	private Component buildCapsuleIU(List<RecordVO> Capsules) {
+		return null;
 	}
 
 	public boolean isSelectAllMode() {

@@ -17,8 +17,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.enums.SearchPageLength;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.schemas.*;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -62,10 +66,6 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -239,6 +239,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public String getUserSearchExpression() {
 		return null;
+	}
+
+	public List<RecordVO> getCapsuleForCurrentSearch(){
+		List<RecordVO> capsules = new ArrayList<>();
+		String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
+		String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
+		String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
+		MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
+		LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
+		return capsules;
 	}
 
 	public boolean mustDisplaySuggestions() {
