@@ -2,6 +2,12 @@ package com.constellio.app.modules.es.extensions;
 
 import java.io.InputStream;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.extensions.records.RecordNavigationExtension;
@@ -46,28 +52,63 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 
 	@Override
 	public void navigateToView(NavigationParams navigationParams) {
-		RecordVO recordVO = navigationParams.getRecordVO();
-		if (recordVO != null) {
-			Page page = navigationParams.getPage();
-			String schemaTypeCode = navigationParams.getSchemaTypeCode();
+        try {
+            openWithAgent(navigationParams);
+        } catch (Exception e) {
+			RecordVO recordVO = navigationParams.getRecordVO();
+			if (recordVO != null) {
+				Page page = navigationParams.getPage();
+				String schemaTypeCode = navigationParams.getSchemaTypeCode();
 
-			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-			ConnectorManager connectorManager = es.getConnectorManager();
+				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+				ConnectorManager connectorManager = es.getConnectorManager();
 
-			for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
-				ConnectorUtilsServices<?> services = connector.getServices();
-				for (String type : services.getConnectorDocumentTypes()) {
-					if (schemaTypeCode.equals(type)) {
-						String url = services.getRecordExternalUrl(recordVO);
-						if (url != null) {
-							page.open(url, null);
+				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+					ConnectorUtilsServices<?> services = connector.getServices();
+					for (String type : services.getConnectorDocumentTypes()) {
+						if (schemaTypeCode.equals(type)) {
+							String url = services.getRecordExternalUrl(recordVO);
+							if (url != null) {
+								page.open(url, null);
+							}
+							return;
 						}
-						return;
 					}
 				}
-			}
 
-			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
+				throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
+			}
+        }
+	}
+
+	private void openWithAgent(NavigationParams navigationParams) {
+		Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(navigationParams.getRecordVO().getId());
+		Page page = navigationParams.getPage();
+		if (ConstellioAgentUtils.isAgentSupported()) {
+			String smbMetadataCode;
+			String typeCode = record.getTypeCode();
+			if (ConnectorSmbDocument.SCHEMA_TYPE.equals(typeCode)) {
+				smbMetadataCode = ConnectorSmbDocument.URL;
+			} else {
+				smbMetadataCode = null;
+			}
+			if (smbMetadataCode != null) {
+				Metadata smbUrlMetadata = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+						.getMetadata(typeCode + "_default_" + smbMetadataCode);
+				String smbPath = record.get(smbUrlMetadata);
+				SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+				if (rmConfigs.isAgentEnabled()) {
+					String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
+					page.open(agentSmbPath, null);
+				} else {
+					String path = smbPath;
+					if (StringUtils.startsWith(path, "smb://")) {
+						path = "file://" + StringUtils.removeStart(path, "smb://");
+					}
+					page.open(path, null);
+				}
+			}
 		}
 	}
 
