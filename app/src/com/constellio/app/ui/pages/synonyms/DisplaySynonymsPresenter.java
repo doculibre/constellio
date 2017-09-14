@@ -8,11 +8,11 @@ import com.constellio.model.services.search.SearchConfigurationsManager;
 import java.util.Arrays;
 import java.util.List;
 
-public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
+public class DisplaySynonymsPresenter extends BasePresenter<EditSynonymsView> {
     List<String> synonyms;
     SearchConfigurationsManager searchConfigurationsManager;
 
-    public EditSynonymsPresenter(EditSynonymsView view) {
+    public DisplaySynonymsPresenter(EditSynonymsView view) {
         super(view);
         searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
         this.synonyms = searchConfigurationsManager.getSynonyms();
@@ -23,11 +23,6 @@ public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
         return true;
     }
 
-    public void saveButtonClicked(String synonymsAsOneString) {
-        String[] stringList = synonymsAsOneString.split("\\r\\n|\\n|\\r");
-        synonyms = Arrays.asList(stringList);
-        searchConfigurationsManager.setSynonyms(synonyms);
-    }
 
     public String getSynonmsAsOneString() {
         StringBuilder stringBuilder = new StringBuilder();
@@ -39,8 +34,7 @@ public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
         return stringBuilder.toString();
     }
 
-    public void cancelButtonClicked() {
-        view.navigate().to(CoreViews.class).displaySynonyms();
+    public void editButtonClick() {
+        view.navigate().to(CoreViews.class).editSynonyms();
     }
-
 }

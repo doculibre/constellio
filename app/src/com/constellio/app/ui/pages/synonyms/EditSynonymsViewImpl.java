@@ -1,10 +1,14 @@
 package com.constellio.app.ui.pages.synonyms;
 
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.Button.ClickListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -12,6 +16,7 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
 
     EditSynonymsPresenter editSynonymsPresenter;
     TextArea textArea;
+    EditButton editButton;
 
     public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
 
@@ -25,6 +30,7 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
 
     public EditSynonymsViewImpl() {
         editSynonymsPresenter = new EditSynonymsPresenter(this);
+
     }
 
     @Override
@@ -32,8 +38,8 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
         VerticalLayout verticalLayout = new VerticalLayout();
         this.textArea = new TextArea();
         this.textArea.setValue(editSynonymsPresenter.getSynonmsAsOneString());
-        this.textArea.setHeight("700px");
-        this.textArea.setWidth("100%");
+        this.textArea.setHeight("600px");
+        this.textArea.setWidth("95%");
         buttonsLayout = new HorizontalLayout();
         buttonsLayout.addStyleName(BUTTONS_LAYOUT);
         buttonsLayout.setSpacing(true);
@@ -44,7 +50,7 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
         saveButton.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                editSynonymsPresenter.saveSynonyms(textArea.getValue());
+                editSynonymsPresenter.saveButtonClicked(textArea.getValue());
             }
         });
 
@@ -53,18 +59,21 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
         cancelButton.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-
+                editSynonymsPresenter.cancelButtonClicked();
             }
         });
 
 
         buttonsLayout.addComponents(saveButton, cancelButton);
+        verticalLayout.setSpacing(true);
         verticalLayout.setHeight("100%");
+        verticalLayout.setSizeFull();
         verticalLayout.addComponent(textArea);
         verticalLayout.addComponent(buttonsLayout);
 
         return verticalLayout;
     }
+
 
     protected String getSaveButtonCaption() {
         return $("save");
@@ -72,5 +81,10 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
 
     protected String getCancelButtonCaption() {
         return $("cancel");
+    }
+
+    @Override
+    protected String getTitle() {
+        return $("EditViewSynonymsViewImpl");
     }
 }

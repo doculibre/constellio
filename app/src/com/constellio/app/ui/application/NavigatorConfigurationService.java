@@ -81,6 +81,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
+import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
@@ -186,7 +187,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_IMPORT_EXPORT = "importExport";
 	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
 
-	public static final String EDIT_SYNONYMS = "viewSynonyms";
+	public static final String EDIT_SYNONYMS = "editSynonyms";
+	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -295,6 +297,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
