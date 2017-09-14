@@ -189,6 +189,8 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		isAddMode = addMode;
 	}
 
+	public void setReport(ReportVO report) { this.report = report; }
+
 	public void checkForId(){
 		if(this.parameters.containsKey("id")) {
 			String id = this.parameters.get("id");

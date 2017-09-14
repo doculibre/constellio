@@ -25,7 +25,7 @@ public abstract class XmlGenerator {
     /**
      * First element of the XMl document, usually in plural form.
      */
-    public static final String XML_ROOT_RECORD_ELEMENTS= "records";
+    public static final String XML_ROOT_RECORD_ELEMENTS = "records";
 
 
     /**
@@ -80,7 +80,7 @@ public abstract class XmlGenerator {
                 new Element("collection_title").setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName()).setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
         ));
         List<Element> listOfSpecificAdditionnalElement = getSpecificDataToAddForCurrentElement(recordElement);
-        if(!listOfSpecificAdditionnalElement.isEmpty()) {
+        if (!listOfSpecificAdditionnalElement.isEmpty()) {
             elementsToAdd.addAll(listOfSpecificAdditionnalElement);
         }
         return elementsToAdd;
@@ -108,13 +108,16 @@ public abstract class XmlGenerator {
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
             ));
 
-            if(AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
+            if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
                 Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
-                Record parentRecord = recordServices.getDocumentById(recordReferenced.<String>get(parentMetadata));
-                listOfMetadataTags.addAll(asList(
-                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
-                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
-                ));
+                String parentMetadataId = recordReferenced.get(parentMetadata);
+                if (parentMetadataId != null) {
+                    Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+                    listOfMetadataTags.addAll(asList(
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+                    ));
+                }
             }
         }
         return listOfMetadataTags;

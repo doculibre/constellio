@@ -12,6 +12,7 @@ import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.viewGroups.PrintableViewGroup;
 import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -491,6 +492,18 @@ public class CoreNavigationConfiguration implements Serializable {
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
+//		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+//				new NavigationItem.Active(null, null, PrintableViewGroup.class) {
+//					@Override
+//					public void activate(Navigation navigate) {
+//						navigate.to().viewReport();
+//					}
+//
+//					@Override
+//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+//						return ComponentState.INVISIBLE;
+//					}
+//				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(HOME, FontAwesome.HOME, RecordsManagementViewGroup.class) {
 					@Override

@@ -104,7 +104,7 @@ public class RetentionRuleVO extends RecordVO {
 		set(CORPUS, corpus);
 	}
 
-	public String getCopyRulesComment() {
+	public List<String> getCopyRulesComment() {
 		return get(COPY_RULES_COMMENT);
 	}
 

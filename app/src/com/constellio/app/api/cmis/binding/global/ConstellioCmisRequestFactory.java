@@ -13,10 +13,12 @@ import org.apache.chemistry.opencmis.commons.server.MutableCallContext;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperManager;
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
+import org.joda.time.Duration;
 
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidLogin;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.AuthCache;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -27,6 +29,8 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 
 public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
+
+	static AuthCache authCache = new AuthCache(Duration.standardMinutes(2));
 
 	/** Default maxItems value for getTypeChildren()}. */
 	private static final BigInteger DEFAULT_MAX_ITEMS_TYPES = BigInteger.valueOf(50);
@@ -89,45 +93,50 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 		String serviceKey = callContext.getUsername();
 		String token = callContext.getPassword();
 
-		try {
+		String cacheKey = serviceKey + token;
 
-			String username = userServices.getTokenUser(serviceKey, token);
-			UserCredential userCredential = userServices.getUser(username);
-			if (collection != null) {
-				User user = userServices.getUserInCollection(username, collection);
-				if (!userCredential.isSystemAdmin() && !user.has(USE_EXTERNAL_APIS_FOR_COLLECTION).globally()) {
-					throw new CmisPermissionDeniedException(
-							"User does not have permission to use CMIS in collection '" + collection + "'");
-				}
-			} else {
-				if (!userServices.has(userCredential).globalPermissionInAnyCollection(USE_EXTERNAL_APIS_FOR_COLLECTION)) {
-					throw new CmisPermissionDeniedException(
-							"User must have the permission to use CMIS in at least one collection");
-				}
+		String cachedUsername = authCache.get(serviceKey, token);
+		if (cachedUsername != null) {
+			return userServices.getUser(cachedUsername);
+		} else {
 
+			try {
+				String username = userServices.getTokenUser(serviceKey, token);
+				authCache.insert(serviceKey, token, username);
+				UserCredential userCredential = userServices.getUser(username);
+				if (collection != null) {
+					User user = userServices.getUserInCollection(username, collection);
+					if (!userCredential.isSystemAdmin() && !user.has(USE_EXTERNAL_APIS_FOR_COLLECTION).globally()) {
+						throw new CmisPermissionDeniedException(
+								"User does not have permission to use CMIS in collection '" + collection + "'");
+					}
+				} else {
+					if (!userServices.has(userCredential).globalPermissionInAnyCollection(USE_EXTERNAL_APIS_FOR_COLLECTION)) {
+						throw new CmisPermissionDeniedException(
+								"User must have the permission to use CMIS in at least one collection");
+					}
+
+				}
+				return userCredential;
+
+			} catch (UserServicesRuntimeException e) {
+				throw new CmisExceptions_InvalidLogin();
 			}
-			return userCredential;
-
-		} catch (UserServicesRuntimeException e) {
-			throw new CmisExceptions_InvalidLogin();
 		}
 	}
 
-	private void authenticate(CallContext context) {
+	private UserCredential authenticate(CallContext context) {
 		UserServices userServices = getUserServices();
-		authenticateUserFromContext(context, userServices);
+		return authenticateUserFromContext(context, userServices);
 	}
 
 	private User getCurrentUser(CallContext context, String collection) {
+		UserCredential userCredential = authenticate(context);
 		User currentUser = null;
-		String serviceKey = context.getUsername();
-		if (collection != null) {
-			//			if (username.contains("=>")) {
-			//				username = username.split("=>")[1];
-			//			}
-			UserServices userServices = getUserServices();
-			String username = userServices.getUserCredentialByServiceKey(serviceKey);
-			currentUser = userServices.getUserInCollection(username, collection);
+		if (userCredential != null) {
+			if (collection != null) {
+				currentUser = getUserServices().getUserInCollection(userCredential.getUsername(), collection);
+			}
 		}
 		return currentUser;
 	}

@@ -58,13 +58,13 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
     public void whenGeneratingTabCheckIfAllReportTypeAreThereTest() {
         Map<String, String> possibleReportType = presenter.initPossibleTab(Locale.FRENCH);
         assertThat(possibleReportType.keySet()).contains("Contenant", "Document", "Document sur Internet", "Document sur un partage réseau", "Dossier", "Emplacement", "Tâche", "Utilisateur");
-        assertThat(possibleReportType.values()).contains("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder", "storageSpace", "userTask", "user");
+        assertThat(possibleReportType.values()).contains("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder", "storageSpace", "userTask", "connectorLdapUserDocument");
     }
 
     @Test
     public void whenGettingTheDataProviderForEachSchemaCheckIfItReturnsTheCorrectReport() {
         ReportServices reportServices = new ReportServices(getModelLayerFactory(), zeCollection);
-        List<String> possibleSchema = asList("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder", "storageSpace", "userTask", "user");
+        List<String> possibleSchema = asList("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder", "storageSpace", "userTask", "connectorLdapUserDocument");
         MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection).build(new FakeDataStoreTypeFactory(), getModelLayerFactory());
         int compteur = 0;
         for(String schema : possibleSchema) {

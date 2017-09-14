@@ -83,6 +83,7 @@ public class RecentItemProvider implements Serializable {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(getSchemaType()).where(Schemas.IDENTIFIER).isIn(recordIds))
 				.filteredByStatus(StatusFilter.ACTIVES)
+				.filteredWithUser(user)
 				.setResultsProjection(new SortRecordsUsingIdsAndApplyViewDateResultsProjection(recordIds, eventsViewDateTimes));
 
 		return searchServices.search(query);

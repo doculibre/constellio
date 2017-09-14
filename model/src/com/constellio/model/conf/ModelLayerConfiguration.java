@@ -56,6 +56,8 @@ public interface ModelLayerConfiguration {
 
 	File getContentImportThreadFolder();
 
+	boolean isReindexingEvents();
+
 	int getReindexingQueryBatchSize();
 
 	int getReindexingThreadBatchSize();
