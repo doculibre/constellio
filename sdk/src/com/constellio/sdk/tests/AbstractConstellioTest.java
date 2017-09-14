@@ -44,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
+import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -691,10 +692,27 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	protected void waitUntilChuckNorrisIsDead() {
+		while(true) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	protected void waitUntilICloseTheBrowsers() {
-		ensureNotUnitTest();
-		ensureInDevelopmentTest();
-		getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
+		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
+		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
+
+			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+				waitUntilChuckNorrisIsDead();
+			} else {
+				ensureNotUnitTest();
+				ensureInDevelopmentTest();
+				getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
+			}
 	}
 
 	protected File unzipInTempFolder(File zipFile) {

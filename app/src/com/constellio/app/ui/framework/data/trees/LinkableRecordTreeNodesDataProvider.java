@@ -26,6 +26,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	boolean writeAccess;
 	TaxonomiesSearchFilter filter;
 	boolean ignoreLinkability;
+	boolean isShowAllIfHasAccessToManageSecurity = true;
 
 	public LinkableRecordTreeNodesDataProvider(String taxonomyCode, String schemaTypeCode, boolean writeAccess) {
 		this(taxonomyCode, schemaTypeCode, writeAccess, null);
@@ -60,6 +61,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		User currentUser = getCurrentUser(modelLayerFactory);
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
+		taxonomiesSearchOptions.setShowAllIfHasAccessToManageSecurity(isShowAllIfHasAccessToManageSecurity);
 		return modelLayerFactory.newTaxonomiesSearchService().getLinkableRootConceptResponse(
 				currentUser, currentUser.getCollection(), taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
 	}
@@ -101,4 +103,8 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		return recordServices.getDocumentById(id);
 	}
 
+	public LinkableRecordTreeNodesDataProvider setShowAllIfHasAccessToManageSecurity(boolean showAllIfHasAccessToManageSecurity) {
+		isShowAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
+		return this;
+	}
 }

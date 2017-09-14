@@ -1,5 +1,8 @@
 package com.constellio.app.extensions.api.scripts;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ScriptParameter {
 
     ScriptParameterType type;
@@ -7,6 +10,8 @@ public class ScriptParameter {
     String label;
 
     boolean required;
+
+    List<String> options = new ArrayList<>();
 
     public ScriptParameter(ScriptParameterType type, String label, boolean required) {
         this.type = type;
@@ -20,6 +25,15 @@ public class ScriptParameter {
 
     public String getLabel() {
         return label;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public ScriptParameter setOptions(List<String> options) {
+        this.options = options;
+        return this;
     }
 
     @Override
@@ -36,7 +50,7 @@ public class ScriptParameter {
     @Override
     public int hashCode() {
         int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (label != null ? label.hashCode() : 0);
+        result = 31 * result + (label != null ? label.hashCode() : 0) + options.hashCode();
         return result;
     }
 }

@@ -20,8 +20,9 @@ public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider imp
 	private boolean ignoreLinkability;
 	private boolean writeAccess;
 
-	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode, boolean writeAccess) {
-		super(new LinkableRecordTreeNodesDataProvider(taxonomyCode, schemaTypeCode, writeAccess));
+	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode, boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
+		super(new LinkableRecordTreeNodesDataProvider(taxonomyCode, schemaTypeCode, writeAccess)
+				.setShowAllIfHasAccessToManageSecurity(isShowAllIfHasAccessToManageSecurity));
 		this.writeAccess = writeAccess;
 		this.schemaTypeCode = schemaTypeCode;
 		ignoreLinkability = false;

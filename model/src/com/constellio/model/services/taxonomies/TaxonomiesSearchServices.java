@@ -998,8 +998,9 @@ public class TaxonomiesSearchServices {
 		if (principalTaxonomy.getSchemaTypes().contains(selectedType.getCode())) {
 			//selecting a record of the principal taxonomy
 
-			if (user == User.GOD || user.hasCollectionAccess(options.getRequiredAccess()) || user
-					.has(CorePermissions.MANAGE_SECURITY).globally()) {
+			//FIXME
+			if (user == User.GOD || user.hasCollectionAccess(options.getRequiredAccess()) || (user
+					.has(CorePermissions.MANAGE_SECURITY).globally() && options.isShowAllIfHasAccessToManageSecurity()) ) {
 				//No security, the whole tree is visible
 				response = getLinkableConceptsForSelectionOfATaxonomyConcept(user, usingTaxonomy, selectedType, inRecord,
 						options);
