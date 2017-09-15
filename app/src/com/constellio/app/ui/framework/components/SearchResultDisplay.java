@@ -4,7 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.entities.MetadataVO;
@@ -20,6 +26,8 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 
+import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
+
 public class SearchResultDisplay extends VerticalLayout {
 	public static final String RECORD_STYLE = "search-result-record";
 	public static final String TITLE_STYLE = "search-result-title";
@@ -28,9 +36,11 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String SEPARATOR = " ... ";
 
 	private AppLayerFactory appLayerFactory;
+	private SessionContext sessionContext;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
+		this.sessionContext = getCurrent().getSessionContext();
 		init(searchResultVO, componentFactory);
 	}
 
@@ -57,7 +67,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
-		String formattedHighlights = formatHighlights(searchResultVO.getHighlights());
+		String formattedHighlights = formatHighlights(searchResultVO.getHighlights(), searchResultVO.getRecordVO());
 		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
 		highlights.addStyleName(HIGHLIGHTS_STYLE);
 		if (StringUtils.isBlank(formattedHighlights)) {
@@ -66,13 +76,31 @@ public class SearchResultDisplay extends VerticalLayout {
 		return highlights;
 	}
 
-	private String formatHighlights(Map<String, List<String>> highlights) {
+	private String formatHighlights(Map<String, List<String>> highlights, RecordVO recordVO) {
 		if (highlights == null) {
 			return null;
 		}
+
+		String currentCollection = sessionContext.getCurrentCollection();
+		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
+		MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(currentCollection).getSchema(recordVO.getSchema().getCode());
+		SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+
+		List<String> highlightedDateStoreCodes = new ArrayList<>();
+		for(Metadata metadata: schema.getMetadatas()) {
+			if(displayManager.getMetadata(currentCollection, metadata.getCode()).isHighlight()) {
+				highlightedDateStoreCodes.add(metadata.getDataStoreCode());
+				for(String language: collectionLanguages) {
+					highlightedDateStoreCodes.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				}
+			}
+		}
 		List<String> parts = new ArrayList<>(highlights.size());
-		for (List<String> fieldHighlights : highlights.values()) {
-			parts.add(StringUtils.join(fieldHighlights, SEPARATOR));
+		for(Map.Entry<String, List<String>> entry : highlights.entrySet()) {
+			if(highlightedDateStoreCodes.contains(entry.getKey())) {
+				parts.add(StringUtils.join(entry.getValue(), SEPARATOR));
+			}
 		}
 		return StringUtils.join(parts, SEPARATOR);
 	}
