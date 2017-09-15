@@ -19,8 +19,8 @@ public class Capsule extends RecordWrapper {
 
     public static final String KEYWORDS = "keywords";
 
-    public Capsule(Record record, MetadataSchemaTypes types, String typeRequirement) {
-        super(record, types, typeRequirement);
+    public Capsule(Record record, MetadataSchemaTypes types) {
+        super(record, types, SCHEMA_TYPE);
     }
 
     public String getCode(){

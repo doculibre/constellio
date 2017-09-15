@@ -84,6 +84,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(TemporaryRecord.DEFAULT_SCHEMA, TemporaryRecord.class);
 		wrappers.put(ImportAudit.SCHEMA, ImportAudit.class);
 		wrappers.put(ExportAudit.SCHEMA, ExportAudit.class);
+		wrappers.put(Capsule.DEFAULT_SCHEMA, Capsule.class);
 
 		System.out.println(header());
 

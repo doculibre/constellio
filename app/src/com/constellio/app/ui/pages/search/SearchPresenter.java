@@ -241,14 +241,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return null;
 	}
 
-	public List<RecordVO> getCapsuleForCurrentSearch(){
-		List<RecordVO> capsules = new ArrayList<>();
+	public List<Capsule> getCapsuleForCurrentSearch(){
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
 		String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
 		String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
 		MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
 		LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-		return capsules;
+		return schemasRecordsServices.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
 	}
 
 	public boolean mustDisplaySuggestions() {

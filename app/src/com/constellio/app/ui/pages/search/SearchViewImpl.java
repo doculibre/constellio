@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -73,7 +74,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.addComponent(buildSearchUI());
-		List<RecordVO> capsules = presenter.getCapsuleForCurrentSearch();
+		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
 		if(!capsules.isEmpty()) {
 			layout.addComponent(buildCapsuleIU(capsules));
 		}
@@ -517,7 +518,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return button;
 	}
 
-	private Component buildCapsuleIU(List<RecordVO> Capsules) {
+	private Component buildCapsuleIU(List<Capsule> Capsules) {
 		return null;
 	}
 
