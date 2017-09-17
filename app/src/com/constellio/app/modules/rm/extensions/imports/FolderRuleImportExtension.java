@@ -18,6 +18,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class FolderRuleImportExtension extends RecordImportExtension {
 
+	public static boolean ajustManualDepositAndDestructionDates = true;
+
 	RMSchemasRecordsServices rm;
 
 	public FolderRuleImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
@@ -36,7 +38,9 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		ajustCreationModificationDates(fields, folder);
 		setEnteredMainCopyId(folder);
 		autoCalculateDates(folder, event);
-		ajusteManualDepositAndDestructionDates(folder);
+		if (ajustManualDepositAndDestructionDates) {
+			ajusteManualDepositAndDestructionDates(folder);
+		}
 	}
 
 	private void autoCalculateDates(Folder folder, BuildParams event) {
