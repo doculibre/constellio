@@ -8,11 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -82,7 +78,7 @@ public class RMConfigs {
 			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH;
 
 	// other
-	public static final SystemConfiguration OPEN_HOLDER;
+	public static final SystemConfiguration OPEN_HOLDER, LAST_BACKUP_DAY, KEEP_EVENTS_FOR_X_MONTH;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
@@ -235,6 +231,10 @@ public class RMConfigs {
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
+
+		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
+
+		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(60));
 
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
