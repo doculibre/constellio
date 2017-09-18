@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -28,6 +29,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -377,10 +379,16 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		} else {
+			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
+			if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				tmpSearchRecord = recordServices()
+						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+			}
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporaryDecommission")
+				.setTitle($("SearchView.savedSearch.temporaryDecommission"))
 				.setSearchType(DecommissioningBuilderView.SEARCH_TYPE)
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)
@@ -417,5 +425,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	public boolean isAddMode() {
 		return addMode;
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 }

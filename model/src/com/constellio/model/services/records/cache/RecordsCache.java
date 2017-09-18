@@ -12,6 +12,8 @@ public interface RecordsCache {
 
 	Record get(String id);
 
+	Record getSummary(String id);
+
 	boolean isCached(String id);
 
 	void insert(List<Record> record);
@@ -43,6 +45,8 @@ public interface RecordsCache {
 	void invalidateAll();
 
 	Record getByMetadata(Metadata metadata, String value);
+
+	Record getSummaryByMetadata(Metadata metadata, String value);
 
 	void removeCache(String schemaType);
 

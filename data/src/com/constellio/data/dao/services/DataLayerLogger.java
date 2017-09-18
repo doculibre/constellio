@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services;
 
+import static com.constellio.data.utils.LoggerUtils.toParamsString;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -16,13 +17,14 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.utils.LoggerUtils;
 
 public class DataLayerLogger {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 
 	private List<String> monitoredIds = new ArrayList<>();
+
+	private boolean logFL = true;
 
 	private int printAllQueriesLongerThanMS = 100;
 
@@ -32,22 +34,29 @@ public class DataLayerLogger {
 
 	private boolean logAllTransactions = false;
 
+	private boolean queryLoggingEnabled = true;
+
 	public void logQueryResponse(SolrParams params, QueryResponse response) {
 
-		String prefix = null;
-		if (response.getQTime() >= verySlowQueryDuration) {
-			prefix = "VERY SLOW QUERY : ";
+		if (queryLoggingEnabled) {
+			String prefix = null;
+			if (response.getQTime() >= verySlowQueryDuration) {
+				prefix = "VERY SLOW QUERY : ";
 
-		} else if (response.getQTime() >= slowQueryDuration) {
-			prefix = "SLOW QUERY : ";
+			} else if (response.getQTime() >= slowQueryDuration) {
+				prefix = "SLOW QUERY : ";
 
-		} else if (response.getQTime() >= printAllQueriesLongerThanMS) {
-			prefix = "QUERY : ";
-		}
+			} else if (response.getQTime() >= printAllQueriesLongerThanMS) {
+				prefix = "QUERY : ";
+			}
 
-		if (prefix != null) {
-			LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
-					+ ", query=' : '" + LoggerUtils.toParamsString(params) + "'");
+			if (prefix != null) {
+				if (!toParamsString(params).contains("markedForReindexing_s")) {
+					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
+							+ ", documents=" + response.getResults().size()
+							+ "\n" + toParamsString(params, "qt", "shards.qt", logFL ? "" : "fl") + "\n");
+				}
+			}
 		}
 	}
 
@@ -164,8 +173,9 @@ public class DataLayerLogger {
 		this.monitoredIds.add(monitoredId);
 	}
 
-	public void setPrintAllQueriesLongerThanMS(int printAllQueriesLongerThanMS) {
+	public DataLayerLogger setPrintAllQueriesLongerThanMS(int printAllQueriesLongerThanMS) {
 		this.printAllQueriesLongerThanMS = printAllQueriesLongerThanMS;
+		return this;
 	}
 
 	public void logAllTransactions() {
@@ -178,5 +188,23 @@ public class DataLayerLogger {
 
 	public void setVerySlowQueryDuration(int verySlowQueryDuration) {
 		this.verySlowQueryDuration = verySlowQueryDuration;
+	}
+
+	public boolean isQueryLoggingEnabled() {
+		return queryLoggingEnabled;
+	}
+
+	public DataLayerLogger setQueryLoggingEnabled(boolean queryLoggingEnabled) {
+		this.queryLoggingEnabled = queryLoggingEnabled;
+		return this;
+	}
+
+	public boolean isLogFL() {
+		return logFL;
+	}
+
+	public DataLayerLogger setLogFL(boolean logFL) {
+		this.logFL = logFL;
+		return this;
 	}
 }

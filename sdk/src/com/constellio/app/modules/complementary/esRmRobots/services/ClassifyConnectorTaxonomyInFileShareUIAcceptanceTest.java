@@ -256,31 +256,30 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				.setTitle("1.txt").setUrl(folderATaxoURL + "1.txt").setParsedContent("Document A1 content").setParent(
-				folderA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("1.txt").setUrl(folderATaxoURL + "1.txt").setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParent(folderA)
+				.setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParent(folderB)
+				.setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3JustDeleted, connectorInstance))
 				.setTitle("7.txt").setUrl(folderBTaxoURL + "7.txt").setParsedContent("Document B7")
-				.setParent(folderB)
+                .setParentUrl("smb://B/")
 				.setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParent(folderAA)
+				.setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
 				.setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParent(folderAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAA6, connectorInstance))
-				.setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParent(folderAAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
 		recordServices.execute(transaction);
 	}
 
@@ -300,13 +299,13 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderATaxoURL);
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAATaxoURL)
-				.setParent(folderA);
+                .setParentUrl("smb://A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABTaxoURL)
-				.setParent(folderA);
+                .setParentUrl("smb://A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAATaxoURL)
-				.setParent(folderAA);
+                .setParentUrl("smb://A/A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABTaxoURL)
-				.setParent(folderAA);
+                .setParentUrl("smb://A/A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBTaxoURL);
 
 		recordServices.execute(transaction);

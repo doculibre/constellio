@@ -568,6 +568,24 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
+		DocumentVO documentVO = getDocumentVO();
+		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
+		if(Boolean.TRUE.equals(isLogicallyDeleted)) {
+			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setAddAuthorizationButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setCreatePDFAButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setShareDocumentButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setUploadButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setCheckInButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setCheckOutButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setAlertWhenAvailableButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setFinalizeButtonVisible(false);
+			actionsComponent.setStartWorkflowButtonState(ComponentState.INVISIBLE);
+			return;
+		}
+
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
 		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
 		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
@@ -583,6 +601,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setFinalizeButtonVisible(isFinalizePossible());
 		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
 	}
+
+
 
 	protected void updateBorrowedMessage() {
 		if (isContentCheckedOut()) {

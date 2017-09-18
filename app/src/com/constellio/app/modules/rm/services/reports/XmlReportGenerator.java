@@ -20,6 +20,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jsoup.Jsoup;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -102,6 +103,8 @@ public class XmlReportGenerator extends XmlGenerator{
             } catch (ParseException e) {
                 return data;
             }
+        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
+            finalData = Jsoup.parse(data).text();
         }
         return replaceBracketsInValueToString.replaceOn(finalData);
     }

@@ -28,6 +28,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 
 	private List<RecordVODataProvider> dataProviders;
 
+	public RecordVOLazyContainer(RecordVODataProvider dataProvider, boolean isOnlyTableMetadatasShown) {
+		this(Arrays.asList(dataProvider), 100, isOnlyTableMetadatasShown);
+	}
+
 	public RecordVOLazyContainer(RecordVODataProvider dataProvider) {
 		this(Arrays.asList(dataProvider));
 	}
@@ -37,7 +41,11 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 	}
 
 	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize) {
-		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown(), batchSize),
+		this(dataProviders, batchSize, isOnlyTableMetadatasShown());
+	}
+
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize, boolean isOnlyTableMetadatasShown) {
+		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
 		for (RecordVODataProvider dataProvider : dataProviders) {

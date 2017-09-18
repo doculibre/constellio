@@ -469,6 +469,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record get(String id) {
+		return onlyIfNotSummary(getSummary(id));
+	}
+
+	@Override
+	public Record getSummary(String id) {
 
 		RecordHolder holder = permanentByIdRecordHoldersCache.get(id);
 		if (holder == null) {
@@ -655,7 +660,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord) {
 
-		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord);
+		if (insertedRecord == null) {
+			return CacheInsertionStatus.REFUSED_NULL;
+		}
+
+		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
+		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
 
 		if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
 			invalidate(insertedRecord.getId());
@@ -665,7 +675,6 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 			Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
 
-			CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 			if (cacheConfig != null) {
 				String schemaTypeCode = cacheConfig.getSchemaType();
 				Record previousRecord = null;
@@ -838,6 +847,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
+		return onlyIfNotSummary(getSummaryByMetadata(metadata, value));
+	}
+
+	@Override
+	public Record getSummaryByMetadata(Metadata metadata, String value) {
 		long start = new Date().getTime();
 		String schemaTypeCode = schemaUtils.getSchemaTypeCode(metadata);
 		Record foundRecord = null;
@@ -1056,4 +1070,17 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return 0;
 	}
 
+	private Record onlyIfNotSummary(Record record) {
+		if (record == null) {
+			return null;
+
+		} else {
+			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
+			if (config.getPersistedMetadatas().isEmpty()) {
+				return null;
+			} else {
+				return record;
+			}
+		}
+	}
 }

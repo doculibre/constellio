@@ -257,12 +257,13 @@ public class ConnectorManager implements StatefulService {
 		params.set("q", "connectorId_s:" + connectorInstance.getId());
 
 		try {
-			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW).withDeletedByQueries(params));
 			Connector connector = instanciate(connectorInstance);
 			connector.initialize(new ConsoleConnectorLogger(), connectorInstance.getWrappedRecord(), null, es);
 			connector.onAllDocumentsDeleted();
 			connectorInstance.setTraversalCode(null);
 			recordServices.update(connectorInstance.getWrappedRecord());
+
+			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW).withDeletedByQueries(params));
 		} catch (com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking optimisticLocking) {
 			throw new RuntimeException(optimisticLocking);
 		} catch (RecordServicesException e) {

@@ -126,7 +126,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
-		query.clearSort();
+		clearSort(query);
 		cache.clear();
 
 		for (int i = 0; i < propertyId.length; i++) {
@@ -143,6 +143,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 				}
 			}
 		}
+	}
+
+	protected void clearSort(LogicalSearchQuery query) {
+		query.clearSort();
 	}
 
 	protected abstract LogicalSearchQuery getQuery();

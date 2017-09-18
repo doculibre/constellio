@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
@@ -10,6 +12,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.jdom2.Element;
 
 import java.util.ArrayList;
@@ -22,7 +25,8 @@ public abstract class XmlGenerator {
     /**
      * First element of the XMl document, usually in plural form.
      */
-    public static final String XML_ROOT_RECORD_ELEMENTS= "records";
+    public static final String XML_ROOT_RECORD_ELEMENTS = "records";
+
 
     /**
      * Xml tag of every element in the XML
@@ -30,6 +34,8 @@ public abstract class XmlGenerator {
     public static final String XML_EACH_RECORD_ELEMENTS = "record";
 
     public static final String REFERENCE_PREFIX = "ref_";
+
+    public static final String PARENT_SUFFIX = "_parent";
 
     public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "").replacingRegex("[&$%]", "");
     public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
@@ -45,12 +51,15 @@ public abstract class XmlGenerator {
 
     private RecordServices recordServices;
 
+    private MetadataSchemasManager metadataSchemasManager;
+
     XmlGeneratorParameters xmlGeneratorParameters;
 
     public XmlGenerator(AppLayerFactory appLayerFactory, String collection) {
         this.factory = appLayerFactory;
         this.collection = collection;
         this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
+        this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
     }
 
     public AppLayerFactory getFactory() {
@@ -71,7 +80,7 @@ public abstract class XmlGenerator {
                 new Element("collection_title").setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName()).setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
         ));
         List<Element> listOfSpecificAdditionnalElement = getSpecificDataToAddForCurrentElement(recordElement);
-        if(!listOfSpecificAdditionnalElement.isEmpty()) {
+        if (!listOfSpecificAdditionnalElement.isEmpty()) {
             elementsToAdd.addAll(listOfSpecificAdditionnalElement);
         }
         return elementsToAdd;
@@ -98,6 +107,18 @@ public abstract class XmlGenerator {
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
             ));
+
+            if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
+                Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+                String parentMetadataId = recordReferenced.get(parentMetadata);
+                if (parentMetadataId != null) {
+                    Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+                    listOfMetadataTags.addAll(asList(
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+                    ));
+                }
+            }
         }
         return listOfMetadataTags;
     }

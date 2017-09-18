@@ -52,6 +52,8 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setCheckOutButtonState(ComponentState state);
 
+	void setGenerateMetadataButtonState(ComponentState state);
+
 	void setFinalizeButtonVisible(boolean visible);
 
 	void setBorrowedMessage(String borrowedMessageKey, String... args);

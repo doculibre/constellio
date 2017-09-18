@@ -5,11 +5,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RecordsCachesUtils {
 
-	public static CacheInsertionStatus evaluateCacheInsert(Record insertedRecord) {
-
-		if (insertedRecord == null) {
-			return CacheInsertionStatus.REFUSED_NULL;
-		}
+	public static CacheInsertionStatus evaluateCacheInsert(Record insertedRecord, CacheConfig cacheConfig) {
 
 		if (insertedRecord.isDirty()) {
 			return CacheInsertionStatus.REFUSED_DIRTY;
@@ -40,6 +36,17 @@ public class RecordsCachesUtils {
 				&& (query.getReturnedMetadatas().isFullyLoaded() || onlyIds)
 				&& query.getUserFilter() == null
 				&& !query.isHighlighting();
+	}
+
+	public static Record prepareRecordForCacheInsert(Record insertedRecord, CacheConfig cacheConfig) {
+
+		if (cacheConfig == null) {
+			return insertedRecord;
+		} else if (cacheConfig.getPersistedMetadatas().isEmpty()) {
+			return insertedRecord.getCopyOfOriginalRecord();
+		} else {
+			return insertedRecord.getCopyOfOriginalRecordKeepingOnly(cacheConfig.getPersistedMetadatas());
+		}
 	}
 
 }

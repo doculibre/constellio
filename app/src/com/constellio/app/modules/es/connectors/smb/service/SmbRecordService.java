@@ -1,12 +1,15 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
 import java.util.*;
 
-import com.constellio.app.modules.es.constants.ESTaxonomies;
+import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -19,24 +22,19 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorSmbUtils smbUtils;
+	private RecordServices recordServices;
 
 	public SmbRecordService(ESSchemasRecordsServices es, ConnectorSmbInstance connectorInstance) {
 		this.es = es;
 		this.connectorInstance = connectorInstance;
 		this.smbUtils = new ConnectorSmbUtils();
-	}
-
-	public static String getSafeId(ConnectorSmbFolder folder) {
-		String folderId = null;
-		if (folder != null) {
-			folderId = folder.getId();
-		}
-		return folderId;
+		this.recordServices = es.getAppLayerFactory().getModelLayerFactory().newRecordServices();
 	}
 
 	public List<ConnectorSmbDocument> getDocuments(String url) {
@@ -49,11 +47,6 @@ public class SmbRecordService {
 		return es.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
 				.andWhere(es.connectorSmbFolder.url())
 				.isEqualTo(url));
-	}
-
-	public synchronized ConnectorSmbDocument newConnectorSmbDocument(String url) {
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		return document;
 	}
 
 	public ConnectorSmbDocument convertToSmbDocumentOrNull(ConnectorDocument document) {
@@ -82,46 +75,82 @@ public class SmbRecordService {
 		return result;
 	}
 
-	public synchronized ConnectorSmbFolder newConnectorSmbFolder(String url) {
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);
-		return folder;
+	public ConnectorDocument newConnectorDocument(String url) {
+		if (smbUtils.isFolder(url)) {
+			return es.newConnectorSmbFolder(connectorInstance);
+		}
+		return es.newConnectorSmbDocument(connectorInstance);
 	}
 
-	public ConnectorSmbFolder getFolder(String url) {
-		if (StringUtils.isBlank(url)) {
-			return null;
-		} else {
-			List<ConnectorSmbFolder> folders = getFolders(url);
-			if (folders.isEmpty()) {
-				return null;
-			}
-			return folders.get(0);
+	public ConnectorDocument getConnectorDocument(String url, ConnectorSmbInstance connectorInstance) {
+		if (smbUtils.isFolder(url)) {
+			return getFolderFromCache(url, connectorInstance);
 		}
+		return getDocumentFromCache(url, connectorInstance);
 	}
 
-	public ConnectorSmbDocument getDocument(String url) {
-		if (StringUtils.isBlank(url)) {
-			return null;
+	public ConnectorSmbFolder getFolderFromCache(String url, ConnectorSmbInstance connectorInstance) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+		return es.wrapConnectorSmbFolder(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
+				.getByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
+	}
+
+	public void removeFromCache(ConnectorDocument connectorDocument) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		recordServices.getRecordsCaches().getCache(connectorInstance.getCollection()).invalidate(connectorDocument.getId());
+	}
+
+	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {
+		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
+		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
+		return es.wrapConnectorSmbDocument(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
+				.getSummaryByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
+	}
+
+	public SmbModificationIndicator getSmbModificationIndicator(ConnectorSmbInstance connector, String url) {
+		Metadata permissionHash = es.connectorSmbDocument.permissionsHash();
+		Metadata size = es.connectorSmbDocument.size();
+		Metadata lastModified = es.connectorSmbDocument.lastModified();
+		Metadata documentConnectorUrlMetadata = es.connectorSmbDocument.connectorUrl();
+		Metadata folderConnectorUrlMetadata = es.connectorSmbFolder.connectorUrl();
+
+		String connectorUrlValue = DocumentSmbConnectorUrlCalculator.calculate(url, connector.getId());
+
+		Record record = null;
+		if(smbUtils.isFolder(url)) {
+			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getByMetadata(folderConnectorUrlMetadata, connectorUrlValue);
 		} else {
-			List<ConnectorSmbDocument> documents = getDocuments(url);
-			if (documents.isEmpty()) {
-				return null;
-			}
-			return documents.get(0);
+			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getSummaryByMetadata(documentConnectorUrlMetadata, connectorUrlValue);
 		}
+
+
+		if(record == null) {
+			return null;
+		}
+
+		String permissionHashValue = record.get(permissionHash);
+		permissionHashValue = StringUtils.defaultString(permissionHashValue);
+		Double sizeDouble = record.get(size);
+		double sizeValue = 0;
+		if (sizeDouble != null) {
+			sizeValue = sizeDouble;
+		}
+		LocalDateTime lastModifiedDateTime = record.get(lastModified);
+		long lastModifiedValue = -1;
+		if (lastModifiedDateTime != null) {
+			lastModifiedValue = lastModifiedDateTime.toDate().getTime();
+		}
+
+		SmbModificationIndicator databaseIndicator = new SmbModificationIndicator(permissionHashValue, sizeValue, lastModifiedValue);
+		databaseIndicator.setParentId(record.getParentId());
+		return databaseIndicator;
 	}
 
 	public void updateResumeUrl(String url) {
 		connectorInstance.setResumeUrl(url);
 	}
 
-	public Iterator<ConnectorSmbDocument> getAllDocumentsInFolder(ConnectorDocument<?> folderToDelete) {
-		if (folderToDelete.getPaths().isEmpty()) {
-			return new ArrayList<ConnectorSmbDocument>().iterator();
-		}
-		String path = folderToDelete.getPaths().get(0);
-		return es.iterateConnectorSmbDocuments(where(Schemas.PATH).isStartingWithText(path));
-	}
 
 	public Set<String> duplicateDocuments() {
 		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId()))
@@ -138,25 +167,6 @@ public class SmbRecordService {
 		for (FacetValue facetValue : response.getFieldFacetValues(Schemas.URL.getDataStoreCode())) {
 			urls.add(facetValue.getValue());
 		}
-
-		return urls;
-	}
-
-	public Set<String> misplacedUrls() {
-		List<String> seeds = connectorInstance.getSeeds();
-
-		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId())
-			.andWhere(Schemas.PARENT_PATH).is("/" + ESTaxonomies.SMB_FOLDERS))
-			.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL))
-			.setNumberOfRows(10_000);
-
-		Set<String> urls = new HashSet<>();
-		SPEQueryResponse response = es.getAppLayerFactory().getModelLayerFactory().newSearchServices().query(query);
-		for (Record record : response.getRecords()) {
-			urls.add(record.get(Schemas.URL).toString());
-		}
-
-		urls.removeAll(seeds);
 
 		return urls;
 	}

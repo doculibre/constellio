@@ -34,6 +34,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -71,9 +72,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	ConfigManager configManager;
 
 	Delayed<ConstellioModulesManager> constellioModulesManagerDelayed;
-	
+
 	ConstellioCache cache;
-	
+
 	boolean readPropertiesFileRequired = true;
 
 	public SystemConfigurationsManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager,
@@ -95,7 +96,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			}
 		});
 	}
-	
+
 	private void clearCache() {
 		cache.clear();
 		readPropertiesFileRequired = true;
@@ -205,9 +206,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
 		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
 
-		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+		List<RecordBatchProcess> batchProcesses = startBatchProcessesToReindex(config);
 		int totalRecordsToReindex = 0;
-		for (BatchProcess process : batchProcesses) {
+		for (RecordBatchProcess process : batchProcesses) {
 			totalRecordsToReindex += process.getTotalRecordsCount();
 		}
 		return totalRecordsToReindex > 10000;
@@ -220,9 +221,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
 		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
 
-		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+		List<RecordBatchProcess> batchProcesses = startBatchProcessesToReindex(config);
 		int totalRecordsToReindex = 0;
-		for (BatchProcess process : batchProcesses) {
+		for (RecordBatchProcess process : batchProcesses) {
 			totalRecordsToReindex += process.getTotalRecordsCount();
 		}
 		try {
@@ -285,8 +286,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		};
 	}
 
-	List<BatchProcess> startBatchProcessesToReindex(SystemConfiguration config) {
-		List<BatchProcess> batchProcesses = new ArrayList<>();
+	List<RecordBatchProcess> startBatchProcessesToReindex(SystemConfiguration config) {
+		List<RecordBatchProcess> batchProcesses = new ArrayList<>();
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
@@ -300,10 +301,10 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		return batchProcesses;
 	}
 
-	List<BatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type,
+	List<RecordBatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type,
 			SystemConfiguration config) {
 
-		List<BatchProcess> batchProcesses = new ArrayList<>();
+		List<RecordBatchProcess> batchProcesses = new ArrayList<>();
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<String> schemaCodes = new SchemaUtils().toMetadataCodes(metadatasToReindex);
@@ -385,7 +386,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		}
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
-	
+
 	private synchronized void loadPropertiesFileInCacheIfNecessary() {
 		if (readPropertiesFileRequired) {
 			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
@@ -399,7 +400,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T> T getValue(SystemConfiguration config) {
 		T value;
@@ -421,7 +422,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 					inputStreamFactory = null;
 				}
 			} else {
-				inputStreamFactory = ioServices.newByteArrayStreamFactory(binaryContentFromCache, getClass().getName() + "." + configKey);
+				inputStreamFactory = ioServices
+						.newByteArrayStreamFactory(binaryContentFromCache, getClass().getName() + "." + configKey);
 			}
 			value = (T) inputStreamFactory;
 

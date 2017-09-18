@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.management.labels;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -10,6 +10,9 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -23,6 +26,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,8 +45,32 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
     }
 
     @Override
-
     public void addLabels(LabelVO... items) {
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
     }
 
     public void setRecord(RecordVO recordVO) {
@@ -155,7 +183,27 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
     class LabelRecordFieldFactory extends RecordFieldFactory {
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            return metadataVO.getCode().equals(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.TYPE_LABEL) ? createComboBox(metadataVO) : new MetadataFieldFactory().build(metadataVO);
+            Field<?> field;
+            switch (metadataVO.getCode()) {
+                case PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.TYPE_LABEL:
+                    field = createComboBox(metadataVO);
+                    break;
+                default:
+                    field = new MetadataFieldFactory().build(metadataVO);
+                    if(metadataVO.codeMatches(Printable.JASPERFILE)) {
+                        field.addValidator(new Validator() {
+                            @Override
+                            public void validate(Object value) throws InvalidValueException {
+                                ContentVersionVO contentValue = (ContentVersionVO) value;
+                                if(contentValue != null && !contentValue.getFileName().endsWith(".jasper")) {
+                                    throw new InvalidValueException($("PrintableReport.invalidFileType"));
+                                }
+                            }
+                        });
+                    }
+                    break;
+            }
+            return field;
         }
 
         public ComboBox createComboBox(MetadataVO metadataVO) {

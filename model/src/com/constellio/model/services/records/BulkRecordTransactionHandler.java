@@ -54,6 +54,7 @@ public class BulkRecordTransactionHandler {
 	ThreadList<Thread> threadList;
 
 	List<Record> currentRecords = new ArrayList<>();
+	long currentRecordsSize = 0;
 
 	Map<String, Record> currentReferencedRecords = new HashMap<>();
 
@@ -96,6 +97,7 @@ public class BulkRecordTransactionHandler {
 
 	public synchronized void append(List<Record> records, List<Record> referencedRecords) {
 		ensureNoExceptions();
+
 		if (currentRecords.size() + records.size() > options.recordsPerBatch) {
 			pushCurrent();
 		}
@@ -116,7 +118,9 @@ public class BulkRecordTransactionHandler {
 		if (!currentRecords.isEmpty()) {
 			try {
 				createdTasksCounter.incrementAndGet();
-				LOGGER.info("Appending a task of " + currentRecords.size() + " records (" + size + " bytes)");
+				if (options.isShowProgressionInConsole()) {
+					LOGGER.info("Appending a task of " + currentRecords.size() + " records (" + size + " bytes)");
+				}
 				tasks.put(new BulkRecordTransactionHandlerTask(currentRecords, currentReferencedRecords));
 			} catch (InterruptedException e) {
 				throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);

@@ -219,13 +219,19 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, fullConnectorDocPath);
 		Folder rmFolder;
 		if (rmRecord == null) {
+			String folderTypeId = params.getFolderTypeId();
 			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
 			if (parentConcept != null) {
-				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept);
+				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept, folderTypeId);
 			} else if (targetTaxonomy != null) {
-				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName);
+				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName, folderTypeId);
 			} else {
-				rmFolder = rm.newFolder();
+				if(folderTypeId != null) {
+					rmFolder = rm.newFolderWithType(folderTypeId);
+				} else {
+					rmFolder = rm.newFolder();
+				}
+
 				rmFolder.setCreatedByRobot(robotId);
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
@@ -256,7 +262,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 
 		if (rmRecord == null) {
-			rmFolder = rm.newFolder().setTitle(folderName);
+			String folderTypeId = params.getFolderTypeId();
+			if(folderTypeId != null) {
+				rmFolder = rm.newFolderWithType(folderTypeId);
+			} else {
+				rmFolder = rm.newFolder();
+			}
+			rmFolder.setTitle(folderName);
 			rmFolder.setLegacyId(url);
 
 		} else {
@@ -330,11 +342,16 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return mappedEntries;
 	}
 
-	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart) {
+	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId) {
 		String parentPath = getParentPath(fullConnectorDocPath, pathPart);
 
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
-		Folder newRmFolder = rm.newFolder();
+		Folder newRmFolder;
+		if(folderTypeId != null) {
+			newRmFolder = rm.newFolderWithType(folderTypeId);
+		} else {
+			newRmFolder = rm.newFolder();
+		}
 		newRmFolder.setCreatedByRobot(robotId);
 		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 		newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
@@ -347,8 +364,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-			MetadataSchema folderSchema, Record parentConcept) {
-		Folder newRmFolder = rm.newFolder();
+										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
+		Folder newRmFolder;
+		if(folderTypeId != null) {
+			newRmFolder = rm.newFolderWithType(folderTypeId);
+		} else {
+			newRmFolder = rm.newFolder();
+		}
+
 		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy)).get(0);
 		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
@@ -637,7 +660,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			Document document = rm.getDocumentByLegacyId(connectorDocument.getUrl());
 
 			if (document == null) {
-				document = rm.newDocument();
+				String documentTypeId = params.getDocumentTypeId();
+				if(documentTypeId != null) {
+					document = rm.newDocumentWithType(documentTypeId);
+				} else {
+					document = rm.newDocument();
+				}
 				document.setCreatedByRobot(robotId);
 				document.setLegacyId(connectorDocument.getUrl());
 			}

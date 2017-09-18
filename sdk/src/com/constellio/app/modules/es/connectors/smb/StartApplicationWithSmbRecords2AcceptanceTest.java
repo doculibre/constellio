@@ -118,25 +118,25 @@ public class StartApplicationWithSmbRecords2AcceptanceTest extends ConstellioTes
 				.setTitle("B").setUrl("smb://B/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance))
-				.setTitle("AA").setUrl("smb://A/A/").setParent(folderA);
+				.setTitle("AA").setUrl("smb://A/A/").setParentUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance))
 				.setTitle("AB").setUrl("smb://A/B/");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				.setTitle("1.txt").setUrl("smb://A/1.txt").setParent(folderA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl("smb://A/2.txt").setParent(folderA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl("smb://B/3.txt").setParent(folderB).setManualTokens("rtoken1");
+				.setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://B/").setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParent(folderAA).setManualTokens(PUBLIC_TOKEN);
+				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParent(folderAA).setManualTokens("rtoken2");
+				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParentUrl("smb://A/A/").setManualTokens("rtoken2");
 
 		recordServices.execute(transaction);
 	}
@@ -175,15 +175,15 @@ public class StartApplicationWithSmbRecords2AcceptanceTest extends ConstellioTes
 				.setModifiedOn(shishOClock.plusSeconds(6));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocument, connectorInstance))
-				.setTitle("1.txt").setUrl("smb://A/1.txt").setParent(fetchedFolder).setFetched(true).setTraversalCode("current")
+				.setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("current")
 				.setModifiedOn(shishOClock.plusSeconds(3));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocumentOfPreviousTraversal, connectorInstance))
-				.setTitle("2.txt").setUrl("smb://A/2.txt").setParent(fetchedFolder).setFetched(true).setTraversalCode("previous")
+				.setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("previous")
 				.setModifiedOn(shishOClock.plusSeconds(4));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(unfetchedDocument, connectorInstance))
-				.setTitle("3.txt").setUrl("smb://B/3.txt").setParent(fetchedFolder).setFetched(false)
+				.setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://A/").setFetched(false)
 				.setModifiedOn(shishOClock.plusSeconds(5));
 		recordServices.execute(transaction);
 

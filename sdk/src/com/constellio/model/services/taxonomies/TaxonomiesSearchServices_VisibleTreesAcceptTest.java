@@ -32,6 +32,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -67,6 +68,10 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	RecordServices recordServices;
 	String document1InA16, document2InA16, document3InA16;
 	AuthorizationsServices authsServices;
+
+	AtomicInteger queriesCount = new AtomicInteger();
+	AtomicInteger facetsCount = new AtomicInteger();
+	AtomicInteger returnedDocumentsCount = new AtomicInteger();
 
 	@Before
 	public void setUp()
@@ -114,9 +119,22 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(AfterQueryParams params) {
+						queriesCount.incrementAndGet();
+						String[] facetQuery = params.getSolrParams().getParams("facet.query");
+						if (facetQuery != null) {
+							facetsCount.addAndGet(facetQuery.length);
+						}
+
+						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
+					}
+				});
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setLogFL(false);
+		Thread.sleep(1000);
+		System.out.println("\n\n");
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -201,32 +219,119 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3));
+		assertThatSolr().hasCounts(3, 3, 3);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(3, 2, 2);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9));
+		assertThatSolr().hasCounts(4, 9, 9);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
 				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
 				.has(recordsWithChildren(records.categoryId_Z100))
 				.has(numFoundAndListSize(4));
+		assertThatSolr().hasCounts(3, 4, 4);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(3, 2, 2);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z112))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(3, 2, 2);
+
+	}
+
+	@Test
+	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsAlwaysDisplayingConceptsAndNotCalculatingFlagsWithReadAccessThenSeesRecordsAndAllConcepts()
+			throws Exception {
+
+		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false);
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
+				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(numFoundAndListSize(3));
+		assertThatSolr().hasCounts(2, 3, 0);
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
+				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(numFoundAndListSize(3));
+		assertThatSolr().hasCounts(0, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
+				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(2, 2, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
+				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(numFoundAndListSize(9));
+		assertThatSolr().hasCounts(2, 9, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(numFoundAndListSize(9));
+		assertThatSolr().hasCounts(1, 7, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
+				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(numFoundAndListSize(4));
+		assertThatSolr().hasCounts(2, 4, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
+				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(numFoundAndListSize(4));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
+				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(2, 2, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
+				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
+				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(recordsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(2, 2, 0);
 
 	}
 
@@ -322,7 +427,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
@@ -336,55 +443,134 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		recordServices.refresh(sasquatch);
 		recordServices.refresh(robin);
 		waitForBatchProcess();
+
+		facetsCount.set(0);
+		queriesCount.set(0);
+		returnedDocumentsCount.set(0);
+
 		//Sasquatch
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_20))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(2, 3, 3);
+
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_20))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
+				.has(numFoundAndListSize(2));
+		//Search on root taxonomy records was cached, then no queries, but some facets computed
+		assertThatSolr().hasCounts(1, 0, 3);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(3, 3, 3);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
 				.has(numFoundAndListSize(1));
 
+		//Search on child taxonomy records was cached, then only one query to get folders
+		assertThatSolr().hasCounts(2, 0, 3);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(2, 0, 3);
+
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(3, 2, 2);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(2, 1, 0);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12c, options)
 				.has(numFoundAndListSize(0));
+		assertThatSolr().hasCounts(2, 0, 0);
 
 		//Robin
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(1, 0, 3);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(2, 0, 3);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
-				.has(recordsWithChildren(records.unitId_12b))
+				.has(recordsWithChildren(records.unitId_12b, records.unitId_12c))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(2, 0, 1);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_30, options)
 				.has(recordsInOrder(records.unitId_30c))
 				.has(recordsWithChildren(records.unitId_30c))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(2, 1, 0);
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(1, 1, 0);
+
+		//Admin
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(admin, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_20, records.unitId_30))
+				.has(numFoundAndListSize(3));
+		assertThatSolr().hasCounts(0, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_10a, records.unitId_11, records.unitId_12))
+				.has(recordsWithChildren(records.unitId_10a, records.unitId_11, records.unitId_12))
+				.has(numFoundAndListSize(3));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, records.unitId_12, options)
+				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
+				.has(recordsWithChildren(records.unitId_12b, records.unitId_12c))
+				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, records.unitId_30, options)
+				.has(recordsInOrder(records.unitId_30c))
+				.has(recordsWithChildren(records.unitId_30c))
+				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(1, 0, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, records.unitId_12b, options)
+				.has(recordsInOrder("B02", "B04", "B06", "B08", "B32"))
+				.has(recordsWithChildren("B02", "B04", "B06", "B08", "B32"))
+				.has(numFoundAndListSize(5));
+		assertThatSolr().hasCounts(1, 5, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, records.unitId_12b, new TaxonomiesSearchOptions(options)
+				.setStartRow(1).setRows(2))
+				.has(recordsInOrder("B04", "B06"))
+				.has(recordsWithChildren("B04", "B06"))
+				.has(numFound(5)).has(listSize(2));
+		assertThatSolr().hasCounts(1, 3, 0);
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(admin, "B04", options)
+				.has(noRecordsWithChildren())
+				.has(numFoundAndListSize(4));
+		assertThatSolr().hasFacetsCountOf(0);
 	}
 
 	@Test
@@ -753,7 +939,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(4);
+		assertThat(queryCount.get()).isEqualTo(3);
 	}
 
 	@Test
@@ -782,6 +968,101 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		newWebDriver();
 		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()
+			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().invalidateAll();
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		Transaction transaction = new Transaction();
+		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
+
+		for (int i = 1; i <= 300; i++) {
+			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+					.setTitle("Category #" + code).setParent(rootCategory);
+			transaction.add(rm.newFolder().setTitle("A folder")
+					.setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		transaction.add(rootCategory);
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		User alice = users.aliceIn(zeCollection);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 20));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30));
+
+		//Calling with an different fast continue (then get different values)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
+						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
+						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 31));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
+				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
+				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(60)).has(listSize(30))
+				.has(fastContinuationInfos(false, 30));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(null))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(300)).has(listSize(11))
+				.has(fastContinuationInfos(true, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(300)).has(listSize(11))
+				.has(fastContinuationInfos(true, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+				.has(recordsInOrder("category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(299)).has(listSize(10))
+				.has(fastContinuationInfos(true, 0));
 	}
 
 	@Test
@@ -829,17 +1110,17 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(40)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
-		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
+		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31));
+				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
 				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -867,12 +1148,13 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(numFound(300)).has(listSize(11))
 				.has(fastContinuationInfos(true, 0));
 
+		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(recordsInOrder("category_291", "category_292", "category_293",
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
-				.has(numFound(299)).has(listSize(10))
+				.has(numFound(300)).has(listSize(11))
 				.has(fastContinuationInfos(true, 0));
 	}
 
@@ -901,14 +1183,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(21)).has(listSize(20))
+				.has(numFound(100)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(21)).has(listSize(20))
+				.has(numFound(100)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
@@ -916,7 +1198,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(31)).has(listSize(20))
+				.has(numFound(110)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
@@ -925,7 +1207,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
 						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(31)).has(listSize(20))
+				.has(numFound(110)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -934,7 +1216,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 						"category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(42)).has(listSize(30))
+				.has(numFound(100)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
@@ -1179,14 +1461,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		};
 	}
 
-	private void givenUserHasReadAccessTo(String... ids) {
-		for (String id : ids) {
-			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingReadAccess());
-		}
-		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
-	}
-
 	private ConditionTemplate withoutFilters = null;
 
 	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
@@ -1290,6 +1564,46 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				return true;
 			}
 		};
+	}
+
+	private SolrAssert assertThatSolr() {
+		return new SolrAssert();
+	}
+
+	private class SolrAssert {
+
+		public SolrAssert hasCounts(int queries, int queryResults, int facets) {
+			String expected = queries + "-" + queryResults + "-" + facets;
+			String current = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+
+			assertThat(current).describedAs("Queries count - Query resuts count - Facets count").isEqualTo(expected);
+			queriesCount.set(0);
+			facetsCount.set(0);
+			returnedDocumentsCount.set(0);
+
+			return this;
+		}
+
+		public SolrAssert hasQueriesCountOf(int count) {
+			assertThat(queriesCount.get()).describedAs("Solr queries count").isEqualTo(count);
+			queriesCount.set(0);
+
+			return this;
+		}
+
+		public SolrAssert hasQueriesResultsCountOf(int count) {
+			assertThat(returnedDocumentsCount.get()).describedAs("Returned solr query results count").isEqualTo(count);
+			returnedDocumentsCount.set(0);
+
+			return this;
+		}
+
+		public SolrAssert hasFacetsCountOf(int count) {
+			assertThat(facetsCount.get()).describedAs("Solr facets count").isEqualTo(count);
+			facetsCount.set(0);
+			return this;
+		}
+
 	}
 
 }

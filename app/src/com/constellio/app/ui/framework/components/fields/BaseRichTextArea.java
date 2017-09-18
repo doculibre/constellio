@@ -17,32 +17,43 @@ public class BaseRichTextArea extends CKEditorTextField {
 
 	public BaseRichTextArea(String caption) {
 		super(newConfig());
-		setCaption(caption);
 		init();
+		setCaption(caption);
 	}
 
 	public BaseRichTextArea(Property<?> dataSource) {
 		super(newConfig());
-		setPropertyDataSource(dataSource);
 		init();
+		setPropertyDataSource(dataSource);
 	}
 
 	public BaseRichTextArea(String caption, Property<?> dataSource) {
 		super(newConfig());
+		init();
 		setCaption(caption);
 		setPropertyDataSource(dataSource);
-		init();
 	}
 
 	public BaseRichTextArea(String caption, String value) {
 		super(newConfig());
+		init();
 		setCaption(caption);
 		setValue(value);
-		init();
 	}
 
 	private void init() {
 		setWidth("100%");
+		setCaptionAsHtml(true);
+	}
+
+	@Override
+	public void setRequired(boolean required) {
+		super.setRequired(required);
+		if (required) {
+			String caption = getCaption();
+			String suffix = "<span class=\"v-required-field-indicator\" aria-hidden=\"true\">*</span>";
+			setCaption(caption + suffix);
+		}
 	}
 
 	private static CKEditorConfig newConfig() {

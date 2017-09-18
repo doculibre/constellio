@@ -73,7 +73,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
-						  DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
+			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
@@ -114,13 +114,17 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	//chargement
-	public QueryResponse query(SolrParams params)
+	public QueryResponse query(final SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
-		QueryResponse response = tryQuery(params, currentAttempt);
+		final QueryResponse response = tryQuery(params, currentAttempt);
+		final int resultsSize = response.getResults().size();
 		long end = new Date().getTime();
-		extensions.afterQuery(params, end - start);
+
+		final long qtime = end - start;
+		extensions.afterQuery(params, qtime, response.getResults().size());
+
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
 				((BigVaultServerQueryListener) listener).onQuery(params, response);
@@ -135,7 +139,7 @@ public class BigVaultServer implements Cloneable {
 		try {
 			return server.query(params);
 		} catch (IOException | SolrServerException e) {
-			LOGGER.error("Error while querying solr server" , e);
+			LOGGER.error("Error while querying solr server", e);
 			if (e.getCause() instanceof RemoteSolrException) {
 				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
@@ -254,7 +258,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private TransactionResponseDTO handleRemoteSolrExceptionWhileAddingRecords(BigVaultServerTransaction transaction,
-																			   int currentAttempt, Exception exception, int code)
+			int currentAttempt, Exception exception, int code)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (code == HTTP_ERROR_409_CONFLICT) {
 			return handleOptimisticLockingException(exception);
@@ -365,7 +369,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private List<SolrInputDocument> copyAtomicUpdatesKeepingOnlyIdAndVersion(String transactionId,
-																			 List<SolrInputDocument> updatedDocuments) {
+			List<SolrInputDocument> updatedDocuments) {
 		List<SolrInputDocument> optimisticLockingValidationDocuments = new ArrayList<>();
 		for (SolrInputDocument updatedDocument : updatedDocuments) {
 			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
@@ -396,7 +400,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments,
-																		 List<String> deletedById) {
+			List<String> deletedById) {
 		List<SolrInputDocument> withoutVersions = new ArrayList<>();
 		for (SolrInputDocument document : updatedDocuments) {
 

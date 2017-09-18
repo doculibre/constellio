@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Observable;
 
+import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

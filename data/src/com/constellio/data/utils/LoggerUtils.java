@@ -82,20 +82,65 @@ public class LoggerUtils {
 		return log.toString();
 	}
 
-	public static String toParamsString(SolrParams params) {
+	public static String toParamsString(SolrParams params, String... excludedFields) {
 		StringBuilder stringBuilder = new StringBuilder();
 		Iterator<String> itIterator = params.getParameterNamesIterator();
 		boolean first = true;
 		while (itIterator.hasNext()) {
 			String key = itIterator.next();
-			for (String value : params.getParams(key)) {
-				if (!first) {
-					stringBuilder.append(",  ");
+
+			boolean excluded = false;
+			if (excludedFields != null) {
+				for (String excludedField : excludedFields) {
+					if (key.equals(excludedField)) {
+						excluded = true;
+						break;
+					}
 				}
-				stringBuilder.append(key);
-				stringBuilder.append("=");
-				stringBuilder.append(value);
-				first = false;
+			}
+
+			if (!excluded) {
+				for (String value : params.getParams(key)) {
+					if (!first) {
+						stringBuilder.append("&");
+					}
+					stringBuilder.append(key);
+					stringBuilder.append("=");
+					stringBuilder.append(value);
+					first = false;
+				}
+			}
+		}
+		return stringBuilder.toString();
+	}
+
+	public static String toString(SolrParams params, String... excludedFields) {
+		StringBuilder stringBuilder = new StringBuilder();
+		Iterator<String> itIterator = params.getParameterNamesIterator();
+		boolean first = true;
+		while (itIterator.hasNext()) {
+			String key = itIterator.next();
+
+			boolean excluded = false;
+			if (excludedFields != null) {
+				for (String excludedField : excludedFields) {
+					if (key.equals(excludedField)) {
+						excluded = true;
+						break;
+					}
+				}
+			}
+
+			if (!excluded) {
+				for (String value : params.getParams(key)) {
+					if (!first) {
+						stringBuilder.append("&");
+					}
+					stringBuilder.append(key);
+					stringBuilder.append("=");
+					stringBuilder.append(value);
+					first = false;
+				}
 			}
 		}
 		return stringBuilder.toString();

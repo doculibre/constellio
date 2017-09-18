@@ -109,7 +109,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 	private static List<RecordLazyTreeDataProvider> toDataProviders(String[] taxonomyCodes) {
 		List<RecordLazyTreeDataProvider> dataProviders = new ArrayList<>();
 		for (String taxonomyCode : taxonomyCodes) {
-			RecordLazyTreeDataProvider dataProvider = new RecordLazyTreeDataProvider(taxonomyCode);
+			RecordLazyTreeDataProvider dataProvider = new RecordLazyTreeDataProvider(taxonomyCode, ConstellioUI.getCurrentSessionContext().getCurrentCollection());
 			dataProviders.add(dataProvider);
 		}
 		return dataProviders;

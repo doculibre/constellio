@@ -81,20 +81,11 @@ public class PathLookupField extends LookupField<String> {
 	private static LookupTreeDataProvider<String>[] getTreeDataProviders() {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-
-		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
-		List<Taxonomy> taxonomies = taxonomiesManager.getAvailableTaxonomiesInHomePage(currentUser);
+		List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 		List<PathLookupTreeDataProvider> dataProviders = new ArrayList<>();
-		for (Taxonomy taxonomy : taxonomies) {
-			String taxonomyCode = taxonomy.getCode();
+		for (String taxonomyCode : taxonomyCodesForUser) {
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode));
+				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode, collection));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
@@ -214,8 +205,8 @@ public class PathLookupField extends LookupField<String> {
 
 	public static class PathLookupTreeDataProvider extends RecordLazyTreeDataProvider implements LookupTreeDataProvider<String> {
 
-		public PathLookupTreeDataProvider(String taxonomyCode) {
-			super(taxonomyCode);
+		public PathLookupTreeDataProvider(String taxonomyCode, String collection) {
+			super(taxonomyCode, collection);
 		}
 
 		@Override

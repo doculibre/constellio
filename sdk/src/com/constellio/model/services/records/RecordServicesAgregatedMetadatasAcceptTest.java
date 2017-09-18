@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Transaction;
@@ -269,7 +268,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
 				tuple("zeSchemaRecord1", 1.0, 0.125),
-				tuple("zeSchemaRecord2", null, null),
+				tuple("zeSchemaRecord2", null, 0.0),
 				tuple("zeSchemaRecord3", 3.0, 0.375),
 				tuple("zeSchemaRecord4", 4.0, 0.5)
 		);
@@ -509,7 +508,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 			if (!link.getToMetadata().isGlobal()
 					&& !link.getFromMetadata().isGlobal()
 					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")) {
+					&& !link.getFromMetadata().getCode().startsWith("user_")
+					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple();
 				tuple.addData(link.getFromMetadata().getCode());
 				tuple.addData(link.getToMetadata().getCode());

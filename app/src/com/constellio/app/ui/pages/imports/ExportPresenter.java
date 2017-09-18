@@ -14,6 +14,13 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.sis.internal.jdk7.StandardCharsets;
@@ -58,6 +65,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
+import org.joda.time.LocalDateTime;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
 
@@ -173,14 +181,19 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			view.showErrorMessage($("ExportView.lastReindexingFailed"));
 
 		} else {
-
+			ExportAudit newExportAudit = createNewExportAudit();
+			File zip = null;
 			try {
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
-				File zip = recordExportServices.exportRecords(collection, "SDK Stream", options, recordsToExport);
+				zip = recordExportServices.exportRecords(collection, "SDK Stream", options, recordsToExport);
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
-				LOGGER.error("Error while generating savestate", t);
+				String error = "Error while generating savestate";
+//				newExportAudit.setErrors(asList(error));
+				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
+			} finally {
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
 	}
@@ -193,15 +206,47 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		} else {
 
+			ExportAudit newExportAudit = createNewExportAudit();
+			File zip = null;
 			try {
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
-				File zip = recordExportServices.exportRecords(collection, "SDK Stream", options);
+				zip = recordExportServices.exportRecords(collection, "SDK Stream", options);
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
-				LOGGER.error("Error while generating savestate", t);
+				String error = "Error while generating savestate";
+//				newExportAudit.setErrors(asList(error));
+				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
+			} finally {
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
+	}
+
+	private ExportAudit createNewExportAudit() {
+		ExportAudit exportAudit = new SchemasRecordsServices(collection, modelLayerFactory).newExportAudit();
+		exportAudit.setCreatedOn(LocalDateTime.now());
+		exportAudit.setCreatedBy(getCurrentUser().getId());
+		try {
+			recordServices().add(exportAudit);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		return exportAudit;
+	}
+
+	private TemporaryRecord completeImportExportAudit(ExportAudit exportAudit, File file) {
+		try {
+			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(file);
+			Content content = contentManager.createMajor(getCurrentUser(), file.getName(), contentVersionDataSummary);
+			exportAudit.setEndDate(LocalDateTime.now());
+			exportAudit.setContent(content);
+			recordServices().update(exportAudit);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return exportAudit;
 	}
 
 	void exportWithContentsButtonClicked() {

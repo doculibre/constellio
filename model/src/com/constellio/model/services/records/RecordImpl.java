@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -82,6 +84,11 @@ public class RecordImpl implements Record {
 
 	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues) {
 		this(recordDTO, true);
+		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded) {
+		this(recordDTO, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
@@ -868,7 +875,28 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues);
+		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded);
+	}
+
+	@Override
+	public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
+		if (recordDTO == null) {
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+		}
+
+		Set<String> metadatasDataStoreCodes = new HashSet<>();
+		for (Metadata metadata : metadatas) {
+			metadatasDataStoreCodes.add(metadata.getDataStoreCode());
+		}
+
+		Map<String, Object> newEagerTransientValues = new HashMap<>();
+		for (Map.Entry<String, Object> eagerTransientValue : eagerTransientValues.entrySet()) {
+			if (metadatasDataStoreCodes.contains(eagerTransientValue.getKey())) {
+				newEagerTransientValues.put(eagerTransientValue.getKey(), eagerTransientValue.getValue());
+			}
+		}
+
+		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), newEagerTransientValues, false);
 	}
 
 	@Override
@@ -926,7 +954,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		//LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {

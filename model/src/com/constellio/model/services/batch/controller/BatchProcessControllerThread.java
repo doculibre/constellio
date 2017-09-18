@@ -14,7 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
@@ -69,25 +72,37 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	void process()
 			throws Exception {
 
-		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
-			BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
-			if (batchProcess != null) {
-				try {
-					if (batchProcess.getRecords() != null) {
-						processFromIds(batchProcess);
-					} else {
-						processFromQuery(batchProcess);
+		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+		if (batchProcess != null) {
+			try {
+				if (batchProcessinstanceof RecordBatchProcess) {
+					RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
+					if (recordBatchProcess.getRecords() != null) {
+					processFromIds(recordBatchProcess);
+				} else {
+					processFromQuery(recordBatchProcess);
 					}
-				} catch (Exception e) {
-					batchProcessesManager.markAsFinished(batchProcess, 1);
-					throw e;
+				} else if (batchProcessinstanceof AsyncTaskBatchProcess) {
+					final AsyncTaskBatchProcess process = (AsyncTaskBatchProcess) batchProcess;
+					AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
+
+						@Override
+						public String getCollection() {
+							return process.getCollection();
+						}
+					};
+					process.getTask().execute(params);
+					batchProcessesManager.markAsFinished(batchProcess, 0);
 				}
+			} catch (Exception e) {
+				batchProcessesManager.markAsFinished(batchProcess, 1);
+				throw e;}
 			}
 		}
 		waitUntilNotified();
 	}
 
-	private void processFromIds(BatchProcess batchProcess)
+	private void processFromIds(RecordBatchProcess batchProcess)
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
@@ -128,7 +143,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		batchProcessesManager.markAsFinished(batchProcess, recordsWithErrors.size());
 	}
 
-	private void processFromQuery(BatchProcess batchProcess)
+	private void processFromQuery(RecordBatchProcess batchProcess)
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.sdk.tests.MockedNavigation;
+import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -30,6 +29,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -128,12 +128,13 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		Metadata folderTitleMetadata = getFolderLinearSizeMetadata();
 		List<MetadataVO> metadataVOList = new ArrayList();
 		MetadataVO firstMD = new MetadataToVOBuilder().build(folderTitleMetadata, session);
+		Report reportBeforeEdit = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
 		metadataVOList.add(firstMD);
+		presenter.setReport(new ReportToVOBuilder().build(reportBeforeEdit));
 		presenter.saveButtonClicked(metadataVOList);
-		Report report = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
-		assertThat(report).isNotNull();
-		assertThat(report.getReportedMetadata().size()).isEqualTo(1);
-		assertThat(report.getReportedMetadata().get(0).getMetadataCode()).isEqualTo(folderTitleMetadata.getCode());
+		Report reportAfterEdit = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
+		assertThat(reportAfterEdit).isNotNull();
+		assertThat(reportAfterEdit.getReportedMetadata()).extracting("metadataCode").containsOnly(folderTitleMetadata.getCode());
 	}
 
 	@Test

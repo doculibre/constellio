@@ -1,12 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,10 +267,16 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		} else {
+			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
+			if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				tmpSearchRecord = recordServices()
+						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+			}
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporaryContainer")
+				.setTitle($("SearchView.savedSearch.temporaryContainer"))
 				.setSearchType(AddExistingContainerView.SEARCH_TYPE)
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)
@@ -299,5 +308,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		}
 
 		return null;
+	}
+
+	@Override
+	public Component getExtensionComponentForCriterion(Criterion criterion) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
+		return extensions.getComponentForCriterion(criterion);
 	}
 }

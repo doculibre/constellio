@@ -476,10 +476,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		PresenterService presenterService = new PresenterService(suggestInputDataProvider.getModelLayerFactory());
 		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
 		if (userDefaultTaxonomy != null) {
-			if (taxonomyCode.equals(userDefaultTaxonomy)) {
+			if (taxonomyCode != null && taxonomyCode.equals(userDefaultTaxonomy)) {
 				tabSheet.setSelectedTab(lazyTreePanel);
 			}
-		} else if (taxonomyCode.equals(configDefaultTaxonomy)) {
+		} else if (taxonomyCode != null && taxonomyCode.equals(configDefaultTaxonomy)) {
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}

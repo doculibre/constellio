@@ -1,15 +1,5 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE_GROUPS_CANDIDATES;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE_USERS_CANDIDATES;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DESCRIPTION;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
-
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -18,6 +8,8 @@ import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserVO;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 
 public class TaskVO extends RecordVO {
 
@@ -97,4 +89,14 @@ public class TaskVO extends RecordVO {
 	public String getStatus() {
 		return get(STATUS);
 	}
+
+	public TaskVO setReminderFrequency(String reminderFrequency){
+		set(REMINDER_FREQUENCY, reminderFrequency);
+		return this;
+	}
+
+	public String getReminderFrequency() {
+		return get(REMINDER_FREQUENCY);
+	}
+
 }

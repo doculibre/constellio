@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 	private String FILE_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE;
 	private String FOLDER_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FOLDER;
 	private long LAST_MODIFIED = System.currentTimeMillis();
-	private String PARENT_ID = "parentId";
+	private String PARENT_URL = "parentUrl";
 	// private LocalDateTime LAST_FETCHED = new LocalDateTime();
 
 	String URL = "a";
@@ -92,7 +93,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setDenyShareTokens(SmbTestParams.DENY_SHARE_TOKENS);
 
 		document = es.newConnectorSmbDocument(connectorInstance);
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID, false);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_URL, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -134,7 +135,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -178,7 +180,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
 
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_ID, false);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_URL, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -220,7 +222,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -264,7 +267,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
 
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_ID);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_URL);
 
 		// Unchanged
 
@@ -295,7 +298,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -320,7 +324,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Error message");
 
 		document = es.newConnectorSmbDocument(connectorInstance);
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_ID);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_URL);
 
 		// Initial state
 		assertThat(document.getLastModified()).isNull();
@@ -353,7 +357,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -369,7 +374,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 
 		folder = es.newConnectorSmbFolder(connectorInstance);
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID, false);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_URL, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -390,7 +395,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isZero();
 		assertThat(folder.getErrorStackTrace()).isNull();
 
-		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -414,7 +420,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setTraversalCode(TRAVERSAL_CODE)
 				.setFetched(false);
 
-		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_ID, false);
+		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_URL, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -435,7 +441,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isZero();
 		assertThat(folder.getErrorStackTrace()).isNull();
 
-		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -452,7 +459,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
 		folder = es.newConnectorSmbFolder(connectorInstance);
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_URL);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -472,7 +479,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
-		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -497,7 +505,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setTraversalCode(TRAVERSAL_CODE)
 				.setFetched(false);
 
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_URL);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -517,7 +525,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
-		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -543,6 +552,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 
 		document = es.newConnectorSmbDocument(connectorInstance)
 				.setUrl(FILE_URL)
+				.setParentUrl(PARENT_URL)
 				.setLastModified(LAST_MODIFIED2)
 				.setLastFetched(LAST_FETCHED)
 				.setSize(SmbTestParams.EXISTING_FILE_LENGTH)
@@ -560,8 +570,6 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setTraversalCode(connectorInstance.getTraversalCode())
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
-
-		documentOrFolderUpdater.updateUnmodifiedDocument(smbFileDTO, document, PARENT_ID);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -592,7 +600,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
-		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
+		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());
 		assertThat(document.getTraversalCode()).isEqualTo(connectorInstance.getTraversalCode());
 		assertThat(document.isFetched()).isFalse();
@@ -603,7 +611,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParent()).isEqualTo(PARENT_ID);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -614,5 +623,9 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, null, false);
 
 		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
+	}
+
+	private String buildConnectorUrl(String connectorId, String url) {
+		return DocumentSmbConnectorUrlCalculator.calculate(url, connectorId);
 	}
 }

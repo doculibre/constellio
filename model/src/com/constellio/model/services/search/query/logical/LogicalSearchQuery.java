@@ -223,6 +223,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
+	public LogicalSearchQuery sortFirstOn(LogicalSearchQuerySort logicalSearchQuerySort) {
+		if (logicalSearchQuerySort != null) {
+			sortFields.add(0, logicalSearchQuerySort);
+		}
+		return this;
+	}
+
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();

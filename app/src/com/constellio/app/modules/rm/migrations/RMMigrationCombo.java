@@ -187,7 +187,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		userTask = userTask.withTableMetadataCodes(
 				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
-						"userTask_default_assignee"));
+						"userTask_default_assignee", "userTask_default_starredByUsers"));
 		transaction.add(userTask);
 
 		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");

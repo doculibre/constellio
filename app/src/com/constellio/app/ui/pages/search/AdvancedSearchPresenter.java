@@ -414,10 +414,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 					.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		} else {
 			tmpSearchRecord = getTemporarySearchRecord();
+			if(tmpSearchRecord != null) {
+				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
+				if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+					tmpSearchRecord = recordServices()
+							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+				}
+			}
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporaryAdvance")
+				.setTitle($("SearchView.savedSearch.temporaryAdvance"))
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)
 				.setSortField(sortCriterion)

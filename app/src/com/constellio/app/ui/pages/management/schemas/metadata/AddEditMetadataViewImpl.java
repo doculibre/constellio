@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.schemas.metadata;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TextField;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -68,6 +71,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox duplicableField;
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
+
+	@PropertyId("uniqueValue")
+	private CheckBox uniqueField;
 
 	private List<CheckBox> customAttributesField = new ArrayList<>();
 
@@ -390,7 +396,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.addStyleName("sortable");
 		sortableField.setEnabled(!inherited);
 
-		advancedSearchField = new CheckBox();
+		advancedSearchField = new CheckBox() {
+			@Override
+			public void setEnabled(boolean enabled) {
+				if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+					super.setEnabled(enabled);
+				}
+				super.setEnabled(true);
+			}
+		};
 		advancedSearchField.setCaption($("AddEditMetadataView.advanced"));
 		advancedSearchField.setRequired(false);
 		advancedSearchField.setId("advancedSearch");
@@ -422,6 +436,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		duplicableField.setId("duplicable");
 		duplicableField.addStyleName("duplicable");
 		duplicableField.setEnabled(true);
+
+		uniqueField = new CheckBox();
+		uniqueField.setCaption($("AddEditMetadataView.unique"));
+		uniqueField.setRequired(false);
+		uniqueField.setId("unique");
+
 
 		customAttributesField = new ArrayList<>();
 		for (String attribute : presenter.getAvailableExtraAttributes()) {
@@ -471,8 +491,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputMask.setEnabled(false);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete));
+				inputType, inputMask, metadataGroup, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
+				advancedSearchField, highlight, autocomplete, uniqueField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);
@@ -528,6 +548,21 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				presenter.cancelButtonClicked();
 			}
 		};
+
+        boolean isShowUnique = true;
+
+        if(editMode){
+			isShowUnique = presenter.isShowUniqueComboBox();
+		}
+
+		if(!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
+			uniqueField.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
+			uniqueField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING);
+		} else  {
+			uniqueField.setEnabled(false);
+			uniqueField.setVisible(true);
+		}
+
 		inputType.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
@@ -584,7 +619,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		if (!formMetadataVO.getLocalcode().equals(Schemas.LEGACY_ID.getLocalCode())) {
 			requiredField.setEnabled(false);
 			searchableField.setEnabled(false);
-			advancedSearchField.setEnabled(false);
+			if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+				advancedSearchField.setEnabled(false);
+			}
 		}
 	}
 }

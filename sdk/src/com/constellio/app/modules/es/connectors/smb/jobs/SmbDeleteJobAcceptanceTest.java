@@ -1,8 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
-import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
@@ -35,6 +33,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
@@ -42,10 +42,9 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorLogger logger;
-	private TestConnectorEventObserver eventObserver;
+	@Mock private TestConnectorEventObserver eventObserver;
 	private SmbRecordService smbRecordService;
 	@Mock private ConnectorSmbUtils smbUtils;
-	@Mock private SmbConnectorContext context;
 
 	private String SHARE_URL = SmbTestParams.EXISTING_SHARE;
 	private String FILE_URL = SHARE_URL + SmbTestParams.FILE_NAME;
@@ -57,6 +56,8 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(withZeCollection().withConstellioESModule()
 				.withAllTestUsers());
+
+		smbUtils = spy(new ConnectorSmbUtils());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorInstance = es.newConnectorSmbInstance()
@@ -74,11 +75,9 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
-		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
-		context = contextServices.createContext(connectorInstance.getId());
-		when(connector.getContext()).thenReturn(context);
 
-		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, SmbTestParams.CONNECTOR_OBSERVER));
+		eventObserver = spy(new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, SmbTestParams.CONNECTOR_OBSERVER)));
+		doReturn(getModelLayerFactory()).when(eventObserver).getModelLayerFactory();
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 	}
 
@@ -124,7 +123,7 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenExistingFolderRecordWithContentWhenExecutingDeleteJobThenDeleteRecordAndChildren()
 			throws RecordServicesException {
-		ConnectorSmbFolder connectorSmbFolder = es.newConnectorSmbFolder(connectorInstance)
+		ConnectorSmbFolder connectorSmbFolder = es.newConnectorSmbFolderWithId("folderZZ", connectorInstance)
 				.setUrl(FOLDER_URL)
 				.setConnector(connectorInstance)
 				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
@@ -133,12 +132,12 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		es.getRecordServices()
 				.add(connectorSmbFolder);
 
-		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(FILE_URL)
+		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocumentWithId("documentZZ", connectorInstance)
+				.setUrl(FOLDER_URL + "file.txt")
 				.setConnector(connectorInstance)
 				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
 				.setFetched(true)
-				.setParent(connectorSmbFolder.getId());
+				.setParentUrl(connectorSmbFolder.getUrl());
 
 		es.getRecordServices()
 				.add(connectorSmbDocument);
@@ -146,9 +145,10 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		SmbShareService smbService = new FakeSmbService(smbFileDTO);
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FOLDER_URL, null);
 		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);
 		deleteJob.execute(connector);
+		getModelLayerFactory().newRecordServices().flush();
 
 		List<ConnectorSmbDocument> documents = es.searchConnectorSmbDocuments(LogicalSearchQueryOperators.from(es.connectorSmbDocument.schema())
 				.where(es.connectorSmbDocument.url())
@@ -160,7 +160,7 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRejectedUrlWhenDeletingThenDeleteRecord()
 			throws RecordServicesException {
-		when(smbUtils.isAccepted(anyString(), any(ConnectorSmbInstance.class))).thenReturn(false);
+		doReturn(false).when(smbUtils).isAccepted(anyString(), any(ConnectorSmbInstance.class));
 
 		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocument(connectorInstance)
 				.setUrl(FILE_URL)
@@ -173,7 +173,7 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		es.getRecordServices().flush();
 
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
-		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
+		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		SmbShareService smbService = new FakeSmbService(smbFileDTO);
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null);
 		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -218,10 +219,17 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		} else {
 			tmpSearchRecord = getTemporarySearchRecord();
+			if(tmpSearchRecord != null) {
+				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
+				if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+					tmpSearchRecord = recordServices()
+							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+				}
+			}
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporarySimple")
+				.setTitle($("SearchView.savedSearch.temporarySimple"))
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)
 				.setSortField(sortCriterion)

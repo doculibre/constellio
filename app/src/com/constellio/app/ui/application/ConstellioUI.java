@@ -5,10 +5,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vaadin.annotations.PreserveOnRefresh;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -64,6 +66,8 @@ import com.vaadin.ui.themes.ValoTheme;
 @Theme("constellio")
 public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
+	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
+
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
@@ -73,15 +77,20 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	
 	private Map<String, Object> uiContext = new HashMap<>();
 
-	public final RequestHandler requestHandler = new ConstellioResourceHandler();
-
 	private SSOServices ssoServices;
 	
 	private View currentView;
 
+	public void addRequestHandler(RequestHandler handler) {
+		getSession().addRequestHandler(handler);
+	}
+
 	@Override
 	protected void init(VaadinRequest request) {
-		getSession().addRequestHandler(requestHandler);
+
+		if (!getSession().getRequestHandlers().contains(CONSTELLIO_RESSOURCE_HANDLER)) {
+			getSession().addRequestHandler(CONSTELLIO_RESSOURCE_HANDLER);
+		}
 
 		ssoServices = SSOServices.getInstance();
 
@@ -125,12 +134,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		for (InitUIListener initUIListener : initUIListeners) {
 			initUIListener.afterInitialize(this);
 		}
-	}
-
-	@Override
-	public void detach() {
-		super.detach();
-		getSession().removeRequestHandler(requestHandler);
 	}
 
 	private UserVO ssoAuthenticate() {

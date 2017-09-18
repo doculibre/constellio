@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 public class BulkRecordTransactionHandlerOptions {
 
 	int recordsPerBatch;
+	long maxRecordsTotalSizePerBatch = -1;
 	int queueSize;
 	int numberOfThreads;
 	boolean showProgressionInConsole;
@@ -40,6 +41,15 @@ public class BulkRecordTransactionHandlerOptions {
 		this.numberOfThreads = numberOfThreads;
 		this.queueSize = queueSize;
 		this.showProgressionInConsole = showProgressionInConsole;
+	}
+
+	public long getMaxRecordsTotalSizePerBatch() {
+		return maxRecordsTotalSizePerBatch;
+	}
+
+	public BulkRecordTransactionHandlerOptions setMaxRecordsTotalSizePerBatch(long maxRecordsTotalSizePerBatch) {
+		this.maxRecordsTotalSizePerBatch = maxRecordsTotalSizePerBatch;
+		return this;
 	}
 
 	public BulkRecordTransactionHandlerOptions withRecordsPerBatch(int recordsPerBatch) {
