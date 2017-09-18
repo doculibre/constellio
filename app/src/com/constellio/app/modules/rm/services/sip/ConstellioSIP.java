@@ -12,8 +12,10 @@ import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -229,9 +231,9 @@ public class ConstellioSIP {
 
         try {
             buildMetsFileAndBagDir(errors);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+         }catch (Exception e) {
+           e.printStackTrace();
+                throw new RuntimeException(e);
         }
 
 
@@ -261,7 +263,7 @@ public class ConstellioSIP {
         zipOutputStream.closeArchiveEntry();
     }
 
-    private void buildMetsFileAndBagDir(ValidationErrors errors) throws IOException, METSException, SAXException, JDOMException {
+    private void buildMetsFileAndBagDir(ValidationErrors errors) throws IOException, METSException, SAXException, JDOMException, RecordDaoException.NoSuchRecordWithId {
         File tempFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".temp");
         tempFile.deleteOnExit();
 
