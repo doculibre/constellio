@@ -145,7 +145,7 @@ public class EventService {
             SearchServices searchServices = appLayerLayerFactory.getModelLayerFactory().newSearchServices();
             LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
             LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_")
-            .andWhere(Schemas.CREATED_ON).isLessThan(getCurrentCutOff());
+                    .andWhere(Schemas.CREATED_ON).isLessThan(getCurrentCutOff());
             logicalSearchQuery.setCondition(logicalSearchCondition);
             logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
 
@@ -159,63 +159,67 @@ public class EventService {
             LocalDateTime oldLocalDateTime = null;
             LocalDateTime localDateTime = null;
             String fileName = null;
+            try
+            {
+                while (searchResponseIterator.hasNext()) {
+                    Record record = searchResponseIterator.next();
 
-            while(searchResponseIterator.hasNext()) {
-                Record record = searchResponseIterator.next();
+                    oldLocalDateTime = localDateTime;
+                    localDateTime = record.get(Schemas.CREATED_ON);
 
-                oldLocalDateTime = localDateTime;
-                localDateTime = record.get(Schemas.CREATED_ON);
+                    try {
+                        if (dayOfTheMonth != localDateTime.getDayOfMonth()) {
+                            dayOfTheMonth = localDateTime.getDayOfMonth();
+                            closeFile(currentFile, writer, oldLocalDateTime, fileName);
+                            ioServices.closeQuietly(fileOutputStream);
+                            fileName = fileName(localDateTime);
+                            currentFile = createNewFile(fileName + ".xml");
+                            fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
+                            xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
+                            writer = new IndentingXMLStreamWriter(xmlStreamWriter);
+                            writer.setIndentStep("  ");
+                            writer.writeStartDocument(ENCODING, "1.0");
+                            writer.writeStartElement(EVENTS_XML_TAG);
 
-                try {
-                if(dayOfTheMonth != localDateTime.getDayOfMonth()) {
-                    dayOfTheMonth = localDateTime.getDayOfMonth();
-                    closeFile(currentFile,  writer, oldLocalDateTime, fileName);
-                    ioServices.closeQuietly(fileOutputStream);
-                    fileName = fileName(localDateTime);
-                    currentFile = createNewFile(fileName + ".xml");
-                    fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
-                    xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
-                    writer = new IndentingXMLStreamWriter(xmlStreamWriter);
-                    writer.setIndentStep("  ");
-                    writer.writeStartDocument(ENCODING, "1.0");
-                    writer.writeStartElement(EVENTS_XML_TAG);
+                        }
+                        writer.writeStartElement(EVENT_XML_TAG);
 
-                }
-                   writer.writeStartElement(EVENT_XML_TAG);
+                        MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
+                        MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+                        for (Metadata metadata : metadataSchema.getMetadatas()) {
+                            Object value = record.get(metadata);
 
-                    MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
-                    MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
-                    for(Metadata metadata : metadataSchema.getMetadatas()) {
-                        Object value = record.get(metadata);
+                            boolean write;
+                            if (value != null) {
+                                write = true;
+                                if (value instanceof java.util.Collection) {
+                                    if (CollectionUtils.isNotEmpty((java.util.Collection) value)) {
+                                        write = true;
+                                    } else {
+                                        write = false;
+                                    }
+                                }
 
-                        boolean write;
-                        if(value != null) {
-                            write = true;
-                            if(value instanceof java.util.Collection) {
-                                if(CollectionUtils.isNotEmpty((java.util.Collection) value)) {
-                                    write = true;
-                                } else {
-                                    write = false;
+                                if (write) {
+                                    writer.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
                                 }
                             }
-
-                            if(write) {
-                                writer.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
-                            }
                         }
+
+                        writer.writeEndElement();
+
+                    } catch (Exception e) {
+                        throw new RuntimeException("File not found for Event writing", e);
                     }
-
-                    writer.writeEndElement();
-
-                } catch (Exception e) {
-                    throw new RuntimeException("File not found for Event wrting", e);
+                }
+            }
+            finally {
+                if(writer != null && localDateTime != null){
+                    closeFile(currentFile, writer, localDateTime, fileName);
+                    ioServices.closeQuietly(fileOutputStream);
                 }
             }
 
-            if(writer != null && localDateTime != null){
-                closeFile(currentFile, writer, localDateTime, fileName);
-                ioServices.closeQuietly(fileOutputStream);
-            }
 
         }
 
