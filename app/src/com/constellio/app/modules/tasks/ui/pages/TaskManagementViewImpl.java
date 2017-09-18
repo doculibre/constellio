@@ -141,7 +141,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
 		}
 
 		@Override
