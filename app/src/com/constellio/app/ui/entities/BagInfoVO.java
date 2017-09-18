@@ -1,7 +1,5 @@
 package com.constellio.app.ui.entities;
 
-import java.util.List;
-
 public class BagInfoVO  {
 
     private String note;
