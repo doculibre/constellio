@@ -288,6 +288,18 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return sb.toString();
 	}
 
+	public String toPeriodsAndDisposalTypeString() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
+		sb.append("-");
+		sb.append(semiActiveRetentionPeriod == null ? "?" : semiActiveRetentionPeriod.getValue());
+		sb.append("-");
+		sb.append(inactiveDisposalType == null ? "?" : inactiveDisposalType.getCode());
+
+		return sb.toString();
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, "dirty");
