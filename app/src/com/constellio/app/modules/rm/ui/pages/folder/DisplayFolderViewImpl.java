@@ -4,6 +4,8 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -90,17 +92,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -245,7 +236,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
-		if(!presenter.isLogicallyDeleted()) {
+		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -374,7 +365,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			addToCartButton = buildAddToCartButton();
 
 			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
-				getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
+					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
 
 			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
@@ -391,7 +382,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			try {
 				printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
 						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory,
-					getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
+						getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
 			} catch (Exception e) {
 				showErrorMessage(e.getMessage());
 			}
@@ -415,39 +406,39 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
-				PrintableReportListPossibleType.FOLDER, getRecord());
+					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
+					PrintableReportListPossibleType.FOLDER, getRecord());
 
 			startWorkflowButton = new StartWorkflowButton();
 			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
-		//		actionMenuButtons.add(addDocumentButton);
-		//		actionMenuButtons.add(addSubFolderButton);
+			//		actionMenuButtons.add(addDocumentButton);
+			//		actionMenuButtons.add(addSubFolderButton);
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 					&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 
 			actionMenuButtons.add(editFolderButton);
 
-		if(!isAFolderAndDestroyed){
+			if (!isAFolderAndDestroyed) {
 
-			actionMenuButtons.add(moveInFolderButton);
-			actionMenuButtons.add(deleteFolderButton);
-			actionMenuButtons.add(duplicateFolderButton);
-			actionMenuButtons.add(linkToFolderButton);
-			actionMenuButtons.add(addAuthorizationButton);
-			actionMenuButtons.add(shareFolderButton);
-			if (presenter.hasCurrentUserPermissionToUseCart()) {
-				actionMenuButtons.add(addToCartButton);
+				actionMenuButtons.add(moveInFolderButton);
+				actionMenuButtons.add(deleteFolderButton);
+				actionMenuButtons.add(duplicateFolderButton);
+				actionMenuButtons.add(linkToFolderButton);
+				actionMenuButtons.add(addAuthorizationButton);
+				actionMenuButtons.add(shareFolderButton);
+				if (presenter.hasCurrentUserPermissionToUseCart()) {
+					actionMenuButtons.add(addToCartButton);
+				}
+				actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 			}
-			actionMenuButtons.add(addToOrRemoveFromSelectionButton);
-		}
-		if(!isAFolderAndDestroyed) {
-			actionMenuButtons.add(printLabelButton);
-			actionMenuButtons.add(borrowButton);
-		}
+			if (!isAFolderAndDestroyed) {
+				actionMenuButtons.add(printLabelButton);
+				actionMenuButtons.add(borrowButton);
+			}
 			actionMenuButtons.add(returnFolderButton);
-		    actionMenuButtons.add(reminderReturnFolderButton);
+			actionMenuButtons.add(reminderReturnFolderButton);
 
 			if (!isAFolderAndDestroyed) {
 
@@ -467,8 +458,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void hideAllActionMenuButtons() {
 		List<Button> actionMenuButtons = getActionMenuButtons();
-		if(actionMenuButtons != null) {
-			for(Button button: actionMenuButtons) {
+		if (actionMenuButtons != null) {
+			for (Button button : actionMenuButtons) {
 				button.setVisible(false);
 				button.setEnabled(false);
 			}
@@ -683,12 +674,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public void selectTasksTab() {
+		//TODO Vincent
+	}
+
+	@Override
 	public void setTasks(final RecordVODataProvider dataProvider) {
 		Table table = new RecordVOTable(dataProvider) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
+							getSessionContext().getCurrentUser().getId()) {
 						@Override
 						public void updateTaskStarred(boolean isStarred, String taskId) {
 							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
@@ -704,8 +701,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return new RecordVOTableColumnsManager() {
 					@Override
 					protected String toColumnId(Object propertyId) {
-						if(propertyId instanceof MetadataVO) {
-							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+						if (propertyId instanceof MetadataVO) {
+							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
 								setColumnHeader(propertyId, "");
 								setColumnWidth(propertyId, 60);
 							}
@@ -721,7 +718,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
 				while (iterator.hasNext()) {
 					Object property = iterator.next();
-					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+					if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
+							.equals(((MetadataVO) property).getLocalCode())) {
 						iterator.remove();
 					}
 				}
@@ -745,7 +743,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void selectEventsTab() {
 		if (!(eventsComponent instanceof Table)) {
-			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(eventsDataProvider)) {
+			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"),
+					new RecordVOLazyContainer(eventsDataProvider)) {
 				@Override
 				protected TableColumnsManager newColumnsManager() {
 					return new EventVOTableColumnsManager();

@@ -43,7 +43,6 @@ public class ConceptNodesTaxonomySearchServices {
 	TaxonomiesManager taxonomiesManager;
 	MetadataSchemasManager metadataSchemasManager;
 	TaxonomySearchQueryConditionFactory queryFactory;
-	RecordsCaches recordsCaches;
 	SchemaUtils schemaUtils = new SchemaUtils();
 	RecordsCaches recordsCaches;
 

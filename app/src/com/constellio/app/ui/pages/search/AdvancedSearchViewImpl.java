@@ -43,8 +43,6 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -67,7 +65,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	private final ConstellioHeader header;
 	private WindowButton batchProcessingButton;
 	private ReportTabButton reportButton;
-    private SIPbutton sipButton;
+	private SIPbutton sipButton;
 
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
@@ -140,40 +138,41 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		}
 		selectionActions.add(batchProcessingButton);
 
-        if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-            Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-                @Override
-                public List<LabelTemplate> get() {
-                    return presenter.getCustomTemplates();
-                }
-            };
-            Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-                @Override
-                public List<LabelTemplate> get() {
-                    return presenter.getDefaultTemplates();
-                }
-            };
-            final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
-                    $("SearchView.printLabels"),
-                    customLabelTemplatesFactory,
-                    defaultLabelTemplatesFactory,
-                    getConstellioFactories().getAppLayerFactory(),
-                    getSessionContext().getCurrentCollection());
-            labelsButton.setSchemaType(schemaType);
-            labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
-            labelsButton.addStyleName(LABELS_BUTTONSTYLE);
-            labelsButton.addClickListener(new Button.ClickListener() {
-                @Override
-                public void buttonClick(Button.ClickEvent event) {
-                    labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
-                }
-            });
-            selectionActions.add(labelsButton);
-        //            //Excel report
-//            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
-//            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-//            selectionActions.add(reportButton);
-//            addListenerToButton(results);}
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getCustomTemplates();
+				}
+			};
+			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getDefaultTemplates();
+				}
+			};
+			final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
+					$("SearchView.printLabels"),
+					customLabelTemplatesFactory,
+					defaultLabelTemplatesFactory,
+					getConstellioFactories().getAppLayerFactory(),
+					getSessionContext().getCurrentCollection());
+			labelsButton.setSchemaType(schemaType);
+			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
+			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+			labelsButton.addClickListener(new Button.ClickListener() {
+				@Override
+				public void buttonClick(Button.ClickEvent event) {
+					labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
+				}
+			});
+			selectionActions.add(labelsButton);
+		}
+		//            //Excel report
+		//            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
+		//            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+		//            selectionActions.add(reportButton);
+		//            addListenerToButton(results);}
 
 		if (Document.SCHEMA_TYPE.equals(schemaType)) {
 			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
@@ -182,54 +181,58 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			selectionActions.add(zipButton);
 		}
 
-        //        if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-//            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
-//            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-//            selectionActions.add(reportButton);
-//            addListenerToButton(results);
-//        }
+		//        if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+		//            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false, true);
+		//            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+		//            selectionActions.add(reportButton);
+		//            addListenerToButton(results);
+		//        }
 
-//if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
-            //reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
-            //reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-            //selectionActions.add(reportButton);
-            //addListenerToButton(results);
-        //        }
+		//if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+		//reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
+		//reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+		//selectionActions.add(reportButton);
+		//addListenerToButton(results);
+		//        }
 
-        if(Task.SCHEMA_TYPE.equals(schemaType)) {
-            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, true);
-            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-            selectionActions.add(reportButton);
-            addListenerToButton(results);}
+		if (Task.SCHEMA_TYPE.equals(schemaType)) {
+			reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this,
+					true);
+			reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectionActions.add(reportButton);
+			addListenerToButton(results);
+		}
 
-        if(ConnectorHttpDocument.SCHEMA_TYPE.equals(schemaType) || ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaType) || StorageSpace.SCHEMA_TYPE.equals(schemaType) || ConnectorLDAPUserDocument.SCHEMA_TYPE.equals(schemaType)) {
-            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, false,true);
-            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-            selectionActions.add(reportButton);
-            addListenerToButton(results);
-        }
+		if (ConnectorHttpDocument.SCHEMA_TYPE.equals(schemaType) || ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaType)
+				|| StorageSpace.SCHEMA_TYPE.equals(schemaType) || ConnectorLDAPUserDocument.SCHEMA_TYPE.equals(schemaType)) {
+			reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this,
+					false, true);
+			reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectionActions.add(reportButton);
+			addListenerToButton(results);
+		}
 
-        if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) ) {
-                if (presenter.hasCurrentUserPermissionToUseCart()) {
-                Button addToCart = buildAddToCartButton();
-                selectionActions.add(addToCart);
-            }
-            reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
-            reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-            selectionActions.add(reportButton);
-            addListenerToButton(results);
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
+				Button addToCart = buildAddToCartButton();
+				selectionActions.add(addToCart);
+			}
+			reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this);
+			reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectionActions.add(reportButton);
+			addListenerToButton(results);
 
-            sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
-            sipButton.addStyleName(ValoTheme.BUTTON_LINK);
-            selectionActions.add(sipButton);
-        }
+			sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+			sipButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectionActions.add(sipButton);
+		}
 
-        if(ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-            if (presenter.hasCurrentUserPermissionToUseCart()) {
-                Button addToCart = buildAddToCartButton();
-                selectionActions.add(addToCart);
-            }
-        }
+		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+			if (presenter.hasCurrentUserPermissionToUseCart()) {
+				Button addToCart = buildAddToCartButton();
+				selectionActions.add(addToCart);
+			}
+		}
 
 		Button switchViewMode = buildSwitchViewMode();
 
@@ -358,26 +361,30 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		}
 	}
 
-    private void addListenerToButton(SearchResultTable results){
-        if (results instanceof SearchResultDetailedTable) {
-            ((SearchResultDetailedTable) results).addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
-                @Override
-                public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
-                    RecordVO[] recordVOS =presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]);
-                reportButton.setRecordVoList(recordVOS);
-                    sipButton.addAllObject(recordVOS);}
-            });
-        } else {
-            ((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
-                @Override
-                public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
-                    RecordVO[] recordVOS =presenter.getRecordVOList(event.getTable().getSelectedRecordIds()).toArray(new RecordVO[0]);
-                    reportButton.setRecordVoList(recordVOS);
-                    sipButton.setAllObject(recordVOS);
-                }
-            });
-        }
-    }
+	private void addListenerToButton(SearchResultTable results) {
+		if (results instanceof SearchResultDetailedTable) {
+			((SearchResultDetailedTable) results)
+					.addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
+						@Override
+						public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
+							RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
+									.toArray(new RecordVO[0]);
+							reportButton.setRecordVoList(recordVOS);
+							sipButton.addAllObject(recordVOS);
+						}
+					});
+		} else {
+			((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
+				@Override
+				public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
+					RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
+							.toArray(new RecordVO[0]);
+					reportButton.setRecordVoList(recordVOS);
+					sipButton.setAllObject(recordVOS);
+				}
+			});
+		}
+	}
 
 	@Override
 	public Boolean computeStatistics() {

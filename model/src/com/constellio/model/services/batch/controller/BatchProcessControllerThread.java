@@ -72,31 +72,33 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	void process()
 			throws Exception {
 
-		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
-		if (batchProcess != null) {
-			try {
-				if (batchProcessinstanceof RecordBatchProcess) {
-					RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
-					if (recordBatchProcess.getRecords() != null) {
-					processFromIds(recordBatchProcess);
-				} else {
-					processFromQuery(recordBatchProcess);
-					}
-				} else if (batchProcessinstanceof AsyncTaskBatchProcess) {
-					final AsyncTaskBatchProcess process = (AsyncTaskBatchProcess) batchProcess;
-					AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
-
-						@Override
-						public String getCollection() {
-							return process.getCollection();
+		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
+			BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+			if (batchProcess != null) {
+				try {
+					if (batchProcess instanceof RecordBatchProcess) {
+						RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
+						if (recordBatchProcess.getRecords() != null) {
+							processFromIds(recordBatchProcess);
+						} else {
+							processFromQuery(recordBatchProcess);
 						}
-					};
-					process.getTask().execute(params);
-					batchProcessesManager.markAsFinished(batchProcess, 0);
+					} else if (batchProcess instanceof AsyncTaskBatchProcess) {
+						final AsyncTaskBatchProcess process = (AsyncTaskBatchProcess) batchProcess;
+						AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
+
+							@Override
+							public String getCollection() {
+								return process.getCollection();
+							}
+						};
+						process.getTask().execute(params);
+						batchProcessesManager.markAsFinished(batchProcess, 0);
+					}
+				} catch (Exception e) {
+					batchProcessesManager.markAsFinished(batchProcess, 1);
+					throw e;
 				}
-			} catch (Exception e) {
-				batchProcessesManager.markAsFinished(batchProcess, 1);
-				throw e;}
 			}
 		}
 		waitUntilNotified();

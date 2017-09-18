@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.imports;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -16,10 +20,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListImportExportViewImpl extends BaseViewImpl implements ListImportExportView {
 
@@ -39,7 +39,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 		tabSheet.addTab(newImportTable(), $("ListImportExportView.importTable"));
 		tabSheet.addTab(newExportTable(), $("ListImportExportView.exportTable"));
 		mainLayout.addComponent(tabSheet);
-		
+
 		return mainLayout;
 	}
 
@@ -60,7 +60,8 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 		RecordVOTable exportTable = new RecordVOTable(presenter.getExportDataProvider()) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT) && metadataValue.getValue() != null) {
+				if (metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT)
+						&& metadataValue.getValue() != null) {
 					ContentVersionVO content = (ContentVersionVO) metadataValue.getValue();
 					return new DownloadContentVersionLink(content, content.getFileName());
 				} else {
@@ -83,7 +84,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 					RecordVO record = item.getRecord();
 					MetadataVO errors = record.getMetadata(ImportAudit.ERRORS);
 					System.out.println("test");
-					if(errors != null && !((List)record.getMetadataValue(errors).getValue()).isEmpty()) {
+					if (errors != null && !((List) record.getMetadataValue(errors).getValue()).isEmpty()) {
 						return "error";
 					}
 				} catch (Exception e) {
@@ -95,13 +96,13 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 
 	@Override
 	protected void onBackgroundViewMonitor() {
-//	presenter.backgroundViewMonitor();
+		//	presenter.backgroundViewMonitor();
 	}
 
 	@Override
