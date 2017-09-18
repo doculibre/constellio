@@ -13,6 +13,11 @@ public class EnableOrDisableCalculatorsManualMetadataScript extends
 															AbstractSystemConfigurationScript<AllowModificationOfArchivisticStatusAndExpectedDatesChoice> {
 
 	@Override
+	public void onNewCollection(AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue, String collection, ModelLayerFactory modelLayerFactory) {
+		onValueChangedForCollection(newValue, modelLayerFactory, collection);
+	}
+
+	@Override
 	public void onValueChanged(AllowModificationOfArchivisticStatusAndExpectedDatesChoice previousValue, AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue,
 			ModelLayerFactory modelLayerFactory) {
 		if (newValue == null) {

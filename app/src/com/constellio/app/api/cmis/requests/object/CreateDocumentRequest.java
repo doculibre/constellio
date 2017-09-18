@@ -1,5 +1,19 @@
 package com.constellio.app.api.cmis.requests.object;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_UnsupportedVersioningState;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
@@ -15,19 +29,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocument> {
 
@@ -93,6 +94,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 		try {
 			recordServices.execute(new Transaction(record).setUser(user));
 		} catch (RecordServicesException e) {
+			contentManager.markForDeletionIfNotReferenced(dataSummary.getHash());
 			throw new RuntimeException(e);
 		}
 

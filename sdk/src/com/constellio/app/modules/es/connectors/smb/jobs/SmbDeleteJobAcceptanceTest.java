@@ -173,7 +173,7 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		es.getRecordServices().flush();
 
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
-		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
+		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		SmbShareService smbService = new FakeSmbService(smbFileDTO);
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null);
 		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);

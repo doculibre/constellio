@@ -215,7 +215,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             selectionActions.add(reportButton);
             addListenerToButton(results);
 
-            sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+            sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
             sipButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(sipButton);
         }

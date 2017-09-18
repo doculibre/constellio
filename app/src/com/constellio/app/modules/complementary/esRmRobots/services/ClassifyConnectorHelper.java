@@ -75,8 +75,8 @@ public class ClassifyConnectorHelper {
 
 				if (conceptOfCurrentSegment != null) {
 					pathPart = firstPart;
-				} else {
-					stillInTaxonomy = false;
+				} else if (taxonomyStarted) {
+					stillInTaxonomy = conceptOfCurrentSegment != null;
 				}
 			} else if (stillInTaxonomy) {
 				conceptOfCurrentSegment = recordServices.getRecordByMetadata(codeMetadata, pathPart);

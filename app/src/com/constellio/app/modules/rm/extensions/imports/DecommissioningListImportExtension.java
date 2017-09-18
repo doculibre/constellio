@@ -31,6 +31,7 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
     private static final Logger LOGGER = LoggerFactory.getLogger(DecommissioningListImportExtension.class);
 
     public static final String NON_EXISTING_FOLDER = "nonExistingFolder";
+    public static final String NON_EXISTING_CONTAINER = "nonExistingContainer";
 
     public static final String FOLDER_ID = "folderId";
     public static final String FOLDER_EXCLUDED = "folderExcluded";
@@ -63,13 +64,14 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
     public void validate(ValidationParams event) {
         ValidationErrors errors = event.getErrors();
         List<Map<String, String>> decomListFolderDetails = event.getImportRecord().getList(DecommissioningList.FOLDER_DETAILS);
+        boolean useLegacyId = event.getOptions().isImportAsLegacyId();
         for(Map<String, String> details: decomListFolderDetails) {
             if (details.containsKey(FOLDER_ID) && StringUtils
                     .isNotEmpty(details.get(FOLDER_ID))) {
 
                 Folder folder;
 
-                if(event.getOptions().isImportAsLegacyId()) {
+                if(useLegacyId) {
                     folder = rm.getFolderWithLegacyId(details.get(FOLDER_ID));
                 } else {
                     folder = rm.getFolder(details.get(FOLDER_ID));
@@ -84,6 +86,30 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
                 }
             }
         }
+
+        List<Map<String, String>> decomListContainerDetails = event.getImportRecord().getList(DecommissioningList.CONTAINER_DETAILS);
+        for(Map<String, String> details: decomListContainerDetails) {
+            if (details.containsKey(CONTAINER_RECORD_ID) && StringUtils
+                    .isNotEmpty(details.get(CONTAINER_RECORD_ID))) {
+
+                ContainerRecord containerRecord;
+
+                if(useLegacyId) {
+                    containerRecord = rm.getContainerRecordWithLegacyId(details.get(CONTAINER_RECORD_ID));
+                } else {
+                    containerRecord = rm.getContainerRecord(details.get(CONTAINER_RECORD_ID));
+                }
+
+                if(containerRecord == null) {
+                    if(event.isWarningsForInvalidFacultativeMetadatas()) {
+                        errors.addWarning(DecommissioningListImportExtension.class, NON_EXISTING_CONTAINER, asMap("containerId", details.get(CONTAINER_RECORD_ID), "listId", event.getImportRecord().getLegacyId()));
+                    } else {
+                        errors.add(DecommissioningListImportExtension.class, NON_EXISTING_CONTAINER, asMap("containerId", details.get(CONTAINER_RECORD_ID), "listId", event.getImportRecord().getLegacyId()));
+                    }
+                }
+            }
+        }
+
         super.validate(event);
     }
 
@@ -178,6 +204,13 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 
         if (mapDecomListFolderDetail.containsKey(CONTAINER_RECORD_ID) && StringUtils
                 .isNotEmpty(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID))) {
+            try {
+                ContainerRecord containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
+                decomListFolderDetail.setContainerRecordId(containerRecord.getId());
+            } catch (Exception e) {
+                LOGGER.error("Could not find container " + mapDecomListFolderDetail.get(CONTAINER_RECORD_ID) + " for folderDetail " + mapDecomListFolderDetail.get(FOLDER_ID));
+            }
+
             ContainerRecord containerRecord = null;
             if(useLegacyId) {
                 containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
@@ -213,12 +246,13 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             } else {
                 containerRecord = rm.getContainerRecord(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
             }
-
-            if(containerRecord == null) {
+            try {
+                containerRecord = rm.getContainerRecordWithLegacyId(mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+                decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
+            } catch (Exception e) {
                 LOGGER.error("Could not find containerDetail " + mapDecomListContainerDetail.get(CONTAINER_RECORD_ID));
+                decomListContainerDetail = new DecomListContainerDetail();
             }
-
-            decomListContainerDetail = containerRecord != null ? new DecomListContainerDetail(containerRecord.getId()) : new DecomListContainerDetail();
         } else {
             decomListContainerDetail = new DecomListContainerDetail();
         }

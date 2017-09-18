@@ -6,6 +6,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 public abstract class AbstractSystemConfigurationScript<T> implements SystemConfigurationScript<T> {
 
 	@Override
+	public void onNewCollection(T newValue, String collection, ModelLayerFactory modelLayerFactory) {
+
+	}
+
+	@Override
 	public void validate(T newValue, ValidationErrors errors) {
 
 	}
