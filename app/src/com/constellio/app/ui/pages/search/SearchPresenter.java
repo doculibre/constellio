@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -9,13 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
@@ -83,6 +79,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
+import org.springframework.util.CollectionUtils;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
@@ -247,8 +244,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
 		String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
 		MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
-		LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-		return schemasRecordsServices.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
+		//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
+		//TODO Check for a more efficient way to fix this.
+		LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
+		List<Capsule> allCapsules = schemasRecordsServices.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
+		List<Capsule> correspondingCapsules = new ArrayList<>();
+		for(Capsule capsule : allCapsules) {
+			if(CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
+				correspondingCapsules.add(capsule);
+			}
+		}
+		return correspondingCapsules;
 	}
 
 	public boolean mustDisplaySuggestions() {

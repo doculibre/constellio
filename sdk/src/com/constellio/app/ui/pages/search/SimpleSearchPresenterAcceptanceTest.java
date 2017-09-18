@@ -325,7 +325,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		t.addAll(capsule1, capsule2);
 		getModelLayerFactory().newRecordServices().execute(t);
 
-		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms.toArray(new String[0])));
+		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms.toArray(new String[0]), " "));
 		List<Capsule> returnedCapsules = simpleSearchPresenter.getCapsuleForCurrentSearch();
 		assertThat(returnedCapsules).hasSize(2);
 		assertThat(returnedCapsules).contains(capsule1, capsule2);

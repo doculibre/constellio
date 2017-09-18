@@ -22,6 +22,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -74,10 +75,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.addComponent(buildSearchUI());
-		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-		if(!capsules.isEmpty()) {
-			layout.addComponent(buildCapsuleIU(capsules));
-		}
 		layout.addComponent(buildResultsUI());
 		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
@@ -182,8 +179,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
+		Component capsuleComponent = null;
+		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
+		if(!capsules.isEmpty()) {
+			capsuleComponent = buildCapsuleIU(capsules);
+		}
 
-		VerticalLayout main = new VerticalLayout(suggestions, summary, body);
+		VerticalLayout main = new VerticalLayout(suggestions, summary);
+		if(capsuleComponent != null){
+			main.addComponent(capsuleComponent);
+		}
+		main.addComponent(body);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
 		main.setSpacing(true);
@@ -518,8 +524,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return button;
 	}
 
-	private Component buildCapsuleIU(List<Capsule> Capsules) {
-		return null;
+	private Component buildCapsuleIU(List<Capsule> capsules) {
+		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
+		for(Capsule capsule : capsules) {
+			Panel panel = new Panel();
+			panel.setSizeFull();
+			Label label = new Label(capsule.getHTML(),  ContentMode.HTML);
+			panel.setContent(label);
+			panel.setWidth("100%");
+			panel.setCaption(capsule.getTitle());
+			layout.addComponent(panel);
+		}
+		return layout;
 	}
 
 	public boolean isSelectAllMode() {
