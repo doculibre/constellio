@@ -355,10 +355,12 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public synchronized void invalidateRecordsOfType(String recordType) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
-		if (cacheConfig.isVolatile()) {
-			volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
-		} else {
-			permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+		if (cacheConfig != null) {
+			if (cacheConfig.isVolatile()) {
+				volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			} else {
+				permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			}
 		}
 	}
 
