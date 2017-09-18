@@ -1,16 +1,17 @@
-package com.constellio.app.services.event;
+package com.constellio.model.services.event;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -20,8 +21,11 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -42,23 +46,19 @@ public class EventService {
     public static final String DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
     public static final String ENCODING = "UTF-8";
     public static final String FOLDER = "eventsBackup";
-    public static final String IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT = "com.constellio.app.services.event.EventService#backupEventsInVault";
-    public static final String IO_STREAM_NAME_CLOSE = "com.constellio.app.services.event.EventService#close";
+    public static final String IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT = "com.constellio.model.services.event.EventService#backupEventsInVault";
+    public static final String IO_STREAM_NAME_CLOSE = "com.constellio.model.services.event.EventService#close";
 
 
     private IOServices ioServices;
     private ZipService zipService;
     private MetadataSchemasManager metadataSchemasManager;
-    private HashingService hashingService;
-
 
     public EventService(AppLayerFactory appLayerFactory) {
         this.appLayerLayerFactory = appLayerFactory;
         this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
         this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
         metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-        this.hashingService = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory()
-                .newHashingService(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());;
     }
 
     public LocalDateTime getCurrentCutOff() {
@@ -85,7 +85,6 @@ public class EventService {
 
         return dateTime;
     }
-
     public void setLastDayTimeDelete(LocalDateTime lastDayTime) {
         appLayerLayerFactory.getModelLayerFactory()
                 .getSystemConfigurationsManager().setValue(RMConfigs.LAST_BACKUP_DAY, lastDayTime.toString(DATE_TIME_FORMAT));
@@ -96,37 +95,57 @@ public class EventService {
         removeOldEventFromSolr();
     }
 
-    private void closeFile(File file, IndentingXMLStreamWriter indentingXMLStreamWriter, LocalDateTime localDateTime, String fileName) {
-        if(indentingXMLStreamWriter != null) {
-            InputStream zipFileInputStream = null;
-            try {
+    private void closeFile(File file, IndentingXMLStreamWriter indentingXMLStreamWriter, LocalDateTime localDateTime, String fileName, OutputStream fileStreamToClose) {
+
+        File zipFile = null;
+        InputStream zipFileInputStream = null;
+        boolean isindextingXMLStreamClose = false;
+        try {
+            if(indentingXMLStreamWriter != null) {
                 if(localDateTime != null) {
-                    setLastDayTimeDelete(localDateTime.withTime(0, 0,0,0));
+                    setLastDayTimeDelete(localDateTime.withTime(0, 0,0,0).plusDays(1).minusMillis(1));
                 }
                 indentingXMLStreamWriter.writeEndElement();
                 indentingXMLStreamWriter.writeEndDocument();
                 indentingXMLStreamWriter.flush();
+
                 indentingXMLStreamWriter.close();
-                File zipFile = createNewFile(fileName + ".zip");
+                isindextingXMLStreamClose = true;
+                zipFile = createNewFile(fileName + ".zip");
                 zipService.zip(zipFile, Arrays.asList(file));
 
                 zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
                 appLayerLayerFactory.getModelLayerFactory().getContentManager()
                         .getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
-            } catch (XMLStreamException e) {
-                throw new RuntimeException("Error while closing the Event writer outputStream. File : " + fileName, e);
-            } catch (ZipServiceException e) {
-                throw new RuntimeException("Error while zipping the file : " + fileName, e);
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException("Error while zipping the file : " + fileName, e);
-            } finally {
-                    ioServices.closeQuietly(zipFileInputStream);
             }
+        } catch (XMLStreamException e) {
+            throw new RuntimeException("Error while closing the Event writer outputStream. File : " + fileName, e);
+        } catch (ZipServiceException e) {
+            throw new RuntimeException("Error while zipping the file : " + fileName, e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Error while zipping the file : " + fileName, e);
+        } finally {
+            if(indentingXMLStreamWriter != null && !isindextingXMLStreamClose) {
+                try {
+                    indentingXMLStreamWriter.close();
+                } catch (XMLStreamException e) {
+                    throw new RuntimeException("Error while closing the IndentingXMLStreamWriter stream : with file name :" + fileName, e);
+                }
+            }
+            ioServices.closeQuietly(fileStreamToClose);
+            ioServices.closeQuietly(zipFileInputStream);
+            ioServices.deleteQuietly(zipFile);
+            ioServices.deleteQuietly(file);
         }
     }
 
-    private String fileName(LocalDateTime localDateTime) {
-        return localDateTime.getYear() + "-" + localDateTime.getMonthOfYear() + "-" + localDateTime.getDayOfMonth();
+    public String dateAsFileName(LocalDateTime localDateTime) {
+
+        if(localDateTime == null) {
+            return "null";
+        }
+
+        return localDateTime.toString("yyyy-MM-dd");
     }
 
     private File createNewFile(String fileName) {
@@ -143,20 +162,16 @@ public class EventService {
         File currentFile = null;
         if(lasDayTimeDelete == null || getCurrentCutOff().compareTo(getLastDayTimeDeleted()) < 0) {
             SearchServices searchServices = appLayerLayerFactory.getModelLayerFactory().newSearchServices();
-            LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
-            LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_")
-                    .andWhere(Schemas.CREATED_ON).isLessThan(getCurrentCutOff());
-            logicalSearchQuery.setCondition(logicalSearchCondition);
-            logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
+            LogicalSearchQuery logicalSearchQuery = getEventBeforeTheCutoffLogicalSearchQuery();
 
             SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
 
             int dayOfTheMonth = -1;
 
             OutputStream fileOutputStream = null;
-            XMLStreamWriter xmlStreamWriter = null;
+            XMLStreamWriter xmlStreamWriter;
             IndentingXMLStreamWriter writer = null;
-            LocalDateTime oldLocalDateTime = null;
+            LocalDateTime oldLocalDateTime;
             LocalDateTime localDateTime = null;
             String fileName = null;
             try
@@ -170,9 +185,8 @@ public class EventService {
                     try {
                         if (dayOfTheMonth != localDateTime.getDayOfMonth()) {
                             dayOfTheMonth = localDateTime.getDayOfMonth();
-                            closeFile(currentFile, writer, oldLocalDateTime, fileName);
-                            ioServices.closeQuietly(fileOutputStream);
-                            fileName = fileName(localDateTime);
+                            closeFile(currentFile, writer, oldLocalDateTime, fileName, fileOutputStream);
+                            fileName = dateAsFileName(localDateTime);
                             currentFile = createNewFile(fileName + ".xml");
                             fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
                             xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
@@ -214,10 +228,7 @@ public class EventService {
                 }
             }
             finally {
-                if(writer != null && localDateTime != null){
-                    closeFile(currentFile, writer, localDateTime, fileName);
-                    ioServices.closeQuietly(fileOutputStream);
-                }
+                closeFile(currentFile, writer, localDateTime, fileName, fileOutputStream);
             }
 
 
@@ -226,7 +237,39 @@ public class EventService {
         return eventList;
     }
 
-    public void removeOldEventFromSolr() {
+    @NotNull
+    public LogicalSearchQuery getEventBeforeTheCutoffLogicalSearchQuery() {
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
+        LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_")
+                .andWhere(Schemas.CREATED_ON).isLessThan(getCurrentCutOff());
+        logicalSearchQuery.setCondition(logicalSearchCondition);
+        logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
+        return logicalSearchQuery;
+    }
 
+    public void removeOldEventFromSolr() {
+        deleteArchivedEvents();
+    }
+
+    public void deleteArchivedEvents() {
+        RecordDao recordDao = appLayerLayerFactory.getModelLayerFactory().getDataLayerFactory().newRecordDao();
+        LocalDateTime lastDateTimeToDelete = getLastDayTimeDeleted();
+        TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
+        ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+        String code  = "createdOn_dt";
+
+        StringBuilder query = new StringBuilder();
+        String between = code + ":[* TO " + CriteriaUtils.toSolrStringValue(lastDateTimeToDelete, null) + "]";
+        String notNull = " AND (*:* -(" + code + ":\"" + CriteriaUtils.getNullDateValue() + "\")) ";
+        query.append(between + notNull);
+
+        modifiableSolrParams.set("q", "schema_s:event_*, " + query.toString());
+
+        transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+        try {
+            recordDao.execute(transaction);
+        } catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+            throw new RuntimeException("Error while deleting archived eventRecord", optimisticLocking);
+        }
     }
 }

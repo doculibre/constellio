@@ -17,6 +17,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
+	//com.constellio.model.services.event.EventService eventService;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -43,6 +44,8 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("temporaryRecordsDeletionBackgroundAction",
 				temporaryRecordsDeletionBackgroundAction)
 				.executedEvery(standardHours(12)).handlingExceptionWith(CONTINUE));
+
+		//backgroundThreadsManager.configure(repeatingAction(""));
 	}
 
 	@Override
