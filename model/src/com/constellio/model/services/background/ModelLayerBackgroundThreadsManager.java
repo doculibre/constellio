@@ -9,6 +9,7 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.services.event.EventService;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
@@ -17,6 +18,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
+	EventService eventService;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -43,6 +45,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("temporaryRecordsDeletionBackgroundAction",
 				temporaryRecordsDeletionBackgroundAction)
 				.executedEvery(standardHours(12)).handlingExceptionWith(CONTINUE));
+
+		eventService = new EventService(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDelteFromSorl", eventService
+			).executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override
