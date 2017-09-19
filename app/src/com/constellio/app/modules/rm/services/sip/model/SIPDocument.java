@@ -4,6 +4,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.contents.ContentManagerException;
+import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -57,6 +59,8 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
                     sipFile = new File("in/Baginfo.txt");
                 }
             }
+        }catch( ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent e ){
+            // ok fine.
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

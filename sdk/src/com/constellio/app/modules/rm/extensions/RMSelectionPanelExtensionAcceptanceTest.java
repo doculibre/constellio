@@ -45,14 +45,14 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);
     VerticalLayout layout = new VerticalLayout();
     RMSelectionPanelExtension extension;
-    BaseView mockHeader;
+    ConstellioHeader mockHeader;
     @Before
     public void setup() {
         prepareSystem(
                 withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
                         .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
         );
-        mockHeader = mock(BaseViewImpl.class);
+        mockHeader = mock(ConstellioHeader.class);
         when(mockHeader.getConstellioFactories()).thenReturn(getConstellioFactories());
         when(mockHeader.getCollection()).thenReturn(zeCollection);
         when(mockHeader.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));

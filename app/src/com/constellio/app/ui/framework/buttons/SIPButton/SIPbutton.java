@@ -12,10 +12,16 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
@@ -25,6 +31,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -35,7 +42,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     private List<RecordVO> objectList = new ArrayList<>();
     private CheckBox deleteCheckBox, limitSizeCheckbox;
-    private BaseView view;
+    private ConstellioHeader view;
     private IOServices ioServices;
     private File bagInfoFile;
     private AppLayerFactory factory;
@@ -64,8 +71,8 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             restrictionAccessibiliteTextField,
             encodingTextField;
 
-    public SIPbutton(String caption, String windowCaption, BaseView view) {
-        super(caption, windowCaption);
+    public SIPbutton(String caption, String windowCaption, ConstellioHeader view) {
+        super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
         this.view = view;
         if (this.view != null) {
             this.rm = new RMSchemasRecordsServices(view.getCollection(), view.getConstellioFactories().getAppLayerFactory());
@@ -96,7 +103,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                 try {
                     continueButtonClicked();
                 } catch (IOException | JDOMException | RecordServicesException e) {
-                    view.showErrorMessage(e.getMessage());
+                    view.getCurrentView().showErrorMessage(e.getMessage());
                 }
             }
         };
@@ -159,15 +166,19 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             List<String> documentList = getDocumentIDListFromObjectList();
             List<String> folderList = getFolderIDListFromObjectList();
             if(!documentList.isEmpty() || !folderList.isEmpty()) {
-                SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-                view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
-                view.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-                getWindow().close();
+                if(!documentList.isEmpty() || validateFolderHasDocument()){
+                    SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
+                    view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
+                    view.getCurrentView().showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                    getWindow().close();
+                } else {
+                    view.getCurrentView().showErrorMessage($("SIPButton.cannotCreateSIPArchivesFromEmptyFolder"));
+                }
             } else {
-                view.showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
+                view.getCurrentView().showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
             }
         } else {
-            view.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+            view.getCurrentView().showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }
     }
 
@@ -267,6 +278,18 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                 encodingTextField.getValue());
         for(String line : lines) {
             if(!line.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean validateFolderHasDocument(){
+        SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
+        MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
+        for(String folderId : getFolderIDListFromObjectList()) {
+            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
+            if(searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
                 return true;
             }
         }
