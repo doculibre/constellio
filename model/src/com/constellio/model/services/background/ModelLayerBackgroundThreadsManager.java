@@ -49,6 +49,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		eventService = new EventService(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDelteFromSorl", eventService
 			).executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
+		//Will be enabled in version 7.6
+		//		eventService = new EventService(modelLayerFactory);
+		//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
+		//		).executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override
