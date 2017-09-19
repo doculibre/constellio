@@ -32,6 +32,7 @@ import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
+import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
@@ -500,7 +501,17 @@ public class AppLayerCollectionExtensions {
 				});
 			}
 		});
-
+	}
+	
+	public List<String> getDynamicFieldMetadatas(GetDynamicFieldMetadatasParams params) {
+		List<String> dynamicFieldMetadatas = new ArrayList<>();
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			List<String> extensionDynamicFieldMetadatas = recordAppExtension.getDynamicFieldMetadatas(params);
+			if (extensionDynamicFieldMetadatas != null) {
+				dynamicFieldMetadatas.addAll(extensionDynamicFieldMetadatas);
+			}
+		}
+		return dynamicFieldMetadatas;
 	}
 
 	public void addFieldsInLabelXML(AddFieldsInLabelXMLParams params) {

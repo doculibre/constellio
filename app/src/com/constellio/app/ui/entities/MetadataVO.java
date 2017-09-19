@@ -31,6 +31,7 @@ public class MetadataVO implements Serializable {
 	final String schemaTypeCode;
 	final Map<Locale, String> labels;
 	final boolean readOnly;
+	final boolean unmodifiable;
 	final boolean required;
 	final boolean multivalue;
 	final boolean enabled;
@@ -46,24 +47,24 @@ public class MetadataVO implements Serializable {
 	final Set<String> customAttributes;
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
-			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			MetadataDisplayType metadataDisplayType,
-			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
-			Object defaultValue, Set<String> customAttributes) {
-		this(code, null, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory,
-				metadataGroup, defaultValue,
-				null, customAttributes);
+			boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
+			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+			MetadataInputType metadataInputType,
+			MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
+			String metadataGroup, Object defaultValue, Set<String> customAttributes) {
+		this(code, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
+				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
+				structureFactory, metadataGroup,
+				defaultValue, null, customAttributes);
 	}
 
 	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required, boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-			MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
-			boolean enabled,
-			StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask,
-			Set<String> customAttributes) {
+			boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
+			Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+			String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+			AllowedReferences allowedReferences,
+			boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+			String inputMask, Set<String> customAttributes) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -74,6 +75,7 @@ public class MetadataVO implements Serializable {
 		this.required = required;
 		this.multivalue = multivalue;
 		this.readOnly = readOnly;
+		this.unmodifiable = unmodifiable;
 		this.labels = labels;
 		this.enumClass = enumClass;
 		this.taxonomyCodes = taxonomyCodes;
@@ -100,9 +102,9 @@ public class MetadataVO implements Serializable {
 			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues,
 			Set<String> customAttributes) {
 
-		this(code, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null, metadataGroup,
-				defaultValue, customAttributes);
+		this(code, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
+				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
+				metadataGroup, defaultValue, customAttributes);
 	}
 
 	public MetadataVO() {
@@ -116,6 +118,7 @@ public class MetadataVO implements Serializable {
 		this.required = false;
 		this.multivalue = false;
 		this.readOnly = false;
+		this.unmodifiable = false;
 		this.labels = new HashMap<>();
 		this.enumClass = null;
 		this.taxonomyCodes = new String[0];
@@ -187,6 +190,10 @@ public class MetadataVO implements Serializable {
 
 	public boolean isReadOnly() {
 		return readOnly;
+	}
+
+	public boolean isUnmodifiable() {
+		return unmodifiable;
 	}
 
 	public final MetadataInputType getMetadataInputType() {

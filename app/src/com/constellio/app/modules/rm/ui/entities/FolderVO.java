@@ -1,9 +1,11 @@
 package com.constellio.app.modules.rm.ui.entities;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import org.joda.time.LocalDate;
@@ -294,6 +296,18 @@ public class FolderVO extends RecordVO {
 
 	public void setLinearSize(Double linearSize) {
 		set(LINEAR_SIZE, linearSize);
+	}
+
+	public CopyRetentionRule getMainCopyRule() {
+		return get(MAIN_COPY_RULE);
+	}
+
+	public String getMainCopyRuleIdEntered() {
+		return get(MAIN_COPY_RULE_ID_ENTERED);
+	}
+
+	public void setMainCopyRuleEntered(String mainCopyRuleIdEntered) {
+		set(MAIN_COPY_RULE_ID_ENTERED, mainCopyRuleIdEntered);
 	}
 
 }
