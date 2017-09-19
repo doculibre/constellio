@@ -1,5 +1,18 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgument;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
@@ -14,18 +27,6 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
@@ -67,7 +68,7 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 
-//		UpdateDocumentParams params = new UpdateDocumentParams(user, contentCmisDocument.getRecord());
+		//		UpdateDocumentParams params = new UpdateDocumentParams(user, contentCmisDocument.getRecord());
 		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISDocument(params);
 
 		setContent(user, recordServices, contentCmisDocument, content, ioServices, contentManager);
@@ -80,6 +81,7 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 		File file = null;
 		OutputStream out = null;
 		InputStream inFromCopy = null;
+		String hash = null;
 		try {
 			file = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
 			out = ioServices.newFileOutputStream(file, COPY_TO_TEMP_FILE);
@@ -87,7 +89,9 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 			ioServices.closeQuietly(out);
 			inFromCopy = ioServices.newFileInputStream(file, READ_TEMP_FILE);
 
-			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inFromCopy, contentStream.getFileName());
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inFromCopy,
+					contentStream.getFileName());
+			hash = uploadResponse.getContentVersionDataSummary().getHash();
 			if (content.getCheckoutUserId() != null) {
 				if (user.getId().equals(content.getCheckoutUserId())) {
 					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
@@ -101,6 +105,7 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 			}
 			recordServices.update(contentCmisDocument.getRecord(), user);
 		} catch (IOException | RecordServicesException e) {
+			contentManager.markForDeletionIfNotReferenced(hash);
 			throw new RuntimeException(e);
 		} finally {
 			ioServices.closeQuietly(out);

@@ -68,6 +68,11 @@ public class ReportGeneratorButton extends WindowButton {
 		this.elements = elements;
 	}
 
+	@Override
+	public boolean isVisible() {
+		return !ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(),currentSchema).isEmpty();
+	}
+
 	private MetadataSchema getSchemaFromRecords() {
 		MetadataSchema metadataSchema = null;
 		if (this.elements != null && this.elements.length >= 1) {

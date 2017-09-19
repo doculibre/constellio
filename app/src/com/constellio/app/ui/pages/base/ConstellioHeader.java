@@ -54,4 +54,6 @@ public interface ConstellioHeader extends Serializable {
 	void refreshButtons();
 
 	void removeRecordsFromPanel(List<String> idList);
+
+	BaseView getCurrentView();
 }

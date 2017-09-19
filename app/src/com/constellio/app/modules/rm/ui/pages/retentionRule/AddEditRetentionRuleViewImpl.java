@@ -2,10 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentDefaultCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.FolderCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.ui.components.retentionRule.ListAddRemoveRetentionRuleDocumentTypeField;
+import com.constellio.app.modules.rm.ui.components.retentionRule.*;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -216,6 +213,10 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 						field = null;
 					}
 					break;
+			case RetentionRule.ADMINISTRATIVE_UNITS:
+				field = new RetentionRuleListAddRemoveAdministrativeUnitLookupField();
+				postBuild(field, recordVO, metadataVO);
+				break;
 			default:
 				field = super.build(recordVO, metadataVO);
 				break;

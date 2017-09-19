@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.configScripts;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceSingleContainerAvailableSizeCalculator;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -30,6 +31,11 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
         AbstractSystemConfigurationScript<Boolean> {
 
     public static final String CONTAINER_EXIST = "containerExist";
+
+    @Override
+    public void onNewCollection(Boolean newValue, String collection, ModelLayerFactory modelLayerFactory) {
+        onValueChangedForCollection(newValue, modelLayerFactory, collection);
+    }
 
     @Override
     public void validate(Boolean newValue, ValidationErrors errors) {

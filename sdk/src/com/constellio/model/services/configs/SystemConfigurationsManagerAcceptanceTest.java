@@ -424,6 +424,11 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	public static class TextAlteringSchemasScript implements SystemConfigurationScript<String> {
 		@Override
+		public void onNewCollection(String newValue, String collection, ModelLayerFactory modelLayerFactory) {
+
+		}
+
+		@Override
 		public void validate(String newValue, ValidationErrors errors) {
 			if (!"ohHellYeah".equals(newValue) && !"ohHellNo".equals(newValue)) {
 				errors.add(TextAlteringSchemasScript.class, "ohBobo");

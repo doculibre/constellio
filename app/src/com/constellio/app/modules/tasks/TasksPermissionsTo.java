@@ -17,4 +17,5 @@ public class TasksPermissionsTo {
 
 	public static final String MANAGE_WORKFLOWS = permission(WORKFLOWS_GROUP, "manageWorkflows");
 	public static final String START_WORKFLOWS = permission(WORKFLOWS_GROUP, "startWorkflows");
+	public static final String DELETE_WORKFLOWS = permission(WORKFLOWS_GROUP, "deleteWorkflows");
 }
