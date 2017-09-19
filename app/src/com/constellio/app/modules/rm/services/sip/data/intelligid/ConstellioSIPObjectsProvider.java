@@ -149,7 +149,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
                 }
                 if (metadataName != null) {
                     Object metadataValue = document.get(metadataName);
-                    if(metadataValue != null) {
+                    if (metadataValue != null) {
                         String metadataValueAsString = metadataValue instanceof List ? String.join(", ", (List<String>) metadataValue) : metadataValue.toString();
                         if (StringUtils.isNotBlank(metadataValueAsString)) {
                             metadataValues.add(metadataValueAsString);
@@ -198,15 +198,19 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
                 String filename = sipDocument.getFilename();
                 Map<String, Object> parsedMessage;
                 try {
-                    InputStream in = new FileInputStream(sipDocumentFile);
-                    parsedMessage = rm.parseEmail(filename, in);
-                    if (parsedMessage != null) {
-                        result = new LinkedHashMap<>();
-                        Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
-                        for (Entry<String, InputStream> entry : streamMap.entrySet()) {
-                            InputStream fichierJointIn = entry.getValue();
-                            byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
-                            result.put(entry.getKey(), joinFilesBytes);
+                    if (sipDocumentFile != null) {
+                        InputStream in = new FileInputStream(sipDocumentFile);
+                        parsedMessage = rm.parseEmail(filename, in);
+                        if (parsedMessage != null) {
+                            result = new LinkedHashMap<>();
+                            Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
+                            for (Entry<String, InputStream> entry : streamMap.entrySet()) {
+                                InputStream fichierJointIn = entry.getValue();
+                                byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
+                                result.put(entry.getKey(), joinFilesBytes);
+                            }
+                        } else {
+                            result = null;
                         }
                     } else {
                         result = null;
@@ -296,16 +300,18 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             }
 
             AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(folder.<String>get(Folder.ADMINISTRATIVE_UNIT));
-            AdministrativeUnit parentAdministrativeUnit = rm.getAdministrativeUnit(administrativeUnit.<String>get(AdministrativeUnit.PARENT));
-
-            archdesc.setDidOriginationCorpname(parentAdministrativeUnit.getCode());
+            String adminstrativeUnitParentId = administrativeUnit.get(AdministrativeUnit.PARENT);
+            if (adminstrativeUnitParentId != null) {
+                AdministrativeUnit parentAdministrativeUnit = rm.getAdministrativeUnit(adminstrativeUnitParentId);
+                archdesc.setDidOriginationCorpname(parentAdministrativeUnit.getCode());
+            }
 
             MetadataSchemasManager manager = factory.getModelLayerFactory().getMetadataSchemasManager();
             MetadataSchemaType documentSchemaType = manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
             LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(folder.getId());
             SearchResponseIterator<Record> iteratorDocument = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionDocument));
             if (iteratorDocument != null) {
-                while(iteratorDocument.hasNext()){
+                while (iteratorDocument.hasNext()) {
                     Document documentLie = rm.wrapDocument(iteratorDocument.next());
                     List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(documentLie.getId() + " " + documentLie.getTitle());
@@ -317,7 +323,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(folderSchemaType).where(folderSchemaType.getDefaultSchema().getMetadata(Folder.PARENT_FOLDER)).isEqualTo(folder.getId());
             SearchResponseIterator<Record> iteratorFolder = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionFolder));
             if (iteratorFolder != null) {
-                while(iteratorFolder.hasNext()) {
+                while (iteratorFolder.hasNext()) {
                     Folder dossierLie = rm.wrapFolder(iteratorFolder.next());
                     List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(dossierLie.getId() + " " + dossierLie.getTitle());

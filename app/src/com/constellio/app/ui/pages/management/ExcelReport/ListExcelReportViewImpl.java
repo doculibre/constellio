@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.ExcelReport;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -9,6 +10,9 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -38,6 +42,31 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
     private ListExcelReportPresenter presenter;
     private String currentSchema;
     private TabSheet tabSheet;
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
+    }
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {

@@ -32,9 +32,18 @@ import com.constellio.app.modules.es.extensions.ESSMBParentConnectorUrlCriterion
 import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.*;
+import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
 import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
 import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_5;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -43,6 +52,7 @@ import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.scripts.RestoreConnectorTypes;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -184,6 +194,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!recordsCache.isConfigured(Facet.SCHEMA_TYPE)) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.facet.schemaType()));
+		}
+
+		if (!recordsCache.isConfigured(Printable.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.printable.schemaType()));
 		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));

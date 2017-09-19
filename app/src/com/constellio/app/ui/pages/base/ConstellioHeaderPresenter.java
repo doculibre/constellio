@@ -510,7 +510,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 
 		return new AvailableActionsParam(selectedRecordIds, new ArrayList<>(selectedRecordSchemaTypeCodes.keySet()),
-				getCurrentUser(), actionMenuLayout);
+				getCurrentUser(), actionMenuLayout, header);
 	}
 
 	public void createNewCartAndAddToItRequested(List<String> recordIds, String title) {
