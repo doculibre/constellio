@@ -94,6 +94,8 @@ public class ConstellioEIMConfigs {
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
+	public static final SystemConfiguration LAST_BACKUP_DAY, KEEP_EVENTS_FOR_X_MONTH;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -164,6 +166,10 @@ public class ConstellioEIMConfigs {
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
+		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
+
+		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(60));
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 

@@ -1,14 +1,15 @@
-package com.constellio.app.services.event;
+package com.constellio.model.services.event;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.event.EventService;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -64,7 +65,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     @Before
     public void setUp() {
         prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
-        eventService = new EventService(getAppLayerFactory());
+        eventService = new EventService(getModelLayerFactory());
         schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
         recordServices = getAppLayerFactory().getModelLayerFactory().newRecordServices();
         ioServices = getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
@@ -85,7 +86,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void getCutOffDateThenOk() {
+    public void getCutOffDateValueThenOk() {
         givenTimeIs(getLocalDateTimeFromString(DATE_1));
 
         // Default cutoff is 60 months
@@ -93,7 +94,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
         assertThat(cutOffDate).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_1));
 
-        getModelLayerFactory().getSystemConfigurationsManager().setValue(RMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
+        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
         assertThat(eventService.getCurrentCutOff()).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_2));
     }
@@ -134,6 +135,9 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         assertThat(searchServices.search(eventService.getEventBeforeTheCutoffLogicalSearchQuery()).size()).isEqualTo(0);
         LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_"));
         assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(1);
+
+        eventService.getLastDayTimeDeleted().toString(EventService.DATE_TIME_FORMAT)
+                .equals(eventService.getCurrentCutOff().minusMillis(1).toString(EventService.DATE_TIME_FORMAT));
     }
 
     private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip) throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {

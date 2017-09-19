@@ -1,7 +1,5 @@
 package com.constellio.model.services.event;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -17,6 +15,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -33,15 +33,18 @@ import org.joda.time.format.DateTimeFormatter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
-public class EventService {
-    AppLayerFactory appLayerLayerFactory;
+public class EventService implements Runnable {
+    ModelLayerFactory modelayerFactory;
 
     public static final String DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
     public static final String ENCODING = "UTF-8";
@@ -54,15 +57,15 @@ public class EventService {
     private ZipService zipService;
     private MetadataSchemasManager metadataSchemasManager;
 
-    public EventService(AppLayerFactory appLayerFactory) {
-        this.appLayerLayerFactory = appLayerFactory;
-        this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
-        this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
-        metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+    public EventService(ModelLayerFactory modelayerFactory) {
+        this.modelayerFactory = modelayerFactory;
+        this.ioServices = modelayerFactory.getIOServicesFactory().newIOServices();
+        this.zipService = modelayerFactory.getIOServicesFactory().newZipService();
+        metadataSchemasManager = modelayerFactory.getMetadataSchemasManager();
     }
 
     public LocalDateTime getCurrentCutOff() {
-        Integer periodInMonth = appLayerLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(RMConfigs.KEEP_EVENTS_FOR_X_MONTH);
+        Integer periodInMonth = modelayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH);
         LocalDateTime nowLocalDateTime = TimeProvider.getLocalDateTime();
         nowLocalDateTime = nowLocalDateTime.withSecondOfMinute(0).withHourOfDay(0).withMillisOfSecond(0).withMinuteOfHour(0);
         LocalDateTime cutoffLocalDateTime;
@@ -75,7 +78,7 @@ public class EventService {
     }
 
     public LocalDateTime getLastDayTimeDeleted() {
-        String dateTimeAsString = appLayerLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(RMConfigs.LAST_BACKUP_DAY);
+        String dateTimeAsString = modelayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.LAST_BACKUP_DAY);
         LocalDateTime dateTime = null;
 
         if(dateTimeAsString != null) {
@@ -86,8 +89,9 @@ public class EventService {
         return dateTime;
     }
     public void setLastDayTimeDelete(LocalDateTime lastDayTime) {
-        appLayerLayerFactory.getModelLayerFactory()
-                .getSystemConfigurationsManager().setValue(RMConfigs.LAST_BACKUP_DAY, lastDayTime.toString(DATE_TIME_FORMAT));
+        modelayerFactory
+                .getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.LAST_BACKUP_DAY,
+                lastDayTime.toString(DATE_TIME_FORMAT));
     }
 
     public void backupAndRemove() {
@@ -115,7 +119,7 @@ public class EventService {
                 zipService.zip(zipFile, Arrays.asList(file));
 
                 zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
-                appLayerLayerFactory.getModelLayerFactory().getContentManager()
+                modelayerFactory.getContentManager()
                         .getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
             }
         } catch (XMLStreamException e) {
@@ -161,7 +165,7 @@ public class EventService {
         LocalDateTime lasDayTimeDelete = getLastDayTimeDeleted();
         File currentFile = null;
         if(lasDayTimeDelete == null || getCurrentCutOff().compareTo(getLastDayTimeDeleted()) < 0) {
-            SearchServices searchServices = appLayerLayerFactory.getModelLayerFactory().newSearchServices();
+            SearchServices searchServices = modelayerFactory.newSearchServices();
             LogicalSearchQuery logicalSearchQuery = getEventBeforeTheCutoffLogicalSearchQuery();
 
             SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
@@ -252,7 +256,7 @@ public class EventService {
     }
 
     public void deleteArchivedEvents() {
-        RecordDao recordDao = appLayerLayerFactory.getModelLayerFactory().getDataLayerFactory().newRecordDao();
+        RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
         LocalDateTime lastDateTimeToDelete = getLastDayTimeDeleted();
         TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
@@ -271,5 +275,10 @@ public class EventService {
         } catch (RecordDaoException.OptimisticLocking optimisticLocking) {
             throw new RuntimeException("Error while deleting archived eventRecord", optimisticLocking);
         }
+    }
+
+    @Override
+    public void run() {
+        backupAndRemove();
     }
 }
