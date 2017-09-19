@@ -623,7 +623,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 			table.setContainerDataSource(nestedContainer);
 
-			//		table.setPageLength(Math.min(15, dataProvider.size()));
 			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
 				@Override
 				public void selectAll() {
@@ -672,72 +671,75 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Tab folderContentTab = tabSheet.getTab(folderContentComponent);
 		folderContentTab.setCaption($("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 	}
-
+	
 	@Override
 	public void selectTasksTab() {
-		//TODO Vincent
+		if (!(tasksComponent instanceof Table)) {
+			Table table = new RecordVOTable(tasksDataProvider) {
+				@Override
+				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
+								getSessionContext().getCurrentUser().getId()) {
+							@Override
+							public void updateTaskStarred(boolean isStarred, String taskId) {
+								presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
+							}
+						};
+					} else {
+						return super.buildMetadataComponent(metadataValue, recordVO);
+					}
+				}
+	
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected String toColumnId(Object propertyId) {
+							if (propertyId instanceof MetadataVO) {
+								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+									setColumnHeader(propertyId, "");
+									setColumnWidth(propertyId, 60);
+								}
+							}
+							return super.toColumnId(propertyId);
+						}
+					};
+				}
+	
+				@Override
+				public Collection<?> getSortableContainerPropertyIds() {
+					Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+					while (iterator.hasNext()) {
+						Object property = iterator.next();
+						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
+								.equals(((MetadataVO) property).getLocalCode())) {
+							iterator.remove();
+						}
+					}
+					return sortableContainerPropertyIds;
+				}
+			};
+			table.setSizeFull();
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.taskClicked(recordVO);
+				}
+			});
+			table.setPageLength(Math.min(15, tasksDataProvider.size()));
+			tabSheet.replaceComponent(tasksComponent, table);
+			tasksComponent = table;
+		}
+		tabSheet.setSelectedTab(tasksComponent);
 	}
 
 	@Override
-	public void setTasks(final RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable(dataProvider) {
-			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
-							getSessionContext().getCurrentUser().getId()) {
-						@Override
-						public void updateTaskStarred(boolean isStarred, String taskId) {
-							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
-						}
-					};
-				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
-				}
-			}
-
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
-					@Override
-					protected String toColumnId(Object propertyId) {
-						if (propertyId instanceof MetadataVO) {
-							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
-								setColumnWidth(propertyId, 60);
-							}
-						}
-						return super.toColumnId(propertyId);
-					}
-				};
-			}
-
-			@Override
-			public Collection<?> getSortableContainerPropertyIds() {
-				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
-				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
-				while (iterator.hasNext()) {
-					Object property = iterator.next();
-					if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
-							.equals(((MetadataVO) property).getLocalCode())) {
-						iterator.remove();
-					}
-				}
-				return sortableContainerPropertyIds;
-			}
-		};
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.taskClicked(recordVO);
-			}
-		});
-		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(tasksComponent, table);
-		tasksComponent = table;
+	public void setTasks(RecordVODataProvider dataProvider) {
+		this.tasksDataProvider = dataProvider;
 	}
 
 	@Override
