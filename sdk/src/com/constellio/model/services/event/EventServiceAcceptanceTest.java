@@ -1,8 +1,6 @@
 package com.constellio.model.services.event;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -64,7 +62,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
     @Before
     public void setUp() {
-        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
+        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users).withAllTestUsers());
         eventService = new EventService(getModelLayerFactory());
         schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
         recordServices = getAppLayerFactory().getModelLayerFactory().newRecordServices();
@@ -74,15 +72,15 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void getLastDayTimeDeletedThenSetThenGetThenOk() {
+    public void getLastArchivedTimeThenSetThenGetThenOk() {
         LocalDateTime dateTime;
 
-        assertThat(eventService.getLastDayTimeDeleted()).isNull();
+        assertThat(eventService.getLastDayTimeArchived()).isNull();
 
         dateTime = getLocalDateTimeFromString(DATE_1);
-        eventService.setLastDayTimeDelete(dateTime);
+        eventService.setLastArchivedDayTime(dateTime);
 
-        assertThat(eventService.getLastDayTimeDeleted()).isEqualTo(dateTime);
+        assertThat(eventService.getLastDayTimeArchived()).isEqualTo(dateTime);
     }
 
     @Test
@@ -90,13 +88,13 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         givenTimeIs(getLocalDateTimeFromString(DATE_1));
 
         // Default cutoff is 60 months
-        LocalDateTime cutOffDate = eventService.getCurrentCutOff();
+        LocalDateTime cutOffDate = eventService.getDeletetionDateCutOff();
 
         assertThat(cutOffDate).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_1));
 
         getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
-        assertThat(eventService.getCurrentCutOff()).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_2));
+        assertThat(eventService.getDeletetionDateCutOff()).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_2));
     }
 
     @Test
@@ -112,7 +110,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         recordServices.add(event2);
         recordServices.add(event3);
 
-        LocalDateTime event2LocalDateTime = eventService.getCurrentCutOff().minusHours(1);
+        LocalDateTime event2LocalDateTime = eventService.getDeletetionDateCutOff().minusHours(1);
         Event event4 = createEvent(event2LocalDateTime.minusSeconds(3));
         Event event5 = createEvent(event2LocalDateTime.minusSeconds(2));
         Event event6 = createEvent(event2LocalDateTime.minusSeconds(1));
@@ -120,27 +118,51 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         recordServices.add(event5);
         recordServices.add(event6);
 
-        Event event7 = createEvent(eventService.getCurrentCutOff());
+        Event event7 = createEvent(eventService.getDeletetionDateCutOff());
         recordServices.add(event7);
+
+        Event event8 = createEvent(eventService.getArchivedUntilLocalDate().plusDays(1));
+        recordServices.add(event8);
+
+        Event event9 = createEvent(eventService.getArchivedUntilLocalDate().plusDays(2));
+        recordServices.add(event9);
 
         eventService.backupAndRemove();
 
-        findZipFileAndAssertXml(Arrays.asList(event1, event2, event3), FILE_NAME_1);
+        findZipFileAndAssertXml(Arrays.asList(event1, event2, event3), FILE_NAME_1, 3);
         findZipFileAndAssertXml(Arrays.asList(event4, event5, event6), FOLDER_NAME + "/" + eventService
-                .dateAsFileName(eventService.getCurrentCutOff().minusHours(1)) + ".zip");
+                .dateAsFileName(eventService.getDeletetionDateCutOff().minusHours(1)) + ".zip", 3);
+
+        findZipFileAndAssertXml(Arrays.asList(event7),
+                FOLDER_NAME + "/" +
+                        eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
+
         assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-                .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(2);
+                .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
 
         // Verify solar state.
-        assertThat(searchServices.search(eventService.getEventBeforeTheCutoffLogicalSearchQuery()).size()).isEqualTo(0);
+        assertThat(searchServices.search(eventService.getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery()).size()).isEqualTo(0);
         LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_"));
-        assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(1);
+        // Check for remaning event in solr
+        assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(3);
 
-        eventService.getLastDayTimeDeleted().toString(EventService.DATE_TIME_FORMAT)
-                .equals(eventService.getCurrentCutOff().minusMillis(1).toString(EventService.DATE_TIME_FORMAT));
+        eventService.getLastDayTimeArchived().toString(EventService.DATE_TIME_FORMAT)
+                .equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
+
+
+        givenTimeIs(LocalDateTime.now().plusDays(2));
+        eventService.backupAndRemove();
+
+        findZipFileAndAssertXml(Arrays.asList(event8),
+                FOLDER_NAME + "/" +
+                        eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
+
+        // Event 7 is not deleted
+        assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(2);
+
     }
 
-    private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip) throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
+    private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected) throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
         InputStream zipInputStream = getAppLayerFactory().getModelLayerFactory().getContentManager()
                 .getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
 
@@ -163,7 +185,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         InputStream tmpInputStream1 = ioServices.newFileInputStream(zipFilefolder, SDK_STREAM);
         XMLStreamReader xmlReader = factory.createXMLStreamReader(tmpInputStream1);
 
-        assertEvent(xmlReader, eventList);
+        assertEvent(xmlReader, eventList, numberOfEventToBeExpected);
 
         xmlReader.close();
         tmpInputStream1.close();
@@ -171,7 +193,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         ioServices.deleteQuietly(zipFilefolder);
     }
 
-    private void assertEvent(XMLStreamReader xmlStreamReader, List<Event> event) throws XMLStreamException {
+    private void assertEvent(XMLStreamReader xmlStreamReader, List<Event> event, int numberOfEventToBeExpected) throws XMLStreamException {
         int eventCounter = 0;
         while(xmlStreamReader.hasNext()) {
             int elementType = xmlStreamReader.next();
@@ -183,7 +205,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
                 eventCounter++;
             }
         }
-        assertThat(eventCounter).isEqualTo(3);
+        assertThat(eventCounter).isEqualTo(numberOfEventToBeExpected);
     }
 
     private Event createEvent(LocalDateTime localDateTime) {

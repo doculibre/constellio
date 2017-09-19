@@ -51,7 +51,7 @@ public class EventService implements Runnable {
     public static final String FOLDER = "eventsBackup";
     public static final String IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT = "com.constellio.model.services.event.EventService#backupEventsInVault";
     public static final String IO_STREAM_NAME_CLOSE = "com.constellio.model.services.event.EventService#close";
-    public static final LocalDateTime MIN_LOCAL_DATE_TIME  = new LocalDateTime( 0000, 1, 1, 0, 0, 0 );;
+    public static final LocalDateTime MIN_LOCAL_DATE_TIME  = new LocalDateTime( 0000, 1, 1, 0, 0, 0 );
 
     private IOServices ioServices;
     private ZipService zipService;
@@ -64,7 +64,7 @@ public class EventService implements Runnable {
         metadataSchemasManager = modelayerFactory.getMetadataSchemasManager();
     }
 
-    public LocalDateTime getCurrentCutOff() {
+    public LocalDateTime getDeletetionDateCutOff() {
         Integer periodInMonth = modelayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH);
         LocalDateTime nowLocalDateTime = TimeProvider.getLocalDateTime();
         nowLocalDateTime = nowLocalDateTime.withSecondOfMinute(0).withHourOfDay(0).withMillisOfSecond(0).withMinuteOfHour(0);
@@ -77,18 +77,20 @@ public class EventService implements Runnable {
 
     }
 
-    public LocalDateTime getLastDayTimeDeleted() {
+    public LocalDateTime getLastDayTimeArchived() {
         String dateTimeAsString = modelayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.LAST_BACKUP_DAY);
         LocalDateTime dateTime = null;
 
         if(dateTimeAsString != null) {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(DATE_TIME_FORMAT);
             dateTime = dateTimeFormatter.parseLocalDateTime(dateTimeAsString);
+        } else {
+            dateTime = MIN_LOCAL_DATE_TIME;
         }
 
         return dateTime;
     }
-    public void setLastDayTimeDelete(LocalDateTime lastDayTime) {
+    public void setLastArchivedDayTime(LocalDateTime lastDayTime) {
         modelayerFactory
                 .getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.LAST_BACKUP_DAY,
                 lastDayTime.toString(DATE_TIME_FORMAT));
@@ -107,7 +109,7 @@ public class EventService implements Runnable {
         try {
             if(indentingXMLStreamWriter != null) {
                 if(localDateTime != null) {
-                    setLastDayTimeDelete(localDateTime.withTime(0, 0,0,0).plusDays(1).minusMillis(1));
+                    setLastArchivedDayTime(localDateTime.withTime(0, 0,0,0));
                 }
                 indentingXMLStreamWriter.writeEndElement();
                 indentingXMLStreamWriter.writeEndDocument();
@@ -152,6 +154,10 @@ public class EventService implements Runnable {
         return localDateTime.toString("yyyy-MM-dd");
     }
 
+    public LocalDateTime getArchivedUntilLocalDate() {
+        return TimeProvider.getLocalDateTime().withTime(0,0,0,0);
+    }
+
     private File createNewFile(String fileName) {
         return ioServices.newTemporaryFileWithoutGuid(fileName);
     }
@@ -162,11 +168,11 @@ public class EventService implements Runnable {
     public List<Event> backupEventsInVault() {
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
         List<Event> eventList = new ArrayList<>();
-        LocalDateTime lasDayTimeDelete = getLastDayTimeDeleted();
+        LocalDateTime lastDayTimeArchived = getLastDayTimeArchived();
         File currentFile = null;
-        if(lasDayTimeDelete == null || getCurrentCutOff().compareTo(getLastDayTimeDeleted()) < 0) {
+        if(lastDayTimeArchived == null || lastDayTimeArchived.compareTo(getArchivedUntilLocalDate()) < 0) {
             SearchServices searchServices = modelayerFactory.newSearchServices();
-            LogicalSearchQuery logicalSearchQuery = getEventBeforeTheCutoffLogicalSearchQuery();
+            LogicalSearchQuery logicalSearchQuery = getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery();
 
             SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
 
@@ -242,10 +248,10 @@ public class EventService implements Runnable {
     }
 
     @NotNull
-    public LogicalSearchQuery getEventBeforeTheCutoffLogicalSearchQuery() {
+    public LogicalSearchQuery getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery() {
         LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
         LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_")
-                .andWhere(Schemas.CREATED_ON).isLessThan(getCurrentCutOff());
+                .andWhere(Schemas.CREATED_ON).isGreaterThan(getLastDayTimeArchived()).andWhere(Schemas.CREATED_ON).isLessThan(getArchivedUntilLocalDate());
         logicalSearchQuery.setCondition(logicalSearchCondition);
         logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
         return logicalSearchQuery;
@@ -257,17 +263,14 @@ public class EventService implements Runnable {
 
     public void deleteArchivedEvents() {
         RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
-        LocalDateTime lastDateTimeToDelete = getLastDayTimeDeleted();
-        if(lastDateTimeToDelete == null) {
-            lastDateTimeToDelete = MIN_LOCAL_DATE_TIME;
-        }
+
 
         TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
         String code  = "createdOn_dt";
 
         StringBuilder query = new StringBuilder();
-        String between = code + ":[* TO " + CriteriaUtils.toSolrStringValue(lastDateTimeToDelete, null) + "]";
+        String between = code + ":{* TO " + CriteriaUtils.toSolrStringValue(getDeletetionDateCutOff(), null) + "}";
         String notNull = " AND (*:* -(" + code + ":\"" + CriteriaUtils.getNullDateValue() + "\")) ";
         query.append(between + notNull);
 
