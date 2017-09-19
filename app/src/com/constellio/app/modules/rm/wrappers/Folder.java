@@ -112,6 +112,7 @@ public class Folder extends RMObject {
 	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
 	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
 	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
+	public static final String MANUAL_DISPOSAL_TYPE = "manualDisposalType";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -800,6 +801,14 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public DisposalType getManualDisposalType() {
+		return get(MANUAL_DISPOSAL_TYPE);
+	}
+
+	public Folder setManualDisposalType(DisposalType disposalType) {
+		set(MANUAL_DISPOSAL_TYPE, disposalType);
+		return this;
+	}
 
 }
 
