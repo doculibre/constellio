@@ -21,6 +21,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordValidatorParams;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest extends ConstellioTest {
@@ -35,6 +36,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 	@Mock MetadataSchema schema;
 	@Mock ConfigProvider configProvider;
 	@Mock RecordProvider recordProvider;
+	@Mock SearchServices searchServices;
 
 	SimpleDateFormat sdf = new SimpleDateFormat();
 
@@ -60,7 +62,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(dateBefore);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider);
+				configProvider, recordProvider, searchServices);
 		validator.validate(params);
 
 		Map<String, Object> parameters = new HashMap<>();
@@ -78,7 +80,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(date);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider);
+				configProvider, recordProvider, searchServices);
 		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);
@@ -91,7 +93,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(modificationDate)).thenReturn(dateAfter);
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
-				configProvider, recordProvider);
+				configProvider, recordProvider, searchServices);
 		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);
