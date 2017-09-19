@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
@@ -393,5 +394,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		returnLink.addStyleName(CATEGORY_BUTTON);
 		returnLink.addClickListener(listener);
 		return returnLink;
+	}
+
+	protected Table setTableProperty(Table table, int maxSize) {
+		table.setSizeFull();
+		table.setPageLength(Math.min(15, maxSize));
+		table.setColumnHeader("buttons", "");
+		table.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+		table.setColumnExpandRatio("caption", 1);
+		table.addStyleName(TYPE_TABLE);
+		return table;
 	}
 }

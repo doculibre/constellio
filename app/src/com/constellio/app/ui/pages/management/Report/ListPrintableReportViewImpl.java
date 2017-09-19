@@ -173,16 +173,6 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
         //return new PrintableReportColumnGenerator(presenter, PrintableReportListPossibleType.TASK).withRecordSchema().withRecordType().withButtonContainer().attachTo((BaseTable) tableFolder);
     }
 
-    private Table setTableProperty(Table table, int maxSize) {
-        table.setSizeFull();
-        table.setPageLength(Math.min(15, maxSize));
-        table.setColumnHeader("buttons", "");
-        table.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-        table.setColumnExpandRatio("caption", 1);
-        table.addStyleName(TYPE_TABLE);
-        return table;
-    }
-
     @Override
     protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
         List<Button> actionMenuButtons = new ArrayList<Button>();

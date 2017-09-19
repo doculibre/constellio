@@ -55,20 +55,6 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
 
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DeleteButton() {
-
-                    @Override
-                    protected void confirmButtonClick(ConfirmDialog dialog) {
-                        presenter.deleteButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
-
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
-
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
                 return new DisplayButton() {
                     @Override
                     protected void buttonClick(ClickEvent event) {
@@ -88,14 +74,25 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
                 };
             }
         });
+        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
 
+            @Override
+            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+                return new DeleteButton() {
+
+                    @Override
+                    protected void confirmButtonClick(ConfirmDialog dialog) {
+                        presenter.deleteButtonClicked(presenter.getRecordsWithIndex(itemId));
+                    }
+                };
+            }
+        });
+
+        tableContainer = buttonTableContainer;
         Table table = new RecordVOTable($("ListCapsuleViewImpl.title"), tableContainer);
-        table.setSizeFull();
-        table.setPageLength(Math.min(15, tableContainer.size()));
-        table.setColumnHeader("buttons", "");
-        table.setColumnExpandRatio("caption", 1);
-        table.addStyleName(TYPE_TABLE);
-
+        setTableProperty(table, tableContainer.size());
         return table;
     }
+
+
 }
