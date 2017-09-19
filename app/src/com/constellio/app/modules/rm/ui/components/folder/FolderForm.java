@@ -37,5 +37,7 @@ public interface FolderForm extends Serializable {
 	SessionContext getSessionContext();
 
 	CustomFolderField<?> getCustomField(String metadataCode);
+	
+	void setFieldVisible(String metadataCode, boolean visible);
 
 }

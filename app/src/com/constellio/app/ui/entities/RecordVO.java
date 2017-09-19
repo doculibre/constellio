@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 
 @SuppressWarnings("serial")
@@ -22,16 +23,28 @@ public class RecordVO implements Serializable {
 	private String extension;
 
 	private String niceTitle;
+	
+	private boolean saved;
 
 	final List<MetadataValueVO> metadataValues;
 
 	VIEW_MODE viewMode;
+	
+	private Record record;
 
 	public RecordVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
 		this.id = id;
 		LangUtils.ensureNoNullItems(metadataValues);
 		this.metadataValues = metadataValues;
 		this.viewMode = viewMode;
+	}
+
+	public Record getRecord() {
+		return record;
+	}
+
+	public void setRecord(Record record) {
+		this.record = record;
 	}
 
 	protected boolean getBooleanWithDefaultValue(String param, boolean defaultValue) {
@@ -49,6 +62,14 @@ public class RecordVO implements Serializable {
 
 	public void setTitle(String title) {
 		set(Schemas.TITLE.getLocalCode(), title);
+	}
+
+	public boolean isSaved() {
+		return saved;
+	}
+
+	public void setSaved(boolean saved) {
+		this.saved = saved;
 	}
 
 	public final VIEW_MODE getViewMode() {
