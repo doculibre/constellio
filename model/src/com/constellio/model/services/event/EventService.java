@@ -51,7 +51,7 @@ public class EventService implements Runnable {
     public static final String FOLDER = "eventsBackup";
     public static final String IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT = "com.constellio.model.services.event.EventService#backupEventsInVault";
     public static final String IO_STREAM_NAME_CLOSE = "com.constellio.model.services.event.EventService#close";
-
+    public static final LocalDateTime MIN_LOCAL_DATE_TIME  = new LocalDateTime( 0000, 1, 1, 0, 0, 0 );;
 
     private IOServices ioServices;
     private ZipService zipService;
@@ -258,6 +258,10 @@ public class EventService implements Runnable {
     public void deleteArchivedEvents() {
         RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
         LocalDateTime lastDateTimeToDelete = getLastDayTimeDeleted();
+        if(lastDateTimeToDelete == null) {
+            lastDateTimeToDelete = MIN_LOCAL_DATE_TIME;
+        }
+
         TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
         String code  = "createdOn_dt";
