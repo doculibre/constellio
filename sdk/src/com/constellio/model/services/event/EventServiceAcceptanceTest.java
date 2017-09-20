@@ -185,6 +185,10 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
                 FOLDER_NAME + "/" +
                         eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
+
+        assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
+                .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
+
         // Event 7 is not deleted
         assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(2);
 
