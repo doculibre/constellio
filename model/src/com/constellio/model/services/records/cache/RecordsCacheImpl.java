@@ -67,6 +67,13 @@ public class RecordsCacheImpl implements RecordsCache {
 		this.enabled = enabled;
 	}
 
+	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.enabled = new AtomicBoolean(true);
+	}
+
 	public boolean isCached(String id) {
 		RecordHolder holder = cacheById.get(id);
 		return holder != null && holder.getCopy() != null;

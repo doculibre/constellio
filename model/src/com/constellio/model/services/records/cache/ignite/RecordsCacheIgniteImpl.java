@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.cache.Cache;
 
@@ -79,8 +80,15 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	Map<String, List<Metadata>> cachedMetadatasBySchemaType = new HashMap<>();
 
+	AtomicBoolean enabled;
+
 	public RecordsCacheIgniteImpl(String collection, ModelLayerFactory modelLayerFactory) {
+		this(collection, modelLayerFactory, new AtomicBoolean(true));
+	}
+
+	public RecordsCacheIgniteImpl(String collection, ModelLayerFactory modelLayerFactory, AtomicBoolean enabled) {
 		this.collection = collection;
+		this.enabled = enabled;
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory()
@@ -191,6 +199,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	private List<String> getQueryResults(String schemaTypeCode, LogicalSearchQuerySignature signature) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<String> queryResults;
 
 		String stringSignature = signature.toStringSignature();
@@ -475,6 +488,10 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	@Override
 	public Record getSummary(String id) {
 
+		if (!enabled.get()) {
+			return null;
+		}
+
 		RecordHolder holder = permanentByIdRecordHoldersCache.get(id);
 		if (holder == null) {
 			holder = volatileByIdRecordHoldersCache.get(id);
@@ -561,6 +578,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<Record> cachedResults = null;
 		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, false);
 		if (schemaTypeCodeForStorageInCache != null) {
@@ -585,6 +607,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<String> cachedResultIds = null;
 		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, true);
 		if (schemaTypeCodeForStorageInCache != null) {
@@ -852,6 +879,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record getSummaryByMetadata(Metadata metadata, String value) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		long start = new Date().getTime();
 		String schemaTypeCode = schemaUtils.getSchemaTypeCode(metadata);
 		Record foundRecord = null;
