@@ -27,6 +27,7 @@ public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
         String[] stringList = synonymsAsOneString.split("\\r\\n|\\n|\\r");
         synonyms = Arrays.asList(stringList);
         searchConfigurationsManager.setSynonyms(synonyms);
+        view.navigate().to(CoreViews.class).displaySynonyms();
     }
 
     public String getSynonmsAsOneString() {

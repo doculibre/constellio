@@ -299,7 +299,7 @@ public class CoreNavigationConfiguration implements Serializable {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYNONYMES_MANAGEMENT, SYNONYMES_MANAGEMENT_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to().editSynonyms();
+				navigate.to().displaySynonyms();
 			}
 
 			@Override

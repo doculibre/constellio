@@ -4,6 +4,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +23,6 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
 
     public static final String CANCEL_BUTTON = "base-form_cancel";
 
-    protected HorizontalLayout buttonsLayout;
-    protected Button saveButton;
-    protected Button cancelButton;
 
     public DisplaySynonymsViewImpl() {
         displaySynonymsPresenter = new DisplaySynonymsPresenter(this);
@@ -43,23 +41,21 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
         verticalLayout.setHeight("100%");
         verticalLayout.setSizeFull();
         verticalLayout.addComponent(textArea);
-        verticalLayout.addComponent(buttonsLayout);
 
         return verticalLayout;
     }
 
     @Override
     protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-        List<Button> actionMenuButtons = new ArrayList<Button>();
-        editButton = new EditButton() {
+        List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
+        editButton = new EditButton( $("edit")) {
             @Override
             protected void buttonClick(ClickEvent event) {
                 displaySynonymsPresenter.editButtonClick();
             }
-
         };
 
-        editButton.setCaption($("edit.icon") + $("edit"));
+        editButton.addStyleName(ValoTheme.BUTTON_LINK);
 
         actionMenuButtons.add(editButton);
 
@@ -68,6 +64,6 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
 
     @Override
     protected String getTitle() {
-        return $("EditViewSynonymsViewImpl");
+        return $("DisplaySynonymsViewImpl");
     }
 }
