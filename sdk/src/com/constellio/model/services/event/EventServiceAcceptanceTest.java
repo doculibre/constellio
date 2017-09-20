@@ -5,11 +5,14 @@ import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -95,6 +98,42 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
         assertThat(eventService.getDeletetionDateCutOff()).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_2));
+    }
+
+    @Test
+    public void backupEventInVaultAndCheckOtherSolrThenOk() throws Exception {
+        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 0);
+
+        givenTimeIs(LocalDateTime.now().plusDays(2));
+
+        LocalDateTime event1LocalDateTime = getLocalDateTimeFromString(DATE_1);
+        Event event1 = createEvent(event1LocalDateTime.minusSeconds(6));
+        Event event2 = createEvent(event1LocalDateTime.minusSeconds(5));
+
+        recordServices.add(event1);
+        recordServices.add(event2);
+
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().returnAll());
+        logicalSearchQuery.setNumberOfRows(0);
+        logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
+        SPEQueryResponse allRecord1 = searchServices.query(logicalSearchQuery);
+
+        eventService.backupAndRemove();
+
+
+        SPEQueryResponse allRecord2 = searchServices.query(logicalSearchQuery);
+
+        assertThat(allRecord1.getNumFound()).isEqualTo(allRecord2.getNumFound() -2);
+
+//        int recordCount = 0;
+//        Record record2;
+//        for(Record record1 : allRecord1.getRecords()) {
+//
+//            record2.get("");
+//            if()
+//
+//            record1.get(Schemas.CREATED_ON)
+//        }
     }
 
     @Test

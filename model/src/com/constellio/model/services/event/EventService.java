@@ -269,12 +269,10 @@ public class EventService implements Runnable {
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
         String code  = "createdOn_dt";
 
-        StringBuilder query = new StringBuilder();
         String between = code + ":{* TO " + CriteriaUtils.toSolrStringValue(getDeletetionDateCutOff(), null) + "}";
-        String notNull = " AND (*:* -(" + code + ":\"" + CriteriaUtils.getNullDateValue() + "\")) ";
-        query.append(between + notNull);
 
-        modifiableSolrParams.set("q", "schema_s:event_*, " + query.toString());
+        modifiableSolrParams.set("q", between);
+        modifiableSolrParams.add("fq", "schema_s:event_* ");
 
         transaction = transaction.withDeletedByQueries(modifiableSolrParams);
         try {
