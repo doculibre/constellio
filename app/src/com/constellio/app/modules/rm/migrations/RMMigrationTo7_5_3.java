@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -26,7 +25,7 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 
 	@Override
 	public String getVersion() {
-		return "7.5.2";
+		return "7.5.3";
 	}
 
 	@Override
@@ -36,12 +35,20 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		new SchemaAlterationFor7_5_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationFor7_5_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		
+		setupDisplayConfig(appLayerFactory);
+	}
+	
+	private void setupDisplayConfig(AppLayerFactory appLayerFactory) {
+		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder tx = schemaDisplayManager.newTransactionBuilderFor(collection);
+		tx.add(schemaDisplayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.MANUAL_DISPOSAL_TYPE).withInputType(MetadataInputType.DROPDOWN));
 	}
 
-	class SchemaAlterationFor7_5_2 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor7_5_3 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor7_5_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor7_5_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
 				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -50,16 +57,6 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder defaultFolderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			defaultFolderSchema.createUndeletable(Folder.MANUAL_DISPOSAL_TYPE).defineAsEnum(DisposalType.class).setDefaultRequirement(false).setEnabled(false);
-
-			SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-			SchemaTypesDisplayTransactionBuilder tx = schemaDisplayManager.newTransactionBuilderFor(collection);
-			tx.in(Folder.SCHEMA_TYPE).addToForm(Folder.MANUAL_DISPOSAL_TYPE)
-					.afterMetadata(Folder.CATEGORY_ENTERED);
-
-			for (MetadataSchema schema : appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(Folder.SCHEMA_TYPE).getAllSchemas()) {
-				tx.add(schemaDisplayManager.getMetadata(collection, schema.getCode(), Folder.MANUAL_DISPOSAL_TYPE).withInputType(MetadataInputType.DROPDOWN));
-			}
 		}
 
 	}
