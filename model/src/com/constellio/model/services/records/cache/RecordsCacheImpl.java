@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +58,20 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	Set<String> doNotLog = new HashSet<>();
 
+	AtomicBoolean enabled = new AtomicBoolean();
+
+	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory, AtomicBoolean enabled) {
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.enabled = enabled;
+	}
+
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
+		this.enabled = new AtomicBoolean(true);
 	}
 
 	public boolean isCached(String id) {
@@ -79,6 +90,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	private Record getByIdNoMatterIfSummary(String id) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -220,6 +236,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<Record> cachedResults = null;
 		PermanentCache cache = getCacheFor(query, false);
 		if (cache != null) {
@@ -241,6 +262,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<String> cachedResults = null;
 		PermanentCache cache = getCacheFor(query, true);
 		if (cache != null) {
@@ -458,6 +484,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	private Record getByMetadataNoMatterIfSummary(Metadata metadata, String value) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		String schemaTypeCode = schemaUtils.getSchemaTypeCode(metadata);
 		RecordByMetadataCache recordByMetadataCache = this.recordByMetadataCache.get(schemaTypeCode);
 

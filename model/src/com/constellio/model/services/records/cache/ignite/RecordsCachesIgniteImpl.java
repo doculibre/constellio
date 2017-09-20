@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -16,6 +17,8 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 	ModelLayerFactory modelLayerFactory;
 
 	Map<String, RecordsCache> collectionsCache = new HashMap<>();
+
+	AtomicBoolean enabled = new AtomicBoolean(true);
 
 	public RecordsCachesIgniteImpl(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -46,7 +49,7 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 	}
 
 	protected RecordsCache newRecordsCache(String collection, ModelLayerFactory modelLayerFactory) {
-		return new RecordsCacheIgniteImpl(collection, modelLayerFactory);
+		return new RecordsCacheIgniteImpl(collection, modelLayerFactory, enabled);
 	}
 
 	public boolean isCached(String id) {
@@ -74,6 +77,11 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 	}
 
 	public Record getRecord(String id) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		long start = new Date().getTime();
 		for (RecordsCache cache : collectionsCache.values()) {
 
@@ -117,5 +125,10 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 		}
 
 		return cacheTotalSize;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled.set(enabled);
 	}
 }
