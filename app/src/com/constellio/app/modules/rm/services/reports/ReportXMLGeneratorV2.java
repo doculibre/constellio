@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.services.reports;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -11,12 +13,14 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.google.gwt.thirdparty.guava.common.base.Strings;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -24,6 +28,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.jsoup.Jsoup;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -40,7 +45,8 @@ import static java.util.Arrays.asList;
 public class ReportXMLGeneratorV2 extends  XmlGenerator {
 
     public static final String REFERENCE_PREFIX = "ref_";
-    private static final Map<String, String> SCHEMA_CODE_MAP= new HashMap<String, String>() {{
+    public static final String PARENT_SUFFIX = "_parent";
+    private static final Map<String, String> SCHEMA_CODE_MAP = new HashMap<String, String>() {{
         put(ContainerRecord.SCHEMA_TYPE, "containers");
         put(Folder.SCHEMA_TYPE, "folders");
     }};
@@ -232,6 +238,17 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(recordReferenced.<String>get(Schemas.CODE)),
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE))
             ));
+            if(AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
+                Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+                String parentMetadataId = recordReferenced.get(parentMetadata);
+                if(parentMetadataId != null) {
+                    Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+                    listOfMetadataTags.addAll(asList(
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+                    ));
+                }
+            }
         }
         return listOfMetadataTags;
     }
@@ -265,6 +282,8 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             } catch (ParseException e) {
                 return data;
             }
+        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
+            finalData = Jsoup.parse(data).text();
         }
         return replaceBracketsInValueToString.replaceOn(finalData);
     }

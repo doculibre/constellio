@@ -3,6 +3,21 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.TemporaryRecordDestructionDateCalculator;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.TemporaryRecordValidator;
+
+import static java.util.Arrays.asList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
@@ -30,8 +45,12 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DEFAULT_PAGE_LENGTH).setType(MetadataValueType.ENUM)
-					.defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
+			migrateTemporaryRecord(typesBuilder);
+		}
+
+		private void migrateTemporaryRecord(MetadataSchemaTypesBuilder typesBuilder) {
+            typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DEFAULT_PAGE_LENGTH).setType(MetadataValueType.ENUM)
+                    .defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
 		}
 	}
 }

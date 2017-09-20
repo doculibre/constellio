@@ -38,29 +38,42 @@ public class ReportTabButton extends WindowButton {
     private ComboBox reportComboBox, customElementSelected;
     private PrintableReportListPossibleType selectedReporType;
     private String selectedSchemaType;
-    private boolean noExcelButton = false;
+    private boolean noExcelButton = false, noPDFButton = false;
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
+        this.view = view;
+    }
+
+    public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton);
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false);
+        this.view = view;
     }
+
     public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
-        super(caption, windowCaption);
+        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
+    }
+
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
+
+        super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
+        this.noPDFButton = noPDFButton;
         recordVOList = new ArrayList<>();
     }
 
     public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
-        if(recordVOS.length > 0) {
+        if (recordVOS.length > 0) {
             recordVOList.addAll(asList(recordVOS));
         }
         return this;
@@ -76,21 +89,23 @@ public class ReportTabButton extends WindowButton {
         mainLayout = new VerticalLayout();
 
         tabSheet = new TabSheet();
-        if(!this.noExcelButton) {
+        if (!this.noExcelButton) {
             tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
-        tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+        if (!this.noPDFButton) {
+            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+        }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
 
     private Component createExcelTab() {
         VerticalLayout verticalLayout = new VerticalLayout();
-        try{
+        try {
             AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
             presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
             verticalLayout.addComponent(new ReportSelector(presenter));
-        }catch (UnsupportedReportException unsupportedReport ){
+        } catch (UnsupportedReportException unsupportedReport) {
             view.showErrorMessage($("ReportTabButton.noExcelReport"));
         }
         return verticalLayout;
@@ -126,9 +141,9 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createDefaultSelectComboBox() {
-        if (occurence.getNumberOfDefaultSchemaOccurence() <= 1) {
-            Iterator<PrintableReportListPossibleType> setIterator =  occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
-            if(setIterator.hasNext()) {
+        if (occurence.getNumberOfDefaultSchemaOccurence() == 1) {
+            Iterator<PrintableReportListPossibleType> setIterator = occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
+            if (setIterator.hasNext()) {
                 selectedReporType = setIterator.next();
             }
             return new HorizontalLayout();
@@ -138,7 +153,7 @@ public class ReportTabButton extends WindowButton {
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
-            if(defaultElementSelected.getValue() == null) {
+            if (defaultElementSelected.getValue() == null) {
                 defaultElementSelected.setValue(printableReportListPossibleType);
             }
         }
@@ -146,7 +161,7 @@ public class ReportTabButton extends WindowButton {
         defaultElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidReportType"));
                 }
             }
@@ -155,13 +170,13 @@ public class ReportTabButton extends WindowButton {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                if(fillSchemaCombobox(customElementSelected) == null) {
+                if (fillSchemaCombobox(customElementSelected) == null) {
                     customElementSelected.setVisible(false);
                     customElementSelected.setEnabled(false);
-                    Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-                    do{
+                    Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+                    do {
                         selectedSchemaType = setIterator.next().getCode();
-                    }while(setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
+                    } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
 
                 } else {
                     customElementSelected.setVisible(true);
@@ -170,7 +185,7 @@ public class ReportTabButton extends WindowButton {
                     reportComboBox.setValue(null);
 
                 }
-                if(selectedSchemaType != null && selectedReporType != null) {
+                if (selectedSchemaType != null && selectedReporType != null) {
                     reportComboBox = fillTemplateComboBox(reportComboBox);
                 }
             }
@@ -181,8 +196,8 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createCustomSelectComboBox() {
-        if (occurence.getNumberOfCustomSchemaOccurence() <= 1) {
-            Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+        if (occurence.getNumberOfCustomSchemaOccurence() == 1) {
+            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
             selectedSchemaType = setIterator.next().getCode();
             return new HorizontalLayout();
         }
@@ -193,7 +208,7 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidRecordSchema"));
                 }
             }
@@ -201,9 +216,9 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                if(event.getProperty() != null && event.getProperty().getValue() != null) {
+                if (event.getProperty() != null && event.getProperty().getValue() != null) {
                     selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-                    if(selectedSchemaType != null && selectedReporType != null) {
+                    if (selectedSchemaType != null && selectedReporType != null) {
                         reportComboBox = fillTemplateComboBox(reportComboBox);
                     }
                 }
@@ -216,7 +231,7 @@ public class ReportTabButton extends WindowButton {
 
     private Component createReportSelectorComboBox() {
         reportComboBox = new ComboBox();
-        if(selectedSchemaType != null && selectedReporType != null) {
+        if (selectedSchemaType != null && selectedReporType != null) {
             reportComboBox = fillTemplateComboBox(reportComboBox);
         }
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
@@ -225,7 +240,7 @@ public class ReportTabButton extends WindowButton {
         reportComboBox.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
                 }
             }
@@ -248,7 +263,7 @@ public class ReportTabButton extends WindowButton {
         button.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
-                if(selectedSchemaType.contains("_")) {
+                if (selectedSchemaType.contains("_")) {
                     selectedSchemaType = selectedSchemaType.split("_")[0];
 //                    MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 //                    metadataSchemasManager.getSchemaTypes(collection).getSchema(selectedSchemaType);
@@ -261,7 +276,7 @@ public class ReportTabButton extends WindowButton {
 
     private List<String> getIdsFromRecordVO() {
         List<String> ids = new ArrayList<>();
-        for(RecordVO recordVO : recordVOList) {
+        for (RecordVO recordVO : recordVOList) {
             ids.add(recordVO.getId());
         }
         return ids;
@@ -270,10 +285,10 @@ public class ReportTabButton extends WindowButton {
     private ComboBox fillTemplateComboBox(ComboBox comboBox) {
         comboBox.removeAllItems();
         List<PrintableReportTemplate> printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
-        if(printableReportTemplateList.isEmpty()) {
+        if (printableReportTemplateList.isEmpty()) {
             showNoDefinedReportTemplateForConditionError();
         } else {
-            if(printableReportTemplateList.size() == 1) {
+            if (printableReportTemplateList.size() == 1) {
                 PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
                 comboBox.addItem(onlyTemplate);
                 comboBox.setItemCaption(onlyTemplate, onlyTemplate.getTitle());
@@ -283,7 +298,7 @@ public class ReportTabButton extends WindowButton {
                 for (PrintableReportTemplate printableReport : printableReportTemplateList) {
                     comboBox.addItem(printableReport);
                     comboBox.setItemCaption(printableReport, printableReport.getTitle());
-                    if(comboBox.getValue() == null) {
+                    if (comboBox.getValue() == null) {
                         comboBox.setValue(printableReport);
                     }
                 }
@@ -297,17 +312,17 @@ public class ReportTabButton extends WindowButton {
         int compteur = 0;
         for (MetadataSchemaVO metadataSchemaVO : occurence.getAllCustomMetadataSchemaOccurence().keySet()) {
             //check if the schema of the record isn't the default one, if yes
-            if(selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
+            if (selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
-                if(compteur == 0) {
+                if (compteur == 0) {
                     comboBox.setValue(metadataSchemaVO);
                 }
                 compteur++;
             }
         }
-        if(compteur == 1) {
-           return null;
+        if (compteur == 1) {
+            return null;
         }
         return comboBox;
     }
@@ -315,13 +330,13 @@ public class ReportTabButton extends WindowButton {
     private void showNoDefinedReportTemplateForConditionError() {
         String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
         //TODO remove tab
-        if(view == null) {
+        if (view == null) {
             Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
             notification.setHtmlContentAllowed(true);
             notification.show(Page.getCurrent());
         }
         tabSheet.setSelectedTab(0);
-        if(view != null ) {
+        if (view != null) {
             view.showErrorMessage(errorMessage);
         }
 
@@ -330,6 +345,7 @@ public class ReportTabButton extends WindowButton {
     private class MetadataSchemaCounter {
         Map<PrintableReportListPossibleType, Integer> defaultMetadataOccurence;
         Map<MetadataSchemaVO, Integer> customMetadataOccurence;
+
         public MetadataSchemaCounter() {
             defaultMetadataOccurence = new HashMap<>();
             customMetadataOccurence = new HashMap<>();

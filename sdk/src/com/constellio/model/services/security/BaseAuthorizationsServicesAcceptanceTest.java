@@ -34,6 +34,7 @@ import org.junit.Before;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -196,8 +197,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		List<BatchProcess> finishedBatchProcesses = getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses();
 		for (BatchProcess batchProcess : finishedBatchProcesses) {
 			allBatchProcesses.add(batchProcess.getId());
-			if (!initialFinishedBatchProcesses.contains(batchProcess.getId())) {
-				batchProcessesUsingTests.add(batchProcess.getQuery());
+			if (!initialFinishedBatchProcesses.contains(batchProcess.getId()) && batchProcess instanceof RecordBatchProcess) {
+				batchProcessesUsingTests.add(((RecordBatchProcess) batchProcess).getQuery());
 			}
 		}
 

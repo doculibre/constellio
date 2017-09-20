@@ -380,7 +380,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						removeValue((T) itemId);
-						((Field<T>) addEditField).setValue((T) itemId);
+						((Field<T>) addEditField).setValue(getConvertedValueFor(itemId));
 						addEditField.focus();
 					}
 				};
@@ -550,6 +550,10 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			}
 		}
 
+	}
+
+	protected T getConvertedValueFor(Object value) {
+		return (T) value;
 	}
 
 }

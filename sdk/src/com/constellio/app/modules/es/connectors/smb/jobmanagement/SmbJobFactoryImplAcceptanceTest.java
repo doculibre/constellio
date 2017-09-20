@@ -33,8 +33,7 @@ import java.util.concurrent.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -123,34 +122,6 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenNonModifiedDocumentWithoutParentWhenCreatingRetrievalJobThenGetRetrievalJob()
-			throws RecordServicesException {
-
-		String url = SmbTestParams.EXISTING_SHARE + "nonModifiedFile.txt";
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		SmbModificationIndicator modInfo = new SmbModificationIndicator("someHash", 10D, System.currentTimeMillis());
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(url);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-
-		when(smbService.getModificationIndicator(anyString())).thenReturn(modInfo);
-
-		es.getRecordServices()
-				.update(document.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
-		assertThat(job).isInstanceOf(SmbNewRetrievalJob.class);
-	}
-
-	@Test
 	public void givenAnAcceptedFolderUrlWhenCreatingRetrievalJobThenGetRetrievalJob() {
 		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FOLDER, "");
@@ -189,34 +160,6 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 		when(smbService.getModificationIndicator(anyString())).thenReturn(mock(SmbModificationIndicator.class));
 		ConnectorJob job2 = jobFactory.get(SmbJobCategory.RETRIEVAL, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, "");
 		assertThat(job2).isInstanceOf(SmbNewRetrievalJob.class);
-	}
-
-	@Test
-	public void givenDuplicatesFoldersThenGetDeleteJob()
-			throws RecordServicesException {
-		String url = SmbTestParams.EXISTING_SHARE + "test/";
-		long lastModified = System.currentTimeMillis();
-
-		when(connector.getDuplicateUrls()).thenReturn(Collections.singleton(url));
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance);
-		folder.setUrl(url);
-		folder.setLastModified(new LocalDateTime(lastModified));
-
-		ConnectorSmbFolder folder2 = es.newConnectorSmbFolder(connectorInstance);
-		folder2.setUrl(url);
-		folder2.setLastModified(new LocalDateTime(lastModified));
-
-		es.getRecordServices()
-				.update(folder.getWrappedRecord());
-		es.getRecordServices()
-				.update(folder2.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
-
-		assertThat(job).isInstanceOf(SmbDeleteJob.class);
 	}
 
 	@After

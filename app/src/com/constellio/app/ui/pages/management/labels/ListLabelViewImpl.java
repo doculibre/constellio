@@ -8,10 +8,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.model.entities.modules.Module;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -53,6 +57,31 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     public static final String TYPE_TABLE = "types";
 
     @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
+    }
+
+    @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         mainLayout = new VerticalLayout();
         presenter = new AddEditLabelPresenter(this);
@@ -73,44 +102,8 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
         final SchemaTypeVODataProvider dataProvider = presenter.getDataProvider();
        Container folderContainer = new RecordVOLazyContainer(presenter.getLabelFolderDataProvider());
         Container conteneurContainer = new RecordVOLazyContainer(presenter.getLabelContainerDataProvider());
-        ButtonsContainer buttonsContainerForFolder = new ButtonsContainer(folderContainer, "buttons");
-        buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new EditButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), Folder.SCHEMA_TYPE);
-                    }
-
-                    @Override
-                    public boolean isVisible() {
-                        RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
-                    }
-                };
-            }
-        });
-
         ButtonsContainer buttonsContainerForContainer = new ButtonsContainer(conteneurContainer, "buttons");
-        buttonsContainerForContainer.addButton(new ButtonsContainer.ContainerButton() {
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new EditButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), ContainerRecord.SCHEMA_TYPE);
-                    }
-
-                    @Override
-                    public boolean isVisible() {
-                        RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
-                    }
-                };
-            }
-        });
-
+        ButtonsContainer buttonsContainerForFolder = new ButtonsContainer(folderContainer, "buttons");
         buttonsContainerForContainer.addButton(new ButtonsContainer.ContainerButton() {
 
             @Override
@@ -132,6 +125,41 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), Folder.SCHEMA_TYPE);
+                    }
+                };
+            }
+        });
+        buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
+            @Override
+            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+                return new EditButton() {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), Folder.SCHEMA_TYPE);
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
+                    }
+                };
+            }
+        });
+
+        buttonsContainerForContainer.addButton(new ButtonsContainer.ContainerButton() {
+            @Override
+            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+                return new EditButton() {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), ContainerRecord.SCHEMA_TYPE);
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
+                        return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
                     }
                 };
             }

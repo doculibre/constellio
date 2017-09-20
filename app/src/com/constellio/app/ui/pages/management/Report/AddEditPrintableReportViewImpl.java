@@ -1,20 +1,28 @@
 package com.constellio.app.ui.pages.management.Report;
 
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.labels.CustomLabelField;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
@@ -26,6 +34,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -35,6 +45,31 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
     private RecordVO recordVO;
     private PrintableReportFormImpl recordForm;
     private boolean isEdit;
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
+    }
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
@@ -137,6 +172,17 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
                     break;
                 default:
                     field = new MetadataFieldFactory().build(metadataVO);
+                    if(metadataVO.codeMatches(Printable.JASPERFILE)) {
+                        field.addValidator(new Validator() {
+                            @Override
+                            public void validate(Object value) throws InvalidValueException {
+                                ContentVersionVO contentValue = (ContentVersionVO) value;
+                                if(contentValue != null && !contentValue.getFileName().endsWith(".jasper")) {
+                                    throw new InvalidValueException($("PrintableReport.invalidFileType"));
+                                }
+                            }
+                        });
+                    }
                     break;
             }
             return field;

@@ -1,0 +1,24 @@
+Note : Pour des raisons liées au statut d’une commission d’enquête, la date officielle de fermeture de l’ensemble des dossiers correspond à la date de création du paquet d’information.
+Identification de l'organisme verseur ou du donateur : Commission d'enquête sur l'octroi et la gestion des contrats publics dans l'industrie de la construction
+ID de l'organisme verseur ou du donateur : 060530
+Adresse : 875, Grande-Allée Est, Bureau H3.803b, Québec (Québec) G1R 4Y6
+Région administrative : Montréal (06)
+Entité responsable : Ministère du Conseil exécutif
+Identification du responsable : Catherine Thibault
+Adresse courriel du responsable : catherine.thibault@mce.gouv.qc.ca
+Numéro de téléphone du responsable : 418 644-7600 poste 5913
+Description sommaire :
+Catégorie de document :
+Méthode de transfert : Disques durs externes
+Restrictions d'accessibilité :
+Tag-File-Character-Encoding: UTF-8
+
+Nombre de fichiers numériques : 3
+Portrait général des formats numériques : .eml = 1, .docx = 1, .txt = 1
+Taille des fichiers numériques non compressés : 328 KB (335968 octets)
+
+Logiciel : Constellio
+Site web de l’éditeur : http://www.constellio.com
+Version du logiciel : 5.1.1
+Date de création du paquet : 2015-11-19
+

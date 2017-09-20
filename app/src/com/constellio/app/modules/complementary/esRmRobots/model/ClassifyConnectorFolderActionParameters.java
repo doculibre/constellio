@@ -33,4 +33,8 @@ public interface ClassifyConnectorFolderActionParameters {
 	CopyType getDefaultCopyStatus();
 
 	String getPathPrefix();
+
+	String getFolderTypeId();
+
+	String getDocumentTypeId();
 }

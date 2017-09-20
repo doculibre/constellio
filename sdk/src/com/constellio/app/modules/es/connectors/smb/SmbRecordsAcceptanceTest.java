@@ -7,6 +7,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -108,16 +110,16 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
-				.setTitle("A").setUrl("smb://A/");
+				.setTitle("A").setUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
-				.setTitle("B").setUrl("smb://B/");
+				.setTitle("B").setUrl("smb://B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParentUrl("smb://A/"))
-				.setTitle("AA").setUrl("smb://A/A/");
+				.setTitle("AA").setUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParentUrl("smb://A/"))
-				.setTitle("AB").setUrl("smb://A/B/");
+				.setTitle("AB").setUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
 				.setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
@@ -206,7 +208,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 
 		assertThatVisibleRootRecordsFor(userWithCollectionReadAccess).containsOnly(folderA, folderB);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderA)
-				.containsOnly(folderAA, documentA1, documentA2);
+				.containsOnly(folderAA, documentA1, documentA2, folderAB);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderB).containsOnly(documentB3);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAA).containsOnly(documentAA4, documentAA5);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAB).isEmpty();
@@ -238,13 +240,13 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatVisibleRootRecordsFor(userWithToken1).containsOnly(folderA, folderB);
-		assertThatVisibleChildRecordsFor(userWithToken1).in(folderA).containsOnly(folderAA, documentA1, documentA2);
+		assertThatVisibleChildRecordsFor(userWithToken1).in(folderA).containsOnly(folderAA, documentA1, documentA2, folderAB);
 		assertThatVisibleChildRecordsFor(userWithToken1).in(folderB).containsOnly(documentB3);
 		assertThatVisibleChildRecordsFor(userWithToken1).in(folderAA).containsOnly(documentAA4);
 		assertThatVisibleChildRecordsFor(userWithToken1).in(folderAB).isEmpty();
 
 		assertThatVisibleRootRecordsFor(userWithToken1And2).containsOnly(folderA, folderB);
-		assertThatVisibleChildRecordsFor(userWithToken1And2).in(folderA).containsOnly(folderAA, documentA1, documentA2);
+		assertThatVisibleChildRecordsFor(userWithToken1And2).in(folderA).containsOnly(folderAA, documentA1, documentA2, folderAB);
 		assertThatVisibleChildRecordsFor(userWithToken1And2).in(folderB).contains(documentB3);
 		assertThatVisibleChildRecordsFor(userWithToken1And2).in(folderAA).containsOnly(documentAA4, documentAA5);
 		assertThatVisibleChildRecordsFor(userWithToken1And2).in(folderAB).isEmpty();
@@ -255,8 +257,12 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	private ListAssert<Object> assertThatVisibleRootRecordsFor(User user) {
-		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
-		return assertThat(taxonomiesSearchServices.getVisibleRootConcept(user, zeCollection, SMB_FOLDERS, defaultOptions))
+		List<Record> records = getModelLayerFactory().newSearchServices().search(
+				new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
+						.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
+						.where(es.connectorSmbFolder.parentConnectorUrl()).isNull())
+						.filteredWithUser(user));
+		return assertThat(records)
 				.extracting("id");
 	}
 
@@ -268,9 +274,13 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		}
 
 		private ListAssert<Object> in(String recordId) {
-			Record record = getModelLayerFactory().newRecordServices().getDocumentById(recordId);
-			TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
-			return assertThat(taxonomiesSearchServices.getVisibleChildConcept(user, SMB_FOLDERS, record, defaultOptions))
+			ConnectorSmbFolder connectorSmbFolder = es.getConnectorSmbFolder(recordId);
+			List<Record> records = getModelLayerFactory().newSearchServices().search(
+					new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
+							.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
+							.where(es.connectorSmbFolder.parentConnectorUrl()).isEqualTo(connectorSmbFolder.getConnectorUrl()))
+							.filteredWithUser(user));
+			return assertThat(records)
 					.extracting("id");
 		}
 	}

@@ -12,6 +12,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -117,6 +121,16 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 	}
 
+	public Metadata getMetadataInheritance(String metadataCode)  {
+		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		try {
+			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
+			return metadata.getInheritance();
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			return null;
+		}
+	}
+
 	public List<String> getMetadataTypesCode() {
 		List<String> typeCodes = new ArrayList<>();
 		final Map<String, String> typeCodesAndLabels = new HashMap<>();
@@ -173,6 +187,23 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				});
 	}
 
+	public boolean isShowUniqueComboBox() {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode)).returnAll();
+		Metadata metadata = types.getMetadata(metadataCode);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setNumberOfRows(0);
+		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
+
+		List<FacetValue> response = modelLayerFactory.newSearchServices().query(logicalSearchQuery).getFieldFacetValues(metadata.getDataStoreCode());
+		for(FacetValue facetValue : response) {
+			if(facetValue.getQuantity() > 1 ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public void preSaveButtonClicked(final FormMetadataVO formMetadataVO, final boolean editMode) {
 
 		final String schemaCode = getSchemaCode();
@@ -190,6 +221,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
 			builder.setSearchable(formMetadataVO.isSearchable());
 			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
+			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 			if (formMetadataVO.getValueType().equals(MetadataValueType.REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
@@ -266,7 +298,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (defaultSchemaBuilder.hasMetadata(localCode)) {
 				defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
 				defaultSchemaBuilder.get(localCode).setSearchable(formMetadataVO.isSearchable());
+				defaultSchemaBuilder.get(localCode).setUniqueValue(formMetadataVO.isUniqueValue());
 			}
+		} else {
+			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 		}
 
 		try {

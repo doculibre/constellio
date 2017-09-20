@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -134,7 +135,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/"+PARENT_URL);
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -220,7 +222,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -295,7 +298,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -353,7 +357,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -390,7 +395,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isZero();
 		assertThat(folder.getErrorStackTrace()).isNull();
 
-		assertThat(folder.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -435,7 +441,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isZero();
 		assertThat(folder.getErrorStackTrace()).isNull();
 
-		assertThat(folder.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -472,7 +479,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
-		assertThat(folder.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -517,7 +525,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
-		assertThat(folder.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(folder);
+		assertThat(folder.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -543,6 +552,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 
 		document = es.newConnectorSmbDocument(connectorInstance)
 				.setUrl(FILE_URL)
+				.setParentUrl(PARENT_URL)
 				.setLastModified(LAST_MODIFIED2)
 				.setLastFetched(LAST_FETCHED)
 				.setSize(SmbTestParams.EXISTING_FILE_LENGTH)
@@ -590,7 +600,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
-		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
+		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());
 		assertThat(document.getTraversalCode()).isEqualTo(connectorInstance.getTraversalCode());
 		assertThat(document.isFetched()).isFalse();
@@ -601,7 +611,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isZero();
 		assertThat(document.getErrorStackTrace()).isNull();
 
-		assertThat(document.getParentConnectorUrl()).isEqualTo(connectorInstance.getId()+"/?/");
+		getModelLayerFactory().newRecordServices().recalculate(document);
+		assertThat(document.getParentConnectorUrl()).isEqualTo(buildConnectorUrl(connectorInstance.getId(), PARENT_URL));
 	}
 
 	@Test
@@ -612,5 +623,9 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, null, false);
 
 		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
+	}
+
+	private String buildConnectorUrl(String connectorId, String url) {
+		return DocumentSmbConnectorUrlCalculator.calculate(url, connectorId);
 	}
 }

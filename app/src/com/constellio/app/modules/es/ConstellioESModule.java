@@ -37,8 +37,10 @@ import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.scripts.RestoreConnectorTypes;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
@@ -75,7 +77,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo7_1_3(),
 				new ESMigrationTo7_4_1(),
 				new ESMigrationTo7_4_2(),
-				new ESMigrationTo7_4_3()
+				new ESMigrationTo7_4_3(),
+				new ESMigrationTo7_5()
 		);
 	}
 
@@ -165,10 +168,20 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
+		recordsCache.configureCache(permanentCacheNotLoadedInitially(ConnectorSmbFolder.SCHEMA_TYPE, es.connectorSmbFolder.schemaType().getAllMetadatas()));
+		recordsCache.configureCache(permanentEssentialMetadatasCacheNotLoadedInitially(es.connectorSmbDocument.schemaType()));
 		recordsCache.configureCache(permanentCache(es.connectorType.schemaType()));
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
+		}
+
+		if (!recordsCache.isConfigured(Facet.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.facet.schemaType()));
+		}
+
+		if (!recordsCache.isConfigured(Printable.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.printable.schemaType()));
 		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));

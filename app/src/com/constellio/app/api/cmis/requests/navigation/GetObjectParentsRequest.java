@@ -3,7 +3,6 @@ package com.constellio.app.api.cmis.requests.navigation;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,6 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectParentData>> {
 
@@ -109,9 +107,21 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 				List<Metadata> taxonomyReferencesMetadatas = schema.getTaxonomyRelationshipReferences(asList(taxonomy));
 				for (Metadata referenceMetadata : taxonomyReferencesMetadatas) {
 					if (record.get(referenceMetadata) != null) {
-						String parentId = record.get(referenceMetadata);
-						Record parentRecord = recordServices.getDocumentById(parentId);
-						parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
+
+						if (referenceMetadata.isMultivalue()) {
+							List<String> parentIds = record.getList(referenceMetadata);
+							for (String parentId : parentIds) {
+								if (parentId != null) {
+									Record parentRecord = recordServices.getDocumentById(parentId);
+									parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
+								}
+							}
+
+						} else {
+							String parentId = record.get(referenceMetadata);
+							Record parentRecord = recordServices.getDocumentById(parentId);
+							parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
+						}
 					}
 				}
 			}

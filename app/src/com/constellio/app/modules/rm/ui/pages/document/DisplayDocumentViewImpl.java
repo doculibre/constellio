@@ -4,8 +4,11 @@ import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
@@ -20,6 +23,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -50,10 +54,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -213,8 +214,51 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 //	}
 
 	@Override
-	public void setTasks(RecordVODataProvider dataProvider) {
-		Table tasksTable = new RecordVOTable(dataProvider);
+	public void setTasks(final RecordVODataProvider dataProvider) {
+		Table tasksTable = new RecordVOTable(dataProvider) {
+			@Override
+			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+						@Override
+						public void updateTaskStarred(boolean isStarred, String taskId) {
+							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
+						}
+					};
+				} else {
+					return super.buildMetadataComponent(metadataValue, recordVO);
+				}
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new RecordVOTableColumnsManager() {
+					@Override
+					protected String toColumnId(Object propertyId) {
+						if(propertyId instanceof MetadataVO) {
+							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+								setColumnHeader(propertyId, "");
+								setColumnWidth(propertyId, 60);
+							}
+						}
+						return super.toColumnId(propertyId);
+					}
+				};
+			}
+
+			@Override
+			public Collection<?> getSortableContainerPropertyIds() {
+				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+				while (iterator.hasNext()) {
+					Object property = iterator.next();
+					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+						iterator.remove();
+					}
+				}
+				return sortableContainerPropertyIds;
+			}
+		};
 		tasksTable.setSizeFull();
 		tasksTable.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -563,6 +607,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					public void close() {
 						super.close();
 						presenter.updateWindowClosed();
+						presenter.updateContentVersions();
+						versionTable.refreshRowCache();
 					}
 				};
 			}
@@ -621,6 +667,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButton.setVisible(state.isVisible());
 		checkOutButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setGenerateMetadataButtonState(ComponentState state) {
+		reportGeneratorButton.setVisible(state.isVisible());
+		reportGeneratorButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -704,7 +756,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
 	}
-	
+
 	public void addTabSheetDecorator(TabSheetDecorator decorator) {
 		this.tabSheetDecorators.add(decorator);
 	}
@@ -729,7 +781,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
 		}
 
 		@Override

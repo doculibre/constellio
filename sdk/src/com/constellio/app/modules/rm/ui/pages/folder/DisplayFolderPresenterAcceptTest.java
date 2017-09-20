@@ -4,17 +4,14 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.users.UserServices;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -58,20 +55,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
@@ -433,13 +416,14 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getTitle());
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).hasSize(4);
-		assertThat(emailToSend.getParameters().get(0)).isEqualTo("previewReturnDate:" + folderC30.getBorrowPreviewReturnDate());
-		assertThat(emailToSend.getParameters().get(1))
-				.isEqualTo("borrower:" + chuckNorris);
-		assertThat(emailToSend.getParameters().get(2)).isEqualTo("borrowedFolderTitle:" + folderC30.getTitle());
-		assertThat(emailToSend.getParameters().get(3))
-				.isEqualTo("title:" + $("DisplayFolderView.returnFolderReminder") + " \"" + folderC30.getTitle() + "\"");
+		assertThat(emailToSend.getParameters()).containsOnly(
+				"previewReturnDate:" + folderC30.getBorrowPreviewReturnDate(),
+				"borrower:chuck",
+				"borrowedFolderTitle:Haricot",
+				"title:Rappel pour retourner le dossier \"Haricot\"",
+				"constellioURL:http://localhost:8080/constellio/",
+				"recordURL:http://localhost:8080/constellio/#!displayFolder/C30"
+		);
 		assertThat(emailToSend.getFrom()).isEqualTo(null);
 		verify(displayFolderView).showMessage($("DisplayFolderView.reminderEmailSent"));
 	}
@@ -701,14 +685,18 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		presenter.forParams(rmRecords.folder_A48);
-		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48())).isEqualTo(ComponentState.INVISIBLE);
+		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48()))
+				.isEqualTo(ComponentState.INVISIBLE);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList10().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
-		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList17().getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList10().getWrappedRecord(), User.GOD,
+				new RecordPhysicalDeleteOptions());
+		recordServices.physicallyDeleteNoMatterTheStatus(rmRecords.getList17().getWrappedRecord(), User.GOD,
+				new RecordPhysicalDeleteOptions());
 
 		presenter.forParams(rmRecords.folder_A48);
-		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48())).isEqualTo(ComponentState.ENABLED);
+		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48()))
+				.isEqualTo(ComponentState.ENABLED);
 	}
 
 	//

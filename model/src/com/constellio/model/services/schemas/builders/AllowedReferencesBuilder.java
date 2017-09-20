@@ -70,6 +70,12 @@ public class AllowedReferencesBuilder {
 		return this;
 	}
 
+	public AllowedReferencesBuilder removeOldReferences() {
+		schemaType = null;
+		schemas.clear();
+		return this;
+	}
+
 	private boolean isOfSameType(String code) {
 		boolean isOfSameType = true;
 		for (String schemaCode : schemas) {

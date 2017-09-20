@@ -1,18 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
-import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -173,6 +173,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildFoldersCertificateButton());
 		buttons.add(buildAddFoldersButton());
 		buttons.add(buildRemoveFoldersButton());
+		buttons.add(buildCreateSIPARchivesButton());
 		return buttons;
 	}
 
@@ -402,17 +403,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildApprovalRequestButton() {
-		approvalRequest = new ConfirmDialogButton(null, $("DecommissioningListView.approvalRequest"), false) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("DecommissioningListView.confirmApprovalRequest");
-			}
-
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.approvalRequestButtonClicked();
-			}
-		};
+		approvalRequest = new DecomApprobationRequestWindowButton(presenter, this, getConstellioFactories());
 		approvalRequest.setEnabled(presenter.canSendApprovalRequest());
 		approvalRequest.addStyleName(APPROVAL_REQUEST_BUTTON);
 		return approvalRequest;
@@ -597,6 +588,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		layout.setSpacing(true);
 
 		return layout;
+	}
+
+	private Button buildCreateSIPARchivesButton(){
+		SIPbutton button = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+		return button;
 	}
 
 	private Component buildProcessableFolderComponent(List<FolderDetailVO> folders) {

@@ -163,10 +163,6 @@ public class Metadata implements DataStoreField {
 			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale) {
 		super();
 
-		if ("Titre".equals(labels.get(Language.English))) {
-			System.out.println("ohoh");
-		}
-
 		this.inheritance = null;
 		this.localCode = localCode;
 		this.code = code;

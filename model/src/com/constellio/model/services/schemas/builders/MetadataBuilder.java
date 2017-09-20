@@ -643,6 +643,11 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public MetadataBuilder removeOldReferences() {
+		defineReferences().removeOldReferences();
+		return this;
+	}
+
 	public MetadataBuilder defineReferencesTo(MetadataSchemaBuilder... schemas) {
 		return defineReferencesTo(Arrays.asList(schemas));
 	}

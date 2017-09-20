@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -177,12 +179,20 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext());
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return getTasksQuery();
+				LogicalSearchQuery query = getTasksQuery();
+				addStarredSortToQuery(query);
+				return query;
+			}
+
+			@Override
+			protected void clearSort(LogicalSearchQuery query) {
+				super.clearSort(query);
+				addStarredSortToQuery(query);
 			}
 		};
 
@@ -287,24 +297,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void disableMenuItems(Folder folder) {
 
-		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		if(!folder.isLogicallyDeletedStatus()) {
+			RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 
-		User user = getCurrentUser();
-		view.setLogicallyDeletable(getDeleteButtonState(user, folder));
-		view.setEditButtonState(getEditButtonState(user, folder));
-		view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
-		view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
-		view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
-		view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
-		view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
-		view.setShareFolderButtonState(getShareButtonState(user, folder));
-		view.setPrintButtonState(getPrintButtonState(user, folder));
-		view.setBorrowButtonState(getBorrowButtonState(user, folder));
-		view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
-		view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
-		view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
-		view.setBorrowedMessage(getBorrowMessageState(folder));
-		view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
+			User user = getCurrentUser();
+			view.setLogicallyDeletable(getDeleteButtonState(user, folder));
+			view.setEditButtonState(getEditButtonState(user, folder));
+			view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
+			view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
+			view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
+			view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
+			view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
+			view.setShareFolderButtonState(getShareButtonState(user, folder));
+			view.setPrintButtonState(getPrintButtonState(user, folder));
+			view.setBorrowButtonState(getBorrowButtonState(user, folder));
+			view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
+			view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
+			view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
+			view.setBorrowedMessage(getBorrowMessageState(folder));
+			view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
+		}
 	}
 
 	String getBorrowMessageState(Folder folder) {
@@ -549,6 +561,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Folder folder = schemas.wrapFolder(toRecord(folderVO));
 		disableMenuItems(folder);
 		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
+	}
+
+	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
+		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = taskSchemas.getTask(taskId);
+		if(isStarred) {
+			task.addStarredBy(getCurrentUser().getId());
+		} else {
+			task.removeStarredBy(getCurrentUser().getId());
+		}
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		dataProvider.fireDataRefreshEvent();
 	}
 
 	public void backButtonClicked() {
@@ -1049,5 +1077,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+	public boolean isLogicallyDeleted() {
+		return Boolean.TRUE.equals(folderVO.getMetadataValue(folderVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
+	}
+
+	private void addStarredSortToQuery(LogicalSearchQuery query) {
+		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
+		LogicalSearchQuerySort sortField
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+		query.sortFirstOn(sortField);
 	}
 }

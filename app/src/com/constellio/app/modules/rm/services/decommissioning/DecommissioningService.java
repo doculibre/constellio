@@ -275,11 +275,11 @@ public class DecommissioningService {
 		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
-	public void approvalRequest(DecommissioningList decommissioningList, User approvalUser)
-			throws DecommissioningEmailServiceException, RecordServicesException {
+	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
+			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
-		sendEmailForList(decommissioningList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
+		sendEmailForList(managerList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
 		try {
 			decommissioningList.setApprovalRequest(approvalUser);
 			decommissioningList.setApprovalRequestDate(new LocalDate());
@@ -288,6 +288,33 @@ public class DecommissioningService {
 			transaction.add(decommissioningList);
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void sendEmailForList(List<User> userList, User user, String templateID, List<String> parameters) {
+		EmailToSend emailToSend = rm.newEmailToSend();
+		try {
+			List<EmailAddress> toAddresses = getEmailReceivers(userList);
+			String subject = "";
+			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+				subject = $("DecommissionningServices.approvalRequestEmailTitle");
+			} else {
+				subject = $("DecommissionningServices.validationRequest");
+			}
+
+			emailToSend.setSubject(subject)
+					.setSendOn(TimeProvider.getLocalDateTime())
+					.setParameters(parameters)
+					.setTemplate(templateID)
+					.setTo(toAddresses)
+					.setTryingCount(0d);
+
+			Transaction transaction = new Transaction().setUser(user);
+			transaction.add(emailToSend);
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			//TODO Display error about email
 			throw new RuntimeException(e);
 		}
 	}

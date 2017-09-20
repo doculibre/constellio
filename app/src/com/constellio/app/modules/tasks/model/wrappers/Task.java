@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
 
 public class Task extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userTask";
@@ -27,6 +29,10 @@ public class Task extends RecordWrapper {
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENTS = "contents";
 	public static final String NEXT_REMINDER_ON = "nextReminderOn";
+	public static final String REMINDER_FREQUENCY = "reminderFrequency";
+	public static final String LAST_REMINDER = "lastReminder";
+	public static final String ESCALATION_ASSIGNEE = "escalationAssignee";
+	public static final String NUMBER_OF_REMINDERS = "numberOfReminders";
 	public static final String REMINDERS = "reminders";
 	public static final String START_DATE = "startDate";
 	public static final String DUE_DATE = "dueDate";
@@ -41,6 +47,7 @@ public class Task extends RecordWrapper {
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 	public static final String LINKED_CONTAINERS = "linkedContainers";
 	public static final String REASON = "reason";
+	public static final String STARRED_BY_USERS = "starredByUsers";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
@@ -48,6 +55,7 @@ public class Task extends RecordWrapper {
 	public static final String IS_MODEL = "isModel";
 	public static final String MODEL_TASK = "modelTask";
 	public static final String DECISION = "decision";
+
 	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
 
 	/**
@@ -323,5 +331,62 @@ public class Task extends RecordWrapper {
 	public Task setLinkedDocuments(List<?> documentIds) {
 		set(LINKED_DOCUMENTS, documentIds);
 		return this;
+	}
+
+	public String getReminderFrequency() {
+		return get(REMINDER_FREQUENCY);
+	}
+
+	public Task setReminderFrequency(String reminderFrequency) {
+		set(REMINDER_FREQUENCY, reminderFrequency);
+		return this;
+	}
+
+	public LocalDateTime getLastReminder() {
+		return get(LAST_REMINDER);
+	}
+
+	public Task setLastReminder(LocalDateTime datetime) {
+		set(LAST_REMINDER, datetime);
+		return this;
+	}
+
+	public int getNumberOfReminders() {
+		Double number = get(NUMBER_OF_REMINDERS);
+		return number == null? 0: number.intValue();
+	}
+
+	public Task setNumberOfReminders(int numberOfReminder) {
+		set(NUMBER_OF_REMINDERS, numberOfReminder);
+		return this;
+	}
+
+	public String getEscalationAssignee() {
+		return get(ESCALATION_ASSIGNEE);
+	}
+
+	public Task setEscalationAssignee(String userId) {
+		set(ESCALATION_ASSIGNEE, userId);
+		return this;
+	}
+
+	public void addStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(!list.contains(userId)) {
+			list.add(userId);
+			set(STARRED_BY_USERS, list);
+		}
+	}
+
+	public void removeStarredBy(String userId) {
+		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
+		if(list.contains(userId)) {
+			list.remove(userId);
+			if(list.isEmpty()) {
+				set(STARRED_BY_USERS, null);
+			} else {
+				set(STARRED_BY_USERS, list);
+			}
+		}
 	}
 }

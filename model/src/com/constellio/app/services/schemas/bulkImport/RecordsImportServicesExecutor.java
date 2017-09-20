@@ -88,6 +88,8 @@ public class RecordsImportServicesExecutor {
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 
+	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
+
 	public static final String COMMENT_MESSAGE = "message";
 	public static final String COMMENT_USER_NAME = "userName";
 	public static final String COMMENT_DATE_TIME = "dateTime";
@@ -117,6 +119,7 @@ public class RecordsImportServicesExecutor {
 	private SkippedRecordsImport skippedRecordsImport;
 	private ConfigProvider configProvider;
 	ResolverCache resolverCache;
+	SchemasRecordsServices schemasRecordsServices;
 
 	private static class TypeImportContext {
 		List<String> uniqueMetadatas;
@@ -169,14 +172,15 @@ public class RecordsImportServicesExecutor {
 				return modelLayerFactory.getSystemConfigurationsManager().getValue(config);
 			}
 		};
+
+		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	public BulkImportResults bulkImport()
 			throws RecordsImportServicesRuntimeException, ValidationException {
-
+		ValidationErrors errors = new ValidationErrors();
 		try {
 			initialize();
-			ValidationErrors errors = new ValidationErrors();
 			validate(errors);
 			return run(errors);
 		} finally {
@@ -282,7 +286,7 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private void addCyclicDependenciesValidationError(ValidationErrors errors, MetadataSchemaType schemaType,
-			Set<String> cyclicDependentIds) {
+														   Set<String> cyclicDependentIds) {
 
 		List<String> ids = new ArrayList<>(cyclicDependentIds);
 		Collections.sort(ids);

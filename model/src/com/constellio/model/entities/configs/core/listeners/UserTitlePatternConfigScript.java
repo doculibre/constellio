@@ -7,6 +7,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 public class UserTitlePatternConfigScript implements SystemConfigurationScript<String> {
 
 	@Override
+	public void onNewCollection(String newValue, String collection, ModelLayerFactory modelLayerFactory) {
+
+	}
+
+	@Override
 	public void validate(String newValue, ValidationErrors errors) {
 	}
 

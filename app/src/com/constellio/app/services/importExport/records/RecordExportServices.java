@@ -23,16 +23,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.*;
-import com.constellio.model.services.contents.ContentFactory;
-import com.constellio.model.services.contents.ContentImpl;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.IOException;
 import java.util.*;
 
@@ -49,19 +48,26 @@ public class RecordExportServices {
 	ModelLayerFactory modelLayerFactory;
 	ZipService zipService;
 	IOServices ioServices;
+	SchemasRecordsServices schemasRecordsServices;
+	RecordServices recordServices;
 
 	public RecordExportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 	}
 
 	public File exportRecords(String collection, String resourceKey, RecordExportOptions options) {
 
+		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
+		ValidationErrors errors = new ValidationErrors();
 
 		try {
+
+			//
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
 			try {
@@ -86,6 +92,7 @@ public class RecordExportServices {
 				throw new ExportServicesRuntimeException_NoRecords();
 			}
 			zipService.zip(tempZipFile, asList(tempFolder.listFiles()));
+
 			return tempZipFile;
 
 		} catch (ZipServiceException e) {
@@ -364,6 +371,7 @@ public class RecordExportServices {
 					systemFilePath = "Unsupported";
 				}
 				contentPaths.append(systemFilePath);
+				contentPaths.append("*");
 				contentPaths.append("\n");
 			}
 		}

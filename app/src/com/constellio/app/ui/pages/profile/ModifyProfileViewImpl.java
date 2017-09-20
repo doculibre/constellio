@@ -328,7 +328,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 
 		if(presenter.isRMModuleActivated()) {
-			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true);
+			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true, false);
 			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
 		} else {
 			defaultAdministrativeUnitField = new TextField();

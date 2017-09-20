@@ -301,7 +301,7 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+			if ("id".equals(metadata.getLocalCode()) || "path".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
 					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {

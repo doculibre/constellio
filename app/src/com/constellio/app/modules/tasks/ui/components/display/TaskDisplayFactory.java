@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components.display;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -21,6 +22,8 @@ public class TaskDisplayFactory extends MetadataDisplayFactory {
 			return new TaskFollowerDisplay(toTaskFollowerVO((TaskFollower) displayValue));
 		} else if (REMINDERS.equals(metadataCode) || REMINDERS.equals(metadataCodeWithoutPrefix)) {
 			return new TaskReminderDisplay(toTaskReminderVO((TaskReminder) displayValue));
+		} else if (REMINDER_FREQUENCY.equals(metadataCode) || REMINDER_FREQUENCY.equals(metadataCodeWithoutPrefix)) {
+			return new TaskReminderFrequencyDisplay((String) displayValue);
 		} else {
 			return super.buildSingleValue(recordVO, metadata, displayValue);
 		}

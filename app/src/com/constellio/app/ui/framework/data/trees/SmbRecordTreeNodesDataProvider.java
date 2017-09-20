@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -88,16 +89,16 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
         logicalSearchQuery.setNumberOfRows(maxSize);
         logicalSearchQuery.sortDesc(Schemas.SCHEMA).sortAsc(TITLE);
 
-        List<Record> listResults = searchServices.search(logicalSearchQuery);
+        SPEQueryResponse queryResponse = searchServices.query(logicalSearchQuery);
         List<TaxonomySearchRecord> taxonomySearchRecords = new ArrayList<>();
 
-        for (Record record : listResults) {
+        for (Record record : queryResponse.getRecords()) {
             boolean asChildren = record.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE);
             taxonomySearchRecords.add(new TaxonomySearchRecord(record, true, asChildren));
         }
 
 
-        return new LinkableTaxonomySearchResponse(taxonomySearchRecords.size(), infos, taxonomySearchRecords);
+        return new LinkableTaxonomySearchResponse(queryResponse.getNumFound(), infos, taxonomySearchRecords);
     }
 
     @Override
@@ -115,15 +116,15 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
         query.sortAsc(TITLE);
         query.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 
-        List<Record> listResults = searchServices.search(query);
+        SPEQueryResponse queryResponse = searchServices.query(query);
         List<TaxonomySearchRecord> taxonomySearchRecords = new ArrayList<>();
 
-        for (Record record : listResults) {
+        for (Record record : queryResponse.getRecords()) {
             boolean asChildren = record.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE);
             taxonomySearchRecords.add(new TaxonomySearchRecord(record, true, asChildren));
         }
 
-        return new LinkableTaxonomySearchResponse(taxonomySearchRecords.size(), infos, taxonomySearchRecords);
+        return new LinkableTaxonomySearchResponse(queryResponse.getNumFound(), infos, taxonomySearchRecords);
     }
 
     @Override
