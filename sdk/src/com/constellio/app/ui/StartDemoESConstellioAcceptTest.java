@@ -81,12 +81,11 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
 				.setCode("zeConnectorCode")
 				.setEnabled(true)
-				.setSeeds(Arrays.asList(SDKPasswords.testSmbServer()))
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
+				.setSeeds(Arrays.asList("smb://localhost/share/"))
+				.setUsername("admin")
+				.setPassword("tp65MZft")
 				.setTraversalCode("")
-				.setInclusions(Arrays.asList(SDKPasswords.testSmbServer()))
+				.setInclusions(Arrays.asList("smb://localhost/share/"))
 				.setTitle("New Smb Connector")
 				.setSkipShareAccessControl(true));
 

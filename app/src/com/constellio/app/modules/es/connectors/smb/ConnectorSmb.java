@@ -26,6 +26,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -74,7 +75,7 @@ public class ConnectorSmb extends Connector {
 	private SmbRecordService smbRecordService;
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbUrlComparator urlComparator;
-	private Set<String> urlsToDelete;
+	private Map<String, ConnectorDocument> urlsCache;
 
 	private String connectorId;
 
@@ -91,16 +92,13 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	protected void initialize(Record instanceRecord) {
-		this.urlsToDelete = Collections.synchronizedSet(new HashSet<String>());
+		this.urlsCache = Collections.synchronizedMap(new HashMap<String, ConnectorDocument>());
 		this.connectorId = instanceRecord.getId();
 		this.connectorInstance = getEs().wrapConnectorSmbInstance(instanceRecord);
 		this.smbUtils = new ConnectorSmbUtils();
 		schemaDisplayConfig = new SmbSchemaDisplayConfiguration(getEs(), connectorInstance);
 		schemaDisplayConfig.setupMetadatasDisplay();
 		jobsQueue = new SmbJobQueueSortedImpl();
-
-		loadCache(connectorInstance.getCollection());
-		loadDeleteCache();
 
 		Credentials credentials = new Credentials(connectorInstance.getDomain(), connectorInstance.getUsername(),
 				connectorInstance.getPassword());
@@ -120,18 +118,18 @@ public class ConnectorSmb extends Connector {
 				updater);
 	}
 
-	private void loadCache(String collection) {
+	private void reloadCache() {
+		this.urlsCache.clear();
+
 		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		RecordsCache cache = recordServices.getRecordsCaches().getCache(collection);
-
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbFolder.schemaType())
 				.where(es.connectorSmbFolder.connector()).isEqualTo(connectorId));
 		SearchResponseIterator<Record> smbFoldersIterator = searchServices.recordsIterator(logicalSearchQuery, 10000);
 		while (smbFoldersIterator.hasNext()) {
-			cache.forceInsert(smbFoldersIterator.next());
+			Record next = smbFoldersIterator.next();
+			urlsCache.put(next.get(Schemas.URL).toString(), es.wrapConnectorDocument(next));
 		}
 
 		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url(),
@@ -142,7 +140,8 @@ public class ConnectorSmb extends Connector {
 				.setReturnedMetadatas(returnedMetadatasFilter);
 		SearchResponseIterator<Record> smbDocumentsIterator = searchServices.recordsIterator(logicalSearchQuery, 50000);
 		while (smbDocumentsIterator.hasNext()) {
-			cache.forceInsert(smbDocumentsIterator.next());
+			Record next = smbDocumentsIterator.next();
+			urlsCache.put(next.get(Schemas.URL).toString(), es.wrapConnectorDocument(next));
 		}
 	}
 
@@ -150,11 +149,15 @@ public class ConnectorSmb extends Connector {
 		return duplicateUrls;
 	}
 
+	public Map<String, ConnectorDocument> getCache() {
+		return this.urlsCache;
+	}
+
 	@Override
 	public void start() {
 		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
-		loadCache(connectorInstance.getCollection());
+		reloadCache();
 		queueSeeds();
 	}
 
@@ -172,7 +175,7 @@ public class ConnectorSmb extends Connector {
 		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
 		jobsQueue.clear();
-		loadCache(connectorInstance.getCollection());
+		reloadCache();
 		queueSeeds();
 	}
 
@@ -246,16 +249,14 @@ public class ConnectorSmb extends Connector {
 		}
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
-			//TODO Delete jobs
-			Set<String> urlsToDelete = new HashSet<>(this.urlsToDelete);
-			loadDeleteCache();
-			for (String url : urlsToDelete) {
+			for (String url : urlsCache.keySet()) {
 				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
 				jobs.add(deleteJob);
 			}
 
 			cleanupInconsistencies();
 			changeTraversalCodeToMarkEndOfTraversal();
+			reloadCache();
 			queueSeeds();
 		}
 		return jobs;
@@ -360,31 +361,7 @@ public class ConnectorSmb extends Connector {
 		}
 	}
 
-	private void loadDeleteCache() {
-		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		urlsToDelete.clear();
-
-		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbFolder.url());
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbFolder.schemaType())
-				.where(es.connectorSmbFolder.connector()).isEqualTo(connectorId))
-				.setReturnedMetadatas(returnedMetadatasFilter);
-		SearchResponseIterator<Record> smbFoldersIterator = searchServices.recordsIterator(logicalSearchQuery, 100000);
-		while (smbFoldersIterator.hasNext()) {
-			urlsToDelete.add((String) smbFoldersIterator.next().get(es.connectorSmbFolder.url()));
-		}
-
-		returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url());
-		logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
-				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId))
-				.setReturnedMetadatas(returnedMetadatasFilter);
-		SearchResponseIterator<Record> smbDocumentsIterator = searchServices.recordsIterator(logicalSearchQuery, 100000);
-		while (smbDocumentsIterator.hasNext()) {
-			urlsToDelete.add((String) smbDocumentsIterator.next().get(es.connectorSmbDocument.url()));
-		}
-	}
-
 	public void markUrlAsFound(String url) {
-		urlsToDelete.remove(url);
+		urlsCache.remove(url);
 	}
 }

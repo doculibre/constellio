@@ -55,7 +55,7 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 					break;
 				}
 
-				SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(connectorInstance, url);
+				SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(connector, url);
 				SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
 
 				if (shareIndicator == null) {

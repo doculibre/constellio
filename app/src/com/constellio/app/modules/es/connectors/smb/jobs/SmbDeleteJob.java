@@ -4,6 +4,7 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJo
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
+import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -13,6 +14,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -34,25 +36,19 @@ public class SmbDeleteJob extends SmbConnectorJob {
     @Override
     public void execute(Connector connector) {
         String url = jobParams.getUrl();
+        boolean duplicate = false;
+        if (this.jobParams.getConnector().getDuplicateUrls().contains(url)) {
+            duplicate = true;
+        }
         try {
             SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
-            if(smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
-                if (jobParams.getSmbUtils().isFolder(url)) {
-                    ConnectorSmbFolder folderToDelete = jobParams.getSmbRecordService().getFolderFromCache(url, jobParams.getConnectorInstance());
-                    if(folderToDelete != null) {
-                        jobParams.getSmbRecordService().removeFromCache(folderToDelete);
-                        deleteByUrl(folderToDelete.getUrl());
-                        DeleteEventOptions options = new DeleteEventOptions();
-                        jobParams.getEventObserver().deleteEvents(options, folderToDelete);
-                    }
-                } else {
-                    ConnectorSmbDocument documentToDelete = jobParams.getSmbRecordService().getDocumentFromCache(url, jobParams.getConnectorInstance());
-                    if(documentToDelete != null) {
-                        jobParams.getEventObserver().deleteEvents(documentToDelete);
-                        jobParams.getSmbRecordService().removeFromCache(documentToDelete);
-                        deleteByUrl(url);
-                    }
+            if(duplicate || smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
+                ConnectorDocument documentToDelete = (ConnectorDocument) jobParams.getConnector().getCache().get(url);
+                if (documentToDelete != null) {
+                    jobParams.getEventObserver().deleteEvents(documentToDelete);
                 }
+                deleteByUrl(url);
+
             }
         } catch (Exception e) {
             this.connector.getLogger().errorUnexpected(e);

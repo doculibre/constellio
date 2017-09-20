@@ -79,47 +79,6 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUrlWithNonCachedNonExistingRecordWhenGettingRecordThenGetNull() {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorSmbFolder folder = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance);
-		assertThat(folder).isNull();
-	}
-
-	@Test
-	public void givenUrlWithNonCachedExistingRecordWhenGettingRecordIdThenGetId()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		recordService.update(folder);
-		recordService.flush();
-
-		String id = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance).getId();
-		assertThat(id).isEqualTo(folder.getId());
-	}
-
-	@Test
-	public void givenUrlNonExistingRecordWhenGettingRecordIdThen()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorDocument folder = smbRecordService.newConnectorDocument(SmbTestParams.EXISTING_SHARE)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		recordService.update(folder);
-		recordService.flush();
-
-		recordService.logicallyDelete(folder.getWrappedRecord(), User.GOD);
-		recordService.physicallyDelete(folder.getWrappedRecord(), User.GOD);
-
-		ConnectorSmbFolder connectorSmbFolder = smbRecordService.getFolderFromCache(SmbTestParams.EXISTING_SHARE, connectorInstance);
-		assertThat(connectorSmbFolder).isNull();
-	}
-
-	@Test
 	public void whenUpdatingResumeUrlThenResumeUrlIsUpdated() {
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
 		String resumeUrl = "resumeUrl";
