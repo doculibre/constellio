@@ -16,6 +16,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -63,7 +64,11 @@ public class SmbDeleteJob extends SmbConnectorJob {
         String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
         connectorUrl = ClientUtils.escapeQueryChars(connectorUrl);
-        modifiableSolrParams.set("q", "connectorUrl_s:"+connectorUrl+"*");
+        if (StringUtils.endsWith(url,"/")) {
+            modifiableSolrParams.set("q", "connectorUrl_s:" + connectorUrl + "*");
+        } else {
+            modifiableSolrParams.set("q", "connectorUrl_s:" + connectorUrl);
+        }
         modifiableSolrParams.add("fq", "id:*ZZ");
         modifiableSolrParams.add("fq", "collection_s:"+connectorInstance.getCollection());
         transaction = transaction.withDeletedByQueries(modifiableSolrParams);
