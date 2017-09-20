@@ -261,6 +261,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
+		ExportAudit newExportAudit = createNewExportAudit();
 
 		if (!exportedIdsStr.isEmpty() || onlyTools) {
 			List<String> ids = new ArrayList<>();
@@ -292,6 +293,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			} catch (Throwable t) {
 				LOGGER.error("Error while generating savestate", t);
 				view.showErrorMessage($("ExportView.error"));
+			} finally {
+				completeImportExportAudit(newExportAudit, file);
 			}
 
 		} else {
@@ -319,6 +322,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				} catch (Throwable t) {
 					LOGGER.error("Error while generating savestate", t);
 					view.showErrorMessage($("ExportView.error"));
+				} finally {
+					completeImportExportAudit(newExportAudit, file);
 				}
 			}
 		}
