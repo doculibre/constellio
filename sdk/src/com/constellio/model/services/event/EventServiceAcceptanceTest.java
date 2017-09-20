@@ -78,7 +78,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     public void getLastArchivedTimeThenSetThenGetThenOk() {
         LocalDateTime dateTime;
 
-        assertThat(eventService.getLastDayTimeArchived()).isNull();
+        assertThat(eventService.getLastDayTimeArchived()).isEqualTo(EventService.MIN_LOCAL_DATE_TIME);
 
         dateTime = getLocalDateTimeFromString(DATE_1);
         eventService.setLastArchivedDayTime(dateTime);
@@ -101,7 +101,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void backupEventInVaultAndCheckOtherSolrThenOk() throws Exception {
+    public void checkSolrStateBackupAndDeleteEventThanCheckSolrStateThenOk() throws Exception {
         getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 0);
 
         givenTimeIs(LocalDateTime.now().plusDays(2));
@@ -120,20 +120,9 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
         eventService.backupAndRemove();
 
-
         SPEQueryResponse allRecord2 = searchServices.query(logicalSearchQuery);
 
-        assertThat(allRecord1.getNumFound()).isEqualTo(allRecord2.getNumFound() -2);
-
-//        int recordCount = 0;
-//        Record record2;
-//        for(Record record1 : allRecord1.getRecords()) {
-//
-//            record2.get("");
-//            if()
-//
-//            record1.get(Schemas.CREATED_ON)
-//        }
+        assertThat(allRecord1.getNumFound()).isEqualTo(allRecord2.getNumFound() + 2);
     }
 
     @Test
