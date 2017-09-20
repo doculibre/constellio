@@ -469,7 +469,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record get(String id) {
-		return onlyIfNotSummary(getSummary(id));
+//		return onlyIfNotSummary(getSummary(id));
+		return getSummary(id);
 	}
 
 	@Override
@@ -564,8 +565,6 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		List<Record> cachedResults = null;
 		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, false);
 		if (schemaTypeCodeForStorageInCache != null) {
-			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
-
 			List<String> recordIds = getQueryResultIds(query);
 			if (recordIds != null) {
 				cachedResults = new ArrayList<>();
@@ -847,7 +846,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
-		return onlyIfNotSummary(getSummaryByMetadata(metadata, value));
+//		return onlyIfNotSummary(getSummaryByMetadata(metadata, value));
+		return getSummaryByMetadata(metadata, value);
 	}
 
 	@Override
@@ -1073,7 +1073,6 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	private Record onlyIfNotSummary(Record record) {
 		if (record == null) {
 			return null;
-
 		} else {
 			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
 			if (config.getPersistedMetadatas().isEmpty()) {
