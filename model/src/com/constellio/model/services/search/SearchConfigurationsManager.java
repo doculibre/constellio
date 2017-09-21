@@ -1,22 +1,36 @@
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.io.concurrent.data.DataWithVersion;
+import com.constellio.data.io.concurrent.data.TextView;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.entities.ResultsElevation;
 import com.constellio.model.services.search.entities.ResultsExclusion;
 
 public class SearchConfigurationsManager {
 
+	public static final String SYNONYME_FILE_PATH = "/synonyms.txt";
+
 	Map<String, Map<String, List<String>>> elevatedRecords = new HashMap<>();
 
 	Map<String, Map<String, List<String>>> excludedRecords = new HashMap<>();
 
 	List<String> synonyms = new ArrayList<>();
+
+	DataLayerFactory dataLayerFactory;
+
+	public SearchConfigurationsManager(DataLayerFactory dataLayerFacotry) {
+		this.dataLayerFactory = dataLayerFacotry;
+		initialize();
+	}
+
+	public void initialize() {
+		synonyms = getSynonymsOnServer();
+}
 
 	public boolean isElevated(String query, Record record) {
 		Map<String, List<String>> collectionElevations = elevatedRecords.get(record.getCollection());
@@ -140,5 +154,42 @@ public class SearchConfigurationsManager {
 
 	public void setSynonyms(List<String> synonyms) {
 		this.synonyms = new ArrayList<>(synonyms);
+		setSynonyms();
+	}
+
+	private void setSynonyms() {
+		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
+		TextView aStringView = readData.getView(new TextView());
+		aStringView.setData(getSynonymeAsOneString());
+		readData.setDataFromView(aStringView);
+
+		solrFileSystem.writeData(SYNONYME_FILE_PATH, readData);
+		server.reload();
+	}
+
+	private List<String> getSynonymsOnServer() {
+		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
+		TextView aStringView = readData.getView(new TextView());
+
+		String synonymsAsOneString = aStringView.getData();
+
+		return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
+	}
+
+
+	private String getSynonymeAsOneString() {
+		StringBuilder allSynonyms = new StringBuilder();
+
+		for(String synonym : synonyms) {
+			allSynonyms.append(synonym + "\n");
+		}
+
+		return allSynonyms.toString();
 	}
 }

@@ -198,7 +198,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
-		this.searchConfigurationsManager = new SearchConfigurationsManager();
+		this.searchConfigurationsManager = new SearchConfigurationsManager(dataLayerFactory);
 
 	}
 
