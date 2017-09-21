@@ -30,8 +30,8 @@ public class SystemConfiguration implements Serializable {
 	Class<? extends SystemConfigurationScript> scriptClass;
 
 	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code, Object defaultValue,
-						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
-						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
+			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
+			boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -146,6 +146,10 @@ public class SystemConfiguration implements Serializable {
 
 	public boolean isRequireReIndexing() {
 		return requireReIndexing;
+	}
+
+	public void hide() {
+		this.hidden = true;
 	}
 }
 
