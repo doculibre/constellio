@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -50,6 +51,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderDisposalTypeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
@@ -80,6 +82,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -494,6 +497,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustContainerField();
 		adjustPreviewReturnDateField();
 		adjustOpeningDateField();
+		adjustDisposalTypeField();
 		adjustCustomDynamicFields();
 	}
 
@@ -832,6 +836,24 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			FolderOpeningDateField openingDateField = (FolderOpeningDateField) view.getForm()
 					.getCustomField(Folder.OPENING_DATE);
 			setFieldReadonly(openingDateField, true);
+		}
+	}
+	
+	void adjustDisposalTypeField() {
+		FolderDisposalTypeField disposalTypeField = (FolderDisposalTypeField) view.getForm().getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
+		if (disposalTypeField != null) {
+			boolean visible;
+			Record folerRecord = toRecord(folderVO);
+			RecordServices recordServices = recordServices();
+			recordServices.recalculate(folerRecord);
+			Folder folder = rmSchemasRecordsServices.wrapFolder(folerRecord);
+			CopyRetentionRule mainCopyRule = folder.getMainCopyRule();
+			if (mainCopyRule != null) {
+				visible = mainCopyRule.getInactiveDisposalType() == DisposalType.SORT;
+			} else {
+				visible = false;
+			}
+			view.getForm().setFieldVisible(Folder.MANUAL_DISPOSAL_TYPE, visible);
 		}
 	}
 	
