@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -281,7 +282,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateWindowClosed() {
-		currentDocument = null;
+		currentDocument = presenterUtils.getRecord(documentVO.getId());
+		documentVO = voBuilder.build(currentDocument, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 		updateActionsComponent();
 	}
 
@@ -308,7 +310,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			try {
 				presenterUtils.recordServices().update(record);
-				currentDocument = null;
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = buildContentVersionVO(content);
 				documentVO.setContent(currentVersionVO);
@@ -387,7 +390,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().returnRecord(record, getCurrentUser());
 			try {
 				presenterUtils.recordServices().update(record);
-				currentDocument = null;
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -409,7 +413,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			content.finalizeVersion();
 			try {
 				presenterUtils.recordServices().update(record);
-				currentDocument = null;
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -432,7 +437,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser(), TimeProvider.getLocalDateTime());
 			try {
 				presenterUtils.recordServices().update(record);
-				currentDocument = null;
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, sessionContext);
 				
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
@@ -569,8 +575,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 		updateBorrowedMessage();
 		DocumentVO documentVO = getDocumentVO();
+		actionsComponent.setDocumentVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
-		if(Boolean.TRUE.equals(isLogicallyDeleted)) {
+		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);

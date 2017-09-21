@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -14,8 +13,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
-
-import java.util.List;
 
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
 	
