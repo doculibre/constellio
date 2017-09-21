@@ -16,8 +16,8 @@ public class EndYearValueCalculator extends AbstractSystemConfigurationScript<St
     public void validate(String newValue, ValidationErrors errors) {
         if(newValue != null && !MM_DD.matcher(newValue).matches()){
             Map<String, Object> parameters = new HashMap<>();
-            parameters.put("message", $("com.constellio.app.modules.rm.RMConfigs.EndYearValueCalculator"));
-            errors.add(EndYearValueCalculator.class, "InvalideEndYear", parameters);
+            //parameters.put("message", $("com.constellio.app.modules.rm.RMConfigs.EndYearValueCalculator"));
+            errors.add(EndYearValueCalculator.class, "InvalideEndYear"/*, parameters*/);
         }
     }
 }
