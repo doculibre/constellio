@@ -91,8 +91,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					if (SELECT_PROPERTY_ID.equals(propertyId)) {
 						property = itemSelectProperties.get(itemId);
 						if (property == null) {
-							Property<?> selectProperty = itemSelectProperties.get(itemId);
-							selectProperty = new AbstractProperty<Boolean>() {
+							Property<?> selectProperty = new AbstractProperty<Boolean>() {
 								@Override
 								public Boolean getValue() {
 									return itemId != null ? isSelected(itemId) : null;
@@ -114,6 +113,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 							};
 							CheckBox checkBox = new SelectionCheckBox();
 							checkBox.setPropertyDataSource(selectProperty);
+							checkBox.setImmediate(true);
 							property = new ObjectProperty<CheckBox>(checkBox);
 							itemSelectProperties.put(itemId, property);
 						}

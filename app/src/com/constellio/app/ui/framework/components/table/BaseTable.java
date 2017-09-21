@@ -12,7 +12,7 @@ public class BaseTable extends Table {
 	
 	private TableColumnsManager columnsManager;
 	
-	protected TablePropertyCache cellProperties = new TablePropertyCache();
+	protected final TablePropertyCache cellProperties = new TablePropertyCache();
 	
 	public BaseTable(String tableId) {
 		super();
