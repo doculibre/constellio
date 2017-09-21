@@ -17,6 +17,7 @@ import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -28,10 +29,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -164,6 +162,8 @@ public class ConnectorSmb extends Connector {
 	private void queueSeeds() {
 		List<String> sortedSeeds = new ArrayList(connectorInstance.getSeeds());
 		Collections.sort(sortedSeeds, urlComparator);
+		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
+				updater);
 		for (String seed : sortedSeeds) {
 			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.DISPATCH, seed, "");
 				queueJob(smbDispatchJob);
@@ -211,32 +211,6 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		try {
-			es.getConnectorManager().getCrawler().getWaitFlushed().acquireUninterruptibly();
-			cleanCache(connectorInstance.getCollection());
-		} finally {
-			es.getConnectorManager().getCrawler().getWaitFlushed().release();
-		}
-	}
-
-	private void cleanCache(String collection) {
-
-		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		RecordsCache cache = recordServices.getRecordsCaches().getCache(collection);
-
-		Iterator<String> smbFoldersIterator = searchServices.recordsIdsIterator(new LogicalSearchQuery().setCondition(from(es.connectorSmbFolder.schemaType())
-				.where(es.connectorSmbFolder.connector()).isEqualTo(connectorId)));
-		while (smbFoldersIterator.hasNext()) {
-			cache.invalidate(smbFoldersIterator.next());
-		}
-
-		Iterator<String> smbDocumentsIterator = searchServices.recordsIdsIterator( new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
-				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId)));
-		while (smbDocumentsIterator.hasNext()) {
-			cache.invalidate(smbDocumentsIterator.next());
-		}
 	}
 
 	@Override
@@ -253,8 +227,11 @@ public class ConnectorSmb extends Connector {
 				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
 				jobs.add(deleteJob);
 			}
+			urlsCache.clear();
+		}
 
-			cleanupInconsistencies();
+		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
+			checkDuplicates();
 			changeTraversalCodeToMarkEndOfTraversal();
 			reloadCache();
 			queueSeeds();
@@ -262,7 +239,7 @@ public class ConnectorSmb extends Connector {
 		return jobs;
 	}
 
-	private void cleanupInconsistencies() {
+	private void checkDuplicates() {
         try {
 			this.duplicateUrls.clear();
 			this.duplicateUrls.addAll(this.smbRecordService.duplicateDocuments());

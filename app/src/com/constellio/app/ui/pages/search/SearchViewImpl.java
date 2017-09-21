@@ -445,6 +445,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+		selectDeselectAllButton.setVisible(presenter.isAllowDownloadZip());
 		return selectDeselectAllButton;
 	}
 
@@ -456,6 +457,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		};
 		addToSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
+		addToSelectionButton.setVisible(presenter.isAllowDownloadZip());
 		return addToSelectionButton;
 	}
 

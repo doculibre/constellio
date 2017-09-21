@@ -51,7 +51,7 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 			case RETRIEVAL:
 				if (this.connector.getDuplicateUrls().contains(url)) {
 					job = new SmbDeleteJob(params);
-					markUrlAsFound(url);
+					connector.markUrlAsFound(url);
 					break;
 				}
 
@@ -67,7 +67,7 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 				}
 
 				if(shareIndicator != null) {
-					markUrlAsFound(url);
+					connector.markUrlAsFound(url);
 				}
 				break;
 			case DELETE:
@@ -80,9 +80,5 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 			job = new SmbDeleteJob(params);
 		}
 		return job;
-	}
-
-	private void markUrlAsFound(String url) {
-		connector.markUrlAsFound(url);
 	}
 }

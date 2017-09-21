@@ -29,6 +29,7 @@ import com.constellio.app.modules.es.constants.ESPermissionsTo;
 import com.constellio.app.modules.es.extensions.*;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.*;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -167,8 +168,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				.getCache(collection);
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
-		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
-		recordsCache.configureCache(permanentCache(es.connectorType.schemaType()));
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));

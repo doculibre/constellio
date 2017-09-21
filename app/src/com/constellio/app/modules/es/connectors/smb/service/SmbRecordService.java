@@ -28,13 +28,11 @@ public class SmbRecordService {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorSmbUtils smbUtils;
-	private RecordServices recordServices;
 
 	public SmbRecordService(ESSchemasRecordsServices es, ConnectorSmbInstance connectorInstance) {
 		this.es = es;
 		this.connectorInstance = connectorInstance;
 		this.smbUtils = new ConnectorSmbUtils();
-		this.recordServices = es.getAppLayerFactory().getModelLayerFactory().newRecordServices();
 	}
 
 	public List<ConnectorSmbDocument> getDocuments(String url) {
