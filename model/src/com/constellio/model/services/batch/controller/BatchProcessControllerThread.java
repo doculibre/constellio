@@ -121,6 +121,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		List<String> recordsWithErrors = new ArrayList<>();
 
 		while (batchIterator.hasNext()) {
+			int oldErrorCount = recordsWithErrors.size();
 			List<Record> records = batchIterator.next();
 			int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
 			String firstId = records.get(0).getId();
@@ -139,6 +140,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
+			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size()-oldErrorCount);
 		}
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);
@@ -152,8 +154,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		ModifiableSolrParams params = SolrUtils.parseQueryString(batchProcess.getQuery());
 		params.set("sort", "principalPath_s asc, id asc");
 
-		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 100, true);
-		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 100);
+		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 1000, true);
+		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 1000);
 		StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
 		if (previousPart != null) {
 			iterator.beginAfterId(previousPart.getLastId());
@@ -183,6 +185,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
+			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size());
 		}
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);
