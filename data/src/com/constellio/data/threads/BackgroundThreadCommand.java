@@ -55,7 +55,7 @@ public class BackgroundThreadCommand implements Runnable {
 			}
 		}
 
-		synchronized (threadName.intern()) {
+		synchronized (configuration.getId().intern()) {
 			try {
 
 				while (!systemStarted.get() && !stopRequested.get()) {
