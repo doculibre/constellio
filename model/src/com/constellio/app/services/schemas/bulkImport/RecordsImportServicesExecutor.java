@@ -449,7 +449,9 @@ public class RecordsImportServicesExecutor {
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
 
-		contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
+		if(modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+			contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
+		}
 		return skipped;
 	}
 
