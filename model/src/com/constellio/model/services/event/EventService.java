@@ -22,7 +22,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
-import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jetbrains.annotations.NotNull;
