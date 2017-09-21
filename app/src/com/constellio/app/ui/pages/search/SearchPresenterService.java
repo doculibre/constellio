@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -157,10 +158,22 @@ public class SearchPresenterService {
 
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
-				if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
-					facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
-				} else {
-					facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+				String keyShort = "caption." + record.getTypeCode() + ".record.short";
+				String caption = SchemaCaptionUtils.getShortCaptionForRecord(record);
+				if(keyShort.equals(caption)) {
+					String key = "caption." + record.getTypeCode() + ".record";
+
+					if(key.equals(caption)) {
+						if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+							facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
+						} else {
+							facetValueVO.setLabel(record.<String>get(Schemas.TITLE));
+						}
+					} else {
+						facetValueVO.setLabel(caption);
+					}
+				} else{
+					facetValueVO.setLabel(caption);
 				}
 			} else if (enumMetadatas.containsKey(value)) {
 				facetValueVO.setLabel(enumMetadatas.get(value));

@@ -371,6 +371,7 @@ public class RecordExportServices {
 					systemFilePath = "Unsupported";
 				}
 				contentPaths.append(systemFilePath);
+				contentPaths.append("*");
 				contentPaths.append("\n");
 			}
 		}

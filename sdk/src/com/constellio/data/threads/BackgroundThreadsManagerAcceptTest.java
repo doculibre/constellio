@@ -18,7 +18,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
@@ -40,7 +39,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		backgroundThreadsManager.close();
 	}
 
-	@SlowTest
+	//@SlowTest
 	@Test
 	public void givenSystemIsNotYetStartedThenWaitUntilStartedBeforeExecuting()
 			throws Exception {
@@ -60,7 +59,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	@SlowTest
+	//@SlowTest
 	@Test
 	public void whenConfiguringAThreadToExecuteAnActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
@@ -84,7 +83,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	@SlowTest
+	//@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToContinueOnExceptionThenContinueUntilAnErrorOccur()
 			throws InterruptedException {
@@ -102,7 +101,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	@SlowTest
+	//@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToStopOnExceptionThenStopAtTheFirstRuntimeException()
 			throws InterruptedException {

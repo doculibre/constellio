@@ -8,11 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -235,6 +231,8 @@ public class RMConfigs {
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
+
+
 
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",

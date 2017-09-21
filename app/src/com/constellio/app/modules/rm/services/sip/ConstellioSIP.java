@@ -30,6 +30,22 @@ import au.edu.apsr.mtk.base.MdWrap;
 import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
 
+import au.edu.apsr.mtk.base.*;
+import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
+import com.constellio.app.modules.rm.services.sip.ead.EAD;
+import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
+import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileCountReachedException;
+import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileLengthReachedException;
+import com.constellio.app.modules.rm.services.sip.model.SIPCategory;
+import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
+import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
+import com.constellio.app.modules.rm.services.sip.model.SIPObject;
+import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
+import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -253,12 +269,12 @@ public class ConstellioSIP {
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
 		metsFilename = sipFilename + ".xml";
 
-		try {
-			buildMetsFileAndBagDir(errors);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+        try {
+            buildMetsFileAndBagDir(errors);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
 		String slipFilename = sipFilename + ".xls";
 		File slipFile = new File(outputDir, slipFilename);
@@ -288,7 +304,7 @@ public class ConstellioSIP {
 	}
 
 	private void buildMetsFileAndBagDir(ValidationErrors errors)
-			throws IOException, METSException, SAXException, JDOMException {
+			throws IOException, METSException, SAXException, JDOMException, RecordDaoException.NoSuchRecordWithId {
 		File tempFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".temp");
 		tempFile.deleteOnExit();
 
