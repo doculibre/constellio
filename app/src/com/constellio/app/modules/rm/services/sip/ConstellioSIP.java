@@ -310,12 +310,7 @@ public class ConstellioSIP {
                 zipParentPath = getZipPath(sipFolder.getParentFolder());
             } else {
                 zipParentPath = getZipPath(sipFolder.getCategory());
-            }  errorsMap.put("sipObjectType", sipObject.getType());
-            errorsMap.put("sipObjectId", sipObject.getId());
-            errorsMap.put("sipObjectTitle", sipObject.getTitle());
-            errorsMap.put("sipFilesLength", sipFilesLength + documentFilesLength);
-            errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
-            errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+            }
 
             String folderId = sipFolder.getId();
             String zipXMLPath = zipParentPath + "/" + folderId + "-D.xml";
@@ -377,7 +372,12 @@ public class ConstellioSIP {
                 if (limitSize) {
                     Map<String, Object> errorsMap = new HashMap<>();
                     if (sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
-
+                        errorsMap.put("sipObjectType", sipObject.getType());
+                        errorsMap.put("sipObjectId", sipObject.getId());
+                        errorsMap.put("sipObjectTitle", sipObject.getTitle());
+                        errorsMap.put("sipFilesLength", sipFilesLength + documentFilesLength);
+                        errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
+                        errorsMap.put("lastDocumentIndex", currentDocumentIndex);
                         errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
                     } else if (sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
                         errorsMap.put("sipObjectType", sipObject.getType());
