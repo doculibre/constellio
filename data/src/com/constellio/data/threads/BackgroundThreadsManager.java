@@ -72,7 +72,7 @@ public class BackgroundThreadsManager implements StatefulService {
 		TimeUnit unit = TimeUnit.SECONDS;
 		Runnable command = getRunnableCommand(backgroundThreadConfiguration, executeEverySeconds);
 		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
-			scheduledExecutorService.scheduleAtFixedRate(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
+			scheduledExecutorService.scheduleWithFixedDelay(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
 		}
 	}
 
