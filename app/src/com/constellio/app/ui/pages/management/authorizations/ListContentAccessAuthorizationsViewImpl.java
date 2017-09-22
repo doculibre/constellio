@@ -19,6 +19,10 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 	private BreadcrumbTrail breadcrumbTrail;
 	
 	public ListContentAccessAuthorizationsViewImpl() {
+		initPresenter();
+	}
+
+	protected void initPresenter() {
 		presenter = new ListContentAccessAuthorizationsPresenter(this);
 	}
 

@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -403,12 +404,15 @@ public class RMRecordExportExtension extends RecordExportExtension {
 				Integer.toString(copyRetentionRule.getSemiActiveRetentionPeriod().getValue()));
 		map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_COMMENT, copyRetentionRule.getInactiveDisposalComment());
 		map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, copyRetentionRule.getInactiveDisposalType().getCode());
-		map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD,
-				Integer.toString(copyRetentionRule.getActiveRetentionPeriod().getValue()));
 		map.put(RetentionRuleImportExtension.ESSENTIAL, Boolean.toString(copyRetentionRule.isEssential()));
 		map.put(RetentionRuleImportExtension.COPY_RETENTION_RULE_ID, copyRetentionRule.getId());
 		map.put(RetentionRuleImportExtension.MEDIUM_TYPES, StringUtils.join(mediumTypesCodes, ','));
 		map.put(RetentionRuleImportExtension.IGNORE_ACTIVE_PERIOD, Boolean.toString(copyRetentionRule.isIgnoreActivePeriod()));
+		if(copyRetentionRule.getActiveRetentionPeriod().getRetentionType() == RetentionType.OPEN &&
+				copyRetentionRule.getOpenActiveRetentionPeriod() != null) {
+			map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD,
+					Integer.toString(copyRetentionRule.getOpenActiveRetentionPeriod()));
+		}
 
 		if (copyRetentionRule.getTypeId() != null) {
 			if(RetentionRuleImportExtension.RULES_TYPE_FOLDER.equals(ruleType))

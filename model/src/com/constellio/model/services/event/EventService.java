@@ -134,7 +134,7 @@ public class EventService implements Runnable {
                 try {
                     xmlStreamWriter.close();
                 } catch (XMLStreamException e) {
-                    throw new RuntimeException("Error while closing the IndentingXMLStreamWriter stream : with file name :" + fileName, e);
+                    throw new RuntimeException("Error while closing the XMLStreamWriter stream : with file name :" + fileName, e);
                 }
             }
             ioServices.closeQuietly(fileStreamToClose);

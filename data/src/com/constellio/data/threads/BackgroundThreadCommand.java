@@ -39,27 +39,27 @@ public class BackgroundThreadCommand implements Runnable {
 
 	@Override
 	public void run() {
-		while (!systemStarted.get() && !stopRequested.get()) {
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
+        while (!systemStarted.get() && !stopRequested.get()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-		if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
-				&& !stopRequested.get()) {
-			try {
-				tasksSemaphore.acquire();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				runAndHandleException();
-			} finally {
-				tasksSemaphore.release();
-			}
-		}
+        if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
+                && !stopRequested.get()) {
+            try {
+                tasksSemaphore.acquire();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                runAndHandleException();
+            } finally {
+                tasksSemaphore.release();
+            }
+        }
 	}
 
 	private boolean isBetweenInterval() {
