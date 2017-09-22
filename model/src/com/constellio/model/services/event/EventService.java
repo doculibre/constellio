@@ -22,7 +22,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
-import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jetbrains.annotations.NotNull;
@@ -101,22 +100,22 @@ public class EventService implements Runnable {
         removeOldEventFromSolr();
     }
 
-    private void closeFile(File file, IndentingXMLStreamWriter indentingXMLStreamWriter, LocalDateTime localDateTime, String fileName, OutputStream fileStreamToClose) {
+    private void closeFile(File file, XMLStreamWriter xmlStreamWriter, LocalDateTime localDateTime, String fileName, OutputStream fileStreamToClose) {
 
         File zipFile = null;
         InputStream zipFileInputStream = null;
-        boolean isindextingXMLStreamClose = false;
+        boolean isXmlStreamWriter = false;
         try {
-            if(indentingXMLStreamWriter != null) {
+            if(xmlStreamWriter != null) {
                 if(localDateTime != null) {
-                    setLastArchivedDayTime(localDateTime.withTime(0, 0,0,0));
+                    setLastArchivedDayTime(localDateTime.withTime(0, 0,0,0).plusDays(1).minusMillis(1));
                 }
-                indentingXMLStreamWriter.writeEndElement();
-                indentingXMLStreamWriter.writeEndDocument();
-                indentingXMLStreamWriter.flush();
+                xmlStreamWriter.writeEndElement();
+                xmlStreamWriter.writeEndDocument();
+                xmlStreamWriter.flush();
 
-                indentingXMLStreamWriter.close();
-                isindextingXMLStreamClose = true;
+                xmlStreamWriter.close();
+                isXmlStreamWriter = true;
                 zipFile = createNewFile(fileName + ".zip");
                 zipService.zip(zipFile, Arrays.asList(file));
 
@@ -131,9 +130,9 @@ public class EventService implements Runnable {
         } catch (FileNotFoundException e) {
             throw new RuntimeException("Error while zipping the file : " + fileName, e);
         } finally {
-            if(indentingXMLStreamWriter != null && !isindextingXMLStreamClose) {
+            if(xmlStreamWriter != null && !isXmlStreamWriter) {
                 try {
-                    indentingXMLStreamWriter.close();
+                    xmlStreamWriter.close();
                 } catch (XMLStreamException e) {
                     throw new RuntimeException("Error while closing the IndentingXMLStreamWriter stream : with file name :" + fileName, e);
                 }
@@ -179,11 +178,11 @@ public class EventService implements Runnable {
             int dayOfTheMonth = -1;
 
             OutputStream fileOutputStream = null;
-            XMLStreamWriter xmlStreamWriter;
-            IndentingXMLStreamWriter writer = null;
+            XMLStreamWriter xmlStreamWriter = null;
             LocalDateTime oldLocalDateTime;
             LocalDateTime localDateTime = null;
             String fileName = null;
+
             try
             {
                 while (searchResponseIterator.hasNext()) {
@@ -195,18 +194,16 @@ public class EventService implements Runnable {
                     try {
                         if (dayOfTheMonth != localDateTime.getDayOfMonth()) {
                             dayOfTheMonth = localDateTime.getDayOfMonth();
-                            closeFile(currentFile, writer, oldLocalDateTime, fileName, fileOutputStream);
+                            closeFile(currentFile, xmlStreamWriter, oldLocalDateTime, fileName, fileOutputStream);
                             fileName = dateAsFileName(localDateTime);
                             currentFile = createNewFile(fileName + ".xml");
                             fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
                             xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
-                            writer = new IndentingXMLStreamWriter(xmlStreamWriter);
-                            writer.setIndentStep("  ");
-                            writer.writeStartDocument(ENCODING, "1.0");
-                            writer.writeStartElement(EVENTS_XML_TAG);
+                            xmlStreamWriter.writeStartDocument(ENCODING, "1.0");
+                            xmlStreamWriter.writeStartElement(EVENTS_XML_TAG);
 
                         }
-                        writer.writeStartElement(EVENT_XML_TAG);
+                        xmlStreamWriter.writeStartElement(EVENT_XML_TAG);
 
                         MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
                         MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
@@ -225,12 +222,12 @@ public class EventService implements Runnable {
                                 }
 
                                 if (write) {
-                                    writer.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
+                                    xmlStreamWriter.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
                                 }
                             }
                         }
 
-                        writer.writeEndElement();
+                        xmlStreamWriter.writeEndElement();
 
                     } catch (Exception e) {
                         throw new RuntimeException("File not found for Event writing", e);
@@ -238,7 +235,7 @@ public class EventService implements Runnable {
                 }
             }
             finally {
-                closeFile(currentFile, writer, localDateTime, fileName, fileOutputStream);
+                closeFile(currentFile, xmlStreamWriter, localDateTime, fileName, fileOutputStream);
             }
 
 
