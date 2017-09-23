@@ -68,22 +68,20 @@ public class FolderValidator implements RecordValidator {
 			params.getValidationErrors().add(FolderValidator.class, FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE, parameters);
 		}
 		
-		if (mainCopyRuleIdEntered != null) {
-			if (retentionRule != null) {
-				boolean match = false;
-				for (CopyRetentionRule applicableCopyRule : folder.getApplicableCopyRules()) {
-					if (mainCopyRuleIdEntered.equals(applicableCopyRule.getId())) {
-						match = true;
-						break;
-					}
+		if (mainCopyRuleIdEntered != null && retentionRule != null) {
+			boolean match = false;
+			for (CopyRetentionRule applicableCopyRule : folder.getApplicableCopyRules()) {
+				if (mainCopyRuleIdEntered.equals(applicableCopyRule.getId())) {
+					match = true;
+					break;
 				}
-				if (!match) {
-					Map<String, Object> parameters = new HashMap<>();
-					parameters.put(MAIN_COPY_RULE, mainCopyRuleIdEntered.toString());
-					parameters.put(RULE_CODE, retentionRule.getCode());
-					
-					params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
-				}
+			}
+			if (!match) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put(MAIN_COPY_RULE, mainCopyRuleIdEntered.toString());
+				parameters.put(RULE_CODE, retentionRule.getCode());
+				
+				params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
 			}
 		}
 	}

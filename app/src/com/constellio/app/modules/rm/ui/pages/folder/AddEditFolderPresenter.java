@@ -688,9 +688,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		folderVO.set(Folder.APPLICABLE_COPY_RULES, applicableCopyRules);
 		if (applicableCopyRules.isEmpty()) {
 			folderVO.setMainCopyRuleEntered(null);
+			field.setFieldValue(null);
 		} else if (applicableCopyRules.size() == 1) {
 			CopyRetentionRule mainCopyRule = applicableCopyRules.get(0); 
 			folderVO.setMainCopyRuleEntered(mainCopyRule.getId());
+			field.setFieldValue(mainCopyRule.getId());
 		} else if (folder.getMainCopyRule() != null) {
 			boolean validEnteredCopyRule = false;
 			for (CopyRetentionRule applicableCopyRule : applicableCopyRules) {
@@ -701,6 +703,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 			if (!validEnteredCopyRule) {
 				folderVO.setMainCopyRuleEntered(null);
+				field.setFieldValue(null);
 			}
 		}
 		field.setFieldChoices(applicableCopyRules);
