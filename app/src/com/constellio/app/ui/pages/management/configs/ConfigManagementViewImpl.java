@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
+import com.vaadin.data.validator.AbstractStringValidator;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;

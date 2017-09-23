@@ -41,6 +41,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.*;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.*;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -449,7 +450,10 @@ public class RecordsImportServicesExecutor {
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
 
-		contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
+		if(modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+			contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
+		}
+
 		return skipped;
 	}
 

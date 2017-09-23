@@ -36,14 +36,15 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		this.appLayerFactory = appLayerFactory;
 
 		new SchemaAlterationFor7_5_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		
+
 		setupDisplayConfig(appLayerFactory);
 	}
-	
+
 	private void setupDisplayConfig(AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder tx = schemaDisplayManager.newTransactionBuilderFor(collection);
-		tx.add(schemaDisplayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.MANUAL_DISPOSAL_TYPE).withInputType(MetadataInputType.DROPDOWN));
+		tx.add(schemaDisplayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.MANUAL_DISPOSAL_TYPE)
+				.withInputType(MetadataInputType.DROPDOWN));
 	}
 
 	class SchemaAlterationFor7_5_3 extends MetadataSchemasAlterationHelper {
@@ -56,7 +57,10 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder defaultFolderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-			defaultFolderSchema.createUndeletable(Folder.MANUAL_DISPOSAL_TYPE).defineAsEnum(DisposalType.class).setDefaultRequirement(false).setEnabled(false);
+			if (!defaultFolderSchema.hasMetadata(Folder.MANUAL_DISPOSAL_TYPE)) {
+				defaultFolderSchema.createUndeletable(Folder.MANUAL_DISPOSAL_TYPE).defineAsEnum(DisposalType.class)
+						.setDefaultRequirement(false).setEnabled(false);
+			}
 		}
 
 	}

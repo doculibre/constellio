@@ -1,23 +1,27 @@
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
+import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
+
 
 	public static String decommissioningGroup = "decommissioning";
 
@@ -126,7 +130,7 @@ public class RMConfigs {
 				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
-		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31"));
+		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31").scriptedBy(EndYearValueCalculator.class));
 
 		//Nombre de jours devant précéder la date de fin d'année pour que celle-ci soit considérée dans le calcul des délais pour l'année en cours
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
@@ -235,6 +239,8 @@ public class RMConfigs {
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
+
+
 
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
@@ -497,5 +503,7 @@ public class RMConfigs {
 	public String getYearEndDate() {
 		return manager.getValue(YEAR_END_DATE);
 	}
+
+
 
 }

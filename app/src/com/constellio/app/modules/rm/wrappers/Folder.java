@@ -35,6 +35,7 @@ public class Folder extends RMObject {
 	public static final String CATEGORY_ENTERED = "categoryEntered";
 	public static final String CATEGORY = "category";
 	public static final String CATEGORY_CODE = "categoryCode";
+	public static final String MAIN_COPY_RULE_CODE = "mainCopyRuleCode";
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
 	public static final String MAIN_COPY_RULE_ID_ENTERED = "mainCopyRuleIdEntered";
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
