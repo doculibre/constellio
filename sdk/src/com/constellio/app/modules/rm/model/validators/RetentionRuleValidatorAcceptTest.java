@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.model.validators;
 
 import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG;
 import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
 import static com.constellio.model.entities.schemas.validation.RecordMetadataValidator.METADATA_CODE;
 import static com.constellio.sdk.tests.TestUtils.englishMessage;
 import static com.constellio.sdk.tests.TestUtils.englishMessages;
@@ -12,7 +12,7 @@ import static com.constellio.sdk.tests.TestUtils.frenchMessage;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,14 +33,21 @@ import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
@@ -48,11 +55,19 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 	//	RetentionRuleValidator validator = new RetentionRuleValidator();
 	RetentionRuleValidator validator;
-	@Mock Metadata uniformSubdivisionMetadata, categoriesMetadata, copyRetentionRuleMetadata;
+	@Mock Metadata uniformSubdivisionMetadata, categoriesMetadata, copyRetentionRuleMetadata, documentCopyRetentionRuleMetadata;
 	@Mock MetadataSchema schema;
 
 	@Mock RetentionRule retentionRule;
+	@Mock Record retentionRuleWrappedRecord;
+	@Mock Record copyOfRetentionRuleWrappedRecord;
 	@Mock ConfigProvider configProvider;
+	@Mock SearchServices searchServices;
+	@Mock MetadataSchemaTypes types;
+	@Mock MetadataSchemaType foldersSchemaType;
+	@Mock MetadataSchemaType documentsSchemaType;
+	@Mock Metadata folderMainCopyRuleRuleMetadata;
+	@Mock Metadata documentMainCopyRuleRuleMetadata;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 	CopyRetentionRule copy0_analogicPrincipal = copyBuilder.newCopyRetentionRule();
@@ -63,7 +78,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 	CopyRetentionRule docCopy2_principal = copyBuilder.newCopyRetentionRule();
 
 	ValidationErrors errors = new ValidationErrors();
-	private List<RetentionRuleDocumentType> types;
+	private List<RetentionRuleDocumentType> retentionRuleDocumentTypes;
 
 	SessionContext sessionContext;
 
@@ -87,13 +102,31 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 				.thenReturn(Arrays.asList(copy0_analogicPrincipal, copy1_numericPrincipal, copy2_secondary));
 		when(retentionRule.getDocumentCopyRetentionRules()).thenReturn(Arrays.asList(docCopy1_principal, docCopy2_principal));
 
-		types = Arrays.asList(
+		retentionRuleDocumentTypes = Arrays.asList(
 				new RetentionRuleDocumentType("firstDocumentTypeId", DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType("secondDocumentTypeId", DisposalType.DESTRUCTION)
 		);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
+		when(retentionRule.getWrappedRecord()).thenReturn(retentionRuleWrappedRecord);
+		
+		when(retentionRuleWrappedRecord.getSchemaCode()).thenReturn(RetentionRule.DEFAULT_SCHEMA);
+		when(copyOfRetentionRuleWrappedRecord.getSchemaCode()).thenReturn(RetentionRule.DEFAULT_SCHEMA);
+		
+		when(retentionRuleWrappedRecord.isSaved()).thenReturn(false);
+		when(retentionRuleWrappedRecord.getCopyOfOriginalRecord()).thenReturn(copyOfRetentionRuleWrappedRecord);
+		
 		when(configProvider.get(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED)).thenReturn(true);
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(false);
+		
+		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(0L);
+		
+		when(types.getSchemaType(Folder.SCHEMA_TYPE)).thenReturn(foldersSchemaType);
+		when(types.getSchemaType(Document.SCHEMA_TYPE)).thenReturn(documentsSchemaType);
+		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
+		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.DOCUMENT_COPY_RETENTION_RULES)).thenReturn(documentCopyRetentionRuleMetadata);
+		
+		when(foldersSchemaType.getMetadata(Folder.MAIN_COPY_RULE)).thenReturn(folderMainCopyRuleRuleMetadata);
+		when(foldersSchemaType.getMetadata(Document.MAIN_COPY_RULE)).thenReturn(documentMainCopyRuleRuleMetadata);
 
 		copy0_analogicPrincipal.setCode("Copy1");
 		copy0_analogicPrincipal.setMediumTypeIds(Arrays.asList("type1", "type2"));
@@ -131,15 +164,13 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		docCopy2_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		docCopy2_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(4));
 		docCopy2_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
-
-		when(schema.getMetadata(COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
 	}
 
 	@Test
 	public void givenValidWhenValidateThenNoErrors()
 			throws Exception {
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 
@@ -151,7 +182,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		when(uniformSubdivisionMetadata.isEnabled()).thenReturn(false);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 	}
 
@@ -159,7 +190,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 	public void givenNoUniformSubdivisionAndNoCategoryWhenValidateThenErrorCode()
 			throws Exception {
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 	}
@@ -171,7 +202,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(new ArrayList<String>());
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(true);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 
@@ -184,7 +215,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(Arrays.asList("administrativeUnitId"));
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(false);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 
@@ -197,7 +228,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(new ArrayList<String>());
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(false);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_noAdministrativeUnitsOrResponsibles");
@@ -213,7 +244,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(Arrays.asList("administrativeUnitId"));
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(true);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 
@@ -226,7 +257,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(Arrays.asList("administrativeUnitId"));
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(false);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors.getValidationErrors()).isEmpty();
 
@@ -239,7 +270,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(new ArrayList<String>());
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(false);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors))
 				.containsOnly("RetentionRuleValidator_" + NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG);
@@ -257,7 +288,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getAdministrativeUnits()).thenReturn(Arrays.asList("administrativeUnitId"));
 		when(retentionRule.isResponsibleAdministrativeUnits()).thenReturn(true);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors))
 				.containsOnly("RetentionRuleValidator_" + MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG);
@@ -363,7 +394,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy0_analogicPrincipal.setCopyType(null);
 		copy2_secondary.setCopyType(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -392,7 +423,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		copy2_secondary.setMediumTypeIds(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -425,7 +456,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setActiveRetentionPeriod(null);
 		copy2_secondary.setActiveRetentionPeriod(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 
@@ -438,7 +469,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getCopyRetentionRules())
 				.thenReturn(Arrays.asList(copy2_secondary));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 	}
@@ -450,7 +481,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getCopyRetentionRules())
 				.thenReturn(Arrays.asList(copy2_secondary));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_" + RetentionRuleValidator.MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_COPY_RETENTON_RULE);
@@ -461,7 +492,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 	public void givenCopyRetentionRuleNotNeededAndHasNoPrincipalCopyRetentionRuleThenNoError() {
 		when(configProvider.get(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED)).thenReturn(true);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 	}
@@ -473,7 +504,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setSemiActiveRetentionPeriod(null);
 		copy2_secondary.setSemiActiveRetentionPeriod(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 
@@ -486,7 +517,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setInactiveDisposalType(null);
 		copy2_secondary.setInactiveDisposalType(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -509,7 +540,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		copy2_secondary.setCopyType(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -530,7 +561,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy1_numericPrincipal));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_mustSpecifyOneSecondaryRetentionRule");
@@ -544,7 +575,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy2_secondary));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_mustSpecifyAtLeastOnePrincipalRetentionRule");
@@ -559,7 +590,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getCopyRetentionRules())
 				.thenReturn(Arrays.asList(copy2_secondary, copy2_secondary, copy0_analogicPrincipal));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_mustSpecifyOneSecondaryRetentionRule");
@@ -575,13 +606,13 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		copy2_secondary.setInactiveDisposalType(DisposalType.DEPOSIT);
 
-		List<RetentionRuleDocumentType> types = Arrays.asList(
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = Arrays.asList(
 				new RetentionRuleDocumentType("zeDocumentType", DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType("otherDocumentType", null)
 		);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 
@@ -595,13 +626,13 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setInactiveDisposalType(DisposalType.SORT);
 		copy2_secondary.setInactiveDisposalType(DisposalType.DESTRUCTION);
 
-		List<RetentionRuleDocumentType> types = Arrays.asList(
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = Arrays.asList(
 				new RetentionRuleDocumentType("zeDocumentType", DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType("otherDocumentType", null)
 		);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(1)).has(missingDocumentTypeDisposalErrorAtIndex(1));
 		assertThat(frenchMessages(errors)).containsOnly("Le mode de disposition n'a pas été configuré pour un type de document.");
@@ -615,13 +646,13 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy0_analogicPrincipal.setInactiveDisposalType(DisposalType.DEPOSIT);
 		copy1_numericPrincipal.setInactiveDisposalType(DisposalType.DESTRUCTION);
 
-		List<RetentionRuleDocumentType> types = Arrays.asList(
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = Arrays.asList(
 				new RetentionRuleDocumentType("zeDocumentType", DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType("otherDocumentType", DisposalType.DESTRUCTION)
 		);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 
@@ -635,13 +666,13 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		copy1_numericPrincipal.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		copy2_secondary.setInactiveDisposalType(DisposalType.SORT);
 
-		List<RetentionRuleDocumentType> types = Arrays.asList(
+		List<RetentionRuleDocumentType> retentionRuleDocumentTypes = Arrays.asList(
 				new RetentionRuleDocumentType("zeDocumentType", DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType("otherDocumentType", DisposalType.SORT)
 		);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.MISSING_DOCUMENT_TYPE_DISPOSAL);
@@ -655,7 +686,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(copy1_numericPrincipal);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(copy2_secondary);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_" + RetentionRuleValidator.PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_IN_FOLDER_RULE,
@@ -671,7 +702,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.SECONDARY_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
@@ -685,7 +716,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
@@ -698,7 +729,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		givenValidDocumentScope();
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(errors).has(size(0));
 	}
@@ -708,9 +739,9 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 			throws Exception {
 		givenValidDocumentScope();
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
-		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
+		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_" + RetentionRuleValidator.DOCUMENT_TYPES_IN_DOCUMENT_RULE);
@@ -725,7 +756,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		docCopy1_principal.setTypeId((String) null);
 		docCopy2_principal.setTypeId((String) null);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -753,7 +784,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		givenValidDocumentScope();
 		when(retentionRule.getDocumentCopyRetentionRules()).thenReturn(new ArrayList<CopyRetentionRule>());
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_DOCUMENT_COPY_RETENTON_RULE);
@@ -766,7 +797,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		docCopy2_principal.setCopyType(CopyType.SECONDARY);
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.MUST_NOT_SPECIFY_SECONDARY_DOCUMENT_COPY_RETENTON_RULE);
@@ -781,7 +812,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		givenValidDocumentScope();
 		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy0_analogicPrincipal));
 
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
 				RetentionRuleValidator.DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES);
@@ -795,7 +826,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		copy0_analogicPrincipal.setTypeId("zeType");
 		copy1_numericPrincipal.setTypeId("zeType");
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 		assertThat(extractingSimpleCode(errors)).containsOnly(
 				"RetentionRuleValidator_" + RetentionRuleValidator.PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED);
 		assertThat(frenchMessages(errors)).containsOnly("Un exemplaire principal sans type est requis");
@@ -807,7 +838,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		copy0_analogicPrincipal.setTypeId("zeType");
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 		assertThat(errors.getValidationErrors()).isEmpty();
 
 	}
@@ -817,7 +848,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		copy2_secondary.setTypeId("zeType");
-		validator.validate(retentionRule, schema, configProvider, errors);
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
@@ -834,6 +865,43 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getDocumentTypesDetails()).thenReturn(new ArrayList<RetentionRuleDocumentType>());
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(copy1_numericPrincipal);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(copy2_secondary);
+	}
+	
+	@Test
+	public void givenSavedRetentionRuleWithDeletedCopyRuleWhenFoldersLinkedThenValidationError() {
+		when(retentionRuleWrappedRecord.isSaved()).thenReturn(true);
+		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(1L);
+		
+		when(types.getMetadata(RetentionRule.SCHEMA_TYPE + "_" + RetentionRule.COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
+		when(types.getMetadata(RetentionRule.SCHEMA_TYPE + "_" + RetentionRule.DOCUMENT_COPY_RETENTION_RULES)).thenReturn(documentCopyRetentionRuleMetadata);
+		
+		List<Object> originalCopyRetentionRules = new ArrayList<>();
+		originalCopyRetentionRules.addAll(Arrays.asList(copy0_analogicPrincipal, copy1_numericPrincipal, copy2_secondary));
+		
+		List<Object> originalDocumentCopyRetentionRules = new ArrayList<>();
+		originalDocumentCopyRetentionRules.addAll(Arrays.asList(docCopy1_principal, docCopy2_principal));
+		
+		when(copyOfRetentionRuleWrappedRecord.getList(copyRetentionRuleMetadata)).thenReturn(originalCopyRetentionRules);
+		when(copyOfRetentionRuleWrappedRecord.getList(documentCopyRetentionRuleMetadata)).thenReturn(originalDocumentCopyRetentionRules);
+		
+		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy0_analogicPrincipal, copy2_secondary));
+		when(retentionRule.getDocumentCopyRetentionRules()).thenReturn(Arrays.asList(docCopy1_principal));
+		
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
+
+		verify(searchServices, times(2)).getResultsCount(any(LogicalSearchQuery.class));
+		
+		assertThat(errors.getValidationErrors().size()).isEqualTo(2);
+	}
+	
+	@Test
+	public void givenSavedRetentionRuleWhenNoDeletedCopyRuleThenNoSearch() {
+		when(retentionRuleWrappedRecord.isSaved()).thenReturn(true);
+		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(1L);
+		
+		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
+		
+		verify(searchServices, never()).getResultsCount(any(LogicalSearchQuery.class));
 	}
 
 	private Condition<? super ValidationErrors> copyRetentionRuleFieldRequiredError(String index, String field) {
