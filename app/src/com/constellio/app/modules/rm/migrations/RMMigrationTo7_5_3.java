@@ -45,6 +45,8 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		SchemaTypesDisplayTransactionBuilder tx = schemaDisplayManager.newTransactionBuilderFor(collection);
 		tx.add(schemaDisplayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.MANUAL_DISPOSAL_TYPE)
 				.withInputType(MetadataInputType.DROPDOWN));
+
+		schemaDisplayManager.execute(tx.build());
 	}
 
 	class SchemaAlterationFor7_5_3 extends MetadataSchemasAlterationHelper {
