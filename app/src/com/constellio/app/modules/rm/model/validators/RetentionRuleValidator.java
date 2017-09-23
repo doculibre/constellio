@@ -197,7 +197,7 @@ public class RetentionRuleValidator implements RecordValidator {
 					// The copy was deleted, let's see if it was in use
 					if (deleted) {
 						MetadataSchemaType foldersSchemaType = types.getSchemaType(Folder.SCHEMA_TYPE);
-						Metadata folderMainCopyRuleRuleMetadata = foldersSchemaType.getMetadata(Folder.MAIN_COPY_RULE);
+						Metadata folderMainCopyRuleRuleMetadata = foldersSchemaType.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE);
 						LogicalSearchQuery usedByFolderQuery = new LogicalSearchQuery();
 						usedByFolderQuery.setCondition(from(foldersSchemaType).where(folderMainCopyRuleRuleMetadata).is(originalCopyRetentionRule));
 						long folderResultsCount = searchServices.getResultsCount(usedByFolderQuery);
@@ -291,7 +291,7 @@ public class RetentionRuleValidator implements RecordValidator {
 					// The copy was deleted, let's see if it was in use
 					if (deleted) {
 						MetadataSchemaType documentsSchemaType = types.getSchemaType(Document.SCHEMA_TYPE);
-						Metadata documentMainCopyRuleRuleMetadata = documentsSchemaType.getMetadata(Document.MAIN_COPY_RULE);
+						Metadata documentMainCopyRuleRuleMetadata = documentsSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE);
 						LogicalSearchQuery usedByDocumentQuery = new LogicalSearchQuery();
 						usedByDocumentQuery.setCondition(from(documentsSchemaType).where(documentMainCopyRuleRuleMetadata).is(originalCopyRetentionRule));
 						long documentResultsCount = searchServices.getResultsCount(usedByDocumentQuery);
