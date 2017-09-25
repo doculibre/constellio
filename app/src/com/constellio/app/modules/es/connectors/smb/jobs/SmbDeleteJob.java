@@ -34,21 +34,20 @@ public class SmbDeleteJob extends SmbConnectorJob {
             forceDelete = true;
         }
         try {
-            SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
-            if(forceDelete || smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
-                ConnectorDocument documentToDelete = (ConnectorDocument) jobParams.getConnector().getCachedConnectorDocument(url);
-                if (documentToDelete != null) {
-                    jobParams.getEventObserver().deleteEvents(documentToDelete);
+            if (forceDelete) {
+                deleteByUrl(url, false);
+            } else {
+                SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
+                if (smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
+                    deleteByUrl(url, true);
                 }
-                deleteByUrl(url);
-
             }
         } catch (Exception e) {
             this.connector.getLogger().errorUnexpected(e);
         }
     }
 
-    public void deleteByUrl(String url) {
+    private void deleteByUrl(String url, boolean withChildren) {
         ModelLayerFactory modelLayerFactory = jobParams.getEventObserver().getModelLayerFactory();
         RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
         TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
@@ -56,7 +55,7 @@ public class SmbDeleteJob extends SmbConnectorJob {
         String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
         connectorUrl = ClientUtils.escapeQueryChars(connectorUrl);
-        if (StringUtils.endsWith(url,"/")) {
+        if (StringUtils.endsWith(url,"/") && withChildren) {
             modifiableSolrParams.set("q", "connectorUrl_s:" + connectorUrl + "*");
         } else {
             modifiableSolrParams.set("q", "connectorUrl_s:" + connectorUrl);
