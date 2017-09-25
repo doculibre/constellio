@@ -17,7 +17,6 @@ import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -42,7 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -74,13 +73,14 @@ public class ConnectorSmb extends Connector {
 	private SmbRecordService smbRecordService;
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbUrlComparator urlComparator;
+	private final Object cacheMutex = new Object();
 	private Map<String, ConnectorDocument> urlsCache;
 	private Set traversedUrls;
 	private AtomicBoolean checkTraversedUrls = new AtomicBoolean(false);
 
 	private String connectorId;
 
-	private final Set<String> duplicateUrls = new ConcurrentSkipListSet<>();
+	private final Set<String> duplicateUrls = Collections.synchronizedSet(new HashSet<String>());
 
 	public ConnectorSmb() {
 		urlComparator = new SmbUrlComparator();
@@ -93,7 +93,7 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	protected void initialize(Record instanceRecord) {
-		this.urlsCache = Collections.synchronizedMap(new HashMap<String, ConnectorDocument>());
+		this.urlsCache = new ConcurrentHashMap<>();
 		this.connectorId = instanceRecord.getId();
 		this.connectorInstance = getEs().wrapConnectorSmbInstance(instanceRecord);
 		this.smbUtils = new ConnectorSmbUtils();
@@ -121,9 +121,17 @@ public class ConnectorSmb extends Connector {
 		this.traversedUrls = Collections.synchronizedSet(new HashSet<>());
 	}
 
-	private synchronized void reloadCache() {
-		this.urlsCache.clear();
+	private void reloadCache() {
+		synchronized (cacheMutex) {
+			this.urlsCache.clear();
 
+			loadCacheFolders();
+
+			loadCacheDocuments();
+		}
+	}
+
+	private void loadCacheFolders() {
 		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
@@ -134,11 +142,16 @@ public class ConnectorSmb extends Connector {
 			Record next = smbFoldersIterator.next();
 			urlsCache.put(next.get(Schemas.URL).toString(), es.wrapConnectorDocument(next));
 		}
+	}
+
+	private void loadCacheDocuments() {
+		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url(),
 				es.connectorSmbDocument.connectorUrl(),	es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
 				es.connectorSmbDocument.lastModified(),	es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
-		logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
 				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId))
 				.setReturnedMetadatas(returnedMetadatasFilter);
 		SearchResponseIterator<Record> smbDocumentsIterator = searchServices.recordsIterator(logicalSearchQuery, 50000);
@@ -149,11 +162,13 @@ public class ConnectorSmb extends Connector {
 	}
 
 	public Set<String> getDuplicateUrls() {
-		return duplicateUrls;
+		return Collections.unmodifiableSet(duplicateUrls);
 	}
 
-	public synchronized ConnectorDocument getCachedConnectorDocument(String url) {
-		return this.urlsCache.get(url);
+	public ConnectorDocument getCachedConnectorDocument(String url) {
+		synchronized (cacheMutex) {
+			return this.urlsCache.get(url);
+		}
 	}
 
 	@Override
@@ -229,7 +244,10 @@ public class ConnectorSmb extends Connector {
 		}
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty() && checkTraversedUrls.get()) {
-			Collection urlsNotFound = new HashSet(this.urlsCache.keySet());
+			Collection urlsNotFound = new HashSet();
+			synchronized (cacheMutex) {
+				urlsNotFound.addAll(this.urlsCache.keySet());
+			}
 			urlsNotFound.removeAll(this.traversedUrls);
 			for (Object urlNotFound : urlsNotFound) {
 				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, urlNotFound.toString(), "");
@@ -335,7 +353,7 @@ public class ConnectorSmb extends Connector {
 			throw new IllegalStateException("Must call setEs(es) before getInputStream()");
 		}
 
-		ConnectorSmbInstance connectorInstance = es
+		connectorInstance = es
 				.getConnectorSmbInstance(connectorId);
 
 		NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication(
@@ -348,7 +366,7 @@ public class ConnectorSmb extends Connector {
 		}
 	}
 
-	public synchronized void markUrlAsFound(String url) {
+	public void markUrlAsFound(String url) {
 		this.traversedUrls.add(url);
 	}
 }
