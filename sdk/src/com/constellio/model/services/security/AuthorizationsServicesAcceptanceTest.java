@@ -1,6 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.BORROW_FOLDER;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
@@ -50,10 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.security.roles.RolesManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,10 +59,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
@@ -1874,26 +1871,30 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 		auth1 = add(authorizationForUser(bob).on(FOLDER1).givingReadAccess());
 
+		User bob = users.bobIn(zeCollection);
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(users.bobIn(zeCollection));
+				.filteredWithUser(bob);
 		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+				.filteredWithUser(bob, PERMISSION_OF_ROLE1);
 		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(users.bobIn(zeCollection), asList(Role.READ, PERMISSION_OF_ROLE1));
+				.filteredWithUser(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
 
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
 		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(0);
 		assertThat(searchServices.getResultsCount(queryWithMultipleFilters)).isEqualTo(0);
 
-		auth2 = add(authorizationForUser(bob).on(FOLDER1).giving(ROLE1));
+		auth2 = add(authorizationForUser(bob.getUsername()).on(FOLDER1).giving(ROLE1));
 		for (RecordVerifier verifyRecord : $(FOLDER1)) {
 			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1)
-					.containsOnly(bob);
+					.containsOnly(bob.getUsername());
 		}
+
+		recordServices.refresh(bob);
+
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
 		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(1);
 		assertThat(searchServices.getResultsCount(queryWithMultipleFilters)).isEqualTo(1);
