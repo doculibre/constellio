@@ -253,7 +253,10 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 		newDocuments.add(solrInputDocument);
 		if (isNotLogicallyDeleted(newRecord) && supportIndexes(newRecord)) {
-			newDocuments.add(buildActiveIndexSolrDocument(newRecord.getId(), collection));
+			String schema = (String) newRecord.getFields().get("schema_s");
+			if (schema == null || !schema.startsWith("event_")) {
+				newDocuments.add(buildActiveIndexSolrDocument(newRecord.getId(), collection));
+			}
 		}
 
 		if (hasNoVersion(newRecord) && supportIndexes(newRecord)) {
@@ -381,7 +384,12 @@ public class BigVaultRecordDao implements RecordDao {
 			List<SolrInputDocument> inputDocuments = new ArrayList<>();
 			for (RecordDTO recordDTO : batchOfIds) {
 				List<String> ancestors = getRecordAncestors(recordDTO);
-				inputDocuments.add(buildReferenceCounterSolrDocument(recordDTO.getId(), collection, 0.0, ancestors));
+
+				String schema = (String) recordDTO.getFields().get("schema_s");
+				if (schema == null || !schema.startsWith("event_")) {
+					inputDocuments.add(buildReferenceCounterSolrDocument(recordDTO.getId(), collection, 0.0, ancestors));
+				}
+
 			}
 
 			BigVaultServerTransaction batchTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
@@ -461,7 +469,18 @@ public class BigVaultRecordDao implements RecordDao {
 			Map<String, Double> recordsInTransactionRefCounts, Object collection, KeyListMap<String, String> recordsAncestors,
 			List<RecordDTO> fullyAddUpdatedRecord) {
 
-		Set<String> newRecordIds = getIdsOfNewRecords(fullyAddUpdatedRecord);
+		Set<String> newRecordIds = new HashSet<>();
+		Set<String> eventsIds = new HashSet<>();
+		for (RecordDTO recordDTO : fullyAddUpdatedRecord) {
+			String schema = (String) recordDTO.getFields().get("schema_s");
+			if (schema == null || !schema.startsWith("event_")) {
+				if (recordDTO.getVersion() == -1) {
+					newRecordIds.add(recordDTO.getId());
+				}
+			} else {
+				eventsIds.add(recordDTO.getId());
+			}
+		}
 
 		List<SolrInputDocument> refCountSolrDocuments = new ArrayList<>();
 
@@ -475,27 +494,17 @@ public class BigVaultRecordDao implements RecordDao {
 				value = 0.0;
 			}
 
-			if (newRecordIds.contains(id)) {
-				List<String> ancestors = recordsAncestors.get(id);
-				refCountSolrDocuments.add(buildReferenceCounterSolrDocument(id, collection, value, ancestors));
-			} else {
-				List<String> ancestors = recordsAncestors.contains(id) ? recordsAncestors.get(id) : null;
-				refCountSolrDocuments.add(updateReferenceCounterSolrDocument(id, value, ancestors));
+			if (!eventsIds.contains(id)) {
+				if (newRecordIds.contains(id)) {
+					List<String> ancestors = recordsAncestors.get(id);
+					refCountSolrDocuments.add(buildReferenceCounterSolrDocument(id, collection, value, ancestors));
+				} else {
+					List<String> ancestors = recordsAncestors.contains(id) ? recordsAncestors.get(id) : null;
+					refCountSolrDocuments.add(updateReferenceCounterSolrDocument(id, value, ancestors));
+				}
 			}
 		}
 		return refCountSolrDocuments;
-	}
-
-	private Set<String> getIdsOfNewRecords(List<RecordDTO> fullyAddUpdatedRecord) {
-		Set<String> ids = new HashSet<>();
-
-		for (RecordDTO recordDTO : fullyAddUpdatedRecord) {
-			if (recordDTO.getVersion() == -1) {
-				ids.add(recordDTO.getId());
-			}
-		}
-
-		return ids;
 	}
 
 	private List<SolrInputDocument> incrementReferenceCountersOutOfTransactionInSolr(
@@ -753,7 +762,7 @@ public class BigVaultRecordDao implements RecordDao {
 			List initialList = ensureList(initialValue);
 			List currentList = ensureList(currentValue);
 			List newReferences = LangUtils.compare(initialList, currentList).getNewItems();
-			
+
 			for (Object referenceId : newReferences) {
 				if (!recordsInTransactionRefCounts.containsKey(referenceId)) {
 					if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
