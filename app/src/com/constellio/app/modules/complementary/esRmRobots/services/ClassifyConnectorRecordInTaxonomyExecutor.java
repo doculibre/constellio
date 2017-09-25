@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -91,7 +92,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	boolean dryRun;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
+													 AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -183,6 +184,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private void classifyConnectorFolderInTaxonomy() {
 
 		String fullConnectorDocPath = connectorFolder.getURL();
+		String legacyId = fullConnectorDocPath;
+		if(connectorFolder.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE+"_")) {
+			legacyId = connectorFolder.get(ConnectorSmbFolder.CONNECTOR_URL);
+		}
 		if (params.getInTaxonomy() != null) {
 
 			Taxonomy targetTaxonomy = modelLayerFactory.getTaxonomiesManager()
@@ -193,24 +198,24 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			String metadataCode = conceptType.getDefaultSchema().getCode() + "_" + Schemas.CODE.getLocalCode();
 			Metadata codeMetadata = conceptType.getMetadata(metadataCode);
 
-			classifyForPath(fullConnectorDocPath, targetTaxonomy, codeMetadata);
+			classifyForPath(fullConnectorDocPath, targetTaxonomy, codeMetadata, legacyId);
 		} else {
-			processFolderWithoutTaxonomy(connectorFolder.getTitle(), fullConnectorDocPath);
+			processFolderWithoutTaxonomy(connectorFolder.getTitle(), legacyId);
 		}
 	}
 
-	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata) {
+	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata, String legacyId) {
 
 		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices)
 				.extractInfoFromPath(fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
 
 		if (recordPathInfo != null) {
-			processFolder(fullConnectorDocPath, targetTaxonomy, codeMetadata, recordPathInfo);
+			processFolder(legacyId, targetTaxonomy, codeMetadata, recordPathInfo);
 		}
 	}
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
-			ClassifiedRecordPathInfo recordUrlInfo) {
+							   ClassifiedRecordPathInfo recordUrlInfo) {
 		LOGGER.info("Process Folder : [" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode()
 				+ ", " + recordUrlInfo + "]");
 		String folderName = recordUrlInfo.getLastPathSegment();
@@ -639,7 +644,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder, List<ConnectorDocument<?>> documentsRecords,
-			Boolean majorVersions) {
+															 Boolean majorVersions) {
 		Map<String, ClassifiedDocument> createdRecordsByUrls = new HashMap<>();
 		for (ConnectorDocument document : documentsRecords) {
 			try {
@@ -657,7 +662,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		ContentVersionDataSummary newVersionDataSummary = null;
 		try {
-			Document document = rm.getDocumentByLegacyId(connectorDocument.getUrl());
+			String fullUrl;
+			if(connectorDocument.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE+"_")) {
+				fullUrl = connectorDocument.get(ConnectorSmbDocument.CONNECTOR_URL);
+			} else {
+				fullUrl = connectorDocument.getURL();
+			}
+			Document document = rm.getDocumentByLegacyId(fullUrl);
 
 			if (document == null) {
 				String documentTypeId = params.getDocumentTypeId();
@@ -667,7 +678,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					document = rm.newDocument();
 				}
 				document.setCreatedByRobot(robotId);
-				document.setLegacyId(connectorDocument.getUrl());
+				document.setLegacyId(fullUrl);
 			}
 			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			document.setTitle(connectorDocument.getTitle());
@@ -732,7 +743,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
-			ContentVersionDataSummary newVersionDataSummary, Document document) {
+									  ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
 				document.getContent().updateContentWithVersionAndName(currentUser, newVersionDataSummary, versionNumber,
