@@ -85,7 +85,7 @@ public class SmbRecordService {
 		Metadata size = es.connectorSmbDocument.size();
 		Metadata lastModified = es.connectorSmbDocument.lastModified();
 
-		ConnectorDocument record = connector.getCache().get(url);
+		ConnectorDocument record = connector.getCachedConnectorDocument(url);
 		if (record == null) {
 			return null;
 		}

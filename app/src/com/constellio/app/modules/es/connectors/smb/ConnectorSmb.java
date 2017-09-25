@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -74,6 +75,8 @@ public class ConnectorSmb extends Connector {
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbUrlComparator urlComparator;
 	private Map<String, ConnectorDocument> urlsCache;
+	private Set traversedUrls;
+	private AtomicBoolean checkTraversedUrls = new AtomicBoolean(false);
 
 	private String connectorId;
 
@@ -114,9 +117,11 @@ public class ConnectorSmb extends Connector {
 
 		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
 				updater);
+
+		this.traversedUrls = Collections.synchronizedSet(new HashSet<>());
 	}
 
-	private void reloadCache() {
+	private synchronized void reloadCache() {
 		this.urlsCache.clear();
 
 		ModelLayerFactory modelLayerFactory = es.getAppLayerFactory().getModelLayerFactory();
@@ -147,8 +152,8 @@ public class ConnectorSmb extends Connector {
 		return duplicateUrls;
 	}
 
-	public Map<String, ConnectorDocument> getCache() {
-		return this.urlsCache;
+	public synchronized ConnectorDocument getCachedConnectorDocument(String url) {
+		return this.urlsCache.get(url);
 	}
 
 	@Override
@@ -175,6 +180,7 @@ public class ConnectorSmb extends Connector {
 		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
 		jobsQueue.clear();
+		checkDuplicates();
 		reloadCache();
 		queueSeeds();
 	}
@@ -222,12 +228,14 @@ public class ConnectorSmb extends Connector {
 			jobs.add(queuedJob);
 		}
 
-		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
-			for (String url : urlsCache.keySet()) {
-				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
+		if (jobsQueue.isEmpty() && jobs.isEmpty() && checkTraversedUrls.get()) {
+			Collection urlsNotFound = new HashSet(this.urlsCache.keySet());
+			urlsNotFound.removeAll(this.traversedUrls);
+			for (Object urlNotFound : urlsNotFound) {
+				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, urlNotFound.toString(), "");
 				jobs.add(deleteJob);
 			}
-			urlsCache.clear();
+			this.checkTraversedUrls.set(false);
 		}
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
@@ -235,6 +243,8 @@ public class ConnectorSmb extends Connector {
 			changeTraversalCodeToMarkEndOfTraversal();
 			reloadCache();
 			queueSeeds();
+			this.traversedUrls.clear();
+			this.checkTraversedUrls.set(true);
 		}
 		return jobs;
 	}
@@ -338,7 +348,7 @@ public class ConnectorSmb extends Connector {
 		}
 	}
 
-	public void markUrlAsFound(String url) {
-		urlsCache.remove(url);
+	public synchronized void markUrlAsFound(String url) {
+		this.traversedUrls.add(url);
 	}
 }

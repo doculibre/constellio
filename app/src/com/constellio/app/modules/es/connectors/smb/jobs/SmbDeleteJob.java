@@ -36,7 +36,7 @@ public class SmbDeleteJob extends SmbConnectorJob {
         try {
             SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url, false);
             if(forceDelete || smbFileDTO.getStatus() == SmbFileDTO.SmbFileDTOStatus.DELETE_DTO) {
-                ConnectorDocument documentToDelete = (ConnectorDocument) jobParams.getConnector().getCache().get(url);
+                ConnectorDocument documentToDelete = (ConnectorDocument) jobParams.getConnector().getCachedConnectorDocument(url);
                 if (documentToDelete != null) {
                     jobParams.getEventObserver().deleteEvents(documentToDelete);
                 }
