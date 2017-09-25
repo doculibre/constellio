@@ -1,5 +1,6 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.BORROW_FOLDER;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
@@ -49,6 +50,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.roles.RolesManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1862,6 +1867,36 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAllAuthorizations().isEmpty();
 
+	}
+
+	@Test
+	public void givenMultipleUserFiltersThenReturnsOnlyIfEveryFiltersAreTrue()
+			throws Exception {
+		auth1 = add(authorizationForUser(bob).on(FOLDER1).givingReadAccess());
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
+				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.filteredWithUser(users.bobIn(zeCollection));
+		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
+				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
+				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.filteredWithUser(users.bobIn(zeCollection), asList(Role.READ, PERMISSION_OF_ROLE1));
+
+		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(queryWithMultipleFilters)).isEqualTo(0);
+
+		auth2 = add(authorizationForUser(bob).on(FOLDER1).giving(ROLE1));
+		for (RecordVerifier verifyRecord : $(FOLDER1)) {
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1)
+					.containsOnly(bob);
+		}
+		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(queryWithMultipleFilters)).isEqualTo(1);
 	}
 
 	@Test

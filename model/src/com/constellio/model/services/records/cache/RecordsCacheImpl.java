@@ -200,7 +200,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				&& query.getFieldFacets().isEmpty()
 				&& query.getQueryFacets().isEmpty()
 				&& query.getReturnedMetadatas().isFullyLoaded()
-				&& query.getUserFilter() == null
+				&& query.getUserFilters() == null
 				&& !query.isHighlighting();
 	}
 
