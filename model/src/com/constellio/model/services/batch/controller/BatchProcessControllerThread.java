@@ -7,6 +7,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.constellio.model.services.batch.xml.list.BatchProcessListWriterRuntimeException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 					process.getTask().execute(params);
 					batchProcessesManager.markAsFinished(batchProcess, 0);
 				}
+			} catch (BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished alreadyFinished) {
+
 			} catch (Exception e) {
 				batchProcessesManager.markAsFinished(batchProcess, 1);
 				throw e;

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.joda.time.LocalTime;
 import org.junit.After;
@@ -20,15 +22,19 @@ import org.mockito.stubbing.Answer;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	Users users = new Users();
+
 
 	AtomicInteger counter = new AtomicInteger();
+	AtomicInteger counter2 = new AtomicInteger();
 
-	List<LocalTime> action1ThreadActionCallsTime = new ArrayList<>();
 	BackgroundThreadsManager backgroundThreadsManager;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
 		givenBackgroundThreadsEnabled();
 		backgroundThreadsManager = getDataLayerFactory().getBackgroundThreadsManager();
 		backgroundThreadsManager.initialize();
@@ -36,7 +42,9 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	@After
 	public void tearDown() {
-		backgroundThreadsManager.close();
+		if(backgroundThreadsManager != null) {
+			backgroundThreadsManager.close();
+		}
 	}
 
 	//@SlowTest
@@ -81,6 +89,38 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 		assertThat(counter1).isEqualTo(counter2);
 
+	}
+
+	@Test
+	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
+			throws Exception {
+
+		Runnable threadAction = spy(new TestSleepingRunnable(50, counter));
+		Runnable threadAction2 = spy(new TestCountRunnable(50, counter2));
+
+		backgroundThreadsManager.configure(BackgroundThreadConfiguration
+				.repeatingAction("action1", threadAction).executedEvery(
+				Duration.standardSeconds(1)));
+
+		backgroundThreadsManager.configure(BackgroundThreadConfiguration
+				.repeatingAction("action2", threadAction2).executedEvery(
+				Duration.standardSeconds(2)));
+
+		Thread.sleep(5000);
+
+		assertThat(counter.get()).isBetween(4, 6);
+		assertThat(counter2.get()).isBetween(3, 4);
+		backgroundThreadsManager.close();
+
+		Thread.sleep(2000);
+		int counter1 = counter.get();
+		int threadAction2counter1 = counter2.get();
+		Thread.sleep(3000);
+		int threadAction2Counter2 = counter2.get();
+		int counter2 = counter.get();
+
+		assertThat(counter1).isEqualTo(counter2);
+		assertThat(threadAction2counter1).isEqualTo(threadAction2Counter2);
 	}
 
 	//@SlowTest
@@ -174,4 +214,30 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		}
 	}
 
+	public static class TestCountRunnable implements Runnable {
+
+		private AtomicInteger atomicInteger;
+
+		private int ms;
+		int to;
+
+		public TestCountRunnable(int to, AtomicInteger atomicInteger) {
+			this.ms = ms;
+			this.atomicInteger = atomicInteger;
+			this.to = to;
+		}
+
+		@Override
+		public void run() {
+			System.out.println("Run!");
+			int currentNumber = 0;
+
+			for(int i = 0; i < to; i++) {
+				currentNumber++;
+			}
+
+			atomicInteger.incrementAndGet();
+		}
+	}
 }
+
