@@ -12,7 +12,6 @@ import com.constellio.data.utils.TimeProvider;
 
 public class BackgroundThreadCommand implements Runnable {
 
-	static
 	BackgroundThreadConfiguration configuration;
 
 	Logger logger;
@@ -31,7 +30,7 @@ public class BackgroundThreadCommand implements Runnable {
 
 
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
-			AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory, long executeEverySeconds) {
+								   AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory) {
 		this.configuration = configuration;
 		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
@@ -40,57 +39,31 @@ public class BackgroundThreadCommand implements Runnable {
 				.toResourceName(configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")");
 		this.stopRequested = stopRequested;
 		this.systemStarted = systemStarted;
-		this.executeEverySeconds = executeEverySeconds;
 	}
 
 	@Override
 	public void run() {
-
-		try {
-			Thread.sleep(executeEverySeconds * 1000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		synchronized (this) {
-			if (isRunning) {
-				return;
-			} else {
-				isRunning = true;
-			}
-		}
-
-		synchronized (configuration.getId().intern()) {
-			try {
-
-				while (!systemStarted.get() && !stopRequested.get()) {
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				}
+        while (!systemStarted.get() && !stopRequested.get()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
 				if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
 						&& !stopRequested.get()) {
-
-					if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
-						try {
-							tasksSemaphore.acquire();
-						} catch (InterruptedException e) {
-							throw new RuntimeException(e);
-						}
-						try {
-							runAndHandleException();
-						} finally {
-							tasksSemaphore.release();
-						}
-
+					if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {try {
+						tasksSemaphore.acquire();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					try {
+						runAndHandleException();
+					} finally {
+						tasksSemaphore.release();}
 					}
 				}
-			} finally {
-				isRunning = false;
-			}
-		}
 
 	}
 

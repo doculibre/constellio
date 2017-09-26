@@ -42,7 +42,7 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 		configuration = spy(
 				BackgroundThreadConfiguration.repeatingAction(zeId, nestedCommand).executedEvery(Duration.standardSeconds(42)));
 		command = spy(
-				new BackgroundThreadCommand(configuration, systemStarted, stopRequested, new Semaphore(10), dataLayerFactory, 0));
+				new BackgroundThreadCommand(configuration, systemStarted, stopRequested, new Semaphore(10), dataLayerFactory));
 	}
 
 	@Test

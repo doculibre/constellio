@@ -11,6 +11,7 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.event.EventService;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.Duration;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
@@ -46,10 +47,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 				temporaryRecordsDeletionBackgroundAction)
 				.executedEvery(standardHours(12)).handlingExceptionWith(CONTINUE));
 
-				//Will be enabled in version 7.6
-		//		eventService = new EventService(modelLayerFactory);
-		//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
-		//		).executedEvery(standardHours(2)).handlingExceptionWith(CONTINUE));
+		//Will be enabled in version 7.6
+//		eventService = new EventService(modelLayerFactory);
+//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
+//		).executedEvery(Duration.standardHours(3)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override

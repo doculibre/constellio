@@ -172,7 +172,7 @@ public class ConstellioEIMConfigs {
 		//
 		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
 
-		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(60));
+		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(99999).whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
