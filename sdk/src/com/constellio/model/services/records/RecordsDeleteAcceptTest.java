@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
@@ -32,7 +33,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -211,15 +211,20 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenRecordIsLogicallyDeletedAtTheSameMomentOfAddingANewReferenceToItThenException()
 			throws Exception {
 
-		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+		Record folder4_2 = records.folder4_2();
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
 		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
 				.setRecordsFlushing(RecordsFlushing.LATER());
 
 		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
-		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
+
+//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2)).isNotNull();
+		//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2).get(LOGICALLY_DELETED_STATUS))
+		//				.isEqualTo(Boolean.TRUE);
 
 		try {
-			when(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+			when(records.folder4_1()).hasAReferenceTo(folder4_2);
 			fail("Validation exception expected");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(frenchMessages(e)).containsOnly(
@@ -233,7 +238,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(folderSchema.type()));
 
-		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
 		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
 				.setRecordsFlushing(RecordsFlushing.LATER());
 
@@ -1929,7 +1934,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			public boolean matches(Record record) {
 				try {
 					Record refreshedRecord = recordServices.getDocumentById(record.getId());
-					return Boolean.TRUE == refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+					return Boolean.TRUE == refreshedRecord.get(LOGICALLY_DELETED_STATUS);
 				} catch (NoSuchRecordWithId e) {
 					return false;
 				}

@@ -362,8 +362,13 @@ public class RecordDeleteServices {
 			try {
 				recordDao.execute(
 						new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
+
 			} catch (OptimisticLocking optimisticLocking) {
 				throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
+			}
+
+			for (RecordDTO recordDTO : recordsDTO) {
+				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
 			}
 
 			Transaction transaction = new Transaction();

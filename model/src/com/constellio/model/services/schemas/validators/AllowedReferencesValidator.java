@@ -30,12 +30,14 @@ public class AllowedReferencesValidator implements Validator<Record> {
 	private final List<Metadata> metadatas;
 	private final MetadataSchemaTypes schemaTypes;
 	private final RecordProvider recordProvider;
+	private boolean skippingReferenceToLogicallyDeletedValidation;
 
 	public AllowedReferencesValidator(MetadataSchemaTypes schemaTypes, List<Metadata> metadatas,
-			RecordProvider recordProvider) {
+			RecordProvider recordProvider, boolean skippingReferenceToLogicallyDeletedValidation) {
 		this.schemaTypes = schemaTypes;
 		this.metadatas = metadatas;
 		this.recordProvider = recordProvider;
+		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
 
 	}
 
@@ -67,8 +69,8 @@ public class AllowedReferencesValidator implements Validator<Record> {
 										schema.getCode(), (String) referenceValueStr);
 							}
 
-							if (newItems.contains(referenceValueStr) && TRUE.equals(referencedRecord.get(
-									LOGICALLY_DELETED_STATUS))) {
+							if (newItems.contains(referenceValueStr) && !skippingReferenceToLogicallyDeletedValidation
+									&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
 
 								addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
 										schema.getCode(), (String) referenceValueStr);

@@ -246,6 +246,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 
 		if (attempt > 35) {
+			e.printStackTrace();
 			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO);
 		}
 
@@ -270,8 +271,41 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	void mergeRecordsUsingRealtimeGet(Transaction transaction, String failedId)
+			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+		for (Record record : transaction.getRecords()) {
+			if (record.isSaved()) {
+
+				try {
+					Record newRecordVersion = realtimeGet(record.getId());
+
+					if (newRecordVersion != null && record.getVersion() == newRecordVersion.getVersion()) {
+						MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
+								.getSchemaTypes(transaction.getCollection());
+						MetadataSchema metadataSchema = types.getSchema(newRecordVersion.getSchemaCode());
+						try {
+							((RecordImpl) record).merge((RecordImpl) newRecordVersion, metadataSchema);
+						} catch (RecordRuntimeException.CannotMerge e) {
+							throw new UnresolvableOptimisticLockingConflict(e);
+						}
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
+							.getSchemaTypes(transaction.getCollection());
+					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
+				}
+			}
+		}
+	}
+
 	void mergeRecords(Transaction transaction, String failedId)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+		mergeRecordsUsingQuery(transaction, failedId);
+	}
+
+	void mergeRecordsUsingQuery(Transaction transaction, String failedId)
+			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+
 		List<LogicalSearchCondition> conditions = new ArrayList<>();
 
 		for (Record record : transaction.getRecords()) {

@@ -166,54 +166,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
 	}
 
-	@Test
-	public void whenAddingRecordWithAValidReferenceThenItsActiveIndexCanBeRetrievedWithItsId()
-			throws Exception {
-		RecordDTO referencedRecord = newRecordWithTitle("referencedRecord");
-		RecordDTO record = newRecordWithSingleReference(referencedRecord.getId());
-		add(referencedRecord);
-		add(record);
-
-		assertEquals("index", recordDao.get("idx_act_" + record.getId()).getFields().get("type_s"));
-	}
-
-	@Test(expected = NoSuchRecordWithId.class)
-	public void givenValidRecordWhenLogicallyDeletingThenItsActiveIndexIsDeleted()
-			throws Exception {
-		RecordDTO record = givenSavedRecordWithInitialValidReferencesValue();
-		assertThat(recordDao.get("idx_act_" + record.getId())).isNotNull();
-
-		Map<String, Object> modifiedFields = new HashMap<>();
-		modifiedFields.put("deleted_s", Boolean.TRUE);
-		record = updateFieldsAndGetNewRecordDTO(record, modifiedFields);
-
-		recordDao.get("idx_act_" + record.getId());
-	}
-
-	@Test
-	public void whenAddingRecordWithMultipleValidReferencesThenItsActiveIndexCanBeRetrievedWithItsId()
-			throws Exception {
-		RecordDTO referencedRecord1 = newRecordWithTitle("referencedRecord1");
-		RecordDTO referencedRecord2 = newRecordWithTitle("referencedRecord2");
-		RecordDTO record = newRecordWithMultipleReferences(Arrays.asList(referencedRecord1.getId(), referencedRecord2.getId()));
-		add(referencedRecord1);
-		add(referencedRecord2);
-		add(record);
-
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-	}
-
-	@Test
-	public void whenAddingRecordWithParentsThenItsAncestorsAreAddedTo()
-			throws Exception {
-		RecordDTO record = newRecordWithParentPaths(Arrays.asList("parent1/parent11", "parent2"));
-		add(record);
-
-		assertThat((List) recordDao.get("idx_rfc_" + record.getId()).getFields().get("ancestors_ss"))
-				.containsOnly("parent1", "parent11", "parent2");
-	}
-
 	private RecordDTO newRecordWithParentPaths(List<String> parents) {
 		String id = UUID.randomUUID().toString();
 		List<String> paths = new ArrayList<>();
@@ -226,49 +178,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put("schema_s", "zeSchemaType_default");
 		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
 		return record;
-	}
-
-	@Test
-	public void whenAddingRecordWithMultipleValidReferencesThenTheirReferenceCountersHaveValue1()
-			throws Exception {
-		RecordDTO referencedRecord1 = newRecordWithTitle("referencedRecord1");
-		RecordDTO referencedRecord2 = newRecordWithTitle("referencedRecord2");
-		RecordDTO record = newRecordWithMultipleReferences(Arrays.asList(referencedRecord1.getId(), referencedRecord2.getId()));
-		add(referencedRecord1);
-		add(referencedRecord2);
-		add(record);
-
-		assertEquals("index", recordDao.get("idx_act_" + record.getId()).getFields().get("type_s"));
-	}
-
-	@Test
-	public void whenAddingRecordWithAValidReferenceAndAParentReferenceThenReferencedCounterHasValue1ButParentHasValueZero()
-			throws Exception {
-		RecordDTO referencedRecord = newRecordWithTitle("referencedRecord");
-		RecordDTO parentRecord = newRecordWithTitle("parentRecord");
-		RecordDTO record = newRecordWithSingleReferenceAndParentReference(referencedRecord.getId(), parentRecord.getId());
-		add(referencedRecord);
-		add(parentRecord);
-		add(record);
-
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord.getId()).getFields().get("refs_d"));
-		assertEquals(0.0, recordDao.get("idx_rfc_" + parentRecord.getId()).getFields().get("refs_d"));
-	}
-
-	@Test
-	public void whenAddingTwoRecordsWithAValidReferenceThenReferencedCounterHasValue1ButParentHasValueZero()
-			throws Exception {
-		RecordDTO referencedRecord = newRecordWithTitle("referencedRecord");
-		RecordDTO record = newRecordWithSingleReference(referencedRecord.getId());
-		add(referencedRecord);
-		add(record);
-
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord.getId()).getFields().get("refs_d"));
-
-		RecordDTO record2 = newRecordWithSingleReference(referencedRecord.getId());
-		add(record2);
-
-		assertEquals(2.0, recordDao.get("idx_rfc_" + referencedRecord.getId()).getFields().get("refs_d"));
 	}
 
 	@Test
@@ -842,54 +751,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		assertThat((List) postChangeRecord.getFields().get(multipleReferencesFieldCode)).contains(referencedRecord3.getId());
 	}
 
-	@Test
-	public void whenAddingTwoRecordsWithAValidReferenceAndModifyingToReferenceSameRecordThenReferencedCounterHasValue2()
-			throws Exception {
-		RecordDTO referencedRecord1 = newRecordWithTitle("referencedRecord");
-		RecordDTO referencedRecord2 = newRecordWithTitle("referencedRecord2");
-		RecordDTO record = newRecordWithSingleReference(referencedRecord1.getId());
-		add(referencedRecord1);
-		add(referencedRecord2);
-		add(record);
-		RecordDTO record2 = newRecordWithSingleReference(referencedRecord2.getId());
-		add(record2);
-
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-
-		Map<String, Object> modifiedFields = new HashMap<>();
-		modifiedFields.put(singleReferenceFieldCode, referencedRecord1.getId());
-		record2 = recordDao.get(record2.getId());
-		updateFieldsAndGetNewRecordDTO(record2, modifiedFields);
-
-		assertEquals(2.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(0.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-	}
-
-	@Test
-	public void whenAddingTwoRecordsWithValidReferencesAndModifyingToReferenceSameRecordThenReferencedCounterHasValue2()
-			throws Exception {
-		RecordDTO referencedRecord1 = newRecordWithTitle("referencedRecord");
-		RecordDTO referencedRecord2 = newRecordWithTitle("referencedRecord2");
-		RecordDTO record = newRecordWithMultipleReferences(Arrays.asList(referencedRecord1.getId()));
-		add(referencedRecord1);
-		add(referencedRecord2);
-		add(record);
-		RecordDTO record2 = newRecordWithMultipleReferences(Arrays.asList(referencedRecord1.getId()));
-		add(record2);
-
-		assertEquals(2.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(0.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-
-		Map<String, Object> modifiedFields = new HashMap<>();
-		modifiedFields.put(multipleReferencesFieldCode, Arrays.asList(referencedRecord2.getId()));
-		record2 = recordDao.get(record2.getId());
-		updateFieldsAndGetNewRecordDTO(record2, modifiedFields);
-
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(1.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-	}
-
 	private RecordDTO givenSavedRecordWithInitialValidReferenceValue()
 			throws OptimisticLocking, NoSuchRecordWithId {
 		RecordDTO referencedRecord = newRecordWithTitle("referencedRecord");
@@ -1249,27 +1110,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		assertThat(hasRecord(record1.getId())).isFalse();
 		assertThat(hasRecord(record2.getId())).isTrue();
 		assertThat(hasRecord(record3.getId())).isFalse();
-	}
-
-	@Test(expected = NoSuchRecordWithId.class)
-	public void whenDeletingRecordsThenAllReferencesDecrementedAndItsRefCountIsDeleted()
-			throws Exception {
-
-		RecordDTO referencedRecord1 = newRecordWithTitle("referencedRecord1");
-		RecordDTO referencedRecord2 = newRecordWithTitle("referencedRecord2");
-		RecordDTO record = newRecordWithMultipleReferences(Arrays.asList(referencedRecord1.getId(), referencedRecord2.getId()));
-		add(referencedRecord1);
-		add(referencedRecord2);
-		add(record);
-
-		TransactionDTO transactionDTO = new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW,
-				new ArrayList<RecordDTO>(), new ArrayList<RecordDeltaDTO>(), Arrays.asList(record), new ArrayList<SolrParams>());
-
-		recordDao.execute(transactionDTO);
-
-		assertEquals(0.0, recordDao.get("idx_rfc_" + referencedRecord1.getId()).getFields().get("refs_d"));
-		assertEquals(0.0, recordDao.get("idx_rfc_" + referencedRecord2.getId()).getFields().get("refs_d"));
-		recordDao.get("idx_rfc_" + record.getId());
 	}
 
 	private String getFieldValue(String id, String field) {

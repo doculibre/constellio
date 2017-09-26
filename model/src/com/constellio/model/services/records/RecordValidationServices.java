@@ -157,7 +157,9 @@ public class RecordValidationServices {
 			MetadataSchemaTypes schemaTypes, List<Metadata> metadatas, Transaction transaction) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (!transaction.isSkipReferenceValidation()) {
-			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
+			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider,
+					transaction.isSkippingReferenceToLogicallyDeletedValidation())
+					.validate(record, validationErrors);
 		}
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
