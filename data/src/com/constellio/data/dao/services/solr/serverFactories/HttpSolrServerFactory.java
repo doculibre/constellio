@@ -112,7 +112,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 			SimpleOrderedMap<String> coreInfo = status.get(core);
 
 			String instanceDir = coreInfo.get("instanceDir");
-			String baseDir = instanceDir + "conf";
+			String baseDir = instanceDir + File.separator + "conf";
 			return baseDir;
 		}
 
