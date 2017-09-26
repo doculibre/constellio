@@ -33,7 +33,6 @@ import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
-import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils.MapBuilder;
@@ -155,30 +154,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
 
-	}
-
-	@Test(expected = ReferenceToNonExistentIndex.class)
-	public void whenAddingRecordWithReferenceToNonExistentIndexThenOptimisticLocking()
-			throws Exception {
-		RecordDTO record = newRecordWithSingleReference("idOfNonExistentIndex");
-
-		add(record);
-	}
-
-	@Test(expected = ReferenceToNonExistentIndex.class)
-	public void whenAddingRecordWithReferenceToExistingIndexThenExceptionThrown()
-			throws Exception {
-		RecordDTO record = newRecordWithSingleReference("idOfNonExistentIndex");
-
-		add(record);
-	}
-
-	@Test(expected = ReferenceToNonExistentIndex.class)
-	public void whenAddingRecordWithMultipleReferencesToNonExistentIndexesThenOptimisticLocking()
-			throws Exception {
-		RecordDTO record = newRecordWithMultipleReferences(Arrays.asList("idOfNonExistentIndex", "idOfAnotherNonExistentIndex"));
-
-		add(record);
 	}
 
 	@Test
@@ -850,26 +825,6 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		recordDTO = updateFieldsAndGetNewRecordDTO(recordDTO, modifiedFields);
 
 		assertThat(recordDTO.getFields()).containsEntry(savedMetadataFieldName, modifiedValue).containsEntry("aField_d", 42.0);
-	}
-
-	@Test(expected = ReferenceToNonExistentIndex.class)
-	public void whenUpdatingRecordWithModifiedReferenceFieldBecomingInvalidThenOptimisticLocking()
-			throws Exception {
-		RecordDTO recordDTO = givenSavedRecordWithInitialValidReferenceValue();
-
-		Map<String, Object> modifiedFields = new HashMap<>();
-		modifiedFields.put(singleReferenceFieldCode, "anInvalidId");
-		updateFieldsAndGetNewRecordDTO(recordDTO, modifiedFields);
-	}
-
-	@Test(expected = ReferenceToNonExistentIndex.class)
-	public void whenUpdatingRecordWithModifiedReferencesFieldBecomingInvalidThenOptimisticLocking()
-			throws Exception {
-		RecordDTO recordDTO = givenSavedRecordWithInitialValidReferencesValue();
-
-		Map<String, Object> modifiedFields = new HashMap<>();
-		modifiedFields.put(multipleReferencesFieldCode, Arrays.asList("anInvalidId"));
-		updateFieldsAndGetNewRecordDTO(recordDTO, modifiedFields);
 	}
 
 	@Test

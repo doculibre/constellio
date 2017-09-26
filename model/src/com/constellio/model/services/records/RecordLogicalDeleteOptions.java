@@ -1,6 +1,10 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+
 public class RecordLogicalDeleteOptions {
+
+	RecordsFlushing recordsFlushing = RecordsFlushing.NOW();
 
 	LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
 
@@ -11,6 +15,15 @@ public class RecordLogicalDeleteOptions {
 	public RecordLogicalDeleteOptions setBehaviorForRecordsAttachedToTaxonomy(
 			LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy) {
 		this.behaviorForRecordsAttachedToTaxonomy = behaviorForRecordsAttachedToTaxonomy;
+		return this;
+	}
+
+	public RecordsFlushing getRecordsFlushing() {
+		return recordsFlushing;
+	}
+
+	public RecordLogicalDeleteOptions setRecordsFlushing(RecordsFlushing recordsFlushing) {
+		this.recordsFlushing = recordsFlushing;
 		return this;
 	}
 

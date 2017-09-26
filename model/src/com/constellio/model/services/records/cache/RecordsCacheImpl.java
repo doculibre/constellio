@@ -23,7 +23,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
@@ -692,14 +691,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void set(Record record) {
-			Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-			if (logicallyDeletedStatus == null
-					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
-					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
+			//Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+//			if (logicallyDeletedStatus == null
+//					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
+//					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
 				this.record = record.getCopyOfOriginalRecord();
-			} else {
-				this.record = null;
-			}
+//			} else {
+			//				this.record = null;
+			//			}
 		}
 
 		void invalidate() {

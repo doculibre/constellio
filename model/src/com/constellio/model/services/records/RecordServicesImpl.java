@@ -25,7 +25,6 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
-import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -85,7 +84,6 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
@@ -378,6 +376,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	public Record realtimeGet(String id) {
+		try {
+			Record record = new RecordImpl(recordDao.realGet(id), true);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new RecordUpdateOptions());
+			insertInCache(record);
+			return record;
+
+		} catch (NoSuchRecordWithId e) {
+			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
+		}
+	}
+
 	public void insertInCache(Record record) {
 		recordsCaches.insert(record);
 	}
@@ -408,7 +420,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
 		RecordUpdateOptions options = transaction.getRecordUpdateOptions();
 		if (transaction.getRecordUpdateOptions().getRecordsFlushing() != RecordsFlushing.NOW()) {
-//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
+			//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
 			//			for (Record record : transaction.getRecords()) {
 			//				if (record.isDirty() && record.isSaved() && cache.getCacheConfigOf(record.getSchemaCode()) != null) {
 			//					throw new RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(record.getSchemaCode(),
@@ -743,8 +755,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				LOGGER.trace("Optimistic locking, handling with specified resolution {}", transaction.getRecordUpdateOptions()
 						.getOptimisticLockingResolution().name(), e);
 				handleOptimisticLocking(transactionDTO, transaction, modificationImpactHandler, e, attempt);
-			} catch (ReferenceToNonExistentIndex e) {
-				throw new NewReferenceToOtherLogicallyDeletedRecord(e.getId(), e);
 			}
 		}
 	}

@@ -133,6 +133,17 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
+	public SolrDocument realtimeGet(String id)
+			throws BigVaultException.CouldNotExecuteQuery {
+
+		try {
+			return server.getById(id);
+		} catch (SolrServerException | IOException e) {
+			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + id, e);
+		}
+
+	}
+
 	private QueryResponse tryQuery(SolrParams params, int currentAttempt)
 			throws BigVaultException.CouldNotExecuteQuery {
 
@@ -428,12 +439,12 @@ public class BigVaultServer implements Cloneable {
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
 		deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments(),
+		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(updatedDocumentsWithoutIndexes,
 				new ArrayList<String>());
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
 		req.add(docsWithoutVersions);
-		req.add(transaction.getNewDocuments());
+		req.add(newDocumentsWithoutIndexes);
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
 		UpdateResponse updateResponse = req.process(server);
@@ -444,7 +455,7 @@ public class BigVaultServer implements Cloneable {
 	private List<SolrInputDocument> withoutIndexes(List<SolrInputDocument> newDocuments) {
 		List<SolrInputDocument> withoutIndexes = new ArrayList<>();
 		for (SolrInputDocument doc : newDocuments) {
-			if (!"index".equals(doc.getFieldValue("type_s"))) {
+			if (!((String) doc.getFieldValue("id")).startsWith("idx_")) {
 				withoutIndexes.add(doc);
 			}
 		}

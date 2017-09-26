@@ -542,6 +542,7 @@ public class RecordDeleteServices {
 		//		}
 		transaction.setUser(user);
 		try {
+			transaction.setRecordFlushing(options.getRecordsFlushing());
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation("logicallyDelete", e);

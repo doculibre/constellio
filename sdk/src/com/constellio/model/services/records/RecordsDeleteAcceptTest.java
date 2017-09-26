@@ -5,7 +5,9 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.TestUtils.idsArray;
 import static com.constellio.sdk.tests.TestUtils.recordsIds;
 import static java.util.Arrays.asList;
@@ -22,6 +24,7 @@ import org.junit.Test;
 
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -187,6 +190,65 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
+		}
+	}
+
+	@Test
+	public void givenRecordIsLogicallyDeletedBeforeAddingANewReferenceToItThenException()
+			throws Exception {
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2());
+		try {
+			when(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
+	}
+
+	@Test
+	public void givenRecordIsLogicallyDeletedAtTheSameMomentOfAddingANewReferenceToItThenException()
+			throws Exception {
+
+		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
+				.setRecordsFlushing(RecordsFlushing.LATER());
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
+		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+
+		try {
+			when(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
+	}
+
+	@Test
+	public void givenCachedRecordIsLogicallyDeletedAtTheSameMomentOfAddingANewReferenceToItThenException()
+			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(folderSchema.type()));
+
+		assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
+				.setRecordsFlushing(RecordsFlushing.LATER());
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
+		//assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+
+		Record folder4_2 = records.folder4_2();
+		//getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidate(folder4_2.getId());
+
+		try {
+			when(records.folder4_1()).hasAReferenceTo(folder4_2);
+			fail("Validation exception required");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
 		}
 	}
 
@@ -1396,21 +1458,33 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat((List) records.folder2().get(folderSchema.linkToOtherFolders())).hasSize(2);
 	}
 
-	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+	@Test
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedRecordThenException()
 			throws Exception {
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(records.folder2()).hasAReferenceTo(records.folder4());
+		try {
+			when(records.folder2()).hasAReferenceTo(records.folder4());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4");
+		}
 
 	}
 
-	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+	@Test
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedSubRecordThenException()
 			throws Exception {
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(records.folder2()).hasAReferenceTo(records.folder4_2());
+		try {
+			when(records.folder2()).hasAReferenceTo(records.folder4_2());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
 
 	}
 
@@ -2040,24 +2114,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 		}
 
-		public void hasAReferenceTo(Record... anotherRecords) {
+		public void hasAReferenceTo(Record... anotherRecords)
+				throws RecordServicesException {
 
 			record.set(folderSchema.linkToOtherFolders(), asList(anotherRecords));
-			try {
-				recordServices.update(record);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			recordServices.update(record);
 		}
 
-		public void hasASingleValueReferenceTo(Record anotherRecord) {
+		public void hasASingleValueReferenceTo(Record anotherRecord)
+				throws RecordServicesException {
 
 			record.set(folderSchema.linkToOtherFolder(), anotherRecord);
-			try {
-				recordServices.update(record);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			recordServices.update(record);
 		}
 
 		public void hasNewParent(Record record)
