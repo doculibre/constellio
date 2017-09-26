@@ -666,7 +666,15 @@ public class RecordDeleteServices {
 
 	public Set<String> getRecordsInHierarchyWithDependency(Record record) {
 
-		List<Record> recordsHierarchy = new ArrayList<>(getAllRecordsInHierarchy(record));
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+
+		List<Record> recordsHierarchy;
+
+		if (taxonomy == null) {
+			recordsHierarchy = new ArrayList<>(getAllRecordsInHierarchy(record));
+		} else {
+			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
+		}
 		List<String> recordsHierarchyIds = new RecordUtils().toIdList(recordsHierarchy);
 		Set<String> references = new HashSet<>();
 

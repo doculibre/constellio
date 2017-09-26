@@ -353,9 +353,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDate);
-		verify(recordServices).getDocumentById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).realtimeGet(idReferencedRecordWithAnotherDateValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithoutValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithAStringAndADateValue);
 
 	}
 
@@ -373,9 +373,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString, aString));
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(anotherDate));
-		verify(recordServices).getDocumentById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).realtimeGet(idReferencedRecordWithAnotherDateValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithoutValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithAStringAndADateValue);
 
 	}
 
@@ -391,9 +391,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDateList);
-		verify(recordServices).getDocumentById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).getDocumentById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).realtimeGet(idReferencedRecordWithAnotherDateValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithoutValue);
+		verify(recordServices, never()).realtimeGet(idReferencedRecordWithAStringAndADateValue);
 
 	}
 

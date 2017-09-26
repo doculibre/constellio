@@ -219,7 +219,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
 		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
 
-//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2)).isNotNull();
+		//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2)).isNotNull();
 		//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2).get(LOGICALLY_DELETED_STATUS))
 		//				.isEqualTo(Boolean.TRUE);
 
@@ -1167,17 +1167,21 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		given(records.folder4_1()).hasAReferenceTo(records.folder4_2());
 		given(records.folder3()).hasAReferenceTo(records.folder4());
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
-		assertThat(records.taxo1_category2()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(physicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		when(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
@@ -1254,8 +1258,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		given(bob).hasDeletePermissionOn(records.taxo1_category2());
 
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(bob));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(bob));
 		assertThat(records.taxo1_category2()).is(logicallyDeletableIncludingRecordsBy(bob));
 		assertThat(records.taxo1_category2_1()).is(logicallyDeletableIncludingRecordsBy(bob));
 		assertThat(records.taxo1_category2()).is(logicallyDeletableExcludingRecordsBy(bob));
@@ -1305,8 +1311,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		Record folder3 = records.folder3();
 		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
 		when(userWithDeletePermission)

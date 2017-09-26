@@ -300,6 +300,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	void mergeRecords(Transaction transaction, String failedId)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+		//mergeRecordsUsingRealtimeGet is interesting, but it make this test fail
+		//com.constellio.model.services.records.RecordServicesOptimisticLockingHandlingAcceptanceTest
+
 		mergeRecordsUsingQuery(transaction, failedId);
 	}
 
