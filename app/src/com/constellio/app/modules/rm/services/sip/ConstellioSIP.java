@@ -38,10 +38,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-
 /**
- * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
- * - agent ROLE="CREATOR" ORGANIZATION="Commission Charbonneau"
  * - name
  * <p>
  * dmdSec
