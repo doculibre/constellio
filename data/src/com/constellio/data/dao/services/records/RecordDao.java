@@ -32,7 +32,7 @@ public interface RecordDao {
 	TransactionResponseDTO execute(TransactionDTO transaction)
 			throws RecordDaoException.OptimisticLocking;
 
-	List<String> getReferencedRecordsInHierarchy(String recordId);
+	//List<String> getReferencedRecordsInHierarchy(String recordId);
 
 	void flush();
 
