@@ -62,7 +62,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().listCapsule();
             }
-        }, "config/capsule") : null;
+        }, "config/capsules") : null;
     }
 
     private class CustomCssLayout extends CssLayout {
