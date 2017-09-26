@@ -825,6 +825,25 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
+	public List<RecordDTO> realGet(List<String> ids) {
+
+		List<RecordDTO> recordDTOS = new ArrayList<>();
+
+		try {
+
+			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids)) {
+				if (solrDocument != null) {
+					recordDTOS.add(toEntity(solrDocument));
+				}
+			}
+		} catch (BigVaultException.CouldNotExecuteQuery e) {
+			throw new BigVaultRuntimeException.CannotQuerySingleDocument(e);
+		}
+
+		return recordDTOS;
+	}
+
+	@Override
 	public QueryResponse nativeQuery(SolrParams params) {
 		try {
 			QueryResponse response = bigVaultServer.query(params);

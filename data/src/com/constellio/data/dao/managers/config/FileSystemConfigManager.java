@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -65,7 +64,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private final IOServices ioServices;
 	private final ConstellioCache cache;
 
-//	private final Map<String, Object> cache = new HashMap<>();
+	//	private final Map<String, Object> cache = new HashMap<>();
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 
@@ -84,22 +83,22 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	Object getFromCache(String key) {
 		return cache.get(key);
 	}
-	
+
 	void putInCache(String key, Object value) {
 		//cache.put(key, (Serializable) value);
 	}
-	
+
 	void removeFromCache(String key) {
 		cache.remove(key);
 	}
-	
+
 	void clearCache() {
 		cache.clear();
 	}
-	
+
 	Set<String> getCacheKeys() {
 		Set<String> cacheKeys = new HashSet<>();
-		for (Iterator<String> it = cache.keySet(); it.hasNext();) {
+		for (Iterator<String> it = cache.keySet(); it.hasNext(); ) {
 			String cacheKey = (String) it.next();
 			cacheKeys.add(cacheKey);
 		}

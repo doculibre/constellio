@@ -19,9 +19,10 @@ public interface RecordDao {
 	RecordDTO get(String id)
 			throws RecordDaoException.NoSuchRecordWithId;
 
-
 	RecordDTO realGet(String id)
 			throws RecordDaoException.NoSuchRecordWithId;
+
+	List<RecordDTO> realGet(List<String> ids);
 
 	QueryResponseDTO query(SolrParams params);
 

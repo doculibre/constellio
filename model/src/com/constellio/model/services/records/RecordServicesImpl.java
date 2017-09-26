@@ -273,13 +273,27 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	void mergeRecordsUsingRealtimeGet(Transaction transaction, String failedId)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+
+		List<String> ids = new ArrayList<>();
+		for (Record record : transaction.getRecords()) {
+			ids.add(record.getId());
+		}
+
+		List<Record> newVersions = realtimeGet(ids);
+
 		for (Record record : transaction.getRecords()) {
 			if (record.isSaved()) {
 
 				try {
-					Record newRecordVersion = realtimeGet(record.getId());
+					Record newRecordVersion = null;
+					for (Record aNewVersion : newVersions) {
+						if (aNewVersion.getId().equals(record.getId())) {
+							newRecordVersion = aNewVersion;
+							break;
+						}
+					}
 
-					if (newRecordVersion != null && record.getVersion() == newRecordVersion.getVersion()) {
+					if (newRecordVersion != null && record.getVersion() != newRecordVersion.getVersion()) {
 						MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
 								.getSchemaTypes(transaction.getCollection());
 						MetadataSchema metadataSchema = types.getSchema(newRecordVersion.getSchemaCode());
@@ -294,6 +308,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 							.getSchemaTypes(transaction.getCollection());
 					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
 				}
+			} else {
+				try {
+					realtimeGet(record.getId());
+					throw new RecordServicesRuntimeException.IdAlreadyExisting(record.getId());
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					//OK
+				}
 			}
 		}
 	}
@@ -302,8 +323,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
 		//mergeRecordsUsingRealtimeGet is interesting, but it make this test fail
 		//com.constellio.model.services.records.RecordServicesOptimisticLockingHandlingAcceptanceTest
-
-		mergeRecordsUsingQuery(transaction, failedId);
+		mergeRecordsUsingRealtimeGet(transaction, failedId);
+		//mergeRecordsUsingQuery(transaction, failedId);
 	}
 
 	void mergeRecordsUsingQuery(Transaction transaction, String failedId)
@@ -425,6 +446,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
+	}
+
+	public List<Record> realtimeGet(List<String> ids) {
+
+		List<Record> records = new ArrayList<>();
+		for (RecordDTO recordDTO : recordDao.realGet(ids)) {
+			Record record = new RecordImpl(recordDTO, true);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new RecordUpdateOptions());
+			insertInCache(record);
+			records.add(record);
+		}
+
+		return records;
+
 	}
 
 	public void insertInCache(Record record) {

@@ -144,6 +144,17 @@ public class BigVaultServer implements Cloneable {
 
 	}
 
+	public List<SolrDocument> realtimeGet(List<String> ids)
+			throws BigVaultException.CouldNotExecuteQuery {
+
+		try {
+			return server.getById(ids);
+		} catch (SolrServerException | IOException e) {
+			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + ids, e);
+		}
+
+	}
+
 	private QueryResponse tryQuery(SolrParams params, int currentAttempt)
 			throws BigVaultException.CouldNotExecuteQuery {
 
