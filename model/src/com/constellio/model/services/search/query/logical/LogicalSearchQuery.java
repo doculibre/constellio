@@ -24,6 +24,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 
+import static java.util.Arrays.asList;
+
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
@@ -34,7 +36,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private LogicalSearchCondition queryCondition;
 	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
-	UserFilter userFilter;
+	List<UserFilter> userFilters;
 	String filterStatus;
 
 	private int numberOfRows;
@@ -79,7 +81,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		queryCondition = query.queryCondition;
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
-		userFilter = query.userFilter;
+		userFilters = query.userFilters;
 		filterStatus = query.filterStatus;
 
 		numberOfRows = query.numberOfRows;
@@ -144,7 +146,24 @@ public class LogicalSearchQuery implements SearchQuery {
 		if (accessOrPermission == null) {
 			throw new IllegalArgumentException("access/permission required");
 		}
-		userFilter = new UserFilter(user, accessOrPermission);
+		userFilters = asList(new UserFilter(user, accessOrPermission));
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWithUser(User user, List<String> accessOrPermissions) {
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
+		}
+		if (accessOrPermissions == null || accessOrPermissions.isEmpty()) {
+			throw new IllegalArgumentException("access/permission required");
+		}
+
+		userFilters = new ArrayList<>();
+		for(String accessOrPermission: accessOrPermissions) {
+			userFilters.add(new UserFilter(user, accessOrPermission));
+		}
+
 		return this;
 	}
 
@@ -156,8 +175,8 @@ public class LogicalSearchQuery implements SearchQuery {
 		return filteredWithUser(user, Role.DELETE);
 	}
 
-	public UserFilter getUserFilter() {
-		return userFilter;
+	public List<UserFilter> getUserFilters() {
+		return userFilters;
 	}
 
 	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
@@ -344,7 +363,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		List<String> filterQueries = new ArrayList<>();
 
 		if (condition != null && condition.getFilters() != null) {
-			for (String filterQuery : condition.getFilters().getFilterQueries(userFilter != null)) {
+			for (String filterQuery : condition.getFilters().getFilterQueries(userFilters != null)) {
 				filterQueries.add(filterQuery);
 			}
 		}
