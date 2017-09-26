@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.services.sip.model;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.schemas.MetadataList;
+
+import java.util.List;
+
 public interface SIPObject {
 
     String getTitle();
@@ -9,4 +15,8 @@ public interface SIPObject {
     String getId();
 
     String getZipPath();
+
+    List<Metadata> getMetadataList();
+
+    Record getRecord();
 }

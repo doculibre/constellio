@@ -6,19 +6,31 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.jgoodies.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jsoup.Jsoup;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public abstract class XmlGenerator {
@@ -86,26 +98,36 @@ public abstract class XmlGenerator {
         return elementsToAdd;
     }
 
-    List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
+    public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
+        return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
+    }
+
+    public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (recordElement.get(metadata) != null) {
             listOfMetadataTags.addAll(asList(
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code").setText(recordElement.<EnumWithSmallCode>get(metadata).getCode()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code"),
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title").setText(recordElement.get(metadata).toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title")
+                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(recordElement.<EnumWithSmallCode>get(metadata).getCode()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
+                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(recordElement.get(metadata).toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
                     )
             );
         }
         return listOfMetadataTags;
     }
 
-    List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
+    public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
+        return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, collection, factory, null);
+    }
+
+    public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
+        RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
+        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
-        List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
+        List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
         for (Record recordReferenced : listOfRecordReferencedByMetadata) {
             listOfMetadataTags.addAll(asList(
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
+                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
             ));
 
             if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
@@ -114,8 +136,8 @@ public abstract class XmlGenerator {
                 if (parentMetadataId != null) {
                     Record parentRecord = recordServices.getDocumentById(parentMetadataId);
                     listOfMetadataTags.addAll(asList(
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
+                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
                     ));
                 }
             }
@@ -135,6 +157,29 @@ public abstract class XmlGenerator {
         return replaceInvalidXMLCharacter.replaceOn(inputWithoutPonctuation).toLowerCase();
     }
 
+    public static String defaultFormatData(String data, Metadata metadata, AppLayerFactory factory, String collection) {
+        if (StringUtils.isEmpty(data)) {
+            return data;
+        }
+        String finalData = data;
+        ConstellioEIMConfigs configs = new ConstellioEIMConfigs(factory.getModelLayerFactory().getSystemConfigurationsManager());
+        if (metadata.getType().equals(MetadataValueType.BOOLEAN)) {
+            finalData = $(data);
+        } else if (metadata.getType().equals(MetadataValueType.DATE) || metadata.getType().equals(MetadataValueType.DATE_TIME)) {
+            try {
+                boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
+                DateFormat df = isDateTime ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") : new SimpleDateFormat("yyyy-MM-dd");
+                Date date = df.parse(data);
+                finalData = SimpleDateFormatSingleton.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
+            } catch (ParseException e) {
+                return data;
+            }
+        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
+            finalData = Jsoup.parse(data).text();
+        }
+        return replaceBracketsInValueToString.replaceOn(finalData);
+    }
+
     public static String getLabelOfMetadata(Metadata metadata) {
         return metadata.getCode().split("_")[2];
     }
@@ -151,7 +196,9 @@ public abstract class XmlGenerator {
 
     abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
-    abstract String formatData(String data, Metadata metadata);
+    String formatData(String data, Metadata metadata) {
+        return defaultFormatData(data, metadata, getFactory(), getCollection());
+    }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
 }

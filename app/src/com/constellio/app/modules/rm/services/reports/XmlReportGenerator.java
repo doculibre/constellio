@@ -1,38 +1,26 @@
 package com.constellio.app.modules.rm.services.reports;
 
-import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.google.common.base.Strings;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-import org.jsoup.Jsoup;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class XmlReportGenerator extends XmlGenerator{
 
@@ -86,37 +74,13 @@ public class XmlReportGenerator extends XmlGenerator{
     }
 
     @Override
-    String formatData(String data, Metadata metadata) {
-        if (Strings.isNullOrEmpty(data)) {
-            return data;
-        }
-        String finalData = data;
-        ConstellioEIMConfigs configs = new ConstellioEIMConfigs(getFactory().getModelLayerFactory().getSystemConfigurationsManager());
-        if (metadata.getType().equals(MetadataValueType.BOOLEAN)) {
-            finalData = $(data);
-        } else if (metadata.getType().equals(MetadataValueType.DATE) || metadata.getType().equals(MetadataValueType.DATE_TIME)) {
-            try {
-                boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
-                DateFormat df = isDateTime ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") : new SimpleDateFormat("yyyy-MM-dd");
-                Date date = df.parse(data);
-                finalData = SimpleDateFormatSingleton.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
-            } catch (ParseException e) {
-                return data;
-            }
-        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
-            finalData = Jsoup.parse(data).text();
-        }
-        return replaceBracketsInValueToString.replaceOn(finalData);
-    }
-
-    @Override
     public XmlReportGeneratorParameters getXmlGeneratorParameters() {
         return (XmlReportGeneratorParameters) this.xmlGeneratorParameters;
     }
 
     public List<Element> createMetadataTagsFromMetadata(Metadata metadata, Record recordElement) {
         if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
-            return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement);
+            return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, getCollection(), getFactory());
         }
 
         if (metadata.getType().equals(MetadataValueType.ENUM)) {
