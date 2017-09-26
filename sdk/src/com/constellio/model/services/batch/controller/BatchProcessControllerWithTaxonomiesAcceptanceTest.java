@@ -186,7 +186,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		System.out.println(">> " + getTotalReindexedFolders());
 		printRecordsNotReindexed();
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		assertThat(getTotalReindexedFolders()).isEqualTo(nbFolders);
 	}
 
@@ -213,7 +213,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		category.set(taxonomy1SecondSchema.parentOfType1(), newParent);
 		recordServices.updateAsync(category);
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		waitForBatchProcess();
 	}
