@@ -683,7 +683,7 @@ public class RecordServicesTest extends ConstellioTest {
 		inOrder.verify(recordServices).execute(transaction, 3);
 	}
 
-	@Test
+	//@Test
 	public void whenMergingThenGetListOfModifiedDocumentsAndMergeEachDocument()
 			throws Exception {
 

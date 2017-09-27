@@ -246,7 +246,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 
 		if (attempt > 35) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO);
 		}
 
@@ -278,8 +278,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			ids.add(record.getId());
 		}
+		ids.addAll(transaction.getIdsToReindex());
 
 		List<Record> newVersions = realtimeGet(ids);
+
+		for (String id : transaction.getIdsToReindex()) {
+			Record newRecordVersion = null;
+			for (Record aNewVersion : newVersions) {
+				if (aNewVersion.getId().equals(id)) {
+					newRecordVersion = aNewVersion;
+					break;
+				}
+			}
+			if (newRecordVersion == null) {
+				throw new RecordServicesException.UnresolvableOptimisticLockingConflict(id);
+			}
+		}
 
 		for (Record record : transaction.getRecords()) {
 			if (record.isSaved()) {
@@ -302,6 +316,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 						} catch (RecordRuntimeException.CannotMerge e) {
 							throw new UnresolvableOptimisticLockingConflict(e);
 						}
+					}
+					if (newRecordVersion == null) {
+						throw new RecordServicesException.UnresolvableOptimisticLockingConflict(record.getId());
 					}
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
