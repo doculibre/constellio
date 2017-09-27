@@ -707,7 +707,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		field.setFieldChoices(applicableCopyRules);
-		field.setVisible(applicableCopyRules.size() > 1);
+		
+		boolean fieldVisible;
+		if (!applicableCopyRules.isEmpty() && (isCopyRulesAlwaysVisibleInAddForm() || applicableCopyRules.size() > 1)) {
+			fieldVisible = true;
+		} else {
+			fieldVisible = false;
+		}
+		field.setVisible(fieldVisible);
 	}
 
 	boolean isTransferDateInputPossibleForUser() {
@@ -907,6 +914,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+	
+	private boolean isCopyRulesAlwaysVisibleInAddForm() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isCopyRulesAlwaysVisibleInAddForm();
 	}
 
 	private boolean canContainerContainFolder(Folder folder) {

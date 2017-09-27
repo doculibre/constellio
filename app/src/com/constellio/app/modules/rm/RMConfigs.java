@@ -1,23 +1,21 @@
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
-import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
@@ -72,7 +70,8 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
-			CHECK_OUT_DOCUMENT_AFTER_CREATION;
+			CHECK_OUT_DOCUMENT_AFTER_CREATION,
+			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -276,6 +275,9 @@ public class RMConfigs {
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
+
+		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
+				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -504,6 +506,8 @@ public class RMConfigs {
 		return manager.getValue(YEAR_END_DATE);
 	}
 
-
-
+	public boolean isCopyRulesAlwaysVisibleInAddForm() {
+		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
+	}
+	
 }

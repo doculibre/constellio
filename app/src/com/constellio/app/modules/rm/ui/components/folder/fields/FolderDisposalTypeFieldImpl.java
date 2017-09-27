@@ -13,6 +13,7 @@ public class FolderDisposalTypeFieldImpl extends EnumWithSmallCodeOptionGroup<Di
 
 	public FolderDisposalTypeFieldImpl() {
 		super(DisposalType.class);
+		setNullSelectionAllowed(true);
 	}
 
 	@Override
