@@ -87,6 +87,10 @@ public class XmlReportGenerator extends XmlGenerator{
             return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement);
         }
 
+        if(metadata.getType().equals(MetadataValueType.STRUCTURE)) {
+            return createMetadataTagFromMetadataOfTypeStructure(metadata, recordElement, getCollection(), getFactory());
+        }
+
         Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
         metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));

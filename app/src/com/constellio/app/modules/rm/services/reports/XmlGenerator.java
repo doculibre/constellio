@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -25,10 +26,7 @@ import org.jsoup.Jsoup;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -98,6 +96,30 @@ public abstract class XmlGenerator {
         return elementsToAdd;
     }
 
+    public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
+        List<Element> listOfMetadataTags = new ArrayList<>();
+        if(metadata.getLocalCode().contains("CopyRule")) {
+            List<Object> metadataValue;
+            if(metadata.isMultivalue()) {
+                metadataValue = recordElement.getList(metadata);
+            } else {
+                metadataValue = Collections.singletonList(recordElement.get(metadata));
+            }
+
+            for(Object value : metadataValue) {
+                CopyRetentionRule retentionRule = (CopyRetentionRule) value;
+                listOfMetadataTags.addAll(asList(
+                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period").setText(retentionRule.getActiveRetentionPeriod().toString()),
+                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment").setText(retentionRule.getActiveRetentionComment()),
+                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period").setText(retentionRule.getSemiActiveRetentionPeriod().toString()),
+                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period_comment").setText(retentionRule.getSemiActiveRetentionComment())
+                ));
+            }
+        }
+        return listOfMetadataTags;
+    }
+
+
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
         return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
     }
@@ -110,6 +132,8 @@ public abstract class XmlGenerator {
                     new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(recordElement.get(metadata).toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
                     )
             );
+        } else {
+            listOfMetadataTags = Collections.singletonList( new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordElement.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"));
         }
         return listOfMetadataTags;
     }
@@ -124,21 +148,25 @@ public abstract class XmlGenerator {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
-        for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-            listOfMetadataTags.addAll(asList(
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
-            ));
+        if(listOfRecordReferencedByMetadata.isEmpty()) {
+            listOfMetadataTags = Collections.singletonList( new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordElement.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"));
+        } else {
+            for (Record recordReferenced : listOfRecordReferencedByMetadata) {
+                listOfMetadataTags.addAll(asList(
+                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
+                ));
 
-            if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
-                Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
-                String parentMetadataId = recordReferenced.get(parentMetadata);
-                if (parentMetadataId != null) {
-                    Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                    listOfMetadataTags.addAll(asList(
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
-                    ));
+                if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
+                    Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+                    String parentMetadataId = recordReferenced.get(parentMetadata);
+                    if (parentMetadataId != null) {
+                        Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+                        listOfMetadataTags.addAll(asList(
+                                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
+                                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
+                        ));
+                    }
                 }
             }
         }
