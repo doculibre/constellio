@@ -19,8 +19,10 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.LocalDate;
@@ -35,6 +37,7 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -54,8 +57,11 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -2984,6 +2990,53 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				.setMainCopyRuleEntered(principal888p3_2_C.getId()));
 
 		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2017);
+	}
+	
+	private void ensureValidationError(RecordServicesException e, Class<?> validatorClass, String errorCode, Map<String, Object> parameters) {
+		if (e instanceof ValidationException) {
+			ValidationException ve = (ValidationException) e;
+			ValidationErrors validationErrors = ve.getErrors();
+			boolean matchingValidatorClass = false;
+			boolean matchingCode = false;
+			boolean matchingParameters = parameters == null;
+			for (ValidationError validationError: validationErrors.getValidationErrors()) {
+				if (validationError.getValidatorClass().equals(validatorClass)) {
+					matchingValidatorClass = true;
+				}
+				if (validationError.getValidatorErrorCode().equals(errorCode)) {
+					matchingCode = true;
+				}
+				if (parameters != null && parameters.equals(validationError.getParameters())) {
+					matchingParameters = true;
+				}
+			}
+			if (!matchingValidatorClass || !matchingCode || !matchingParameters) {
+				fail();
+			}
+		} else {
+			fail();
+		}
+	}
+	
+	@Test
+	public void givenInvalidMainCopyRuleIdEnteredWhenSavingThenValidationFails() {
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setMainCopyRuleEntered("zeInvalidCopyRuleIdEntered");
+		folder.setTitle("Ze title");
+		folder.setOpenDate(new LocalDate());
+		try {
+			recordServices.add(folder);
+			fail();
+		} catch (RecordServicesException e) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(FolderValidator.MAIN_COPY_RULE, "zeInvalidCopyRuleIdEntered");
+			parameters.put("schemaCode", Folder.DEFAULT_SCHEMA);
+			parameters.put(FolderValidator.RULE_CODE, records.getRule1().getCode());
+			ensureValidationError(e, FolderValidator.class, FolderValidator.FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
+		}
 	}
 
 	// -------------------------------------------------------------------------

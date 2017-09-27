@@ -194,12 +194,12 @@ public class BatchProcessingPresenterService {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
 							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-							Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
-							AllowedReferences allowedReferences, boolean enabled,
-							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							String inputMask, Set<String> customAttributes) {
+							boolean multivalue, boolean readOnly, boolean unmodifiable,
+							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+							String schemaTypeCode, MetadataInputType metadataInputType,
+							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
+							boolean enabled, StructureFactory structureFactory, String metadataGroup,
+							Object defaultValue, String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -214,10 +214,10 @@ public class BatchProcessingPresenterService {
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
 								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 										readOnly,
-										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
+										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
+										metadataDisplayType,
 										allowedReferences,
-										enabled,
-										structureFactory, metadataGroup, defaultValue, inputMask, customAttributes) :
+										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes) :
 								null;
 					}
 				};
@@ -300,12 +300,12 @@ public class BatchProcessingPresenterService {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
 							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-							Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-							MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
-							AllowedReferences allowedReferences, boolean enabled,
-							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							String inputMask, Set<String> customAttributes) {
+							boolean multivalue, boolean readOnly, boolean unmodifiable,
+							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+							String schemaTypeCode, MetadataInputType metadataInputType,
+							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
+							boolean enabled, StructureFactory structureFactory, String metadataGroup,
+							Object defaultValue, String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -334,10 +334,10 @@ public class BatchProcessingPresenterService {
 						}
 						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 								readOnly,
-								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType,
+								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
+								metadataDisplayType,
 								allowedReferences,
-								enabled,
-								structureFactory, metadataGroup, defaultValue, inputMask, customAttributes );
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes );
 					}
 				};
 			}

@@ -243,7 +243,7 @@ public class RecordValidationServices {
 
 		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator,
 				validationErrorsWithExtraParams,
-				configProvider, recordProvider);
+				configProvider, recordProvider, searchService);
 
 		validator.validate(params);
 	}

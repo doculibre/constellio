@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -9,11 +15,6 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class RetentionRule extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "retentionRule";
@@ -41,6 +42,8 @@ public class RetentionRule extends RecordWrapper {
 	public static final String PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "principalDefaultDocumentCopyRetentionRule";
 	public static final String SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "secondaryDefaultDocumentCopyRetentionRule";
 	public static final String SCOPE = "scope";
+	public static final String YEAR_TYPES = "yearTypes";
+	public static final String YEAR_TYPES_YEAR_END = "yearTypesYearEnd";
 
 	public RetentionRule(Record record,
 			MetadataSchemaTypes types) {
@@ -331,4 +334,11 @@ public class RetentionRule extends RecordWrapper {
 		return record == null ? null : new RetentionRule(record, types);
 	}
 
+	public List<String> getYearTypes() {
+		return getList(YEAR_TYPES);
+	}
+
+	public List<String> getYearTypesYearEnd() {
+		return getList(YEAR_TYPES_YEAR_END);
+	}
 }

@@ -32,6 +32,7 @@ public class RecordToVOBuilder implements Serializable {
 		String id = record.getId();
 		String schemaCode = record.getSchemaCode();
 		String collection = record.getCollection();
+		boolean saved = record.isSaved();
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -72,6 +73,8 @@ public class RecordToVOBuilder implements Serializable {
 		}
 
 		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode);
+		recordVO.setSaved(saved);
+		recordVO.setRecord(record);
 		if (recordVO.getSchema() != null) {
 			BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
 			constellioFactories.getAppLayerFactory().getExtensions()

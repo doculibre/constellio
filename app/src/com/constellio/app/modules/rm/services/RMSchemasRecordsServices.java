@@ -57,6 +57,7 @@ import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -248,7 +249,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public Document newDocumentWithTypeAndId(DocumentType type, String id) {
-		Record record = create(documentSchemaFor(type),id);
+		Record record = create(documentSchemaFor(type), id);
 		return new Document(record, getTypes()).setType(type);
 	}
 
@@ -1116,5 +1117,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public SavedSearch wrapSavedSearch(Record record) {
 		return record == null ? null : new SavedSearch(record, getTypes());
+	}
+
+	public YearType getYearTypeWithCode(String code) {
+		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}
 }

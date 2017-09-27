@@ -193,7 +193,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
 		Record record;
 		try {
-			record = recordServices().getDocumentById(recordVO.getId());
+			record = recordServices().getDocumentById(recordVO.getId()).getCopyOfOriginalRecord();
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			record = newRecord(recordVO.getId());
 		}

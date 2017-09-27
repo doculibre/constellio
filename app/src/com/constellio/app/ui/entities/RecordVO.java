@@ -23,6 +23,8 @@ public class RecordVO implements Serializable {
 	private String extension;
 
 	private String niceTitle;
+	
+	private boolean saved;
 
 	final List<MetadataValueVO> metadataValues;
 
@@ -60,6 +62,14 @@ public class RecordVO implements Serializable {
 
 	public void setTitle(String title) {
 		set(Schemas.TITLE.getLocalCode(), title);
+	}
+
+	public boolean isSaved() {
+		return saved;
+	}
+
+	public void setSaved(boolean saved) {
+		this.saved = saved;
 	}
 
 	public final VIEW_MODE getViewMode() {

@@ -59,6 +59,7 @@ public class MetadataToVOBuilder implements Serializable {
 		boolean required = metadata.isDefaultRequirement();
 		boolean multivalue = metadata.isMultivalue();
 		boolean readOnly = false;
+		boolean unmodifiable = metadata.isUnmodifiable();
 		boolean enabled = metadata.isEnabled();
 		StructureFactory structureFactory = metadata.getStructureFactory();
 
@@ -140,10 +141,10 @@ public class MetadataToVOBuilder implements Serializable {
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
-		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
-				structureFactory,
-				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(), metadata.getCustomAttributes());
+		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				enabled,
+				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(), metadata.getCustomAttributes());
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -155,6 +156,7 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean required,
 			boolean multivalue,
 			boolean readOnly,
+			boolean unmodifiable,
 			Map<Locale, String> labels,
 			Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes,
@@ -166,12 +168,11 @@ public class MetadataToVOBuilder implements Serializable {
 			StructureFactory structureFactory,
 			String metadataGroup,
 			Object defaultValue,
-			String inputMask,
-			Set<String> customAttributes) {
-		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
-				structureFactory,
-				metadataGroup, defaultValue, inputMask, customAttributes);
+			String inputMask, Set<String> customAttributes) {
+		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				enabled,
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
 	}
 
 }

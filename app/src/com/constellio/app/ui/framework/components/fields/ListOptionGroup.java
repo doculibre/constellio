@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.fields;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,8 @@ import com.vaadin.ui.OptionGroup;
  * @author Vincent
  */
 public class ListOptionGroup extends OptionGroup {
+	
+	public static final String NULL_ITEM_ID = "__NULL__";
 
 	public ListOptionGroup() {
 		init();
@@ -37,6 +40,24 @@ public class ListOptionGroup extends OptionGroup {
 	}
 
     @Override
+	public void setNullSelectionAllowed(boolean nullSelectionAllowed) {
+		super.setNullSelectionAllowed(nullSelectionAllowed);
+		if (nullSelectionAllowed) {
+			addItem(NULL_ITEM_ID);
+			setNullSelectionItemId(NULL_ITEM_ID);
+			setItemCaption(NULL_ITEM_ID, $("null"));
+		} else {
+			removeItem(NULL_ITEM_ID);
+		}
+	}
+
+	@Override
+	protected Object getInternalValue() {
+		Object internalValue = super.getInternalValue();
+		return NULL_ITEM_ID.equals(internalValue) ? null : internalValue;
+	}
+
+	@Override
 	public void attach() {
 		if (isMultiSelect()) {
 			setConverter(new ObjectToListConverter());

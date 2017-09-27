@@ -135,8 +135,10 @@ public abstract class Decommissioner {
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
-		folder.setManualArchivisticStatus(null);
-	}
+        if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
+            folder.setManualArchivisticStatus(null);
+        }
+    }
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;

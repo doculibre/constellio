@@ -81,6 +81,17 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 			}
 
 			@Override
+			public void setFieldVisible(String metadataCode, boolean visible) {
+				Field<?> field = recordForm.getField(metadataCode);
+				if (field != null) {
+					boolean wasVisible = field.isVisible();
+					if (wasVisible != visible) {
+						field.setVisible(visible);
+					}
+				}
+			}
+
+			@Override
 			public void commit() {
 				for (Field<?> field : fieldGroup.getFields()) {
 					try {

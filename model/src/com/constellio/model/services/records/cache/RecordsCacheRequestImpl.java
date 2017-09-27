@@ -104,17 +104,22 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 	@Override
 	public CacheInsertionStatus insert(Record record) {
-		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
-			if (!record.getSchemaCode().startsWith("event")) {
-				LOGGER.info("inserting in request cache " + record.getIdTitle() + " with version " + record.getVersion()
-						+ " in cache " + cacheId);
-				((RecordsCacheImpl) nested).doNotLog.add(record.getId() + "_" + record.getVersion());
+		if (cache.size() < 10000) {
+			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
+				if (!record.getSchemaCode().startsWith("event")) {
+					LOGGER.info("inserting in request cache " + record.getIdTitle() + " with version " + record.getVersion()
+							+ " in cache " + cacheId);
+					((RecordsCacheImpl) nested).doNotLog.add(record.getId() + "_" + record.getVersion());
+				}
 			}
+		} else {
+			LOGGER.info("inserting in request cache aborted, since request cache is full");
 		}
 		CacheInsertionStatus status = nested.insert(record);
 		if (status == CacheInsertionStatus.ACCEPTED) {
 			insertInRequestcache(record);
 		}
+
 		return status;
 	}
 

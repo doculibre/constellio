@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -22,12 +23,20 @@ public class CopyRetentionRuleBuilder {
 		this.uniqueIdGenerator = uniqueIdGenerator;
 	}
 
+	public CopyRetentionRule newPrincipal(String value) {
+		return newRetentionRule(CopyType.PRINCIPAL, new ArrayList<String>(), value);
+	}
+
 	public CopyRetentionRule newPrincipal(List<String> contentTypesCodes, String value) {
 		return newRetentionRule(CopyType.PRINCIPAL, contentTypesCodes, value);
 	}
 
 	public CopyRetentionRule newSecondary(List<String> contentTypesCodes, String value) {
 		return newRetentionRule(CopyType.SECONDARY, contentTypesCodes, value);
+	}
+
+	public CopyRetentionRule newSecondary(String value) {
+		return newRetentionRule(CopyType.SECONDARY, new ArrayList<String>(), value);
 	}
 
 	public CopyRetentionRule newPrincipal(List<String> contentTypesCodes) {

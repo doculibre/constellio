@@ -397,7 +397,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		prepareRecords(transaction, null);
 	}
 
-	void prepareRecords(Transaction transaction, String onlyValidateRecord)
+	void prepareRecords(final Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
@@ -585,7 +585,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			LOGGER.warn("Validating errors added by extensions : \n" + $(transactionExtensionErrors));
 		}
 
-		for (Record record : transaction.getRecords()) {
+		for (final Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
 				ValidationErrors recordErrors =
 						catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
@@ -596,7 +596,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 									recordErrors), options);
 				} else {
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
-							record, transaction.getUser(), singleRecordTransaction, recordErrors), options);
+							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
+						@Override
+						public void recalculateRecord() {
+							newAutomaticMetadataServices().updateAutomaticMetadatas(
+									(RecordImpl) record, newRecordProvider(transaction),
+									TransactionRecordsReindexation.ALL(),
+									new RecordUpdateOptions());
+						}
+					}, options);
 				}
 
 				if (catchValidationsErrors && !recordErrors.isEmptyErrorAndWarnings()) {
@@ -966,6 +974,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	RecordProvider newRecordProvider(RecordProvider nestedProvider, Transaction transaction) {
 		return new RecordProvider(modelLayerFactory.newRecordServices(), nestedProvider, transaction.getRecords(), transaction);
+	}
+
+	RecordProvider newRecordProvider(Transaction transaction) {
+		return new RecordProvider(modelLayerFactory.newRecordServices(), null, transaction.getRecords(), transaction);
 	}
 
 	RecordProvider newRecordProviderWithoutPreloadedRecords() {

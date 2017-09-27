@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -658,6 +659,63 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
+
+	public YearType wrapYearType(Record record) {
+		return record == null ? null : new YearType(record, getTypes());
+	}
+
+	public List<YearType> wrapYearTypes(List<Record> records) {
+		List<YearType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new YearType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<YearType> searchYearTypes(LogicalSearchQuery query) {
+		return wrapYearTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<YearType> searchYearTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvYearType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapYearTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public YearType getYearType(String id) {
+		return wrapYearType(get(id));
+	}
+
+	public List<YearType> getYearTypes(List<String> ids) {
+		return wrapYearTypes(get(ids));
+	}
+
+	public YearType getYearTypeWithLegacyId(String legacyId) {
+		return wrapYearType(getByLegacyId(ddvYearType.schemaType(), legacyId));
+	}
+
+	public YearType newYearType() {
+		return wrapYearType(create(ddvYearType.schema()));
+	}
+
+	public YearType newYearTypeWithId(String id) {
+		return wrapYearType(create(ddvYearType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvYearType_default ddvYearType
+			= new SchemaTypeShortcuts_ddvYearType_default("ddvYearType_default");
+
+	public class SchemaTypeShortcuts_ddvYearType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvYearType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata yearEnd() {
+			return metadata("yearEnd");
+		}
+	}
+
 
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());
@@ -1764,6 +1822,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata secondaryDefaultDocumentCopyRetentionRule() {
 			return metadata("secondaryDefaultDocumentCopyRetentionRule");
+		}
+
+		public Metadata yearTypes() {
+			return metadata("yearTypes");
+		}
+
+		public Metadata yearTypesYearEnd() {
+			return metadata("yearTypesYearEnd");
 		}
 	}
 

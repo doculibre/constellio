@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -202,7 +203,9 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
-	public MetadataSchema temporaryRecord() { return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA); }
+	public MetadataSchema temporaryRecord() {
+		return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA);
+	}
 
 	public TemporaryRecord newTemporaryRecord() {
 		return new TemporaryRecord(create(defaultSchema(TemporaryRecord.SCHEMA_TYPE)), getTypes());
@@ -375,6 +378,21 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	private Roles getRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(getCollection(), modelLayerFactory);
+	}
+
+	public void executeTransaction(Transaction tx)
+			throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().execute(tx);
+	}
+
+	public void executeTransactionHandlingImpactsAsync(Transaction tx)
+			throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().executeHandlingImpactsAsync(tx);
+	}
+
+	public void executeTransactionWithoutImpactHandling(Transaction tx)
+			throws RecordServicesException {
+		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
 }

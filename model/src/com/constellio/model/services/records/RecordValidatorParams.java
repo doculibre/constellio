@@ -6,6 +6,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.search.SearchServices;
 
 public class RecordValidatorParams {
 
@@ -16,11 +17,12 @@ public class RecordValidatorParams {
 	final ValidationErrors validationErrors;
 	final ConfigProvider configProvider;
 	final RecordProvider recordProvider;
+	final SearchServices searchServices;
 
 	public RecordValidatorParams(Record record, MetadataSchemaTypes types,
 			MetadataSchema schema, RecordValidator validator,
 			ValidationErrors validationErrors, ConfigProvider configProvider,
-			RecordProvider recordProvider) {
+			RecordProvider recordProvider, SearchServices searchServices) {
 		this.record = record;
 		this.types = types;
 		this.schema = schema;
@@ -28,6 +30,7 @@ public class RecordValidatorParams {
 		this.validationErrors = validationErrors;
 		this.configProvider = configProvider;
 		this.recordProvider = recordProvider;
+		this.searchServices = searchServices;
 	}
 
 	public Record getValidatedRecord() {
@@ -61,4 +64,13 @@ public class RecordValidatorParams {
 	public RecordProvider getRecordProvider() {
 		return recordProvider;
 	}
+
+	public Record getRecord() {
+		return record;
+	}
+
+	public SearchServices getSearchServices() {
+		return searchServices;
+	}
+	
 }

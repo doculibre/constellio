@@ -34,6 +34,8 @@ public class Toggle {
 
 	public static AvailableToggle FASTER_REINDEXING = newToggle(false);
 
+	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

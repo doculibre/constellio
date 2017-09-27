@@ -27,6 +27,11 @@ public class RetentionRuleDisplay extends RecordDisplay {
 			documentCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			documentCopyRetentionRuleTable.setWidth("100%");
 			mainLayout.addComponent(documentCopyRetentionRuleTable);
+		} else if (displayComponent instanceof DocumentDefaultCopyRetentionRuleTable) {
+			DocumentDefaultCopyRetentionRuleTable documentDefaultCopyRetentionRuleTable = (DocumentDefaultCopyRetentionRuleTable) displayComponent;
+			documentDefaultCopyRetentionRuleTable.setCaption(captionLabel.getValue());
+			documentDefaultCopyRetentionRuleTable.setWidth("100%");
+			mainLayout.addComponent(documentDefaultCopyRetentionRuleTable);
 		} else {
 			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
 		}

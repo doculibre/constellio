@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -125,7 +126,15 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asCalculated(Class<? extends MetadataValueCalculator<?>> calculatorClass) {
-		List<Class<?>> interfaces = Arrays.asList(calculatorClass.getInterfaces());
+		List<Class<?>> interfaces = new ArrayList<>();
+
+		Class<?> aClass = calculatorClass;
+		interfaces.addAll(Arrays.asList(calculatorClass.getInterfaces()));
+		while (aClass.getSuperclass() != null) {
+			aClass = aClass.getSuperclass();
+			interfaces.addAll(Arrays.asList(aClass.getInterfaces()));
+		}
+
 		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {
 			try {
 				metadata.dataEntry = new CalculatedDataEntry(calculatorClass.newInstance());

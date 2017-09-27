@@ -1,7 +1,18 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
@@ -9,13 +20,6 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Folder extends RMObject {
 	public static final String SCHEMA_TYPE = "folder";
@@ -86,6 +90,7 @@ public class Folder extends RMObject {
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
+	public static final String DATE_TYPES = "dateTypes";
 
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
@@ -108,6 +113,7 @@ public class Folder extends RMObject {
 	public static final String PREVIOUS_TRANSFER_DATES = "previousTransferDates";
 	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
 	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
+	public static final String MANUAL_DISPOSAL_TYPE = "manualDisposalType";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -130,6 +136,10 @@ public class Folder extends RMObject {
 
 	public String getParentFolder() {
 		return get(PARENT_FOLDER);
+	}
+
+	public String getDateType() {
+		return get(DATE_TYPES);
 	}
 
 	public Folder setParentFolder(String folder) {
@@ -791,5 +801,15 @@ public class Folder extends RMObject {
 		set(PREVIOUS_DEPOSIT_DATES, dates);
 		return this;
 	}
+
+	public DisposalType getManualDisposalType() {
+		return get(MANUAL_DISPOSAL_TYPE);
+	}
+
+	public Folder setManualDisposalType(DisposalType disposalType) {
+		set(MANUAL_DISPOSAL_TYPE, disposalType);
+		return this;
+	}
+
 }
 

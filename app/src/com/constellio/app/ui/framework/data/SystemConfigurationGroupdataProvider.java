@@ -38,9 +38,7 @@ public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
 			List<SystemConfigurationVO> sysConfigGroupVOList = new ArrayList<>();
 
 			for (SystemConfiguration config : systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(group.getCode())){
-				//if (!config.isHidden()) {
-					sysConfigGroupVOList.add(builder.build(config, systemConfigurationsManager.getValue(config)));
-				//}
+				sysConfigGroupVOList.add(builder.build(config, systemConfigurationsManager.getValue(config)));
 			}
 			systemConfigurationGroupVOSortedMap.put(group.getCode(), new SystemConfigurationGroupVO(group.getCode(), sysConfigGroupVOList));
 		}
