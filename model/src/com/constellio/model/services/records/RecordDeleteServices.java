@@ -736,61 +736,7 @@ public class RecordDeleteServices {
 
 	public boolean isReferencedByOtherRecords(Record record) {
 		return !getRecordsInHierarchyWithDependency(record).isEmpty();
-		//
-		//		List<String> references = getRecordsInHierarchyWithDependency(record);
-		//		//		List<Record> hierarchyRecords = recordServices.getRecordsById(record.getCollection(), references);
-		//		//		if (references.isEmpty()) {
-		//		//			return false;
-		//		//		}
-		//		boolean hasReferences = false;
-		//		List<String> paths = record.getList(Schemas.PARENT_PATH);
-		//
-		//		//		hasReferences = searchServices.hasResults(fromAllSchemasIn(record.getCollection())
-		//		//				.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId())
-		//		//				.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId()));
-		//
-		//		Taxonomy taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		//		boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode());
-		//		boolean isTaxonomy = taxonomiesManager.getTaxonomyOf(record) != null;
-		//
-		//		if (isPrincipalTaxonomy || !isTaxonomy) {
-		//			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-		//				List<Metadata> typeReferencesMetadata = new ArrayList<>();
 
-				for (Metadata metadata : type.getAllNonParentReferences()) {
-					//FIXME Generic!
-//					if (record.getTypeCode().equals("folder")) {
-					//						if ("folder".equals(metadata.getReferencedSchemaType())
-					//								|| "document".equals(metadata.getReferencedSchemaType())) {
-					//							typeReferencesMetadata.add(metadata);
-					//						}
-					//					} else if (record.getTypeCode().equals("document")) {
-					//						if ("document".equals(metadata.getReferencedSchemaType())) {
-					//							typeReferencesMetadata.add(metadata);
-					//						}
-					//					} else {
-					//						typeReferencesMetadata.add(metadata);
-					//					}
-				}
-
-		//				if (!typeReferencesMetadata.isEmpty()) {
-		//					LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
-		//
-		//					//if (!paths.isEmpty()) {
-		//					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
-		//					//}
-		//					boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
-		//					hasReferences |= referencedByMetadatasOfType;
-		//				}
-		//			}
-		//		} else {
-		//			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
-		//					.where(Schemas.PATH_PARTS).isEqualTo(record.getId())
-		//					.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.startingWithText(record.getTypeCode() + "_"));
-		//			hasReferences = searchServices.hasResults(new LogicalSearchQuery(condition));
-		//		}
-		//
-		//		return hasReferences;
 	}
 
 	private void ensureSameCollection(User user, Record record) {
