@@ -73,6 +73,8 @@ public interface RecordServices {
 
 	Record getRecordByMetadata(Metadata metadata, String value);
 
+	Record realtimeGet(String id);
+
 	Record getDocumentById(String id);
 
 	Record getDocumentById(String id, User user);

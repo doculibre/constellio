@@ -215,7 +215,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRecordLogicallyDeletedThenInvalidatedAndNeverInsertedInCache()
+	public void givenRecordLogicallyDeletedThenModifiedInCache()
 			throws Exception {
 
 		givenTestRecords();
@@ -225,18 +225,21 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThatRecords("1", "5").areNotInCache();
 
 		recordServices.logicallyDelete(recordServices.getDocumentById("2"), adminInZeCollection);
-		assertThatRecords("3", "4").areInCache();
-		assertThatRecords("1", "2", "5").areNotInCache();
+		assertThatRecords("2", "3", "4").areInCache();
+		assertThatRecords("1", "5").areNotInCache();
 
 		recordServices.update(recordServices.getDocumentById("3").set(Schemas.LOGICALLY_DELETED_STATUS, true),
 				adminInZeCollection);
-		assertThatRecords("4").areInCache();
-		assertThatRecords("1", "2", "3", "5").areNotInCache();
+		assertThatRecords("2", "3", "4").areInCache();
+		assertThatRecords("1", "5").areNotInCache();
+
+		recordsCaches.getCache(zeCollection).invalidateAll();
 
 		recordServices.getDocumentById("2");
 		recordServices.getDocumentById("3");
-		assertThatRecords("4").areInCache();
-		assertThatRecords("1", "2", "3", "5").areNotInCache();
+		recordServices.getDocumentById("4");
+		assertThatRecords("2", "3", "4").areInCache();
+		assertThatRecords("1", "5").areNotInCache();
 	}
 
 	@Test

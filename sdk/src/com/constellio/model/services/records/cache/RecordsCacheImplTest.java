@@ -519,7 +519,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenVolatileCacheWhenInsertingLogicallyDeletedRecordThenNotInserted()
+	public void givenVolatileCacheWhenInsertingLogicallyDeletedRecordThenInserted()
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
@@ -533,8 +533,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(logicallyDeletedRecord);
 		cache.insert(restoredRecord);
 
-		assertThatRecords("1", "3").areInCache();
-		assertThatRecord("2").isNotInCache();
+		assertThatRecords("1", "2", "3").areInCache();
 	}
 
 	@Test
@@ -576,7 +575,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenpermanentCacheNotLoadedInitiallyWhenInsertingLogicallyDeletedRecordThenNotInserted()
+	public void givenpermanentCacheNotLoadedInitiallyWhenInsertingLogicallyDeletedRecordThenReinserted()
 			throws Exception {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
@@ -590,8 +589,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(logicallyDeletedRecord);
 		cache.insert(restoredRecord);
 
-		assertThatRecords("1", "3").areInCache();
-		assertThatRecord("2").isNotInCache();
+		assertThatRecords("1", "2", "3").areInCache();
 	}
 
 	@Test

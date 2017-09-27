@@ -1,11 +1,14 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.TestUtils.idsArray;
 import static com.constellio.sdk.tests.TestUtils.recordsIds;
 import static java.util.Arrays.asList;
@@ -22,6 +25,7 @@ import org.junit.Test;
 
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -29,7 +33,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -187,6 +190,70 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
+		}
+	}
+
+	@Test
+	public void givenRecordIsLogicallyDeletedBeforeAddingANewReferenceToItThenException()
+			throws Exception {
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2());
+		try {
+			when(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
+	}
+
+	@Test
+	public void givenRecordIsLogicallyDeletedAtTheSameMomentOfAddingANewReferenceToItThenException()
+			throws Exception {
+
+		Record folder4_2 = records.folder4_2();
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
+		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
+				.setRecordsFlushing(RecordsFlushing.LATER());
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
+
+		//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2)).isNotNull();
+		//		assertThat(recordServices.getRecordsCaches().getCache(zeCollection).get(FOLDER4_2).get(LOGICALLY_DELETED_STATUS))
+		//				.isEqualTo(Boolean.TRUE);
+
+		try {
+			when(records.folder4_1()).hasAReferenceTo(folder4_2);
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
+	}
+
+	@Test
+	public void givenCachedRecordIsLogicallyDeletedAtTheSameMomentOfAddingANewReferenceToItThenException()
+			throws Exception {
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(folderSchema.type()));
+
+		assertThat(records.folder4_2().get(LOGICALLY_DELETED_STATUS)).isNull();
+		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions()
+				.setRecordsFlushing(RecordsFlushing.LATER());
+
+		given(userWithDeletePermission).logicallyDelete(records.folder4_2(), options);
+		//assertThat(records.folder4_2().get(Schemas.LOGICALLY_DELETED_STATUS)).isNull();
+
+		Record folder4_2 = records.folder4_2();
+		//getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidate(folder4_2.getId());
+
+		try {
+			when(records.folder4_1()).hasAReferenceTo(folder4_2);
+			fail("Validation exception required");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
 		}
 	}
 
@@ -1100,17 +1167,21 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		given(records.folder4_1()).hasAReferenceTo(records.folder4_2());
 		given(records.folder3()).hasAReferenceTo(records.folder4());
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
-		assertThat(records.taxo1_category2()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(physicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		when(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
@@ -1187,8 +1258,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		given(bob).hasDeletePermissionOn(records.taxo1_category2());
 
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(bob));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(bob));
 		assertThat(records.taxo1_category2()).is(logicallyDeletableIncludingRecordsBy(bob));
 		assertThat(records.taxo1_category2_1()).is(logicallyDeletableIncludingRecordsBy(bob));
 		assertThat(records.taxo1_category2()).is(logicallyDeletableExcludingRecordsBy(bob));
@@ -1238,8 +1311,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		Record folder3 = records.folder3();
 		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).isNot(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
 		when(userWithDeletePermission)
@@ -1396,21 +1471,33 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat((List) records.folder2().get(folderSchema.linkToOtherFolders())).hasSize(2);
 	}
 
-	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+	@Test
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedRecordThenException()
 			throws Exception {
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(records.folder2()).hasAReferenceTo(records.folder4());
+		try {
+			when(records.folder2()).hasAReferenceTo(records.folder4());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4");
+		}
 
 	}
 
-	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+	@Test
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedSubRecordThenException()
 			throws Exception {
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(records.folder2()).hasAReferenceTo(records.folder4_2());
+		try {
+			when(records.folder2()).hasAReferenceTo(records.folder4_2());
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(frenchMessages(e)).containsOnly(
+					"La métadonnée «linkToOtherFolders» ne peut pas référencer un enregistrement logiquement supprimé : folder4_2");
+		}
 
 	}
 
@@ -1855,7 +1942,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			public boolean matches(Record record) {
 				try {
 					Record refreshedRecord = recordServices.getDocumentById(record.getId());
-					return Boolean.TRUE == refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+					return Boolean.TRUE == refreshedRecord.get(LOGICALLY_DELETED_STATUS);
 				} catch (NoSuchRecordWithId e) {
 					return false;
 				}
@@ -2040,24 +2127,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 		}
 
-		public void hasAReferenceTo(Record... anotherRecords) {
+		public void hasAReferenceTo(Record... anotherRecords)
+				throws RecordServicesException {
 
 			record.set(folderSchema.linkToOtherFolders(), asList(anotherRecords));
-			try {
-				recordServices.update(record);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			recordServices.update(record);
 		}
 
-		public void hasASingleValueReferenceTo(Record anotherRecord) {
+		public void hasASingleValueReferenceTo(Record anotherRecord)
+				throws RecordServicesException {
 
 			record.set(folderSchema.linkToOtherFolder(), anotherRecord);
-			try {
-				recordServices.update(record);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			recordServices.update(record);
 		}
 
 		public void hasNewParent(Record record)

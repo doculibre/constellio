@@ -47,7 +47,7 @@ public class RecordProvider {
 			record = transaction.getRecord(id);
 		}
 		if (record == null) {
-			record = recordServices.getDocumentById(id);
+			record = recordServices.realtimeGet(id);
 			memoryList.put(id, record);
 		}
 		return record;

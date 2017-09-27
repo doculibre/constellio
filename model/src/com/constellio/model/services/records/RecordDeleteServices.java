@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -67,7 +69,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -222,7 +223,7 @@ public class RecordDeleteServices {
 		Factory<Boolean> referenced = new Factory<Boolean>() {
 			@Override
 			public Boolean get() {
-				return !recordDao.getReferencedRecordsInHierarchy(record.getId()).isEmpty();
+				return !getRecordsInHierarchyWithDependency(record).isEmpty();
 			}
 		};
 
@@ -361,8 +362,13 @@ public class RecordDeleteServices {
 			try {
 				recordDao.execute(
 						new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
+
 			} catch (OptimisticLocking optimisticLocking) {
 				throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
+			}
+
+			for (RecordDTO recordDTO : recordsDTO) {
+				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
 			}
 
 			Transaction transaction = new Transaction();
@@ -457,7 +463,7 @@ public class RecordDeleteServices {
 			Factory<Boolean> referenced = new Factory<Boolean>() {
 				@Override
 				public Boolean get() {
-					return !recordDao.getReferencedRecordsInHierarchy(record.getId()).isEmpty();
+					return !getRecordsInHierarchyWithDependency(record).isEmpty();
 				}
 			};
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
@@ -542,6 +548,7 @@ public class RecordDeleteServices {
 		transaction.setRecordFlushing(options.getRecordsFlushing());
 		transaction.setUser(user);
 		try {
+			transaction.setRecordFlushing(options.getRecordsFlushing());
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation("logicallyDelete", e);
@@ -623,17 +630,29 @@ public class RecordDeleteServices {
 	public List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user) {
 		//1 - Find all hierarchy records (including the given record) that are referenced (using the counter index)
 		List<Record> returnedRecords = new ArrayList<>();
-		List<String> recordsWithReferences = getRecordsInHierarchyWithDependency(record);
-		if (!recordsWithReferences.isEmpty()) {
+		List<String> recordsWithReferences = new ArrayList<>(getRecordsInHierarchyWithDependency(record));
 
-			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-				List<Metadata> references = type.getAllNonParentReferences();
-				if (!references.isEmpty()) {
-					List<Record> recordsInType = getRecordsInTypeWithReferenceTo(user, recordsWithReferences, type, references);
-					returnedRecords.addAll(recordsInType);
-				}
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
+		for (String id : recordsWithReferences) {
+			Record referencingRecord = recordServices.getDocumentById(id);
+
+			boolean securedRecord = types.getSchemaType(referencingRecord.getTypeCode()).hasSecurity();
+			if (user == null || !securedRecord || user.hasReadAccess().on(referencingRecord)) {
+				returnedRecords.add(referencingRecord);
 			}
 		}
+
+		//if (!recordsWithReferences.isEmpty()) {
+
+		//			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
+		//				List<Metadata> references = type.getAllNonParentReferences();
+		//				if (!references.isEmpty()) {
+		//					List<Record> recordsInType = getRecordsInTypeWithReferenceTo(user, recordsWithReferences, type, references);
+		//					returnedRecords.addAll(recordsInType);
+		//				}
+		//			}
+		//return recordServices.getRecordsById()
+		//}
 
 		return Collections.unmodifiableList(returnedRecords);
 	}
@@ -646,8 +665,54 @@ public class RecordDeleteServices {
 		return searchServices.search(query);
 	}
 
-	public List<String> getRecordsInHierarchyWithDependency(Record record) {
-		return recordDao.getReferencedRecordsInHierarchy(record.getId());
+	public Set<String> getRecordsInHierarchyWithDependency(Record record) {
+
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+
+		List<Record> recordsHierarchy;
+
+		if (taxonomy == null) {
+			recordsHierarchy = new ArrayList<>(getAllRecordsInHierarchy(record));
+		} else {
+			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
+		}
+		List<String> recordsHierarchyIds = new RecordUtils().toIdList(recordsHierarchy);
+		Set<String> references = new HashSet<>();
+
+		if (!recordsHierarchyIds.contains(record.getId())) {
+			recordsHierarchy.add(record);
+		}
+
+		for (Record aHierarchyRecord : recordsHierarchy) {
+
+			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
+
+				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
+						.onlyReferencesToType(aHierarchyRecord.getTypeCode());
+				if (!referencesMetadata.isEmpty()) {
+					List<Metadata> parentReferences = schemaType.getDefaultSchema().getMetadatas()
+							.onlyParentReferenceToSchemaType(aHierarchyRecord.getTypeCode());
+
+					LogicalSearchCondition condition = from(schemaType).where(ALL_REFERENCES)
+							.isEqualTo(aHierarchyRecord.getId());
+
+					if (!parentReferences.isEmpty()) {
+						condition = condition.andWhereAll((List) parentReferences).isNotEqual(aHierarchyRecord.getId());
+					}
+
+					Iterator<String> iterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(condition));
+
+					while (iterator.hasNext()) {
+						String referencingRecord = iterator.next();
+						if (!recordsHierarchyIds.contains(referencingRecord)) {
+							references.add(referencingRecord);
+						}
+					}
+				}
+			}
+		}
+
+		return references;
 	}
 
 	public boolean isReferencedByConfigs(Record record) {
@@ -670,26 +735,27 @@ public class RecordDeleteServices {
 	}
 
 	public boolean isReferencedByOtherRecords(Record record) {
-
-		List<String> references = recordDao.getReferencedRecordsInHierarchy(record.getId());
-		//		List<Record> hierarchyRecords = recordServices.getRecordsById(record.getCollection(), references);
-		//		if (references.isEmpty()) {
-		//			return false;
-		//		}
-		boolean hasReferences = false;
-		List<String> paths = record.getList(Schemas.PARENT_PATH);
-
-		//		hasReferences = searchServices.hasResults(fromAllSchemasIn(record.getCollection())
-		//				.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId())
-		//				.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId()));
-
-		Taxonomy taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-		boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode());
-		boolean isTaxonomy = taxonomiesManager.getTaxonomyOf(record) != null;
-
-		if (isPrincipalTaxonomy || !isTaxonomy) {
-			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-				List<Metadata> typeReferencesMetadata = new ArrayList<>();
+		return !getRecordsInHierarchyWithDependency(record).isEmpty();
+		//
+		//		List<String> references = getRecordsInHierarchyWithDependency(record);
+		//		//		List<Record> hierarchyRecords = recordServices.getRecordsById(record.getCollection(), references);
+		//		//		if (references.isEmpty()) {
+		//		//			return false;
+		//		//		}
+		//		boolean hasReferences = false;
+		//		List<String> paths = record.getList(Schemas.PARENT_PATH);
+		//
+		//		//		hasReferences = searchServices.hasResults(fromAllSchemasIn(record.getCollection())
+		//		//				.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId())
+		//		//				.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId()));
+		//
+		//		Taxonomy taxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+		//		boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode());
+		//		boolean isTaxonomy = taxonomiesManager.getTaxonomyOf(record) != null;
+		//
+		//		if (isPrincipalTaxonomy || !isTaxonomy) {
+		//			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
+		//				List<Metadata> typeReferencesMetadata = new ArrayList<>();
 
 				for (Metadata metadata : type.getAllNonParentReferences()) {
 					//FIXME Generic!
@@ -707,24 +773,24 @@ public class RecordDeleteServices {
 					//					}
 				}
 
-				if (!typeReferencesMetadata.isEmpty()) {
-					LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
-
-					//if (!paths.isEmpty()) {
-					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
-					//}
-					boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
-					hasReferences |= referencedByMetadatasOfType;
-				}
-			}
-		} else {
-			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
-					.where(Schemas.PATH_PARTS).isEqualTo(record.getId())
-					.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.startingWithText(record.getTypeCode() + "_"));
-			hasReferences = searchServices.hasResults(new LogicalSearchQuery(condition));
-		}
-
-		return hasReferences;
+		//				if (!typeReferencesMetadata.isEmpty()) {
+		//					LogicalSearchCondition condition = from(type).whereAny(typeReferencesMetadata).isIn(references);
+		//
+		//					//if (!paths.isEmpty()) {
+		//					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(record.getId());
+		//					//}
+		//					boolean referencedByMetadatasOfType = searchServices.hasResults(new LogicalSearchQuery(condition));
+		//					hasReferences |= referencedByMetadatasOfType;
+		//				}
+		//			}
+		//		} else {
+		//			LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
+		//					.where(Schemas.PATH_PARTS).isEqualTo(record.getId())
+		//					.andWhere(Schemas.SCHEMA).isNot(LogicalSearchQueryOperators.startingWithText(record.getTypeCode() + "_"));
+		//			hasReferences = searchServices.hasResults(new LogicalSearchQuery(condition));
+		//		}
+		//
+		//		return hasReferences;
 	}
 
 	private void ensureSameCollection(User user, Record record) {

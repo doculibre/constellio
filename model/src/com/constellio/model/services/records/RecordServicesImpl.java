@@ -25,7 +25,6 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
-import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -85,7 +84,6 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
@@ -248,6 +246,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 
 		if (attempt > 35) {
+			//e.printStackTrace();
 			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO);
 		}
 
@@ -272,8 +271,82 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	void mergeRecordsUsingRealtimeGet(Transaction transaction, String failedId)
+			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+
+		List<String> ids = new ArrayList<>();
+		for (Record record : transaction.getRecords()) {
+			ids.add(record.getId());
+		}
+		ids.addAll(transaction.getIdsToReindex());
+
+		List<Record> newVersions = realtimeGet(ids);
+
+		for (String id : transaction.getIdsToReindex()) {
+			Record newRecordVersion = null;
+			for (Record aNewVersion : newVersions) {
+				if (aNewVersion.getId().equals(id)) {
+					newRecordVersion = aNewVersion;
+					break;
+				}
+			}
+			if (newRecordVersion == null) {
+				throw new RecordServicesException.UnresolvableOptimisticLockingConflict(id);
+			}
+		}
+
+		for (Record record : transaction.getRecords()) {
+			if (record.isSaved()) {
+
+				try {
+					Record newRecordVersion = null;
+					for (Record aNewVersion : newVersions) {
+						if (aNewVersion.getId().equals(record.getId())) {
+							newRecordVersion = aNewVersion;
+							break;
+						}
+					}
+
+					if (newRecordVersion != null && record.getVersion() != newRecordVersion.getVersion()) {
+						MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
+								.getSchemaTypes(transaction.getCollection());
+						MetadataSchema metadataSchema = types.getSchema(newRecordVersion.getSchemaCode());
+						try {
+							((RecordImpl) record).merge((RecordImpl) newRecordVersion, metadataSchema);
+						} catch (RecordRuntimeException.CannotMerge e) {
+							throw new UnresolvableOptimisticLockingConflict(e);
+						}
+					}
+					if (newRecordVersion == null) {
+						throw new RecordServicesException.UnresolvableOptimisticLockingConflict(record.getId());
+					}
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
+							.getSchemaTypes(transaction.getCollection());
+					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
+				}
+			} else {
+				try {
+					realtimeGet(record.getId());
+					throw new RecordServicesRuntimeException.IdAlreadyExisting(record.getId());
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					//OK
+				}
+			}
+		}
+	}
+
 	void mergeRecords(Transaction transaction, String failedId)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+		//mergeRecordsUsingRealtimeGet is interesting, but it make this test fail
+		//com.constellio.model.services.records.RecordServicesOptimisticLockingHandlingAcceptanceTest
+		mergeRecordsUsingRealtimeGet(transaction, failedId);
+		//mergeRecordsUsingQuery(transaction, failedId);
+	}
+
+	void mergeRecordsUsingQuery(Transaction transaction, String failedId)
+			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
+
 		List<LogicalSearchCondition> conditions = new ArrayList<>();
 
 		for (Record record : transaction.getRecords()) {
@@ -376,6 +449,36 @@ public class RecordServicesImpl extends BaseRecordServices {
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
+	}
+
+	public Record realtimeGet(String id) {
+		try {
+			Record record = new RecordImpl(recordDao.realGet(id), true);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new RecordUpdateOptions());
+			insertInCache(record);
+			return record;
+
+		} catch (NoSuchRecordWithId e) {
+			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
+		}
+	}
+
+	public List<Record> realtimeGet(List<String> ids) {
+
+		List<Record> records = new ArrayList<>();
+		for (RecordDTO recordDTO : recordDao.realGet(ids)) {
+			Record record = new RecordImpl(recordDTO, true);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new RecordUpdateOptions());
+			insertInCache(record);
+			records.add(record);
+		}
+
+		return records;
+
 	}
 
 	public void insertInCache(Record record) {
@@ -751,8 +854,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				LOGGER.trace("Optimistic locking, handling with specified resolution {}", transaction.getRecordUpdateOptions()
 						.getOptimisticLockingResolution().name(), e);
 				handleOptimisticLocking(transactionDTO, transaction, modificationImpactHandler, e, attempt);
-			} catch (ReferenceToNonExistentIndex e) {
-				throw new NewReferenceToOtherLogicallyDeletedRecord(e.getId(), e);
 			}
 		}
 	}

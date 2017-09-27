@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +23,7 @@ public class TransactionDTO {
 	private Map<String, RecordDTO> newRecordsById;
 	private RecordsFlushing recordsFlushing;
 	private Set<String> markedForReindexing;
-	private boolean skippingReferenceToLogicallyDeletedValidation;
+	private boolean skippingReferenceToLogicallyDeletedValidation = true;
 	private boolean fullRewrite = false;
 
 	public TransactionDTO(RecordsFlushing recordsFlushing) {

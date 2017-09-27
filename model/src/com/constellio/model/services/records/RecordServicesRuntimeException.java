@@ -100,12 +100,19 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class NewReferenceToOtherLogicallyDeletedRecord extends RecordServicesRuntimeException {
-
-		public NewReferenceToOtherLogicallyDeletedRecord(String id, Exception e) {
-			super("Record cannot have a new reference to a logically deleted record : " + id, e);
-		}
-	}
+//	public static class NewReferenceToOtherLogicallyDeletedRecord extends RecordServicesRuntimeException {
+	//
+	//		String id;
+	//
+	//		public NewReferenceToOtherLogicallyDeletedRecord(String id, Exception e) {
+	//			super("Record cannot have a new reference to a logically deleted record : " + id, e);
+	//			this.id = id.startsWith("idx_act_") ? id.substring(8) : id;
+	//		}
+	//
+	//		public String getId() {
+	//			return id;
+	//		}
+	//	}
 
 	public static class RecordServicesRuntimeException_CannotLogicallyDeleteRecord extends RecordServicesRuntimeException {
 
