@@ -1,9 +1,12 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
@@ -11,6 +14,7 @@ import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -85,10 +89,22 @@ public abstract class XmlGenerator {
     }
 
     List<Element> getAdditionalInformations(Record recordElement) {
+        MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(recordElement);
         List<Element> elementsToAdd = new ArrayList<>(asList(
                 new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection").setAttribute("code", "collection_code"),
                 new Element("collection_title").setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName()).setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
         ));
+        if(metadataSchemaType.getCode().equals(Folder.SCHEMA_TYPE)) {
+            Metadata typeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(Folder.TYPE);
+            String metadataTypeId = recordElement.get(typeMetadata);
+            if(metadataTypeId != null) {
+                FolderType currentFolderType = new RMSchemasRecordsServices(getCollection(), getFactory()).getFolderType(metadataTypeId);
+                elementsToAdd.addAll(asList(
+                        new Element("ref_folder_type_title").setText(currentFolderType.getTitle()).setAttribute("label", metadataSchemaType.getFrenchLabel()).setAttribute("code", typeMetadata.getCode()),
+                        new Element("ref_folder_type_code").setText(currentFolderType.getCode()).setAttribute("label", metadataSchemaType.getFrenchLabel()).setAttribute("code", typeMetadata.getCode())
+                ));
+            }
+        }
         List<Element> listOfSpecificAdditionnalElement = getSpecificDataToAddForCurrentElement(recordElement);
         if (!listOfSpecificAdditionnalElement.isEmpty()) {
             elementsToAdd.addAll(listOfSpecificAdditionnalElement);
