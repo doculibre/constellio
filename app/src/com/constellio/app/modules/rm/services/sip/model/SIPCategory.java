@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.services.sip.model;
 
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +24,10 @@ public class SIPCategory implements SIPObject {
 
 	private EntityRetriever entityRetriever;
 
+	private Category category;
+
 	public SIPCategory(Category category, EntityRetriever entityRetriever) {
+		this.category = category;
 		this.id = "" + category.getId();
 		this.code = category.getCode();
 		this.title = category.getTitle();
@@ -90,6 +95,16 @@ public class SIPCategory implements SIPObject {
 		}
 		sb.insert(0, "/data/");
 		return sb.toString();
+	}
+
+	@Override
+	public List<Metadata> getMetadataList() {
+		return this.category.getSchema().getMetadatas();
+	}
+
+	@Override
+	public Record getRecord() {
+		return this.category.getWrappedRecord();
 	}
 
 }

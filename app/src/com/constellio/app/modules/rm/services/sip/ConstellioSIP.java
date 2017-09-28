@@ -43,7 +43,7 @@ import java.util.Map.Entry;
 
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
- * - agent ROLE="CREATOR" ORGANIZATION="Commission Charbonneau"
+ * - agent ROLE="CREATOR" ORGANIZATION=""
  * - name
  * <p>
  * dmdSec
@@ -293,7 +293,7 @@ public class ConstellioSIP {
             File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
             tempXMLFile.deleteOnExit();
 
-            EAD ead = new EAD(sipObject, archdesc);
+            EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
             ead.build(tempXMLFile);
 
             addToZip(tempXMLFile, zipXMLPath);
@@ -323,7 +323,7 @@ public class ConstellioSIP {
             File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
             tempXMLFile.deleteOnExit();
 
-            EAD ead = new EAD(sipObject, archdesc);
+            EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
             ead.build(tempXMLFile);
 
             addToZip(tempXMLFile, zipXMLPath);
@@ -609,7 +609,7 @@ public class ConstellioSIP {
         Agent agent = metsHeader.newAgent();
         agent.setRole("CREATOR");
         agent.setType("ORGANIZATION");
-        agent.setName("Commission d'enquête sur l'octroi et la gestion des contrats publics dans l'industrie de la construction");
+        agent.setName("");
         metsHeader.addAgent(agent);
 
         FileSec fileSec = mets.newFileSec();
