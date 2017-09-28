@@ -97,16 +97,15 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ListExcelReportViewImpl.ExcelEditButton(itemId, schemaType);
+				return new ListExcelReportViewImpl.ExcelDisplayButton(itemId, schemaType);
 			}
 		});
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ListExcelReportViewImpl.ExcelDisplayButton(itemId, schemaType);
+				return new ListExcelReportViewImpl.ExcelEditButton(itemId, schemaType);
 			}
 		});
-
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 
 			@Override
