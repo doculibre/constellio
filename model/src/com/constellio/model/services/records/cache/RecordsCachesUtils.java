@@ -34,7 +34,7 @@ public class RecordsCachesUtils {
 				&& query.getFieldFacets().isEmpty()
 				&& query.getQueryFacets().isEmpty()
 				&& (query.getReturnedMetadatas().isFullyLoaded() || onlyIds)
-				&& query.getUserFilter() == null
+				&& (query.getUserFilters() == null || query.getUserFilters().isEmpty())
 				&& !query.isHighlighting();
 	}
 
