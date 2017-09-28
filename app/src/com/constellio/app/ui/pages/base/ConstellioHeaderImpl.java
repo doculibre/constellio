@@ -518,7 +518,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		buildSelectionPanelButtons(actionMenuLayout);
 
 		VerticalLayout selectionActionMenu = new VerticalLayout();
-		selectionActionMenu.setWidth("200px");
+		selectionActionMenu.setWidth("210px");
 		selectionActionMenu.setSpacing(true);
 		selectionActionMenu.addComponent(actionMenuLayout);
 
