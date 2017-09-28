@@ -66,11 +66,11 @@ public class BackgroundThreadsManager implements StatefulService {
 		if (backgroundThreadConfiguration.getExecuteEvery() == null) {
 			throw new BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured();
 		}
-		Runnable command = getRunnableCommand(backgroundThreadConfiguration);
+
 		long delayBeforeTheFirstCommandExecution = 0;
 		long executeEverySeconds = backgroundThreadConfiguration.getExecuteEvery().getStandardSeconds();
 		TimeUnit unit = TimeUnit.SECONDS;
-
+		Runnable command = getRunnableCommand(backgroundThreadConfiguration);
 		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
 			scheduledExecutorService.scheduleAtFixedRate(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
 		}
@@ -84,7 +84,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	ScheduledExecutorService newScheduledExecutorService() {
 		return Executors.newScheduledThreadPool(4 * dataLayerConfiguration.getBackgroudThreadsPoolSize());
 	}
-	
+
 }
 
 

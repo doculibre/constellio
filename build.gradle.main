@@ -60,7 +60,7 @@ allprojects {
         gradleVersion = '3.4'
     }
 
-    String projectVersion = project.VERSION
+    String projectVersion = "4.2.42"
     if (new File("./version").exists()) {
         projectVersion = new File("./version").text.trim()
     }

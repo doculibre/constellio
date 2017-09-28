@@ -10,29 +10,29 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRepla
 
 public interface DataLayerConfiguration {
 
-	void validate();
+    void validate();
 
-	SolrServerType getRecordsDaoSolrServerType();
+    SolrServerType getRecordsDaoSolrServerType();
 
-	String getRecordsDaoHttpSolrServerUrl();
+    String getRecordsDaoHttpSolrServerUrl();
 
-	String getRecordsDaoCloudSolrServerZKHost();
+    String getRecordsDaoCloudSolrServerZKHost();
 
-	boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled();
+    boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled();
 
-	ContentDaoType getContentDaoType();
+    ContentDaoType getContentDaoType();
 
-	String getContentDaoHadoopUrl();
+    String getContentDaoHadoopUrl();
 
-	String getContentDaoHadoopUser();
+    String getContentDaoHadoopUser();
 
-	File getContentDaoFileSystemFolder();
+    File getContentDaoFileSystemFolder();
 
     void setContentDaoFileSystemFolder(File contentsFolder);
 
-	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
+    DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
 
-	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
+    void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
 
     String getContentDaoReplicatedVaultMountPoint();
 
@@ -40,55 +40,55 @@ public interface DataLayerConfiguration {
 
     File getTempFolder();
 
-	ConfigManagerType getSettingsConfigType();
+    ConfigManagerType getSettingsConfigType();
 
-	CacheType getCacheType();
+    CacheType getCacheType();
 
-	String getCacheUrl();
+    String getCacheUrl();
 
-	String getSettingsZookeeperAddress();
+    String getSettingsZookeeperAddress();
 
-	File getSettingsFileSystemBaseFolder();
+    File getSettingsFileSystemBaseFolder();
 
-	IdGeneratorType getIdGeneratorType();
+    IdGeneratorType getIdGeneratorType();
 
-	IdGeneratorType getSecondaryIdGeneratorType();
+    IdGeneratorType getSecondaryIdGeneratorType();
 
-	boolean isSecondTransactionLogEnabled();
+    boolean isSecondTransactionLogEnabled();
 
-	boolean isWriteZZRecords();
+    boolean isWriteZZRecords();
 
-	HashingEncoding getHashingEncoding();
+    HashingEncoding getHashingEncoding();
 
-	File getSecondTransactionLogBaseFolder();
+    File getSecondTransactionLogBaseFolder();
 
-	int getBackgroudThreadsPoolSize();
+    int getBackgroudThreadsPoolSize();
 
-	Duration getSecondTransactionLogMergeFrequency();
+    Duration getSecondTransactionLogMergeFrequency();
 
-	int getSecondTransactionLogBackupCount();
+    int getSecondTransactionLogBackupCount();
 
-	boolean isBackgroundThreadsEnabled();
+    boolean isBackgroundThreadsEnabled();
 
-	void setBackgroundThreadsEnabled(boolean backgroundThreadsEnabled);
+    void setBackgroundThreadsEnabled(boolean backgroundThreadsEnabled);
 
-	SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter();
+    SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter();
 
-	void setWriteZZRecords(boolean enable);
+    void setWriteZZRecords(boolean enable);
 
-	boolean isLocalHttpSolrServer();
+    boolean isLocalHttpSolrServer();
 
-	boolean isInRollbackTestMode();
+    boolean isInRollbackTestMode();
 
-	String createRandomUniqueKey();
+    String createRandomUniqueKey();
 
-	void setHashingEncoding(HashingEncoding encoding);
+    void setHashingEncoding(HashingEncoding encoding);
 
-	String getKafkaServers();
+    String getKafkaServers();
 
-	String getSecondTransactionLogMode();
+    String getSecondTransactionLogMode();
 
-	String getKafkaTopic();
+    String getKafkaTopic();
 
-	long getReplayTransactionStartVersion();
+    long getReplayTransactionStartVersion();
 }
