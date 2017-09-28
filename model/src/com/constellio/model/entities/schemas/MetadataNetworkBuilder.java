@@ -143,7 +143,7 @@ public class MetadataNetworkBuilder {
 				for (Metadata metadata : schema.getMetadatas()) {
 
 					if (metadata.getInheritance() == null) {
-						build(builder, type, schema, metadata);
+						build(builder, schema, metadata);
 					}
 				}
 			}
@@ -151,8 +151,7 @@ public class MetadataNetworkBuilder {
 		return builder.build();
 	}
 
-	private static void build(MetadataNetworkBuilder builder, MetadataSchemaType type, MetadataSchema schema,
-			Metadata metadata) {
+	private static void build(MetadataNetworkBuilder builder, MetadataSchema schema, Metadata metadata) {
 
 		if (metadata.getLocalCode().equals("refText")) {
 			System.out.println("todo");
@@ -219,8 +218,21 @@ public class MetadataNetworkBuilder {
 			if (dataEntry.getAgregationType() == AggregationType.SUM) {
 				metadatas.add(builder.metadata(dataEntry.getInputMetadata()));
 			}
-			builder.addNetworkLink(metadata, metadatas, true);
 
+			if (dataEntry.getAgregationType() == AggregationType.CALCULATED) {
+				try {
+					List<String> metadataDependencies = dataEntry.getAggregatedCalculator().newInstance().getMetadataDependencies();
+					if(metadataDependencies != null) {
+						for(String metadataCode: metadataDependencies) {
+							metadatas.add(builder.metadata(metadataCode));
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new RuntimeException("Invalid AggregatedCalculator for metadata : " + metadata.getCode());
+				}
+			}
+			builder.addNetworkLink(metadata, metadatas, true);
 		}
 	}
 

@@ -12,8 +12,10 @@ import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -41,7 +43,7 @@ import java.util.Map.Entry;
 
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
- * - agent ROLE="CREATOR" ORGANIZATION="Commission Charbonneau"
+ * - agent ROLE="CREATOR" ORGANIZATION=""
  * - name
  * <p>
  * dmdSec
@@ -229,9 +231,9 @@ public class ConstellioSIP {
 
         try {
             buildMetsFileAndBagDir(errors);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+         }catch (Exception e) {
+           e.printStackTrace();
+                throw new RuntimeException(e);
         }
 
 
@@ -261,7 +263,7 @@ public class ConstellioSIP {
         zipOutputStream.closeArchiveEntry();
     }
 
-    private void buildMetsFileAndBagDir(ValidationErrors errors) throws IOException, METSException, SAXException, JDOMException {
+    private void buildMetsFileAndBagDir(ValidationErrors errors) throws IOException, METSException, SAXException, JDOMException, RecordDaoException.NoSuchRecordWithId {
         File tempFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".temp");
         tempFile.deleteOnExit();
 
@@ -291,7 +293,7 @@ public class ConstellioSIP {
             File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
             tempXMLFile.deleteOnExit();
 
-            EAD ead = new EAD(sipObject, archdesc);
+            EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
             ead.build(tempXMLFile);
 
             addToZip(tempXMLFile, zipXMLPath);
@@ -321,7 +323,7 @@ public class ConstellioSIP {
             File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
             tempXMLFile.deleteOnExit();
 
-            EAD ead = new EAD(sipObject, archdesc);
+            EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
             ead.build(tempXMLFile);
 
             addToZip(tempXMLFile, zipXMLPath);
@@ -607,7 +609,7 @@ public class ConstellioSIP {
         Agent agent = metsHeader.newAgent();
         agent.setRole("CREATOR");
         agent.setType("ORGANIZATION");
-        agent.setName("Commission d'enquête sur l'octroi et la gestion des contrats publics dans l'industrie de la construction");
+        agent.setName("");
         metsHeader.addAgent(agent);
 
         FileSec fileSec = mets.newFileSec();

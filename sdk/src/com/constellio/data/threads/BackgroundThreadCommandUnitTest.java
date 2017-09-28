@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -201,11 +202,13 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
 	}
 
+	static AtomicInteger runCounter = new AtomicInteger();
+
 	public static class TestRunnable implements Runnable {
 
 		@Override
 		public void run() {
-
+			runCounter.incrementAndGet();
 		}
 	}
 }

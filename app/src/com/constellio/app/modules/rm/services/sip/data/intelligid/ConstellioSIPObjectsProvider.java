@@ -54,6 +54,8 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 
     private SIPFilter filter;
 
+    private MetadataSchemaTypes types;
+
     public ConstellioSIPObjectsProvider(String collection, AppLayerFactory factory, SIPFilter filter) {
         this.collection = collection;
         this.factory = factory;
@@ -76,10 +78,6 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             categoryId = filter.getRubriqueCode().getId();
         }
 
-        MetadataSchemaTypes types = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-        folderMetadatas = types.getSchema(Folder.DEFAULT_SCHEMA).getMetadatas().only(new SearchableMetadataListFilter());
-        documentMetadatas = types.getSchema(Document.DEFAULT_SCHEMA).getMetadatas().only(new SearchableMetadataListFilter());
-
         System.out.println("Obtention de la liste des documents");
         documents = rm.searchDocuments(filter.getSearchQuery());
         System.out.println("Liste de documents obtenue (" + documents.size() + ")");
@@ -93,7 +91,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             metadataIds.add("regleConservation");
         } else if (sipObject instanceof SIPDocument) {
             SIPDocument sipDocument = (SIPDocument) sipObject;
-            Document document = sipDocument.getFicheMetadonnees();
+            Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
             boolean isCourriel = document.getSchema().getCode().equals(Email.SCHEMA);
             if (isCourriel) {
                 metadataIds.add(Email.EMAIL_TO);
@@ -114,7 +112,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         List<String> metadataValues = new ArrayList<>();
         if (sipObject instanceof SIPFolder) {
             SIPFolder sipFolder = (SIPFolder) sipObject;
-            Folder folder = sipFolder.getFicheMetadonnees();
+            Folder folder = rm.wrapFolder(sipFolder.getFicheMetadonnees());
             Folder currentFolder = folder;
             while (currentFolder.getParentFolder() != null) {
                 currentFolder = rm.getFolder(currentFolder.getParentFolder());
@@ -128,7 +126,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             }
         } else if (sipObject instanceof SIPDocument) {
             SIPDocument sipDocument = (SIPDocument) sipObject;
-            Document document = sipDocument.getFicheMetadonnees();
+            Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
             boolean isEmail = document.getSchema().getCode().equals(Email.SCHEMA);
             if (isEmail) {
                 String metadataName;
@@ -149,7 +147,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
                 }
                 if (metadataName != null) {
                     Object metadataValue = document.get(metadataName);
-                    if(metadataValue != null) {
+                    if (metadataValue != null) {
                         String metadataValueAsString = metadataValue instanceof List ? String.join(", ", (List<String>) metadataValue) : metadataValue.toString();
                         if (StringUtils.isNotBlank(metadataValueAsString)) {
                             metadataValues.add(metadataValueAsString);
@@ -175,7 +173,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             public SIPObject get(int index) {
                 System.out.println("Document " + (index + 1) + " de " + documents.size());
                 Document document = documents.get(index);
-                return new SIPDocument(document, documentMetadatas, folderMetadatas, new EntityRetriever(collection, factory));
+                return new SIPDocument(document, document.getSchema().getMetadatas(), new EntityRetriever(collection, factory));
             }
 
             @Override
@@ -191,22 +189,26 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         Map<String, byte[]> result;
         if (sipObject instanceof SIPDocument) {
             SIPDocument sipDocument = (SIPDocument) sipObject;
-            Document document = sipDocument.getFicheMetadonnees();
+            Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
             boolean isEmail = document.getSchema().getCode().equals(Email.SCHEMA);
             if (isEmail && document.getContent() != null) {
                 File sipDocumentFile = sipDocument.getFile();
                 String filename = sipDocument.getFilename();
                 Map<String, Object> parsedMessage;
                 try {
-                    InputStream in = new FileInputStream(sipDocumentFile);
-                    parsedMessage = rm.parseEmail(filename, in);
-                    if (parsedMessage != null) {
-                        result = new LinkedHashMap<>();
-                        Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
-                        for (Entry<String, InputStream> entry : streamMap.entrySet()) {
-                            InputStream fichierJointIn = entry.getValue();
-                            byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
-                            result.put(entry.getKey(), joinFilesBytes);
+                    if (sipDocumentFile != null) {
+                        InputStream in = new FileInputStream(sipDocumentFile);
+                        parsedMessage = rm.parseEmail(filename, in);
+                        if (parsedMessage != null) {
+                            result = new LinkedHashMap<>();
+                            Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
+                            for (Entry<String, InputStream> entry : streamMap.entrySet()) {
+                                InputStream fichierJointIn = entry.getValue();
+                                byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
+                                result.put(entry.getKey(), joinFilesBytes);
+                            }
+                        } else {
+                            result = null;
                         }
                     } else {
                         result = null;
@@ -244,7 +246,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         EADArchdesc archdesc;
         if (sipObject instanceof SIPDocument) {
             SIPDocument sipDocument = (SIPDocument) sipObject;
-            Document document = sipDocument.getFicheMetadonnees();
+            Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
             Folder folder = rm.getFolder(document.getFolder());
 
             archdesc = new EADArchdesc();
@@ -273,7 +275,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 
         } else if (sipObject instanceof SIPFolder) {
             SIPFolder sipFolder = (SIPFolder) sipObject;
-            Folder folder = sipFolder.getFicheMetadonnees();
+            Folder folder = rm.wrapFolder(sipFolder.getFicheMetadonnees());
 
             archdesc = new EADArchdesc();
 
@@ -296,16 +298,18 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             }
 
             AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(folder.<String>get(Folder.ADMINISTRATIVE_UNIT));
-            AdministrativeUnit parentAdministrativeUnit = rm.getAdministrativeUnit(administrativeUnit.<String>get(AdministrativeUnit.PARENT));
-
-            archdesc.setDidOriginationCorpname(parentAdministrativeUnit.getCode());
+            String adminstrativeUnitParentId = administrativeUnit.get(AdministrativeUnit.PARENT);
+            if (adminstrativeUnitParentId != null) {
+                AdministrativeUnit parentAdministrativeUnit = rm.getAdministrativeUnit(adminstrativeUnitParentId);
+                archdesc.setDidOriginationCorpname(parentAdministrativeUnit.getCode());
+            }
 
             MetadataSchemasManager manager = factory.getModelLayerFactory().getMetadataSchemasManager();
             MetadataSchemaType documentSchemaType = manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
             LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(folder.getId());
             SearchResponseIterator<Record> iteratorDocument = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionDocument));
             if (iteratorDocument != null) {
-                while(iteratorDocument.hasNext()){
+                while (iteratorDocument.hasNext()) {
                     Document documentLie = rm.wrapDocument(iteratorDocument.next());
                     List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(documentLie.getId() + " " + documentLie.getTitle());
@@ -317,7 +321,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(folderSchemaType).where(folderSchemaType.getDefaultSchema().getMetadata(Folder.PARENT_FOLDER)).isEqualTo(folder.getId());
             SearchResponseIterator<Record> iteratorFolder = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionFolder));
             if (iteratorFolder != null) {
-                while(iteratorFolder.hasNext()) {
+                while (iteratorFolder.hasNext()) {
                     Folder dossierLie = rm.wrapFolder(iteratorFolder.next());
                     List<String> relatedmaterialList = new ArrayList<>();
                     relatedmaterialList.add(dossierLie.getId() + " " + dossierLie.getTitle());

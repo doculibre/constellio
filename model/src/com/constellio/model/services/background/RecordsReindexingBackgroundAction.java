@@ -20,13 +20,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 
 public class RecordsReindexingBackgroundAction implements Runnable {
 
-	private ModelLayerFactory modelLayerFactory;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 	private CollectionsListManager collectionsListManager;
 
 	public RecordsReindexingBackgroundAction(ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();

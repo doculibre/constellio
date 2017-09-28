@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
@@ -261,6 +262,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
+		ExportAudit newExportAudit = createNewExportAudit();
 
 		if (!exportedIdsStr.isEmpty() || onlyTools) {
 			List<String> ids = new ArrayList<>();
@@ -292,6 +294,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			} catch (Throwable t) {
 				LOGGER.error("Error while generating savestate", t);
 				view.showErrorMessage($("ExportView.error"));
+			} finally {
+				completeImportExportAudit(newExportAudit, file);
 			}
 
 		} else {
@@ -319,6 +323,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				} catch (Throwable t) {
 					LOGGER.error("Error while generating savestate", t);
 					view.showErrorMessage($("ExportView.error"));
+				} finally {
+					completeImportExportAudit(newExportAudit, file);
 				}
 			}
 		}
@@ -349,7 +355,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		for (String logFilename : asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
 				"constellio.log.3", "constellio.log.4", "constellio.log.5")) {
 
-			File logFile = new File("/opt/constellio/" + logFilename);
+			File logFile = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder() + logFilename);
 			if (logFile.exists()) {
 				logFiles.add(logFile);
 			}

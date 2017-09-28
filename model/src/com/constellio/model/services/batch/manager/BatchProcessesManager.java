@@ -510,4 +510,13 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			}
 		});
 	}
+
+	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement, final int errorsIncrement) {
+		configManager.updateXML(BATCH_PROCESS_LIST_PATH, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				new BatchProcessListWriter(document).incrementProgression(batchProcess, progressionIncrement, errorsIncrement);
+			}
+		});
+	}
 }

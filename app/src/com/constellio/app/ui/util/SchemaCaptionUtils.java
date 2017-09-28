@@ -89,6 +89,39 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
+	public static String getShortCaptionForRecord(Record record) {
+		String caption;
+		if (record != null) {
+			try {
+				String schemaCode = record.getSchemaCode();
+				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
+
+				String captionFormatKey = "caption." + schemaTypeCode + ".record.short";
+				String captionFormat = $(captionFormatKey);
+				if (captionFormatKey.equals(captionFormat)) {
+					captionFormatKey = "caption." + schemaTypeCode + ".record";
+					captionFormat = $(captionFormatKey);
+					if (captionFormatKey.equals(captionFormat)) {
+						captionFormatKey = "caption.allTypes.record";
+						captionFormat = $(captionFormatKey);
+					}
+				}
+
+				caption = applyPattern(captionFormat, record);
+				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
+					caption = captionForSchemaTypeCode + " " + caption;
+				}
+			} catch (NoSuchRecordWithId e) {
+				caption = "";
+				LOGGER.warn(e.getMessage(), e);
+			}
+		} else {
+			caption = "";
+		}
+		return caption;
+	}
+
 	public static String getCaptionForRecordVO(RecordVO recordVO) {
 		String caption;
 		if (recordVO != null) {
