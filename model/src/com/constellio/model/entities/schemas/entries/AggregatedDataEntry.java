@@ -15,10 +15,35 @@ public class AggregatedDataEntry implements DataEntry {
 
 	private AggregationType agregationType;
 
+	private Class<? extends AggregatedCalculator<?>> aggregatedCalculator;
+
 	public AggregatedDataEntry(String inputMetadata, String referenceMetadata, AggregationType agregationType) {
 		this.inputMetadata = inputMetadata;
 		this.referenceMetadata = referenceMetadata;
 		this.agregationType = agregationType;
+		this.aggregatedCalculator = null;
+
+		String inputMetadataSchema = inputMetadata == null ? null : new SchemaUtils().getSchemaCode(inputMetadata);
+		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
+
+		if (inputMetadataSchema != null && !inputMetadataSchema.endsWith("_default")) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata, NUMBER);
+		}
+
+		if (!referenceMetadataSchema.endsWith("_default")) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata, REFERENCE);
+		}
+
+		if (inputMetadataSchema != null && !inputMetadataSchema.equals(referenceMetadataSchema)) {
+			throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);
+		}
+	}
+
+	public AggregatedDataEntry(String inputMetadata, String referenceMetadata, AggregationType agregationType, Class<? extends AggregatedCalculator<?>> aggregatedCalculator) {
+		this.inputMetadata = inputMetadata;
+		this.referenceMetadata = referenceMetadata;
+		this.agregationType = agregationType;
+		this.aggregatedCalculator = aggregatedCalculator;
 
 		String inputMetadataSchema = inputMetadata == null ? null : new SchemaUtils().getSchemaCode(inputMetadata);
 		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
@@ -51,5 +76,9 @@ public class AggregatedDataEntry implements DataEntry {
 	@Override
 	public DataEntryType getType() {
 		return DataEntryType.AGGREGATED;
+	}
+
+	public Class<? extends AggregatedCalculator<?>> getAggregatedCalculator() {
+		return aggregatedCalculator;
 	}
 }
