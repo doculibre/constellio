@@ -44,7 +44,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
-import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -403,6 +402,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
 			resourcesDir = new File("sdk" + File.separator + "sdk-resources");
 		}
+
+		if (!resourcesDir.exists()) {
+			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+		}
+
 		return resourcesDir;
 	}
 
