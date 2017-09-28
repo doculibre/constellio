@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.builders;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
 
 import java.util.Arrays;
@@ -11,13 +12,7 @@ import java.util.List;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
@@ -75,6 +70,18 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asSum(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
+		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.SUM);
+	}
+
+	public MetadataBuilder asMin(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
+		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.MIN);
+	}
+
+	public MetadataBuilder asMax(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
+		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.MAX);
+	}
+
+	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number, AggregationType aggregationType) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}
@@ -92,8 +99,21 @@ public class DataEntryBuilder {
 			metadata.setType(number.getType());
 		}
 
-		metadata.dataEntry = new AggregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
-				AggregationType.SUM);
+		metadata.dataEntry = new AggregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(), aggregationType);
+		return metadata;
+	}
+
+	public MetadataBuilder asCalculatedAggregation(MetadataBuilder referenceToAgregatingSchemaType, Class<? extends AggregatedCalculator<?>> calculatorClass) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+		}
+
+		metadata.dataEntry = new AggregatedDataEntry(null, referenceToAgregatingSchemaType.getCode(), CALCULATED, calculatorClass);
 		return metadata;
 	}
 

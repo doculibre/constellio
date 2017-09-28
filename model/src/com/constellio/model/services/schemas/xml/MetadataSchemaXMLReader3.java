@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
+import com.constellio.model.services.schemas.builders.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -37,12 +39,6 @@ import com.constellio.model.services.records.extractions.DefaultMetadataPopulato
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.model.utils.InstanciationUtils;
@@ -603,7 +599,18 @@ public class MetadataSchemaXMLReader3 {
 						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
 				String inputMetadata = dataEntry.getAttributeValue("inputMetadata");
-				metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType));
+				String calculatorClassName = dataEntry.getAttributeValue("aggregatedCalculator");
+				if(calculatorClassName != null) {
+					Class<? extends AggregatedCalculator<?>> calculatorClass;
+					try {
+						calculatorClass = classProvider.loadClass(calculatorClassName);
+					} catch (ClassNotFoundException e) {
+						throw new MetadataBuilderRuntimeException.CannotInstanciateClass(calculatorClassName, e);
+					}
+					metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType, calculatorClass));
+				} else {
+					metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType));
+				}
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {

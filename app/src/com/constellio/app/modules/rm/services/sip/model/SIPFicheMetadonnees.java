@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.sip.model;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
@@ -17,16 +18,19 @@ public abstract class SIPFicheMetadonnees {
 
 	private MetadataSchemasManager indexHelper = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 	
-	private RMObject rmObject;
+	private Record record;
 	
 	private List<String> metadataIds = new ArrayList<String>();
 	
 	private Map<String, String> metadataLabelsMap = new LinkedHashMap<>();
 	
 	private Map<String, List<String>> metadataValuesMap = new LinkedHashMap<>();
+
+	private List<Metadata> schemaMetadata;
 	
-	public SIPFicheMetadonnees(RMObject rmObject, List<Metadata> metadatasOfSchema) {
-		this.rmObject = rmObject;
+	public SIPFicheMetadonnees(Record rmObject, List<Metadata> metadatasOfSchema) {
+		this.record = rmObject;
+		this.schemaMetadata = metadatasOfSchema;
 		if (rmObject == null) {
 			throw new NullPointerException("metadataSchema is null");
 		}
@@ -34,9 +38,9 @@ public abstract class SIPFicheMetadonnees {
 		for (Metadata metadata : metadatasOfSchema) {
 			String metadataId = metadata.getCode();
 			String metadataLabel = metadata.getLabel(Language.French);
-			Object metadataValue = rmObject.getWrappedRecord().get(metadata);
+			Object metadataValue = rmObject.get(metadata);
 			if(metadataValue != null){
-				String displayValue = rmObject.getWrappedRecord().get(metadata).toString();
+				String displayValue = rmObject.get(metadata).toString();
 				List<String> metadataValues = StringUtils.isNotBlank(displayValue) ? Arrays.asList(displayValue) : new ArrayList<String>();
 				metadataIds.add(metadataId);
 				metadataLabelsMap.put(metadataId, metadataLabel);
@@ -48,12 +52,12 @@ public abstract class SIPFicheMetadonnees {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends RMObject> T getFicheMetadonnees() {
-		return (T) rmObject;
+	public <T extends Record> T getFicheMetadonnees() {
+		return (T) record;
 	}
 
 	public String getId() {
-		return "" + rmObject.getId();
+		return "" + record.getId();
 	}
 
 	public List<String> getMetadataIds() {
@@ -71,6 +75,14 @@ public abstract class SIPFicheMetadonnees {
 
 	public List<String> getMetadataValues(String metadataId) {
 		return metadataValuesMap.get(metadataId);
+	}
+
+	protected Record getRecord(){
+		return this.record;
+	}
+
+	protected List<Metadata> getSchemaMetadata(){
+		return schemaMetadata;
 	}
 
 }
