@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.constellio.model.entities.schemas.entries.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +38,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
@@ -133,26 +129,71 @@ public class RecordAutomaticMetadataServices {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
 
-		if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
-
-			Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
-			query.computeStatsOnField(inputMetadata);
-			query.setNumberOfRows(0);
-			SPEQueryResponse response = searchServices.query(query);
-
-			if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
-				Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-				Double sum = statsValues == null ? 0.0 : (Double) response.getStatValues(inputMetadata).get("sum");
-				((RecordImpl) record).updateAutomaticValue(metadata, sum);
-
-			} else {
-				throw new ImpossibleRuntimeException("Unsupported aggregation type : " + aggregatedDataEntry.getAgregationType());
+		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
+		if(agregationType != null) {
+			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata, aggregatedDataEntry, types, searchServices);
+			switch (agregationType) {
+				case SUM:
+					setSumValuesInRecords(aggregatedValuesParams);
+					break;
+				case REFERENCE_COUNT:
+					setReferenceCountInRecords(aggregatedValuesParams);
+					break;
+				case MIN:
+					setMinValuesInRecords(aggregatedValuesParams);
+					break;
+				case MAX:
+					setMaxValuesInRecords(aggregatedValuesParams);
+					break;
+				case CALCULATED:
+					setCalculatedAggregatedValuesInRecords(aggregatedValuesParams);
+					break;
 			}
-		} else if (aggregatedDataEntry.getAgregationType() == AggregationType.REFERENCE_COUNT) {
-			Double childrenCount = new Double(searchServices.getResultsCount(query));
-			((RecordImpl) record).updateAutomaticValue(metadata, childrenCount);
 		}
+	}
 
+	private void setSumValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
+		setStatValuesInRecords(aggregatedValuesParams, "sum");
+	}
+
+	private void setMinValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
+		setStatValuesInRecords(aggregatedValuesParams, "min");
+	}
+
+	private void setMaxValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
+		setStatValuesInRecords(aggregatedValuesParams, "max");
+	}
+
+	private void setStatValuesInRecords(AggregatedValuesParams aggregatedValuesParams, String statName) {
+		Metadata inputMetadata = aggregatedValuesParams.getTypes().getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
+		LogicalSearchQuery query = aggregatedValuesParams.getQuery();
+		query.computeStatsOnField(inputMetadata);
+		query.setNumberOfRows(0);
+		SPEQueryResponse response = searchServices.query(query);
+
+		Map<String, Object> statsValues = response.getStatValues(inputMetadata);
+		Double value = statsValues == null || statsValues.get(statName) == null? 0.0 : (Double) statsValues.get(statName);
+		((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(aggregatedValuesParams.getMetadata(), value);
+	}
+
+	private void setReferenceCountInRecords(AggregatedValuesParams aggregatedValuesParams) {
+		Double childrenCount = new Double(searchServices.getResultsCount(aggregatedValuesParams.getQuery()));
+		((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(aggregatedValuesParams.getMetadata(), childrenCount);
+	}
+
+	private void setCalculatedAggregatedValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
+		Class<? extends AggregatedCalculator<?>> calculatorClass = aggregatedValuesParams.getAggregatedDataEntry().getAggregatedCalculator();
+		Metadata metadata = aggregatedValuesParams.getMetadata();
+		if(calculatorClass != null) {
+			try {
+				((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatorClass.newInstance().calculate(aggregatedValuesParams));
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
+			}
+		} else {
+			throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
+		}
 	}
 
 	void setCopiedValuesInRecords(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
