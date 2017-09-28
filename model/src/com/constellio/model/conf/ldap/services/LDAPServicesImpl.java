@@ -305,6 +305,9 @@ public class LDAPServicesImpl implements LDAPServices {
 		try {
 			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
 			String[] fetchedAttributes = userBuilder.getFetchedAttributes();
+			if (userId.contains("/")) {
+				userId = StringUtils.replace(userId, "/", "\\/");
+			}
 			attrs = ctx.getAttributes(userId, fetchedAttributes);
 			LDAPUser user = userBuilder.buildUser(userId, attrs);
 			return user;
@@ -350,6 +353,9 @@ public class LDAPServicesImpl implements LDAPServices {
 			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
 			if (groupMemberId.contains("\\")) {
 				groupMemberId = StringUtils.replace(groupMemberId, "\\", "\\\\");
+			}
+			if (groupMemberId.contains("/")) {
+				groupMemberId = StringUtils.replace(groupMemberId, "/", "\\/");
 			}
 			String searchFilter = "(&(objectClass=person)(" + userBuilder.getUserIdAttribute() + "=" + groupMemberId + "))";
 
