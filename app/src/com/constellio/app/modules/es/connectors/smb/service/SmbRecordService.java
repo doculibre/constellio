@@ -28,13 +28,11 @@ public class SmbRecordService {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private ConnectorSmbUtils smbUtils;
-	private RecordServices recordServices;
 
 	public SmbRecordService(ESSchemasRecordsServices es, ConnectorSmbInstance connectorInstance) {
 		this.es = es;
 		this.connectorInstance = connectorInstance;
 		this.smbUtils = new ConnectorSmbUtils();
-		this.recordServices = es.getAppLayerFactory().getModelLayerFactory().newRecordServices();
 	}
 
 	public List<ConnectorSmbDocument> getDocuments(String url) {
@@ -82,50 +80,13 @@ public class SmbRecordService {
 		return es.newConnectorSmbDocument(connectorInstance);
 	}
 
-	public ConnectorDocument getConnectorDocument(String url, ConnectorSmbInstance connectorInstance) {
-		if (smbUtils.isFolder(url)) {
-			return getFolderFromCache(url, connectorInstance);
-		}
-		return getDocumentFromCache(url, connectorInstance);
-	}
-
-	public ConnectorSmbFolder getFolderFromCache(String url, ConnectorSmbInstance connectorInstance) {
-		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
-		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
-		return es.wrapConnectorSmbFolder(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
-				.getByMetadata(es.connectorSmbFolder.connectorUrl(), connectorUrl));
-	}
-
-	public void removeFromCache(ConnectorDocument connectorDocument) {
-		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
-		recordServices.getRecordsCaches().getCache(connectorInstance.getCollection()).invalidate(connectorDocument.getId());
-	}
-
-	public ConnectorSmbDocument getDocumentFromCache(String url, ConnectorSmbInstance connectorInstance) {
-		RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
-		String connectorUrl = DocumentSmbConnectorUrlCalculator.calculate(url, connectorInstance.getId());
-		return es.wrapConnectorSmbDocument(recordServices.getRecordsCaches().getCache(connectorInstance.getCollection())
-				.getSummaryByMetadata(es.connectorSmbDocument.connectorUrl(), connectorUrl));
-	}
-
-	public SmbModificationIndicator getSmbModificationIndicator(ConnectorSmbInstance connector, String url) {
+	public SmbModificationIndicator getSmbModificationIndicator(ConnectorSmb connector, String url) {
 		Metadata permissionHash = es.connectorSmbDocument.permissionsHash();
 		Metadata size = es.connectorSmbDocument.size();
 		Metadata lastModified = es.connectorSmbDocument.lastModified();
-		Metadata documentConnectorUrlMetadata = es.connectorSmbDocument.connectorUrl();
-		Metadata folderConnectorUrlMetadata = es.connectorSmbFolder.connectorUrl();
 
-		String connectorUrlValue = DocumentSmbConnectorUrlCalculator.calculate(url, connector.getId());
-
-		Record record = null;
-		if(smbUtils.isFolder(url)) {
-			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getByMetadata(folderConnectorUrlMetadata, connectorUrlValue);
-		} else {
-			record = recordServices.getRecordsCaches().getCache(connector.getCollection()).getSummaryByMetadata(documentConnectorUrlMetadata, connectorUrlValue);
-		}
-
-
-		if(record == null) {
+		ConnectorDocument record = connector.getCachedConnectorDocument(url);
+		if (record == null) {
 			return null;
 		}
 
@@ -143,7 +104,6 @@ public class SmbRecordService {
 		}
 
 		SmbModificationIndicator databaseIndicator = new SmbModificationIndicator(permissionHashValue, sizeValue, lastModifiedValue);
-		databaseIndicator.setParentId(record.getParentId());
 		return databaseIndicator;
 	}
 

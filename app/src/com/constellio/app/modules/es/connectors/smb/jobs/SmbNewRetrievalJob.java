@@ -39,7 +39,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
         switch (smbFileDTO.getStatus()) {
             case FULL_DTO:
                 try {
-                    ConnectorDocument connectorDocument = smbRecordService.getConnectorDocument(url, jobParams.getConnectorInstance());
+                    ConnectorDocument connectorDocument = (ConnectorDocument) jobParams.getConnector().getCachedConnectorDocument(url);
                     if(connectorDocument == null) {
                         connectorDocument = smbRecordService.newConnectorDocument(url);
                     }
@@ -52,7 +52,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
                 break;
             case FAILED_DTO:
                 try {
-                    ConnectorDocument connectorDocument = smbRecordService.getConnectorDocument(url, jobParams.getConnectorInstance());
+                    ConnectorDocument connectorDocument = (ConnectorDocument) jobParams.getConnector().getCachedConnectorDocument(url);
                     if(connectorDocument == null) {
                         connectorDocument = smbRecordService.newConnectorDocument(url);
                     } else if(!jobParams.getSmbUtils().isFolder(url)) {

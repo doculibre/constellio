@@ -41,7 +41,6 @@ public class ConnectorCrawler {
 	RecordServices recordServices;
 
 	List<CrawledConnector> crawledConnectors = new ArrayList<>();
-	Semaphore waitFlushed = new Semaphore(1);
 
 	ConnectorCrawler(ESSchemasRecordsServices es, ConnectorJobCrawler jobCrawler,
 			ConnectorLogger logger,
@@ -73,10 +72,6 @@ public class ConnectorCrawler {
 		return connector;
 	}
 
-	public Semaphore getWaitFlushed() {
-		return waitFlushed;
-	}
-
 	boolean crawlAllConnectors() {
 
 		boolean executedJobs = false;
@@ -102,6 +97,7 @@ public class ConnectorCrawler {
 						allJobs.addAll(connectorJobs);
 					} else {
 						try {
+							instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 							recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
 						} catch (RecordServicesException e) {
 							LOGGER.warn("last traversal date not updated", e);
@@ -112,30 +108,23 @@ public class ConnectorCrawler {
 
 			if (!allJobs.isEmpty()) {
 				try {
-					waitFlushed.acquireUninterruptibly();
-					try {
-						jobCrawler.crawl(allJobs);
-					} catch (Exception e) {
-						LOGGER.error("Error while executing connector jobs", e);
-					}
-					executedJobs = true;
-
-					eventObserver.flush();
-
-					for (CrawledConnector crawledConnector : crawledConnectors) {
-						try {
-							ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-							crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
-
-						} catch (Exception e) {
-							LOGGER.warn("Error after connector jobs execution", e);
-						}
-					}
-
-					eventObserver.flush();
-				} finally {
-					waitFlushed.release();
+					jobCrawler.crawl(allJobs);
+				} catch (Exception e) {
+					LOGGER.error("Error while executing connector jobs", e);
 				}
+				executedJobs = true;
+
+				eventObserver.flush();
+
+				for (CrawledConnector crawledConnector : crawledConnectors) {
+					try {
+						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
+					} catch (Exception e) {
+						LOGGER.warn("Error after connector jobs execution", e);
+					}
+				}
+
+				eventObserver.flush();
 			} else {
 				waitSinceNoJobs();
 			}

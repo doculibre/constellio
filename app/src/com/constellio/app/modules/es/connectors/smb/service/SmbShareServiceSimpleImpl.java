@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,7 +89,27 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 			smbFile = smbFactory.getSmbFile(url, auth);
 			SmbFile[] filesAndFolders = smbFile.listFiles(new CustomSmbFileFilter());
 			for (SmbFile fileOrFolder : filesAndFolders) {
-				urls.add(fileOrFolder.getCanonicalPath());
+                //http://issues.constellio.com/browse/CONSTELLIOEIM-933
+				Field field = smbFile.getClass().getDeclaredField("unc");
+				field.setAccessible(true);
+				Object value = field.get(fileOrFolder);
+				String fileOrFolderUrl = fileOrFolder.getCanonicalPath();
+				if (value != null) {
+					String realName = StringUtils.substringAfterLast(value.toString(), "\\");
+					if (fileOrFolderUrl.endsWith("/")) {
+						realName += "/";
+					}
+					if (!fileOrFolderUrl.endsWith(realName)) {
+						String correctedUrl = StringUtils.removeEnd(fileOrFolderUrl, "/");
+						correctedUrl = StringUtils.substringBeforeLast(correctedUrl, "/");
+						correctedUrl += "/" + realName;
+						urls.add(correctedUrl);
+					} else {
+						urls.add(fileOrFolderUrl);
+					}
+				} else {
+					urls.add(fileOrFolderUrl);
+				}
 			}
 			Collections.sort(urls, urlComparator);
 		} catch (MalformedURLException e) {
