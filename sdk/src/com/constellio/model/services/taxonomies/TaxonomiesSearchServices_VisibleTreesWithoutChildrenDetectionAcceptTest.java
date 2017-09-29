@@ -234,7 +234,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
-				//TODO remove  .has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
 				.has(solrQueryCounts(2,3,3));
 
@@ -578,22 +578,25 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16"))
 				.has(listSize(3)).has(numFound(9))
-				.has(solrQueryCounts(7,7,7));
+				.has(solrQueryCounts(2,1,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
 				.has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
 				.has(recordsWithChildren("categoryId_X120", "A16", "A17", "A18"))
-				.has(listSize(4)).has(numFound(9));
+				.has(listSize(4)).has(numFound(9))
+				.has(solrQueryCounts(2,3,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
 				.has(recordsWithChildren(subFolderId))
-				.has(listSize(4)).has(numFound(4));
+				.has(listSize(4)).has(numFound(4))
+				.has(solrQueryCounts(1,4,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
 				.has(recordsInOrder(document1InA16))
 				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFound(4));
+				.has(listSize(1)).has(numFound(4))
+				.has(solrQueryCounts(1,1,0));
 
 	}
 
@@ -1155,61 +1158,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		public String secondAnswerSolrQueries() {
 			secondAnswer();
 			return secondCallSolrQueries;
-		}
-
-	}
-
-	private SolrAssert assertThatSolr() {
-		return new SolrAssert();
-	}
-
-	private int printCounter;
-
-	private class SolrAssert {
-
-		public SolrAssert print() {
-
-			String current = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-
-			System.out.println("COUNTER : " + (++printCounter) + " : " + current);
-
-			queriesCount.set(0);
-			facetsCount.set(0);
-			returnedDocumentsCount.set(0);
-
-			return this;
-		}
-
-		public SolrAssert hasCounts(int queries, int queryResults, int facets) {
-			String expected = queries + "-" + queryResults + "-" + facets;
-			String current = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-
-			assertThat(current).describedAs("Queries count - Query resuts count - Facets count").isEqualTo(expected);
-			queriesCount.set(0);
-			facetsCount.set(0);
-			returnedDocumentsCount.set(0);
-
-			return this;
-		}
-
-		public SolrAssert hasQueriesCountOf(int count) {
-			assertThat(queriesCount.get()).describedAs("Solr queries count").isEqualTo(count);
-			queriesCount.set(0);
-
-			return this;
-		}
-
-		public SolrAssert hasQueriesResultsCountOf(int count) {
-			assertThat(returnedDocumentsCount.get()).describedAs("Returned solr query results count").isEqualTo(count);
-			returnedDocumentsCount.set(0);
-
-			return this;
-		}
-
-		public SolrAssert hasFacetsCountOf(int count) {
-			assertThat(facetsCount.get()).describedAs("Solr facets count").isEqualTo(count);
-			facetsCount.set(0);
-			return this;
 		}
 
 	}
