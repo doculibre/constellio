@@ -322,7 +322,7 @@ public class SearchServices {
 		for (String filterQuery : query.getFilterQueries()) {
 			params.add(CommonParams.FQ, filterQuery);
 		}
-		addUserFilter(params, query.getUserFilter());
+		addUserFilter(params, query.getUserFilters());
 
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language));
@@ -566,25 +566,28 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, UserFilter userFilter) {
-		if (userFilter == null) {
+	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
+		if (userFilters == null) {
 			return;
 		}
-		String filter;
-		switch (userFilter.getAccess()) {
-		case Role.READ:
-			filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		case Role.WRITE:
-			filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		case Role.DELETE:
-			filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		default:
-			filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
-		}
 
-		params.add(CommonParams.FQ, filter);
+		for(UserFilter userFilter: userFilters) {
+			String filter;
+			switch (userFilter.getAccess()) {
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
+			}
+
+			params.add(CommonParams.FQ, filter);
+		}
 	}
 }

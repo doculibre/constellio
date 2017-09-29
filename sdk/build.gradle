@@ -112,7 +112,7 @@ task buildSonarSourceset() {
 
     projectsList.each {
         project(it).sourceSets.main.allSource.srcDirs.each {
-            sourceSets.sonar.allJava.srcDirs += it
+            //sourceSets.sonar.allJava.srcDirs += it
         }
     }
 }

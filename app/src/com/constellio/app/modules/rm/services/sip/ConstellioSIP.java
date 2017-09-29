@@ -79,6 +79,8 @@ import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 /**
+ * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
+ * - agent ROLE="CREATOR" ORGANIZATION=""
  * - name
  * <p>
  * dmdSec
@@ -332,7 +334,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc);
+			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
 			ead.build(tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
@@ -362,7 +364,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc);
+			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
 			ead.build(tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
@@ -655,7 +657,7 @@ public class ConstellioSIP {
 		Agent agent = metsHeader.newAgent();
 		agent.setRole("CREATOR");
 		agent.setType("ORGANIZATION");
-		agent.setName("Commission d'enquête sur l'octroi et la gestion des contrats publics dans l'industrie de la construction");
+		agent.setName("");
 		metsHeader.addAgent(agent);
 
 		FileSec fileSec = mets.newFileSec();

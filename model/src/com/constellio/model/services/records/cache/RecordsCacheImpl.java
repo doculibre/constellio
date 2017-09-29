@@ -233,6 +233,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		return null;
 	}
 
+
+
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 
