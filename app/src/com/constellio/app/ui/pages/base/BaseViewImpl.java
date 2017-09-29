@@ -16,6 +16,7 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Notification.Type;
@@ -29,9 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
+
+	public static final String CATEGORY_BUTTON = "seleniumCategoryButton";
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseViewImpl.class);
 
@@ -381,5 +385,24 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	public List<Button> getActionMenuButtons() {
 		return actionMenuButtons;
+	}
+
+	protected Button createLink(String caption, final Button.ClickListener listener, String iconName) {
+		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
+		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		returnLink.addStyleName(CATEGORY_BUTTON);
+		returnLink.addClickListener(listener);
+		return returnLink;
+	}
+
+	protected Table setTableProperty(Table table, int maxSize) {
+		table.setSizeFull();
+		table.setPageLength(Math.min(15, maxSize));
+		table.setColumnHeader("buttons", "");
+		table.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+		table.setColumnExpandRatio("caption", 1);
+		table.addStyleName(TYPE_TABLE);
+		return table;
 	}
 }

@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;

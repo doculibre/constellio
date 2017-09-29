@@ -36,6 +36,10 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAu
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
+import com.constellio.app.ui.pages.management.capsule.addEdit.AddEditCapsuleViewImpl;
+import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsuleViewImpl;
+import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleView;
+import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionViewImpl;
 import com.constellio.app.ui.pages.management.collections.CollectionManagementViewImpl;
 import com.constellio.app.ui.pages.management.configs.ConfigManagementViewImpl;
@@ -69,6 +73,7 @@ import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataVi
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
 import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
@@ -185,6 +190,12 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
 	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
+	public static final String SEARCH_CONFIGURATION = "searchConfiguration";
+
+	public static final String LIST_CAPSULE = "listCapsule";
+	public static final String ADD_EDIT_CAPSULE = "addEditCapsule";
+	public static final String DISPLAY_CAPSULE = "displayCapsule";
+
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -292,6 +303,11 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_BATCH_PROCESSES, ListBatchProcessesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_IMPORT_EXPORT, ListImportExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SEARCH_CONFIGURATION, SearchConfigurationViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(LIST_CAPSULE, ListCapsuleViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_CAPSULE, AddEditCapsuleViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CAPSULE, DisplayCapsuleViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

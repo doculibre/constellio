@@ -97,6 +97,72 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("target");
 		}
 	}
+	public Capsule wrapCapsule(Record record) {
+		return record == null ? null : new Capsule(record, getTypes());
+	}
+
+	public List<Capsule> wrapCapsules(List<Record> records) {
+		List<Capsule> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new Capsule(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<Capsule> searchCapsules(LogicalSearchQuery query) {
+		return wrapCapsules(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<Capsule> searchCapsules(LogicalSearchCondition condition) {
+		MetadataSchemaType type = capsule.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapCapsules(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Capsule getCapsule(String id) {
+		return wrapCapsule(get(id));
+	}
+
+	public List<Capsule> getCapsules(List<String> ids) {
+		return wrapCapsules(get(ids));
+	}
+
+	public Capsule getCapsuleWithCode(String code) {
+		return wrapCapsule(getByCode(capsule.schemaType(), code));
+	}
+
+	public Capsule getCapsuleWithLegacyId(String legacyId) {
+		return wrapCapsule(getByLegacyId(capsule.schemaType(),  legacyId));
+	}
+
+	public Capsule newCapsule() {
+		return wrapCapsule(create(capsule.schema()));
+	}
+
+	public Capsule newCapsuleWithId(String id) {
+		return wrapCapsule(create(capsule.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_capsule_default capsule
+			= new SchemaTypeShortcuts_capsule_default("capsule_default");
+	public class SchemaTypeShortcuts_capsule_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_capsule_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata code() {
+			return metadata("code");
+		}
+
+		public Metadata html() {
+			return metadata("html");
+		}
+
+		public Metadata keywords() {
+			return metadata("keywords");
+		}
+	}
 	public Collection wrapCollection(Record record) {
 		return record == null ? null : new Collection(record, getTypes());
 	}
@@ -635,6 +701,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 			return metadata("content");
 		}
 
+		public Metadata daysBeforeDestruction() {
+			return metadata("daysBeforeDestruction");
+		}
+
 		public Metadata destructionDate() {
 			return metadata("destructionDate");
 		}
@@ -644,13 +714,13 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		}
 	}
 	public User wrapUser(Record record) {
-		return record == null ? null : null;//new User(record, getTypes());
+		return record == null ? null : new User(record, getTypes(), null);
 	}
 
 	public List<User> wrapUsers(List<Record> records) {
 		List<User> wrapped = new ArrayList<>();
 		for (Record record : records) {
-//			wrapped.add(new User(record, getTypes()));
+			wrapped.add(new User(record, getTypes(), null));
 		}
 
 		return wrapped;
@@ -719,6 +789,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 
 		public Metadata collectionWriteAccess() {
 			return metadata("collectionWriteAccess");
+		}
+
+		public Metadata defaultPageLength() {
+			return metadata("defaultPageLength");
 		}
 
 		public Metadata defaultTabInFolderDisplay() {

@@ -11,6 +11,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -26,11 +27,13 @@ import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -87,7 +90,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
+		VerticalLayout layout = new VerticalLayout();
+		layout.addComponent(buildSearchUI());
+		layout.addComponent(buildResultsUI());
 		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
@@ -193,8 +198,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
+		Component capsuleComponent = null;
+		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
+		if(!capsules.isEmpty()) {
+			capsuleComponent = buildCapsuleIU(capsules);
+		}
 
-		VerticalLayout main = new VerticalLayout(suggestions, summary, body);
+		VerticalLayout main = new VerticalLayout(suggestions, summary);
+		if(capsuleComponent != null){
+			main.addComponent(capsuleComponent);
+		}
+		main.addComponent(body);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
 		main.setSpacing(true);
@@ -526,6 +540,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		button.addStyleName(SAVE_SEARCH);
 		return button;
+	}
+
+	private Component buildCapsuleIU(List<Capsule> capsules) {
+		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
+		for(Capsule capsule : capsules) {
+			Panel panel = new Panel();
+			panel.setSizeFull();
+			Label label = new Label(capsule.getHTML(),  ContentMode.HTML);
+			panel.setContent(label);
+			panel.setWidth("100%");
+			panel.setCaption(capsule.getTitle());
+			layout.addComponent(panel);
+		}
+		return layout;
 	}
 
 	public boolean isSelectAllMode() {

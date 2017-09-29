@@ -31,6 +31,7 @@ public class CorePermissions {
 	public static final String MANAGE_SEARCH_REPORTS = permission(COLLECTION_MANAGEMENT, "manageSearchReports");
 	public static final String MANAGE_EMAIL_SERVER = permission(COLLECTION_MANAGEMENT, "manageEmailServer");
 	public static final String MANAGE_EXCEL_REPORT = permission(COLLECTION_MANAGEMENT, "manageExcelReport");
+	public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");
 
 	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(COLLECTION_MANAGEMENT);
 
@@ -57,4 +58,5 @@ public class CorePermissions {
 
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM, "seeAllTemporaryRecords");
+	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM, "accessSearchCapsule");
 }

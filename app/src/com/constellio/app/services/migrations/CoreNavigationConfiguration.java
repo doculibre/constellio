@@ -95,6 +95,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String TEMPORARY_REPORT = "temporaryRecords";
 	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
 
+	public static final String SEARCH_CONFIG = "searchConfig";
+	public static final String SEARCH_CONFIG_ICON = "images/icons/config/configuration-search.png";
+
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
 		configureSystemAdmin(config);
@@ -303,16 +306,16 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_VALUELIST).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(FACET_CONFIGURATION, FACET_CONFIGURATION_ICON) {
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_CONFIG, SEARCH_CONFIG_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to().listFacetConfiguration();
+				navigate.to().searchConfiguration();
 			}
 
 			//TODO changer pour permission
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_VALUELIST).globally());
+				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_CONFIG).globally());
 			}
 
 		});
@@ -422,29 +425,29 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION,
-				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().searchBoostByMetadatas();
-					}
-
-					@Override
-					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
-					}
-				});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().searchBoostByQuerys();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
-			}
-		});
+//		config.add(AdminView.COLLECTION_SECTION,
+//				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
+//					@Override
+//					public void activate(Navigation navigate) {
+//						navigate.to().searchBoostByMetadatas();
+//					}
+//
+//					@Override
+//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+//						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
+//					}
+//				});
+//		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
+//			@Override
+//			public void activate(Navigation navigate) {
+//				navigate.to().searchBoostByQuerys();
+//			}
+//
+//			@Override
+//			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+//				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
+//			}
+//		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
