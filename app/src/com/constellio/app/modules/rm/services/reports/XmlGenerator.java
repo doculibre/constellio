@@ -13,10 +13,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
@@ -142,10 +139,11 @@ public abstract class XmlGenerator {
 
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
         List<Element> listOfMetadataTags = new ArrayList<>();
-        if (recordElement.get(metadata) != null) {
+        EnumWithSmallCode metadataValue = recordElement.get(metadata);
+        if (metadataValue != null) {
             listOfMetadataTags.addAll(asList(
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(recordElement.<EnumWithSmallCode>get(metadata).getCode()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(recordElement.get(metadata).toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
+                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(metadataValue.getCode()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
+                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText($(metadataValue)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
                     )
             );
         } else {
@@ -161,6 +159,7 @@ public abstract class XmlGenerator {
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
         RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+        MetadataSchema recordSchemaType = metadataSchemasManager.getSchemaTypeOf(recordElement).getDefaultSchema();
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
@@ -169,8 +168,8 @@ public abstract class XmlGenerator {
         } else {
             for (Record recordReferenced : listOfRecordReferencedByMetadata) {
                 listOfMetadataTags.addAll(asList(
-                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                        new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
+                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
                 ));
 
                 if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
@@ -179,8 +178,8 @@ public abstract class XmlGenerator {
                     if (parentMetadataId != null) {
                         Record parentRecord = recordServices.getDocumentById(parentMetadataId);
                         listOfMetadataTags.addAll(asList(
-                                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
-                                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
+                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
+                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
                         ));
                     }
                 }
