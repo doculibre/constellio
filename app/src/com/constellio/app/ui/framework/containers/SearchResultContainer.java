@@ -14,10 +14,12 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 
 	private RecordDisplayFactory displayFactory;
+	String query;
 
-	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory) {
+	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory, String query) {
 		super(adapted);
 		this.displayFactory = displayFactory;
+		this.query = query;
 	}
 
 	@Override
@@ -40,7 +42,7 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			@Override
 			public Component getValue() {
 				SearchResultVO searchResultVO = getSearchResultVO((int) itemId);
-				return displayFactory.build(searchResultVO);
+				return displayFactory.build(searchResultVO, query);
 			}
 
 			@Override

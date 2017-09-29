@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -39,6 +40,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
     RMSchemasRecordsServices rm;
     RMTestRecords records = new RMTestRecords(zeCollection);
     SearchServices searchServices;
+    public static final String ELEVATED_KEY_1 = "abeil";
 
     @Before
     public void setUp() {
@@ -48,6 +50,83 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
         recordServices = getModelLayerFactory().newRecordServices();
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         searchServices = getModelLayerFactory().newSearchServices();
+
+        Elevations elevations = searchConfigurationsManager.getAllElevations();
+
+        for (Iterator<Elevations.QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ){
+            Elevations.QueryElevation queryElevation = iterator.next();
+
+            for (Iterator<Elevations.QueryElevation.DocElevation> queryElevationIterator =
+                 queryElevation.getDocElevations().iterator(); queryElevationIterator.hasNext(); ) {
+                Elevations.QueryElevation.DocElevation docElevation = queryElevationIterator.next();
+                searchConfigurationsManager.removeElevated(queryElevation.getQuery(), docElevation.getId());
+            }
+        }
+    }
+
+    @Test
+    public void clearElevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
+
+
+        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+
+
+        List<Record> recordList = searchServices.search(logicalSearchQuery);
+
+        Record record0 = recordList.get(3);
+        Record excludeRecord = recordList.get(0);
+        String excludedRecordId = excludeRecord.getId();
+        String elevatedId = record0.getId();
+
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
+
+
+        List<Record> recordsListAfterElevation = searchServices.search(logicalSearchQuery);
+        assertThat(recordsListAfterElevation.get(0).getId()).isEqualTo(elevatedId);
+
+        for(Record currentRecord : recordsListAfterElevation) {
+            assertThat(currentRecord.getId()).isNotEqualTo(excludedRecordId);
+        }
+    }
+
+    @Test
+    public void setElevationAndExclusionRemoveElevationThanVerifyRemoval() {
+        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+
+
+        List<Record> recordList = searchServices.search(logicalSearchQuery);
+
+        Record record0 = recordList.get(3);
+        Record excludeRecord = recordList.get(0);
+
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
+
+        searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, record0.getId());
+        searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, excludeRecord.getId());
+
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isFalse();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
     }
 
     @Test

@@ -7,11 +7,13 @@ public class GetCustomResultDisplayParam {
 
 	SearchResultVO searchResultVO;
 	MetadataDisplayFactory componentFactory;
+	String query;
 
 	public GetCustomResultDisplayParam(SearchResultVO searchResultVO,
-			MetadataDisplayFactory componentFactory) {
+			MetadataDisplayFactory componentFactory, String query) {
 		this.searchResultVO = searchResultVO;
 		this.componentFactory = componentFactory;
+		this.query = query;
 	}
 
 	public String getSchemaType() {
@@ -24,5 +26,9 @@ public class GetCustomResultDisplayParam {
 
 	public MetadataDisplayFactory getComponentFactory() {
 		return componentFactory;
+	}
+
+	public String getQuery() {
+		return query;
 	}
 }

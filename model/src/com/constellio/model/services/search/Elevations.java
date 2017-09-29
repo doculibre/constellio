@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,7 +17,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 
 @XmlRootElement
-public class Elevations {
+public class Elevations implements Serializable {
 	public void addOrUpdate(QueryElevation queryElevation) {
 		boolean updated = false;
 		for (QueryElevation currentQueryElevation : this.queryElevations) {
@@ -31,65 +32,34 @@ public class Elevations {
 		}
 	}
 
-	public void removeCollectionElevations(SchemasRecordsServices schemas) {
-		for (Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext(); ) {
-			QueryElevation queryElevation = iterator.next();
-			queryElevation.removeCollectionElevations(schemas);
-
-			if (queryElevation.getDocElevations().isEmpty()) {
-				iterator.remove();
-			}
-		}
-	}
-
-	public void removeCollectionElevation(SchemasRecordsServices schemas, String query) {
+	public void removeElevation(String query, String recordId) {
+		boolean removeQuery = false;
+		boolean found = false;
 		for (Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext(); ) {
 			QueryElevation queryElevation = iterator.next();
 			if (queryElevation.getQuery().equals(query)) {
-				queryElevation.removeCollectionElevations(schemas);
-				if (queryElevation.getDocElevations().isEmpty()) {
+				for (Iterator<DocElevation> iteratorDecElevation = queryElevation.getDocElevations().iterator(); iteratorDecElevation.hasNext(); ) {
+					DocElevation docElevation = iteratorDecElevation.next();
+					if(docElevation.getId().equals(recordId)) {
+						iteratorDecElevation.remove();
+						found = true;
+						if(queryElevation.getDocElevations().size() <= 0) {
+							removeQuery = true;
+						}
+						break;
+					}
+				}
+			}
+			if(found) {
+				if (removeQuery) {
 					iterator.remove();
 				}
+				break;
 			}
 		}
 	}
 
-	public void removeElevation(String query) {
-		for (Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext(); ) {
-			QueryElevation queryElevation = iterator.next();
-			if (queryElevation.getQuery().equals(query)) {
-				iterator.remove();
-			}
-		}
-	}
-
-	public Elevations getCollectionElevations(SchemasRecordsServices schemas) {
-		Elevations returnElevation = new Elevations();
-		for (QueryElevation queryElevation : this.queryElevations) {
-			List<DocElevation> currentDocElevation = getCollectionElevation(schemas, queryElevation.getQuery());
-			returnElevation.addQueryElevation(queryElevation.getQuery(), currentDocElevation);
-		}
-		return returnElevation;
-	}
-
-	private void addQueryElevation(String query, List<DocElevation> docElevations) {
-		this.queryElevations.add(new QueryElevation().setQuery(query).setDocElevations(docElevations));
-	}
-
-	public List<DocElevation> getCollectionElevation(SchemasRecordsServices schemas, String query) {
-		List<DocElevation> returnList = new ArrayList<>();
-		QueryElevation queryElevation = getQueryElevation(query);
-		if (queryElevation != null) {
-			for (DocElevation docElevation : queryElevation.getDocElevations()) {
-				if (docElevation.isInCollection(schemas)) {
-					returnList.add(docElevation);
-				}
-			}
-		}
-		return returnList;
-	}
-
-	public static class QueryElevation {
+	public static class QueryElevation implements Serializable {
 		private String query;
 
 		public void addUpdate(List<DocElevation> newDocElevations) {
@@ -123,7 +93,7 @@ public class Elevations {
 			return this;
 		}
 
-		public static class DocElevation {
+		public static class DocElevation implements Serializable {
 			private String id;
 			private boolean exclude;
 

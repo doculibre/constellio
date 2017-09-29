@@ -9,13 +9,6 @@ import com.constellio.model.services.search.Elevations.QueryElevation.DocElevati
 public interface ElevationService {
 	void elevate(Record record, String query);
 
-	void removeElevation(Record record, String query);
+	void removeElevation(String recordId, String query);
 
-	void removeCollectionElevation(String collection, String query);
-
-	List<DocElevation> getCollectionElevation(String collection, String query);
-
-	Elevations getCollectionElevations(String collection);
-
-	void removeCollectionElevations(String collection);
 }

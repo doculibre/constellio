@@ -38,8 +38,7 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 	}
 
 	@Test
-	public void
-	givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned()
+	public void givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned()
 			throws Exception {
 		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
 			return;

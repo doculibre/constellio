@@ -3,149 +3,163 @@ package com.constellio.model.services.search;
 import java.util.*;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.entities.ResultsElevation;
 import com.constellio.model.services.search.entities.ResultsExclusion;
+import com.constellio.model.services.search.services.ElevationService;
+import com.constellio.model.services.search.services.ElevationServiceImpl;
+import org.apache.commons.lang.StringUtils;
 
 public class SearchConfigurationsManager {
-
+	public static final String ELEVATE_FILE_NAME = "/elevate.xml";
 	public static final String SYNONYME_FILE_PATH = "/synonyms.txt";
 
-	Map<String, Map<String, List<String>>> elevatedRecords = new HashMap<>();
-
-	Map<String, Map<String, List<String>>> excludedRecords = new HashMap<>();
+	ConstellioCache constellioCache;
 
 	List<String> synonyms = new ArrayList<>();
 
 	DataLayerFactory dataLayerFactory;
+	ConstellioCacheManager constellioCacheManager;
 
-	public SearchConfigurationsManager(DataLayerFactory dataLayerFacotry) {
+	ModelLayerFactory modelLayerFactory;
+	private BigVaultServer server;
+
+	public SearchConfigurationsManager(DataLayerFactory dataLayerFacotry, ModelLayerFactory modelLayerFactory) {
 		this.dataLayerFactory = dataLayerFacotry;
+		this.modelLayerFactory = modelLayerFactory;
+		server = dataLayerFacotry.getRecordsVaultServer();
+		constellioCacheManager = dataLayerFactory.getSettingsCacheManager();
+		constellioCache = constellioCacheManager.getCache(SearchConfigurationsManager.class.getName());
 		initialize();
 	}
 
 	public void initialize() {
 		synonyms = getSynonymsOnServer();
-}
+		Elevations elevations = getAllElevations();
 
-	public boolean isElevated(String query, Record record) {
-		Map<String, List<String>> collectionElevations = elevatedRecords.get(record.getCollection());
-
-		if (collectionElevations == null) {
-			return false;
-		} else {
-			List<String> collectionElevatedRecords = collectionElevations.get(query);
-			return collectionElevatedRecords == null ? false : collectionElevatedRecords.contains(record.getId());
-		}
-
-	}
-
-	public boolean isExcluded(String query, Record record) {
-		Map<String, List<String>> collectionExclusions = excludedRecords.get(record.getCollection());
-
-		if (collectionExclusions == null) {
-			return false;
-		} else {
-			List<String> collectionElevatedRecords = collectionExclusions.get(query);
-			return collectionElevatedRecords == null ? false : collectionElevatedRecords.contains(record.getId());
+		for(Elevations.QueryElevation queryElevation : elevations.getQueryElevations()) {
+			constellioCache.put(queryElevation.getQuery(), (ArrayList) queryElevation.getDocElevations());
 		}
 	}
 
-	public void setElevated(String query, Record record, boolean value) {
+	public Elevations getAllElevations() {
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		Map<String, List<String>> collectionElevations = elevatedRecords.get(record.getCollection());
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
 
-		if (collectionElevations == null) {
-			collectionElevations = new HashMap<>();
-			elevatedRecords.put(record.getCollection(), collectionElevations);
-		}
+		// Facebook.com youtube.com
 
-		if (!collectionElevations.containsKey(record.getCollection())) {
-			collectionElevations.put(record.getCollection(), new ArrayList<String>());
-		}
-		collectionElevations.get(record.getCollection()).add(record.getId());
+		Elevations elevations = anElevationsView.getData();
+
+		return elevations;
 	}
 
-	public void setExcluded(String query, Record record, boolean value) {
-		Map<String, List<String>> collectionElevations = excludedRecords.get(record.getCollection());
+	public boolean isElevated(String freeTextQuery, Record record) {
+		boolean found = false;
+		// Facebook.com youtube.com
 
-		if (collectionElevations == null) {
-			collectionElevations = new HashMap<>();
-			excludedRecords.put(record.getCollection(), collectionElevations);
-		}
+		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
 
-		if (!collectionElevations.containsKey(record.getCollection())) {
-			collectionElevations.put(record.getCollection(), new ArrayList<String>());
-		}
-		collectionElevations.get(record.getCollection()).add(record.getId());
-	}
-
-	public List<ResultsElevation> getElevations(String collection) {
-		Map<String, List<String>> collectionElevations = elevatedRecords.get(collection);
-		if (collectionElevations == null) {
-			return Collections.emptyList();
-		} else {
-			List<ResultsElevation> elevations = new ArrayList<>();
-
-			for (Map.Entry<String, List<String>> anElevation : collectionElevations.entrySet()) {
-				elevations.add(new ResultsElevation(anElevation.getKey(), new ArrayList<>(anElevation.getValue())));
+		if(docElevations != null) {
+			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
+				if (record.getId().equals(docElevation.getId())&& !docElevation.isExclude()) {
+					found = true;
+					break;
+				}
 			}
-
-			return elevations;
 		}
+
+		return found;
 	}
 
-	public List<ResultsExclusion> getExclusions(String collection) {
-		Map<String, List<String>> collectionElevations = elevatedRecords.get(collection);
-		if (collectionElevations == null) {
-			return Collections.emptyList();
-		} else {
-			List<ResultsExclusion> elevations = new ArrayList<>();
+	public boolean isExcluded(String freeTextQuery, Record record) {
+		boolean found = false;
+		// Facebook.com youtube.com
 
-			for (Map.Entry<String, List<String>> anElevation : collectionElevations.entrySet()) {
-				elevations.add(new ResultsExclusion(anElevation.getKey(), new ArrayList<>(anElevation.getValue())));
+		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
+
+		if(docElevations != null) {
+			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
+				if (record.getId().equals(docElevation.getId())&& docElevation.isExclude()) {
+					found = true;
+					break;
+				}
 			}
-
-			return elevations;
 		}
+
+		return found;
 	}
 
-	public void setElevatedRecords(String collection, String query, List<String> ids) {
-		if (ids == null || ids.isEmpty()) {
-			if (elevatedRecords.containsKey(collection)) {
-				elevatedRecords.get(collection).remove(query);
-			}
-		} else {
-			if (!elevatedRecords.containsKey(collection)) {
-				elevatedRecords.put(collection, new HashMap<String, List<String>>());
-			}
-			elevatedRecords.get(collection).put(query, new ArrayList<>(ids));
+	public void removeElevated(String freeTextQuery, String recordId) {
+		if (StringUtils.isBlank(freeTextQuery)) {
+			freeTextQuery = "*:*";
 		}
-	}
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-	public void setExcludedRecords(String collection, String query, List<String> ids) {
-		if (ids == null || ids.isEmpty()) {
-			if (excludedRecords.containsKey(collection)) {
-				excludedRecords.get(collection).remove(query);
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+
+		Elevations elevations = anElevationsView.getData();
+
+		elevations.removeElevation(freeTextQuery, recordId);
+
+		anElevationsView.setData(elevations);
+		readData.setDataFromView(anElevationsView);
+
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
+		solrFileSystem.close();
+
+		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
+		for (Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext(); ) {
+			Elevations.QueryElevation.DocElevation docElevation = iterator.next();
+			if(docElevation.getId().equals(recordId)) {
+				iterator.remove();
+				break;
 			}
-		} else {
-			if (!excludedRecords.containsKey(collection)) {
-				excludedRecords.put(collection, new HashMap<String, List<String>>());
-			}
-			excludedRecords.get(collection).put(query, new ArrayList<>(ids));
 		}
+
+		if(docElevations.size() < 1) {
+			constellioCache.remove(freeTextQuery);
+		}
+
+		server.reload();
 	}
 
-	public void removeCollectionExclusions(String collection) {
-		excludedRecords.remove(collection);
-	}
+	public void setElevated(String freeTextQuery, Record record, boolean isExcluded) {
 
-	public void removeCollectionElevations(String collection) {
-		elevatedRecords.remove(collection);
+		if (StringUtils.isBlank(freeTextQuery)) {
+			freeTextQuery = "*:*";
+		}
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+
+		Elevations elevations = anElevationsView.getData();
+
+		elevations.addOrUpdate(
+				new Elevations.QueryElevation().setQuery(freeTextQuery)
+						.addDocElevation(new Elevations.QueryElevation.DocElevation(record.getId(), isExcluded)));
+
+		anElevationsView.setData(elevations);
+		readData.setDataFromView(anElevationsView);
+
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
+		solrFileSystem.close();
+
+		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(freeTextQuery);
+
+		constellioCache.put(freeTextQuery,(ArrayList) queryElevation.getDocElevations());
+
+		server.reload();
 	}
 
 	public List<String> getSynonyms() {

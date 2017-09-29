@@ -10,18 +10,18 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.MenuBar;
+import com.constellio.model.services.users.CredentialUserPermissionChecker;
+import com.vaadin.ui.*;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
-	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory) {
-		super(searchResultVO, componentFactory, appLayerFactory);
+	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
+		super(searchResultVO, componentFactory, appLayerFactory, query);
 	}
 
 	@Override
@@ -47,7 +47,9 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(record);
 
 		HorizontalLayout layout = new HorizontalLayout(titleComponent, menuBar);
+
 		layout.setExpandRatio(titleComponent, 1);
+
 		layout.setComponentAlignment(menuBar, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(titleComponent, Alignment.BOTTOM_LEFT);
 		layout.setWidth("100%");

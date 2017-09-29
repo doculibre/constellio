@@ -237,7 +237,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer() {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(presenter.getSearchResults());
-		return new SearchResultContainer(results, displayFactory);
+
+		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -19,7 +19,7 @@ public class RMSearchPageExtension extends SearchPageExtension {
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
-			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory);
+			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
 		}
 		return super.getCustomResultDisplayFor(param);
 	}
