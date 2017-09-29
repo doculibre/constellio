@@ -73,7 +73,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
-						  DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
+			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
@@ -114,13 +114,17 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	//chargement
-	public QueryResponse query(SolrParams params)
+	public QueryResponse query(final SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
-		QueryResponse response = tryQuery(params, currentAttempt);
+		final QueryResponse response = tryQuery(params, currentAttempt);
+		final int resultsSize = response.getResults().size();
 		long end = new Date().getTime();
-		extensions.afterQuery(params, end - start);
+
+		final long qtime = end - start;
+		extensions.afterQuery(params, qtime, response.getResults().size());
+
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
 				((BigVaultServerQueryListener) listener).onQuery(params, response);
@@ -129,13 +133,35 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
+	public SolrDocument realtimeGet(String id)
+			throws BigVaultException.CouldNotExecuteQuery {
+
+		try {
+			return server.getById(id);
+		} catch (SolrServerException | IOException e) {
+			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + id, e);
+		}
+
+	}
+
+	public List<SolrDocument> realtimeGet(List<String> ids)
+			throws BigVaultException.CouldNotExecuteQuery {
+
+		try {
+			return server.getById(ids);
+		} catch (SolrServerException | IOException e) {
+			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + ids, e);
+		}
+
+	}
+
 	private QueryResponse tryQuery(SolrParams params, int currentAttempt)
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
 			return server.query(params);
 		} catch (IOException | SolrServerException e) {
-			LOGGER.error("Error while querying solr server" , e);
+			LOGGER.error("Error while querying solr server", e);
 			if (e.getCause() instanceof RemoteSolrException) {
 				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
@@ -254,7 +280,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private TransactionResponseDTO handleRemoteSolrExceptionWhileAddingRecords(BigVaultServerTransaction transaction,
-																			   int currentAttempt, Exception exception, int code)
+			int currentAttempt, Exception exception, int code)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (code == HTTP_ERROR_409_CONFLICT) {
 			return handleOptimisticLockingException(exception);
@@ -365,7 +391,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private List<SolrInputDocument> copyAtomicUpdatesKeepingOnlyIdAndVersion(String transactionId,
-																			 List<SolrInputDocument> updatedDocuments) {
+			List<SolrInputDocument> updatedDocuments) {
 		List<SolrInputDocument> optimisticLockingValidationDocuments = new ArrayList<>();
 		for (SolrInputDocument updatedDocument : updatedDocuments) {
 			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
@@ -396,7 +422,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments,
-																		 List<String> deletedById) {
+			List<String> deletedById) {
 		List<SolrInputDocument> withoutVersions = new ArrayList<>();
 		for (SolrInputDocument document : updatedDocuments) {
 
@@ -424,12 +450,12 @@ public class BigVaultServer implements Cloneable {
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
 		deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments(),
+		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(updatedDocumentsWithoutIndexes,
 				new ArrayList<String>());
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
 		req.add(docsWithoutVersions);
-		req.add(transaction.getNewDocuments());
+		req.add(newDocumentsWithoutIndexes);
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
 		UpdateResponse updateResponse = req.process(server);
@@ -440,7 +466,7 @@ public class BigVaultServer implements Cloneable {
 	private List<SolrInputDocument> withoutIndexes(List<SolrInputDocument> newDocuments) {
 		List<SolrInputDocument> withoutIndexes = new ArrayList<>();
 		for (SolrInputDocument doc : newDocuments) {
-			if (!"index".equals(doc.getFieldValue("type_s"))) {
+			if (!((String) doc.getFieldValue("id")).startsWith("idx_")) {
 				withoutIndexes.add(doc);
 			}
 		}

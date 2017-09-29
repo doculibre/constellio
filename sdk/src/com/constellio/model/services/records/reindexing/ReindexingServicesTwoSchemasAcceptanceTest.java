@@ -5,14 +5,11 @@ import static com.constellio.model.services.records.reindexing.ReindexationMode.
 import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,19 +18,15 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
-import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
-import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -191,301 +184,7 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void givenVaultWithoutIndexesWhenReindexingWithRewriteThenRebuildThem_1()
-			throws Exception {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
-
-		transaction.add(new TestRecord(anotherSchema, "000666"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000042");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 1);
-		assertCounterIndexForRecordWithValue("000666", 0);
-
-		deleteActiveIndex("000042");
-		deleteActiveIndex("000666");
-		deleteCounterIndex("000042");
-		deleteCounterIndex("000666");
-
-		assertNoActiveIndexForRecord("000042");
-		assertNoActiveIndexForRecord("000666");
-		assertNoCounterIndexForRecord("000042");
-		assertNoCounterIndexForRecord("000666");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
-
-		assertNoActiveIndexForRecord("000042");
-		assertNoActiveIndexForRecord("000666");
-		assertNoCounterIndexForRecord("000042");
-		assertNoCounterIndexForRecord("000666");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 1);
-		assertCounterIndexForRecordWithValue("000666", 0);
-	}
-
-	@Test
-	public void givenVaultWithoutIndexesWhenReindexingWithRewriteThenRebuildThem_2()
-			throws Exception {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
-
-		transaction.add(new TestRecord(anotherSchema, "000042"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000666");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 1);
-		assertCounterIndexForRecordWithValue("000042", 0);
-
-		deleteActiveIndex("000666");
-		deleteActiveIndex("000042");
-		deleteCounterIndex("000666");
-		deleteCounterIndex("000042");
-
-		assertNoActiveIndexForRecord("000666");
-		assertNoActiveIndexForRecord("000042");
-		assertNoCounterIndexForRecord("000666");
-		assertNoCounterIndexForRecord("000042");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
-
-		assertNoActiveIndexForRecord("000666");
-		assertNoActiveIndexForRecord("000042");
-		assertNoCounterIndexForRecord("000666");
-		assertNoCounterIndexForRecord("000042");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 1);
-		assertCounterIndexForRecordWithValue("000042", 0);
-	}
-
-	@Test
-	public void givenVaultWithInvalidCounterIndexesWhenReindexingWithRewriteThenRebuildThem_1()
-			throws Exception {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
-
-		transaction.add(new TestRecord(anotherSchema, "000042"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000666");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 1);
-		assertCounterIndexForRecordWithValue("000042", 0);
-
-		modifyCounterIndex("000666", 42);
-		modifyCounterIndex("000042", 666);
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 42);
-		assertCounterIndexForRecordWithValue("000042", 666);
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 42);
-		assertCounterIndexForRecordWithValue("000042", 666);
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000666");
-		assertActiveIndexForRecord("000042");
-		assertCounterIndexForRecordWithValue("000666", 1);
-		assertCounterIndexForRecordWithValue("000042", 0);
-	}
-
-	@Test
-	public void givenVaultWithInvalidCounterIndexesWhenReindexingWithRewriteThenRebuildThem_2()
-			throws Exception {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
-
-		transaction.add(new TestRecord(anotherSchema, "000666"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000042");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 1);
-		assertCounterIndexForRecordWithValue("000666", 0);
-
-		modifyCounterIndex("000042", 42);
-		modifyCounterIndex("000666", 666);
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 42);
-		assertCounterIndexForRecordWithValue("000666", 666);
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 42);
-		assertCounterIndexForRecordWithValue("000666", 666);
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
-
-		assertActiveIndexForRecord("000042");
-		assertActiveIndexForRecord("000666");
-		assertCounterIndexForRecordWithValue("000042", 1);
-		assertCounterIndexForRecordWithValue("000666", 0);
-	}
-
-	@Test
-	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_1()
-			throws RecordServicesException {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1");
-		transaction.add(new TestRecord(anotherSchema, "000666"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000042");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000042");
-
-		recordServices.logicallyDelete(record("000042"), User.GOD);
-
-		assertNoActiveIndexForRecord("000042");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
-
-		assertNoActiveIndexForRecord("000042");
-
-	}
-
-	@Test
-	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_2()
-			throws RecordServicesException {
-
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction();
-		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1");
-		transaction.add(new TestRecord(anotherSchema, "000666"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000042");
-		recordServices.execute(transaction);
-
-		assertActiveIndexForRecord("000666");
-
-		recordServices.logicallyDelete(record("000666"), User.GOD);
-
-		assertNoActiveIndexForRecord("000666");
-
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
-
-		assertNoActiveIndexForRecord("000666");
-
-	}
-
 	// ---------------------------------------------------
-
-	private void modifyCounterIndex(String recordId, double value) {
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
-		try {
-			RecordDTO record = recordDao.get("idx_rfc_" + recordId);
-
-			Map<String, Object> modifiedFields = new HashMap<>();
-			modifiedFields.put("refs_d", value);
-			RecordDeltaDTO modifyValueDeltaDTO = new RecordDeltaDTO(record, modifiedFields, record.getFields());
-			transaction = transaction.withModifiedRecords(asList(modifyValueDeltaDTO));
-			recordDao.execute(transaction);
-
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private void deleteCounterIndex(String recordId) {
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
-		transaction = transaction.withDeletedByQueries(new ModifiableSolrParams().set("q", "id:idx_rfc_" + recordId));
-		try {
-			recordDao.execute(transaction);
-		} catch (OptimisticLocking optimisticLocking) {
-			throw new RuntimeException(optimisticLocking);
-		}
-	}
-
-	private void deleteActiveIndex(String recordId) {
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
-		transaction = transaction.withDeletedByQueries(new ModifiableSolrParams().set("q", "id:idx_act_" + recordId));
-		try {
-			recordDao.execute(transaction);
-		} catch (OptimisticLocking optimisticLocking) {
-			throw new RuntimeException(optimisticLocking);
-		}
-	}
-
-	private void assertActiveIndexForRecord(String recordId) {
-		try {
-			RecordDTO recordDTO = recordDao.get("idx_act_" + recordId);
-		} catch (NoSuchRecordWithId noSuchRecordWithId) {
-			fail("No active index for record id '" + recordId + "'");
-		}
-	}
-
-	private void assertNoActiveIndexForRecord(String recordId) {
-		try {
-			RecordDTO recordDTO = recordDao.get("idx_act_" + recordId);
-			fail("No active index expected for record id '" + recordId + "'");
-		} catch (NoSuchRecordWithId noSuchRecordWithId) {
-
-		}
-	}
-
-	private void assertCounterIndexForRecordWithValue(String recordId, double expectedValue) {
-		try {
-			RecordDTO recordDTO = recordDao.get("idx_rfc_" + recordId);
-			Double wasValue = (Double) recordDTO.getFields().get("refs_d");
-			assertThat(wasValue).isEqualTo(expectedValue);
-		} catch (NoSuchRecordWithId noSuchRecordWithId) {
-			fail("No counter index for record id '" + recordId + "'");
-		}
-	}
-
-	private void assertNoCounterIndexForRecord(String recordId) {
-		try {
-			RecordDTO recordDTO = recordDao.get("idx_rfc_" + recordId);
-			Double wasValue = (Double) recordDTO.getFields().get("refs_d");
-			fail("No counter index expected for record id '" + recordId + "'");
-		} catch (NoSuchRecordWithId noSuchRecordWithId) {
-
-		}
-	}
 
 	private MetadataSchemaTypesConfigurator copiedAndCalculatedMetadatas() {
 		return new MetadataSchemaTypesConfigurator() {

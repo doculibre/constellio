@@ -1,11 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -15,20 +17,18 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.Record;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 public class FolderRetentionRuleFieldImpl extends CustomField<String> implements FolderRetentionRuleField {
 	private final String collection;
@@ -64,8 +64,8 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 		this.options = options;
 		table.removeAllItems();
 		RetentionRuleToVOBuilder builder = getBuilder();
-		for (Record rule : loadRetentionRules(options)) {
-			table.addItem(builder.build(rule, VIEW_MODE.TABLE, sessionContext()));
+		for (RetentionRule rule : loadRetentionRules(options)) {
+			table.addItem(builder.build(rule.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext()));
 		}
 		table.setPageLength(options.size());
 	}
@@ -94,11 +94,17 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 		this.value = newValue;
 	}
 
-	private List<Record> loadRetentionRules(List<String> options) {
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(types().getSchemaType(RetentionRule.SCHEMA_TYPE)).where(Schemas.IDENTIFIER).isIn(options))
-				.sortAsc(Schemas.CODE);
-		return modelLayerFactory().newSearchServices().search(query);
+	private List<RetentionRule> loadRetentionRules(List<String> options) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory());
+		List<RetentionRule> retentionRules = new ArrayList<>(rm.getRetentionRules(options));
+
+		Collections.sort(retentionRules, new Comparator<RetentionRule>() {
+			@Override
+			public int compare(RetentionRule o1, RetentionRule o2) {
+				return LangUtils.nullableNaturalCompare(o1.getCode(), o2.getCode());
+			}
+		});
+		return retentionRules;
 	}
 
 	private RetentionRuleToVOBuilder getBuilder() {
@@ -190,8 +196,39 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 			return rule.getTitle();
 		}
 
-		private Object generateDescriptionCell(RetentionRuleVO rule) {
-			return rule.getDescription();
+		private Object generateDescriptionCell(final RetentionRuleVO rule) {
+//			return rule.getDescription();
+			final String descriptionCaption = rule.getMetadata(RetentionRule.DESCRIPTION).getLabel(sessionContext().getCurrentLocale());
+			WindowButton descriptionPopUp = new WindowButton(StringUtils.defaultIfBlank(rule.getDescription(), ""), descriptionCaption, WindowButton.WindowConfiguration.modalDialog("50%", "40%")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout mainLayout = new VerticalLayout();
+					mainLayout.setSpacing(true);
+					TextArea description = new TextArea(descriptionCaption);
+					description.setSizeFull();
+					description.setWidth("98%");
+					description.setValue(rule.getDescription());
+					description.setReadOnly(true);
+
+					TextArea comments = new TextArea(rule.getMetadata(RetentionRule.COPY_RULES_COMMENT).getLabel(sessionContext().getCurrentLocale()));
+					comments.setSizeFull();
+					comments.setWidth("98%");
+					StringBuilder sb = new StringBuilder();
+					for (String stringValue : rule.getCopyRulesComment()) {
+						if (sb.length() > 0) {
+							sb.append("\n");
+						}
+						sb.append(stringValue);
+					}
+					comments.setValue(sb.toString());
+					comments.setReadOnly(true);
+
+					mainLayout.addComponents(description, comments);
+					return mainLayout;
+				}
+			};
+			descriptionPopUp.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+			return descriptionPopUp;
 		}
 	}
 }

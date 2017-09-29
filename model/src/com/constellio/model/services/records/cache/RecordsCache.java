@@ -20,7 +20,11 @@ public interface RecordsCache {
 
 	void insertQueryResults(LogicalSearchQuery query, List<Record> records);
 
+	void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds);
+
 	List<Record> getQueryResults(LogicalSearchQuery query);
+
+	List<String> getQueryResultIds(LogicalSearchQuery query);
 
 	CacheInsertionStatus insert(Record record);
 
@@ -55,4 +59,6 @@ public interface RecordsCache {
 	int getCacheObjectsCount(String typeCode);
 
 	long getCacheObjectsSize(String typeCode);
+
+	boolean isEmpty();
 }

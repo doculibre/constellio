@@ -121,6 +121,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(),
 				dataLayerFactory.getSettingsCacheManager()));
+		
+		String warVersion = newApplicationService().getWarVersion();
+		dataLayerFactory.setConstellioVersion(warVersion);
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),

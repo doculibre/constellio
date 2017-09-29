@@ -82,6 +82,9 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	SolrClient getSolrClient(String core) {
 		CloudSolrClient solrClient = new CloudSolrClient(zkHost);
+		solrClient.setSoTimeout(60_000);
+		solrClient.setZkClientTimeout(60_000);
+		solrClient.setZkConnectTimeout(60_000);
 		solrClient.setDefaultCollection(core);
 		return solrClient;
 	}

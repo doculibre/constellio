@@ -19,6 +19,11 @@ public interface RecordDao {
 	RecordDTO get(String id)
 			throws RecordDaoException.NoSuchRecordWithId;
 
+	RecordDTO realGet(String id)
+			throws RecordDaoException.NoSuchRecordWithId;
+
+	List<RecordDTO> realGet(List<String> ids);
+
 	QueryResponseDTO query(SolrParams params);
 
 	List<RecordDTO> searchQuery(SolrParams params);
@@ -32,7 +37,7 @@ public interface RecordDao {
 	TransactionResponseDTO execute(TransactionDTO transaction)
 			throws RecordDaoException.OptimisticLocking;
 
-	List<String> getReferencedRecordsInHierarchy(String recordId);
+	//List<String> getReferencedRecordsInHierarchy(String recordId);
 
 	void flush();
 

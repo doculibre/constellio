@@ -23,18 +23,18 @@ public class RecordDaoRuntimeException extends RuntimeException {
 
 	}
 
-	public static class ReferenceToNonExistentIndex extends RecordDaoRuntimeException {
-
-		private final String id;
-
-		public ReferenceToNonExistentIndex(String id) {
-			super("The record cannot be saved, since it references the non-existent index '" + id + "'");
-			this.id = id;
-		}
-
-		public String getId() {
-			return id;
-		}
-	}
+//	public static class ReferenceToNonExistentIndex extends RecordDaoRuntimeException {
+	//
+	//		private final String id;
+	//
+	//		public ReferenceToNonExistentIndex(String id) {
+	//			super("The record cannot be saved, since it references the non-existent index '" + id + "'");
+	//			this.id = id;
+	//		}
+	//
+	//		public String getId() {
+	//			return id;
+	//		}
+	//	}
 
 }

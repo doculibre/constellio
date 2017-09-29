@@ -37,12 +37,8 @@ public class LookupRecordField extends LookupField<String> {
 		this(schemaTypeCode, null);
 	}
 
-	public LookupRecordField(String schemaTypeCode, boolean writeAccess, boolean showDeactivated) {
-		this(schemaTypeCode, null);
-	}
-
 	public LookupRecordField(String schemaTypeCode, String schemaCode) {
-		this(schemaTypeCode, schemaCode, false, true);
+		this(schemaTypeCode, schemaCode, false);
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess,
@@ -52,20 +48,24 @@ public class LookupRecordField extends LookupField<String> {
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
 			RecordTextInputDataProvider recordTextInputDataProvider) {
-		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
+		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, true));
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
-		this(schemaTypeCode, null, writeAccess, true);
+		this(schemaTypeCode, null, writeAccess, true, true);
+	}
+
+	public LookupRecordField(String schemaTypeCode, boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
+		this(schemaTypeCode, null, writeAccess, true, isShowAllIfHasAccessToManageSecurity);
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
-		this(schemaTypeCode, schemaCode, writeAccess, true);
+		this(schemaTypeCode, schemaCode, writeAccess, true, true);
 	}
 
-	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated) {
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated, boolean isShowAllIfHasAccessToManageSecurity) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
-				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
+				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
@@ -83,7 +83,7 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
-			boolean writeAccess) {
+			boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -106,7 +106,7 @@ public class LookupRecordField extends LookupField<String> {
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess));
+				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 			}
 		}
 

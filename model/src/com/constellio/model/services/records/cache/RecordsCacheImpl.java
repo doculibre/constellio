@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
@@ -34,6 +35,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySign
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
 
 public class RecordsCacheImpl implements RecordsCache {
 
@@ -55,10 +57,20 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	Set<String> doNotLog = new HashSet<>();
 
+	AtomicBoolean enabled = new AtomicBoolean();
+
+	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory, AtomicBoolean enabled) {
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.enabled = enabled;
+	}
+
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
+		this.enabled = new AtomicBoolean(true);
 	}
 
 	public boolean isCached(String id) {
@@ -77,6 +89,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	private Record getByIdNoMatterIfSummary(String id) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		RecordHolder holder = cacheById.get(id);
 
 		Record copy = null;
@@ -127,6 +144,23 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 	}
 
+	@Override
+	public boolean isEmpty() {
+		for (VolatileCache cache : volatileCaches.values()) {
+			if (cache.recordsInCache > 0) {
+				return false;
+			}
+		}
+
+		for (PermanentCache cache : permanentCaches.values()) {
+			if (!cache.holders.isEmpty()) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
 			for (Record record : records) {
@@ -138,7 +172,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
 
-		PermanentCache cache = getCacheFor(query);
+		PermanentCache cache = getCacheFor(query, false);
 		if (cache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
@@ -153,48 +187,65 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 	}
 
-	PermanentCache getCacheFor(LogicalSearchQuery query) {
-		LogicalSearchCondition condition = query.getCondition();
-		DataStoreFilters filters = condition.getFilters();
-		if (filters instanceof SchemaFilters) {
-			SchemaFilters schemaFilters = (SchemaFilters) filters;
+	@Override
+	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
 
-			if (schemaFilters.getSchemaTypeFilter() != null
-					&& hasNoUnsupportedFeatureOrFilter(query)) {
-				CacheConfig cacheConfig = getCacheConfigOf(schemaFilters.getSchemaTypeFilter().getCode());
-				if (cacheConfig != null && cacheConfig.isPermanent()) {
-					return permanentCaches.get(cacheConfig.getSchemaType());
-				}
-			}
+		PermanentCache cache = getCacheFor(query, true);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
+			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
+			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
-		return null;
 	}
 
-	private boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-				&& query.getFieldBoosts().isEmpty()
-				&& query.getQueryBoosts().isEmpty()
-				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 100000
-				&& query.getStatisticFields().isEmpty()
-				&& !query.isPreferAnalyzedFields()
-				&& query.getResultsProjection() == null
-				&& query.getFieldFacets().isEmpty()
-				&& query.getQueryFacets().isEmpty()
-				&& query.getReturnedMetadatas().isFullyLoaded()
-				&& query.getUserFilter() == null
-				&& !query.isHighlighting();
+	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
+		LogicalSearchCondition condition = query.getCondition();
+		DataStoreFilters filters = condition.getFilters();
+
+		MetadataSchemaType schemaType = null;
+
+		if (filters instanceof SchemaFilters) {
+			SchemaFilters schemaFilters = (SchemaFilters) filters;
+			schemaType = schemaFilters.getSchemaTypeFilter();
+		} else if (filters instanceof SchemaTypesFilters) {
+			SchemaTypesFilters schemaTypesFilters = (SchemaTypesFilters) filters;
+			if (((SchemaTypesFilters) filters).getSchemaTypes() != null) {
+				schemaType = schemaTypesFilters.getSchemaTypes().size() == 1 ? schemaTypesFilters.getSchemaTypes().get(0) : null;
+			} else if (((SchemaTypesFilters) filters).getSchemaTypesCodes() != null) {
+				String schemaTypeCode = schemaTypesFilters.getSchemaTypesCodes().size() == 1 ?
+						schemaTypesFilters.getSchemaTypesCodes().get(0) :
+						null;
+				if (schemaTypeCode != null) {
+					schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(schemaTypeCode);
+				}
+			}
+		}
+
+		if (schemaType != null && hasNoUnsupportedFeatureOrFilter(query, onlyIds)) {
+			CacheConfig cacheConfig = getCacheConfigOf(schemaType.getCode());
+			if (cacheConfig != null && cacheConfig.isPermanent()) {
+				return permanentCaches.get(cacheConfig.getSchemaType());
+			}
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		List<Record> cachedResults = null;
-		PermanentCache cache = getCacheFor(query);
+		PermanentCache cache = getCacheFor(query, false);
 		if (cache != null) {
 			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
 
-			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
+			List<String> recordIds = getQueryResultIds(query);
 			if (recordIds != null) {
 				cachedResults = new ArrayList<>();
 
@@ -202,6 +253,27 @@ public class RecordsCacheImpl implements RecordsCache {
 					cachedResults.add(get(recordId));
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
+			}
+		}
+
+		return cachedResults;
+	}
+
+	@Override
+	public List<String> getQueryResultIds(LogicalSearchQuery query) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
+		List<String> cachedResults = null;
+		PermanentCache cache = getCacheFor(query, true);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
+			if (recordIds != null) {
+				cachedResults = Collections.unmodifiableList(recordIds);
 				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
 
 			} else {
@@ -308,10 +380,12 @@ public class RecordsCacheImpl implements RecordsCache {
 	@Override
 	public synchronized void invalidateRecordsOfType(String recordType) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
-		if (cacheConfig.isVolatile()) {
-			volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
-		} else {
-			permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+		if (cacheConfig != null) {
+			if (cacheConfig.isVolatile()) {
+				volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			} else {
+				permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			}
 		}
 	}
 
@@ -409,6 +483,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	private Record getByMetadataNoMatterIfSummary(Metadata metadata, String value) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		String schemaTypeCode = schemaUtils.getSchemaTypeCode(metadata);
 		RecordByMetadataCache recordByMetadataCache = this.recordByMetadataCache.get(schemaTypeCode);
 
@@ -429,6 +508,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public synchronized void removeCache(String schemaType) {
+		invalidateRecordsOfType(schemaType);
 		recordByMetadataCache.remove(schemaType);
 		if (volatileCaches.containsKey(schemaType)) {
 			volatileCaches.get(schemaType).invalidateAll();
@@ -440,6 +520,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		cachedTypes.remove(schemaType);
+
 	}
 
 	@Override
@@ -493,7 +574,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void insert(RecordHolder holder) {
-
 
 			holder.volatileCacheOccurences = 1;
 			holders.add(holder);
@@ -676,14 +756,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void set(Record record) {
-			Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-			if (logicallyDeletedStatus == null
-					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
-					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
+			//Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+//			if (logicallyDeletedStatus == null
+//					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
+//					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
 				this.record = record.getCopyOfOriginalRecord();
-			} else {
-				this.record = null;
-			}
+//			} else {
+			//				this.record = null;
+			//			}
 		}
 
 		void invalidate() {

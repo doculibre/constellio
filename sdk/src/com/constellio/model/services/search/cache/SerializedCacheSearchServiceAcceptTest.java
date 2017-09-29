@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -559,106 +560,51 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 
 	}
 
-	// ****
-	//This service is not supporting facets yet, here is a test for this
-	// ****
+	@Test
+	public void givenQueryWithFacetsThenRetrievedUponFirstQueryCallButNotOnTheSecond()
+			throws Exception {
 
-	//	@Test
-	//	public void givenFacetsWhenMultipleSearchWithSameCacheThenFacetsOnlyCalculatedOnFirstRequest()
-	//			throws Exception {
-	//		//This class was created to respond to this extreme usecase
-	//		queriesListener.clear();
-	//
-	//		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE);
-	//		query.addFieldFacet(zeSchema.numberMetadata());
-	//		query.addQueryFacet("numberMetadata_d:[0 TO 10]");
-	//		query.addQueryFacet("numberMetadata_d:[10 TO 20]");
-	//		query.addQueryFacet("numberMetadata_d:[20 TO 30]");
-	//
-	//		SPEQueryResponse response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords()).hasSize(12);
-	//		assertThat(response.getRecords().get(0)).isEqualTo(thirdSchema_3);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(1)).isEqualTo(zeSchema_4);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(2)).isEqualTo(zeSchema_2);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(3)).isEqualTo(zeSchema_1);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(4)).isEqualTo(anotherSchema_1);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(5)).isEqualTo(thirdSchema_1);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(6)).isEqualTo(anotherSchema_2);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(7)).isEqualTo(anotherSchema_3);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(8)).isEqualTo(thirdSchema_2);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(9)).isEqualTo(zeSchema_3);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(10)).isEqualTo(anotherSchema_4);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(11)).isEqualTo(thirdSchema_4);
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		response = searchServices.query(query, 3);
-	//		assertThat(response.getRecords().get(12)).isNull();
-	//		assertThat(response.getFieldFacetValues()).isNotEmpty();
-	//		assertThat(response.getQueryFacetsValues()).isNotEmpty();
-	//
-	//		assertThat(queriesListener.queries).hasSize(4);
-	//		assertThat(queriesListener.queries.get(0).get("facet")).isNotNull();
-	//		assertThat(queriesListener.queries.get(0).get("facet.field")).isNotNull();
-	//		assertThat(queriesListener.queries.get(0).get("facet.query")).isNotNull();
-	//
-	//		assertThat(queriesListener.queries.get(1).get("facet")).isNotNull();
-	//		assertThat(queriesListener.queries.get(1).get("facet.field")).isNotNull();
-	//		assertThat(queriesListener.queries.get(1).get("facet.query")).isNotNull();
-	//
-	//		assertThat(queriesListener.queries.get(2).get("facet")).isNotNull();
-	//		assertThat(queriesListener.queries.get(2).get("facet.field")).isNotNull();
-	//		assertThat(queriesListener.queries.get(2).get("facet.query")).isNotNull();
-	//
-	//		assertThat(queriesListener.queries.get(3).get("facet")).isNotNull();
-	//		assertThat(queriesListener.queries.get(3).get("facet.field")).isNotNull();
-	//		assertThat(queriesListener.queries.get(3).get("facet.query")).isNotNull();
-	//
-	//	}
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		queriesListener.clear();
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE);
+		query.addFieldFacet(zeSchema.numberMetadata().getDataStoreCode());
+		query.addQueryFacet("zeQueryFacet", "numberMetadata_d:[0 TO 10]");
+		query.addQueryFacet("zeQueryFacet", "numberMetadata_d:[10 TO 20]");
+		query.addQueryFacet("zeQueryFacet", "numberMetadata_d:[20 TO 30]");
+
+		SPEQueryResponse response = searchServices.query(query, 3);
+		assertThat(response.getRecords()).hasSize(12);
+		assertThat(response.getFieldFacetValues()).isNotEmpty();
+		assertThat(response.getQueryFacetsValues()).isNotEmpty();
+		assertThat(queriesListener.queries).hasSize(1);
+
+		assertThat(searchServices.getFieldFacetValues()).isNotEmpty();
+		assertThat(searchServices.getQueryFacetsValues()).isNotEmpty();
+		assertThat(queriesListener.queries).hasSize(1);
+
+		assertThat(response.getRecords().get(0)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(1);
+
+		assertThat(response.getRecords().get(5)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(2);
+
+		assertThat(response.getRecords().get(9)).isNotNull();
+		assertThat(queriesListener.queries).hasSize(3);
+
+		ensureThatOnlyOneQueryExecutedFacets();
+	}
+
+	private void ensureThatOnlyOneQueryExecutedFacets() {
+		int counter = 0;
+		for (SolrParams solrParams : queriesListener.queries) {
+			if ("true".equals(solrParams.get("facet"))) {
+				counter++;
+			}
+		}
+		assertThat(counter).isEqualTo(1);
+	}
 
 	// -------------------------------------------
 

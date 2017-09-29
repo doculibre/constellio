@@ -14,12 +14,14 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -40,6 +42,16 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		Record record = recordsCaches.getRecord(id);
 		if (record == null) {
 			record = recordServices.getDocumentById(id);
+			//recordsCaches.insert(record);
+		}
+		return record;
+	}
+
+	@Override
+	public Record realtimeGet(String id) {
+		Record record = recordsCaches.getRecord(id);
+		if (record == null) {
+			record = recordServices.realtimeGet(id);
 			//recordsCaches.insert(record);
 		}
 		return record;
@@ -99,6 +111,30 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void refresh(List<?> records) {
 		recordServices.refresh(records);
+	}
+
+	@Override
+	public void refreshUsingCache(List<?> records) {
+		for (Object item : records) {
+			Record record;
+
+			if (item instanceof Record) {
+				record = (Record) item;
+			} else {
+				record = ((RecordWrapper) item).getWrappedRecord();
+			}
+
+			if (record != null && record.isSaved()) {
+
+				try {
+					Record recordFromCache = getDocumentById(record.getId());
+					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
+					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					((RecordImpl) record).markAsDisconnected();
+				}
+			}
+		}
 	}
 
 	//These services are not cached

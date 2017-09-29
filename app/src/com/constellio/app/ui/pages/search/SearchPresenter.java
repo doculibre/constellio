@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
-import com.constellio.model.entities.enums.SearchPageLength;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -44,6 +42,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -55,6 +54,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
@@ -88,12 +88,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
-    public int getDefaultPageLength() {
+	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
-		return defaultPageLength != null? defaultPageLength.getValue(): SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
-    }
+		return defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
+	}
 
-    public enum SortOrder {ASCENDING, DESCENDING}
+	public enum SortOrder {ASCENDING, DESCENDING}
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);
 
@@ -225,8 +225,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return lastPageNumber;
 	}
 
-	public List<FacetVO> getFacets() {
-		return service.getFacets(getSearchQuery(), facetStatus, getCurrentLocale());
+	public List<FacetVO> getFacets(SearchResultVODataProvider dataProvider) {
+		//Call #1
+		if (dataProvider == null /* || dataProvider.getFieldFacetValues() == null */) {
+
+			return service.getFacets(getSearchQuery(), facetStatus, getCurrentLocale());
+		} else {
+			return service.buildFacetVOs(dataProvider.getFieldFacetValues(), dataProvider.getQueryFacetsValues(),
+					facetStatus, getCurrentLocale());
+
+		}
 	}
 
 	public String getSortCriterion() {
@@ -241,10 +249,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return null;
 	}
 
-	public boolean mustDisplaySuggestions() {
-		if (searchServices().getResultsCount(getSearchQuery()) != 0) {
+	public boolean mustDisplaySuggestions(SearchResultVODataProvider dataProvider) {
+
+		if (dataProvider.size() != 0) {
 			return false;
 		}
+
 		SPEQueryResponse suggestionsResponse = searchServices()
 				.query(getSearchQuery().setNumberOfRows(0).setSpellcheck(true));
 		if (suggestionsResponse.isCorrectlySpelt()) {
@@ -258,12 +268,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return suggestions;
 	}
 
-	public SearchResultVODataProvider getSearchResults() {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
+	public SearchResultVODataProvider getSearchResults(final boolean facets) {
+		//Call #4
+		SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
+
+				if (facets) {
+					service.configureQueryToComputeFacets(query);
+				}
+
 				if (sortCriterion == null) {
 					if (StringUtils.isNotBlank(getUserSearchExpression())) {
 						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
@@ -271,6 +287,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					}
 					return query;
 				}
+
 				Metadata metadata = getMetadata(sortCriterion);
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 			}
@@ -301,6 +318,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		};
+
+		return dataProvider;
 	}
 
 	private List<MetadataSchemaVO> getSchemas() {
@@ -347,7 +366,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 		this.sortCriterion = sortCriterion;
 		this.sortOrder = sortOrder;
-		view.refreshSearchResults(true);
+		view.refreshSearchResults(true, true);
 	}
 
 	@Override

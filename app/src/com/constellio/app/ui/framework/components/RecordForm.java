@@ -46,7 +46,13 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
-			if (field != null && isVisibleField(metadataVO, recordVO)) {
+			if (field != null) {
+				if (!isVisibleField(metadataVO, recordVO)) {
+					field.setVisible(false);
+				}
+				if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
+					field.setReadOnly(true);
+				}
 				field.addStyleName(STYLE_FIELD);
 				field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
 				fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));

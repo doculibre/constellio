@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
+import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -119,8 +120,10 @@ public class ConstellioFactories {
 		Delayed<ConstellioModulesManager> modulesManager = new Delayed<>();
 		ioServicesFactory = new IOServicesFactory(dataLayerConfiguration.getTempFolder());
 
+		String warVersion = GetWarVersionUtils.getWarVersionUsingGradleAsFallback(null);
+
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
-				decorator.getStatefullServiceDecorator(), instanceName));
+				decorator.getStatefullServiceDecorator(), instanceName, warVersion));
 
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
@@ -207,5 +210,9 @@ public class ConstellioFactories {
 	public AppLayerFactory getAppLayerFactory() {
 		AppLayerFactory requestCachedAppLayerFactory = requestCachedFactories.get();
 		return requestCachedAppLayerFactory == null ? appLayerFactory : requestCachedAppLayerFactory;
+	}
+
+	public AppLayerFactory getUncachedAppLayerFactory() {
+		return appLayerFactory;
 	}
 }

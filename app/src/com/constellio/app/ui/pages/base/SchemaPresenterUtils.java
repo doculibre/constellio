@@ -38,6 +38,7 @@ import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -102,10 +103,10 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		createTransaction.setToReindexAll();
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
-		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
-				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
-			createTransaction.setRecordFlushing(recordFlushing);
-		}
+		//		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
+		//				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
+		createTransaction.setRecordFlushing(recordFlushing);
+		//		}
 		try {
 			return recordServices().executeHandlingImpactsAsync(createTransaction);
 		} catch (RecordServicesException e) {
@@ -133,9 +134,34 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason, boolean physically, User user) {
+		delete(record, reason, physically, user, 0);
+	}
+
+	public final void delete(Record record, String reason, boolean physically, int waitInSeconds) {
+		delete(record, reason, physically, getCurrentUser(), waitInSeconds);
+	}
+
+	public final void delete(Record record, String reason, boolean physically, User user, int waitInSeconds) {
 		boolean putFirstInTrash = putFirstInTrash(record);
 		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
-			recordServices().logicallyDelete(record, user);
+
+			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
+			//Validations are already done
+			options.setSkipValidations(true);
+			if (waitInSeconds > 0) {
+				options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
+			}
+
+			recordServices().logicallyDelete(record, user, options);
+
+			if (waitInSeconds > 0) {
+				try {
+					Thread.sleep(1000 * waitInSeconds);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
 			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
 				recordServices().physicallyDelete(record, user);
@@ -159,13 +185,31 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	@SuppressWarnings("unchecked")
+	public final Record toNewRecord(RecordVO recordVO) {
+		return toNewRecord(recordVO, false);
+	}
+
+	@SuppressWarnings("unchecked")
 	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
 		Record record;
 		try {
-			record = recordServices().getDocumentById(recordVO.getId());
+			record = recordServices().getDocumentById(recordVO.getId()).getCopyOfOriginalRecord();
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			record = newRecord(recordVO.getId());
 		}
+		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
+		return record;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final Record toNewRecord(RecordVO recordVO, boolean newMinorEmpty) {
+		Record record = newRecord(recordVO.getId());
+		fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
+		return record;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final void fillRecordUsingRecordVO(Record record, RecordVO recordVO, boolean newMinorEmpty) {
 		String recordSchemaCode = record.getSchemaCode();
 		MetadataSchema currentSchema = schema(recordSchemaCode);
 		MetadataSchema targetSchema = schema(schemaCode);
@@ -242,7 +286,6 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				}
 			}
 		}
-		return record;
 	}
 
 	private Content getContent(String id, List<Content> contentList) {

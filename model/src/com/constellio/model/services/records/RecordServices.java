@@ -73,6 +73,8 @@ public interface RecordServices {
 
 	Record getRecordByMetadata(Metadata metadata, String value);
 
+	Record realtimeGet(String id);
+
 	Record getDocumentById(String id);
 
 	Record getDocumentById(String id, User user);
@@ -97,6 +99,12 @@ public interface RecordServices {
 	void refresh(RecordWrapper... recordWrappers);
 
 	void refresh(List<?> records);
+
+	void refreshUsingCache(Record... records);
+
+	void refreshUsingCache(RecordWrapper... recordWrappers);
+
+	void refreshUsingCache(List<?> records);
 
 	List<BatchProcess> updateAsync(Record record)
 			throws RecordServicesException;

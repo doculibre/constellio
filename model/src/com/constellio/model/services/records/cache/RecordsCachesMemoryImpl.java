@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -15,13 +16,17 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 
 	RecordsCaches nested;
 
+	AtomicBoolean enabled;
+
 	public RecordsCachesMemoryImpl(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+		this.enabled = new AtomicBoolean(true);
 	}
 
 	public RecordsCachesMemoryImpl(ModelLayerFactory modelLayerFactory, RecordsCaches nested) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.nested = nested;
+		this.enabled = new AtomicBoolean(true);
 	}
 
 	public RecordsCache getCache(String collection) {
@@ -49,7 +54,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 	}
 
 	protected RecordsCache newRecordsCache(String collection, ModelLayerFactory modelLayerFactory) {
-		return new RecordsCacheImpl(collection, modelLayerFactory);
+		return new RecordsCacheImpl(collection, modelLayerFactory, enabled);
 	}
 
 	public boolean isCached(String id) {
@@ -77,6 +82,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 	}
 
 	public Record getRecord(String id) {
+
+		if (!enabled.get()) {
+			return null;
+		}
+
 		for (RecordsCache cache : collectionsCache.values()) {
 			Record record = cache.get(id);
 			if (record != null) {
@@ -124,5 +134,10 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		}
 
 		return cacheTotalSize;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled.set(enabled);
 	}
 }

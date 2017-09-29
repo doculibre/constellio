@@ -6,6 +6,7 @@ import java.util.Collection;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
+import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.ui.Component;
@@ -18,6 +19,10 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory) {
 		super(adapted);
 		this.displayFactory = displayFactory;
+	}
+
+	public SearchResultVODataProvider getDataProvider() {
+		return adapted.getDataProvider();
 	}
 
 	@Override

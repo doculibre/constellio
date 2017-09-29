@@ -324,7 +324,7 @@ public class DecommissioningService {
 		try {
 			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
 			String subject = "";
-			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+			if (RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
 				subject = $("DecommissionningServices.approvalRequestEmailTitle");
 			} else {
 				subject = $("DecommissionningServices.validationRequest");
@@ -546,9 +546,12 @@ public class DecommissioningService {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(recordServices.getDocumentById(uniformSubdivisionId),
 					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
 			if (!uniformSubdivision.getRetentionRules().isEmpty()) {
-				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRule.schemaType())
-						.where(Schemas.IDENTIFIER).isIn(uniformSubdivision.getRetentionRules())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
+				for (String retentionRuleId : uniformSubdivision.getRetentionRules()) {
+					RetentionRule retentionRule = rm.getRetentionRule(retentionRuleId);
+					if (LangUtils.isFalseOrNull(retentionRule.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+						rules.add(retentionRuleId);
+					}
+				}
 			}
 		}
 
@@ -556,9 +559,14 @@ public class DecommissioningService {
 			Category category = new Category(recordServices.getDocumentById(categoryId),
 					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
 			if (!category.getRententionRules().isEmpty()) {
-				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRule.schemaType())
-						.where(Schemas.IDENTIFIER).isIn(category.getRententionRules())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
+
+				for (String retentionRuleId : category.getRententionRules()) {
+					RetentionRule retentionRule = rm.getRetentionRule(retentionRuleId);
+					if (LangUtils.isFalseOrNull(retentionRule.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+						rules.add(retentionRuleId);
+					}
+				}
+
 			}
 		}
 

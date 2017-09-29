@@ -40,6 +40,8 @@ import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
+import com.constellio.data.dao.services.ignite.LeaderElectionService;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -70,8 +72,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
-	private final ConstellioCacheManager settingsCacheManager;
-	private final ConstellioCacheManager recordsCacheManager;
+	private ConstellioCacheManager settingsCacheManager;
+	private ConstellioCacheManager recordsCacheManager;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
@@ -84,13 +86,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private String constellioVersion;
 
 	public static int countConstructor;
 
 	public static int countInit;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
 
 		super(statefullServiceDecorator, instanceName);
 		countConstructor++;
@@ -112,8 +115,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
-			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
-			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl());
+			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
@@ -177,6 +180,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		} else {
 			secondTransactionLogManager = null;
 		}
+	}
+
+	public void setConstellioVersion(String constellioVersion) {
+		this.constellioVersion = constellioVersion;
+	}
+
+	public LeaderElectionService getLeaderElectionService() {
+		return new DefaultLeaderElectionServiceImpl(this);
 	}
 
 	public DataLayerExtensions getExtensions() {
@@ -256,6 +267,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 					.printStackTrace();
 		}
 		super.initialize();
+
 		newRecordDao().removeOldLocks();
 	}
 

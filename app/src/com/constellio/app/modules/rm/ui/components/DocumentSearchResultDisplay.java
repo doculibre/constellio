@@ -26,16 +26,16 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
 	@Override
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
-		final RecordVO record = searchResultVO.getRecordVO();
+		final RecordVO recordVO = searchResultVO.getRecordVO();
 
-		String schemaCode = record.getSchema().getCode();
+		String schemaCode = recordVO.getSchema().getCode();
 		Component titleComponent;
 		if (ConstellioAgentUtils.isAgentSupported() && SchemaUtils.getSchemaTypeCode(schemaCode)
 				.equals(Document.SCHEMA_TYPE)) {
-			ContentVersionVO contentVersionVO = record.get(Document.CONTENT);
-			String agentURL = ConstellioAgentUtils.getAgentURL(record, contentVersionVO);
+			ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+			String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, record, contentVersionVO, record.getTitle(), false);
+				titleComponent = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false);
 			} else {
 				titleComponent = super.newTitleComponent(searchResultVO);
 			}
@@ -44,7 +44,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		}
 		
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
-		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(record);
+		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(recordVO);
 
 		HorizontalLayout layout = new HorizontalLayout(titleComponent, menuBar);
 		layout.setExpandRatio(titleComponent, 1);

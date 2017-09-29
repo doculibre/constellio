@@ -34,6 +34,8 @@ public class CopyRetentionRule implements ModifiableStructure {
 	boolean essential;
 	boolean ignoreActivePeriod;
 	boolean dirty;
+	String semiActiveYearTypeId;
+	String inactiveYearTypeId;
 	private String id;
 
 	public String getId() {
@@ -69,6 +71,26 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setTitle(String title) {
 		markAsDirty();
 		this.title = title;
+		return this;
+	}
+
+	public String getSemiActiveYearTypeId() {
+		return semiActiveYearTypeId;
+	}
+
+	public CopyRetentionRule setSemiActiveYearTypeId(String dateTypeId) {
+		markAsDirty();
+		this.semiActiveYearTypeId = dateTypeId;
+		return this;
+	}
+
+	public String getInactiveYearTypeId() {
+		return inactiveYearTypeId;
+	}
+
+	public CopyRetentionRule setInactiveYearTypeId(String dateTypeId) {
+		markAsDirty();
+		this.inactiveYearTypeId = dateTypeId;
 		return this;
 	}
 
@@ -256,6 +278,18 @@ public class CopyRetentionRule implements ModifiableStructure {
 			sb.append(code);
 			sb.append("  ");
 		}
+
+		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
+		sb.append("-");
+		sb.append(semiActiveRetentionPeriod == null ? "?" : semiActiveRetentionPeriod.getValue());
+		sb.append("-");
+		sb.append(inactiveDisposalType == null ? "?" : inactiveDisposalType.getCode());
+
+		return sb.toString();
+	}
+
+	public String toPeriodsAndDisposalTypeString() {
+		StringBuilder sb = new StringBuilder();
 
 		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
 		sb.append("-");

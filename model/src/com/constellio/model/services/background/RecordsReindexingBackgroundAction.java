@@ -20,13 +20,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 
 public class RecordsReindexingBackgroundAction implements Runnable {
 
-	private ModelLayerFactory modelLayerFactory;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 	private CollectionsListManager collectionsListManager;
 
 	public RecordsReindexingBackgroundAction(ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
@@ -45,19 +43,12 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				List<Record> records = searchServices.search(query);
 
 				if (!records.isEmpty()) {
-					System.out.println("---------------------------------------");
-					for (Record record : records) {
-						System.out.println("Reindexing : " + record.getId());
-					}
-
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
 							.setOptimisticLockingResolution(EXCEPTION));
 					executeTransaction(transaction);
 				}
 			}
-		} else {
-			System.out.println("Reindexing!");
 		}
 	}
 

@@ -6,7 +6,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class RecordInCreationBeforeSaveEvent implements RecordEvent {
+public abstract class RecordInCreationBeforeSaveEvent implements RecordEvent {
 
 	Record record;
 	private User transactionUser;
@@ -51,4 +51,6 @@ public class RecordInCreationBeforeSaveEvent implements RecordEvent {
 		Record record = getRecord();
 		return !record.isSaved() && record.get(Schemas.LEGACY_ID) != null;
 	}
+
+	public abstract void recalculateRecord();
 }

@@ -75,7 +75,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		recordsCacheManager = new ConstellioIgniteCacheManager("localhost:47500");
+		recordsCacheManager = new ConstellioIgniteCacheManager("localhost:47500", "1.2.3.42");
 
 		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
@@ -1363,7 +1363,10 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				boolean isCached = cache.isCached(id);
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to be in cache").isTrue();
 				//				RecordHolder holder = cache.cacheById.get(id);
-				RecordHolder holder = cache.byIdRecordHoldersCache.get(id);
+				RecordHolder holder = cache.permanentByIdRecordHoldersCache.get(id);
+				if (holder == null) {
+					holder = cache.volatileByIdRecordHoldersCache.get(id);
+				}
 				assertThat(holder).describedAs("Record holder of '" + id + "'").isNotNull();
 				assertThat(holder.getCopy()).describedAs("Cache record of '" + id + "'").isNotNull();
 			}
@@ -1395,6 +1398,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 	private Record newRecord(final String schemaType, final String id, final long version) {
 		String schema = schemaType + "_default";
+		String typeCode = schemaType;
 		final Record record = mock(Record.class, schemaType + "-" + id);
 		when(record.getId()).thenReturn(id);
 		when(record.getSchemaCode()).thenReturn(schema);
@@ -1423,7 +1427,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			}
 		});
 		//		return record;
-		return new TestRecord(schema, id, version, givenDisabledRecordDuplications);
+		return new TestRecord(schema, typeCode, id, version, givenDisabledRecordDuplications);
 	}
 
 	private static class TestRecord implements Record {
@@ -1431,6 +1435,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		private String id;
 
 		private String schemaCode;
+		
+		private String typeCode;
 
 		private long version;
 
@@ -1446,9 +1452,10 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		private Map<String, Object> metadatas = new HashMap<>();
 
-		TestRecord(String schemaCode, String id, long version, boolean givenDisabledRecordDuplications) {
+		TestRecord(String schemaCode, String typeCode, String id, long version, boolean givenDisabledRecordDuplications) {
 			this.id = id;
 			this.schemaCode = schemaCode;
+			this.typeCode = typeCode;
 			this.version = version;
 			this.givenDisabledRecordDuplications = givenDisabledRecordDuplications;
 		}
@@ -1500,7 +1507,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public String getTypeCode() {
-			return null;
+			return typeCode;
 		}
 
 		@Override
@@ -1588,7 +1595,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				boolean fullyLoaded = record.isFullyLoaded();
 				boolean saved = record.isSaved();
 				Boolean logicallyDeleted = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-				TestRecord recordCopy = new TestRecord(schemaCode, id, version, givenDisabledRecordDuplications);
+				TestRecord recordCopy = new TestRecord(schemaCode, typeCode, id, version, givenDisabledRecordDuplications);
 				recordCopy.setDirty(dirty);
 				recordCopy.setFullyLoaded(fullyLoaded);
 				recordCopy.setSaved(saved);

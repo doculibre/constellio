@@ -47,6 +47,7 @@ public class ReportTabButton extends WindowButton {
         this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
         this.view = view;
     }
+
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
         this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton);
         this.view = view;
@@ -57,12 +58,13 @@ public class ReportTabButton extends WindowButton {
         this.view = view;
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton){
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
         this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
     }
 
     public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
-        super(caption, windowCaption);
+
+        super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
@@ -71,7 +73,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
-        if(recordVOS.length > 0) {
+        if (recordVOS.length > 0) {
             recordVOList.addAll(asList(recordVOS));
         }
         return this;
@@ -87,21 +89,23 @@ public class ReportTabButton extends WindowButton {
         mainLayout = new VerticalLayout();
 
         tabSheet = new TabSheet();
-        if(!this.noExcelButton) {
+        if (!this.noExcelButton) {
             tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
-if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));}
+        if (!this.noPDFButton) {
+            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+        }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
 
     private Component createExcelTab() {
         VerticalLayout verticalLayout = new VerticalLayout();
-        try{
+        try {
             AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
             presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
             verticalLayout.addComponent(new ReportSelector(presenter));
-        }catch (UnsupportedReportException unsupportedReport ){
+        } catch (UnsupportedReportException unsupportedReport) {
             view.showErrorMessage($("ReportTabButton.noExcelReport"));
         }
         return verticalLayout;
@@ -138,8 +142,8 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
 
     private Component createDefaultSelectComboBox() {
         if (occurence.getNumberOfDefaultSchemaOccurence() == 1) {
-            Iterator<PrintableReportListPossibleType> setIterator =  occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
-            if(setIterator.hasNext()) {
+            Iterator<PrintableReportListPossibleType> setIterator = occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
+            if (setIterator.hasNext()) {
                 selectedReporType = setIterator.next();
             }
             return new HorizontalLayout();
@@ -149,7 +153,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
-            if(defaultElementSelected.getValue() == null) {
+            if (defaultElementSelected.getValue() == null) {
                 defaultElementSelected.setValue(printableReportListPossibleType);
             }
         }
@@ -157,7 +161,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         defaultElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidReportType"));
                 }
             }
@@ -166,13 +170,13 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                if(fillSchemaCombobox(customElementSelected) == null) {
+                if (fillSchemaCombobox(customElementSelected) == null) {
                     customElementSelected.setVisible(false);
                     customElementSelected.setEnabled(false);
-                    Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-                    do{
+                    Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+                    do {
                         selectedSchemaType = setIterator.next().getCode();
-                    }while(setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
+                    } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
 
                 } else {
                     customElementSelected.setVisible(true);
@@ -181,7 +185,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
                     reportComboBox.setValue(null);
 
                 }
-                if(selectedSchemaType != null && selectedReporType != null) {
+                if (selectedSchemaType != null && selectedReporType != null) {
                     reportComboBox = fillTemplateComboBox(reportComboBox);
                 }
             }
@@ -193,7 +197,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
 
     private Component createCustomSelectComboBox() {
         if (occurence.getNumberOfCustomSchemaOccurence() == 1) {
-            Iterator<MetadataSchemaVO> setIterator =  occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
             selectedSchemaType = setIterator.next().getCode();
             return new HorizontalLayout();
         }
@@ -204,7 +208,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         customElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidRecordSchema"));
                 }
             }
@@ -212,9 +216,9 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                if(event.getProperty() != null && event.getProperty().getValue() != null) {
+                if (event.getProperty() != null && event.getProperty().getValue() != null) {
                     selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-                    if(selectedSchemaType != null && selectedReporType != null) {
+                    if (selectedSchemaType != null && selectedReporType != null) {
                         reportComboBox = fillTemplateComboBox(reportComboBox);
                     }
                 }
@@ -227,7 +231,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
 
     private Component createReportSelectorComboBox() {
         reportComboBox = new ComboBox();
-        if(selectedSchemaType != null && selectedReporType != null) {
+        if (selectedSchemaType != null && selectedReporType != null) {
             reportComboBox = fillTemplateComboBox(reportComboBox);
         }
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
@@ -236,7 +240,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         reportComboBox.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
-                if(value == null) {
+                if (value == null) {
                     throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
                 }
             }
@@ -259,7 +263,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         button.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
-                if(selectedSchemaType.contains("_")) {
+                if (selectedSchemaType.contains("_")) {
                     selectedSchemaType = selectedSchemaType.split("_")[0];
 //                    MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 //                    metadataSchemasManager.getSchemaTypes(collection).getSchema(selectedSchemaType);
@@ -272,7 +276,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
 
     private List<String> getIdsFromRecordVO() {
         List<String> ids = new ArrayList<>();
-        for(RecordVO recordVO : recordVOList) {
+        for (RecordVO recordVO : recordVOList) {
             ids.add(recordVO.getId());
         }
         return ids;
@@ -281,10 +285,10 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
     private ComboBox fillTemplateComboBox(ComboBox comboBox) {
         comboBox.removeAllItems();
         List<PrintableReportTemplate> printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
-        if(printableReportTemplateList.isEmpty()) {
+        if (printableReportTemplateList.isEmpty()) {
             showNoDefinedReportTemplateForConditionError();
         } else {
-            if(printableReportTemplateList.size() == 1) {
+            if (printableReportTemplateList.size() == 1) {
                 PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
                 comboBox.addItem(onlyTemplate);
                 comboBox.setItemCaption(onlyTemplate, onlyTemplate.getTitle());
@@ -294,7 +298,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
                 for (PrintableReportTemplate printableReport : printableReportTemplateList) {
                     comboBox.addItem(printableReport);
                     comboBox.setItemCaption(printableReport, printableReport.getTitle());
-                    if(comboBox.getValue() == null) {
+                    if (comboBox.getValue() == null) {
                         comboBox.setValue(printableReport);
                     }
                 }
@@ -308,17 +312,17 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
         int compteur = 0;
         for (MetadataSchemaVO metadataSchemaVO : occurence.getAllCustomMetadataSchemaOccurence().keySet()) {
             //check if the schema of the record isn't the default one, if yes
-            if(selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
+            if (selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
                 comboBox.addItem(metadataSchemaVO);
                 comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
-                if(compteur == 0) {
+                if (compteur == 0) {
                     comboBox.setValue(metadataSchemaVO);
                 }
                 compteur++;
             }
         }
-        if(compteur == 1) {
-           return null;
+        if (compteur == 1) {
+            return null;
         }
         return comboBox;
     }
@@ -326,13 +330,13 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
     private void showNoDefinedReportTemplateForConditionError() {
         String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
         //TODO remove tab
-        if(view == null) {
+        if (view == null) {
             Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
             notification.setHtmlContentAllowed(true);
             notification.show(Page.getCurrent());
         }
         tabSheet.setSelectedTab(0);
-        if(view != null ) {
+        if (view != null) {
             view.showErrorMessage(errorMessage);
         }
 
@@ -341,6 +345,7 @@ if(!this.noPDFButton) {        tabSheet.addTab(createPDFTab(), $("ReportTabButto
     private class MetadataSchemaCounter {
         Map<PrintableReportListPossibleType, Integer> defaultMetadataOccurence;
         Map<MetadataSchemaVO, Integer> customMetadataOccurence;
+
         public MetadataSchemaCounter() {
             defaultMetadataOccurence = new HashMap<>();
             customMetadataOccurence = new HashMap<>();

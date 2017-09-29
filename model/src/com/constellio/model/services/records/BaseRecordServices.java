@@ -9,8 +9,6 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
@@ -99,6 +97,18 @@ public abstract class BaseRecordServices implements RecordServices {
 		for (RecordWrapper wrapper : recordWrappers) {
 			if (wrapper != null && wrapper.getWrappedRecord() != null) {
 				refresh(wrapper.getWrappedRecord());
+			}
+		}
+	}
+
+	public final void refreshUsingCache(Record... records) {
+		refreshUsingCache(Arrays.asList(records));
+	}
+
+	public final void refreshUsingCache(RecordWrapper... recordWrappers) {
+		for (RecordWrapper wrapper : recordWrappers) {
+			if (wrapper != null && wrapper.getWrappedRecord() != null) {
+				refreshUsingCache(wrapper.getWrappedRecord());
 			}
 		}
 	}

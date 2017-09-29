@@ -24,4 +24,6 @@ public interface RecordsCaches {
 
 	int getCacheObjectsCount();
 
+	void setEnabled(boolean enabled);
+
 }

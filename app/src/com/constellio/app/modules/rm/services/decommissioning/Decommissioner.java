@@ -30,6 +30,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -134,8 +135,10 @@ public abstract class Decommissioner {
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
-		folder.setManualArchivisticStatus(null);
-	}
+        if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
+            folder.setManualArchivisticStatus(null);
+        }
+    }
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;
@@ -463,7 +466,7 @@ public abstract class Decommissioner {
 			contentManager.deleteUnreferencedContents();
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
-			throw new RuntimeException(e);
+			throw new RecordServicesWrapperRuntimeException(e);
 		}
 	}
 

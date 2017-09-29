@@ -1,5 +1,11 @@
 package com.constellio.app.ui.framework.data;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -18,15 +24,9 @@ import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider extends AbstractDataProvider {
-	
+
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	transient LogicalSearchQuery query;
 	transient Integer size = null;
@@ -37,12 +37,15 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	SessionContext sessionContext;
 	private int batchSize = 20;
 
+	private boolean cachedSearch;
+
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 		init(modelLayerFactory);
+
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
@@ -130,7 +133,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			Metadata metadata;
 			MetadataSchema schema = query.getSchemaCondition();
 			MetadataVO metadataVO = propertyId[i];
-			if(schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
+			if (schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
 				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
 
 				if (ascending[i]) {
@@ -150,5 +153,12 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
+	}
+
+	public int getQTime() {
+
+		int qtime = queryCache.getTotalQTime();
+		queryCache.resetTotalQTime();
+		return qtime;
 	}
 }

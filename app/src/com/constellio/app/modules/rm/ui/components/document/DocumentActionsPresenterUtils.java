@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -52,12 +53,16 @@ import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
+	private static final int WAIT_ONE_SECOND = 1;
+
 	protected SchemaPresenterUtils presenterUtils;
 
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
 	protected DocumentVO documentVO;
 	protected T actionsComponent;
 
+	private transient User currentUser;
+	private Record currentDocument;
 	protected transient DocumentToVOBuilder voBuilder;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
@@ -98,6 +103,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			this.documentVO = new DocumentVO(recordVO);
 		}
+		this.currentDocument = documentVO.getRecord();
 		presenterUtils.setSchemaCode(recordVO.getSchema().getCode());
 	}
 
@@ -191,7 +197,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
-				presenterUtils.delete(document.getWrappedRecord(), null);
+				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				Content content = document.getContent();
 				String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
@@ -276,6 +282,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateWindowClosed() {
+		currentDocument = presenterUtils.getRecord(documentVO.getId());
+		documentVO = voBuilder.build(currentDocument, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 		updateActionsComponent();
 	}
 
@@ -302,6 +310,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = buildContentVersionVO(content);
 				documentVO.setContent(currentVersionVO);
@@ -342,7 +352,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public synchronized void createPDFA() {
-		DocumentVO documentVO = getDocumentVO();
 		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
@@ -381,6 +390,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().returnRecord(record, getCurrentUser());
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -402,6 +413,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			content.finalizeVersion();
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
 				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
 				documentVO.setContent(currentVersionVO);
@@ -424,6 +437,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser(), TimeProvider.getLocalDateTime());
 			try {
 				presenterUtils.recordServices().update(record);
+				currentDocument = record;
+				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, sessionContext);
+				
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
@@ -438,7 +454,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected Content getContent() {
-		Record record = presenterUtils.getRecord(documentVO.getId());
+		Record record = currentDocument();
+		if (record == null) {
+			record = presenterUtils.getRecord(documentVO.getId());
+		}
 		Document document = new Document(record, presenterUtils.types());
 		return document.getContent();
 	}
@@ -552,13 +571,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateActionsComponent() {
-
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
 		DocumentVO documentVO = getDocumentVO();
+		actionsComponent.setDocumentVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
-		if(Boolean.TRUE.equals(isLogicallyDeleted)) {
+		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);
@@ -618,11 +637,17 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	Record currentDocument() {
-		return presenterUtils.toRecord(documentVO);
+		if (currentDocument == null) {
+			currentDocument = presenterUtils.toRecord(documentVO); 
+		}
+		return currentDocument;
 	}
 
 	User getCurrentUser() {
-		return presenterUtils.getCurrentUser();
+		if (currentUser == null) {
+			currentUser = presenterUtils.getCurrentUser();
+		}
+		return currentUser;
 	}
 
 	public String getContentTitle() {

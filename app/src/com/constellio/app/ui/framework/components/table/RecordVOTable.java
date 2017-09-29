@@ -20,6 +20,7 @@ import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTab
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
@@ -205,12 +206,38 @@ public class RecordVOTable extends BaseTable {
 	}
 
 	@Override
-	public Property<?> getContainerProperty(final Object itemId, final Object propertyId) {
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		RecordVO recordVO;
+		Item item = getItem(itemId);
+		if (item instanceof RecordVOItem) {
+			RecordVOItem recordVOItem = (RecordVOItem) item;
+			recordVO = recordVOItem.getRecord();
+		} else {
+			recordVO = null;
+		}
+		
+		CellKey cellKey;
+		if (recordVO != null) {
+			String recordId = recordVO.getId();
+			if (propertyId instanceof MetadataVO) {
+				MetadataVO metadataVO = (MetadataVO) propertyId;
+				cellKey = new CellKey(recordId, metadataVO.getCode());
+			} else {
+				cellKey = new CellKey(recordId, propertyId);
+			}
+		} else {
+			cellKey = null;
+		}
+		return cellKey;
+	}
+
+	@Override
+	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
 		Property<?> containerProperty;
 		if (propertyId instanceof MetadataVO) {
-			MetadataVO metadataVO = (MetadataVO) propertyId;
 			RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
 			RecordVO recordVO = recordVOItem.getRecord();
+			MetadataVO metadataVO = (MetadataVO) propertyId;
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
 			Component metadataDisplay;
 			if (metadataValue != null) {
@@ -232,7 +259,7 @@ public class RecordVOTable extends BaseTable {
 			}
 			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
-			containerProperty = super.getContainerProperty(itemId, propertyId);
+			containerProperty = super.loadContainerProperty(itemId, propertyId);
 		}
 		return containerProperty;
 	}
@@ -334,20 +361,35 @@ public class RecordVOTable extends BaseTable {
 				addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
 					@Override
 					public Object generateCell(Table source, Object itemId, Object columnId) {
+						Component cellContent;
 						Item item = getItem(itemId);
 						RecordVO recordVO = getRecordVOForTitleColumn(item);
-
-						MenuBar menuBar = null;
-						if (recordVO != null) {
-							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-								menuBar = recordMenuBarHandler.get(recordVO);
-								if (menuBar != null) {
-									break;
+						String recordId = recordVO != null ? recordVO.getId() : "_NULL_";
+						CellKey cellKey = new CellKey(recordId, columnId);
+						Property<?> cellProperty = cellProperties.get(cellKey);
+						if (cellProperty != null) {
+							cellContent = (Component) cellProperty.getValue();
+						} else {
+							if (recordVO != null) {
+								MenuBar menuBar = null;
+								List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+								for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+									menuBar = recordMenuBarHandler.get(recordVO);
+									if (menuBar != null) {
+										break;
+									}
 								}
+								if (menuBar == null) {
+									cellContent = new Label("");
+								} else {
+									cellContent = menuBar;
+								}
+							} else {
+								cellContent = new Label(""); 
 							}
+							cellProperties.put(cellKey, new ObjectProperty<Object>(cellContent));
 						}
-						return menuBar != null ? menuBar : new Label("");
+						return cellContent;
 					}
 				});
 				setColumnHeader(MENUBAR_PROPERTY_ID, "");

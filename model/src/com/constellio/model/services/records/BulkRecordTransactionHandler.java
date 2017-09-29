@@ -191,7 +191,9 @@ public class BulkRecordTransactionHandler {
 								}
 
 							} catch (InterruptedException e) {
-								exception = e;
+								if (!options.isContinueOnExceptions()) {
+									exception = e;
+								}
 								e.printStackTrace();
 							}
 						}
@@ -235,7 +237,9 @@ public class BulkRecordTransactionHandler {
 							break;
 						}
 					} catch (Exception e) {
-						exception = e;
+						if (!options.isContinueOnExceptions()) {
+							exception = e;
+						}
 						e.printStackTrace();
 
 					}

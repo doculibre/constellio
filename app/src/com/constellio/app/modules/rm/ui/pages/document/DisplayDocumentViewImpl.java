@@ -194,7 +194,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 
@@ -781,7 +781,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
 		}
 
 		@Override

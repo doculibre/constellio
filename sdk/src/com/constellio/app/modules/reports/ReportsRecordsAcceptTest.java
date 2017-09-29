@@ -74,7 +74,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         File file = getFile("Avery_5162_Vide.jasper");
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
                 .getContentVersionDataSummary();
-        Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
+        Content c = contentManager.createFileSystem("test-" + LocalDate.now() + ".jasper", upload);
         Printable r = rm.newPrintableLabel();
         r.setTitle(title);
         r.setJasperFile(c);
@@ -96,7 +96,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         File file = getFile("Avery_5162_Vide.jasper");
         ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
                 .getContentVersionDataSummary();
-        Content c = contentManager.createFileSystem("test-" + LocalDate.now(), upload);
+        Content c = contentManager.createFileSystem("test-" + LocalDate.now() + ".jasper", upload);
         Printable r = rm.newPrintableLabel();
         PrintableLabel printableLabel = rm.newPrintableLabel();
         printableLabel.setJasperFile(c);

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -127,11 +128,13 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		Metadata folderTitleMetadata = getFolderLinearSizeMetadata();
 		List<MetadataVO> metadataVOList = new ArrayList();
 		MetadataVO firstMD = new MetadataToVOBuilder().build(folderTitleMetadata, session);
+		Report reportBeforeEdit = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
 		metadataVOList.add(firstMD);
+		presenter.setReport(new ReportToVOBuilder().build(reportBeforeEdit));
 		presenter.saveButtonClicked(metadataVOList);
-		Report report = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
-		assertThat(report).isNotNull();
-		assertThat(report.getReportedMetadata()).extracting("metadataCode").containsOnly(folderTitleMetadata.getCode());
+		Report reportAfterEdit = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
+		assertThat(reportAfterEdit).isNotNull();
+		assertThat(reportAfterEdit.getReportedMetadata()).extracting("metadataCode").containsOnly(folderTitleMetadata.getCode());
 	}
 
 	@Test

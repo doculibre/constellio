@@ -29,6 +29,7 @@ import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -91,6 +92,16 @@ public class SearchServices {
 		if (records == null) {
 			records = search(query);
 			recordsCache.insertQueryResults(query, records);
+		}
+		return records;
+	}
+
+	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
+		RecordsCache recordsCache = recordsCaches.getCache(query.getCondition().getCollection());
+		List<String> records = recordsCache.getQueryResultIds(query);
+		if (records == null) {
+			records = searchRecordIds(query);
+			recordsCache.insertQueryResultIds(query, records);
 		}
 		return records;
 	}
@@ -167,6 +178,75 @@ public class SearchServices {
 				return recordServices.toRecord(recordDTO, fullyLoaded);
 			}
 		};
+	}
+
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, final int batchSize) {
+		LogicalSearchQuery querCompatibleWithCache = new LogicalSearchQuery(query);
+		querCompatibleWithCache.setStartRow(0);
+		querCompatibleWithCache.setNumberOfRows(100000);
+		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
+
+		//final List<Record> original = search(query);
+		final List<Record> records = cachedSearch(querCompatibleWithCache);
+
+		//		if (original.size() != records.size()) {
+		//			System.out.println("different");
+		//		}
+
+		final Iterator<Record> nestedIterator = records.iterator();
+		return new SearchResponseIterator<Record>() {
+			@Override
+			public long getNumFound() {
+				return records.size();
+			}
+
+			@Override
+			public SearchResponseIterator<List<Record>> inBatches() {
+				final SearchResponseIterator iterator = this;
+				return new BatchBuilderSearchResponseIterator<Record>(iterator, batchSize) {
+
+					@Override
+					public long getNumFound() {
+						return iterator.getNumFound();
+					}
+				};
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nestedIterator.hasNext();
+			}
+
+			@Override
+			public Record next() {
+				return nestedIterator.next();
+			}
+
+			@Override
+			public void remove() {
+				nestedIterator.remove();
+			}
+		};
+	}
+
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
+			int skipping) {
+
+		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
+
+		for (int i = 0; i < skipping && iterator.hasNext(); i++) {
+			iterator.next();
+		}
+		return iterator;
+		//		ModifiableSolrParams params = addSolrModifiableParams(query);
+		//		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		//		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
+		//
+		//			@Override
+		//			public Record convert(RecordDTO recordDTO) {
+		//				return recordServices.toRecord(recordDTO, fullyLoaded);
+		//			}
+		//		};
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {

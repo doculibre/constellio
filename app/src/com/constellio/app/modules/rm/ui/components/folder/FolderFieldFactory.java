@@ -16,7 +16,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.OPENING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.PARENT_FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.*;
 
 import java.util.List;
 
@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderDisposalTypeFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
@@ -119,6 +120,9 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 			break;
 		case MAIN_COPY_RULE_ID_ENTERED:
 			field = new FolderCopyRuleFieldImpl(rules);
+			break;
+		case MANUAL_DISPOSAL_TYPE:
+			field = new FolderDisposalTypeFieldImpl();
 			break;
 		default:
 			field = super.build(recordVO, metadataVO);

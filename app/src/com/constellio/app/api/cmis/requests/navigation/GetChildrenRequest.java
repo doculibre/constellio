@@ -1,20 +1,12 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.utils.CmisUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.StatusFilter;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.enums.Action;
@@ -26,10 +18,20 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.CmisUtils;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList> {
 
@@ -65,8 +67,11 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		ObjectInFolderList children = new ObjectInFolderListImpl();
 		TaxonomiesSearchServices searchServices = modelLayerFactory.newTaxonomiesSearchService();
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(),
-				StatusFilter.ACTIVES).setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(), ACTIVES)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setShowInvisibleRecordsInLinkingMode(true)
+				.setHasChildrenFlagCalculated(false)
+				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;
 		if (collection.equals(folderId)) {

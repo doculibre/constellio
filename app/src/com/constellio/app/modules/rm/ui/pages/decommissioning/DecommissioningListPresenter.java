@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -226,13 +227,22 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
-
-
-
-		decommissioningService().decommission(decommissioningList(), getCurrentUser());
+//TODO show error message if exception is thrown
+		try {		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);} catch (RecordServicesWrapperRuntimeException e) {
+			RecordServicesException wrappedException = e.getWrappedException();
+			if(wrappedException instanceof RecordServicesException.ValidationException) {
+				view.showErrorMessage($(((RecordServicesException.ValidationException) wrappedException).getErrors()));
+			} else {
+				view.showErrorMessage(wrappedException.getMessage());
+				e.printStackTrace();
+			}
+		} catch (Exception ex) {
+			view.showErrorMessage(ex.getMessage());
+			ex.printStackTrace();
+		}
 	}
 
 	public boolean isListReadyToBeProcessed() {
@@ -248,10 +258,22 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void approvalButtonClicked() {
-		decommissioningService().approveList(decommissioningList(), getCurrentUser());
-		// TODO: Do not hard-refresh the whole page
-		view.showMessage($("DecommissioningListView.approvalClicked"));
-		refreshView();
+		try {
+			decommissioningService().approveList(decommissioningList(), getCurrentUser());
+
+			// TODO: Do not hard-refresh the whole page
+			view.showMessage($("DecommissioningListView.approvalClicked"));
+			refreshView();
+		} catch (RecordServicesWrapperRuntimeException e) {
+			RecordServicesException wrappedException = e.getWrappedException();
+			if(wrappedException instanceof RecordServicesException.ValidationException) {
+				view.showErrorMessage($(((RecordServicesException.ValidationException) wrappedException).getErrors()));
+			} else {
+				view.showErrorMessage(wrappedException.getMessage());
+			}
+		} catch (Exception ex) {
+			view.showErrorMessage(ex.getMessage());
+		}
 	}
 
 	public void approvalRequestButtonClicked(List<User> managerList) {

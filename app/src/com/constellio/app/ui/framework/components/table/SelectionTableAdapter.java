@@ -1,5 +1,14 @@
 package com.constellio.app.ui.framework.components.table;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.vaadin.data.Container;
@@ -12,41 +21,37 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public abstract class SelectionTableAdapter extends VerticalLayout {
-	
+
 	public static final String SELECT_PROPERTY_ID = "select";
-	
+
 	protected SelectDeselectAllButton toggleButton;
-	
+
 	protected ContainerAdapter<?> dataSourceAdapter;
-	
+
 	protected Map<Object, Property<?>> itemSelectProperties = new HashMap<>();
-	
+
 	protected Table table;
-	
+
 	public SelectionTableAdapter() {
 		this(null);
 	}
-	
+
 	public SelectionTableAdapter(Table table) {
 		setSpacing(true);
 		setTable(table);
 	}
-	
+
 	public Table getTable() {
 		return table;
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setTable(Table table) {
 		this.table = table;
 		if (table != null) {
 			removeAllComponents();
-			
+
 			boolean allItemsSelected = isAllItemsSelected();
 			toggleButton = new SelectDeselectAllButton($("selectAll"), $("deselectAll"), !allItemsSelected) {
 				@Override
@@ -54,7 +59,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					SelectionTableAdapter.this.selectAll();
 					updateVisibleCheckBoxes();
 				}
-				
+
 				@Override
 				protected void onDeselectAll(ClickEvent event) {
 					SelectionTableAdapter.this.deselectAll();
@@ -62,14 +67,15 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				}
 
 				@Override
-				protected void buttonClickCallBack(boolean selectAllMode) {}
+				protected void buttonClickCallBack(boolean selectAllMode) {
+				}
 			};
 			toggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 			toggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 			if (table.size() == 0) {
 				toggleButton.setVisible(false);
 			}
-			
+
 			Container tableDataSource = table.getContainerDataSource();
 			dataSourceAdapter = new ContainerAdapter(tableDataSource) {
 				@Override
@@ -85,8 +91,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					if (SELECT_PROPERTY_ID.equals(propertyId)) {
 						property = itemSelectProperties.get(itemId);
 						if (property == null) {
-							Property<?> selectProperty = itemSelectProperties.get(itemId);
-							selectProperty = new AbstractProperty<Boolean>() {
+							Property<?> selectProperty = new AbstractProperty<Boolean>() {
 								@Override
 								public Boolean getValue() {
 									return itemId != null ? isSelected(itemId) : null;
@@ -108,12 +113,13 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 							};
 							CheckBox checkBox = new SelectionCheckBox();
 							checkBox.setPropertyDataSource(selectProperty);
+							checkBox.setImmediate(true);
 							property = new ObjectProperty<CheckBox>(checkBox);
 							itemSelectProperties.put(itemId, property);
 						}
 					} else {
 						property = super.getContainerProperty(itemId, propertyId);
-					}	
+					}
 					return property;
 				}
 
@@ -128,32 +134,32 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					return propertyType;
 				}
 			};
-			
+
 			List<Object> oldVisibleColumns = Arrays.asList(table.getVisibleColumns());
 			table.setContainerDataSource(dataSourceAdapter);
 			table.setColumnHeader(SELECT_PROPERTY_ID, "");
 			table.setColumnWidth(SELECT_PROPERTY_ID, 44);
 			table.setColumnCollapsible(SELECT_PROPERTY_ID, false);
-			
+
 			List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
 			if (!newVisibleColumns.contains(SELECT_PROPERTY_ID)) {
 				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
 			}
 			table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
-			
+
 			setWidth("100%");
 			addComponents(toggleButton, table);
 			setExpandRatio(table, 1);
 			setComponentAlignment(toggleButton, Alignment.TOP_LEFT);
 		}
 	}
-	
+
 	protected void updateVisibleCheckBoxes() {
 		for (Object visibleItemId : SelectionTableAdapter.this.table.getVisibleItemIds()) {
 			setChecked(visibleItemId, isSelected(visibleItemId));
 		}
 	}
-	
+
 	public void refresh() {
 		dataSourceAdapter.fireItemSetChange();
 	}
@@ -165,16 +171,16 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	public ContainerAdapter<?> getContainerAdapter() {
 		return dataSourceAdapter;
 	}
-	
+
 	private SelectionCheckBox getCheckBox(Object itemId) {
 		return (SelectionCheckBox) dataSourceAdapter.getContainerProperty(itemId, SELECT_PROPERTY_ID).getValue();
 	}
-	
+
 	protected boolean isChecked(Object itemId) {
 		SelectionCheckBox checkBox = getCheckBox(itemId);
 		return checkBox != null ? checkBox.getInternalValue() : null;
 	}
-	
+
 	protected void setChecked(Object itemId, boolean checked) {
 		SelectionCheckBox checkBox = getCheckBox(itemId);
 		if (checkBox != null) {
@@ -182,20 +188,20 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		}
 		adjustSelectAllButton(checked);
 	}
-	
-//	public void adjustSelectAllButton() {
-//		adjustSelectAllButton(toggleButton.isSelectAllMode());
-//	}
+
+	//	public void adjustSelectAllButton() {
+	//		adjustSelectAllButton(toggleButton.isSelectAllMode());
+	//	}
 
 	public void adjustSelectAllButton(boolean checked) {
-//		boolean selectAllMode = toggleButton.isSelectAllMode();
-//		if (checked && selectAllMode && isAllItemsSelected()) {
-//			toggleButton.setSelectAllMode(false);
-//		} else if (!checked && !selectAllMode && isAllItemsUnselected()) {
-//			toggleButton.setSelectAllMode(true);
-//		}
+		//		boolean selectAllMode = toggleButton.isSelectAllMode();
+		//		if (checked && selectAllMode && isAllItemsSelected()) {
+		//			toggleButton.setSelectAllMode(false);
+		//		} else if (!checked && !selectAllMode && isAllItemsUnselected()) {
+		//			toggleButton.setSelectAllMode(true);
+		//		}
 	}
-	
+
 	protected boolean isAllItemsSelectedByItemId() {
 		boolean allItemsSelected;
 		if (table != null) {
@@ -229,7 +235,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		}
 		return allItemsUnselected;
 	}
-	
+
 	public void selectAllByItemId() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
@@ -240,7 +246,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			}
 		}
 	}
-	
+
 	public void deselectAllByItemId() {
 		if (table != null) {
 			for (Object itemId : table.getItemIds()) {
@@ -251,19 +257,19 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			}
 		}
 	}
-	
+
 	public abstract void selectAll();
-	
+
 	public abstract void deselectAll();
-	
+
 	public abstract boolean isAllItemsSelected();
-	
+
 	public abstract boolean isAllItemsDeselected();
-	
+
 	public abstract boolean isSelected(Object itemId);
-	
+
 	public abstract void setSelected(Object itemId, boolean selected);
-	
+
 	private static class SelectionCheckBox extends CheckBox {
 
 		@Override
@@ -275,7 +281,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		public void setInternalValue(Boolean newValue) {
 			super.setInternalValue(newValue);
 		}
-		
+
 	}
 
 	public void refreshUI() {

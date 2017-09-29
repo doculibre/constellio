@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -15,7 +27,16 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
@@ -56,20 +77,21 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -93,6 +115,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
+
+	private List<RecordVODataProvider> folderContentDataProviders;
+	private RecordVODataProvider tasksDataProvider;
+	private RecordVODataProvider eventsDataProvider;
 
 	public DisplayFolderViewImpl() {
 		presenter = new DisplayFolderPresenter(this);
@@ -148,23 +174,30 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
-		tabSheet.addTab(folderContentComponent, $("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
-		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(folderContentComponent,
+				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
-		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+		if (presenter.hasCurrentUserPermissionToViewEvents()) {
 			tabSheet.getTab(eventsComponent).setEnabled(true);
-		}
-		else {
+		} else {
 			tabSheet.getTab(eventsComponent).setEnabled(false);
 		}
 
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
-					presenter.refreshEvents();
+				Component selectedTab = tabSheet.getSelectedTab();
+				if (selectedTab == recordDisplay) {
+					presenter.metadataTabSelected();
+				} else if (selectedTab == folderContentComponent) {
+					presenter.folderContentTabSelected();
+				} else if (selectedTab == tasksComponent) {
+					presenter.tasksTabSelected();
+				} else if (selectedTab == eventsComponent) {
+					presenter.eventsTabSelected();
 				}
 			}
 		});
@@ -189,21 +222,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
 	}
 
-//	@Override
-//	protected ClickListener getBackButtonClickListener() {
-//		return new ClickListener() {
-//			@Override
-//			public void buttonClick(ClickEvent event) {
-//				presenter.backButtonClicked();
-//			}
-//		};
-//	}
+	//	@Override
+	//	protected ClickListener getBackButtonClickListener() {
+	//		return new ClickListener() {
+	//			@Override
+	//			public void buttonClick(ClickEvent event) {
+	//				presenter.backButtonClicked();
+	//			}
+	//		};
+	//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
-		if(!presenter.isLogicallyDeleted()) {
+		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -331,7 +364,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			addToCartButton = buildAddToCartButton();
 
-			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO, getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
+			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
+					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
 
 			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
@@ -347,7 +381,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			try {
 				printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
-						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
+						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory,
+						getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), recordVO);
 			} catch (Exception e) {
 				showErrorMessage(e.getMessage());
 			}
@@ -370,21 +405,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.FOLDER,  getRecord());
+			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
+					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
+					PrintableReportListPossibleType.FOLDER, getRecord());
 
 			startWorkflowButton = new StartWorkflowButton();
 			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
-//		actionMenuButtons.add(addDocumentButton);
-//		actionMenuButtons.add(addSubFolderButton);
+			//		actionMenuButtons.add(addDocumentButton);
+			//		actionMenuButtons.add(addSubFolderButton);
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 					&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 
 			actionMenuButtons.add(editFolderButton);
 
-			if(!isAFolderAndDestroyed)
-			{
+			if (!isAFolderAndDestroyed) {
+
 				actionMenuButtons.add(moveInFolderButton);
 				actionMenuButtons.add(deleteFolderButton);
 				actionMenuButtons.add(duplicateFolderButton);
@@ -396,14 +433,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 				actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 			}
-			if(!isAFolderAndDestroyed) {
+			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(printLabelButton);
 				actionMenuButtons.add(borrowButton);
 			}
 			actionMenuButtons.add(returnFolderButton);
 			actionMenuButtons.add(reminderReturnFolderButton);
 
-			if(!isAFolderAndDestroyed) {
+			if (!isAFolderAndDestroyed) {
 
 				actionMenuButtons.add(alertWhenAvailableButton);
 			}
@@ -421,8 +458,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void hideAllActionMenuButtons() {
 		List<Button> actionMenuButtons = getActionMenuButtons();
-		if(actionMenuButtons != null) {
-			for(Button button: actionMenuButtons) {
+		if (actionMenuButtons != null) {
+			for (Button button : actionMenuButtons) {
 				button.setVisible(false);
 				button.setEnabled(false);
 			}
@@ -431,7 +468,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private WindowButton buildAddToCartButton() {
 		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "50%");
-		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart"), configuration) {
+		return new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -453,12 +490,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
+						presenter.getOwnedCartsDataProvider());
 				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -466,12 +504,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
 
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
+						presenter.getSharedCartsDataProvider());
 				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
 				sharedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -480,7 +519,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout,tabSheet);
+				layout.addComponents(newCartLayout, tabSheet);
 				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
@@ -489,203 +528,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setEvents(final RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new EventVOTableColumnsManager();
-			}
-		};
-		table.setSizeFull();
-		tabSheet.replaceComponent(eventsComponent, table);
-		eventsComponent = table;
+		this.eventsDataProvider = dataProvider;
 	}
 
 	@Override
 	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
-		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
-
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editDocumentButtonClicked(record);
-					}
-				};
-				if (presenter.isDocument(record)) {
-					button.setEnabled(presenter.canModifyDocument(record));
-				} else {
-					button.setVisible(false);
-				}
-				return button;
-			}
-		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
-						$("DisplayFolderView.download")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.downloadDocumentButtonClicked(record);
-					}
-				};
-				if (presenter.isDocument(record)) {
-					button.setEnabled(record.get(Document.CONTENT) != null);
-				} else {
-					button.setVisible(false);
-				}
-				return button;
-			}
-		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-				int index = (int) itemId;
-				final RecordVO record = nestedContainer.getRecordVO(index);
-				Button button = new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (presenter.isDocument(record)) {
-							presenter.displayDocumentButtonClicked(record);
-						} else {
-							presenter.subFolderClicked(record);
-						}
-					}
-				};
-				return button;
-			}
-		});
-		final Table table = new RecordVOTable();
-		table.setSizeFull();
-		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					RecordVO recordVO = item.getRecord();
-					if (presenter.isDocument(recordVO)) {
-						presenter.documentClicked(recordVO);
-					} else {
-						presenter.subFolderClicked(recordVO);
-					}
-				}
-			}
-		});
-		table.setContainerDataSource(nestedContainer);
-		
-		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
-			@Override
-			public void selectAll() {
-				presenter.selectAllClicked();
-			}
-
-			@Override
-			public void deselectAll() {
-				presenter.deselectAllClicked();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return presenter.isAllItemsSelected();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return presenter.isAllItemsDeselected();
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				return presenter.isSelected(recordVO);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				presenter.recordSelectionChanged(recordVO, selected);
-				adjustSelectAllButton(selected);
-			}
-		};
-		tabSheet.replaceComponent(folderContentComponent, tableAdapter);
-		folderContentComponent = tableAdapter;
-	}
-
-	@Override
-	public void refreshFolderContentTab() {
-		Tab folderContentTab = tabSheet.getTab(folderContentComponent);
-		folderContentTab.setCaption($("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
-	}
-
-	@Override
-	public void setTasks(final RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable(dataProvider) {
-			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
-						@Override
-						public void updateTaskStarred(boolean isStarred, String taskId) {
-							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
-						}
-					};
-				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
-				}
-			}
-
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
-					@Override
-					protected String toColumnId(Object propertyId) {
-						if(propertyId instanceof MetadataVO) {
-							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
-								setColumnWidth(propertyId, 60);
-							}
-						}
-						return super.toColumnId(propertyId);
-					}
-				};
-			}
-
-			@Override
-			public Collection<?> getSortableContainerPropertyIds() {
-				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
-				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
-				while (iterator.hasNext()) {
-					Object property = iterator.next();
-					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
-						iterator.remove();
-					}
-				}
-				return sortableContainerPropertyIds;
-			}
-		};
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.taskClicked(recordVO);
-			}
-		});
-		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(tasksComponent, table);
-		tasksComponent = table;
+		this.folderContentDataProviders = dataProviders;
 	}
 
 	@Override
@@ -695,12 +543,221 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void selectFolderContentTab() {
+		if (!(folderContentComponent instanceof Table)) {
+			final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(folderContentDataProviders);
+
+			ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new EditButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.editDocumentButtonClicked(record);
+						}
+					};
+					if (presenter.isDocument(record)) {
+						button.setEnabled(presenter.canModifyDocument(record));
+					} else {
+						button.setVisible(false);
+					}
+					return button;
+				}
+			});
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
+							$("DisplayFolderView.download")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.downloadDocumentButtonClicked(record);
+						}
+					};
+					if (presenter.isDocument(record)) {
+						button.setEnabled(record.get(Document.CONTENT) != null);
+					} else {
+						button.setVisible(false);
+					}
+					return button;
+				}
+			});
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+					int index = (int) itemId;
+					final RecordVO record = nestedContainer.getRecordVO(index);
+					Button button = new DisplayButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							if (presenter.isDocument(record)) {
+								presenter.displayDocumentButtonClicked(record);
+							} else {
+								presenter.subFolderClicked(record);
+							}
+						}
+					};
+					return button;
+				}
+			});
+			final Table table = new RecordVOTable();
+			table.setSizeFull();
+			table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					if (event.getButton() == MouseButton.LEFT) {
+						RecordVOItem item = (RecordVOItem) event.getItem();
+						RecordVO recordVO = item.getRecord();
+						if (presenter.isDocument(recordVO)) {
+							presenter.documentClicked(recordVO);
+						} else {
+							presenter.subFolderClicked(recordVO);
+						}
+					}
+				}
+			});
+			table.setContainerDataSource(nestedContainer);
+
+			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
+				@Override
+				public void selectAll() {
+					presenter.selectAllClicked();
+				}
+
+				@Override
+				public void deselectAll() {
+					presenter.deselectAllClicked();
+				}
+
+				@Override
+				public boolean isAllItemsSelected() {
+					return presenter.isAllItemsSelected();
+				}
+
+				@Override
+				public boolean isAllItemsDeselected() {
+					return presenter.isAllItemsDeselected();
+				}
+
+				@Override
+				public boolean isSelected(Object itemId) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					return presenter.isSelected(recordVO);
+				}
+
+				@Override
+				public void setSelected(Object itemId, boolean selected) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					presenter.recordSelectionChanged(recordVO, selected);
+					adjustSelectAllButton(selected);
+				}
+			};
+			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
+			folderContentComponent = tableAdapter;
+
+		}
 		tabSheet.setSelectedTab(folderContentComponent);
 	}
 
 	@Override
+	public void refreshFolderContentTab() {
+		Tab folderContentTab = tabSheet.getTab(folderContentComponent);
+		folderContentTab.setCaption($("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
+	}
+	
+	@Override
 	public void selectTasksTab() {
+		if (!(tasksComponent instanceof Table)) {
+			Table table = new RecordVOTable(tasksDataProvider) {
+				@Override
+				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
+								getSessionContext().getCurrentUser().getId()) {
+							@Override
+							public void updateTaskStarred(boolean isStarred, String taskId) {
+								presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
+							}
+						};
+					} else {
+						return super.buildMetadataComponent(metadataValue, recordVO);
+					}
+				}
+	
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new RecordVOTableColumnsManager() {
+						@Override
+						protected String toColumnId(Object propertyId) {
+							if (propertyId instanceof MetadataVO) {
+								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+									setColumnHeader(propertyId, "");
+									setColumnWidth(propertyId, 60);
+								}
+							}
+							return super.toColumnId(propertyId);
+						}
+					};
+				}
+	
+				@Override
+				public Collection<?> getSortableContainerPropertyIds() {
+					Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+					while (iterator.hasNext()) {
+						Object property = iterator.next();
+						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
+								.equals(((MetadataVO) property).getLocalCode())) {
+							iterator.remove();
+						}
+					}
+					return sortableContainerPropertyIds;
+				}
+			};
+			table.setSizeFull();
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.taskClicked(recordVO);
+				}
+			});
+			table.setPageLength(Math.min(15, tasksDataProvider.size()));
+			tabSheet.replaceComponent(tasksComponent, table);
+			tasksComponent = table;
+		}
 		tabSheet.setSelectedTab(tasksComponent);
+	}
+
+	@Override
+	public void setTasks(RecordVODataProvider dataProvider) {
+		this.tasksDataProvider = dataProvider;
+	}
+
+	@Override
+	public void selectEventsTab() {
+		if (!(eventsComponent instanceof Table)) {
+			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"),
+					new RecordVOLazyContainer(eventsDataProvider)) {
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new EventVOTableColumnsManager();
+				}
+			};
+			table.setSizeFull();
+			tabSheet.replaceComponent(eventsComponent, table);
+			eventsComponent = table;
+
+		}
+		tabSheet.setSelectedTab(eventsComponent);
 	}
 
 	@Override
@@ -984,10 +1041,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.close();
 	}
 
-//	@Override
-//	public void openAgentURL(String agentURL) {
-//		Page.getCurrent().open(agentURL, null);
-//	}
+	//	@Override
+	//	public void openAgentURL(String agentURL) {
+	//		Page.getCurrent().open(agentURL, null);
+	//	}
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -1004,7 +1061,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
 		}
 
 		@Override
@@ -1024,8 +1081,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	}
 
-    @Override
-    public void clearUploadField() {
-        uploadField.setInternalValue(null);
-    }
+	@Override
+	public void clearUploadField() {
+		uploadField.setInternalValue(null);
+	}
 }

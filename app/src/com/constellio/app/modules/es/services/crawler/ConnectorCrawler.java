@@ -93,7 +93,9 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-					LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+					LOGGER.info(
+							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
+									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
 						connectorJobsMap.put(crawledConnector, connectorJobs);
@@ -137,7 +139,6 @@ public class ConnectorCrawler {
 			} else {
 				waitSinceNoJobs();
 			}
-
 
 			if (crawledConnectors.isEmpty()) {
 				waitSinceNoJobs();
@@ -239,7 +240,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorLogger logger,
-														   ConnectorEventObserver eventObserver) {
+			ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new SimpleConnectorJobCrawler(), logger, eventObserver);
 	}
 
@@ -248,7 +249,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorLogger logger,
-														 ConnectorEventObserver eventObserver) {
+			ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new MultithreadConnectorJobCrawler(), logger, eventObserver);
 	}
 

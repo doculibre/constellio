@@ -1,11 +1,11 @@
 package com.constellio.model.utils;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.text.MaskFormatter;
 
@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.model.utils.MaskUtilsException.MaskUtilsException_InvalidValue;
 
 public class MaskUtils {
+	
+	public static final String MM_DD = "^((0[1-9]|1[0-2])\\/([01][1-9]|10|2[0-8]))|((0[13-9]|1[0-2])\\/(29|30))|((0[13578]|1[0-2])\\/31)|02\\/29$";
 
 	//	public static String format(String mask, String rawValue)
 	//			throws MaskUtilsException {
@@ -57,12 +59,20 @@ public class MaskUtils {
 	private static Pattern buildRegex(String mask) {
 		Pattern maskRegexPattern = maskRegexPatterns.get(mask);
 		if (maskRegexPattern == null) {
-			String regex = mask.replace("\\9", "__ZE_NEUF__").replace("\\A", "__ZE_FIRST_LETTER__")
-					.replace("\\*", "__ZE_FLOCON__")
-					.replace("9", "\\d").replace("A", "[A-Za-z]").replace("*", "[A-Za-z0-9]").replace("(", "\\(")
-					.replace(")", "\\)")
-					.replace("__ZE_NEUF__", "9").replace("__ZE_FIRST_LETTER__", "A").replace("__ZE_FLOCON__", "\\*");
-			maskRegexPattern = Pattern.compile(regex);
+			try {
+				String regex = mask.replace("\\9", "__ZE_NEUF__").replace("\\A", "__ZE_FIRST_LETTER__")
+						.replace("\\*", "__ZE_FLOCON__")
+						.replace("9", "\\d").replace("A", "[A-Za-z]").replace("*", "[A-Za-z0-9]").replace("(", "\\(")
+						.replace(")", "\\)")
+						.replace("__ZE_NEUF__", "9").replace("__ZE_FIRST_LETTER__", "A").replace("__ZE_FLOCON__", "\\*");
+				maskRegexPattern = Pattern.compile(regex);
+			} catch (PatternSyntaxException e) {
+				try {
+					maskRegexPattern = Pattern.compile(mask);
+				} catch (PatternSyntaxException e2) {
+					throw e;
+				}
+			}
 			maskRegexPatterns.put(mask, maskRegexPattern);
 		}
 		return maskRegexPattern;

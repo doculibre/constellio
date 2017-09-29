@@ -357,6 +357,10 @@ public class IOServices {
 		return fileServices.newTemporaryFile(resourceName);
 	}
 
+	public File newTemporaryFileWithoutGuid(String resourceName) {
+		return fileServices.newTemporaryFileWithoutGuid(resourceName);
+	}
+
 	public File newTemporaryFile(String resourceName, String extension) {
 		return fileServices.newTemporaryFile(resourceName, extension);
 	}

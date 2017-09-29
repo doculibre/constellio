@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -305,14 +306,15 @@ public class SettingsExportServices {
 		ImportedDataEntry importedDataEntry = null;
 		switch (dataEntry.getType()) {
 		case CALCULATED:
-			if (((CalculatedDataEntry) dataEntry).getCalculator() instanceof JEXLMetadataValueCalculator) {
+			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) dataEntry).getCalculator();
+			if (calculator instanceof JEXLMetadataValueCalculator) {
 				importedDataEntry =
 						ImportedDataEntry
-								.asJEXLScript(((JEXLMetadataValueCalculator) dataEntry).getExpression());
+								.asJEXLScript(((JEXLMetadataValueCalculator) calculator).getExpression());
 			} else {
 				importedDataEntry =
 						ImportedDataEntry
-								.asCalculated(((CalculatedDataEntry) dataEntry).getCalculator().getClass().getName());
+								.asCalculated(calculator.getClass().getName());
 			}
 			break;
 

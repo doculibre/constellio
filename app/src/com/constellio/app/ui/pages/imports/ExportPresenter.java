@@ -14,18 +14,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.wrappers.ExportAudit;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.sis.internal.jdk7.StandardCharsets;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -53,19 +47,25 @@ import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueId
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import org.joda.time.LocalDateTime;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
 
@@ -189,7 +189,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
 				String error = "Error while generating savestate";
-//				newExportAudit.setErrors(asList(error));
+				//				newExportAudit.setErrors(asList(error));
 				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
 			} finally {
@@ -214,7 +214,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
 				String error = "Error while generating savestate";
-//				newExportAudit.setErrors(asList(error));
+				//				newExportAudit.setErrors(asList(error));
 				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
 			} finally {
@@ -261,6 +261,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
+		ExportAudit newExportAudit = createNewExportAudit();
 
 		if (!exportedIdsStr.isEmpty() || onlyTools) {
 			List<String> ids = new ArrayList<>();
@@ -292,6 +293,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			} catch (Throwable t) {
 				LOGGER.error("Error while generating savestate", t);
 				view.showErrorMessage($("ExportView.error"));
+			} finally {
+				completeImportExportAudit(newExportAudit, file);
 			}
 
 		} else {
@@ -319,6 +322,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				} catch (Throwable t) {
 					LOGGER.error("Error while generating savestate", t);
 					view.showErrorMessage($("ExportView.error"));
+				} finally {
+					completeImportExportAudit(newExportAudit, file);
 				}
 			}
 		}
@@ -349,7 +354,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		for (String logFilename : asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
 				"constellio.log.3", "constellio.log.4", "constellio.log.5")) {
 
-			File logFile = new File("/opt/constellio/" + logFilename);
+			File logFile = new File(modelLayerFactory.getFoldersLocator().getWrapperInstallationFolder(), logFilename);
 			if (logFile.exists()) {
 				logFiles.add(logFile);
 			}

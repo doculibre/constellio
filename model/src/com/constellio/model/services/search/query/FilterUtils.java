@@ -133,19 +133,19 @@ public class FilterUtils {
 		return stringBuilder.toString();
 	}
 
-    private static void addDenyTokens(StringBuilder stringBuilder, List<String> tokens, Character type) {
-        for (String token : tokens) {
-            if (token.charAt(0) == type) {
-                if (stringBuilder.length() > 0) {
-                    stringBuilder.append(" AND ");
-                }
-                stringBuilder.append("-");
-                stringBuilder.append(Schemas.DENY_TOKENS.getDataStoreCode());
-                stringBuilder.append(":");
-                stringBuilder.append(token);
-            }
-        }
-    }
+	private static void addDenyTokens(StringBuilder stringBuilder, List<String> tokens, Character type) {
+		for (String token : tokens) {
+			if (token.charAt(0) == type) {
+				if (stringBuilder.length() > 0) {
+					stringBuilder.append(" AND ");
+				}
+				stringBuilder.append("-");
+				stringBuilder.append(Schemas.DENY_TOKENS.getDataStoreCode());
+				stringBuilder.append(":");
+				stringBuilder.append(token);
+			}
+		}
+	}
 
 	public static String permissionFilter(User user, String permission) {
 		StringBuilder stringBuilder = new StringBuilder();

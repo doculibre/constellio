@@ -1,15 +1,5 @@
 package com.constellio.model.services.contents.icap;
 
-import com.constellio.data.threads.ConstellioJob;
-import com.constellio.data.threads.ConstellioJobManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -17,6 +7,17 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.threads.ConstellioJob;
+import com.constellio.data.threads.ConstellioJobManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 /**
  *
@@ -26,6 +27,10 @@ public class IcapService {
 	public final static class IcapPreviewLengthReaderJob extends ConstellioJob {
 
 		private static Runnable action;
+
+		public IcapPreviewLengthReaderJob(DataLayerFactory dataLayerFactory) {
+			super(dataLayerFactory);
+		}
 
 		@Override
 		protected String name() {
@@ -84,7 +89,7 @@ public class IcapService {
 		};
 
 		//
-		constellioJobManager.addJob(new IcapPreviewLengthReaderJob(), true);
+		constellioJobManager.addJob(new IcapPreviewLengthReaderJob(modelLayerFactory.getDataLayerFactory()), true);
 	}
 
 	void readPreviewLengthFromIcapServer() {
@@ -140,7 +145,8 @@ public class IcapService {
 
 					final IcapException.ThreatFoundException threatFoundException = new IcapException.ThreatFoundException(
 							icapResponse.getThreatDescription(), filename);
-					LOGGER.info(threatFoundException.getMessage() + " " + threatFoundException.getThreatName() + " - " + filename);
+					LOGGER.info(
+							threatFoundException.getMessage() + " " + threatFoundException.getThreatName() + " - " + filename);
 					throw threatFoundException;
 				} catch (final IOException e) {
 					final IcapException.CommunicationFailure communicationFailureException = new IcapException.CommunicationFailure(

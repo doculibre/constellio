@@ -35,8 +35,7 @@ public class BatchProcessTestFeature {
 		if (!ConstellioTest.IS_FIRST_EXECUTED_TEST) {
 			batchProcessesManager.waitUntilAllFinished();
 		}
-			List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
-
+		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
 
 		//		batchProcessesManager.waitUntilAllFinished();
 
@@ -58,7 +57,7 @@ public class BatchProcessTestFeature {
 						throw new RuntimeException(e);
 					}
 				}
-				errorsCount+= batchProcessesManager.get(batchProcess.getId()).getErrors();
+				errorsCount += batchProcessesManager.get(batchProcess.getId()).getErrors();
 
 			}
 		}
@@ -76,6 +75,8 @@ public class BatchProcessTestFeature {
 
 	public void afterTest() {
 		if (waitForBatchProcessAfterTest && factoriesTestFeatures.isInitialized()) {
+			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger()
+					.setPrintAllQueriesLongerThanMS(10000);
 			waitForAllBatchProcesses(null, false);
 		}
 		//		if (started) {

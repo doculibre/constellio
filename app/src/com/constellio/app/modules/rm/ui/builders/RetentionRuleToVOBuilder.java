@@ -92,9 +92,9 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(categorySchema).where(categorySchema.getMetadata(Category.RETENTION_RULES))
+		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
 				.isEqualTo(id);
-		List<Record> categoryRecords = searchServices.search(new LogicalSearchQuery(condition));
+		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
 		List<Category> categories = new ArrayList<>();
 		for (Record categoryRecord : categoryRecords) {
 			categories.add(rm.wrapCategory(categoryRecord));
@@ -117,9 +117,9 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getUniformSubdivisions(String id) {
-		LogicalSearchCondition condition = from(subdivisionSchema)
-				.where(subdivisionSchema.getMetadata(UniformSubdivision.RETENTION_RULE)).isEqualTo(id);
-		return searchServices.searchRecordIds(new LogicalSearchQuery(condition));
+		LogicalSearchCondition condition = from(rm.uniformSubdivision.schemaType())
+				.where(rm.uniformSubdivision.retentionRule()).isEqualTo(id);
+		return searchServices.cachedSearchRecordIds(new LogicalSearchQuery(condition));
 	}
 
 	private MetadataVO getUniformSubdivisionsMetadata(MetadataSchemaVO schema) {

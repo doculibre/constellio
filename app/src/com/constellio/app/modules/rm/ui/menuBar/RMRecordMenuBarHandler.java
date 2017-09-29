@@ -78,7 +78,12 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Document document;
 			if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
-				document = rm.getDocument(id);
+				Record record = recordVO.getRecord();
+				if (record != null) {
+					document = rm.wrapDocument(record);
+				} else {
+					document = rm.getDocument(id);
+				}
 			} else {
 				Event event = rm.getEvent(id);
 				try {
@@ -86,7 +91,6 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 					String eventRecordSchemaType = SchemaUtils.getSchemaTypeCode(eventRecord.getSchemaCode());
 					if (Document.SCHEMA_TYPE.equals(eventRecordSchemaType)) {
 						document = rm.getDocument(event.getRecordId());
-
 					} else {
 						document = null;
 					}

@@ -1,7 +1,9 @@
 package com.constellio.app.ui.framework.components.table;
 
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.vaadin.data.Container;
+import com.vaadin.data.Property;
 import com.vaadin.ui.Table;
 
 public class BaseTable extends Table {
@@ -9,6 +11,8 @@ public class BaseTable extends Table {
 	private String tableId;
 	
 	private TableColumnsManager columnsManager;
+	
+	protected final TablePropertyCache cellProperties = new TablePropertyCache();
 	
 	public BaseTable(String tableId) {
 		super();
@@ -48,5 +52,35 @@ public class BaseTable extends Table {
 	protected String getTableId() {
 		return tableId;
 	}
+	
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		return null;
+	}
+	
+	@Override
+	public void containerItemSetChange(ItemSetChangeEvent event) {
+		super.containerItemSetChange(event);
+		cellProperties.clear();
+	}
 
+	@Override
+	public final Property<?> getContainerProperty(Object itemId, Object propertyId) {
+		Property<?> containerProperty;
+		CellKey cellKey = getCellKey(itemId, propertyId);
+		if (cellKey != null) {
+			containerProperty = cellProperties.get(cellKey);
+			if (containerProperty == null) {
+				containerProperty = loadContainerProperty(itemId, propertyId);
+				cellProperties.put(cellKey, containerProperty);
+			}
+		} else {
+			containerProperty = loadContainerProperty(itemId, propertyId);
+		}
+		return containerProperty;
+	}
+
+	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
+		return super.getContainerProperty(itemId, propertyId);
+	}
+	
 }

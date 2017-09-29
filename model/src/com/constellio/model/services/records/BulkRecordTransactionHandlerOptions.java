@@ -11,6 +11,12 @@ public class BulkRecordTransactionHandlerOptions {
 	boolean showProgressionInConsole;
 	RecordUpdateOptions transactionOptions = new RecordUpdateOptions();
 	BulkRecordTransactionImpactHandling recordModificationImpactHandling;
+	boolean continueOnExceptions = false;
+
+	public BulkRecordTransactionHandlerOptions setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+		return this;
+	}
 
 	public BulkRecordTransactionHandlerOptions() {
 		recordsPerBatch = 1000;
@@ -18,6 +24,15 @@ public class BulkRecordTransactionHandlerOptions {
 		queueSize = 1 + (numberOfThreads);
 		showProgressionInConsole = true;
 		recordModificationImpactHandling = BulkRecordTransactionImpactHandling.IN_SAME_TRANSACTION;
+	}
+
+	public boolean isContinueOnExceptions() {
+		return continueOnExceptions;
+	}
+
+	public BulkRecordTransactionHandlerOptions setContinueOnExceptions(boolean continueOnExceptions) {
+		this.continueOnExceptions = continueOnExceptions;
+		return this;
 	}
 
 	private BulkRecordTransactionHandlerOptions(int recordsPerBatch, int numberOfThreads, int queueSize,

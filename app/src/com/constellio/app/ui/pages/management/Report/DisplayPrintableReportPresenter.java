@@ -3,12 +3,16 @@ package com.constellio.app.ui.pages.management.Report;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.PrintableReportVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -34,4 +38,14 @@ public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<D
     protected void backButtonClicked() {
         view.navigate().to().previousView();
     }
+
+    protected String getRecordTypeValue(RecordVO recordVO){
+        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(PrintableReportListPossibleType.valueOf(recordVO.<String>get(PrintableReport.RECORD_TYPE)).getSchemaType());
+        return metadataSchemaType.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
+    }
+
+    protected String getRecordSchemaValue(RecordVO recordVO) {
+        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(PrintableReportListPossibleType.valueOf(recordVO.<String>get(PrintableReport.RECORD_TYPE)).getSchemaType());
+        return metadataSchemaType.getSchema(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
+}
 }

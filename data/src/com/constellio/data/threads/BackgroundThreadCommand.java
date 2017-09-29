@@ -22,11 +22,19 @@ public class BackgroundThreadCommand implements Runnable {
 	AtomicBoolean systemStarted;
 	Semaphore tasksSemaphore;
 
+	boolean isRunning = false;
+
+	long executeEverySeconds;
+
+	DataLayerFactory dataLayerFactory;
+
+
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
-			AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory) {
+								   AtomicBoolean stopRequested, Semaphore tasksSemaphore, DataLayerFactory dataLayerFactory) {
 		this.configuration = configuration;
 		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
+		this.dataLayerFactory = dataLayerFactory;
 		this.threadName = dataLayerFactory
 				.toResourceName(configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")");
 		this.stopRequested = stopRequested;
@@ -35,28 +43,27 @@ public class BackgroundThreadCommand implements Runnable {
 
 	@Override
 	public void run() {
+        while (!systemStarted.get() && !stopRequested.get()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-		while (!systemStarted.get() && !stopRequested.get()) {
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
-				&& !stopRequested.get()) {
-			try {
-				tasksSemaphore.acquire();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				runAndHandleException();
-			} finally {
-				tasksSemaphore.release();
-			}
-		}
+				if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
+						&& !stopRequested.get()) {
+					if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {try {
+						tasksSemaphore.acquire();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					try {
+						runAndHandleException();
+					} finally {
+						tasksSemaphore.release();}
+					}
+				}
 
 	}
 

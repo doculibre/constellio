@@ -90,12 +90,28 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		}
 	}
 
+	protected final void delete(Record record, String reason, boolean physically, int waitSeconds) {
+		try {
+			schemaPresenterUtils.delete(record, reason, physically, waitSeconds);
+		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
+			view.showErrorMessage(MessageUtils.toMessage(exception));
+		}
+	}
+
 	protected Record toRecord(RecordVO recordVO) {
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
 
 	protected Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
 		return schemaPresenterUtils.toRecord(recordVO, newMinorEmpty);
+	}
+
+	protected Record toNewRecord(RecordVO recordVO) {
+		return schemaPresenterUtils.toNewRecord(recordVO);
+	}
+
+	protected Record toNewRecord(RecordVO recordVO, boolean newMinorEmpty) {
+		return schemaPresenterUtils.toNewRecord(recordVO, newMinorEmpty);
 	}
 
 	protected Content toContent(ContentVersionVO contentVersionVO) {

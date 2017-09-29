@@ -32,6 +32,10 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer {
 		});
 	}
 
+	public SearchResultVODataProvider getDataProvider() {
+		return dataProvider;
+	}
+
 	public RecordVO getRecordVO(int index) {
 		return dataProvider.getRecordVO(index);
 	}

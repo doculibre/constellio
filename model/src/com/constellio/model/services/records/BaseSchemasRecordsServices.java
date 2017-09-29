@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
@@ -144,8 +145,14 @@ public class BaseSchemasRecordsServices {
 		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
 	}
 
-	public List<Record> get(List<String> id) {
-		return modelLayerFactory.newRecordServices().getRecordsById(collection, id);
+	public List<Record> get(List<String> ids) {
+		List<Record> records = new ArrayList<>();
+
+		for (String id : ids) {
+			records.add(get(id));
+		}
+
+		return records;
 	}
 
 	public Record create(MetadataSchema schema) {

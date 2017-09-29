@@ -68,6 +68,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
+	public static final SystemConfiguration LAZY_LOADED_FACETS;
+
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
@@ -93,6 +95,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
+
+	public static final SystemConfiguration LAST_BACKUP_DAY, KEEP_EVENTS_FOR_X_MONTH;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -148,6 +152,8 @@ public class ConstellioEIMConfigs {
 
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
+		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
 		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
@@ -164,6 +170,10 @@ public class ConstellioEIMConfigs {
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
 		//
+		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
+
+		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(99999).whichIsHidden());
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -239,6 +249,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
+	}
+
+	public Boolean isLazyLoadedFacets() {
+		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {

@@ -1,8 +1,16 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+
 public class RecordLogicalDeleteOptions {
 
 	LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
+
+	RecordsFlushing recordsFlushing = RecordsFlushing.NOW();
+
+	boolean skipValidations;
+
+	boolean skipRefresh;
 
 	public LogicallyDeleteTaxonomyRecordsBehavior getBehaviorForRecordsAttachedToTaxonomy() {
 		return behaviorForRecordsAttachedToTaxonomy;
@@ -11,6 +19,33 @@ public class RecordLogicalDeleteOptions {
 	public RecordLogicalDeleteOptions setBehaviorForRecordsAttachedToTaxonomy(
 			LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy) {
 		this.behaviorForRecordsAttachedToTaxonomy = behaviorForRecordsAttachedToTaxonomy;
+		return this;
+	}
+
+	public RecordsFlushing getRecordsFlushing() {
+		return recordsFlushing;
+	}
+
+	public RecordLogicalDeleteOptions setRecordsFlushing(RecordsFlushing recordsFlushing) {
+		this.recordsFlushing = recordsFlushing;
+		return this;
+	}
+
+	public boolean isSkipValidations() {
+		return skipValidations;
+	}
+
+	public RecordLogicalDeleteOptions setSkipValidations(boolean skipValidations) {
+		this.skipValidations = skipValidations;
+		return this;
+	}
+
+	public boolean isSkipRefresh() {
+		return skipRefresh;
+	}
+
+	public RecordLogicalDeleteOptions setSkipRefresh(boolean skipRefresh) {
+		this.skipRefresh = skipRefresh;
 		return this;
 	}
 

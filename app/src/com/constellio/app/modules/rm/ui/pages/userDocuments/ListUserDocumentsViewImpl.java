@@ -242,7 +242,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	}
 
 	@Override
-	protected boolean isBackgroundViewMonitor() {
+	public boolean isBackgroundViewMonitor() {
 		return true;
 	}
 

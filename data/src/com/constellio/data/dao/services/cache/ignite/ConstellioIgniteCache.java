@@ -6,23 +6,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
 public class ConstellioIgniteCache implements ConstellioCache {
+	
+	public static final String CLEAR_MESSAGE_TOPIC = "clear";
 
 	private static final Object NULL = "__NULL__";
 
 	private String name;
 
 	private IgniteCache<String, Object> igniteCache;
+	
+	private Ignite igniteClient;
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
 
-	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache) {
+	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient) {
 		this.name = name;
 		this.igniteCache = igniteCache;
+		this.igniteClient = igniteClient;
 	}
 
 	@Override
@@ -72,12 +78,17 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 	@Override
 	public void clear() {
-		localCache.clear();
-		igniteCache.clear();
+		clearLocal();
+		igniteClient.message(igniteClient.cluster().forRemotes()).send(CLEAR_MESSAGE_TOPIC, igniteCache.getName());
 	}
 
 	public void removeLocal(String key) {
 		localCache.remove(key);
+	}
+
+	public void clearLocal() {
+		localCache.clear();
+		igniteCache.clear();
 	}
 
 	@Override

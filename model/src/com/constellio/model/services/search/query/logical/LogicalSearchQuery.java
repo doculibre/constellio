@@ -206,6 +206,12 @@ public class LogicalSearchQuery implements SearchQuery {
 		sortFields.clear();
 	}
 
+
+	public void clearFacets() {
+		fieldFacets.clear();
+		queryFacets.clear();
+	}
+
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();

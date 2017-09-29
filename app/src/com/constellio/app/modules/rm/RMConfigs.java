@@ -13,11 +13,13 @@ import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWi
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
+
 
 	public static String decommissioningGroup = "decommissioning";
 
@@ -68,7 +70,8 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
-			CHECK_OUT_DOCUMENT_AFTER_CREATION;
+			CHECK_OUT_DOCUMENT_AFTER_CREATION,
+			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -126,7 +129,7 @@ public class RMConfigs {
 				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
-		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31"));
+		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31").scriptedBy(EndYearValueCalculator.class));
 
 		//Nombre de jours devant précéder la date de fin d'année pour que celle-ci soit considérée dans le calcul des délais pour l'année en cours
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
@@ -236,6 +239,8 @@ public class RMConfigs {
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
+
+
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
 						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
@@ -270,6 +275,9 @@ public class RMConfigs {
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
+
+		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
+				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -498,4 +506,8 @@ public class RMConfigs {
 		return manager.getValue(YEAR_END_DATE);
 	}
 
+	public boolean isCopyRulesAlwaysVisibleInAddForm() {
+		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
+	}
+	
 }

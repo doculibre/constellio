@@ -5,9 +5,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
-import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -20,8 +17,27 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.SIParchive;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
@@ -31,6 +47,19 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -120,6 +149,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
 		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
 		wrappers.put(SIParchive.SCHEMA, SIParchive.class);
+		wrappers.put(YearType.DEFAULT_SCHEMA, YearType.class);
 
 		System.out.println(header());
 

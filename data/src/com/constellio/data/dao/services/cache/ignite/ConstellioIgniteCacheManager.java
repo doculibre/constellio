@@ -1,6 +1,6 @@
 package com.constellio.data.dao.services.cache.ignite;
 
- import java.util.*;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
@@ -21,38 +21,42 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
-	
+
 	private String cacheUrl;
-	
+	private String constellioVersion;
 	private Map<String, ConstellioIgniteCache> caches = new ConcurrentHashMap<>();
-	
-	private Ignite client;
-	
+
+	private Ignite igniteClient;
 	private boolean initialized = false;
 
-	public ConstellioIgniteCacheManager(String cacheUrl) {
+	public ConstellioIgniteCacheManager(String cacheUrl, String constellioVersion) {
 		this.cacheUrl = cacheUrl;
+		this.constellioVersion = constellioVersion;
 	}
 
 	@Override
 	public void initialize() {
 		initializeIfNecessary();
 	}
-	
+
 	private void initializeIfNecessary() {
 		if (!initialized) {
 			IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
-			client = Ignition.getOrStart(igniteConfiguration);
+			igniteClient = Ignition.getOrStart(igniteConfiguration);
 			addListener();
 			initialized = true;
-		}	
+		}
 	}
 
 	@Override
 	public void close() {
-		if (client != null) {
-			client.close();
+		if (igniteClient != null) {
+			igniteClient.close();
 		}
+	}
+
+	public Ignite getClient() {
+		return igniteClient;
 	}
 
 	private IgniteConfiguration getConfiguration(String cacheUrl) {
@@ -65,7 +69,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		cfg.setPeerClassLoadingEnabled(true);
 		cfg.setDiscoverySpi(spi);
 		cfg.setClientMode(true);
-		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT,  EventType.EVT_CACHE_OBJECT_REMOVED);
+		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT, EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
@@ -87,28 +91,49 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	public List<String> getCacheNames() {
 		return Collections.unmodifiableList(new ArrayList<>(caches.keySet()));
 	}
-	
+
+	@Override
+	public void clearAll() {
+		for (ConstellioCache cache : caches.values()) {
+			cache.clear();
+		}
+	}
+
+
+	private String versionedCacheName(String name) {
+		String versionedCacheName;
+		String prefix = constellioVersion + "_";
+		if (name.startsWith(prefix)) {
+			versionedCacheName = name;
+		} else {
+			versionedCacheName = prefix + name;
+		}
+		return versionedCacheName;
+	}
+
 	@Override
 	public synchronized ConstellioCache getCache(String name) {
 		initializeIfNecessary();
-		
+		name = versionedCacheName(name);
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
-			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(name);
-			cache = new ConstellioIgniteCache(name, igniteCache);
+			IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(name);
+			cache = new ConstellioIgniteCache(name, igniteCache, igniteClient);
 			caches.put(name, cache);
 		}
 		return cache;
 	}
-	
+
 	public synchronized ConstellioCache getCache(CacheConfiguration<String, Object> cacheConfiguration) {
 		initializeIfNecessary();
-		
+
 		String name = cacheConfiguration.getName();
+		name = versionedCacheName(name);
+		cacheConfiguration.setName(name);
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
-			IgniteCache<String, Object> igniteCache = client.getOrCreateCache(cacheConfiguration);
-			cache = new ConstellioIgniteCache(name, igniteCache);
+			IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
+			cache = new ConstellioIgniteCache(name, igniteCache, igniteClient);
 			caches.put(name, cache);
 		}
 		return cache;
@@ -134,9 +159,21 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 			}
 		};
 
-		client.events(client.cluster()).remoteListen(localListener, remoteListener,
+		igniteClient.events(igniteClient.cluster()).remoteListen(localListener, remoteListener,
 				EventType.EVT_CACHE_OBJECT_PUT,
 				EventType.EVT_CACHE_OBJECT_REMOVED);
+
+		igniteClient.message(igniteClient.cluster().forRemotes())
+				.localListen(ConstellioIgniteCache.CLEAR_MESSAGE_TOPIC, new IgniteBiPredicate<UUID, String>() {
+					@Override
+					public boolean apply(UUID nodeId, String cacheName) {
+						if (caches.containsKey(cacheName)) {
+							ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
+							cache.clearLocal();
+						}
+						return true;
+					}
+				});
 	}
 
 }

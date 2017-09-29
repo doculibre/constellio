@@ -942,6 +942,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.logicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(deletedDocument.getWrappedRecord(), User.GOD);
+		System.out.println(deletedDocument.getId());
 
 		updatedDocument.setFormCreatedOn(new LocalDateTime().plusYears(50));
 		updatedDocument.setFormModifiedOn(new LocalDateTime().plusYears(50));

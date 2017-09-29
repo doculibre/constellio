@@ -1114,6 +1114,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		g4.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 
 		Transaction t = new Transaction();
+		t.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 		t.addAll(asList(g1, g2, g3, g4));
 		t.add(records.getChuckNorris().setUserGroups((asList(g2.getCode(), g3.getCode()))));
 		recordServices.execute(t);
@@ -1147,6 +1148,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		g2.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 
 		Transaction t = new Transaction();
+		t.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 		t.addAll(asList(g1, g2));
 		t.add(records.getChuckNorris().setUserGroups(asList(g2.getCode())));
 		recordServices.execute(t);

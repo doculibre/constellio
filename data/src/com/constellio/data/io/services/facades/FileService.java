@@ -206,6 +206,19 @@ public class FileService {
 		return file;
 	}
 
+	public File newTemporaryFileWithoutGuid(String resourceName) {
+		final String name = resourceName;
+		File file = new File(tempFolder, name){
+			@Override
+			public String toString() {
+				return name + "[" + getPath() + "]";
+			}
+
+		};
+		OpenedResourcesWatcher.onOpen(file);
+		return file;
+	}
+
 	public File newTemporaryFile(String resourceName) {
 		final String name = resourceName + "_" + UUIDV1Generator.newRandomId();
 		File file = new File(tempFolder, name) {

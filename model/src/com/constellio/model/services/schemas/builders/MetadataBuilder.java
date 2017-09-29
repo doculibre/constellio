@@ -1043,11 +1043,11 @@ public class MetadataBuilder {
 	public Set<String> getCustomAttributes() {
 		return Collections.unmodifiableSet(customAttributes);
 	}
-	
+
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
-		
+
 		private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
-		
+
 		private EncryptionServicesFactory(Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 			this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		}
@@ -1056,6 +1056,6 @@ public class MetadataBuilder {
 		public EncryptionServices get() {
 			return modelLayerFactoryFactory.get().newEncryptionServices();
 		}
-		
+
 	}
 }
