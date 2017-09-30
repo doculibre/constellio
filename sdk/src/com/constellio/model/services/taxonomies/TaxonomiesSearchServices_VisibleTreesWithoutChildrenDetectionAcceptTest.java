@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.data.extensions.AfterQueryParams;
+import com.constellio.data.extensions.BigVaultServerExtension;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
@@ -60,6 +63,10 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	String document1InA16, document2InA16, document3InA16;
 	AuthorizationsServices authServices;
 
+	AtomicInteger queriesCount = new AtomicInteger();
+	AtomicInteger facetsCount = new AtomicInteger();
+	AtomicInteger returnedDocumentsCount = new AtomicInteger();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -105,6 +112,19 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		}
 
 		authServices = getModelLayerFactory().newAuthorizationsServices();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(AfterQueryParams params) {
+						queriesCount.incrementAndGet();
+						String[] facetQuery = params.getSolrParams().getParams("facet.query");
+						if (facetQuery != null) {
+							facetsCount.addAndGet(facetQuery.length);
+						}
+
+						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
+					}
+				});
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 	}
@@ -138,24 +158,28 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X)
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,2,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
 				.has(recordsInOrder(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
-				.has(numFoundAndListSize(7));
+				.has(numFoundAndListSize(7))
+				.has(solrQueryCounts(3,7,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
 				.has(recordsWithChildren(subFolderId))
-				.has(numFoundAndListSize(4));
+				.has(numFoundAndListSize(4))
+				.has(solrQueryCounts(1,4,0));
 	}
 
 	@Test
@@ -165,32 +189,37 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X)
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(1));
-
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(numFoundAndListSize(9));
+				.has(numFoundAndListSize(9))
+				.has(solrQueryCounts(3,9,2));
+
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
 				.has(recordsInOrder(records.categoryId_Z100))
 				.has(recordsWithChildren(records.categoryId_Z100))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,4,4));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(3,2,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110)
 				.has(recordsInOrder(records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z112))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,2,2));
 
 	}
 
@@ -206,34 +235,41 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(3));
+				.has(numFoundAndListSize(3))
+				.has(solrQueryCounts(2,3,3));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(numFoundAndListSize(9));
+				.has(numFoundAndListSize(9))
+				.has(solrQueryCounts(2,9,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
 				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
 				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
-				.has(numFoundAndListSize(4));
+				.has(numFoundAndListSize(4))
+				.has(solrQueryCounts(2,4,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
+
 
 	}
 
@@ -250,34 +286,40 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, "category_Y_id", records.categoryId_Z))
-				.has(numFoundAndListSize(3));
+				.has(numFoundAndListSize(3))
+				.has(solrQueryCounts(1,3,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(numFoundAndListSize(9));
+				.has(numFoundAndListSize(9))
+				.has(solrQueryCounts(2,9,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
 				.has(recordsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
 				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
-				.has(numFoundAndListSize(4));
+				.has(numFoundAndListSize(4))
+				.has(solrQueryCounts(2,4,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 	}
 
@@ -290,17 +332,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,3,3));
+
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,2,2));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12b, options)
 				.has(recordsInOrder("B02", "B04", "B06", "B08", "B32"))
 				.has(recordsWithChildren("B02", "B04", "B06", "B08", "B32"))
-				.has(numFoundAndListSize(5));
+				.has(numFoundAndListSize(5))
+				.has(solrQueryCounts(2,5,0));
 
 	}
 
@@ -328,43 +374,51 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
 				.has(recordsInOrder(records.unitId_10))
 				.has(recordsWithChildren(records.unitId_10))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,3,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,3,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,2,2));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,1,0));
 
 		//Robin
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,0,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,0,2));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(1,1,0));
 	}
 
 	@Test
@@ -391,51 +445,61 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_20))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,3,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,3,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(3,2,2));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,1,0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12c, options)
-				.has(numFoundAndListSize(0));
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(2,0,0));
 
 		//Robin
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,0,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(recordsWithChildren(records.unitId_12b, records.unitId_12c))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,0,1));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_30, options)
 				.has(recordsInOrder(records.unitId_30c))
 				.has(recordsWithChildren(records.unitId_30c))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(2,1,0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
-				.has(numFoundAndListSize(1));
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(1,1,0));
 	}
 
 	@Test
@@ -447,17 +511,20 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_20, records.unitId_30))
-				.has(numFoundAndListSize(3));
+				.has(numFoundAndListSize(3))
+				.has(solrQueryCounts(2,3,3));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(recordsWithChildren(records.unitId_12b, records.unitId_12c))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2,2,0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12b, options)
 				.has(recordsInOrder("B02", "B04", "B06", "B08", "B32"))
 				.has(recordsWithChildren("B02", "B04", "B06", "B08", "B32"))
-				.has(numFoundAndListSize(5));
+				.has(numFoundAndListSize(5))
+				.has(solrQueryCounts(2,5,0));
 
 	}
 
@@ -468,57 +535,68 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 0, 2)
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 0, 1)
 				.has(recordsInOrder(records.categoryId_X))
 				.has(recordsWithChildren(records.categoryId_X))
-				.has(listSize(1)).has(numFound(2));
+				.has(listSize(1)).has(numFound(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 1, 1)
 				.has(recordsInOrder(records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_Z))
-				.has(listSize(1)).has(numFound(2));
+				.has(listSize(1)).has(numFound(2))
+				.has(solrQueryCounts(1,0,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(listSize(9)).has(numFound(9));
+				.has(listSize(9)).has(numFound(9))
+				.has(solrQueryCounts(3,9,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
-				.has(listSize(9)).has(numFound(9));
+				.has(listSize(9)).has(numFound(9))
+				.has(solrQueryCounts(2,7,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 7)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
-				.has(listSize(7)).has(numFound(9));
+				.has(listSize(7)).has(numFound(9))
+				.has(solrQueryCounts(2,5,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 3)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16"))
-				.has(listSize(3)).has(numFound(9));
+				.has(listSize(3)).has(numFound(9))
+				.has(solrQueryCounts(2,1,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
 				.has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
 				.has(recordsWithChildren("categoryId_X120", "A16", "A17", "A18"))
-				.has(listSize(4)).has(numFound(9));
+				.has(listSize(4)).has(numFound(9))
+				.has(solrQueryCounts(2,3,2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
 				.has(recordsWithChildren(subFolderId))
-				.has(listSize(4)).has(numFound(4));
+				.has(listSize(4)).has(numFound(4))
+				.has(solrQueryCounts(1,4,0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
 				.has(recordsInOrder(document1InA16))
 				.has(noRecordsWithChildren())
-				.has(listSize(1)).has(numFound(4));
+				.has(listSize(1)).has(numFound(4))
+				.has(solrQueryCounts(1,1,0));
 
 	}
 
@@ -692,69 +770,89 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> numFoundAndListSize(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> numFoundAndListSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getNumFound()).describedAs(description().toString() + " NumFound").isEqualTo(expectedCount);
-				assertThat(value.getRecords().size()).describedAs(description().toString() + " records list size")
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
+						.isEqualTo(expectedCount);
+
+				assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " NumFound").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
 						.isEqualTo(expectedCount);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> numFound(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> numFound(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> listSize(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> listSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> recordsInOrder(String... ids) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> recordsInOrder(String... ids) {
 		final List<String> idsList = asList(ids);
-		return new Condition<LinkableTaxonomySearchResponse>() {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse response) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 				List<String> valueIds = new ArrayList<>();
-				for (TaxonomySearchRecord value : response.getRecords()) {
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
 					valueIds.add(value.getRecord().getId());
 				}
 				assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
+				List<String> valueIdsSecond = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					valueIdsSecond.add(value.getRecord().getId());
+				}
+				assertThat(valueIdsSecond).describedAs(description().toString()).isEqualTo(idsList);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> noRecordsWithChildren() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> noRecordsWithChildren() {
 		return recordsWithChildren();
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> recordsWithChildren(String... ids) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> recordsWithChildren(String... ids) {
 		final List<String> idsList = asList(ids);
-		return new Condition<LinkableTaxonomySearchResponse>() {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse response) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 				List<String> valueIds = new ArrayList<>();
-				for (TaxonomySearchRecord value : response.getRecords()) {
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
 					if (value.hasChildren()) {
 						valueIds.add(value.getRecord().getId());
 					}
 				}
 				assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
+				List<String> valueIdsSecond = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					if (value.hasChildren()) {
+						valueIdsSecond.add(value.getRecord().getId());
+					}
+				}
+				assertThat(valueIdsSecond).describedAs(description().toString()).isEqualTo(idsList);
 				return true;
 			}
 		};
@@ -884,12 +982,12 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	private ConditionTemplate withoutFilters = null;
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
 		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start,
-			int rows) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user, final int start,
+			final int rows) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN,
 				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false), null);
@@ -897,76 +995,187 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, CLASSIFICATION_PLAN,
+						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false), null);
+
+				if (rows == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user,
-			TaxonomiesSearchOptions options) {
-		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, options, null);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final TaxonomiesSearchOptions options) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 
-		options.setHasChildrenFlagCalculated(false);
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, CLASSIFICATION_PLAN, options, null);
+
+				options.setHasChildrenFlagCalculated(false);
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(User user,
-			TaxonomiesSearchOptions options) {
-		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options, null);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(final User user,
+			final TaxonomiesSearchOptions options) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
 
-		options.setHasChildrenFlagCalculated(false);
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options, null);
+
+				options.setHasChildrenFlagCalculated(false);
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
 			String category) {
 		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
-			String category,
-			int start, int rows) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final String category,
+			final int start, final int rows) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
+						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
 
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
-				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
+				if (rows == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 
-		if (rows == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
-			String category, TaxonomiesSearchOptions options) {
-		options.setHasChildrenFlagCalculated(false);
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service
-				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final String category, final TaxonomiesSearchOptions options) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				options.setHasChildrenFlagCalculated(false);
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(
-			User user,
-			String category, TaxonomiesSearchOptions options) {
-		options.setHasChildrenFlagCalculated(false);
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service
-				.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(
+			final User user,
+			final String category, final TaxonomiesSearchOptions options) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				options.setHasChildrenFlagCalculated(false);
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
+
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
+	}
+
+	private abstract class LinkableTaxonomySearchResponseCaller {
+
+		private LinkableTaxonomySearchResponse firstCallAnswer;
+
+		private LinkableTaxonomySearchResponse secondCallAnswer;
+
+		private String firstCallSolrQueries;
+
+		private String secondCallSolrQueries;
+
+		public LinkableTaxonomySearchResponse firstAnswer() {
+			if (firstCallAnswer == null) {
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+				firstCallAnswer =call();
+				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+			}
+			return firstCallAnswer;
 		}
-		return assertThat(response);
+
+		public LinkableTaxonomySearchResponse secondAnswer() {
+			firstAnswer();
+			if (secondCallAnswer == null) {
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+				secondCallAnswer =call();
+				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+			}
+			return secondCallAnswer;
+		}
+
+		protected abstract LinkableTaxonomySearchResponse call();
+
+		public String firstAnswerSolrQueries() {
+			firstAnswer();
+			return firstCallSolrQueries;
+		}
+
+		public String secondAnswerSolrQueries() {
+			secondAnswer();
+			return secondCallSolrQueries;
+		}
+
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults, final int facets) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				String expected = queries + "-" + queryResults + "-" + facets;
+				String current = value.firstAnswerSolrQueries();
+
+				assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count").isEqualTo(expected);
+				queriesCount.set(0);
+				facetsCount.set(0);
+				returnedDocumentsCount.set(0);
+
+				return true;
+			}
+		};
 	}
 }
