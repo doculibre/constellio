@@ -329,4 +329,15 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String getKafkaTopic() {
 		return getString("kafka.topic", null);
 	}
+
+	@Override
+	public int getConversionProcesses() {
+		return getInt("conversion.processes", 1);
+	}
+
+	@Override
+	public String getOnlineConversionUrl() {
+		return getString("conversion.url", null);
+	}
+	
 }

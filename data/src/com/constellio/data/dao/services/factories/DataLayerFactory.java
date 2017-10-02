@@ -53,7 +53,9 @@ import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManage
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
@@ -84,6 +86,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
+	private final ConversionManager conversionManager;
 
 	public static int countConstructor;
 
@@ -177,6 +180,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		} else {
 			secondTransactionLogManager = null;
 		}
+		
+		IOServices ioServices = ioServicesFactory.newIOServices();
+		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(), dataLayerConfiguration.getOnlineConversionUrl()));
 	}
 
 	public DataLayerExtensions getExtensions() {
@@ -362,4 +368,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}
 	}
+
+	public ConversionManager getConversionManager() {
+		return conversionManager;
+	}
+	
 }
