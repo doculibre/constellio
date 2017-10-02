@@ -86,6 +86,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYNONYMES_MANAGEMENT = "synonymesManagement";
 	public static final String SYNONYMES_MANAGEMENT_ICON = "images/icons/config/synonymes.png";
 
+	public static final String ELEVATION_MANAGEMENT = "elevationManagement";
+	public static final String ELEVATION_MANAGEMENT_ICON = "images/icons/config/elevationManagement";
+
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
@@ -238,6 +241,21 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(ELEVATION_MANAGEMENT, ELEVATION_MANAGEMENT_ICON) {
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().editElevation();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT));
+			}
+		});
+
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(EXPORT, EXPORT_ICONS) {
 			@Override
 			public void activate(Navigation navigate) {

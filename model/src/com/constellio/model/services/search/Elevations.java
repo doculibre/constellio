@@ -96,6 +96,7 @@ public class Elevations implements Serializable {
 		public static class DocElevation implements Serializable {
 			private String id;
 			private boolean exclude;
+			private String query;
 
 			public DocElevation() {
 			}
@@ -103,6 +104,15 @@ public class Elevations implements Serializable {
 			public DocElevation(String id, boolean exclude) {
 				this.id = id;
 				this.exclude = exclude;
+			}
+
+			public String getQuery() {
+				return query;
+			}
+
+			public DocElevation setQuery(String query) {
+				this.query = query;
+				return this;
 			}
 
 			@XmlAttribute(name = "id")

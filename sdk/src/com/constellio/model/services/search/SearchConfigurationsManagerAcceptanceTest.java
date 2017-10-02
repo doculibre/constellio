@@ -51,7 +51,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         searchServices = getModelLayerFactory().newSearchServices();
 
-        Elevations elevations = searchConfigurationsManager.getAllElevations();
+        Elevations elevations = searchConfigurationsManager.getAllElevationsFromDisk();
 
         for (Iterator<Elevations.QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ){
             Elevations.QueryElevation queryElevation = iterator.next();

@@ -11,10 +11,6 @@ import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.entities.ResultsElevation;
-import com.constellio.model.services.search.entities.ResultsExclusion;
-import com.constellio.model.services.search.services.ElevationService;
-import com.constellio.model.services.search.services.ElevationServiceImpl;
 import org.apache.commons.lang.StringUtils;
 
 public class SearchConfigurationsManager {
@@ -42,14 +38,18 @@ public class SearchConfigurationsManager {
 
 	public void initialize() {
 		synonyms = getSynonymsOnServer();
-		Elevations elevations = getAllElevations();
+		Elevations elevations = getAllElevationsFromDisk();
 
 		for(Elevations.QueryElevation queryElevation : elevations.getQueryElevations()) {
 			constellioCache.put(queryElevation.getQuery(), (ArrayList) queryElevation.getDocElevations());
 		}
 	}
 
-	public Elevations getAllElevations() {
+	public List<Elevations.QueryElevation.DocElevation> getDocElevation(String query){
+		return constellioCache.get(query);
+	}
+
+	public Elevations getAllElevationsFromDisk() {
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
 		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
@@ -60,6 +60,14 @@ public class SearchConfigurationsManager {
 		Elevations elevations = anElevationsView.getData();
 
 		return elevations;
+	}
+
+	public List<String> getAllQuery() {
+		List<String> allQuery = new ArrayList<>();
+		for(Iterator<String> iterator = constellioCache.keySet(); iterator.hasNext();) {
+			allQuery.add(iterator.next());
+		}
+		return allQuery;
 	}
 
 	public boolean isElevated(String freeTextQuery, Record record) {

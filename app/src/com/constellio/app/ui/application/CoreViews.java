@@ -277,6 +277,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
 	}
 
+	public void editElevation() {
+		navigator.navigateTo(NavigatorConfigurationService.EDIT_ELEVATION);
+	}
+
 	public void configManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.CONFIG_MANAGEMENT);
 	}

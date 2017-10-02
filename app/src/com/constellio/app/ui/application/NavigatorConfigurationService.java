@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
 import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
+import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
@@ -190,6 +191,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_SYNONYMS = "editSynonyms";
 	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
 
+	public static final String EDIT_ELEVATION = "editElevation";
+
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
@@ -298,6 +301,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_TEMPORARY_RECORDS, ListTemporaryRecordViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_ELEVATION, EditElevationViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
