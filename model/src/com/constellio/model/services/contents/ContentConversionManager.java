@@ -1,16 +1,15 @@
 package com.constellio.model.services.contents;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.artofsolving.jodconverter.office.OfficeException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 public class ContentConversionManager implements AutoCloseable {
 	private final ContentManager contentManager;
@@ -22,6 +21,7 @@ public class ContentConversionManager implements AutoCloseable {
 	public ContentConversionManager(ModelLayerFactory modelLayerFactory) {
 		contentManager = modelLayerFactory.getContentManager();
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
 	}
 
 	public Content replaceContentByPDFA(Content content) {
@@ -42,10 +42,7 @@ public class ContentConversionManager implements AutoCloseable {
 
 	@Override
 	public void close() {
-		if (conversionManager != null) {
-			conversionManager.close();
-			ioServices.deleteDirectoryWithoutExpectableIOException(workingFolder);
-		}
+		ioServices.deleteDirectoryWithoutExpectableIOException(workingFolder);
 	}
 
 	private ContentVersionDataSummary convertAndUpload(ContentVersion current) {
@@ -55,7 +52,7 @@ public class ContentConversionManager implements AutoCloseable {
 		File convertedFile = null;
 
 		try {
-			convertedFile = conversionManager().convertToPDF(original, current.getFilename());
+			convertedFile = conversionManager.convertToPDF(original, current.getFilename(), workingFolder);
 			converted = ioServices.newFileInputStream(convertedFile, "ContentConversionManager-converted");
 			return contentManager.upload(converted, current.getFilename()).getContentVersionDataSummary();
 		} catch (FileNotFoundException e) {
@@ -79,18 +76,5 @@ public class ContentConversionManager implements AutoCloseable {
 		} else {
 			return filename.substring(0, start) + ".pdf";
 		}
-	}
-
-	private ConversionManager conversionManager() {
-		if (conversionManager == null) {
-			workingFolder = ioServices.newTemporaryFolder("ContentConversionManager");
-			try {
-				conversionManager = new ConversionManager(ioServices, 1, workingFolder);
-			} catch(OfficeException e) {
-				ioServices.deleteQuietly(workingFolder);
-				throw e;
-			}
-		}
-		return conversionManager;
 	}
 }

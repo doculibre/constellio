@@ -8,18 +8,17 @@ import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.data.io.ConversionManager;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.contents.ContentManager;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -38,17 +37,17 @@ public class DocumentViewer extends CustomComponent {
 	
 	private static ConversionManager conversionManager;
 	
+	private static File tempDir;
+	
 	static {
 		if (useCache) {
-			IOServices ioServices = ConstellioFactories.getInstance().getIoServicesFactory().newIOServices();
-			File tempDir = ioServices.newTemporaryFolder(RMDownloadContentVersionLinkExtension.class + ".tempDir");
-			conversionManager = new ConversionManager(ioServices, 1, tempDir);
+			conversionManager = ConstellioFactories.getInstance().getDataLayerFactory().getConversionManager();
 		}
 	}
 	
-	public static String[] CONVERSION_EXTENSIONS = { "doc", "docx" };
+	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(ConversionManager.SUPPORTED_EXTENSIONS, new String[]{ "pdf" });
 	
-	public static String[] SUPPORTED_EXTENSIONS = { "doc", "docx", "pdf", "odt" };
+	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(ConversionManager.SUPPORTED_EXTENSIONS, "pdf");
 	
 	private static final int DEFAULT_WIDTH = 750;
 	
@@ -106,7 +105,7 @@ public class DocumentViewer extends CustomComponent {
 							InputStream in = null;
 							try {
 								in = contentManager.getContentInputStream(hash, getClass() + ".documentConversionFile");
-								documentViewerFile = conversionManager.convertToPDF(in, fileName);
+								documentViewerFile = conversionManager.convertToPDF(in, fileName, tempDir);
 								cache.put(hash, documentViewerFile);
 							} finally {
 								IOUtils.closeQuietly(in);
@@ -139,10 +138,11 @@ public class DocumentViewer extends CustomComponent {
 			}
 			
 			if (contentResource != null) {
-				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ViewerJS.file");
+				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
 				String contentURL = contentResourceReference.getURL();
 				
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
+//				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
+				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
 				setCompositionRoot(new Label(iframeHTML, ContentMode.HTML));
 			}
 		} catch (Throwable t) {

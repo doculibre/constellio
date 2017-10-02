@@ -38,11 +38,12 @@ public class ConversionManagerAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenInputStreamThenCreatePDF() {
-		manager = new ConversionManager(ioServices, 1, tempFolder);
+		manager = new ConversionManager(ioServices, 1, null);
+		manager.initialize();
 		for (int i = 1; i < 9; i++) {
 			String originalName = "test" + i + ".odt";
 			InputStream input = getTestResourceInputStream(originalName);
-			File result = manager.convertToPDF(input, originalName);
+			File result = manager.convertToPDF(input, originalName, tempFolder);
 			assertThat(result.isFile());
 		}
 	}
@@ -50,12 +51,13 @@ public class ConversionManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void givenInputStreamThenCreatePDFAsync()
 			throws ExecutionException, InterruptedException {
-		manager = new ConversionManager(ioServices, 4, tempFolder);
+		manager = new ConversionManager(ioServices, 4, null);
+		manager.initialize();
 		List<Future<File>> results = new ArrayList<>();
 		for (int i = 1; i < 9; i++) {
 			String originalName = "test" + i + ".odt";
 			InputStream input = getTestResourceInputStream(originalName);
-			results.add(manager.convertToPDFAsync(input, originalName));
+			results.add(manager.convertToPDFAsync(input, originalName, tempFolder));
 		}
 		for (Future<File> result : results) {
 			assertThat(result.get().isFile());
