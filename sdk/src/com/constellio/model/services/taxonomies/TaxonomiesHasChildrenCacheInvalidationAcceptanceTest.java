@@ -22,6 +22,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -98,10 +99,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				.setOpenDate(aDate())
 				.setTitle("New folder"));
 
-		cache.invalidateWithoutChildren(records.unitId_30);
-		cache.invalidateWithoutChildren(records.categoryId_Z);
-		cache.invalidateWithoutChildren(records.categoryId_Z100);
-
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
@@ -124,12 +121,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				.setOpenDate(aDate())
 				.setTitle("New folder 2"));
 
-		cache.invalidateWithoutChildren(records.unitId_30);
-		cache.invalidateWithoutChildren(records.unitId_30c);
-		cache.invalidateWithoutChildren(records.categoryId_Z);
-		cache.invalidateWithoutChildren(records.categoryId_Z100);
-		cache.invalidateWithoutChildren(records.categoryId_Z120);
-
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
@@ -150,7 +141,20 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				.setOpenDate(aDate())
 				.setTitle("New folder 2"));
 
-		assertThatInvalidatedEntriesSinceLastCheck().isEmpty();
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false",
+				"categoryId_Z robin visible false",
+				"categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false",
+				"categoryId_Z sasquatch visible false",
+				"unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false",
+				"unitId_30 robin visible false",
+				"unitId_30 sasquatch selecting-document false",
+				"unitId_30 sasquatch selecting-folder false",
+				"unitId_30 sasquatch visible false"
+		);
 
 	}
 
@@ -159,12 +163,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		recordServices.add(rm.newDocumentWithId("newDocument").setTitle("New document").setFolder(FOLDER1));
-
-		cache.invalidateWithoutChildren(records.unitId_10);
-		cache.invalidateWithoutChildren(records.unitId_10a);
-		cache.invalidateWithoutChildren(records.categoryId_X);
-		cache.invalidateWithoutChildren(records.categoryId_X100);
-		cache.invalidateWithoutChildren(records.categoryId_X120);
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder false",
@@ -182,8 +180,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		Folder folder1 = rm.getFolder(FOLDER1);
 
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_X120));
-		cache.invalidateWithoutChildren(records.categoryId_X120);
-		cache.invalidateWithChildren(records.categoryId_X110);
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X110 sasquatch visible true"
@@ -191,18 +187,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_Z120)
 				.setAdministrativeUnitEntered(records.unitId_30c));
-
-		cache.invalidateWithChildren(records.unitId_10);
-		cache.invalidateWithChildren(records.unitId_10a);
-		cache.invalidateWithChildren(records.categoryId_X);
-		cache.invalidateWithChildren(records.categoryId_X100);
-		cache.invalidateWithChildren(records.categoryId_X110);
-
-		cache.invalidateWithoutChildren(records.unitId_30);
-		cache.invalidateWithoutChildren(records.unitId_30c);
-		cache.invalidateWithoutChildren(records.categoryId_Z);
-		cache.invalidateWithoutChildren(records.categoryId_Z100);
-		cache.invalidateWithoutChildren(records.categoryId_Z120);
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
@@ -232,11 +216,22 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		recordServices.logicallyDelete(record(FOLDER1), User.GOD);
-		cache.invalidateWithChildren(records.unitId_10);
-		cache.invalidateWithChildren(records.unitId_10a);
-		cache.invalidateWithChildren(records.categoryId_X);
-		cache.invalidateWithChildren(records.categoryId_X100);
-		cache.invalidateWithChildren(records.categoryId_X110);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a sasquatch visible true"
+		);
+	}
+
+	@Test
+	public void whenAFolderIsPhysicallyDeletedThenCacheIsInvalidatedForHasChildrenQueriesWithResultsInHierarchies()
+			throws Exception {
+
+		recordServices.physicallyDeleteNoMatterTheStatus(record(FOLDER1), User.GOD, new RecordPhysicalDeleteOptions());
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
 				"categoryId_X sasquatch visible true",
@@ -253,11 +248,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		recordServices.update(rm.getFolder(FOLDER1).setActualTransferDate(date(2016, 1, 1)));
-		cache.invalidateWithChildren(records.unitId_10);
-		cache.invalidateWithChildren(records.unitId_10a);
-		cache.invalidateWithChildren(records.categoryId_X);
-		cache.invalidateWithChildren(records.categoryId_X100);
-		cache.invalidateWithChildren(records.categoryId_X110);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
 				"categoryId_X sasquatch visible true",
@@ -268,12 +258,7 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				"unitId_10a sasquatch visible true"
 		);
 
-		recordServices.update(rm.getFolder(FOLDER1));
-		cache.invalidateWithoutChildren(records.unitId_10);
-		cache.invalidateWithoutChildren(records.unitId_10a);
-		cache.invalidateWithoutChildren(records.categoryId_X);
-		cache.invalidateWithoutChildren(records.categoryId_X100);
-		cache.invalidateWithoutChildren(records.categoryId_X110);
+		recordServices.update(rm.getFolder(FOLDER1).setActualTransferDate(null));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
