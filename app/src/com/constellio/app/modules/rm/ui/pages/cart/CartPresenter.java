@@ -25,7 +25,10 @@ import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportW
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.ContainerVO;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -321,6 +324,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return folderVOS;
 	}
 
+	List<DocumentVO> getCartDocumentVO() {
+		DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
+		List<DocumentVO> documentVOS = new ArrayList<>();
+		for(Document document : this.getCartDocuments()) {
+			documentVOS.add(builder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+		}
+		return documentVOS;
+	}
+
 	List<String> getCartFolderIds() {
 		return cart().getFolders();
 	}
@@ -331,7 +343,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private RMSchemasRecordsServices rm() {
 		if (rm == null) {
-			rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		}
 		return rm;
 	}
