@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.extensions;
 
+import java.util.Arrays;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -8,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.io.ConversionManager;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -123,14 +129,8 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	private boolean isFilePreviewSupportedFor(String filename) {
-		return filename.endsWith(".doc")
-				|| filename.endsWith(".xls")
-				|| filename.endsWith(".ppt")
-				|| filename.endsWith(".docx")
-				|| filename.endsWith(".xlsx")
-				|| filename.endsWith(".pptx")
-				|| filename.endsWith(".dot")
-				|| filename.endsWith(".odt");
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
+		return Arrays.asList(ConversionManager.SUPPORTED_EXTENSIONS).contains(extension);
 	}
 
 	@Override

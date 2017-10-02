@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -132,6 +133,8 @@ public class ConnectorCrawler {
 			if (crawledConnectors.isEmpty()) {
 				waitSinceNoJobs();
 			}
+		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
+			// Ignore
 		} finally {
 			eventObserver.cleanup();
 		}
