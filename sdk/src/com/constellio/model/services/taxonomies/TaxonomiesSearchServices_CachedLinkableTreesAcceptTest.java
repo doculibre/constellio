@@ -391,10 +391,11 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		Transaction tx = new Transaction();
 
-		tx.add(rm.newCategoryWithId("yeCategoryWithoutChildren2").setCode("ZeCategoryWithoutChildren")
-				.setTitle("ZeCategoryWithoutChildren"));
+		Category category = tx.add(rm.newCategoryWithId("zeCategoryWithoutChildren").setCode("ZeCategoryWithoutChildren")
+				.setTitle("ZeCategoryWithoutChildren").setRetentionRules(asList(records.ruleId_4)));
 
 		recordServices.execute(tx);
+
 
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);

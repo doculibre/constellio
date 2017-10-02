@@ -383,6 +383,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		//givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, false);
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, false);
+		waitForBatchProcess();
+
+		Transaction tx = new Transaction();
+
+		Category category = tx.add(rm.newCategoryWithId("zeCategoryWithoutChildren").setCode("ZeCategoryWithoutChildren")
+				.setTitle("ZeCategoryWithoutChildren").setRetentionRules(asList(records.ruleId_4)));
+
+		recordServices.execute(tx);
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
@@ -395,10 +406,10 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(1))
-				.has(unlinkable(records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X))
-				.has(itemsWithChildren(records.categoryId_X));
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
 			@Override
