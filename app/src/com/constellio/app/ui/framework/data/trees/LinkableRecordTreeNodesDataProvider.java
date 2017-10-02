@@ -81,7 +81,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 			options.setRequiredAccess(Role.WRITE);
 		}
 
-		options.setAlwaysReturnTaxonomyConceptsWithReadAccess(ignoreLinkability);
+		options.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(ignoreLinkability);
 
 		options.setFilter(filter);
 

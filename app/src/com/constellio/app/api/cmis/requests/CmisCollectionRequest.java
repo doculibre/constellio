@@ -131,7 +131,7 @@ public abstract class CmisCollectionRequest<T> {
 			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 			if (taxonomy == null || taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
 				TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(1)
-						.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+						.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 				if (taxonomiesSearchServices.getVisibleChildConcept(user, record, options).isEmpty()) {
 					throw new CmisPermissionDeniedException($("CmisCollectionRequest_noReadAccess",
 							user.getUsername(), record.getId(), record.getTitle()));

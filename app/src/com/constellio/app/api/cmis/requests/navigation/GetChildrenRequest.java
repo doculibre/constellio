@@ -68,7 +68,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		TaxonomiesSearchServices searchServices = modelLayerFactory.newTaxonomiesSearchService();
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(), ACTIVES)
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setShowInvisibleRecordsInLinkingMode(true)
 				.setHasChildrenFlagCalculated(false)
 				.setLinkableFlagCalculated(false);

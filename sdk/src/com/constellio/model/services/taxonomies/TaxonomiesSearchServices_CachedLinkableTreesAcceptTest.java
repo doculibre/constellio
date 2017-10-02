@@ -3,12 +3,9 @@ package com.constellio.model.services.taxonomies;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -44,6 +41,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -123,7 +121,17 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		LogicalSearchCondition searchCondition = from(categoryType)
 				.where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						getAppLayerFactory());
+
+				Category category = rm.wrapCategory(params.getRecord());
+				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(taxonomiesSearchFilter)
 				.has(numFoundAndListSize(2))
@@ -377,20 +385,43 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		//givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, false);
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, false);
+		waitForBatchProcess();
+
+		Transaction tx = new Transaction();
+
+		tx.add(rm.newCategoryWithId("yeCategoryWithoutChildren2").setCode("ZeCategoryWithoutChildren")
+				.setTitle("ZeCategoryWithoutChildren"));
+
+		recordServices.execute(tx);
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).isNot(containingText("Z"))
-				.andWhere(IDENTIFIER).isContainingText("2"));
+		//		filter.setLinkableConceptsCondition(where(IDENTIFIER).isNot(containingText("Z"))
+		//				.andWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return !id.contains("Z") && id.contains("2");
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(1))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X))
-				.has(itemsWithChildren(records.categoryId_X));
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
-				.orWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return id.contains("Z") || id.contains("2");
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(2))
@@ -413,8 +444,13 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110, options)
 				.is(empty());
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
-				.andWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return id.contains("Z") && id.contains("2");
+			}
+		});
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
 				.has(numFoundAndListSize(2))
@@ -1895,7 +1931,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		recordServices.execute(tx);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(4))
@@ -1942,7 +1978,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setShowInvisibleRecordsInLinkingMode(false);
 
 		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
@@ -1952,7 +1988,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
-				.has(itemsWithChildren(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X13, records.categoryId_X100))
 				.has(numFoundAndListSize(2));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
@@ -1963,7 +1999,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
 				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
-				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
 				.has(numFoundAndListSize(4));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
@@ -1973,7 +2010,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
-				.has(itemsWithChildren(records.categoryId_Z112))
+				.has(itemsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
 				.has(numFoundAndListSize(2));
 
 	}
@@ -1984,7 +2021,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);

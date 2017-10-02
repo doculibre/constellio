@@ -19,7 +19,7 @@ public class TaxonomiesSearchOptions {
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private boolean showAllIfHasAccessToManageSecurity = true;
 	private FastContinueInfos fastContinueInfos;
-	private TaxonomiesSearchFilter filter;
+	private TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 	private boolean linkableFlagCalculated = true;
 
 	public TaxonomiesSearchOptions() {
@@ -145,11 +145,11 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
-	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccess() {
+	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable() {
 		return alwaysReturnTaxonomyConceptsWithReadAccess;
 	}
 
-	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccess(
+	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(
 			boolean alwaysReturnTaxonomyConceptsWithReadAccess) {
 		this.alwaysReturnTaxonomyConceptsWithReadAccess = alwaysReturnTaxonomyConceptsWithReadAccess;
 		return this;
