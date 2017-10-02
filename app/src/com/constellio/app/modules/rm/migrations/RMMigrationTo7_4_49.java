@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.CategoryIsLinkableCalculator;
 import com.constellio.app.modules.rm.model.calculators.CategoryIsLinkableCalculator2;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -41,9 +42,7 @@ public class RMMigrationTo7_4_49 extends MigrationHelper implements MigrationScr
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            typesBuilder.getSchema(Category.DEFAULT_SCHEMA)
-                    .getMetadata(Schemas.LINKABLE.getLocalCode())
-                    .defineDataEntry().asCalculated(CategoryIsLinkableCalculator2.class);
+
         }
     }
 }
