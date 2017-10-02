@@ -2,7 +2,9 @@ package com.constellio.app.ui.pages.management.capsule.display;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
@@ -33,6 +35,11 @@ public class DisplayCapsuleViewImpl extends BaseViewImpl implements DisplayViewC
                navigateTo().previousView();
             }
         };
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
     }
 
     @Override

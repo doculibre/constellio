@@ -2,8 +2,14 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Collections;
 import java.util.List;
 
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.SearchBoostVO;
@@ -38,6 +44,11 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 
 	public SearchBoostByMetadataViewImpl() {
 		this.presenter = new SearchBoostByMetadataPresenter(this);
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
 	}
 
 	@Override

@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
@@ -8,6 +12,9 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -27,7 +34,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
         return layout;
     }
 
-    private Button createBoostMetadataButton(){
+    private Button createBoostMetadataButton() {
         return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ? createLink($("AdminView.searchBoostByMetadata"), new Button.ClickListener() {
 
             @Override
@@ -47,7 +54,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
         }, "config/boost-text-search") : null;
     }
 
-    private Button createFacetteButton(){
+    private Button createFacetteButton() {
         return user.has(CorePermissions.MANAGE_VALUELIST).globally() ? createLink($("perm.core.manageFacets"), new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -56,7 +63,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
         }, "config/funnel") : null;
     }
 
-    private Button createCapsuleButton(){
+    private Button createCapsuleButton() {
         return user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally() ? createLink($("ListCapsuleViewImpl.title"), new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -68,11 +75,36 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
     private class CustomCssLayout extends CssLayout {
         @Override
         public void addComponents(Component... components) {
-            for(Component component : components) {
-                if(component != null) {
+            for (Component component : components) {
+                if (component != null) {
                     super.addComponent(component);
                 }
             }
         }
+    }
+
+
+    public static TitleBreadcrumbTrail getSearchConfigurationBreadCrumbTrail(BaseView view, String title) {
+        return new TitleBreadcrumbTrail(view, title) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("SearchConfigurationViewImpl.title");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().searchConfiguration();
+                    }
+                });
+            }
+        };
     }
 }

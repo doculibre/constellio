@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
@@ -34,6 +36,11 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 	public ListFacetConfigurationViewImpl() {
 		presenter = new ListFacetConfigurationPresenter(this);
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
 	}
 
 	@Override

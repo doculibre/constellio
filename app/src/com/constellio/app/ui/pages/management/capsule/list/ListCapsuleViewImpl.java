@@ -1,13 +1,18 @@
 package com.constellio.app.ui.pages.management.capsule.list;
 
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
@@ -17,6 +22,7 @@ import com.vaadin.ui.Table;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -33,6 +39,11 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
         presenter = new ListCapsulePresenter(this);
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
     }
 
     @Override
@@ -89,7 +100,7 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
         });
 
         tableContainer = buttonTableContainer;
-        Table table = new RecordVOTable($("ListCapsuleViewImpl.title"), tableContainer);
+        Table table = new RecordVOTable("", tableContainer);
         setTableProperty(table, tableContainer.size());
         return table;
     }

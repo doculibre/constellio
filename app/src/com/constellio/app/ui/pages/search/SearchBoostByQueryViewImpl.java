@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.SearchBoostVO;
@@ -37,6 +39,11 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 
 	public SearchBoostByQueryViewImpl() {
 		this.presenter = new SearchBoostByQueryPresenter(this);
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
 	}
 
 	@Override

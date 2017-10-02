@@ -249,19 +249,22 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public List<Capsule> getCapsuleForCurrentSearch(){
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-		String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
-		String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
-		String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
-		MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
-		//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-		//TODO Check for a more efficient way to fix this.
-		LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
-		List<Capsule> allCapsules = schemasRecordsServices.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
 		List<Capsule> correspondingCapsules = new ArrayList<>();
-		for(Capsule capsule : allCapsules) {
-			if(CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
-				correspondingCapsules.add(capsule);
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		if(StringUtils.isNotEmpty(getUserSearchExpression())) {
+			String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
+			String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
+			String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
+			MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
+			//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
+			//TODO Check for a more efficient way to fix this.
+			LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
+			List<Capsule> allCapsules = schemasRecordsServices.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
+
+			for(Capsule capsule : allCapsules) {
+				if(CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
+					correspondingCapsules.add(capsule);
+				}
 			}
 		}
 		return correspondingCapsules;
