@@ -220,7 +220,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
         recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
-        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
                 .has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -364,7 +365,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
         getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
         User sasquatch = users.sasquatchIn(zeCollection);
         User robin = users.robinIn(zeCollection);
         User admin = users.adminIn(zeCollection);
@@ -443,7 +445,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
     public void whenAdminIsNavigatingAdminUnityWithVisibleRecordsAlwaysDisplayingConceptsWithReadAccessThenSeesRecordsAndAllConcepts()
             throws Exception {
 
-        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
         assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(records.getAdmin(), options)
                 .has(recordsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
@@ -914,19 +917,18 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
                         "category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-                .has(numFound(50)).has(listSize(20))
+                .has(numFound(40)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
                 .has(solrQueryCounts(3, 0, 40));
 
-        //Calling with an different fast continue (simulating that one of the first ten record was not returned)
-        assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-                .setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-                .has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-                        "category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-                        "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-                .has(numFound(50)).has(listSize(20))
-                .has(fastContinuationInfos(false, 31))
-                .has(solrQueryCounts(3, 0, 40));
+		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
+		//Nothing changed since the service is using a cacheassertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30)).has(solrQueryCounts(3, 0, 40));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
                 options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -957,15 +959,14 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(fastContinuationInfos(true, 0))
                 .has(solrQueryCounts(11, 0, 300));
 
-        assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-                .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-                .has(recordsInOrder("category_291", "category_292", "category_293",
-                        "category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-                        "category_300"))
-                .has(numFound(299)).has(listSize(10))
-                .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(11, 0, 300));
-    }
+		//Calling with a bad fastContinueInfos, but no difference since the service is using a cacheassertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
+						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
+						"category_300"))
+				.has(numFound(300)).has(listSize(11))
+				.has(fastContinuationInfos(true, 0))
+	.has(solrQueryCounts(11, 0, 300));}
 
     @Test
     public void givenPlethoraOfRootCategoriesThenValidGetRootResponse()
@@ -992,7 +993,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
                         "category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-                .has(numFound(21)).has(listSize(20))
+                .has(numFound(100)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
                 .has(solrQueryCounts(2, 302, 100));
 
@@ -1000,7 +1001,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
                         "category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-                .has(numFound(21)).has(listSize(20))
+                .has(numFound(100)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
                 .has(solrQueryCounts(1, 0, 100));
 
@@ -1009,7 +1010,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
                         "category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-                .has(numFound(31)).has(listSize(20))
+                .has(numFound(110)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
                 .has(solrQueryCounts(1, 0, 100));
 
@@ -1019,7 +1020,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
                         "category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
                         "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-                .has(numFound(31)).has(listSize(20))
+                .has(numFound(110)).has(listSize(20))
                 .has(fastContinuationInfos(false, 31))
                 .has(solrQueryCounts(1, 0, 100));
 
@@ -1029,7 +1030,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_14", "category_15", "category_16",
                         "category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-                .has(numFound(42)).has(listSize(30))
+                .has(numFound(100)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
                 .has(solrQueryCounts(1, 0, 100));
 

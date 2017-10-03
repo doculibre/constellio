@@ -15,7 +15,7 @@ public class TaxonomiesSearchOptions {
 	//Only supported in the "visible" services
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
-	private boolean hasChildrenFlagCalculated = true;
+	private HasChildrenFlagCalculated hasChildrenFlagCalculated = HasChildrenFlagCalculated.ALWAYS;
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private boolean showAllIfHasAccessToManageSecurity = true;
 	private FastContinueInfos fastContinueInfos;
@@ -81,11 +81,11 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
-	public boolean isHasChildrenFlagCalculated() {
+	public HasChildrenFlagCalculated getHasChildrenFlagCalculated() {
 		return hasChildrenFlagCalculated;
 	}
 
-	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(boolean hasChildrenFlagCalculated) {
+	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(HasChildrenFlagCalculated hasChildrenFlagCalculated) {
 		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
 		return this;
 	}
@@ -183,4 +183,6 @@ public class TaxonomiesSearchOptions {
 		this.showAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
+
+	public enum HasChildrenFlagCalculated {NEVER, CONCEPTS_ONLY, ALWAYS}
 }

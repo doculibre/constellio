@@ -19,6 +19,12 @@ public interface RecordDao {
 	RecordDTO get(String id)
 			throws RecordDaoException.NoSuchRecordWithId;
 
+	QueryResponseDTO query(String queryName, SolrParams params);
+
+	List<RecordDTO> searchQuery(String queryName, SolrParams params);
+
+	QueryResponse nativeQuery(String queryName, SolrParams params);
+
 	QueryResponseDTO query(SolrParams params);
 
 	List<RecordDTO> searchQuery(SolrParams params);

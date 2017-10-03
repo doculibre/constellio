@@ -10,4 +10,6 @@ public interface AfterQueryParams {
 
 	int getReturnedResultsCount();
 
+	String getQueryName();
+
 }

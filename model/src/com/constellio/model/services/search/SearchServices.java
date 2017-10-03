@@ -490,7 +490,7 @@ public class SearchServices {
 	}
 
 	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
-		QueryResponseDTO queryResponseDTO = recordDao.query(params);
+		QueryResponseDTO queryResponseDTO = recordDao.query(query.getName(), params);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
@@ -571,20 +571,20 @@ public class SearchServices {
 			return;
 		}
 
-		for(UserFilter userFilter: userFilters) {
+		for (UserFilter userFilter : userFilters) {
 			String filter;
 			switch (userFilter.getAccess()) {
-				case Role.READ:
-					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				case Role.WRITE:
-					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				case Role.DELETE:
-					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				default:
-					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
+			case Role.READ:
+				filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
+				break;
+			case Role.WRITE:
+				filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
+				break;
+			case Role.DELETE:
+				filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
+				break;
+			default:
+				filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 			}
 
 			params.add(CommonParams.FQ, filter);
