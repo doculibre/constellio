@@ -18,6 +18,7 @@ import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearc
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.LinkableConceptFilter.LinkableConceptFilterParams;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 
 public class TaxonomiesSearchServices {
@@ -405,6 +407,7 @@ public class TaxonomiesSearchServices {
 				.setStartRow(realStart).setNumberOfRows(realRows)
 				.filteredWithUser(ctx.user, ctx.options.getRequiredAccess());
 
+		query.setName("TaxonomiesSearchServices:getNonTaxonomyRecords(" + ctx.username() + ", " + ctx.record.getId() + ")");
 		return searchServices.query(query);
 	}
 
@@ -420,7 +423,7 @@ public class TaxonomiesSearchServices {
 			List<Record> records) {
 		SPEQueryResponse facetResponse = null;
 
-		if (context.options.isHasChildrenFlagCalculated()) {
+		if (context.options.getHasChildrenFlagCalculated() == HasChildrenFlagCalculated.ALWAYS) {
 			LogicalSearchCondition queryCondition;
 
 			if (context.forSelectionOfSchemaType == null) {
@@ -456,6 +459,8 @@ public class TaxonomiesSearchServices {
 			}
 
 			if (facetCounts > 0) {
+				facetQuery.setName(
+						"TaxonomiesSearchServices:hasChildrenQuery(" + context.username() + ", " + context.record.getId() + ")");
 				facetResponse = searchServices.query(facetQuery);
 			}
 		}
@@ -522,7 +527,7 @@ public class TaxonomiesSearchServices {
 
 			boolean calculateHasChildren;
 
-			calculateHasChildren = context.options.isHasChildrenFlagCalculated()
+			calculateHasChildren = context.options.getHasChildrenFlagCalculated() != NEVER
 					|| !context.options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable();
 			boolean calculateLinkability = context.options.isLinkableFlagCalculated();
 
@@ -736,8 +741,8 @@ public class TaxonomiesSearchServices {
 
 		}
 
-		boolean calculateHasChildren =
-				!options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable() || options.isHasChildrenFlagCalculated();
+		boolean calculateHasChildren = !options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()
+				|| options.getHasChildrenFlagCalculated() != NEVER;
 		boolean calculateLinkability = options.isLinkableFlagCalculated();
 
 		int consumed = 0;

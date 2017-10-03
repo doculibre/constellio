@@ -4,6 +4,8 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -230,7 +232,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
-				.setHasChildrenFlagCalculated(true);
+				.setHasChildrenFlagCalculated(CONCEPTS_ONLY);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -281,7 +283,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
-				.setHasChildrenFlagCalculated(false);
+				.setHasChildrenFlagCalculated(NEVER);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -994,7 +996,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			final int rows) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN,
-				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false), null);
+				new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(NEVER), null);
 
 		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
@@ -1004,7 +1006,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			protected LinkableTaxonomySearchResponse call() {
 				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
 						user, zeCollection, CLASSIFICATION_PLAN,
-						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false), null);
+						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(NEVER), null);
 
 				if (rows == 10000) {
 					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
@@ -1064,7 +1066,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 								new TaxonomiesSearchOptions().setStartRow(start).setRows(rows)
-										.setHasChildrenFlagCalculated(false));
+										.setHasChildrenFlagCalculated(NEVER));
 
 				if (rows == 10000) {
 					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
@@ -1080,7 +1082,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
-				options.setHasChildrenFlagCalculated(false);
+				options.setHasChildrenFlagCalculated(NEVER);
 				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
@@ -1100,7 +1102,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
-				options.setHasChildrenFlagCalculated(false);
+				options.setHasChildrenFlagCalculated(NEVER);
 				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);

@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(), ACTIVES)
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setShowInvisibleRecordsInLinkingMode(true)
-				.setHasChildrenFlagCalculated(false)
+				.setHasChildrenFlagCalculated(NEVER)
 				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;

@@ -1,6 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
+import static org.apache.commons.lang.StringUtils.join;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.Taxonomy;
@@ -25,7 +29,7 @@ public class HasChildrenQueryHandler {
 	Taxonomy taxonomy;
 
 	Map<String, Boolean> cachedValues = new HashMap<>();
-
+	List<String> calculatedIds = new ArrayList<>();
 	SPEQueryResponse response;
 
 	public HasChildrenQueryHandler(String username, String cacheMode,
@@ -45,6 +49,7 @@ public class HasChildrenQueryHandler {
 		Boolean cachedValue = services.cache.getCachedValue(username, record.getId(), cacheMode);
 		cachedValues.put(record.getId(), cachedValue);
 		if (cachedValue == null) {
+			calculatedIds.add(record.getId());
 			facetQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(record));
 		}
 	}
@@ -68,6 +73,11 @@ public class HasChildrenQueryHandler {
 
 	public SPEQueryResponse query() {
 		if (response == null) {
+
+			if (facetQuery.getName() == null) {
+				facetQuery.setName("HasChildrenQueryHandler:hasChildren(" + join(calculatedIds.toArray(), ", ") + ")");
+			}
+
 			response = services.searchServices.query(facetQuery);
 		}
 		return response;

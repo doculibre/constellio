@@ -5,6 +5,7 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATIO
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -277,7 +278,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
-				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false);
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -444,7 +445,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false)
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER)
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);

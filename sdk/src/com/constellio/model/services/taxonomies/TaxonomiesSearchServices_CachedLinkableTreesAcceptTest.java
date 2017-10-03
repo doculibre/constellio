@@ -6,6 +6,7 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -395,7 +396,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.setTitle("ZeCategoryWithoutChildren").setRetentionRules(asList(records.ruleId_4)));
 
 		recordServices.execute(tx);
-
 
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
@@ -1322,17 +1322,18 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(40)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
+		//Nothing changed since the service is using a cache
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31));
+				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(40)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
 				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -1360,12 +1361,13 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFound(300)).has(listSize(11))
 				.has(fastContinuationInfos(true, 0));
 
+		//Calling with a bad fastContinueInfos, but no difference since the service is using a cache
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_291", "category_292", "category_293",
+				.has(resultsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
-				.has(numFound(299)).has(listSize(10))
+				.has(numFound(300)).has(listSize(11))
 				.has(fastContinuationInfos(true, 0));
 	}
 
@@ -2119,7 +2121,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		LinkableTaxonomySearchResponse response = service.getLinkableRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
 
-		options.setHasChildrenFlagCalculated(false);
+		options.setHasChildrenFlagCalculated(NEVER);
 		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
@@ -2137,7 +2139,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
 		LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(
 				user, inRecord, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE,
-				new TaxonomiesSearchOptions(options).setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
+				new TaxonomiesSearchOptions(options).setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(NEVER));
 
 		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
