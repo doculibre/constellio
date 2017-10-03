@@ -15,11 +15,11 @@ public class TaxonomiesSearchOptions {
 	//Only supported in the "visible" services
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
-	private boolean hasChildrenFlagCalculated = true;
+	private HasChildrenFlagCalculated hasChildrenFlagCalculated = HasChildrenFlagCalculated.CONCEPTS_ONLY;
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private boolean showAllIfHasAccessToManageSecurity = true;
 	private FastContinueInfos fastContinueInfos;
-	private TaxonomiesSearchFilter filter;
+	private TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 	private boolean linkableFlagCalculated = true;
 
 	public TaxonomiesSearchOptions() {
@@ -81,11 +81,11 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
-	public boolean isHasChildrenFlagCalculated() {
+	public HasChildrenFlagCalculated getHasChildrenFlagCalculated() {
 		return hasChildrenFlagCalculated;
 	}
 
-	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(boolean hasChildrenFlagCalculated) {
+	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(HasChildrenFlagCalculated hasChildrenFlagCalculated) {
 		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
 		return this;
 	}
@@ -145,11 +145,11 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
-	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccess() {
+	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable() {
 		return alwaysReturnTaxonomyConceptsWithReadAccess;
 	}
 
-	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccess(
+	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(
 			boolean alwaysReturnTaxonomyConceptsWithReadAccess) {
 		this.alwaysReturnTaxonomyConceptsWithReadAccess = alwaysReturnTaxonomyConceptsWithReadAccess;
 		return this;
@@ -183,4 +183,6 @@ public class TaxonomiesSearchOptions {
 		this.showAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
+
+	public enum HasChildrenFlagCalculated {NEVER, CONCEPTS_ONLY, ALWAYS}
 }

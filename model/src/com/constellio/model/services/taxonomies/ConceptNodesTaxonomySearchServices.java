@@ -98,6 +98,7 @@ public class ConceptNodesTaxonomySearchServices {
 		}
 
 		query.sortAsc(CODE).sortAsc(TITLE);
+		query.setName("TaxonomiesSearchServices.getRootConcepts(" + taxonomyCode + ")");
 		return query;
 	}
 

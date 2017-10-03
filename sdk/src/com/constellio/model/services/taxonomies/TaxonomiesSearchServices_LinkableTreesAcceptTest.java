@@ -3,12 +3,10 @@ package com.constellio.model.services.taxonomies;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -44,11 +42,11 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -59,7 +57,6 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
@@ -122,12 +119,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		waitForBatchProcess();
 
-		MetadataSchemaType categoryType = getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(zeCollection).getSchemaType(Category.SCHEMA_TYPE);
-		LogicalSearchCondition searchCondition = from(categoryType)
-				.where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-		taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						getAppLayerFactory());
+
+				Category category = rm.wrapCategory(params.getRecord());
+				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(taxonomiesSearchFilter)
 				.has(numFoundAndListSize(2))
@@ -381,20 +384,41 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		//givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, false);
+		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, false);
+		waitForBatchProcess();
+
+		Transaction tx = new Transaction();
+
+		Category category = tx.add(rm.newCategoryWithId("zeCategoryWithoutChildren").setCode("ZeCategoryWithoutChildren")
+				.setTitle("ZeCategoryWithoutChildren").setRetentionRules(asList(records.ruleId_4)));
+
+		recordServices.execute(tx);
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).isNot(containingText("Z"))
-				.andWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return !id.contains("Z") && id.contains("2");
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(1))
-				.has(unlinkable(records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X))
-				.has(itemsWithChildren(records.categoryId_X));
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
-				.orWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return id.contains("Z") || id.contains("2");
+			}
+		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(2))
@@ -417,8 +441,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110, options)
 				.is(empty());
 
-		filter.setLinkableConceptsCondition(where(IDENTIFIER).is(containingText("Z"))
-				.andWhere(IDENTIFIER).isContainingText("2"));
+		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				String id = params.getRecord().getId();
+				return id.contains("Z") && id.contains("2");
+			}
+		});
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100, options)
 				.has(numFoundAndListSize(2))
@@ -1183,14 +1212,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(21)).has(listSize(20))
+				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
 						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(21)).has(listSize(20))
+				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -1198,7 +1227,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(31)).has(listSize(20))
+				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
@@ -1207,7 +1236,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
 						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(31)).has(listSize(20))
+				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -1216,7 +1245,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(42)).has(listSize(30))
+				.has(numFound(50)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
@@ -1384,17 +1413,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
+				.has(numFound(50)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30));
 
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
-						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
-						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 30));
+				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
+						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
+						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 31));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
 				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -1425,10 +1454,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_290", "category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(300)).has(listSize(11))
+				.has(resultsInOrder("category_291", "category_292", "category_293", "category_294", "category_295",
+						"category_296", "category_297", "category_298", "category_299", "category_300"))
+				.has(numFound(299)).has(listSize(10))
 				.has(fastContinuationInfos(true, 0));
 	}
 
@@ -1806,11 +1834,11 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 91, new ArrayList<String>())))
-				.has(resultsInOrder("category_91", "category_92", "category_93", "category_94", "category_95", "category_96",
-						"category_97", "category_98", "category_99", "category_100", "zeFolder1", "zeFolder2", "zeFolder3",
-						"zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10"))
-				.has(numFound(400)).has(listSize(20))
-				.has(fastContinuationInfos(true, 9, "zeFolder10"));
+				.has(resultsInOrder("category_92", "category_93", "category_94", "category_95", "category_96", "category_97",
+						"category_98", "category_99", "category_100", "zeFolder1", "zeFolder2", "zeFolder3", "zeFolder4",
+						"zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
+				.has(numFound(399)).has(listSize(20))
+				.has(fastContinuationInfos(true, 10, "zeFolder10"));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
 				.setFastContinueInfos(null))
@@ -2162,7 +2190,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		recordServices.execute(tx);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
 				.has(numFoundAndListSize(4))
@@ -2209,7 +2237,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setShowInvisibleRecordsInLinkingMode(false);
 
 		//		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
@@ -2257,7 +2285,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
@@ -2353,7 +2382,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		LinkableTaxonomySearchResponse response = service.getLinkableRootConceptResponse(
 				user, zeCollection, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
 
-		options.setHasChildrenFlagCalculated(false);
+		options.setHasChildrenFlagCalculated(NEVER);
 		if (options.getRows() == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 		}
@@ -2374,7 +2403,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
 		LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(
 				user, inRecord, CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE,
-				new TaxonomiesSearchOptions(options).setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(false));
+				new TaxonomiesSearchOptions(options).setStartRow(start).setRows(rows).setHasChildrenFlagCalculated(NEVER));
 
 		if (rows == 10000) {
 			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());

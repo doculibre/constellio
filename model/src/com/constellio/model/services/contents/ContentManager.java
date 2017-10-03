@@ -113,7 +113,7 @@ public class ContentManager implements StatefulService {
 	private final IcapService icapService;
 
 	private boolean serviceThreadEnabled = true;
-	
+
 	private final ConversionManager conversionManager;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
@@ -509,7 +509,8 @@ public class ContentManager implements StatefulService {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON));
+						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
+						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
 				if (!records.isEmpty()) {
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
@@ -623,6 +624,15 @@ public class ContentManager implements StatefulService {
 		query.setNumberOfRows(0);
 		query.addFieldFacet("collection_s");
 
+		StringBuilder flagsName = new StringBuilder();
+		for (Metadata metadata : flags) {
+			if (flagsName.length() > 0) {
+				flagsName.append(", ");
+			}
+			flagsName.append(metadata.getDataStoreCode());
+		}
+
+		query.setName("ContentManager:BackgroundThread:getCollectionsWithFlag(" + flagsName.toString() + ")");
 		SPEQueryResponse response = searchServices.query(query);
 
 		Set<String> collections = new HashSet<>();
@@ -723,7 +733,7 @@ public class ContentManager implements StatefulService {
 		params.set("fq", "contentMarkerHash_s:*");
 		params.set("rows", 50);
 
-		return recordDao.searchQuery(params);
+		return recordDao.searchQuery("ContentManager:BackgroundThread:getNextPotentiallyUnreferencedContentMarkers()", params);
 	}
 
 	public void reparse(String hash) {
