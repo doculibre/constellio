@@ -562,7 +562,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doReturn(transactionDTO).when(recordServices).createTransactionDTO(eq(transaction), anyList());
 		doReturn(transactionResponseDTO).when(recordDao).execute(transactionDTO);
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
 		recordServices.execute(transaction);
 
@@ -587,7 +587,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doReturn(transactionDTO).when(recordServices)
 				.createTransactionDTO(eq(transaction), anyList());
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).handleOptimisticLocking(any(TransactionDTO.class), any(Transaction.class),
 				any(RecordModificationImpactHandler.class), any(OptimisticLocking.class), anyInt());
 		RecordDaoException.OptimisticLocking exception = mock(RecordDaoException.OptimisticLocking.class);
@@ -647,7 +647,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 		transaction.add(record);
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
 		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
@@ -669,7 +669,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 		transaction.add(record);
 		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 
 		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
 
@@ -757,7 +757,8 @@ public class RecordServicesTest extends ConstellioTest {
 
 		List<Record> records = asList((Record) firstUpdatedRecord, firstAddedRecord, secondAddedRecord, secondUpdatedRecord);
 
-		recordServices.refreshRecordsAndCaches(zeCollection, records, transactionResponseDTO, metadataSchemaTypes);
+		recordServices.refreshRecordsAndCaches(zeCollection, records, transactionResponseDTO, metadataSchemaTypes,
+				new RecordProvider(recordServices));
 
 		verify(firstAddedRecord).markAsSaved(firstAddedRecordVersion, zeSchema.instance());
 		verify(secondAddedRecord).markAsSaved(secondAddedRecordVersion, zeSchema.instance());
@@ -796,7 +797,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		Transaction transaction = new Transaction();
 		transaction.update(zeRecord);
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(alreadyReindexedMetadata);
@@ -826,7 +827,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setRecordFlushing(recordsFlushing);
 
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
 				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
@@ -868,7 +869,7 @@ public class RecordServicesTest extends ConstellioTest {
 		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).getModificationImpacts(transaction,
 				false);
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
-				any(MetadataSchemaTypes.class));
+				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).prepareRecords(any(Transaction.class));
 		doNothing().when(recordServices).saveContentsAndRecords(any(Transaction.class),
 				any(RecordModificationImpactHandler.class), anyInt());

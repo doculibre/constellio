@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -18,12 +19,14 @@ import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.LinkableConceptFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
 import com.constellio.model.services.users.UserServices;
@@ -90,6 +93,18 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 
 		//taxonomiesSearchFilter.setLinkableConceptsCondition(searchCondition);
+
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						ConstellioFactories.getInstance().getAppLayerFactory());
+
+				Category category = rm.wrapCategory(params.getRecord());
+				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
+			}
+		});
 
 		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, Category.SCHEMA_TYPE, false, taxonomiesSearchFilter);
 	}
