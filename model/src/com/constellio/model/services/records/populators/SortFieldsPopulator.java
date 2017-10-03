@@ -5,6 +5,9 @@ import static java.util.Collections.singletonMap;
 import java.util.Collections;
 import java.util.Map;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,13 +19,24 @@ import com.constellio.model.services.records.FieldsPopulator;
 public class SortFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SortFieldsPopulator.class);
+	ModelLayerFactory modelLayerFactory;
 
-	public SortFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite) {
+	public SortFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite, ModelLayerFactory modelFactory) {
 		super(types, fullRewrite);
+		this.modelLayerFactory = modelFactory;
 	}
 
 	@Override
 	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
+
+		if(metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue() && value != null) {
+			try {
+				Record referencedRecord = modelLayerFactory.newRecordServices().getDocumentById((String) value);
+				return singletonMap(metadata.getLocalCode() + ".title_s", (Object) referencedRecord.getTitle());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
 		Metadata sortField = metadata.getSortField();
@@ -42,6 +56,5 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 		} else {
 			return Collections.emptyMap();
 		}
-
 	}
 }
