@@ -465,7 +465,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 .has(unlinkable(records.categoryId_X, records.categoryId_Z))
                 .has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
                 .has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-                .has(solrQueryCounts(2, 3, 3));
+                .has(solrQueryCounts(1, 3, 0));
 
         assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X, options)
                 .has(numFoundAndListSize(1))
@@ -1036,14 +1036,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 .has(resultsInOrder(records.categoryId_Z110))
                 .has(itemsWithChildren(records.categoryId_Z110))
                 .has(numFound(2)).has(listSize(1))
-                .has(solrQueryCounts(5, 3, 2));
+                .has(solrQueryCounts(3,3,0));
 
         assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z100,
                 new TaxonomiesSearchOptions().setStartRow(1).setRows(1))
                 .has(resultsInOrder(records.categoryId_Z120))
                 .has(noItemsWithChildren())
                 .has(numFound(2)).has(listSize(1))
-                .has(solrQueryCounts(6, 3, 2));
+                .has(solrQueryCounts(4,3,0));
     }
 
     @Test
@@ -1299,19 +1299,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 .has(resultsInOrder("categoryId_X110", "categoryId_X120", "B52", "A17", "A18", "C06"))
                 .has(itemsWithChildren("categoryId_X110", "categoryId_X120"))
                 .has(numFound(16)).has(listSize(6))
-                .has(solrQueryCounts(5, 7, 6));
+                .has(solrQueryCounts(4,7,4));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X100,
                 withWriteAccess.setStartRow(6).setRows(6))
                 .has(resultsInOrder("B06", "A48", "A49", "A50", "C32", "A85"))
                 .has(numFound(16)).has(listSize(6))
-                .has(solrQueryCounts(5, 13, 8));
+                .has(solrQueryCounts(4, 13, 6));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X100,
                 withWriteAccess.setStartRow(12).setRows(6))
                 .has(resultsInOrder("B32", "A86", "A87", "C52"))
                 .has(numFound(16)).has(listSize(4))
-                .has(solrQueryCounts(5, 17, 8));
+                .has(solrQueryCounts(4, 17, 6));
 
     }
 
@@ -1339,7 +1339,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 .has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
                         "category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-                //.has(numFound(25)).has(listSize(20))
+                .has(numFound(25)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
                 .has(solrQueryCounts(3, 50, 25));
 
@@ -1347,9 +1347,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 .has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
                         "category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-                //.has(numFound(25)).has(listSize(20))
+                .has(numFound(25)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
-                .has(solrQueryCounts(3, 50, 25));
+                .has(solrQueryCounts(2,50,0));
 
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1358,7 +1358,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(35)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(3, 50, 25));
+                .has(solrQueryCounts(3, 50, 10));
 
         //Calling with an different fast continue (simulating that one of the first ten record was not returned)
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -1368,7 +1368,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
                 .has(numFound(35)).has(listSize(20))
                 .has(fastContinuationInfos(false, 31))
-                .has(solrQueryCounts(3, 50, 25));
+                .has(solrQueryCounts(3, 50, 1));
 
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(30).setFastContinueInfos(null))
                 .has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1378,7 +1378,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(50)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(5, 75, 50));
+                .has(solrQueryCounts(4, 75, 14));
 
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
                 .setFastContinueInfos(null))
@@ -1387,7 +1387,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(302)).has(listSize(13))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(26, 302, 302));
+                .has(solrQueryCounts(24, 302, 252));
 
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1396,7 +1396,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(302)).has(listSize(13))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(2, 13, 13));
+                .has(solrQueryCounts(1, 13, 0));
 
         assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
@@ -1405,7 +1405,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(301)).has(listSize(12))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(2, 12, 12));
+                .has(solrQueryCounts(1, 12, 0));
     }
 
     @Test
@@ -1451,7 +1451,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
                 .has(numFound(40)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
-                .has(solrQueryCounts(6, 41, 40));
+                .has(solrQueryCounts(4,41,0));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1460,7 +1460,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(50)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(4, 41, 40));
+                .has(solrQueryCounts(4, 41, 10));
 
         //Calling with an different fast continue (simulating that one of the first ten record was not returned)
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
@@ -1470,7 +1470,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
                 .has(numFound(50)).has(listSize(20))
                 .has(fastContinuationInfos(false, 31))
-                .has(solrQueryCounts(4, 41, 40));
+                .has(solrQueryCounts(4, 41, 1));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
                 options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -1481,7 +1481,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(60)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(6, 61, 60));
+                .has(solrQueryCounts(5, 61, 9));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(null))
@@ -1490,7 +1490,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(23, 301, 300));
+                .has(solrQueryCounts(21, 301, 240));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1499,7 +1499,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(4, 12, 11));
+                .has(solrQueryCounts(3, 12, 0));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
@@ -1508,7 +1508,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300"))
                 .has(numFound(299)).has(listSize(10))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(4, 11, 10));
+                .has(solrQueryCounts(3, 11, 0));
     }
 
     @Test
@@ -1551,7 +1551,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
                 .has(numFound(40)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
-                .has(solrQueryCounts(6, 41, 40));
+                .has(solrQueryCounts(4, 41, 0));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1560,7 +1560,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(50)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(4, 41, 40));
+                .has(solrQueryCounts(4, 41, 10));
 
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
@@ -1569,7 +1569,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
 				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31)).has(solrQueryCounts(4, 41, 40));
+				.has(fastContinuationInfos(false, 31)).has(solrQueryCounts(4, 41, 1));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
                 options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -1580,7 +1580,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(60)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(6, 61, 60));
+                .has(solrQueryCounts(5, 61, 9));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(null))
@@ -1589,7 +1589,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(23, 301, 300));
+                .has(solrQueryCounts(21, 301, 240));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1598,7 +1598,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(4, 12, 11));
+                .has(solrQueryCounts(3,12,0));
 
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
@@ -1608,7 +1608,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"category_300"))
 				.has(numFound(299)).has(listSize(10))
 				.has(fastContinuationInfos(true, 0))
-	.has(solrQueryCounts(4, 11, 10));}
+	.has(solrQueryCounts(3, 11, 0));}
 
     @Test
     public void givenPlethoraOfRootAdministrativeUnitsThenValidGetRootResponse()
@@ -1673,7 +1673,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 "unit_180", "unit_182", "unit_184", "unit_186", "unit_188", "unit_190", "unit_192", "unit_194",
                 "unit_196", "unit_198", "unit_200"))
                 .has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-                .has(solrQueryCounts(2, 453, 303));
+                .has(solrQueryCounts(2, 453, 0));
     }
 
     @Test
@@ -1741,7 +1741,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                 "unit_180", "unit_182", "unit_184", "unit_186", "unit_188", "unit_190", "unit_192", "unit_194",
                 "unit_196", "unit_198", "unit_200"))
                 .has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-                .has(solrQueryCounts(2, 450, 300));
+                .has(solrQueryCounts(2, 450, 0));
     }
 
     @Test
@@ -1829,7 +1829,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder3", "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9))
-                .has(solrQueryCounts(15, 141, 120));
+                .has(solrQueryCounts(10,141,20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 90, new ArrayList<String>())))
@@ -1838,7 +1838,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9, "zeFolder10"))
-                .has(solrQueryCounts(6, 32, 30));
+                .has(solrQueryCounts(5, 32, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 91, new ArrayList<String>())))
@@ -1847,7 +1847,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
                 .has(numFound(399)).has(listSize(20))
                 .has(fastContinuationInfos(true, 10, "zeFolder10"))
-                .has(solrQueryCounts(6, 31, 29));
+                .has(solrQueryCounts(5, 31, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
                 .setFastContinueInfos(null))
@@ -1856,7 +1856,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9, "zeFolder10"))
-                .has(solrQueryCounts(15, 142, 120));
+                .has(solrQueryCounts(10, 142, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(91).setRows(20)
                 .setFastContinueInfos(null))
@@ -1865,7 +1865,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 10, "zeFolder10"))
-                .has(solrQueryCounts(15, 143, 120));
+                .has(solrQueryCounts(10, 143, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(100).setRows(20)
                 .setFastContinueInfos(null))
@@ -1874,7 +1874,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 18, "zeFolder10", "zeFolder20"))
-                .has(solrQueryCounts(15, 152, 120));
+                .has(solrQueryCounts(10, 152, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(true, 18, asList("zeFolder10", "zeFolder20"))))
@@ -1892,22 +1892,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20",
                         "zeFolder21", "zeFolder22", "zeFolder23", "zeFolder24", "zeFolder25"))
                 .has(numFound(400)).has(listSize(25))
-                .has(solrQueryCounts(13, 157, 125));
+                .has(solrQueryCounts(9, 157, 25));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(20)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(20))
-                .has(solrQueryCounts(15, 172, 120));
+                .has(solrQueryCounts(10, 172, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(40)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 192, 140));
+                .has(solrQueryCounts(7, 192, 40));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(360).setRows(40)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 372, 140));
+                .has(solrQueryCounts(7, 372, 40));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(360).setRows(40)
                 .setFastContinueInfos(null))
@@ -1918,7 +1918,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder288", "zeFolder289", "zeFolder290", "zeFolder291", "zeFolder292", "zeFolder293", "zeFolder294",
                         "zeFolder295", "zeFolder296", "zeFolder297", "zeFolder298", "zeFolder299", "zeFolder300"))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 372, 140));
+                .has(solrQueryCounts(7, 372, 40));
 
         assertThatIterationWithAndWithoutFastContinueGivesSameResults(records.categoryId_Z999, 20);
         assertThatIterationWithAndWithoutFastContinueGivesSameResults(records.categoryId_Z999, 1);
@@ -2007,7 +2007,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder3", "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9))
-                .has(solrQueryCounts(15, 141, 120));
+                .has(solrQueryCounts(10, 141, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 90, new ArrayList<String>())))
@@ -2016,7 +2016,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9, "zeFolder10"))
-                .has(solrQueryCounts(6, 32, 30));
+                .has(solrQueryCounts(5, 32, 20));
 
 		//Calling with an different fast continue (but don't cause any problem since using the cache)
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
@@ -2025,7 +2025,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"category_97", "category_98", "category_99", "category_100", "zeFolder1", "zeFolder2", "zeFolder3",
 						"zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
 				.has(numFound(399)).has(listSize(20))
-				.has(fastContinuationInfos(true, 10, "zeFolder10")).has(solrQueryCounts(6, 31, 29));
+				.has(fastContinuationInfos(true, 10, "zeFolder10")).has(solrQueryCounts(5, 31, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
                 .setFastContinueInfos(null))
@@ -2034,7 +2034,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 9, "zeFolder10"))
-                .has(solrQueryCounts(15, 142, 120));
+                .has(solrQueryCounts(10, 142, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(91).setRows(20)
                 .setFastContinueInfos(null))
@@ -2043,7 +2043,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
                 .has(numFound(400)).has(listSize(20))
                 .has(fastContinuationInfos(true, 10, "zeFolder10"))
-                .has(solrQueryCounts(15, 143, 120));
+                .has(solrQueryCounts(10, 143, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(100).setRows(20)
                 .setFastContinueInfos(null))
@@ -2051,7 +2051,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11", "zeFolder12", "zeFolder13",
                         "zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20"))
                 .has(numFound(400)).has(listSize(20)).has(fastContinuationInfos(true, 18, "zeFolder10", "zeFolder20"))
-                .has(solrQueryCounts(15, 152, 120));
+                .has(solrQueryCounts(10, 152, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(true, 18, asList("zeFolder10", "zeFolder20"))))
@@ -2069,22 +2069,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20",
                         "zeFolder21", "zeFolder22", "zeFolder23", "zeFolder24", "zeFolder25"))
                 .has(numFound(400)).has(listSize(25))
-                .has(solrQueryCounts(13, 157, 125));
+                .has(solrQueryCounts(9, 157, 25));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(20)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(20))
-                .has(solrQueryCounts(15, 172, 120));
+                .has(solrQueryCounts(10, 172, 20));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(120).setRows(40)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 192, 140));
+                .has(solrQueryCounts(7, 192, 40));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(360).setRows(40)
                 .setFastContinueInfos(null))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 372, 140));
+                .has(solrQueryCounts(7, 372, 40));
 
         assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(360).setRows(40)
                 .setFastContinueInfos(null))
@@ -2095,7 +2095,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
                         "zeFolder288", "zeFolder289", "zeFolder290", "zeFolder291", "zeFolder292", "zeFolder293", "zeFolder294",
                         "zeFolder295", "zeFolder296", "zeFolder297", "zeFolder298", "zeFolder299", "zeFolder300"))
                 .has(numFound(400)).has(listSize(40))
-                .has(solrQueryCounts(10, 372, 140));
+                .has(solrQueryCounts(7, 372, 40));
 
         assertThatIterationWithAndWithoutFastContinueGivesSameResults(records.categoryId_Z999, 20);
         assertThatIterationWithAndWithoutFastContinueGivesSameResults(records.categoryId_Z999, 1);
@@ -2319,7 +2319,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
         assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b)
                 .is(empty())
-                .has(solrQueryCounts(3, 1, 0));
+                .has(solrQueryCounts(2, 1, 0));
 
     }
 
@@ -2352,7 +2352,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
         assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b, withWriteAccess)
                 .is(empty())
-                .has(solrQueryCounts(3, 1, 0));
+                .has(solrQueryCounts(2, 1, 0));
 
     }
 

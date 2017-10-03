@@ -482,19 +482,19 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
                 .has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
                 .has(numFoundAndListSize(2))
-                .has(solrQueryCounts(1, 0, 2));
+                .has(solrQueryCounts(0,0,0));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 0, 1)
                 .has(recordsInOrder(records.categoryId_X))
                 .has(recordsWithChildren(records.categoryId_X))
                 .has(listSize(1)).has(numFound(2))
-                .has(solrQueryCounts(1, 0, 2));
+                .has(solrQueryCounts(0,0,0));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 1, 1)
                 .has(recordsInOrder(records.categoryId_Z))
                 .has(recordsWithChildren(records.categoryId_Z))
                 .has(listSize(1)).has(numFound(2))
-                .has(solrQueryCounts(1, 0, 2));
+                .has(solrQueryCounts(0,0,0));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
                 .has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
@@ -506,25 +506,25 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
                 .has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
                 .has(listSize(9)).has(numFound(9))
-                .has(solrQueryCounts(3, 7, 9));
+                .has(solrQueryCounts(2,7,7));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 7)
                 .has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
                 .has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
                 .has(listSize(7)).has(numFound(9))
-                .has(solrQueryCounts(3, 5, 7));
+                .has(solrQueryCounts(2,5,5));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 3)
                 .has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16"))
                 .has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16"))
                 .has(listSize(3)).has(numFound(9))
-                .has(solrQueryCounts(3, 1, 3));
+                .has(solrQueryCounts(2,1,1));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
                 .has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
                 .has(recordsWithChildren("categoryId_X120", "A16"))
                 .has(listSize(4)).has(numFound(9))
-                .has(solrQueryCounts(3, 3, 5));
+                .has(solrQueryCounts(2,3,3));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
                 .has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
@@ -910,7 +910,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
                 .has(numFound(40)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
-                .has(solrQueryCounts(3, 0, 40));
+                .has(solrQueryCounts(1,0,0));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -919,16 +919,17 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(40)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(3, 0, 40));
+                .has(solrQueryCounts(1,0,0));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
-		//Nothing changed since the service is using a cacheassertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
+		//Nothing changed since the service is using a cache
+        assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(40)).has(listSize(20))
-				.has(fastContinuationInfos(false, 30)).has(solrQueryCounts(3, 0, 40));
+				.has(fastContinuationInfos(false, 30)).has(solrQueryCounts(1,0,0));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
                 options.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -939,7 +940,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(60)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(3, 0, 60));
+                .has(solrQueryCounts(2,0,20));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(null))
@@ -948,7 +949,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(11, 0, 300));
+                .has(solrQueryCounts(9,0,240));
 
         assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -957,16 +958,17 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_300"))
                 .has(numFound(300)).has(listSize(11))
                 .has(fastContinuationInfos(true, 0))
-                .has(solrQueryCounts(11, 0, 300));
+                .has(solrQueryCounts(1,0,0));
 
-		//Calling with a bad fastContinueInfos, but no difference since the service is using a cacheassertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
+		//Calling with a bad fastContinueInfos, but no difference since the service is using a cache
+        assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
 				.has(numFound(300)).has(listSize(11))
 				.has(fastContinuationInfos(true, 0))
-	.has(solrQueryCounts(11, 0, 300));}
+	.has(solrQueryCounts(1,0,0));}
 
     @Test
     public void givenPlethoraOfRootCategoriesThenValidGetRootResponse()
@@ -1003,7 +1005,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
                 .has(numFound(100)).has(listSize(20))
                 .has(fastContinuationInfos(false, 20))
-                .has(solrQueryCounts(1, 0, 100));
+                .has(solrQueryCounts(0, 0, 0));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
                 .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1012,7 +1014,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(110)).has(listSize(20))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(1, 0, 100));
+                .has(solrQueryCounts(1, 0, 10));
 
         //Calling with an different fast continue (simulating that one of the first ten record was not returned)
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
@@ -1022,7 +1024,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
                 .has(numFound(110)).has(listSize(20))
                 .has(fastContinuationInfos(false, 31))
-                .has(solrQueryCounts(1, 0, 100));
+                .has(solrQueryCounts(1, 0, 1));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(0).setRows(30).setFastContinueInfos(null))
                 .has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1032,7 +1034,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
                 .has(numFound(100)).has(listSize(30))
                 .has(fastContinuationInfos(false, 30))
-                .has(solrQueryCounts(1, 0, 100));
+                .has(solrQueryCounts(0,0,0));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(null))
@@ -1041,7 +1043,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(302)).has(listSize(13))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(4, 0, 302));
+                .has(solrQueryCounts(3,0,191));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1050,7 +1052,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(302)).has(listSize(13))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(1, 0, 13));
+                .has(solrQueryCounts(0,0,0));
 
         assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
                 .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
@@ -1059,7 +1061,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                         "category_300", "categoryId_X", "categoryId_Z"))
                 .has(numFound(301)).has(listSize(12))
                 .has(fastContinuationInfos(true, 302))
-                .has(solrQueryCounts(1, 0, 12));
+                .has(solrQueryCounts(0,0,0));
     }
 
     private Folder newFolderInCategory(Category category, String title) {
