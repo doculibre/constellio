@@ -183,4 +183,5 @@ public class TaxonomiesSearchOptions {
 		this.showAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
+
 }
