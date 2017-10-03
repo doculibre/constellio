@@ -837,7 +837,7 @@ public class TaxonomiesSearchServices {
 		}
 
 		boolean linkable = LangUtils.isTrueOrNull(record.<Boolean>get(Schemas.LINKABLE));
-		if (linkable && options.getFilter().getLinkableConceptsFilter() != null) {
+		if (linkable && options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
 			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
 				@Override
 				public Record getRecord() {
