@@ -155,6 +155,14 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void editSynonyms() {
+		navigator.navigateTo(NavigatorConfigurationService.EDIT_SYNONYMS);
+	}
+
+	public void displaySynonyms() {
+		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_SYNONYMS);
+	}
+
 	public void simpleSearch(String queryExpression) {
 		navigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/" + queryExpression);
 	}
@@ -267,6 +275,10 @@ public class CoreViews {
 
 	public void shareContent(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
+	}
+
+	public void editElevation() {
+		navigator.navigateTo(NavigatorConfigurationService.EDIT_ELEVATION);
 	}
 
 	public void configManagement() {

@@ -36,6 +36,7 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchBoostManager;
+import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -345,6 +346,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return modelLayerFactory.getTaxonomiesSearchServicesCache();
+	}
+
+	@Override
+	public SearchConfigurationsManager getSearchConfigurationsManager() {
+		return modelLayerFactory.getSearchConfigurationsManager();
 	}
 
 	@Override

@@ -27,15 +27,15 @@ public class RecordDisplayFactory implements Serializable {
 		return new RecordDisplay(recordVO, componentFactory);
 	}
 
-	public SearchResultDisplay build(SearchResultVO searchResultVO) {
+	public SearchResultDisplay build(SearchResultVO searchResultVO, String query) {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		GetCustomResultDisplayParam param = new GetCustomResultDisplayParam(searchResultVO, componentFactory);
+		GetCustomResultDisplayParam param = new GetCustomResultDisplayParam(searchResultVO, componentFactory, query);
 
 		SearchResultDisplay searchResultDisplay = appLayerFactory.getExtensions()
 				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
 
 		if (searchResultDisplay == null) {
-			return new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory);
+			return new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query);
 		} else {
 			return searchResultDisplay;
 		}
