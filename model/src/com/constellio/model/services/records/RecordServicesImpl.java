@@ -95,6 +95,7 @@ import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
 import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -781,13 +782,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void refreshRecordsAndCaches(String collection, List<Record> records, TransactionResponseDTO transactionResponseDTO,
-			MetadataSchemaTypes types) {
+			MetadataSchemaTypes types, RecordProvider recordProvider) {
+
+		invalidateTaxonomiesCache(records, types, recordProvider);
 
 		List<Record> recordsToInsert = new ArrayList<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
 			Long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
 			if (version != null) {
+
 				MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
 				recordImpl.markAsSaved(version, schema);
@@ -796,6 +800,82 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 		insertInCache(collection, recordsToInsert);
 
+	}
+
+	private void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types, RecordProvider recordProvider) {
+
+		Set<String> idsWithPossibleNewChildren = new HashSet<>();
+		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
+		for (Record record : records) {
+
+			List<Metadata> metadatas = record.getModifiedMetadatas(types).only(new MetadataListFilter() {
+				@Override
+				public boolean isReturned(Metadata metadata) {
+					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+				}
+			});
+
+			for (Metadata metadata : metadatas) {
+				for (String newReference : record.<String>getValues(metadata)) {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(newReference, types, recordProvider));
+				}
+			}
+
+			if (record.isSaved() && !metadatas.isEmpty()) {
+				Record originalRecord = record.getCopyOfOriginalRecord();
+				for (Metadata metadata : metadatas) {
+					for (String removedReference : originalRecord.<String>getValues(metadata)) {
+						idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(removedReference, types, recordProvider));
+					}
+				}
+			}
+
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+				if (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+					idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				} else {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				}
+			}
+
+			if (record.isModified(Schemas.VISIBLE_IN_TREES)) {
+				if (Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+					idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				} else {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				}
+			}
+
+		}
+		for (String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
+			modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(idWithPossibleNewChildren);
+		}
+		for (String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
+			modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(idWithPossibleNewChildren);
+		}
+	}
+
+	private List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types, RecordProvider recordProvider) {
+		List<String> ids = new ArrayList<>();
+
+		Record record = recordProvider.getRecord(newReference);
+		if (record.isSaved()) {
+			ids.add(record.getId());
+			List<Metadata> metadatas = types.getSchema(record.getSchemaCode()).getMetadatas().only(new MetadataListFilter() {
+				@Override
+				public boolean isReturned(Metadata metadata) {
+					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+				}
+			});
+
+			for (Metadata metadata : metadatas) {
+				for (String aReference : record.<String>getValues(metadata)) {
+					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+				}
+			}
+
+		}
+		return ids;
 	}
 
 	void saveContentsAndRecords(Transaction transaction, RecordModificationImpactHandler modificationImpactHandler, int attempt)
@@ -839,7 +919,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 				modelFactory.newLoggingServices().logTransaction(transaction);
 				refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, transactionResponseDTO,
-						metadataSchemaTypes);
+						metadataSchemaTypes, newRecordProvider(null, transaction));
 
 				if (modificationImpactHandler != null) {
 					modificationImpactHandler.handle();

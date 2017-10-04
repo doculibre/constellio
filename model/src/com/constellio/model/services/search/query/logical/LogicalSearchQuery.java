@@ -1,5 +1,7 @@
 package com.constellio.model.services.search.query.logical;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +25,6 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
-
-import static java.util.Arrays.asList;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
@@ -62,6 +62,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
+	private String name;
+
 	public LogicalSearchQuery() {
 		numberOfRows = 100000;
 		startRow = 0;
@@ -77,6 +79,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery(LogicalSearchQuery query) {
+		name = query.name;
 		condition = query.condition;
 		queryCondition = query.queryCondition;
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
@@ -160,7 +163,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 
 		userFilters = new ArrayList<>();
-		for(String accessOrPermission: accessOrPermissions) {
+		for (String accessOrPermission : accessOrPermissions) {
 			userFilters.add(new UserFilter(user, accessOrPermission));
 		}
 
@@ -224,7 +227,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	public void clearSort() {
 		sortFields.clear();
 	}
-
 
 	public void clearFacets() {
 		fieldFacets.clear();
@@ -468,6 +470,15 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchCondition getQueryCondition() {
 		return queryCondition;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public LogicalSearchQuery setName(String name) {
+		this.name = name;
+		return this;
 	}
 
 	public static class UserFilter {

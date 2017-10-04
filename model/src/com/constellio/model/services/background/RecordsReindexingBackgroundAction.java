@@ -39,7 +39,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
 						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
 				query.setNumberOfRows(1000);
-
+				query.setName("BackgroundThread:RecordsReindexingBackgroundAction:getMarkedForReindexing()");
 				List<Record> records = searchServices.search(query);
 
 				if (!records.isEmpty()) {

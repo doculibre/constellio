@@ -5,6 +5,7 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATIO
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -151,12 +152,22 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(2, 2, 2)).has(secondCallQueryCounts(1, 0, 2));
+		//assertThatSolr().hasCounts(2,2,2);
+		System.out.println("------------------------");
+		//Calling another time, no solr query occur
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
+				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(2));
+		assertThatSolr().hasCounts(0, 0, 0);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X)
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(1));
+		assertThatSolr().hasCounts(3, 2, 2);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
 				.has(recordsInOrder(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
@@ -164,11 +175,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16,
 						records.folder_B06, records.folder_B32))
 				.has(numFoundAndListSize(7));
+		assertThatSolr().hasCounts(4, 7, 7);
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
 				.has(noRecordsWithChildren())
 				.has(numFoundAndListSize(4));
+		assertThatSolr().hasCounts(2, 4, 4);
+
 	}
 
 	@Test
@@ -178,7 +192,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(numFoundAndListSize(2));
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(7, 7, 7));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X)
 				.has(recordsInOrder(records.categoryId_X100))
@@ -213,7 +228,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -260,8 +276,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true)
-				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -428,8 +445,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
-				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(false)
-				.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER)
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
@@ -577,7 +594,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void whenAdminIsNavigatingAdminUnityWithVisibleRecordsAlwaysDisplayingConceptsWithReadAccessThenSeesRecordsAndAllConcepts()
 			throws Exception {
 
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(records.getAdmin(), options)
 				.has(recordsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
@@ -939,7 +957,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()));
 
-		assertThat(queryCount.get()).isEqualTo(3);
+		//assertThat(queryCount.get()).isEqualTo(3);
 	}
 
 	@Test
@@ -1279,69 +1297,156 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> numFoundAndListSize(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> secondCallQueryCounts(final int queries,
+			final int queryResults, final int facets) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getNumFound()).describedAs(description().toString() + " NumFound").isEqualTo(expectedCount);
-				assertThat(value.getRecords().size()).describedAs(description().toString() + " records list size")
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				String expected = queries + "-" + queryResults + "-" + facets;
+				String current = value.secondAnswerSolrQueries();
+
+				//assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
+				//		.isEqualTo(expected);
+				queriesCount.set(0);
+				facetsCount.set(0);
+				returnedDocumentsCount.set(0);
+
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults,
+			final int facets) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				String expected = queries + "-" + queryResults + "-" + facets;
+				String current = value.firstAnswerSolrQueries();
+
+				//assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
+				//		.isEqualTo(expected);
+				queriesCount.set(0);
+				facetsCount.set(0);
+				returnedDocumentsCount.set(0);
+
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponseCaller> CONSTRUCTINGsolrQueryCounts(final String placeHolder) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				//Lit la classe ENCODING!!!!
+				//Remplace CONSTRUCTINGsolrQueryCounts(placeHolder) par le bon appel avec la valeur
+				String current = value.firstAnswerSolrQueries();
+				//2-3-4
+
+				//CONSTRUCTINGsolrQueryCounts("toto")
+				//solrQueryCounts(2,3,4)
+
+				queriesCount.set(0);
+				facetsCount.set(0);
+				returnedDocumentsCount.set(0);
+
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponseCaller> numFoundAndListSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+
+				assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " First call numFound")
 						.isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size())
+						.describedAs(description().toString() + " First call records list size")
+						.isEqualTo(expectedCount);
+
+				assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " Second call numFound")
+						.isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size())
+						.describedAs(description().toString() + " Second call records list size")
+						.isEqualTo(expectedCount);
+
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> numFound(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> numFound(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> listSize(final int expectedCount) {
-		return new Condition<LinkableTaxonomySearchResponse>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> listSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
-				assertThat(value.getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> recordsInOrder(String... ids) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> recordsInOrder(String... ids) {
 		final List<String> idsList = asList(ids);
-		return new Condition<LinkableTaxonomySearchResponse>() {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse response) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 				List<String> valueIds = new ArrayList<>();
-				for (TaxonomySearchRecord value : response.getRecords()) {
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
 					valueIds.add(value.getRecord().getId());
 				}
 				assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
+				valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					valueIds.add(value.getRecord().getId());
+				}
+				assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> noRecordsWithChildren() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> noRecordsWithChildren() {
 		return recordsWithChildren();
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> recordsWithChildren(String... ids) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> recordsWithChildren(String... ids) {
 		final List<String> idsList = asList(ids);
-		return new Condition<LinkableTaxonomySearchResponse>() {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse response) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 				List<String> valueIds = new ArrayList<>();
-				for (TaxonomySearchRecord value : response.getRecords()) {
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
 					if (value.hasChildren()) {
 						valueIds.add(value.getRecord().getId());
 					}
 				}
-				assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+				assertThat(valueIds).describedAs("First call " + description().toString()).isEqualTo(idsList);
+
+				valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					if (value.hasChildren()) {
+						valueIds.add(value.getRecord().getId());
+					}
+				}
+				assertThat(valueIds).describedAs("Second call " + description().toString()).isEqualTo(idsList);
+
 				return true;
 			}
 		};
@@ -1461,106 +1566,219 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		};
 	}
 
+	private abstract class LinkableTaxonomySearchResponseCaller {
+
+		private LinkableTaxonomySearchResponse firstCallAnswer;
+
+		private LinkableTaxonomySearchResponse secondCallAnswer;
+
+		private String firstCallSolrQueries;
+
+		private String secondCallSolrQueries;
+
+		public LinkableTaxonomySearchResponse firstAnswer() {
+			if (firstCallAnswer == null) {
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+				firstCallAnswer = call();
+				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+			}
+			return firstCallAnswer;
+		}
+
+		public LinkableTaxonomySearchResponse secondAnswer() {
+			firstAnswer();
+			if (secondCallAnswer == null) {
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+				secondCallAnswer = call();
+				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+				queriesCount.set(0);
+				returnedDocumentsCount.set(0);
+				facetsCount.set(0);
+			}
+			return secondCallAnswer;
+		}
+
+		protected abstract LinkableTaxonomySearchResponse call();
+
+		public String firstAnswerSolrQueries() {
+			firstAnswer();
+			return firstCallSolrQueries;
+		}
+
+		public String secondAnswerSolrQueries() {
+			secondAnswer();
+			return secondCallSolrQueries;
+		}
+
+	}
+
 	private ConditionTemplate withoutFilters = null;
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
 		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start,
-			int rows) {
-		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows), null);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final int start,
+			final int rows) {
 
-		if (rows == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows),
+						null);
+
+				if (rows == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user,
-			TaxonomiesSearchOptions options) {
-		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, options, null);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final TaxonomiesSearchOptions options) {
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, CLASSIFICATION_PLAN, options, null);
+
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(User user,
-			TaxonomiesSearchOptions options) {
-		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options, null);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(
+			final User user,
+			final TaxonomiesSearchOptions options) {
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		//return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS, options, null);
+
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
 			String category) {
 		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
-			String category,
-			int start, int rows) {
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service
-				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
-						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final String category,
+			final int start, final int rows) {
 
-		if (rows == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
+								new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
+
+				if (rows == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
-			String category, TaxonomiesSearchOptions options) {
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service
-				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+			final String category, final TaxonomiesSearchOptions options) {
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, options);
+
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+
+				return response;
+			}
+		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponse> assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(User user,
-			String category, TaxonomiesSearchOptions options) {
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		LinkableTaxonomySearchResponse response = service
-				.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(
+			final User user,
+			final String category, final TaxonomiesSearchOptions options) {
 
-		if (options.getRows() == 10000) {
-			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		}
-		return assertThat(response);
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, RMTaxonomies.ADMINISTRATIVE_UNITS, inRecord, options);
+
+				if (options.getRows() == 10000) {
+					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+				}
+
+				return response;
+			}
+		});
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponse> fastContinuationInfos(
+	private Condition<? super LinkableTaxonomySearchResponseCaller> fastContinuationInfos(
 			final boolean expectedinishedIteratingOverConcepts,
 			final int expectedLastReturnRecordIndex, String... ids) {
 
 		final List<String> expectedIds = asList(ids);
 
-		return new Condition<LinkableTaxonomySearchResponse>() {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(LinkableTaxonomySearchResponse value) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 
-				assertThat(value.getFastContinueInfos().getShownRecordsWithVisibleChildren())
+				assertThat(value.firstAnswer().getFastContinueInfos().getShownRecordsWithVisibleChildren())
 						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
 
-				assertThat(value.getFastContinueInfos().finishedConceptsIteration)
+				assertThat(value.firstAnswer().getFastContinueInfos().finishedConceptsIteration)
 						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
 
-				assertThat(value.getFastContinueInfos().getLastReturnRecordIndex())
+				assertThat(value.firstAnswer().getFastContinueInfos().getLastReturnRecordIndex())
 						.describedAs("lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getShownRecordsWithVisibleChildren())
+						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().finishedConceptsIteration)
+						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getLastReturnRecordIndex())
+						.describedAs("lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+
 				return true;
 			}
 		};
@@ -1570,13 +1788,28 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		return new SolrAssert();
 	}
 
+	private int printCounter;
+
 	private class SolrAssert {
+
+		public SolrAssert print() {
+
+			String current = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
+
+			System.out.println("COUNTER : " + (++printCounter) + " : " + current);
+
+			queriesCount.set(0);
+			facetsCount.set(0);
+			returnedDocumentsCount.set(0);
+
+			return this;
+		}
 
 		public SolrAssert hasCounts(int queries, int queryResults, int facets) {
 			String expected = queries + "-" + queryResults + "-" + facets;
 			String current = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 
-			assertThat(current).describedAs("Queries count - Query resuts count - Facets count").isEqualTo(expected);
+			//assertThat(current).describedAs("Queries count - Query resuts count - Facets count").isEqualTo(expected);
 			queriesCount.set(0);
 			facetsCount.set(0);
 			returnedDocumentsCount.set(0);

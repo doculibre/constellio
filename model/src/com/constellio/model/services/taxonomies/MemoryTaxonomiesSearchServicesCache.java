@@ -76,6 +76,14 @@ public class MemoryTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		}
 	}
 
+	/**
+	 * For test purposes
+	 */
+	public Map<String, Map<String, Boolean>> getMemoryCache(String id) {
+		TaxonomyRecordCache recordCache = cache.get(id);
+		return recordCache == null ? new HashMap<String, Map<String, Boolean>>() : recordCache.userModesCache;
+	}
+
 	private static class TaxonomyRecordCache {
 
 		Map<String, Map<String, Boolean>> userModesCache = new HashMap<>();

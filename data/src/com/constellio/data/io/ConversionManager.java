@@ -150,38 +150,46 @@ public class ConversionManager implements StatefulService {
 		"pct", "ppm", "sgf"
 	};
 	
-	public static String[] SUPPORTED_EXTENSIONS;
+	public static String[] SUPPORTED_EXTENSIONS = new String[0];
+	
+	private static boolean openOfficeOrLibreOfficeInstalled = false;
 	
 	static {
-		OfficeManager officeManager = LocalOfficeManager.install();
-		OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-		List<String> supportedExtensionsList = new ArrayList<>();
-		for (int i = 0; i < TEXT_EXTENSIONS.length; i++) {
-			DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(TEXT_EXTENSIONS[i]);
-			if (documentFormat != null) {
-				supportedExtensionsList.add(TEXT_EXTENSIONS[i]);
+		try {
+			OfficeManager officeManager = LocalOfficeManager.install();
+			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+			List<String> supportedExtensionsList = new ArrayList<>();
+			for (int i = 0; i < TEXT_EXTENSIONS.length; i++) {
+				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(TEXT_EXTENSIONS[i]);
+				if (documentFormat != null) {
+					supportedExtensionsList.add(TEXT_EXTENSIONS[i]);
+				}
 			}
-		}
-		for (int i = 0; i < SPREADSHEET_EXTENSIONS.length; i++) {
-			DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(SPREADSHEET_EXTENSIONS[i]);
-			if (documentFormat != null) {
-				supportedExtensionsList.add(SPREADSHEET_EXTENSIONS[i]);
+			for (int i = 0; i < SPREADSHEET_EXTENSIONS.length; i++) {
+				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(SPREADSHEET_EXTENSIONS[i]);
+				if (documentFormat != null) {
+					supportedExtensionsList.add(SPREADSHEET_EXTENSIONS[i]);
+				}
 			}
-		}
-		for (int i = 0; i < PRESENTATION_EXTENSIONS.length; i++) {
-			DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(PRESENTATION_EXTENSIONS[i]);
-			if (documentFormat != null) {
-				supportedExtensionsList.add(PRESENTATION_EXTENSIONS[i]);
+			for (int i = 0; i < PRESENTATION_EXTENSIONS.length; i++) {
+				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(PRESENTATION_EXTENSIONS[i]);
+				if (documentFormat != null) {
+					supportedExtensionsList.add(PRESENTATION_EXTENSIONS[i]);
+				}
 			}
-		}
-		for (int i = 0; i < DRAWING_EXTENSIONS.length; i++) {
-			DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(DRAWING_EXTENSIONS[i]);
-			if (documentFormat != null) {
-				supportedExtensionsList.add(DRAWING_EXTENSIONS[i]);
+			for (int i = 0; i < DRAWING_EXTENSIONS.length; i++) {
+				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(DRAWING_EXTENSIONS[i]);
+				if (documentFormat != null) {
+					supportedExtensionsList.add(DRAWING_EXTENSIONS[i]);
+				}
 			}
+			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
+			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS)); 
+			openOfficeOrLibreOfficeInstalled = true;
+		} catch (Throwable t) {
+			LOGGER.error("OpenOffice or LibreOffice not installed", t); 
+			openOfficeOrLibreOfficeInstalled = false;
 		}
-		SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
-		LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS)); 
 	}
 	
 	public static int BASE_PORT = 2002;
@@ -199,12 +207,16 @@ public class ConversionManager implements StatefulService {
 		this.onlineConversionUrl = onlineConversionUrl;
 	}
 	
+	public boolean isOpenOfficeOrLibreOfficeInstalled() {
+		return openOfficeOrLibreOfficeInstalled;
+	}
+	
 	@Override
 	public void initialize() {
 	}
 	
 	private synchronized void ensureInitialized() {
-		if (executor == null) {
+		if (openOfficeOrLibreOfficeInstalled && executor == null) {
 			executor = newFixedThreadPool(numberOfProcesses);
 			
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
@@ -302,21 +314,23 @@ public class ConversionManager implements StatefulService {
 	}
 
 	private void convertToPDF(File input, File output) throws OfficeException {
-		ensureInitialized();
-		
-		OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-		DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
-		DocumentFormat outputFormat = toPDFa(input);
-		if (outputFormat == null) {
-			outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
+		if (openOfficeOrLibreOfficeInstalled) {
+			ensureInitialized();
+			
+			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
+			DocumentFormat outputFormat = toPDFa(input);
+			if (outputFormat == null) {
+				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
+			}
+			
+		    delegate
+		        .convert(input)
+		        .as(inputFormat)
+		        .to(output)
+		        .as(outputFormat)
+		        .execute();
 		}
-		
-	    delegate
-	        .convert(input)
-	        .as(inputFormat)
-	        .to(output)
-	        .as(outputFormat)
-	        .execute();
 	}
 
 	/**

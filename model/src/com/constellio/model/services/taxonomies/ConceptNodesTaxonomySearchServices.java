@@ -98,6 +98,7 @@ public class ConceptNodesTaxonomySearchServices {
 		}
 
 		query.sortAsc(CODE).sortAsc(TITLE);
+		query.setName("TaxonomiesSearchServices.getRootConcepts(" + taxonomyCode + ")");
 		return query;
 	}
 
@@ -162,14 +163,14 @@ public class ConceptNodesTaxonomySearchServices {
 	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy, TaxonomiesSearchOptions options,
 			MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
-
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
 				.sortAsc(CODE).sortAsc(TITLE)
 				.setReturnedMetadatas(
-						returnedMetadatasForRecordsIn(record.getCollection(), options, types));
+						returnedMetadatasForRecordsIn(record.getCollection(), options, types))
+				.setName("TaxonomySearchServices:getChildConcepts(" + taxonomy + ", " + record + ")");
 	}
 
 	OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {

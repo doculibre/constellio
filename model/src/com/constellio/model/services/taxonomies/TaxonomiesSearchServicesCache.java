@@ -1,6 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
 public interface TaxonomiesSearchServicesCache {
+
 	void insert(String username, String recordId, String mode, Boolean value);
 
 	void invalidateAll();

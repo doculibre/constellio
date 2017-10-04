@@ -799,7 +799,7 @@ public class BigVaultRecordDao implements RecordDao {
 		params.set("fq", ID_FIELD + ":" + id);
 		params.set("q", "*:*");
 
-		RecordDTO entity = querySingleDocument(params);
+		RecordDTO entity = querySingleDocument("getById:" + id, params);
 		if (entity == null) {
 			throw new RecordDaoException.NoSuchRecordWithId(id);
 		} else {
@@ -844,9 +844,9 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public QueryResponse nativeQuery(SolrParams params) {
+	public QueryResponse nativeQuery(String queryName, SolrParams params) {
 		try {
-			QueryResponse response = bigVaultServer.query(params);
+			QueryResponse response = bigVaultServer.query(queryName, params);
 			dataLayerLogger.logQueryResponse(params, response);
 			return response;
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
@@ -855,14 +855,14 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public List<RecordDTO> searchQuery(SolrParams params) {
-		return query(params).getResults();
+	public List<RecordDTO> searchQuery(String queryName, SolrParams params) {
+		return query(queryName, params).getResults();
 	}
 
-	private RecordDTO querySingleDocument(ModifiableSolrParams params) {
+	private RecordDTO querySingleDocument(String queryName, ModifiableSolrParams params) {
 		QueryResponse response = null;
 		try {
-			response = bigVaultServer.query(params);
+			response = bigVaultServer.query(queryName, params);
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
 			throw new BigVaultRuntimeException.CannotQuerySingleDocument(e);
 		}
@@ -875,8 +875,8 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	public QueryResponseDTO query(SolrParams params) {
-		QueryResponse response = nativeQuery(params);
+	public QueryResponseDTO query(String queryName, SolrParams params) {
+		QueryResponse response = nativeQuery(queryName, params);
 
 		List<RecordDTO> documents = new ArrayList<RecordDTO>();
 		SolrDocumentList solrDocuments = response.getResults();
@@ -1395,4 +1395,18 @@ public class BigVaultRecordDao implements RecordDao {
 		bigVaultServer.expungeDeletes();
 	}
 
+	@Override
+	public List<RecordDTO> searchQuery(SolrParams params) {
+		return searchQuery(null, params);
+	}
+
+	@Override
+	public QueryResponseDTO query(SolrParams params) {
+		return query(null, params);
+	}
+
+	@Override
+	public QueryResponse nativeQuery(SolrParams params) {
+		return nativeQuery(null, params);
+	}
 }
