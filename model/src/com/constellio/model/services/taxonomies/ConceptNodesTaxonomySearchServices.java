@@ -94,7 +94,9 @@ public class ConceptNodesTaxonomySearchServices {
 		if (!useCache) {
 			query.setStartRow(options.getStartRow());
 			query.setNumberOfRows(options.getRows());
-			query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));
+			if (options.getFilter() == null || options.getFilter().getLinkableConceptsFilter() == null) {
+				query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection, options));
+			}
 		}
 
 		query.sortAsc(CODE).sortAsc(TITLE);
