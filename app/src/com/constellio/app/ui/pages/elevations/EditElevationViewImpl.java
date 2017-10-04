@@ -147,6 +147,4 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
             addOneItemToTableAndSetValue(docElevation, SPACES_8 + editElevationPresenter.getRecordTitle(docElevation.getId()));
         }
     }
-
-
 }
