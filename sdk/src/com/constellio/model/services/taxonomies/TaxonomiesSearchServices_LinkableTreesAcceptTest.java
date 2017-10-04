@@ -1262,7 +1262,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(unlinkable(subFolderNearEnd.getParentFolder()))
 				.has(solrQueryCounts(4, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(5);
+		assertThat(queryCount.get()).isEqualTo(9);
 	}
 
 	@Test
@@ -3073,14 +3073,16 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(
 			final String category, final TaxonomiesSearchOptions options) {
-		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+		LinkableTaxonomySearchResponseCaller caller = (LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
 				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
 				return service.getLinkableChildConceptResponse(alice, inRecord,
 						CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
 			}
-		});
+		};
+		caller.firstAnswer();
+		return assertThat(caller);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy() {
@@ -3116,7 +3118,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(
 			final String category, final TaxonomiesSearchOptions taxonomiesSearchOptions) {
-		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+		LinkableTaxonomySearchResponseCaller caller = (LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
@@ -3124,7 +3126,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				return service.getLinkableChildConceptResponse(alice, inRecord, CLASSIFICATION_PLAN,
 						Category.SCHEMA_TYPE, taxonomiesSearchOptions);
 			}
-		});
+		};
+		caller.firstAnswer();
+		return assertThat(caller);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingAFolderUsingUnitTaxonomy() {
@@ -3226,13 +3230,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 
 				assertThat(value.firstAnswer().getFastContinueInfos().getShownRecordsWithVisibleChildren())
-						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
+						.describedAs("first answer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
 
 				assertThat(value.firstAnswer().getFastContinueInfos().finishedConceptsIteration)
-						.describedAs("notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
+						.describedAs("first answer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
 
 				assertThat(value.firstAnswer().getFastContinueInfos().getLastReturnRecordIndex())
-						.describedAs("lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+						.describedAs("first answer lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getShownRecordsWithVisibleChildren())
+						.describedAs("second answer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().finishedConceptsIteration)
+						.describedAs("second answer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getLastReturnRecordIndex())
+						.describedAs("second answer lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
 				return true;
 			}
 		};

@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.sdk.tests.annotations.UiTest;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
@@ -960,32 +961,32 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		//assertThat(queryCount.get()).isEqualTo(3);
 	}
 
-	@Test
-	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
-			throws Exception {
-
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
-		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
-
-		Transaction transaction = new Transaction();
-		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
-
-		for (int i = 1; i <= 300; i++) {
-			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
-			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
-					.setTitle("Category #" + code).setParent(rootCategory);
-			transaction.add(rm.newFolder().setTitle("A folder")
-					.setCategoryEntered(category)
-					.setRetentionRuleEntered(records.ruleId_1)
-					.setAdministrativeUnitEntered(records.unitId_10a)
-					.setOpenDate(new LocalDate(2014, 11, 1)));
-		}
-		transaction.add(rootCategory);
-		getModelLayerFactory().newRecordServices().execute(transaction);
-
-		newWebDriver();
-		waitUntilICloseTheBrowsers();
-	}
+//	@Test
+//	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
+//			throws Exception {
+//
+//		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+//		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+//
+//		Transaction transaction = new Transaction();
+//		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
+//
+//		for (int i = 1; i <= 300; i++) {
+//			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+//			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+//					.setTitle("Category #" + code).setParent(rootCategory);
+//			transaction.add(rm.newFolder().setTitle("A folder")
+//					.setCategoryEntered(category)
+//					.setRetentionRuleEntered(records.ruleId_1)
+//					.setAdministrativeUnitEntered(records.unitId_10a)
+//					.setOpenDate(new LocalDate(2014, 11, 1)));
+//		}
+//		transaction.add(rootCategory);
+//		getModelLayerFactory().newRecordServices().execute(transaction);
+//
+//		newWebDriver();
+//		waitUntilICloseTheBrowsers();
+//	}
 
 	@Test
 	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()

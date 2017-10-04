@@ -839,7 +839,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 .has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
                 .has(solrQueryCounts(3, 1, 2));
 
-        assertThat(queryCount.get()).isEqualTo(3);
+        assertThat(queryCount.get()).isEqualTo(5);
     }
 
     @Test
@@ -1103,8 +1103,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
         return new Condition<LinkableTaxonomySearchResponseCaller>() {
             @Override
             public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-                assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound").isEqualTo(expectedCount);
-                assertThat(value.firstAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
+                assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound on first call").isEqualTo(expectedCount);
+                assertThat(value.firstAnswer().getRecords().size()).describedAs(description().toString() + " records list size on first call")
+                        .isEqualTo(expectedCount);
+
+                assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " NumFound on second call").isEqualTo(expectedCount);
+                assertThat(value.secondAnswer().getRecords().size()).describedAs(description().toString() + " records list size on second call")
                         .isEqualTo(expectedCount);
                 return true;
             }
@@ -1115,7 +1119,9 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
         return new Condition<LinkableTaxonomySearchResponseCaller>() {
             @Override
             public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-                assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+                assertThat(value.firstAnswer().getNumFound()).describedAs("first call NumFound").isEqualTo(expectedCount);
+
+                assertThat(value.secondAnswer().getNumFound()).describedAs("second call NumFound").isEqualTo(expectedCount);
                 return true;
             }
         };
@@ -1125,7 +1131,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
         return new Condition<LinkableTaxonomySearchResponseCaller>() {
             @Override
             public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-                assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+                assertThat(value.firstAnswer().getRecords().size()).describedAs("first call records list size").isEqualTo(expectedCount);
+                assertThat(value.secondAnswer().getRecords().size()).describedAs("second call records list size").isEqualTo(expectedCount);
                 return true;
             }
         };
@@ -1141,6 +1148,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                     valueIds.add(value.getRecord().getId());
                 }
                 assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
+                List<String> valueIds1 = new ArrayList<>();
+                for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+                    valueIds1.add(value.getRecord().getId());
+                }
+                assertThat(valueIds1).describedAs(description().toString()).isEqualTo(idsList);
                 return true;
             }
         };
@@ -1159,6 +1172,14 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
                     if (value.hasChildren()) {
                         valueIds.add(value.getRecord().getId());
+                    }
+                }
+                assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
+
+                List<String> valueIdsSecondCall = new ArrayList<>();
+                for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+                    if (value.hasChildren()) {
+                        valueIdsSecondCall.add(value.getRecord().getId());
                     }
                 }
                 assertThat(valueIds).describedAs(description().toString()).isEqualTo(idsList);
@@ -1220,6 +1241,55 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
                 });
 
                 assertThat(actualRecords).isEqualTo(recordsInExpectedOrder);
+
+                List<Record> actualRecordsSecondCall = new ArrayList<>();
+                List<Record> recordsInExpectedOrderSecondCall = new ArrayList<>();
+
+                for (TaxonomySearchRecord value : values) {
+                    actualRecordsSecondCall.add(value.getRecord());
+                    recordsInExpectedOrderSecondCall.add(value.getRecord());
+                }
+
+                final List<String> typesOrderSecondCall = asList(Category.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+                        ContainerRecord.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE);
+
+                Collections.sort(recordsInExpectedOrder, new Comparator<Record>() {
+                    @Override
+                    public int compare(Record r1, Record r2) {
+
+                        int r1TypeIndex = typesOrderSecondCall.indexOf(new SchemaUtils().getSchemaTypeCode(r1.getSchemaCode()));
+                        int r2TypeIndex = typesOrderSecondCall.indexOf(new SchemaUtils().getSchemaTypeCode(r2.getSchemaCode()));
+
+                        if (r1TypeIndex != r2TypeIndex) {
+                            return new Integer(r1TypeIndex).compareTo(r2TypeIndex);
+
+                        } else {
+                            String code1 = r1.get(Schemas.CODE);
+                            String code2 = r2.get(Schemas.CODE);
+                            if (code1 != null && code2 != null) {
+                                return code1.compareTo(code2);
+
+                            } else if (code1 != null && code2 == null) {
+                                return 1;
+                            } else if (code1 == null && code2 != null) {
+                                return -1;
+                            } else {
+
+                                String title1 = r1.get(Schemas.TITLE);
+                                String title2 = r2.get(Schemas.TITLE);
+                                if (title1 == null) {
+                                    return -1;
+                                } else {
+                                    return title1.compareTo(title2);
+                                }
+                            }
+
+                        }
+
+                    }
+                });
+
+                assertThat(actualRecordsSecondCall).isEqualTo(recordsInExpectedOrderSecondCall);
                 return true;
             }
         };
