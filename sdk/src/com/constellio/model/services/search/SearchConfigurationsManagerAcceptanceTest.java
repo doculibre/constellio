@@ -65,13 +65,82 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void clearElevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
-
-
+    public void setElevationAndExlusionAndThenRemoveQuery() {
         LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
         LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
         logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
+        List<Record> recordList = searchServices.search(logicalSearchQuery);
+
+        Record record0 = recordList.get(3);
+        Record excludedRecord1 = recordList.get(2);
+        Record excludedRecord2 = recordList.get(0);
+
+
+
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
+    }
+
+    @Test
+    public void setElevatedAndExclutionThenRemoveAllExclusion() {
+        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+
+        List<Record> recordList = searchServices.search(logicalSearchQuery);
+
+        Record record0 = recordList.get(3);
+        Record excludedRecord1 = recordList.get(2);
+        Record excludedRecord2 = recordList.get(0);
+
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
+
+        searchConfigurationsManager.removeQuery(ELEVATED_KEY_1);
+
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord1)).isFalse();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord2)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord1)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord2)).isFalse();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+    }
+
+    @Test
+    public void setElevatedAndExclusionThenRemoveAllElevation() {
+        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+
+        List<Record> recordList = searchServices.search(logicalSearchQuery);
+
+        Record record0 = recordList.get(3);
+        Record record1 = recordList.get(2);
+        Record excludeRecord = recordList.get(0);
+
+
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record1, false);
+        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+
+        searchConfigurationsManager.removeAllElevation(ELEVATED_KEY_1);
+
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record1)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record1)).isFalse();
+
+        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+    }
+
+    @Test
+    public void elevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
+        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
         List<Record> recordList = searchServices.search(logicalSearchQuery);
 

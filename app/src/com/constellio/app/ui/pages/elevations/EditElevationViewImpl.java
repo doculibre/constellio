@@ -5,15 +5,21 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.search.Elevations;
-import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EditElevationViewImpl extends BaseViewImpl implements EditElevationView {
     EditElevationPresenter editElevationPresenter;
@@ -25,8 +31,10 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
     public static final String INFORMATION = "information";
     public static final String EXCLUDED = "-Excluded";
     public static final String RAISED = "-Raised";
-    public static final String SPACE_4 = "    ";
-    public static final String SPACES_8 = "        ";
+    public static final String SPACE_4 = "&nbsp;&nbsp;&nbsp;&nbsp;";
+    public static final String SPACES_8 = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+    Map<Integer, Object> containerMapperWithElevationObject = new HashMap<>();
 
 
     public EditElevationViewImpl() {
@@ -40,46 +48,64 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         indexedContainer = new IndexedContainer();
         buttonsContainer = new ButtonsContainer(indexedContainer);
 
-        indexedContainer.addContainerProperty(INFORMATION, String.class, null);
+        indexedContainer.addContainerProperty(INFORMATION, Label.class, null);
 
         baseTable = new BaseTable(EditElevationViewImpl.class.getName());
-
-        baseTable.setSizeFull();
+        baseTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+        baseTable.setColumnHeader(INFORMATION, $("EditElevationViewImpl.query"));
         baseTable.setContainerDataSource(buttonsContainer);
-
+        baseTable.setSizeFull();
+        baseTable.setSortEnabled(false);
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DisplayButton() {
+                DisplayButton displayButton = new DisplayButton() {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                         Integer index = (Integer) itemId;
 
-//                        RecordVO entity = buttonsContainer.getRecordVO(index);
-
-
-//                        presenter.displayButtonClicked(entity);
+                        Object containedObject = containerMapperWithElevationObject.get(index);
+                        if(containedObject instanceof Elevations.QueryElevation.DocElevation){
+                            Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
+                            editElevationPresenter.deleteDocElevation(docElevation);
+                        } else if (containedObject instanceof String) {
+                            String containedObjectString = (String) containedObject;
+                            String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
+                            if(informationValue.equals(SPACE_4 + $("EditElevationViewImpl.exclud"))) {
+                                editElevationPresenter.deleteAllExclution(containedObjectString);
+                            }
+                            else if (informationValue.equals(SPACE_4 + $("EditElevationViewImpl.raise"))) {
+                                editElevationPresenter.deleteAllElevation(containedObjectString);
+                            } else {
+                                editElevationPresenter.deleteQuery(containedObjectString);
+                            }
+                        }
+                        navigateTo().editElevation();
                     }
                 };
+                displayButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
+
+                return displayButton;
             }
         });
 
         for(String query : editElevationPresenter.getAllQuery()) {
-            Item queryItem = baseTable.addItem(query);
 
-            Item excludedLineItem = baseTable.addItem(query + EXCLUDED);
-
-            baseTable.getContainerProperty(queryItem, INFORMATION).setValue(query);
-
-            baseTable.getContainerProperty(excludedLineItem, INFORMATION).setValue(SPACE_4 + excludedLineItem);
+            addOneItemToTableAndSetValue(query, query);
+            baseTable.setColumnExpandRatio(INFORMATION, 1);
+            baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID,  60);
 
             List<Elevations.QueryElevation.DocElevation> docExcluded = editElevationPresenter.getExclusions(query);
-
-            addItemsToTable(query, docExcluded);
+            if(docExcluded.size() > 0) {
+                addOneItemToTableAndSetValue(query, SPACE_4 + $("EditElevationViewImpl.exclud"));
+                addItemsToTable(query, docExcluded);
+            }
 
             List<Elevations.QueryElevation.DocElevation> docElevations = editElevationPresenter.getElevations(query);
-
-            addItemsToTable(query, docElevations);
+            if(docElevations.size() > 0) {
+                addOneItemToTableAndSetValue(query, SPACE_4 + $("EditElevationViewImpl.raise"));
+                addItemsToTable(query, docElevations);
+            }
         }
 
         verticalLayout.addComponent(baseTable);
@@ -88,13 +114,20 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         return verticalLayout;
     }
 
+    private void addOneItemToTableAndSetValue(Object valueToAdd, String value) {
+        Object addedItemNumber = baseTable.addItem();
+
+        containerMapperWithElevationObject.put((Integer)addedItemNumber, valueToAdd);
+        Label label = new Label(value);
+        label.setContentMode(ContentMode.HTML);
+        baseTable.getContainerProperty(addedItemNumber, INFORMATION).setValue(label);
+    }
+
     private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docExcluded) {
         for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docExcluded.iterator(); iterator.hasNext();) {
             Elevations.QueryElevation.DocElevation docElevation = iterator.next();
             docElevation.setQuery(query);
-            Item lineItem = baseTable.addItem(docElevation.getId());
-
-            baseTable.getContainerProperty(lineItem, INFORMATION).setValue(docElevation.getId());
+            addOneItemToTableAndSetValue(docElevation, SPACES_8 + editElevationPresenter.getRecordTitle(docElevation.getId()));
         }
     }
 

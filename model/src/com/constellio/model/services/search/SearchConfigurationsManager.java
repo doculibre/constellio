@@ -106,6 +106,80 @@ public class SearchConfigurationsManager {
 		return found;
 	}
 
+	public void removeQuery(String query) {
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+
+		Elevations elevations = anElevationsView.getData();
+
+		elevations.removeQueryElevation(query);
+
+		anElevationsView.setData(elevations);
+		readData.setDataFromView(anElevationsView);
+
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
+		solrFileSystem.close();
+
+
+		constellioCache.remove(query);
+
+		server.reload();
+	}
+
+	public void removeAllExclusion(String query) {
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+
+		Elevations elevations = anElevationsView.getData();
+
+		elevations.removeAllExclusion(query);
+
+		anElevationsView.setData(elevations);
+		readData.setDataFromView(anElevationsView);
+
+		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(query);
+
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
+		solrFileSystem.close();
+
+		if(queryElevation != null && queryElevation.getDocElevations().size() > 0) {
+			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations());
+		} else {
+			constellioCache.remove(query);
+		}
+
+		server.reload();
+	}
+
+	public void removeAllElevation(String query) {
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+
+		Elevations elevations = anElevationsView.getData();
+
+		elevations.removeAllElevation(query);
+
+		anElevationsView.setData(elevations);
+		readData.setDataFromView(anElevationsView);
+
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
+		solrFileSystem.close();
+
+		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(query);
+		if(queryElevation != null && queryElevation.getDocElevations().size() > 0) {
+			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations());
+		} else {
+			constellioCache.remove(query);
+		}
+	}
+
+
 	public void removeElevated(String freeTextQuery, String recordId) {
 		if (StringUtils.isBlank(freeTextQuery)) {
 			freeTextQuery = "*:*";
@@ -140,6 +214,7 @@ public class SearchConfigurationsManager {
 
 		server.reload();
 	}
+
 
 	public void setElevated(String freeTextQuery, Record record, boolean isExcluded) {
 

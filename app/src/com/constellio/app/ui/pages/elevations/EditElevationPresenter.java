@@ -1,7 +1,9 @@
 package com.constellio.app.ui.pages.elevations;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 
@@ -11,10 +13,12 @@ import java.util.List;
 
 public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     SearchConfigurationsManager searchConfigurationsManager;
+    SchemasRecordsServices schemasRecordsServices;
 
     public EditElevationPresenter(EditElevationView view) {
         super(view);
         searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
+        schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
     }
 
     @Override
@@ -53,5 +57,26 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
         }
 
         return docElevationExcluded;
+    }
+
+    public void deleteQuery(String query) {
+        searchConfigurationsManager.removeQuery(query);
+    }
+
+    public void deleteAllExclution(String query) {
+        searchConfigurationsManager.removeAllExclusion(query);
+    }
+
+    public void deleteAllElevation(String query) {
+        searchConfigurationsManager.removeAllElevation(query);
+    }
+
+    public void deleteDocElevation(Elevations.QueryElevation.DocElevation docElevation) {
+        searchConfigurationsManager.removeElevated(docElevation.getQuery(), docElevation.getId());
+    }
+
+    public String getRecordTitle(String id) {
+        Record record = schemasRecordsServices.get(id);
+        return record.getTitle();
     }
 }

@@ -32,6 +32,54 @@ public class Elevations implements Serializable {
 		}
 	}
 
+	public void removeQueryElevation(String query) {
+		for(Iterator iterator = this.queryElevations.iterator(); iterator.hasNext();) {
+			QueryElevation queryElevation = (QueryElevation) iterator.next();
+			if(queryElevation.getQuery().equals(query)) {
+				iterator.remove();
+				break;
+			}
+		}
+	}
+
+	public void removeAllElevation(String query) {
+		for(Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext();) {
+			QueryElevation queryElevation = iterator.next();
+			if(queryElevation.getQuery().equals(query)) {
+				for(Iterator<DocElevation> docElevationIterator = queryElevation.getDocElevations().iterator(); docElevationIterator.hasNext();) {
+					DocElevation docElevation = docElevationIterator.next();
+					if(!docElevation.isExclude()) {
+						docElevationIterator.remove();
+					}
+				}
+				if(queryElevation.getDocElevations().size() <= 0) {
+					iterator.remove();
+				}
+
+				break;
+			}
+		}
+	}
+
+	public void removeAllExclusion(String query) {
+		for(Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext();) {
+			QueryElevation queryElevation = iterator.next();
+			if(queryElevation.getQuery().equals(query)) {
+				for(Iterator<DocElevation> docElevationIterator = queryElevation.getDocElevations().iterator(); docElevationIterator.hasNext();) {
+					DocElevation docElevation = docElevationIterator.next();
+					if(docElevation.isExclude()) {
+						docElevationIterator.remove();
+					}
+				}
+				if(queryElevation.getDocElevations().size() <= 0) {
+					iterator.remove();
+				}
+
+				break;
+			}
+		}
+	}
+
 	public void removeElevation(String query, String recordId) {
 		boolean removeQuery = false;
 		boolean found = false;
@@ -58,6 +106,7 @@ public class Elevations implements Serializable {
 			}
 		}
 	}
+
 
 	public static class QueryElevation implements Serializable {
 		private String query;
