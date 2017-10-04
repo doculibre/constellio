@@ -137,7 +137,7 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         containerMapperWithElevationObject.put((Integer)addedItemNumber, valueToAdd);
         Label label = new Label(value);
         label.setContentMode(ContentMode.HTML);
-        baseTable.getContainerProperty(addedItemNumber, INFORMATION).setValue(label);
+        indexedContainer.getContainerProperty(addedItemNumber, INFORMATION).setValue(label);
     }
 
     private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docExcluded) {
