@@ -271,4 +271,20 @@ public class ModelLayerCollectionExtensions {
 		});
 	}
 
+	public String getCaptionForRecord(Record record) {
+		String caption = null;
+		for (RecordExtension extension : recordExtensions) {
+			caption = extension.getCaptionForRecord(record);
+			if(caption != null) {
+				break;
+			}
+		}
+
+		if(caption == null) {
+			return record.getTitle();
+		} else {
+			return caption;
+		}
+	}
+
 }

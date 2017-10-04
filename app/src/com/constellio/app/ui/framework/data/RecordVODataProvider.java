@@ -13,6 +13,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
@@ -135,8 +136,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			if(schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
 				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
 				if(metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
-					LogicalSearchQuerySort sortField
-							= new LogicalSearchQuerySort(metadata.getLocalCode() + ".title_s", ascending[i]);
+					LogicalSearchQuerySort sortField = new LogicalSearchQuerySort(metadata.getLocalCode() + ".caption_s", ascending[i]);
 					query.sortOn(sortField);
 				} else {
 					if (ascending[i]) {

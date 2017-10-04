@@ -145,6 +145,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
+			if(value == MetadataValueType.REFERENCE && multivalue) {
+				sortableField.setValue(false);
+				sortableField.setEnabled(false);
+			} else if(value == MetadataValueType.REFERENCE) {
+				sortableField.setEnabled(true);
+			}
+
 			inputType.setEnabled(false);
 			inputType.removeAllItems();
 			inputType.setEnabled(true);
@@ -220,7 +227,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			break;
 		case REFERENCE:
 			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
+			sortableField.setEnabled(true);
 			refType.setEnabled(true);
 			refType.setRequired(!editMode);
 			break;
@@ -249,7 +256,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		case CONTENT:
 			sortableField.setValue(false);
 		case REFERENCE:
-			sortableField.setValue(false);
 			break;
 		case DATE:
 			break;

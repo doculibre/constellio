@@ -3,16 +3,15 @@ package com.constellio.model.services.records.populators;
 import static java.util.Collections.singletonMap;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.services.records.FieldsPopulator;
 
@@ -32,7 +31,9 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 		if(metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue() && value != null) {
 			try {
 				Record referencedRecord = modelLayerFactory.newRecordServices().getDocumentById((String) value);
-				return singletonMap(metadata.getLocalCode() + ".title_s", (Object) referencedRecord.getTitle());
+				String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection()).getCaptionForRecord(referencedRecord);
+
+				return singletonMap(metadata.getLocalCode() + ".caption_s", (Object) captionForRecord);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
