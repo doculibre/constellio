@@ -1278,7 +1278,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(subFolderNearEnd.getParentFolder()))
 				.has(solrQueryCounts(3,1,2));
 
-		assertThat(queryCount.get()).isEqualTo(4);
+		assertThat(queryCount.get()).isEqualTo(6);
 	}
 
 	@Test
@@ -2413,8 +2413,11 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
-				assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getNumFound()).describedAs("first answer NumFound").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("first answer records list size").isEqualTo(expectedCount);
+
+				assertThat(value.secondAnswer().getNumFound()).describedAs("second answer NumFound").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("second answer records list size").isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -2424,7 +2427,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getNumFound()).describedAs("first answer NumFound").isEqualTo(expectedCount);
+
+				assertThat(value.secondAnswer().getNumFound()).describedAs("second answer NumFound").isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -2434,7 +2439,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("first answer records list size").isEqualTo(expectedCount);
+
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("second answer records list size").isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -2492,7 +2499,56 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 					}
 				});
 
-				assertThat(actualRecords).isEqualTo(recordsInExpectedOrder);
+				assertThat(actualRecords).describedAs("second answer ").isEqualTo(recordsInExpectedOrder);
+
+				List<Record> actualRecordsSecondAnswer = new ArrayList<>();
+				List<Record> recordsInExpectedOrderSecondAnswer = new ArrayList<>();
+
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
+					actualRecordsSecondAnswer.add(value.getRecord());
+					recordsInExpectedOrderSecondAnswer.add(value.getRecord());
+				}
+
+				final List<String> typesOrderSecondAnswer = asList(Category.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						ContainerRecord.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE);
+
+				Collections.sort(recordsInExpectedOrderSecondAnswer, new Comparator<Record>() {
+					@Override
+					public int compare(Record r1, Record r2) {
+
+						int r1TypeIndex = typesOrderSecondAnswer.indexOf(new SchemaUtils().getSchemaTypeCode(r1.getSchemaCode()));
+						int r2TypeIndex = typesOrderSecondAnswer.indexOf(new SchemaUtils().getSchemaTypeCode(r2.getSchemaCode()));
+
+						if (r1TypeIndex != r2TypeIndex) {
+							return new Integer(r1TypeIndex).compareTo(r2TypeIndex);
+
+						} else {
+							String code1 = r1.get(Schemas.CODE);
+							String code2 = r2.get(Schemas.CODE);
+							if (code1 != null && code2 != null) {
+								return code1.compareTo(code2);
+
+							} else if (code1 != null && code2 == null) {
+								return 1;
+							} else if (code1 == null && code2 != null) {
+								return -1;
+							} else {
+
+								String title1 = r1.get(Schemas.TITLE);
+								String title2 = r2.get(Schemas.TITLE);
+								if (title1 == null) {
+									return -1;
+								} else {
+									return title1.compareTo(title2);
+								}
+							}
+
+						}
+
+					}
+				});
+
+				assertThat(actualRecordsSecondAnswer).describedAs("second answer ").isEqualTo(recordsInExpectedOrderSecondAnswer);
 				return true;
 			}
 		};
@@ -2510,7 +2566,17 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 				for (TaxonomySearchRecord record : response.firstAnswer().getRecords()) {
 					BooleanAssert assertion = assertThat(record.hasChildren()).describedAs(
-							"Record '" + record.getRecord().getId() + "' has children");
+							"second answer Record '" + record.getRecord().getId() + "' has children");
+					if (idsList.contains(record.getRecord().getId())) {
+						assertion.isTrue();
+					} else {
+						assertion.isFalse();
+					}
+				}
+
+				for (TaxonomySearchRecord record : response.secondAnswer().getRecords()) {
+					BooleanAssert assertion = assertThat(record.hasChildren()).describedAs(
+							"second answer Record '" + record.getRecord().getId() + "' has children");
 					if (idsList.contains(record.getRecord().getId())) {
 						assertion.isTrue();
 					} else {
@@ -2538,7 +2604,22 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 							foundRecord = record;
 						}
 					}
-					assertThat(foundRecord).describedAs("Result '" + id + "'").isNotNull();
+					assertThat(foundRecord).describedAs("Result for first awnser '" + id + "'").isNotNull();
+					assertThat(foundRecord.isLinkable()).describedAs("is record '" + id + "' linkable").isFalse();
+
+				}
+
+				for (String id : ids) {
+					TaxonomySearchRecord foundRecord = null;
+					for (TaxonomySearchRecord record : response.secondAnswer().getRecords()) {
+						if (id.equals(record.getRecord().getId())) {
+							if (foundRecord != null) {
+								throw new RuntimeException("Same record found twice");
+							}
+							foundRecord = record;
+						}
+					}
+					assertThat(foundRecord).describedAs("Result for second answer '" + id + "'").isNotNull();
 					assertThat(foundRecord.isLinkable()).describedAs("is record '" + id + "' linkable").isFalse();
 
 				}
@@ -2568,6 +2649,21 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 				}
 
+				for (String id : ids) {
+					TaxonomySearchRecord foundRecord = null;
+					for (TaxonomySearchRecord record : response.secondAnswer().getRecords()) {
+						if (id.equals(record.getRecord().getId())) {
+							if (foundRecord != null) {
+								throw new RuntimeException("Same record found twice");
+							}
+							foundRecord = record;
+						}
+					}
+					assertThat(foundRecord).describedAs("second answer Result '" + id + "'").isNotNull();
+					assertThat(foundRecord.isLinkable()).describedAs("second answer is record '" + id + "' linkable").isTrue();
+
+				}
+
 				return true;
 			}
 		}.describedAs("linkable " + ids);
@@ -2589,7 +2685,20 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 					}
 				}
 
-				assertThat(responseRecords).describedAs("Results in correct order : " + codeOrTitle).isEqualTo(asList(ids));
+				assertThat(responseRecords).describedAs("second answer Results in correct order : " + codeOrTitle).isEqualTo(asList(ids));
+
+				List<String> responseRecordsSecondAnswer = new ArrayList();
+				List<String> codeOrTitleSecondAnswer = new ArrayList<>();
+				for (TaxonomySearchRecord record : response.secondAnswer().getRecords()) {
+					responseRecordsSecondAnswer.add(record.getRecord().getId());
+					if (record.getRecord().get(Schemas.CODE) == null) {
+						codeOrTitleSecondAnswer.add((String) record.getRecord().get(Schemas.TITLE));
+					} else {
+						codeOrTitleSecondAnswer.add((String) record.getRecord().get(Schemas.CODE));
+					}
+				}
+
+				assertThat(responseRecordsSecondAnswer).describedAs("second answer Results in correct order : " + codeOrTitleSecondAnswer).isEqualTo(asList(ids));
 
 				return true;
 			}
@@ -2704,13 +2813,15 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(
 			final TaxonomiesSearchOptions options) {
-		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+		LinkableTaxonomySearchResponseCaller caller = (LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 
 			@Override
 			protected LinkableTaxonomySearchResponse call() {
 				return 	service.getLinkableRootConceptResponse(alice, zeCollection, CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, options);
 			}
-		});
+		};
+		caller.firstAnswer();
+		return assertThat(caller);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(String category) {
@@ -2719,13 +2830,15 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(
 			final String category, final TaxonomiesSearchOptions taxonomiesSearchOptions) {
-		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
-			@Override
-			protected LinkableTaxonomySearchResponse call() {
-				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-				return service.getLinkableChildConceptResponse(alice, inRecord, CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, taxonomiesSearchOptions);
-			}
-		});
+		LinkableTaxonomySearchResponseCaller caller = (LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller(){
+            @Override
+            protected LinkableTaxonomySearchResponse call() {
+                Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+                return service.getLinkableChildConceptResponse(alice, inRecord, CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, taxonomiesSearchOptions);
+            }
+        };
+		caller.firstAnswer();
+		return assertThat(caller);
 	}
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingAFolderUsingUnitTaxonomy() {
@@ -2854,6 +2967,15 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 				assertThat(value.firstAnswer().getFastContinueInfos().getLastReturnRecordIndex())
 						.describedAs("lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getShownRecordsWithVisibleChildren())
+						.describedAs("secondAnswer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedIds);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().finishedConceptsIteration)
+						.describedAs("secondAnswer notYetShownRecordsWithVisibleChildren").isEqualTo(expectedinishedIteratingOverConcepts);
+
+				assertThat(value.secondAnswer().getFastContinueInfos().getLastReturnRecordIndex())
+						.describedAs("secondAnswer lastReturnRecordIndex").isEqualTo(expectedLastReturnRecordIndex);
 				return true;
 			}
 		};
@@ -2865,7 +2987,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 
-				assertThat(value.firstAnswer().getFastContinueInfos()).isNull();
+				assertThat(value.firstAnswer().getFastContinueInfos()).describedAs("first answer").isNull();
+
+				assertThat(value.secondAnswer().getFastContinueInfos()).describedAs("second answer").isNull();
 				return true;
 			}
 		};

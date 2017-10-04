@@ -961,7 +961,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
 			throws Exception {
 
@@ -1382,8 +1381,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
-				assertThat(value.secondAnswer().getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getNumFound()).describedAs("first answer NumFound").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getNumFound()).describedAs("second answer NumFound").isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -1393,8 +1392,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
-				assertThat(value.secondAnswer().getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("first answer records list size").isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("second answer records list size").isEqualTo(expectedCount);
 				return true;
 			}
 		};
