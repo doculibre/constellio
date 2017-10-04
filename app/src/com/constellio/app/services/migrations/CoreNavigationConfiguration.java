@@ -55,6 +55,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String EMAIL_SERVER = "emailServer";
 	public static final String EMAIL_SERVER_ICON = "images/icons/config/mail_server.png";
 
+	public static final String TRASH_BIN = "trashBin";
+	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
+
 	public static final String TAXONOMIES = "taxonomies";
 	public static final String TAXONOMIES_ICON = "images/icons/config/taxonomy.png";
 	public static final String VALUE_DOMAINS = "valueDomains";
