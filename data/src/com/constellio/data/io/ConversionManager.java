@@ -185,6 +185,7 @@ public class ConversionManager implements StatefulService {
 			}
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
 			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS)); 
+			openOfficeOrLibreOfficeInstalled = true;
 		} catch (Throwable t) {
 			LOGGER.error("OpenOffice or LibreOffice not installed", t); 
 			openOfficeOrLibreOfficeInstalled = false;
@@ -206,7 +207,7 @@ public class ConversionManager implements StatefulService {
 		this.onlineConversionUrl = onlineConversionUrl;
 	}
 	
-	public static boolean isOpenOfficeOrLibreOfficeInstalled() {
+	public boolean isOpenOfficeOrLibreOfficeInstalled() {
 		return openOfficeOrLibreOfficeInstalled;
 	}
 	
