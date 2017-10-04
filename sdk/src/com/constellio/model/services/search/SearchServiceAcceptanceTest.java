@@ -32,6 +32,13 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.ui.pages.base.BasePresenterUtils;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -50,10 +57,6 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -88,6 +91,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	private static final LocalDate DATE1 = new LocalDate(2000, 10, 15);
 	LocalDateTime NOW = TimeProvider.getLocalDateTime();
 
+	RMTestRecords rmTestRecords = new RMTestRecords(zeCollection);
+
 	RecordServices recordServices;
 	SearchServices searchServices;
 	RecordDao recordDao;
@@ -113,7 +118,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 
 		prepareSystem(
-				withZeCollection(),
+				withZeCollection().withAllTestUsers().withRMTest(rmTestRecords).withConstellioRMModule(),
 				withCollection("collection2")
 		);
 		//givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
@@ -123,6 +128,21 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		transaction = new Transaction();
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
+	}
+
+	@Test
+	public void searchAllAdministrativeUnitAndOrderByPathDescThenOk() {
+		BasePresenterUtils presenterUtils = new BasePresenterUtils(getConstellioFactories(), FakeSessionContext.adminInCollection(zeCollection));
+
+		MetadataSchemaTypes types = presenterUtils.types();
+
+		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(from(administrativeUnitSchemaType).returnAll());
+		allAdminUnitsQuery.sortDesc(Schemas.PATH);
+
+		List<Record> records = searchServices.cachedSearch(allAdminUnitsQuery);
+
+		assertThat(records.get(0).getTitle()).isNotEqualTo("Unité 10");
 	}
 
 	@Test
