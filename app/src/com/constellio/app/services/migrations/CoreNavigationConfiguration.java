@@ -84,10 +84,10 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
 	public static final String SYNONYMES_MANAGEMENT = "synonymesManagement";
-	public static final String SYNONYMES_MANAGEMENT_ICON = "images/icons/config/synonymes.png";
+	public static final String SYNONYMES_MANAGEMENT_ICON = "images/icons/config/synonyms.png";
 
 	public static final String ELEVATION_MANAGEMENT = "elevationManagement";
-	public static final String ELEVATION_MANAGEMENT_ICON = "images/icons/config/elevationManagement";
+	public static final String ELEVATION_MANAGEMENT_ICON = "images/icons/config/search-exclusions.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";

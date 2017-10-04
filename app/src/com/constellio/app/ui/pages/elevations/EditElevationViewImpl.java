@@ -9,10 +9,8 @@ import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,6 +40,11 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
     }
 
     @Override
+    protected String getTitle() {
+        return $("EditElevationViewImpl.title");
+    }
+
+    @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         VerticalLayout verticalLayout = new VerticalLayout();
 
@@ -62,25 +65,39 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
                 DisplayButton displayButton = new DisplayButton() {
                     @Override
                     protected void buttonClick(ClickEvent event) {
-                        Integer index = (Integer) itemId;
+                        ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create($("EditElevationViewImpl.d.confirmation.dialog.title"),
+                                $("EditElevationViewImpl.d.confirmation"), $("OK"), $("cancel"), null);
 
-                        Object containedObject = containerMapperWithElevationObject.get(index);
-                        if(containedObject instanceof Elevations.QueryElevation.DocElevation){
-                            Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
-                            editElevationPresenter.deleteDocElevation(docElevation);
-                        } else if (containedObject instanceof String) {
-                            String containedObjectString = (String) containedObject;
-                            String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
-                            if(informationValue.equals(SPACE_4 + $("EditElevationViewImpl.exclud"))) {
-                                editElevationPresenter.deleteAllExclution(containedObjectString);
+                        confirmDialog.getOkButton().addClickListener(new ClickListener() {
+                            @Override
+                            public void buttonClick(ClickEvent event) {
+                                Integer index = (Integer) itemId;
+
+                                Object containedObject = containerMapperWithElevationObject.get(index);
+                                if(containedObject instanceof Elevations.QueryElevation.DocElevation){
+                                    Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
+                                    editElevationPresenter.deleteDocElevation(docElevation);
+                                } else if (containedObject instanceof String) {
+                                    String containedObjectString = (String) containedObject;
+                                    String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
+                                    if(informationValue.equals(SPACE_4 + $("EditElevationViewImpl.exclud"))) {
+                                        editElevationPresenter.deleteAllExclution(containedObjectString);
+                                    }
+                                    else if (informationValue.equals(SPACE_4 + $("EditElevationViewImpl.raise"))) {
+                                        editElevationPresenter.deleteAllElevation(containedObjectString);
+                                    } else {
+                                        editElevationPresenter.deleteQuery(containedObjectString);
+                                    }
+                                }
+                                navigateTo().editElevation();
                             }
-                            else if (informationValue.equals(SPACE_4 + $("EditElevationViewImpl.raise"))) {
-                                editElevationPresenter.deleteAllElevation(containedObjectString);
-                            } else {
-                                editElevationPresenter.deleteQuery(containedObjectString);
+                        });
+
+                        confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+                            @Override
+                            public void onClose(ConfirmDialog dialog) {
                             }
-                        }
-                        navigateTo().editElevation();
+                        }, true);
                     }
                 };
                 displayButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
