@@ -15,7 +15,7 @@ public class TaxonomiesSearchOptions {
 	//Only supported in the "visible" services
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
-	private HasChildrenFlagCalculated hasChildrenFlagCalculated = HasChildrenFlagCalculated.CONCEPTS_ONLY;
+	private HasChildrenFlagCalculated hasChildrenFlagCalculated = HasChildrenFlagCalculated.ALWAYS;
 	private boolean showInvisibleRecordsInLinkingMode = true;
 	private boolean showAllIfHasAccessToManageSecurity = true;
 	private FastContinueInfos fastContinueInfos;

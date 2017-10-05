@@ -107,13 +107,13 @@ public class HasChildrenQueryHandler {
 			cacheMode = "selecting-" + selectedSchemaType + "-" + requiredAccess;
 		}
 
-		if (showInvisible) {
-			cacheMode += "-inv";
+		if (!showInvisible) {
+			cacheMode += "-actives";
 		}
 
-		if (showAllConcepts) {
-			cacheMode += "-allConcepts";
-		}
+		//		if (showAllConcepts) {
+		//			cacheMode += "-allConcepts";
+		//		}
 
 		return cacheMode;
 	}
