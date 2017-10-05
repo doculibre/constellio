@@ -31,12 +31,6 @@ import com.constellio.sdk.tests.setups.Users;
 public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends ConstellioTest {
 
 	private static String FOLDER1 = "folder1";
-	private static String FOLDER2 = "folder2";
-	private static String FOLDER3 = "folder3";
-	private static String FOLDER4 = "folder4";
-	private static String VISIBLE_MODE = "visibleMode";
-	private static String SELECTING_FOLDER = "selecting_folder";
-	private static String SELECTING_DOCUMENT = "selecting_document";
 
 	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
