@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.data.trees;
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
 
+import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.FastContinueInfos;
@@ -72,6 +74,8 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	}
 
 	protected TaxonomiesSearchOptions newTaxonomiesSearchOptions(int rows, int startRow, FastContinueInfos infos) {
+		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
+		Boolean showOnlyTriangleIfContent = modelLayerFactory.getSystemConfigurationsManager().<Boolean>getValue(ConstellioEIMConfigs.SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT);
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
@@ -79,6 +83,12 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 
 		if (writeAccess) {
 			options.setRequiredAccess(Role.WRITE);
+		}
+
+		if(showOnlyTriangleIfContent) {
+			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
+		} else {
+			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY);
 		}
 
 		options.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(ignoreLinkability);
