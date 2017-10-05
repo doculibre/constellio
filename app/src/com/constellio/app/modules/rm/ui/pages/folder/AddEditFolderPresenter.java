@@ -1022,6 +1022,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		MetadataSchemaTypes types = types();
 		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
 		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(from(administrativeUnitSchemaType).returnAll());
+		allAdminUnitsQuery.sortDesc(Schemas.PRINCIPAL_PATH);
 		//visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
 
 		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);

@@ -53,7 +53,7 @@ public class ElevationServiceImpl implements ElevationService {
 	}
 
 	@Override
-	public void removeElevation(Record record, String freeTextQuery) {
+	public void removeElevation(String recordId, String freeTextQuery) {
 		if (StringUtils.isBlank(freeTextQuery)) {
 			freeTextQuery = "*:*";
 		}
@@ -63,71 +63,7 @@ public class ElevationServiceImpl implements ElevationService {
 		ElevationsView anElevationsView = readData.getView(new ElevationsView());
 
 		Elevations elevations = anElevationsView.getData();
-		elevations.removeElevation(freeTextQuery);
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		server.reload();
-	}
-
-	@Override
-	public void removeCollectionElevation(String collection, String query) {
-		if (StringUtils.isBlank(query)) {
-			query = "*:*";
-		}
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		elevations.removeCollectionElevation(schemas, query);
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		server.reload();
-	}
-
-	@Override
-	public List<DocElevation> getCollectionElevation(String collection, String query) {
-		if (StringUtils.isBlank(query)) {
-			query = "*:*";
-		}
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		return elevations.getCollectionElevation(schemas, query);
-	}
-
-	@Override
-	public Elevations getCollectionElevations(String collection) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		return elevations.getCollectionElevations(schemas);
-	}
-
-	@Override
-	public void removeCollectionElevations(String collection) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		elevations.removeCollectionElevations(schemas);
+		elevations.removeElevation(freeTextQuery, recordId);
 		anElevationsView.setData(elevations);
 		readData.setDataFromView(anElevationsView);
 

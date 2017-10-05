@@ -55,6 +55,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String EMAIL_SERVER = "emailServer";
 	public static final String EMAIL_SERVER_ICON = "images/icons/config/mail_server.png";
 
+	public static final String TRASH_BIN = "trashBin";
+	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
+
 	public static final String TAXONOMIES = "taxonomies";
 	public static final String TAXONOMIES_ICON = "images/icons/config/taxonomy.png";
 	public static final String VALUE_DOMAINS = "valueDomains";
@@ -75,14 +78,18 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_SCHEMA_TYPES_ICON = "images/icons/config/import-metadata.png";
 	public static final String IMPORT_SETTINGS = "importSettings";
 	public static final String IMPORT_SETTINGS_ICON = "images/icons/config/import-settings.png";
-	public static final String TRASH_BIN = "trashBin";
-	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
 	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
 	public static final String SEARCH_BOOST_BY_METADATA_ICON = "images/icons/config/boost-metadata-search.png";
 	public static final String SEARCH_BOOST_BY_QUERY = "searchBoostByQuery";
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
+
+	public static final String SYNONYMES_MANAGEMENT = "synonymesManagement";
+	public static final String SYNONYMES_MANAGEMENT_ICON = "images/icons/config/synonyms.png";
+
+	public static final String ELEVATION_MANAGEMENT = "elevationManagement";
+	public static final String ELEVATION_MANAGEMENT_ICON = "images/icons/config/search-exclusions.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -117,7 +124,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return ComponentState.ENABLED;
 			}
 		});
-	}	
+	}
 
 	private void configureSystemAdmin(NavigationConfig config) {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(CONFIG, CONFIG_ICON) {
@@ -239,6 +246,21 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(ELEVATION_MANAGEMENT, ELEVATION_MANAGEMENT_ICON) {
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().editElevation();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT));
+			}
+		});
+
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(EXPORT, EXPORT_ICONS) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -252,7 +274,9 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(BIG_DATA, BIG_DATA_ICON));
+
+//		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(BIG_DATA, BIG_DATA_ICON));
+
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(UPDATE_CENTER, UPDATE_CENTER_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -279,6 +303,35 @@ public class CoreNavigationConfiguration implements Serializable {
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY,
 						CorePermissions.MANAGE_SYSTEM_SERVERS));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecord();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+						CorePermissions.ACCESS_TEMPORARY_RECORD));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYNONYMES_MANAGEMENT, SYNONYMES_MANAGEMENT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().displaySynonyms();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
+						.has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
 	}
@@ -448,17 +501,6 @@ public class CoreNavigationConfiguration implements Serializable {
 //				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
 //			}
 //		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().trash();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
-			}
-		});
 
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
 			@Override

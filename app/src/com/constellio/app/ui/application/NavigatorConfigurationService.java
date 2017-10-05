@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
 import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
+import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
@@ -24,7 +25,6 @@ import com.constellio.app.ui.pages.imports.*;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
-import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportView;
 import com.constellio.app.ui.pages.management.ExcelReport.DisplayExcelReportViewImpl;
 import com.constellio.app.ui.pages.management.ExcelReport.ListExcelReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.AddEditPrintableReportViewImpl;
@@ -87,6 +87,8 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
+import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
+import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
@@ -196,6 +198,11 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String ADD_EDIT_CAPSULE = "addEditCapsule";
 	public static final String DISPLAY_CAPSULE = "displayCapsule";
 
+
+	public static final String EDIT_SYNONYMS = "editSynonyms";
+	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
+
+	public static final String EDIT_ELEVATION = "editElevation";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -308,6 +315,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_CAPSULE, ListCapsuleViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_CAPSULE, AddEditCapsuleViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CAPSULE, DisplayCapsuleViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_ELEVATION, EditElevationViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

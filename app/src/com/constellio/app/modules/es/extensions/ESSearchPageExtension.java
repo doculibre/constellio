@@ -19,7 +19,7 @@ public class ESSearchPageExtension extends SearchPageExtension {
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
 
-			return new SmbSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory);
+			return new SmbSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
 		}
 		return super.getCustomResultDisplayFor(param);
 	}

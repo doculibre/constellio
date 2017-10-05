@@ -24,6 +24,12 @@ public interface RecordDao {
 
 	List<RecordDTO> realGet(List<String> ids);
 
+	QueryResponseDTO query(String queryName, SolrParams params);
+
+	List<RecordDTO> searchQuery(String queryName, SolrParams params);
+
+	QueryResponse nativeQuery(String queryName, SolrParams params);
+
 	QueryResponseDTO query(SolrParams params);
 
 	List<RecordDTO> searchQuery(SolrParams params);

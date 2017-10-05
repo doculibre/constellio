@@ -112,16 +112,32 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	public void selectCurrentPage() {
 		selectAll = true;
-		selected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
-		deselected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
+		List<?> itemIds = container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength());
+		for (Object itemId : itemIds) {
+			CellKey cellKey = new CellKey(itemId, CHECKBOX_PROPERTY);
+			Property<?> checkBoxProperty = cellProperties.get(cellKey);
+			if (checkBoxProperty != null) {
+				((CheckBox) checkBoxProperty.getValue()).setValue(true);
+			}
+		}
+		selected.addAll(itemIds);
+		deselected.removeAll(itemIds);
 		refreshRowCache();
 		fireSelectionChangeEvent();
 	}
 
 	public void deselectCurrentPage() {
 		selectAll = false;
-		selected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
-		deselected.addAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
+		List<?> itemIds = container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength());
+		for (Object itemId : itemIds) {
+			CellKey cellKey = new CellKey(itemId, CHECKBOX_PROPERTY);
+			Property<?> checkBoxProperty = cellProperties.get(cellKey);
+			if (checkBoxProperty != null) {
+				((CheckBox) checkBoxProperty.getValue()).setValue(false);
+			}
+		}
+		selected.removeAll(itemIds);
+		deselected.addAll(itemIds);
 		refreshRowCache();
 		fireSelectionChangeEvent();
 	}

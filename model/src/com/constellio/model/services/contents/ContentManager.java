@@ -114,6 +114,8 @@ public class ContentManager implements StatefulService {
 
 	private boolean serviceThreadEnabled = true;
 
+	private final ConversionManager conversionManager;
+
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, new IcapService(modelLayerFactory));
 	}
@@ -134,20 +136,27 @@ public class ContentManager implements StatefulService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.icapService = icapService;
+		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
 	}
 
 	@Override
 	public void initialize() {
 		Runnable contentActionsInBackgroundRunnable = new Runnable() {
-
 			@Override
 			public void run() {
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
 					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
 						deleteUnreferencedContents();
 					}
-					convertPendingContentForPreview();
 					handleRecordsMarkedForParsing();
+				}
+			}
+		};
+		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
+					convertPendingContentForPreview();
 				}
 			}
 		};
@@ -156,6 +165,12 @@ public class ContentManager implements StatefulService {
 				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		backgroundThreadsManager.configure(
+				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+						.executedEvery(
+								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
@@ -183,7 +198,11 @@ public class ContentManager implements StatefulService {
 
 	@Override
 	public void close() {
-		closing.set(true);
+		try {
+			closing.set(true);
+		} finally {
+			conversionManager.close();
+		}
 	}
 
 	public Content createWithVersion(User user, String filename, ContentVersionDataSummary newVersion, String version) {
@@ -486,24 +505,20 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void convertPendingContentForPreview() {
-
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-						.setNumberOfRows(20));
+						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
+						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
 				if (!records.isEmpty()) {
-
-					File tempFolder = ioServices.newTemporaryFolder("previewConversion");
-					ConversionManager conversionManager = null;
+					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
-						conversionManager = new ConversionManager(ioServices, 1, tempFolder);
-
 						Transaction transaction = new Transaction();
 						for (Record record : records) {
 							if (!closing.get()) {
-								convertRecordContents(record, conversionManager);
+								convertRecordContents(record, conversionManager, tempFolder);
 								transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
 							}
 						}
@@ -515,28 +530,25 @@ public class ContentManager implements StatefulService {
 
 					} finally {
 						ioServices.deleteQuietly(tempFolder);
-						if (conversionManager != null) {
-							conversionManager.close();
-						}
 					}
 				}
 			}
 		}
 	}
 
-	private void convertRecordContents(Record record, ConversionManager conversionManager) {
+	private void convertRecordContents(Record record, ConversionManager conversionManager, File tempFolder) {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
 			if (!contentMetadata.isMultivalue()) {
 				Content content = record.get(contentMetadata);
 				if (content != null) {
-					convertContentForPreview(content, conversionManager);
+					convertContentForPreview(content, conversionManager, tempFolder);
 				}
 			}
 		}
 	}
 
-	private void convertContentForPreview(Content content, ConversionManager conversionManager) {
+	private void convertContentForPreview(Content content, ConversionManager conversionManager, File tempFolder) {
 		String hash = content.getCurrentVersion().getHash();
 		String filename = content.getCurrentVersion().getFilename();
 		ContentDao contentDao = getContentDao();
@@ -544,12 +556,10 @@ public class ContentManager implements StatefulService {
 			InputStream inputStream = null;
 			try {
 				inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
-				File file = conversionManager.convertToPDF(inputStream, filename);
+				File file = conversionManager.convertToPDF(inputStream, filename, tempFolder);
 				contentDao.moveFileToVault(file, hash + ".preview");
-
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot convert content '" + filename + "' with hash '" + hash + "'", t);
-
 			} finally {
 				ioServices.closeQuietly(inputStream);
 			}
@@ -561,13 +571,14 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
-
 		Set<String> collections = getCollectionsWithFlag(Schemas.MARKED_FOR_PARSING);
 		for (String collection : collections) {
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			query.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PARSING).isTrue());
 			query.setNumberOfRows(50);
+			query.sortDesc(Schemas.MODIFIED_ON);
+			query.sortDesc(Schemas.CREATED_ON);
 
 			List<Record> records = searchServices.search(query);
 
@@ -613,6 +624,15 @@ public class ContentManager implements StatefulService {
 		query.setNumberOfRows(0);
 		query.addFieldFacet("collection_s");
 
+		StringBuilder flagsName = new StringBuilder();
+		for (Metadata metadata : flags) {
+			if (flagsName.length() > 0) {
+				flagsName.append(", ");
+			}
+			flagsName.append(metadata.getDataStoreCode());
+		}
+
+		query.setName("ContentManager:BackgroundThread:getCollectionsWithFlag(" + flagsName.toString() + ")");
 		SPEQueryResponse response = searchServices.query(query);
 
 		Set<String> collections = new HashSet<>();
@@ -713,7 +733,7 @@ public class ContentManager implements StatefulService {
 		params.set("fq", "contentMarkerHash_s:*");
 		params.set("rows", 50);
 
-		return recordDao.searchQuery(params);
+		return recordDao.searchQuery("ContentManager:BackgroundThread:getNextPotentiallyUnreferencedContentMarkers()", params);
 	}
 
 	public void reparse(String hash) {

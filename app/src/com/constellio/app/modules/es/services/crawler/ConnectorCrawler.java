@@ -3,8 +3,14 @@ package com.constellio.app.modules.es.services.crawler;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -25,6 +31,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -132,6 +139,8 @@ public class ConnectorCrawler {
 			if (crawledConnectors.isEmpty()) {
 				waitSinceNoJobs();
 			}
+		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
+			// Ignore
 		} finally {
 			eventObserver.cleanup();
 		}
@@ -152,6 +161,7 @@ public class ConnectorCrawler {
 	private List<ConnectorInstance> getConnectorInstances() {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(es.connectorInstance.schemaType()).where(es.connectorInstance.enabled()).isTrue());
+		query.setName("BackgroundThread:ConnectorCrawler:getConnectorInstances()");
 		query.sortAsc(es.connectorInstance.code());
 		return es.wrapConnectorInstances(es.getSearchServices().cachedSearch(query));
 	}

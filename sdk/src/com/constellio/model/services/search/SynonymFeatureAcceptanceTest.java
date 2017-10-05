@@ -18,7 +18,7 @@ import org.junit.Test;
 
 @SlowTest
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
-	Record tv, television;
+	Record papa, television;
 
 	@Test
 	public void givenSynonymFeatureDiabeledWhenIndexingDocumentsAndSearchForAWordThenNoDocumentContainTheWordsSynonymIsReturned()
@@ -28,13 +28,13 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		setUpSynonymTests(synonymFileContent);
 
 		//when
-		String text = "tv";
+		String text = "papa";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text);
 		List<Record> results = searchServices.search(query);
 
 		//then
-		assertThat(results).containsOnly(tv);
+		assertThat(results).containsOnly(papa);
 	}
 
 	@Test
@@ -44,17 +44,17 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 			return;
 		}
 		//given
-		String synonymFileContent = "tv, television\n";
-		setUpSynonymTests(synonymFileContent);
+		String synonymFileContent = "pizza, papa, television";
+		setUpSynonymTests	(synonymFileContent);
 
 		//when
-		String text = "tv";
+		String text = "papa";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text);
 		List<Record> results = searchServices.search(query);
 
 		//then
-		assertThat(results).containsOnly(tv, television);
+		assertThat(results).containsOnly(papa, television);
 
 	}
 
@@ -73,10 +73,10 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		server.reload();
 
 		//when
-		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
-		transaction.addUpdate(tv = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "tv"));
-		transaction.addUpdate(television = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "television"));
-		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "radio"));
+		defineSchemasManager().using(schema.withATitle(whichIsSearchable));
+		transaction.addUpdate(papa = newRecordOfZeSchema().set(zeSchema.title(), "papa"));
+		transaction.addUpdate(television = newRecordOfZeSchema().set(zeSchema.title(), "television"));
+		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.title(), "radio"));
 		recordServices.execute(transaction);
 	}
 

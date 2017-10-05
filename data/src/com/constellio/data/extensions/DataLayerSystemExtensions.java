@@ -23,7 +23,7 @@ public class DataLayerSystemExtensions {
 		return bigVaultServerExtension;
 	}
 
-	public void afterQuery(final SolrParams params, final long qtime, final int resultsSize) {
+	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
@@ -41,6 +41,11 @@ public class DataLayerSystemExtensions {
 					@Override
 					public int getReturnedResultsCount() {
 						return resultsSize;
+					}
+
+					@Override
+					public String getQueryName() {
+						return name;
 					}
 
 				});

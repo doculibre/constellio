@@ -36,6 +36,8 @@ public interface ModelLayerConfiguration {
 
 	Duration getUnreferencedContentsThreadDelayBetweenChecks();
 
+	Duration getGeneratePreviewsThreadDelayBetweenChecks();
+
 	Duration getTokenRemovalThreadDelayBetweenChecks();
 
 	Duration getTokenDuration();

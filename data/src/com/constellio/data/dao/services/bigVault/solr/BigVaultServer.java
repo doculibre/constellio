@@ -116,6 +116,12 @@ public class BigVaultServer implements Cloneable {
 	//chargement
 	public QueryResponse query(final SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
+		return query(null, params);
+	}
+
+	//chargement
+	public QueryResponse query(String queryName, final SolrParams params)
+			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
 		final QueryResponse response = tryQuery(params, currentAttempt);
@@ -123,7 +129,7 @@ public class BigVaultServer implements Cloneable {
 		long end = new Date().getTime();
 
 		final long qtime = end - start;
-		extensions.afterQuery(params, qtime, response.getResults().size());
+		extensions.afterQuery(params, queryName, qtime, response.getResults().size());
 
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {

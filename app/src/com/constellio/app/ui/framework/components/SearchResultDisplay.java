@@ -6,6 +6,15 @@ import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.users.CredentialUserPermissionChecker;
+import com.google.common.base.Strings;
+import com.vaadin.ui.*;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -20,11 +29,8 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
 
@@ -35,11 +41,30 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String METADATA_STYLE = "search-result-metadata";
 	public static final String SEPARATOR = " ... ";
 
+	public static final String ELEVATION = "SearchResultDisplay.elevation";
+	public static final String EXCLUSION = "SearchResultDisplay.exclusion";
+	public static final String UNEXCLUSION = "SearchResultDisplay.unexclusion";
+	public static final String UNELEVATION = "SearchResultDisplay.unelevation";
+
 	private AppLayerFactory appLayerFactory;
 	private SessionContext sessionContext;
 
-	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory) {
+	SearchConfigurationsManager searchConfigurationsManager;
+
+	SchemasRecordsServices schemasRecordsService;
+
+	Button exclude;
+	Button raise;
+
+	String query;
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
 		this.appLayerFactory = appLayerFactory;
+		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(), getAppLayerFactory().getModelLayerFactory());
+		this.query = query;
+		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
+
+
 		this.sessionContext = getCurrent().getSessionContext();
 		init(searchResultVO, componentFactory);
 	}
@@ -54,10 +79,67 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
+		final RecordVO record = searchResultVO.getRecordVO();
+
+
 		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
 		title.addStyleName(TITLE_STYLE);
 		title.setWidthUndefined();
-		return title;
+
+		HorizontalLayout horizontalLayout = new HorizontalLayout();
+		horizontalLayout.addComponent(title);
+
+		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
+				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
+
+
+		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
+		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
+
+		if(!Strings.isNullOrEmpty(query) && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+
+			exclude = new LinkButton($(EXCLUSION)) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					if(event.getButton().getCaption().equals($(EXCLUSION))) {
+						event.getButton().setCaption($(UNEXCLUSION));
+						raise.setCaption($(ELEVATION));
+						searchConfigurationsManager.setElevated(query, recordFromRecordVO, true);
+					} else {
+						event.getButton().setCaption($(EXCLUSION));
+						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
+					}
+				}
+			};
+
+			String elevatedText = ($(ELEVATION));
+			if(isElevated) {
+				elevatedText = $(UNELEVATION);
+			}
+
+			raise = new LinkButton(elevatedText) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					if(event.getButton().getCaption().equals($(ELEVATION))){
+						event.getButton().setCaption($(UNELEVATION));
+						exclude.setCaption($(EXCLUSION));
+						searchConfigurationsManager.setElevated(query, recordFromRecordVO, false);
+					} else {
+						event.getButton().setCaption($(ELEVATION));
+						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
+					}
+				}
+			};
+
+			horizontalLayout.addComponent(exclude, 1);
+			horizontalLayout.addComponent(raise, 2);
+			horizontalLayout.setComponentAlignment(exclude,Alignment.TOP_LEFT);
+			horizontalLayout.setComponentAlignment(raise, Alignment.TOP_LEFT);
+			horizontalLayout.setExpandRatio(exclude,1);
+			horizontalLayout.setExpandRatio(raise, 1);
+			horizontalLayout.setSpacing(true);
+		}
+		return horizontalLayout;
 	}
 
 	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {

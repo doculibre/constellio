@@ -268,12 +268,12 @@ public class ConstellioSIP {
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
 		metsFilename = sipFilename + ".xml";
 
-        try {
-            buildMetsFileAndBagDir(errors);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+		try {
+			buildMetsFileAndBagDir(errors);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 
 		String slipFilename = sipFilename + ".xls";
 		File slipFile = new File(outputDir, slipFilename);
