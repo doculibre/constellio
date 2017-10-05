@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.container.fields;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -22,6 +24,7 @@ import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,7 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.LinkableConceptFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
 import com.constellio.model.services.users.UserServices;
@@ -160,37 +163,44 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 
-	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, String containerRecordType,
-			Double containerCapacity, AddEditContainerPresenter presenter) {
+	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, final String containerRecordType,
+			final Double containerCapacity, AddEditContainerPresenter presenter) {
 		ConstellioFactories constellioFactories = presenter.getConstellioFactories();
 		SessionContext sessionContext = presenter.getSessionContext();
 		MetadataSchemaType storageSpaceType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
-		containerCapacity = containerCapacity == null ? 0.0 : containerCapacity;
-		LogicalSearchCondition searchCondition = from(storageSpaceType).whereAllConditions(
-				where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-				anyConditions(
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE))
-								.isGreaterOrEqualThan(containerCapacity),
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
-				),
-				anyConditions(
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE))
-								.isContaining(asList(containerRecordType)),
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
-				));
+
+		//		LogicalSearchCondition searchCondition = from(storageSpaceType).whereAllConditions(
+		//				where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
+		//				anyConditions(
+		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE))
+		//								.isGreaterOrEqualThan(containerCapacity),
+		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
+		//				),
+		//				anyConditions(
+		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE))
+		//								.isContaining(asList(containerRecordType)),
+		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
+		//				));
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-//		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
-		//			@Override
-		//			public boolean isLinkable(LinkableConceptFilterParams params) {
-		//
-		//				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
-		//						ConstellioFactories.getInstance().getAppLayerFactory());
-		//
-		//				Category category = rm.wrapCategory(params.getRecord());
-		//				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
-		//			}
-		//		});
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						ConstellioFactories.getInstance().getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				boolean hasNoChildren = isEqual(0.0, storageSpace.getNumberOfChild());
+				boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
+						|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
+
+				boolean sameContainerType = storageSpace.getContainerType() == null
+						|| LangUtils.isEqual(storageSpace.getContainerType(), containerRecordType);
+
+				return hasNoChildren && enoughAvailableSize && sameContainerType;
+			}
+		});
 
 		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, StorageSpace.SCHEMA_TYPE, false, taxonomiesSearchFilter);
 	}
