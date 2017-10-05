@@ -154,7 +154,7 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 			password = emailServerConfiguration.getPassword();
 			properties = asList(emailServerConfiguration.getProperties());
 		} else {
-			enabled = true;
+			enabled = false;
 			user = "";
 			password = "";
 			defaultEmail = "";
