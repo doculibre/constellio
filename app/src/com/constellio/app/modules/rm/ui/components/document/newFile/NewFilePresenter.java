@@ -97,9 +97,13 @@ public class NewFilePresenter implements Serializable {
 			window.notifyNewFileCreated(fileContent, documentTypeId);
 		} else {
 			if(StringUtils.isNotBlank(extension)) {
-				window.showErrorMessage("NewFileWindow.invalidFileName", filename != null ? filename : "");
-			}else {
-				window.showErrorMessage("NewFileWindow.invalidFileType");
+				if(filename == null || filename.equals("")) {
+					window.showErrorMessage("NewFileWindow.blankFileName");
+				} else {
+					window.showErrorMessage("NewFileWindow.invalidFileName", filename);
+				}
+			} else {
+				window.showErrorMessage("NewFileWindow.fileTypeIsBlank");
 			}
 		}
 	}
