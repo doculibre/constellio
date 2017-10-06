@@ -1,8 +1,6 @@
 package com.constellio.data.conf;
 
 import java.io.File;
-import java.util.List;
-import java.io.Serializable;
 
 import org.joda.time.Duration;
 
