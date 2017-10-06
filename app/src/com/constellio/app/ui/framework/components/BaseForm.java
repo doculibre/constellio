@@ -5,6 +5,7 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Item;
 import com.vaadin.data.Validator;
@@ -280,6 +281,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 				fieldGroup.commit();
 				try {
 					saveButtonClick(viewObject);
+
+				} catch(MetadataSchemaBuilderRuntimeException e) {
+					if(e.getMessage().contains("'localCode'")) {
+						showErrorMessage($("BaseForm.SchemaBuilderRuntime"));
+					} else {
+						showErrorMessage(MessageUtils.toMessage(e));
+						LOGGER.warn(e.getMessage(), e);
+					}
 				} catch (Exception e) {
 
 					ValidationErrors errors = MessageUtils.getValidationErrors(e);
