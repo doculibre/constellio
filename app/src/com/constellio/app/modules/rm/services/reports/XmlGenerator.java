@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -120,7 +121,7 @@ public abstract class XmlGenerator {
             }
 
             for(Object value : metadataValue) {
-                CopyRetentionRule retentionRule = (CopyRetentionRule) value;
+                CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ? ((CopyRetentionRuleInRule) value).getCopyRetentionRule() : (CopyRetentionRule) value;
                 listOfMetadataTags.addAll(asList(
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period").setText(retentionRule.getActiveRetentionPeriod().toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment").setText(retentionRule.getActiveRetentionComment()),
