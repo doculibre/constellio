@@ -1,6 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,6 +23,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -268,6 +270,267 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 				"unitId_10a sasquatch visible false"
 		);
 
+	}
+
+	@Test
+	public void whenAFolderReceiveNewAuthorizationsThenInvalidated()
+			throws Exception {
+
+		String auth = authServices.add(authorizationForUsers(users.robinIn(zeCollection)).givingReadAccess().on(FOLDER1));
+//		cache.invalidateWithoutChildren(FOLDER1);
+		//		cache.invalidateWithoutChildren(records.categoryId_X110);
+		//		cache.invalidateWithoutChildren(records.categoryId_X100);
+		//		cache.invalidateWithoutChildren(records.categoryId_X);
+		//		cache.invalidateWithoutChildren(records.unitId_10a);
+		//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_X sasquatch selecting-document false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_10 sasquatch selecting-document false"
+		);
+
+		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
+				.withNewPrincipalIds(users.sasquatchIn(zeCollection).getId()));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder true",
+				"categoryId_X robin visible true",
+				"categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 robin visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 robin visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder true",
+				"unitId_10 robin visible true",
+				"unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a robin visible true",
+				"unitId_10a sasquatch visible true"
+		);
+
+		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
+				.withNewPrincipalIds(users.robinIn(zeCollection).getId()));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a sasquatch visible true"
+		);
+
+		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(auth, zeCollection));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-folder true",
+				"categoryId_X robin visible true",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 robin visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 robin visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-folder true",
+				"unitId_10 robin visible true",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a robin visible true",
+				"unitId_10a sasquatch visible true"
+		);
+	}
+
+	@Test
+	public void givenDetachedFolderReceiveNewAuthorizationsThenInvalidated()
+			throws Exception {
+
+		authServices.detach(record(FOLDER1));
+
+		String auth = authServices.add(authorizationForUsers(users.robinIn(zeCollection)).givingReadAccess().on(FOLDER1));
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_X sasquatch selecting-document false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_10 sasquatch selecting-document false"
+		);
+
+		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
+				.withNewPrincipalIds(users.sasquatchIn(zeCollection).getId()));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder true",
+				"categoryId_X robin visible true",
+				"categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 robin visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 robin visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder true",
+				"unitId_10 robin visible true",
+				"unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a robin visible true",
+				"unitId_10a sasquatch visible true"
+		);
+
+		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
+				.withNewPrincipalIds(users.robinIn(zeCollection).getId()));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a sasquatch visible true"
+		);
+
+		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(auth, zeCollection));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-folder true",
+				"categoryId_X robin visible true",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 robin visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 robin visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-folder true",
+				"unitId_10 robin visible true",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a robin visible true",
+				"unitId_10a sasquatch visible true"
+		);
+
+		authServices.reset(record(FOLDER1));
+//		cache.invalidateWithChildren(FOLDER1);
+//		cache.invalidateWithoutChildren(FOLDER1);
+//		cache.invalidateWithChildren(records.categoryId_X110);
+//		cache.invalidateWithChildren(records.categoryId_X100);
+//		cache.invalidateWithChildren(records.categoryId_X);
+//		cache.invalidateWithChildren(records.unitId_10a);
+//		cache.invalidateWithChildren(records.unitId_10);
+//		cache.invalidateWithoutChildren(records.categoryId_X110);
+//		cache.invalidateWithoutChildren(records.categoryId_X100);
+//		cache.invalidateWithoutChildren(records.categoryId_X);
+//		cache.invalidateWithoutChildren(records.unitId_10a);
+//		cache.invalidateWithoutChildren(records.unitId_10);
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true",
+				"categoryId_X sasquatch visible true",
+				"categoryId_X100 sasquatch visible true",
+				"categoryId_X110 sasquatch visible true",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true",
+				"unitId_10 sasquatch visible true",
+				"unitId_10a sasquatch visible true"
+		);
 	}
 
 	//--------------------------------------------------------------

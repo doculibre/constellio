@@ -132,6 +132,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void backgroundViewMonitor() {
+		clearRequestCache();
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		try {
 			ContentVersionVO contentVersionVO = documentVO.getContent();
