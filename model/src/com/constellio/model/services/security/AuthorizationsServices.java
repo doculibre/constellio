@@ -339,6 +339,8 @@ public class AuthorizationsServices {
 
 		executeTransaction(transaction);
 
+		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()), true, false);
+
 		if (userAddingTheAuth != null) {
 			loggingServices.grantPermission(authorization, userAddingTheAuth);
 		}
@@ -346,10 +348,26 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
+	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+
+		for (String id : hierarchyIds) {
+			if (newAccess) {
+				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+			}
+			if (removedAccess) {
+				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+			}
+		}
+	}
+
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
-		execute(request, transaction);
+		String grantedOnRecord = execute(request, transaction);
 		executeTransaction(transaction);
+		if (grantedOnRecord != null) {
+			refreshCaches(recordServices.getDocumentById(grantedOnRecord), false, true);
+		}
 	}
 
 	private static class AuthTransaction extends Transaction {
@@ -372,7 +390,7 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private void execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
+	private String execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
 
 		List<String> authId = asList(request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
@@ -390,18 +408,27 @@ public class AuthorizationsServices {
 		}
 
 		for (Record record : recordsWithRemovedAuth) {
+			boolean newRecordInTransaction = !transaction.getRecordIds().contains(record.getId());
+			record = newRecordInTransaction ? record : transaction.getRecord(record.getId());
+
 			if (record.getTypeCode().equals(User.SCHEMA_TYPE) || record.getTypeCode().equals(Group.SCHEMA_TYPE)) {
 				removeAuthorizationToPrincipal(request.getAuthId(), record);
 			} else {
 				removeRemovedAuthorizationOnRecord(request.getAuthId(), record);
 			}
-		}
-		transaction.addAll(recordsWithRemovedAuth);
 
+			if (newRecordInTransaction) {
+				transaction.add(record);
+			}
+
+		}
+
+		String grantedOnRecordId = null;
 		try {
 			AuthorizationDetails details = getDetails(request.getCollection(), request.getAuthId());
 			if (details != null) {
 				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) details);
+				grantedOnRecordId = details.getTarget();
 			}
 
 			try {
@@ -415,6 +442,8 @@ public class AuthorizationsServices {
 		} catch (NoSuchAuthorizationWithId e) {
 			//No problemo
 		}
+
+		return grantedOnRecordId;
 
 	}
 
@@ -460,6 +489,8 @@ public class AuthorizationsServices {
 				//No problemo
 			}
 		}
+
+		refreshCaches(record, true, true);
 
 		return response;
 	}
@@ -617,6 +648,7 @@ public class AuthorizationsServices {
 		AuthTransaction transaction = new AuthTransaction();
 		reset(record, transaction);
 		executeTransaction(transaction);
+		refreshCaches(record, true, true);
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
@@ -654,13 +686,15 @@ public class AuthorizationsServices {
 		record.set(REMOVED_AUTHORIZATIONS, null);
 		record.set(IS_DETACHED_AUTHORIZATIONS, false);
 
-		transaction.add(record);
-
 		for (AuthorizationDetails authorizationDetails : schemas.searchSolrAuthorizationDetailss(
 				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 			execute(authorizationDeleteRequest(authorizationDetails), transaction);
 		}
 
+		boolean newRecordInTransaction = !transaction.getRecordIds().contains(record.getId());
+		if (newRecordInTransaction) {
+			transaction.add(record);
+		}
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,

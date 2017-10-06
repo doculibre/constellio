@@ -399,6 +399,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	public static File getResourcesDir() {
 		File resourcesDir = new File("sdk-resources");
+
 		if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
 			resourcesDir = new File("sdk" + File.separator + "sdk-resources");
 		}
@@ -418,6 +419,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		String completeName = clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
 		File resourcesDir = getResourcesDir();
 		File file = new File(resourcesDir, completeName);
+
+		if (!file.exists()) {
+			file = new File(new FoldersLocator().getPluginsSDKProject(), "sdk-resources" + File.separator + completeName);
+		}
+
+		if (!file.exists()) {
+			file = new File(new FoldersLocator().getSDKProject(), "sdk-resources" + File.separator + completeName);
+		}
 
 		if (!file.exists()) {
 			throw new RuntimeException("No such file '" + file.getAbsolutePath() + "'");
@@ -697,7 +706,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void waitUntilChuckNorrisIsDead() {
-		while(true) {
+		while (true) {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -710,13 +719,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
 		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
 
-			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
-				waitUntilChuckNorrisIsDead();
-			} else {
-				ensureNotUnitTest();
-				ensureInDevelopmentTest();
-				getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
-			}
+		if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+			waitUntilChuckNorrisIsDead();
+		} else {
+			ensureNotUnitTest();
+			ensureInDevelopmentTest();
+			getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
+		}
 	}
 
 	protected File unzipInTempFolder(File zipFile) {

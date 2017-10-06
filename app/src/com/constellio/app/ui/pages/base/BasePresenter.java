@@ -97,6 +97,12 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 	}
+	
+	protected void clearRequestCache() {
+		ConstellioFactories constellioFactories = presenterUtils.getConstellioFactories();
+		constellioFactories.onRequestEnded();
+		constellioFactories.onRequestStarted();	
+	}
 
 	private boolean isViewVisibleToCurrentUser(String params) {
 		User user = getCurrentUser();

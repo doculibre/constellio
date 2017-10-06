@@ -8,7 +8,6 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.Days;
 import org.joda.time.Duration;
 
 import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
@@ -53,6 +52,10 @@ public abstract class PropertiesConfiguration {
 
 	protected void setString(String key, String value) {
 		writeProperty(key, value);
+	}
+
+	protected void setEnum(String key, Enum<?> value) {
+		writeProperty(key, value.name());
 	}
 
 	protected void setInt(String key, int value) {
