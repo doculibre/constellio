@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.elevations;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.SearchConfigurationsManager;
@@ -10,6 +11,8 @@ import com.constellio.model.services.search.SearchConfigurationsManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     SearchConfigurationsManager searchConfigurationsManager;
@@ -76,7 +79,14 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     }
 
     public String getRecordTitle(String id) {
-        Record record = schemasRecordsServices.get(id);
-        return record.getTitle();
+        Record record;
+        String title;
+        try {
+            record = schemasRecordsServices.get(id);
+            title = record.getTitle();
+        } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+            title = id + " " + $("EditElevationPresenter.notARecord");
+        }
+        return title;
     }
 }
