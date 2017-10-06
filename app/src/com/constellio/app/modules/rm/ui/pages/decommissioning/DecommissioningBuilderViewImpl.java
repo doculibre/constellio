@@ -122,7 +122,13 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			}
 		});
 
-		HorizontalLayout top = new HorizontalLayout(buildAdministrativeUnitComponent(), addCriterion);
+		HorizontalLayout horizontalLayout = buildAdministrativeUnitComponent();
+		HorizontalLayout top = new HorizontalLayout(horizontalLayout, addCriterion);
+		top.setExpandRatio(horizontalLayout, 1);
+		top.setSizeFull();
+		addCriterion.setWidth("170px");
+		addCriterion.addStyleName("align: right");
+		top.setSpacing(true);
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
 
@@ -155,7 +161,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList, buildAddToListButton());
 	}
 
-	private Component buildAdministrativeUnitComponent() {
+	private HorizontalLayout buildAdministrativeUnitComponent() {
 		Label label = new Label($("DecommissioningBuilderView.administrativeUnit"));
 		adminUnit.setRequired(true);
 		adminUnit.addValueChangeListener(new ValueChangeListener() {
@@ -169,6 +175,10 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		adminUnit.addStyleName(ADMIN_UNIT);
 
 		HorizontalLayout layout = new HorizontalLayout(label, adminUnit);
+		label.setWidth("150px");
+		adminUnit.setSizeFull();
+		layout.setExpandRatio(adminUnit, 1);
+		layout.setSizeFull();
 		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		layout.setSpacing(true);
 		return layout;
