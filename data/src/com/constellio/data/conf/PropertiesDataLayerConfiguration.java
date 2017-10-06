@@ -3,18 +3,14 @@ package com.constellio.data.conf;
 import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
-import com.google.common.base.Joiner;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -74,7 +70,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		public void setSecondTransactionLogMode(String value) {
 			setString("secondTransactionLog.mode", value);
 		}
-		
+
 		public void setReplayTransactionStartVersion(long value) {
 			setLong("secondTransactionLog.version", value);
 		}
@@ -82,11 +78,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		public void setSecondTransactionLogEnabled(boolean value) {
 			setBoolean("secondTransactionLog.enabled", value);
 		}
-		
+
 		public void setKafkaServers(String value) {
 			setString("kafka.servers", value);
 		}
-		
+
 		public void setKafkaTopic(String value) {
 			setString("kafka.topic", value);
 		}
@@ -111,6 +107,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			this.idGeneratorType = idGeneratorType;
 		}
 
+		public void setSettingsConfigType(ConfigManagerType configManagerType) {
+			setEnum("dao.settings.type", configManagerType);
+		}
+
 		@Override
 		public IdGeneratorType getSecondaryIdGeneratorType() {
 			return idGeneratorType == null ? super.getSecondaryIdGeneratorType() : idGeneratorType;
@@ -124,6 +124,19 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		public String createRandomUniqueKey() {
 			return this.uniqueKeyToBeCreated == null ? super.createRandomUniqueKey() : uniqueKeyToBeCreated;
 		}
+
+		public void setRecordsDaoHttpSolrServerUrl(String url) {
+			setString("dao.records.http.url", url);
+		}
+
+		public void setContentDaoType(ContentDaoType contentDaoType) {
+			setEnum("dao.contents.type", contentDaoType);
+		}
+
+		public void setRecordsDaoSolrServerType(SolrServerType solrServerType) {
+			setEnum(RECORD_TYPE, solrServerType);
+		}
+
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
@@ -211,7 +224,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String getSecondTransactionLogMode() {
 		return getString("secondTransactionLog.mode", "xml");
 	}
-	
+
 	@Override
 	public long getReplayTransactionStartVersion() {
 		return getLong("secondTransactionLog.version", 0);
@@ -324,7 +337,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String getKafkaServers() {
 		return getString("kafka.servers", null);
 	}
-	
+
 	@Override
 	public String getKafkaTopic() {
 		return getString("kafka.topic", null);

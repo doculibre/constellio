@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.imports;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -218,6 +219,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		folderField.setCaption($("ExportView.folders"));
 		final ListAddRemoveRecordLookupField documentField = new ListAddRemoveRecordLookupField(Document.SCHEMA_TYPE);
 		documentField.setCaption($("ExportView.documents"));
+		final ListAddRemoveRecordLookupField containerField = new ListAddRemoveRecordLookupField(ContainerRecord.SCHEMA_TYPE);
+		containerField.setCaption($("ExportView.containers"));
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -226,16 +229,16 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if (dialog.isConfirmed()) {
-								presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
+								presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue(), containerField.getValue());
 							}
 						}
 					});
 				} else {
-					presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue());
+					presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), folderField.getValue(), documentField.getValue(), containerField.getValue());
 				}
 			}
 		};
-		folderAndDocumentsLayout.addComponents(folderField, documentField, exportButton);
+		folderAndDocumentsLayout.addComponents(folderField, documentField, containerField, exportButton);
 		return folderAndDocumentsLayout;
 	}
 
