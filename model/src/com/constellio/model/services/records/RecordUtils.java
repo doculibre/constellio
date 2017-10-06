@@ -24,7 +24,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsParams;
 
@@ -509,5 +512,92 @@ public class RecordUtils {
 			}
 		}
 		return parentPaths;
+	}
+
+	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types, RecordProvider recordProvider,
+			TaxonomiesSearchServicesCache cache) {
+
+		Set<String> idsWithPossibleNewChildren = new HashSet<>();
+		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
+		for (Record record : records) {
+
+			List<Metadata> metadatas = record.getModifiedMetadatas(types).only(new MetadataListFilter() {
+				@Override
+				public boolean isReturned(Metadata metadata) {
+					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+				}
+			});
+
+			for (Metadata metadata : metadatas) {
+				for (String newReference : record.<String>getValues(metadata)) {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(newReference, types, recordProvider));
+				}
+			}
+
+			if (record.isSaved() && !metadatas.isEmpty()) {
+				Record originalRecord = record.getCopyOfOriginalRecord();
+				for (Metadata metadata : metadatas) {
+					for (String removedReference : originalRecord.<String>getValues(metadata)) {
+						idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(removedReference, types, recordProvider));
+					}
+				}
+			}
+
+			if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+				if (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+					idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				} else {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				}
+			}
+
+			if (record.isModified(Schemas.VISIBLE_IN_TREES)) {
+				if (Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
+					idsWithPossibleRemovedChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				} else {
+					idsWithPossibleNewChildren.addAll(getHierarchyIdsTo(record.getId(), types, recordProvider));
+				}
+			}
+
+		}
+		for (String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
+			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
+		}
+		for (String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
+			cache.invalidateWithChildren(idWithPossibleNewChildren);
+		}
+	}
+
+	public static Set<String> getHierarchyIdsTo(Record record, ModelLayerFactory modelLayerFactory) {
+		List<String> ids = getHierarchyIdsTo(record.getId(),
+				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection()),
+				new RecordProvider(modelLayerFactory.newRecordServices()));
+
+
+
+		return new HashSet<>(ids);
+	}
+
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types, RecordProvider recordProvider) {
+		List<String> ids = new ArrayList<>();
+
+		Record record = recordProvider.getRecord(newReference);
+		if (record.isSaved()) {
+			ids.add(record.getId());
+			List<Metadata> metadatas = types.getSchema(record.getSchemaCode()).getMetadatas().only(new MetadataListFilter() {
+				@Override
+				public boolean isReturned(Metadata metadata) {
+					return metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship();
+				}
+			});
+
+			for (Metadata metadata : metadatas) {
+				for (String aReference : record.<String>getValues(metadata)) {
+					ids.addAll(getHierarchyIdsTo(aReference, types, recordProvider));
+				}
+			}
+
+		}
+		return ids;
 	}
 }
