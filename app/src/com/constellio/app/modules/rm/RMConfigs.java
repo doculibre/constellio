@@ -71,7 +71,8 @@ public class RMConfigs {
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
-			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM;
+			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
+	 		LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -275,9 +276,6 @@ public class RMConfigs {
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
-
-		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
-				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -344,6 +342,10 @@ public class RMConfigs {
 
 	public boolean purgeMinorVersionsOnTransfer() {
 		return manager.getValue(MINOR_VERSIONS_PURGED_ON) == DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT;
+	}
+
+	public boolean isLoggingFolderDocumentAccessWithCMISEnable(){
+		return manager.getValue(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS);
 	}
 
 	public boolean purgeMinorVersionsOnDeposit() {
@@ -509,5 +511,5 @@ public class RMConfigs {
 	public boolean isCopyRulesAlwaysVisibleInAddForm() {
 		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
 	}
-	
+
 }

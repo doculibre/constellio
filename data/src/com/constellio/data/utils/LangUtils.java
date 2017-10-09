@@ -223,8 +223,8 @@ public class LangUtils {
 	}
 
 	public static int compareStrings(String value1, String value2) {
-		String normalizedValue1 = removeAccents(value1);
-		String normalizedValue2 = removeAccents(value2);
+		String normalizedValue1 = removeAccents(value1).toLowerCase();
+		String normalizedValue2 = removeAccents(value2).toLowerCase();
 		return normalizedValue1.compareTo(normalizedValue2);
 	}
 

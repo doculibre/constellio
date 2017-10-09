@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.Document;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,19 +62,19 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
         this.sipFilter = new SIPFilter(zeCollection, getAppLayerFactory()).withIncludeFolderIds(Collections.singletonList(records.getFolder_A01().getId()));
         this.objectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(), sipFilter);
         this.entityRetriever = new EntityRetriever(zeCollection, getAppLayerFactory());
-        this.folderMetadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE).getAllMetadatas();
-        this.documentMetadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE).getAllMetadatas();
     }
 
     @Test
     public void testMetadataGettingFromDocumentContainsOnlyOne(){
-        SIPDocument sipDocument = new SIPDocument(rm.newDocument(), this.documentMetadata, this.folderMetadata, this.entityRetriever);
+        Document document = rm.newDocument();
+        SIPDocument sipDocument = new SIPDocument(document, document.getSchema().getMetadatas(), this.entityRetriever);
         assertThat(this.objectsProvider.getMetadataIds(sipDocument)).containsOnly("typeDocument");
     }
 
     @Test
     public void testMetadataGettingFromEmailContainsCorrectMetadata(){
-        SIPDocument sipDocument = new SIPDocument(rm.newEmail(), this.documentMetadata, this.folderMetadata, this.entityRetriever);
+        Email email = rm.newEmail();
+        SIPDocument sipDocument = new SIPDocument(email, email.getSchema().getMetadatas(), this.entityRetriever);
         assertThat(this.objectsProvider.getMetadataIds(sipDocument)).containsOnly(Email.EMAIL_TO, Email.EMAIL_FROM, Email.EMAIL_IN_NAME_OF, Email.EMAIL_CC_TO, Email.EMAIL_BCC_TO, Email.EMAIL_OBJECT);
     }
 
@@ -91,7 +92,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
             Transaction transaction = new Transaction();
             transaction.add(email);
             recordServices.execute(transaction);
-            sipDocument = new SIPDocument(email, this.documentMetadata, this.folderMetadata, this.entityRetriever);
+            sipDocument = new SIPDocument(email, email.getSchema().getMetadatas(), this.entityRetriever);
             fileinputstream = newFileInputStream(emailFile);
             assertThat(objectsProvider.getExtraFiles(sipDocument).keySet()).hasSize(((Map) rm.parseEmail(emailFile.getName(), fileinputstream).get("attachments")).size());
         } finally {
@@ -128,7 +129,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
             Transaction transaction = new Transaction();
             transaction.add(email);
             recordServices.execute(transaction);
-            sipDocument = new SIPDocument(email, this.documentMetadata, this.folderMetadata, this.entityRetriever);
+            sipDocument = new SIPDocument(email, email.getSchema().getMetadatas(), this.entityRetriever);
             fileinputstream = newFileInputStream(emailFile);
             assertThat(objectsProvider.getMetadataValues(sipDocument, "emailTo").get(0)).isEqualTo(email.getEmailTo().get(0));
             assertThat(objectsProvider.getMetadataValues(sipDocument, "emailFrom").get(0)).isEqualTo(email.getEmailFrom());

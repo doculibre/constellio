@@ -1,7 +1,11 @@
 package com.constellio.app.modules.rm.services.sip.ead;
 
+import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -34,16 +38,22 @@ public class EAD {
 	private EADArchdesc archdesc;
 	
 	private static SAXBuilder builder;
-	
+
+	private AppLayerFactory factory;
+
+	private String collection;
+
 	private static XMLDocumentValidator validator = new XMLDocumentValidator();
 	
 	static {
 		builder = new SAXBuilder();
 	}
 	
-	public EAD(SIPObject sipObject, EADArchdesc archdesc) {
+	public EAD(SIPObject sipObject, EADArchdesc archdesc, AppLayerFactory factory, String collection) {
 		this.sipObject = sipObject;
 		this.archdesc = archdesc;
+		this.factory = factory;
+		this.collection = collection;
 		
 		this.eadElement = new Element("ead", eadNamespace);
 		this.eadElement.addNamespaceDeclaration(xsiNamespace);
@@ -136,9 +146,9 @@ public class EAD {
 			didNoteElement.addContent(didNotePElement);
 			didNotePElement.setText(didNoteP);
 		}
-		
+
 		archdescElement.addContent(didElement);
-		
+
 		String accessrestrictLegalstatus = archdesc.getAccessRestrictLegalStatus();
 		if (StringUtils.isNotBlank(accessrestrictLegalstatus)) {
 			Element accessrestrictElement = new Element("accessrestrict", eadNamespace);
@@ -172,7 +182,7 @@ public class EAD {
 				itemElement.setText(relatedmaterial);
 			}
 		}
-		
+
 		eadElement.addContent(archdescElement);
 		
 		List<String> fileplanPs = archdesc.getFileplanPs();
@@ -196,6 +206,27 @@ public class EAD {
 				altformavailPElement.setText(altformavailP);
 			}
 		}
+
+		Element metadataElement = new Element("metadata", eadNamespace);
+
+		for(Metadata metadata : sipObject.getMetadataList()) {
+			if(metadata != null) {
+				if(metadata.getType().equals(MetadataValueType.REFERENCE)) {
+					metadataElement.addContent(XmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
+				} else if(metadata.getType().equals(MetadataValueType.ENUM)) {
+					metadataElement.addContent(XmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace));
+				} else {
+					Object metadataValue = sipObject.getRecord().get(metadata);
+					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
+					if(metadataValue != null) {
+						currentMetadataElement.setText(XmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata,factory, collection));
+					}
+					metadataElement.addContent(currentMetadataElement);
+				}
+			}
+		}
+
+		eadElement.addContent(metadataElement);
 	}
 	
 	public void build(File file) throws IOException {
@@ -213,8 +244,8 @@ public class EAD {
     		// Validating XML
     		builder.build(file);
 		} catch (JDOMException e) {
-			String fileContent = FileUtils.readFileToString(file);
-			System.out.println(fileContent);
+//			String fileContent = FileUtils.readFileToString(file);
+//			System.out.println(fileContent);
 			throw new RuntimeException("Exception for object of type " + sipObject.getType() + " (" + sipObject.getId() + ")", e);
 		} finally {
 			out.close();

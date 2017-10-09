@@ -10,17 +10,12 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -28,11 +23,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.jsoup.Jsoup;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -253,7 +244,7 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
         return listOfMetadataTags;
     }
 
-    List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
+    public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (recordElement.get(metadata) != null) {
             listOfMetadataTags.addAll(asList(
@@ -263,29 +254,6 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             );
         }
         return listOfMetadataTags;
-    }
-
-    String formatData(String data, Metadata metadata) {
-        if (Strings.isNullOrEmpty(data)) {
-            return data;
-        }
-        String finalData = data;
-        ConstellioEIMConfigs configs = new ConstellioEIMConfigs(factory.getModelLayerFactory().getSystemConfigurationsManager());
-        if (metadata.getType().equals(MetadataValueType.BOOLEAN)) {
-            finalData = $(data);
-        } else if (metadata.getType().equals(MetadataValueType.DATE) || metadata.getType().equals(MetadataValueType.DATE_TIME)) {
-            try {
-                boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
-                DateFormat df = isDateTime ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") : new SimpleDateFormat("yyyy-MM-dd");
-                Date date = df.parse(data);
-                finalData = SimpleDateFormatSingleton.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
-            } catch (ParseException e) {
-                return data;
-            }
-        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
-            finalData = Jsoup.parse(data).text();
-        }
-        return replaceBracketsInValueToString.replaceOn(finalData);
     }
 
     @Override

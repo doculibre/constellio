@@ -112,7 +112,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);
-		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 100);
+		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 1000);
 		StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
 		if (previousPart != null) {
 			iterator.beginAfterId(previousPart.getLastId());
@@ -170,6 +170,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		List<String> recordsWithErrors = new ArrayList<>();
 
 		while (batchIterator.hasNext()) {
+			int oldErrorCount = recordsWithErrors.size();
 			List<Record> records = batchIterator.next();
 			int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
 			String firstId = records.get(0).getId();
@@ -188,7 +189,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
-			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size());
+			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size()-oldErrorCount);
 		}
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);

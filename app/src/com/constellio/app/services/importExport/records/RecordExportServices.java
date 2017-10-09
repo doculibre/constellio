@@ -1,6 +1,8 @@
 package com.constellio.app.services.importExport.records;
 
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -33,6 +35,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -292,10 +295,14 @@ public class RecordExportServices {
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 		MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		List<String> allowedMetadatas = asList(Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
+				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode(),
+				Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), Schemas.LOGICALLY_DELETED_ON.getLocalCode(),
+				ContainerRecord.FIRST_TRANSFER_REPORT_DATE, ContainerRecord.FIRST_DEPOSIT_REPORT_DATE, ContainerRecord.DOCUMENT_RESPONSIBLE,
+				RMObject.FORM_CREATED_BY, RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_BY, RMObject.FORM_MODIFIED_ON);
 		for (Metadata metadata : metadataSchema.getMetadatas()) {
-			if (!metadata.isSystemReserved()
-					&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& metadata.getType() != MetadataValueType.STRUCTURE) {
+			if ((!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL && metadata.getType() != MetadataValueType.STRUCTURE)
+					|| (allowedMetadatas.contains(metadata.getLocalCode()))) {
 				Object object = record.get(metadata);
 				String referencePrefix = "id:";
 				if(metadata.getType() == MetadataValueType.REFERENCE) {
@@ -371,7 +378,7 @@ public class RecordExportServices {
 					systemFilePath = "Unsupported";
 				}
 				contentPaths.append(systemFilePath);
-				contentPaths.append("*");
+//				contentPaths.append("*");
 				contentPaths.append("\n");
 			}
 		}

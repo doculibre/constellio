@@ -625,7 +625,9 @@ public class MetadataSchemaXMLWriter3 {
 			if (agregatedDataEntry.getInputMetadata() != null) {
 				dataEntry.setAttribute("inputMetadata", agregatedDataEntry.getInputMetadata());
 			}
-
+			if(agregatedDataEntry.getAggregatedCalculator() != null) {
+				dataEntry.setAttribute("aggregatedCalculator", agregatedDataEntry.getAggregatedCalculator().getName());
+			}
 		}
 
 		return dataEntry;
