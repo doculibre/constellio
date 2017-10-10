@@ -524,6 +524,10 @@ public class RecordDeleteServices {
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 
+		if(!options.isCheckForValidationErrorEnable()) {
+			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+		}
+
 		List<Record> hierarchyRecords = new ArrayList<>(getAllRecordsInHierarchyForLogicalDeletion(record, options));
 		if (!new RecordUtils().toIdList(hierarchyRecords).contains(record.getId())) {
 			hierarchyRecords.add(record);
