@@ -49,7 +49,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
     private ZipService zipService;
 
     public static final String DATE_1 = "10/01/2000 12:00:00";
-    public static final String CUT_OFF_DATE_1 = "10/01/1995 00:00:00";
+    public static final String CUT_OFF_DATE_1 = "10/10/0000 00:00:00";
     public static final String CUT_OFF_DATE_2 = "10/01/1999 00:00:00";
 
     public static final String FOLDER_NAME = "eventsBackup";
@@ -93,7 +93,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         // Default cutoff is 60 months
         LocalDateTime cutOffDate = eventService.getDeletetionDateCutOff();
 
-        assertThat(cutOffDate).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_1));
+        assertThat(cutOffDate).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_1).minusYears(6334));
 
         getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
@@ -137,6 +137,8 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
         recordServices.add(event1);
         recordServices.add(event2);
         recordServices.add(event3);
+
+        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
         LocalDateTime event2LocalDateTime = eventService.getDeletetionDateCutOff().minusHours(1);
         Event event4 = createEvent(event2LocalDateTime.minusSeconds(3));
