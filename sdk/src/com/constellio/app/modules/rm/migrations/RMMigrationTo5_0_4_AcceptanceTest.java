@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -35,7 +36,8 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
-			if (type.getDefaultSchema().hasMetadataWithCode(Schemas.CODE.getCode())) {
+			if (type.getDefaultSchema().hasMetadataWithCode(Schemas.CODE.getCode()) && !type.getCode()
+					.equals(YearType.SCHEMA_TYPE)) {
 				if (!type.getCode().equals(FilingSpace.SCHEMA_TYPE) && !type.getCode().equals(StorageSpace.SCHEMA_TYPE)) {
 					assertThat(type.getDefaultSchema().getMetadata(Schemas.CODE.getCode()).isUniqueValue())
 							.describedAs(type.getCode() + " code's uniqueness").isTrue();
