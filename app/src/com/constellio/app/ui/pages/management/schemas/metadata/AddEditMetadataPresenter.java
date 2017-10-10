@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
 import java.util.ArrayList;
@@ -222,7 +223,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setSearchable(formMetadataVO.isSearchable());
 			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
-			if (formMetadataVO.getValueType().equals(MetadataValueType.REFERENCE)) {
+			if (formMetadataVO.getValueType().equals(REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
 						.getTaxonomyFor(collection, formMetadataVO.getReference());
@@ -242,7 +243,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 						builder.isSearchable() != formMetadataVO.isSearchable();
 				if (reindexRequired) {
-					String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.sortable");
+					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE?
+							$("AddEditMetadataPresenter.saveButton.sortableReference"):$("AddEditMetadataPresenter.saveButton.sortable");
 
 					if (builder.isSearchable() != formMetadataVO.isSearchable()) {
 						confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
@@ -498,7 +500,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {
-		boolean noReferenceType = formMetadataVO.getValueType() == MetadataValueType.REFERENCE && StringUtils
+		boolean noReferenceType = formMetadataVO.getValueType() == REFERENCE && StringUtils
 				.isBlank(formMetadataVO.getReference());
 		if (!noReferenceType) {
 			view.reloadForm();
@@ -514,7 +516,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public void multivalueValueChanged(FormMetadataVO formMetadataVO) {
-		boolean noReferenceType = formMetadataVO.getValueType() == MetadataValueType.REFERENCE && StringUtils
+		boolean noReferenceType = formMetadataVO.getValueType() == REFERENCE && StringUtils
 				.isBlank(formMetadataVO.getReference());
 		if (!noReferenceType) {
 			view.reloadForm();
@@ -530,7 +532,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		try {
 			MetadataInputType inputType = formMetadataVO.getInput();
 			MetadataDisplayType displayType = formMetadataVO.getDisplayType();
-			if (formMetadataVO.getValueType() == MetadataValueType.REFERENCE) {
+			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
 			}
 			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
