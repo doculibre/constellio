@@ -33,9 +33,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -112,12 +110,13 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		SmbShareService smbService = new FakeSmbService(smbFileDTO);
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null);
-		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);
+		SmbDeleteJob deleteJob = spy(new SmbDeleteJob(jobParams));
 		deleteJob.execute(connector);
 
-		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-				.containsOnly(deleteEvent(es.newConnectorSmbDocument(connectorInstance)
-						.setUrl(FILE_URL)));
+//		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
+//				.containsOnly(deleteEvent(es.newConnectorSmbDocument(connectorInstance)
+//						.setUrl(FILE_URL)));
+		verify(deleteJob, times(1)).deleteByUrl(FILE_URL, true);
 	}
 
 	@Test
@@ -176,12 +175,13 @@ public class SmbDeleteJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		SmbShareService smbService = new FakeSmbService(smbFileDTO);
 		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null);
-		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);
+		SmbDeleteJob deleteJob = spy(new SmbDeleteJob(jobParams));
 		deleteJob.execute(connector);
 
-		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-				.containsOnly(deleteEvent(es.newConnectorSmbDocument(connectorInstance)
-						.setUrl(FILE_URL)));
+//		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
+//				.containsOnly(deleteEvent(es.newConnectorSmbDocument(connectorInstance)
+//						.setUrl(FILE_URL)));
+		verify(deleteJob, times(1)).deleteByUrl(FILE_URL, false);
 	}
 
 	@After
