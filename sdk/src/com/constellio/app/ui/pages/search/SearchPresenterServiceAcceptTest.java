@@ -304,7 +304,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 					FacetValueVO facetValue = value.getValues().get(i);
 					ExpectedFacetValue expectedFacetValue = expectedFacetValues[i];
 					assertThat(facetValue.getValue()).describedAs("facet value's value").isEqualTo(expectedFacetValue.value);
-					assertThat(facetValue.getLabel()).describedAs("facet value's label").isEqualTo(expectedFacetValue.label);
+					assertThat(facetValue.getLabel().contains(" - ") ? facetValue.getLabel().split(" - ")[1] : facetValue.getLabel()).describedAs("facet value's label").isEqualTo(expectedFacetValue.label);
 					if (expectedFacetValue.count == -1) {
 						assertThat(facetValue.getCount()).describedAs("facet value's count").isGreaterThan(0);
 					} else {
