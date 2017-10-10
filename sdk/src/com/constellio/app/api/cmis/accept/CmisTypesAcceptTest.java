@@ -2,7 +2,9 @@ package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -106,11 +108,11 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 	private void thenAllPropertiesAreSetted() {
 
 		ObjectType baseFolderType = cmisSession.getTypeDefinition("cmis:folder");
-		Iterator<ObjectType> iterator = baseFolderType.getChildren().iterator();
 
-		ObjectType classificationStationType = iterator.next();
+		Map<String, ObjectType> typesMap = iterateAndMapById(baseFolderType.getChildren().iterator());
+
+		ObjectType classificationStationType = typesMap.get("administrativeUnit_classificationStation");
 		assertThat(classificationStationType.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(classificationStationType.getId()).isEqualTo("administrativeUnit_classificationStation");
 		assertThat(classificationStationType.getDescription()).isEqualTo("administrativeUnit_classificationStation");
 		assertThat(classificationStationType.getDisplayName()).isEqualTo("administrativeUnit_classificationStation");
 		assertThat(classificationStationType.getLocalName()).isEqualTo("administrativeUnit_classificationStation");
@@ -173,9 +175,8 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 				classificationStationType.getPropertyDefinitions().get("tokens")
 						.getCardinality()).isEqualTo(Cardinality.MULTI);
 
-		ObjectType administrativeUnitDefault = iterator.next();
+		ObjectType administrativeUnitDefault = typesMap.get("administrativeUnit_default");
 		assertThat(administrativeUnitDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(administrativeUnitDefault.getId()).isEqualTo("administrativeUnit_default");
 		assertThat(administrativeUnitDefault.getDescription()).isEqualTo("administrativeUnit_default");
 		assertThat(administrativeUnitDefault.getDisplayName()).isEqualTo("administrativeUnit_default");
 		assertThat(administrativeUnitDefault.getLocalName()).isEqualTo("administrativeUnit_default");
@@ -205,103 +206,86 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("tokens").getCardinality())
 				.isEqualTo(Cardinality.MULTI);
 
-		ObjectType authorizationDetails = iterator.next();
+		ObjectType authorizationDetails = typesMap.get("authorizationDetails_default");
 		assertThat(authorizationDetails.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(authorizationDetails.getId()).isEqualTo("authorizationDetails_default");
 
-		ObjectType categoryDefault = iterator.next();
+		ObjectType categoryDefault = typesMap.get("category_default");
 		assertThat(categoryDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(categoryDefault.getId()).isEqualTo("category_default");
 		assertThat(categoryDefault.getDescription()).isEqualTo("category_default");
 		assertThat(categoryDefault.getDisplayName()).isEqualTo("category_default");
 		assertThat(categoryDefault.getLocalName()).isEqualTo("category_default");
 		//		assertThat(categoryDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(categoryDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType collectionType = iterator.next();
+		ObjectType collectionType = typesMap.get("collection_default");
 		assertThat(collectionType.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(collectionType.getId()).isEqualTo("collection_default");
 		assertThat(collectionType.getDescription()).isEqualTo("collection_default");
 		assertThat(collectionType.getDisplayName()).isEqualTo("collection_default");
 		assertThat(collectionType.getLocalName()).isEqualTo("collection_default");
 		//		assertThat(collectionType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(collectionType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType documentFondDefault = iterator.next();
+		ObjectType documentFondDefault = typesMap.get("documentFond_default");
 		assertThat(documentFondDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(documentFondDefault.getId()).isEqualTo("documentFond_default");
 		assertThat(documentFondDefault.getDescription()).isEqualTo("documentFond_default");
 		assertThat(documentFondDefault.getDisplayName()).isEqualTo("documentFond_default");
 		assertThat(documentFondDefault.getLocalName()).isEqualTo("documentFond_default");
 		//		assertThat(documentFondDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(documentFondDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType documentDefault = iterator.next();
+		ObjectType documentDefault = typesMap.get("document_default");
 		assertThat(documentDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(documentDefault.getId()).isEqualTo("document_default");
 		assertThat(documentDefault.getDescription()).isEqualTo("document_default");
 		assertThat(documentDefault.getDisplayName()).isEqualTo("document_default");
 		assertThat(documentDefault.getLocalName()).isEqualTo("document_default");
 		//		assertThat(documentDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(documentDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType emailToSendDefault = iterator.next();
-		assertThat(emailToSendDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(emailToSendDefault.getId()).isEqualTo("emailToSend_default");
-
-		ObjectType eventDefault = iterator.next();
+		ObjectType eventDefault = typesMap.get("event_default");
 		assertThat(eventDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(eventDefault.getId()).isEqualTo("event_default");
 		assertThat(eventDefault.getDescription()).isEqualTo("event_default");
 		assertThat(eventDefault.getDisplayName()).isEqualTo("event_default");
 		assertThat(eventDefault.getLocalName()).isEqualTo("event_default");
 		//		assertThat(eventDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(eventDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType facetDefault = iterator.next();
+		ObjectType facetDefault = typesMap.get("facet_default");
 		assertThat(facetDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(facetDefault.getId()).isEqualTo("facet_default");
 		assertThat(facetDefault.getDescription()).isEqualTo("facet_default");
 
-		ObjectType facetField = iterator.next();
+		ObjectType facetField = typesMap.get("facet_field");
 		assertThat(facetField.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(facetField.getId()).isEqualTo("facet_field");
 		assertThat(facetField.getDescription()).isEqualTo("facet_field");
 
-		ObjectType facetQuery = iterator.next();
+		ObjectType facetQuery = typesMap.get("facet_query");
 		assertThat(facetQuery.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(facetQuery.getId()).isEqualTo("facet_query");
 		assertThat(facetQuery.getDescription()).isEqualTo("facet_query");
 
-		ObjectType folderDefault = iterator.next();
+		ObjectType folderDefault = typesMap.get("folder_default");
 		assertThat(folderDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(folderDefault.getId()).isEqualTo("folder_default");
 		assertThat(folderDefault.getDescription()).isEqualTo("folder_default");
 		assertThat(folderDefault.getDisplayName()).isEqualTo("folder_default");
 		assertThat(folderDefault.getLocalName()).isEqualTo("folder_default");
 		//		assertThat(folderDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(folderDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType groupDefault = iterator.next();
+		ObjectType groupDefault = typesMap.get("group_default");
 		assertThat(groupDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(groupDefault.getId()).isEqualTo("group_default");
 		assertThat(groupDefault.getDescription()).isEqualTo("group_default");
 		assertThat(groupDefault.getDisplayName()).isEqualTo("group_default");
 		assertThat(groupDefault.getLocalName()).isEqualTo("group_default");
 		//		assertThat(groupDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(groupDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType printable = iterator.next();
+		ObjectType printable = typesMap.get("printable_default");
 		assertThat(printable.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(printable.getId()).isEqualTo("printable_default");
 		assertThat(printable.getDescription()).isEqualTo("printable_default");
 		assertThat(printable.getDisplayName()).isEqualTo("printable_default");
 		assertThat(printable.getLocalName()).isEqualTo("printable_default");
 		//		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(printable.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType report = iterator.next();
-		assertThat(report.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		ObjectType report = typesMap.get("report_default");
 		assertThat(report.getId()).isEqualTo("report_default");
 		assertThat(report.getDescription()).isEqualTo("report_default");
 		assertThat(report.getDisplayName()).isEqualTo("report_default");
@@ -309,11 +293,10 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		//		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(report.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType savedSearch = iterator.next();
+		ObjectType savedSearch = typesMap.get("savedSearch_default");
 		assertThat(savedSearch.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(savedSearch.getId()).isEqualTo("savedSearch_default");
 
-		ObjectType approvalTask = iterator.next();
+		ObjectType approvalTask = typesMap.get("task_approval");
 		assertThat(approvalTask.getBaseTypeId().value()).isEqualTo("cmis:folder");
 		assertThat(approvalTask.getId()).isEqualTo("task_approval");
 		assertThat(approvalTask.getDescription()).isEqualTo("task_approval");
@@ -322,54 +305,57 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		//		assertThat(approvalTask.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(approvalTask.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType taskType = iterator.next();
+		ObjectType taskType = typesMap.get("task_default");
 		assertThat(taskType.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(taskType.getId()).isEqualTo("task_default");
 		assertThat(taskType.getDescription()).isEqualTo("task_default");
 		assertThat(taskType.getDisplayName()).isEqualTo("task_default");
 		assertThat(taskType.getLocalName()).isEqualTo("task_default");
 		//		assertThat(taskType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(taskType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType taxonomyType = iterator.next();
+		ObjectType taxonomyType = typesMap.get("taxonomy");
 		assertThat(taxonomyType.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(taxonomyType.getId()).isEqualTo("taxonomy");
 		assertThat(taxonomyType.getDescription()).isEqualTo("taxonomy");
 		assertThat(taxonomyType.getDisplayName()).isEqualTo("taxonomy");
 		assertThat(taxonomyType.getLocalName()).isEqualTo("taxonomy");
 		//		assertThat(taxonomyType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(taxonomyType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		iterator.next();
-		iterator.next();
-		iterator.next();
-
-		ObjectType userDocument = iterator.next();
+		ObjectType userDocument = typesMap.get("userDocument_default");
 		assertThat(userDocument.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(userDocument.getId()).isEqualTo("userDocument_default");
 		assertThat(userDocument.getDescription()).isEqualTo("userDocument_default");
 		assertThat(userDocument.getDisplayName()).isEqualTo("userDocument_default");
 		assertThat(userDocument.getLocalName()).isEqualTo("userDocument_default");
 		//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userDocument.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType userFolder = iterator.next();
+		ObjectType userFolder = typesMap.get("userFolder_default");
 		assertThat(userFolder.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(userFolder.getId()).isEqualTo("userFolder_default");
 		assertThat(userFolder.getDescription()).isEqualTo("userFolder_default");
 		assertThat(userFolder.getDisplayName()).isEqualTo("userFolder_default");
 		assertThat(userFolder.getLocalName()).isEqualTo("userFolder_default");
 		//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userFolder.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
-		ObjectType userDefault = iterator.next();
+		ObjectType userDefault = typesMap.get("user_default");
 		assertThat(userDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
-		assertThat(userDefault.getId()).isEqualTo("user_default");
 		assertThat(userDefault.getDescription()).isEqualTo("user_default");
 		assertThat(userDefault.getDisplayName()).isEqualTo("user_default");
 		assertThat(userDefault.getLocalName()).isEqualTo("user_default");
 		//		assertThat(userDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
+	}
+
+	private Map<String, ObjectType> iterateAndMapById(Iterator<ObjectType> iterator) {
+		Map<String, ObjectType> map = new HashMap<>();
+
+		while (iterator.hasNext()) {
+			ObjectType type = iterator.next();
+			map.put(type.getId(), type);
+		}
+
+		return map;
+
 	}
 
 	private void whenChangeTypeDefinitionThenRefreshProperties() {
