@@ -57,7 +57,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 
 		backgroundThreadsManager.configure(configuration);
 
-		verify(scheduledExecutorService).scheduleAtFixedRate(command, 0, 42 * 60, TimeUnit.SECONDS);
+		verify(scheduledExecutorService).scheduleWithFixedDelay(command, 0, 42 * 60, TimeUnit.SECONDS);
 
 	}
 
