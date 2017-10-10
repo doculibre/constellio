@@ -102,7 +102,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 						formattedErrors.add(format(error));
 						view.showErrorMessage(format(error));
 					}
-					completeImportationAudit(importAudit, formattedErrors.toArray(new String[0]));
+					completeImportationAudit(importAudit, formattedErrors);
 
 					view.showImportCompleteMessage();
 				}
@@ -110,7 +110,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 			} catch (ValidationException e) {
 				String formattedError = i18n.$(e.getValidationErrors());
 				view.showErrorMessage(formattedError);
-				completeImportationAudit(importAudit, formattedError);
+				completeImportationAudit(importAudit, asList(formattedError));
 			} catch (Exception e) {
 				e.printStackTrace();
 
@@ -119,7 +119,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 				e.printStackTrace(pWriter);
 				String formattedError = writer.toString();
 				view.showErrorMessage(formattedError);
-				completeImportationAudit(importAudit, formattedError);
+				completeImportationAudit(importAudit, asList(formattedError));
 			} finally {
 				FileUtils.deleteQuietly(file);
 			}
@@ -139,9 +139,14 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 		return importAudit;
 	}
 
-	private void completeImportationAudit(ImportAudit importAudit, String... errors) {
-		if(errors != null && errors.length > 0) {
-			importAudit.setErrors(asList(errors));
+	private void completeImportationAudit(ImportAudit importAudit, List<String> errors) {
+		StringBuilder formattedError = new StringBuilder();
+		for(String error: errors) {
+			formattedError.append(error);
+		}
+
+		if(!errors.isEmpty()) {
+			importAudit.setErrors(formattedError.toString().replaceAll("<br/>", ""));
 		}
 
 		importAudit.setEndDate(LocalDateTime.now());

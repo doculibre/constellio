@@ -176,7 +176,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(folderContentComponent,
 				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
-		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks"));
+		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
