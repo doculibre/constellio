@@ -11,14 +11,12 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -331,5 +329,9 @@ public class RMEventsSearchServices {
 		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
 				.andWhere(metadataRecordID).isEqualTo(recordID);
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+	}
+
+	public LogicalSearchQuery andWhereRecordIdIsNotNull(LogicalSearchQuery query) {
+		return query.setCondition(query.getCondition().andWhere(schemas.event.recordIdentifier()).isNotNull());
 	}
 }

@@ -47,7 +47,7 @@ public class SmbDeleteJob extends SmbConnectorJob {
         }
     }
 
-    private void deleteByUrl(String url, boolean withChildren) {
+    protected void deleteByUrl(String url, boolean withChildren) {
         ModelLayerFactory modelLayerFactory = jobParams.getEventObserver().getModelLayerFactory();
         RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
         TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());

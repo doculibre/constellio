@@ -217,8 +217,11 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
             } else {
                 containerRecord = rm.getContainerRecord(mapDecomListFolderDetail.get(CONTAINER_RECORD_ID));
             }
+
             if(containerRecord != null) {
                 decomListFolderDetail.setContainerRecordId(containerRecord.getId());
+            } else {
+                LOGGER.error("Could not find container " + mapDecomListFolderDetail.get(CONTAINER_RECORD_ID) + " for folderDetail " + mapDecomListFolderDetail.get(FOLDER_ID));
             }
         }
 

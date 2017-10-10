@@ -1,6 +1,7 @@
 package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
@@ -473,7 +474,7 @@ public class Metadata implements DataStoreField {
 		boolean globalMetadataWithNormalizedSortField =
 				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());
 		boolean isIdentifier = IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
-		return (isSortable() || globalMetadataWithNormalizedSortField) && type == STRING && !isMultivalue() && !isIdentifier;
+		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE) && !isMultivalue() && !isIdentifier;
 	}
 
 	public Metadata getSortField() {
