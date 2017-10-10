@@ -95,11 +95,11 @@ public class LookupRecordField extends LookupField<String> {
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
 		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
-		List<Taxonomy> taxonomies;
+		List<Taxonomy> taxonomies = new ArrayList<>();
 		if (schemaTypeCode != null) {
 			taxonomies = taxonomiesManager
 					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
-		} else {
+		} else if(schemaCode != null){
 			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
 		}
 		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();

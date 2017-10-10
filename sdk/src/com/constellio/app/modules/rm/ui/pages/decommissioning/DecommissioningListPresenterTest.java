@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -14,6 +15,8 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Locale;
 
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -137,7 +140,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(recordServices.isLogicallyThenPhysicallyDeletable(record, user)).thenReturn(true);
 
 		presenter.deleteButtonClicked();
-		verify(factories.getRecordServices(), times(1)).logicallyDelete(record, user);
+		verify(factories.getRecordServices(), times(1)).logicallyDelete(eq(record), eq(user), any(RecordLogicalDeleteOptions.class));
 		verify(factories.getRecordServices(), times(1)).physicallyDelete(record, user);
 	}
 

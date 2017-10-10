@@ -98,4 +98,7 @@ public class RecordExtension {
 		return false;
 	}
 
+	public String getCaptionForRecord(Record record) {
+		return null;
+	}
 }

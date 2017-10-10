@@ -145,6 +145,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
+			if(value == MetadataValueType.REFERENCE && multivalue) {
+				sortableField.setValue(false);
+				sortableField.setEnabled(false);
+			} else if(value == MetadataValueType.REFERENCE) {
+				sortableField.setEnabled(true);
+			}
+
 			inputType.setEnabled(false);
 			inputType.removeAllItems();
 			inputType.setEnabled(true);
@@ -179,7 +186,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 
 			if (!inherited) {
-				this.enableCorrectFields(value, inherited, editMode);
+				this.enableCorrectFields(value, inherited, editMode, multivalue);
 			}
 
 			inputMask.setEnabled(MetadataValueType.STRING.equals(value));
@@ -187,7 +194,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		}
 	}
 
-	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode) {
+	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode, Boolean multivalue) {
 		refType.setEnabled(false);
 		refType.setRequired(false);
 		//searchableField.setEnabled(false);
@@ -219,8 +226,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			break;
 		case REFERENCE:
+			if(multivalue) {
+				sortableField.setValue(false);
+				sortableField.setEnabled(false);
+			}
 			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
 			refType.setEnabled(true);
 			refType.setRequired(!editMode);
 			break;
@@ -249,7 +259,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		case CONTENT:
 			sortableField.setValue(false);
 		case REFERENCE:
-			sortableField.setValue(false);
 			break;
 		case DATE:
 			break;
