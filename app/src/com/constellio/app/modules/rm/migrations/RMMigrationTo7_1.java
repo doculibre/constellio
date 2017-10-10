@@ -55,27 +55,27 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
 			throws Exception {
 		SchemaAlterationsFor6_7 s = new SchemaAlterationsFor6_7(collection, provider, factory);
+		givenNewPermissionsToRGDandADMRoles(collection, factory.getModelLayerFactory());
 		s.migrate();
 		s.setupRoles(collection, factory.getModelLayerFactory().getRolesManager(), provider);
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
 
-		transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
-				.withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
-				.withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-				.withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-		);
-		displayManager.execute(transaction.build());
-		createDefaultLabel(collection, factory, provider);
-		givenNewPermissionsToRGDandADMRoles(collection, factory.getModelLayerFactory());
-	}
+        transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
+                .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
+                .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+                .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+        );
+        displayManager.execute(transaction.build());
+        createDefaultLabel(collection, factory, provider);
+    }
 
-	private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
-		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-		List<String> newRgdPermissions = new ArrayList<>();
-		newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
-		modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
-	}
+    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+        List<String> newRgdPermissions = new ArrayList<>();
+        newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
+        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
+    }
 
 	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
 			throws Exception {
@@ -200,6 +200,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			manager.updateRole(
 					manager.getRole(collection, RMRoles.MANAGER).withNewPermissions(asList(MANAGE_LABELS_PERMISSION)));
 		}
+
 
 	}
 

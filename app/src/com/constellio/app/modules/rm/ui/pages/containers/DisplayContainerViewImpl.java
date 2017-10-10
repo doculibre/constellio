@@ -2,14 +2,14 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.LabelParametersVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -58,25 +58,47 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout();
+		final VerticalLayout layout = new VerticalLayout();
 		layout.setWidth("100%");
 		layout.setSpacing(true);
 
-		RecordVO container = presenter.getContainer();
+		final RecordVO container = presenter.getContainer();
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
-		layout.addComponents(borrowedLabel, new RecordDisplay(container));
+		MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory() {
+			@Override
+			public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
+				if (metadataValue.getMetadata().getLocalCode().equals(ContainerRecord.FILL_RATIO_ENTRED)) {
+					return buildSingleValue(recordVO, metadataValue.getMetadata(), metadataValue.getValue());
+				} else {
+					return super.build(recordVO, metadataValue);
+				}
+			}
 
-		try {
-			Double fillRatio = presenter.getFillRatio(container);
-			layout.addComponent(new ContainerRatioPanel(fillRatio));
-		} catch (ContainerWithoutCapacityException e) {
-			layout.addComponent(new ContainerRatioPanel($("ContainerWithoutCapacityException")));
-		} catch (RecordInContainerWithoutLinearMeasure e) {
-			layout.addComponent(new ContainerRatioPanel($("RecordInContainerWithoutLinearMeasure")));
-		}
+			@Override
+			public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
+				if (metadata.getLocalCode().equals(ContainerRecord.FILL_RATIO_ENTRED)) {
+					try {
+						Double fillRatio = presenter.getFillRatio(container);
+						return new Label(fillRatio.toString());
+					} catch (ContainerWithoutCapacityException e) {
+						return new Label($("ContainerWithoutCapacityException"));
+					} catch (RecordInContainerWithoutLinearMeasure e) {
+						return new Label($("RecordInContainerWithoutLinearMeasure"));
+					}
+				} else {
+					return super.buildSingleValue(recordVO, metadata, displayValue);
+				}
+			}
+		};
+		layout.addComponents(borrowedLabel, new RecordDisplay(container, metadataDisplayFactory) {
+			@Override
+			protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
+				super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
+			}
+		});
 
 		layout.addComponent(buildFoldersTable(presenter.getFolders()));
 
