@@ -48,7 +48,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -142,7 +141,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(decomListComments.get(0).getDateTime()).isInstanceOf(LocalDateTime.class);
 		assertThat(decomListComments.get(0).getUsername()).isEqualTo("admin");
 
-
 		assertThat(decomListComments.get(1).getMessage()).isEqualTo("super message");
 	}
 
@@ -162,7 +160,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateDocumentWithVersions();
 		importAndValidateEvents();
 	}
-
 
 	@Test
 	@InternetTest
@@ -195,28 +192,18 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateDocumentWithVersions();
 
 		RetentionRule rule111201Id = rm.getRetentionRuleWithCode("111201");
-		String copy123Id = "?", copy456Id = "?", copy789Id = "?";
-		for (CopyRetentionRule copy : rule111201Id.getCopyRetentionRules()) {
-			if ("123".equals(copy.getCode())) {
-				copy123Id = copy.getId();
-			}
-
-			if ("456".equals(copy.getCode())) {
-				copy456Id = copy.getId();
-			}
-
-			if ("789".equals(copy.getCode())) {
-				copy789Id = copy.getId();
-			}
-		}
+		String copy123Id = rule111201Id.getCopyRetentionRuleWithCode("123").getId();
+		String copy456Id = rule111201Id.getCopyRetentionRuleWithCode("456").getId();
+		String copy789Id = rule111201Id.getCopyRetentionRuleWithCode("789").getId();
+		String copy000Id = rule111201Id.getCopyRetentionRuleWithCode("000").getId();
 
 		folder5 = rm.wrapFolder(expectedRecordWithLegacyId("671"));
 		assertThat(folder5.getRetentionRule()).isEqualTo(rule111201Id.getId());
-		assertThat(folder5.getMainCopyRule().getId()).isEqualTo(copy123Id);
+		assertThat(folder5.getMainCopyRule().getId()).isEqualTo(copy000Id);
 
 		folder6 = rm.wrapFolder(expectedRecordWithLegacyId("672"));
 		assertThat(folder6.getRetentionRule()).isEqualTo(rule111201Id.getId());
-		assertThat(folder6.getMainCopyRule().getId()).isEqualTo(copy456Id);
+		assertThat(folder6.getMainCopyRule().getId()).isEqualTo(copy123Id);
 
 		folder7 = rm.wrapFolder(expectedRecordWithLegacyId("673"));
 		assertThat(folder7.getRetentionRule()).isEqualTo(rule111201Id.getId());
@@ -537,7 +524,9 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(ruleAdministration.getSecondaryCopy().getMediumTypeIds())
 				.isEqualTo(asList(rm.getMediumTypeByCode("DM").getId(), rm.getMediumTypeByCode("PA").getId()));
 		assertThat(ruleAdministration.getSecondaryCopy().getInactiveDisposalType()).isEqualTo(DESTRUCTION);
-		assertThat(ruleAdministration.getPrincipalCopies().size()).isEqualTo(2);
+		assertThat(ruleAdministration.getPrincipalCopies().size()).isEqualTo(3);
+
+		assertThat(ruleAdministration.getPrincipalCopies()).extracting("code").containsOnly("123", "456", "789");
 
 		CopyRetentionRule copy1 = ruleAdministration.getPrincipalCopies().get(0);
 		CopyRetentionRule copy2 = ruleAdministration.getPrincipalCopies().get(1);
