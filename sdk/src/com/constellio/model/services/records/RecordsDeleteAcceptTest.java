@@ -5,9 +5,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.idsArray;
-import static com.constellio.sdk.tests.TestUtils.recordsIds;
+import static com.constellio.sdk.tests.TestUtils.*;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +14,11 @@ import static org.mockito.Mockito.spy;
 
 import java.util.List;
 
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.schemas.testimpl.problems.AbstractTestMetadataValidator;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,10 +29,6 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -1605,6 +1604,30 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThatRecord(records.folder2()).isNot(physicallyDeleted());
 	}
 
+
+	@Test
+	public void givenInvalidRecordTryingToDeleteItWithOptions() {
+		try {
+			MetadataSchemaType testRecordSchema = schemas.get("typeSupportingRawDelete");
+			MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
+			typesBuilder.getSchemaType(testRecordSchema.getCode()).getDefaultSchema().create("invalidMetadata").setType(MetadataValueType.STRING);
+			MetadataSchemaTypes metadataSchemaType = getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
+
+			Record record = new TestRecord(metadataSchemaType.getSchemaType(testRecordSchema.getCode()).getDefaultSchema(), "testRecord").set(TITLE, "testRecord").set(metadataSchemaType.getSchemaType(testRecordSchema.getCode()).getDefaultSchema().getMetadata("invalidMetadata"), "test");
+
+			Transaction transaction = new Transaction();
+			transaction.add(record);
+			recordServices.execute(transaction);
+
+			typesBuilder.getSchemaType(testRecordSchema.getCode()).getDefaultSchema().get("invalidMetadata").addValidator(InvalidMetadataValidator.class);
+			getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
+
+			recordServices.logicallyDelete(record, User.GOD);
+		} catch (RecordServicesException | OptimisticLocking error) {
+			throw new RuntimeException(error);
+		}
+	}
+
 	// -------------------------------------------------------------
 
 	private Condition<? super Record> logicallyDeletableBy(final User user) {
@@ -2124,5 +2147,14 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				types.getMetadata(schemas.folderSchema.linkToOtherFolder().getCode()).setDefaultRequirement(value);
 			}
 		});
+	}
+
+	public static class InvalidMetadataValidator implements RecordMetadataValidator<String> {
+		@Override
+		public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+			if(value.equals("test")) {
+				validationErrors.add(getClass(), "test");
+			}
+		}
 	}
 }
