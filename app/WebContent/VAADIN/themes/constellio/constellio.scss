@@ -888,8 +888,9 @@ $popup-view-z-index: 3;
 	    background-color: #414B56;
 		//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
 		background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
-
-		.v-context-menu-item-basic {
+			
+		.v-context-menu-item-basic, .v-context-menu-item-basic-submenu {
+    		background-color: #414B56;
 	    	color: white;
 	    	font-weight: normal;
 			text-decoration: none;
