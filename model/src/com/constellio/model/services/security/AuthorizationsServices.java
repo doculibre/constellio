@@ -366,7 +366,11 @@ public class AuthorizationsServices {
 		String grantedOnRecord = execute(request, transaction);
 		executeTransaction(transaction);
 		if (grantedOnRecord != null) {
-			refreshCaches(recordServices.getDocumentById(grantedOnRecord), false, true);
+			try {
+				refreshCaches(recordServices.getDocumentById(grantedOnRecord), false, true);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
+			}
 		}
 	}
 
