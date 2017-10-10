@@ -135,15 +135,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			MetadataVO metadataVO = propertyId[i];
 			if(schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
 				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
-				if(metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
-					LogicalSearchQuerySort sortField = new LogicalSearchQuerySort(metadata.getLocalCode() + ".caption_s", ascending[i]);
-					query.sortOn(sortField);
+				if (ascending[i]) {
+					query = query.sortAsc(metadata);
 				} else {
-					if (ascending[i]) {
-						query = query.sortAsc(metadata);
-					} else {
-						query = query.sortDesc(metadata);
-					}
+					query = query.sortDesc(metadata);
 				}
 			}
 		}

@@ -33,7 +33,12 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				Record referencedRecord = modelLayerFactory.newRecordServices().getDocumentById((String) value);
 				String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection()).getCaptionForRecord(referencedRecord);
 
-				return singletonMap(metadata.getLocalCode() + ".caption_s", (Object) captionForRecord);
+				String sortDataStoreCode = Schemas.getSortMetadata(metadata).getDataStoreCode();
+				if(!metadata.getDataStoreCode().equals(sortDataStoreCode)) {
+					return singletonMap(sortDataStoreCode, (Object) captionForRecord);
+				} else {
+					return Collections.emptyMap();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
