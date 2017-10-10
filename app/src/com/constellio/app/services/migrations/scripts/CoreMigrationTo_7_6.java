@@ -10,6 +10,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -24,6 +26,7 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
+        new CoreSchemaAlterationFor_7_6_deleteStep(collection, migrationResourcesProvider, appLayerFactory).migrate();
         new CoreSchemaAlterationFor_7_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
         migrateDisplayConfigs(appLayerFactory, collection);
     }
@@ -35,6 +38,19 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
         transactionBuilder.add(manager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.HTML)
                 .withInputType(MetadataInputType.RICHTEXT));
         manager.execute(transactionBuilder.build());
+    }
+
+    class CoreSchemaAlterationFor_7_6_deleteStep extends MetadataSchemasAlterationHelper {
+
+        protected CoreSchemaAlterationFor_7_6_deleteStep(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+            super(collection, migrationResourcesProvider, appLayerFactory);
+        }
+
+        @Override
+        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA);
+            importAuditSchema.deleteMetadataWithoutValidation(ImportAudit.ERRORS);
+        }
     }
 
     class CoreSchemaAlterationFor_7_6 extends MetadataSchemasAlterationHelper {
@@ -49,6 +65,9 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
             builder.create(Capsule.CODE).setType(MetadataValueType.STRING);
             builder.create(Capsule.HTML).setType(MetadataValueType.TEXT);
             builder.create(Capsule.KEYWORDS).setType(STRING).setMultivalue(true);
+
+            MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA);
+            importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
         }
     }
 }

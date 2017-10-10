@@ -4,6 +4,7 @@ import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.TitlePanel;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
@@ -25,6 +26,7 @@ import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,8 +73,37 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
     private BaseTable buildTable(RecordVODataProvider provider) {
         RecordVOTable importTable = new RecordVOTable(provider) {
             @Override
-            protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-                return super.buildMetadataComponent(metadataValue, recordVO);
+            protected Component buildMetadataComponent(final MetadataValueVO metadataValue, final RecordVO recordVO) {
+                final Component defaultComponent = super.buildMetadataComponent(metadataValue, recordVO);
+                if(metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null) {
+                    final String value = metadataValue.getValue();
+                    if(!value.isEmpty()) {
+                        int maxLength = (value.length() < 40)? value.length():40;
+                        String caption = maxLength == 40? value.substring(0, maxLength)+ "...": value.substring(0, maxLength);
+                        WindowButton windowButton = new WindowButton(caption, metadataValue.getMetadata().getLabel()) {
+                            @Override
+                            protected Component buildWindowContent() {
+                                if(defaultComponent != null) {
+                                    VerticalLayout mainLayout = new VerticalLayout();
+                                    mainLayout.setSizeFull();
+                                    TextArea textArea = new TextArea();
+                                    textArea.setValue(value);
+                                    textArea.setSizeFull();
+                                    mainLayout.addComponents(textArea);
+                                    return mainLayout;
+                                } else {
+                                    return defaultComponent;
+                                }
+                            }
+                        };
+                        windowButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+                        return windowButton;
+                    } else {
+                        return defaultComponent;
+                    }
+                } else {
+                    return defaultComponent;
+                }
             }
         };
         importTable.setWidth("98%");
@@ -109,7 +140,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
                     RecordVOItem item = (RecordVOItem) source.getItem(itemId);
                     RecordVO record = item.getRecord();
                     MetadataVO errors = record.getMetadata(ImportAudit.ERRORS);
-                    if(errors != null && !((List)record.getMetadataValue(errors).getValue()).isEmpty()) {
+                    if(errors != null && record.getMetadataValue(errors).getValue() != null && !((String)record.getMetadataValue(errors).getValue()).isEmpty()) {
                         return "error";
                     }
                 } catch (Exception e) {

@@ -18,11 +18,11 @@ public class ImportAudit extends TemporaryRecord {
         super(record, types);
     }
 
-    public List<String> getErrors() {
+    public String getErrors() {
         return get(ERRORS);
     }
 
-    public TemporaryRecord setErrors(List<String> stringList) {
+    public TemporaryRecord setErrors(String stringList) {
         set(ERRORS, stringList);
         return this;
     }
