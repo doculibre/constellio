@@ -389,6 +389,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMRecordCaptionExtension(collection, appLayerFactory));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);

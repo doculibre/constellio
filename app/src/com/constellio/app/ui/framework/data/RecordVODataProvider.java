@@ -18,11 +18,14 @@ import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider extends AbstractDataProvider {
@@ -135,7 +138,6 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			MetadataVO metadataVO = propertyId[i];
 			if (schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
 				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
-
 				if (ascending[i]) {
 					query = query.sortAsc(metadata);
 				} else {

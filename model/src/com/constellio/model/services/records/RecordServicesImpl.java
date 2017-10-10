@@ -923,7 +923,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		fieldsPopulators.add(new SearchFieldsPopulator(
 				types, transaction.getRecordUpdateOptions().isFullRewrite(), parsedContentProvider, collectionLanguages));
 		//fieldsPopulators.add(new AutocompleteFieldPopulator());
-		fieldsPopulators.add(new SortFieldsPopulator(types, transaction.getRecordUpdateOptions().isFullRewrite()));
+		fieldsPopulators.add(new SortFieldsPopulator(types, transaction.getRecordUpdateOptions().isFullRewrite(), modelFactory));
 
 		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 			@Override
