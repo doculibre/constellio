@@ -372,11 +372,10 @@ public class BorrowingServices {
 			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 
-			} else if (folder.getContainer() != null) {
+			} else if (isInDecommissioningList(folder)) {
+				throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
 
-				if (isInDecommissioningList(folder)) {
-					throw new BorrowingServicesRunTimeException_FolderIsInDecommissioningList(folder.getId());
-				}
+			} else if (folder.getContainer() != null) {
 
 				ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
 				validateCanBorrow(currentUser, containerRecord, borrowingDate);

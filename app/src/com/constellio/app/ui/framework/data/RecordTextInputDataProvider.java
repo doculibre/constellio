@@ -74,7 +74,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		if (schemaTypeCode != null) {
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
 			typesByCode.add(type);
-		} else {
+		} else if(schemaCode != null){
 			String schemaTypeCodeFromSchema = SchemaUtils.getSchemaTypeCode(schemaCode);
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCodeFromSchema);
 			typesByCode.add(type);
