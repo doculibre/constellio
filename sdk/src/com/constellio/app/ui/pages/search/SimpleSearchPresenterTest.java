@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +46,8 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 	@Mock Metadata metadata;
 	@Mock SchemasDisplayManager schemasDisplayManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
+	@Mock MetadataSchemasManager metadataSchemasManager;
+	@Mock ModelLayerFactory modelLayerFactory;
 	MockedFactories factories = new MockedFactories();
 	SchemasRecordsServices schemasRecordsServices;
 
@@ -53,7 +57,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
-		schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemasRecordsServices = new SchemasRecordsServices(zeCollection, factories.getModelLayerFactory());
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 
@@ -61,6 +65,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);
+		when(factories.getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(schemasDisplayManager.getTypes(zeCollection)).thenReturn(typesDisplayConfig);
 		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
