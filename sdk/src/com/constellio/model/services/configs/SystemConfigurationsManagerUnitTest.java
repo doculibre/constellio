@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -44,7 +45,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 	@Mock ConfigManager configManager;
 	SystemConfigurationsManager systemConfigurationsManager;
 	@Mock SystemConfiguration aSystemConfiguration;
-	@Mock BatchProcess aBatchProcess, anotherBatchProcess;
+	@Mock RecordBatchProcess aBatchProcess, anotherBatchProcess;
 	@Mock SystemConfigurationScript script;
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock ConstellioModulesManager constellioModulesManager;

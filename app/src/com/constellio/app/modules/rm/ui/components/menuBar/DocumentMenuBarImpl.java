@@ -6,9 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
-import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -26,9 +23,11 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
@@ -40,7 +39,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import org.vaadin.peter.contextmenu.ContextMenu;
 
 public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	
@@ -100,7 +98,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 			rootItem.addItem(borrowedMessage, null);
 		}
 
-		MenuItem displayDocumentItem = rootItem.addItem($("DocumentContextMenu.displayDocument"), null);
+		MenuItem displayDocumentItem = rootItem.addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O, null);
 		displayDocumentItem.setCommand(new Command() {
 			@Override
 			public void menuSelected(MenuItem selectedItem) {
@@ -122,7 +120,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (downloadDocumentButtonVisible) {
-			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.downloadDocument"), null);
+			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, null);
 			downloadDocumentItem.setCommand(new Command() {
 				@SuppressWarnings("deprecation")
 				@Override
@@ -135,7 +133,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (editDocumentButtonVisible) {
-			MenuItem editDocumentItem = rootItem.addItem($("DocumentContextMenu.editDocument"), null);
+			MenuItem editDocumentItem = rootItem.addItem($("DocumentContextMenu.editDocument"), FontAwesome.EDIT, null);
 			editDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -145,7 +143,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (deleteDocumentButtonVisible) {
-			MenuItem deleteDocumentItem = rootItem.addItem($("DocumentContextMenu.deleteDocument"), null);
+			MenuItem deleteDocumentItem = rootItem.addItem($("DocumentContextMenu.deleteDocument"), FontAwesome.TRASH_O, null);
 			deleteDocumentItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -160,7 +158,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (addAuthorizationButtonVisible) {
-			MenuItem addAuthorizationItem = rootItem.addItem($("DocumentActionsComponent.addAuthorization"), null);
+			MenuItem addAuthorizationItem = rootItem.addItem($("DocumentContextMenu.addAuthorization"), FontAwesome.KEY, null);
 			addAuthorizationItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -170,7 +168,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (createPDFAButtonVisible) {
-			MenuItem createPDFAItem = rootItem.addItem($("DocumentActionsComponent.createPDFA"), null);
+			MenuItem createPDFAItem = rootItem.addItem($("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O, null);
 			createPDFAItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -185,7 +183,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (shareDocumentButtonVisible) {
-			MenuItem shareDocumentItem = rootItem.addItem($("DocumentActionsComponent.shareDocument"), null);
+			MenuItem shareDocumentItem = rootItem.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
 			shareDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -195,7 +193,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (uploadButtonVisible) {
-			MenuItem uploadItem = rootItem.addItem($("DocumentActionsComponent.upload"), null);
+			MenuItem uploadItem = rootItem.addItem($("DocumentContextMenu.upload"), FontAwesome.UPLOAD, null);
 			uploadItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -205,7 +203,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (checkInButtonVisible) {
-			MenuItem checkInItem = rootItem.addItem($("DocumentActionsComponent.checkIn"), null);
+			MenuItem checkInItem = rootItem.addItem($("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, null);
 			checkInItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -215,7 +213,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (alertWhenAvailableButtonVisible) {
-			MenuItem alertWhenAvailableItem = rootItem.addItem($("RMObject.alertWhenAvailable"), null);
+			MenuItem alertWhenAvailableItem = rootItem.addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, null);
 			alertWhenAvailableItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -225,7 +223,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (checkOutButtonVisible) {
-			MenuItem checkOutItem = rootItem.addItem($("DocumentActionsComponent.checkOut"), null);
+			MenuItem checkOutItem = rootItem.addItem($("DocumentContextMenu.checkOut"), FontAwesome.LOCK, null);
 			checkOutItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -236,7 +234,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if (finalizeButtonVisible) {
-			MenuItem finalizeItem = rootItem.addItem($("DocumentActionsComponent.finalize"), null);
+			MenuItem finalizeItem = rootItem.addItem($("DocumentContextMenu.finalize"), FontAwesome.LEVEL_UP, null);
 			finalizeItem.setCommand(new ConfirmDialogMenuBarItemCommand(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -251,7 +249,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 		}
 
 		if(presenter.hasMetadataReport()) {
-		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReport"), null, null);
+		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT, null);
 			metadataReportGenerator.setCommand(new Command() {
 
 				@Override

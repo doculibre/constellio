@@ -6,9 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.framework.buttons.ReportButton;
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -26,22 +23,24 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.navigator.View;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import org.vaadin.peter.contextmenu.ContextMenu;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -112,7 +111,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			addItem(borrowedMessage);
 		}
 
-		ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"));
+		ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O);
 		displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 			@Override
 			public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -134,7 +133,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (downloadDocumentButtonVisible) {
-			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"));
+			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD);
 			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@SuppressWarnings("deprecation")
 				@Override
@@ -147,7 +146,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (editDocumentButtonVisible) {
-			ContextMenuItem editDocumentItem = addItem($("DocumentContextMenu.editDocument"));
+			ContextMenuItem editDocumentItem = addItem($("DocumentContextMenu.editDocument"), FontAwesome.EDIT);
 			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -157,7 +156,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (deleteDocumentButtonVisible) {
-			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"));
+			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"), FontAwesome.TRASH_O);
 			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -172,7 +171,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (addAuthorizationButtonVisible) {
-			ContextMenuItem addAuthorizationItem = addItem($("DocumentActionsComponent.addAuthorization"));
+			ContextMenuItem addAuthorizationItem = addItem($("DocumentContextMenu.addAuthorization"), FontAwesome.KEY);
 			addAuthorizationItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -182,7 +181,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (createPDFAButtonVisible) {
-			ContextMenuItem createPDFAItem = addItem($("DocumentActionsComponent.createPDFA"));
+			ContextMenuItem createPDFAItem = addItem($("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O);
 			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -197,7 +196,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (shareDocumentButtonVisible) {
-			ContextMenuItem shareDocumentItem = addItem($("DocumentActionsComponent.shareDocument"));
+			ContextMenuItem shareDocumentItem = addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O);
 			shareDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -207,7 +206,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (uploadButtonVisible) {
-			ContextMenuItem uploadItem = addItem($("DocumentActionsComponent.upload"));
+			ContextMenuItem uploadItem = addItem($("DocumentContextMenu.upload"), FontAwesome.UPLOAD);
 			uploadItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -217,7 +216,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (checkInButtonVisible) {
-			ContextMenuItem checkInItem = addItem($("DocumentActionsComponent.checkIn"));
+			ContextMenuItem checkInItem = addItem($("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK);
 			checkInItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -227,7 +226,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (alertWhenAvailableButtonVisible) {
-			ContextMenuItem alertWhenAvailableItem = addItem($("RMObject.alertWhenAvailable"));
+			ContextMenuItem alertWhenAvailableItem = addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O);
 			alertWhenAvailableItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -237,7 +236,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (checkOutButtonVisible) {
-			ContextMenuItem checkOutItem = addItem($("DocumentActionsComponent.checkOut"));
+			ContextMenuItem checkOutItem = addItem($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
 			checkOutItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
@@ -248,7 +247,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if (finalizeButtonVisible) {
-			ContextMenuItem finalizeItem = addItem($("DocumentActionsComponent.finalize"));
+			ContextMenuItem finalizeItem = addItem($("DocumentContextMenu.finalize"), FontAwesome.LEVEL_UP);
 			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -263,7 +262,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if(presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"));
+			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT);
 			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
 
 				@Override

@@ -1,13 +1,13 @@
 package com.constellio.model.services.schemas.validators;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class JasperFilePrintableValidator implements RecordMetadataValidator<Content> {
     @Override
