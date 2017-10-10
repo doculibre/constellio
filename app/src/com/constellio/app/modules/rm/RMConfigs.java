@@ -20,7 +20,6 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
 
-
 	public static String decommissioningGroup = "decommissioning";
 
 	public enum DecommissioningPhase {
@@ -72,7 +71,7 @@ public class RMConfigs {
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-	 		LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS;
+			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -130,7 +129,8 @@ public class RMConfigs {
 				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
-		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31").scriptedBy(EndYearValueCalculator.class));
+		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31")
+				.scriptedBy(EndYearValueCalculator.class));
 
 		//Nombre de jours devant précéder la date de fin d'année pour que celle-ci soit considérée dans le calcul des délais pour l'année en cours
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
@@ -226,7 +226,7 @@ public class RMConfigs {
 		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
 		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
-		
+
 		add(AGENT_MOVE_IMPORTED_FILES_TO_TRASH = agent.createBooleanTrueByDefault("agentMoveImportedFilesToTrash"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
@@ -239,8 +239,6 @@ public class RMConfigs {
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
-
-
 
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
@@ -276,6 +274,11 @@ public class RMConfigs {
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
+
+		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
+
+		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
+				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -344,7 +347,7 @@ public class RMConfigs {
 		return manager.getValue(MINOR_VERSIONS_PURGED_ON) == DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT;
 	}
 
-	public boolean isLoggingFolderDocumentAccessWithCMISEnable(){
+	public boolean isLoggingFolderDocumentAccessWithCMISEnable() {
 		return manager.getValue(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS);
 	}
 
