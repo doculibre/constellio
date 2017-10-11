@@ -1,8 +1,8 @@
 package com.constellio.model.services.users;
 
-import com.constellio.model.entities.records.wrappers.User;
-
 import java.util.List;
+
+import com.constellio.model.entities.records.wrappers.User;
 
 public class CredentialUserPermissionChecker {
 
@@ -14,7 +14,7 @@ public class CredentialUserPermissionChecker {
 
 	public boolean globalPermissionInAnyCollection(String permission) {
 		for (User user : users) {
-			if (user.has(permission).globally()) {
+			if (user != null && user.has(permission).globally()) {
 				return true;
 			}
 		}
@@ -27,7 +27,7 @@ public class CredentialUserPermissionChecker {
 
 	public boolean anyGlobalPermissionInAnyCollection(String... permissions) {
 		for (User user : users) {
-			if (user.hasAny(permissions).globally()) {
+			if (user != null && user.hasAny(permissions).globally()) {
 				return true;
 			}
 		}
@@ -40,7 +40,7 @@ public class CredentialUserPermissionChecker {
 
 	public boolean allGlobalPermissionsInAnyCollection(String... permissions) {
 		for (User user : users) {
-			if (user.hasAll(permissions).globally()) {
+			if (user != null && user.hasAll(permissions).globally()) {
 				return true;
 			}
 		}

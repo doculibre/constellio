@@ -98,6 +98,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration LAST_BACKUP_DAY, KEEP_EVENTS_FOR_X_MONTH;
 
+	public static final SystemConfiguration SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -173,6 +175,10 @@ public class ConstellioEIMConfigs {
 		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
 
 		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(99999).whichIsHidden());
+
+		SystemConfigurationGroup trees = new SystemConfigurationGroup(null, "trees");
+
+		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}

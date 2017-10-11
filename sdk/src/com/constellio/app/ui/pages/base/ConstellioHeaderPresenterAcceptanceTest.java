@@ -91,8 +91,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenAdvanceSearchThenMetadataChoiceIsLimitedByUsedSchemas()
 			throws RecordServicesException {
-		connectWithAdmin();
-		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> baseMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -107,18 +106,17 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
 						.withVisibleInAdvancedSearchStatus(true));
 
-		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
+		assertThat(baseMetadatas).containsAll(presenterConnectedWithAdmin().getMetadataAllowedInCriteria());
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
 		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
 				.set(AUTHORIZATIONS, new ArrayList<>()));
 
-		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> newMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
 		assertThat(newMetadatas.size()).isEqualTo(1);
 		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_customSchema_newSearchableMetadata");
 
-		connectWithBob();
-		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
+		assertThat(baseMetadatas).containsAll(presenterConnectedWithBob().getMetadataAllowedInCriteria());
 	}
 
 	@Test
@@ -141,8 +139,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add((RecordWrapper) rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01")
 				.set(Schemas.TITLE, "J01"));
 
-		connectWithAdmin();
-		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> baseMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -158,19 +155,17 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
 						.withVisibleInAdvancedSearchStatus(true));
 
-		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> newMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
 		assertThat(newMetadatas.size()).isEqualTo(1);
 		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_newSearchableMetadata");
 
-		connectWithBob();
-		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
+		assertThat(baseMetadatas).containsAll(presenterConnectedWithBob().getMetadataAllowedInCriteria());
 	}
 
 	@Test
 	public void givenAdvanceSearchThenDoNotShowDisabledMetadatas()
 			throws RecordServicesException {
-		connectWithAdmin();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -179,7 +174,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> baseMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -189,7 +184,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> newMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
 		assertThat(newMetadatas.size()).isEqualTo(1);
 		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_" + Folder.BORROWED);
@@ -198,7 +193,6 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenMetadataIsEnabledInCustomSchemaButNotInDefaultSchemaThenDoShow()
 			throws RecordServicesException {
-		connectWithAdmin();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -209,7 +203,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		manager.saveMetadata(
 				manager.getMetadata(zeCollection, "folder_default_myMetadata").withVisibleInAdvancedSearchStatus(true));
-		List<MetadataVO> allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -218,7 +212,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get("myMetadata").setEnabled(false);
 			}
 		});
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -228,7 +222,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				mySchema.get("myMetadata").setEnabled(true);
 			}
 		});
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -240,14 +234,13 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
 				.setOpenDate(LocalDate.now())
 				.setRetentionRuleEntered(rmRecords.ruleId_1));
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
 	}
 
 	@Test
 	public void givenMetadataWithoutHeritanceButInTwoDifferentCustomSchemasThenShowsUpInAdvancedSearchIndependently()
 			throws RecordServicesException {
-		connectWithAdmin();
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -262,7 +255,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				manager.getMetadata(zeCollection, "folder_mySchema_myMetadata").withVisibleInAdvancedSearchStatus(true));
 		manager.saveMetadata(
 				manager.getMetadata(zeCollection, "folder_mySchema2_myMetadata").withVisibleInAdvancedSearchStatus(true));
-		List<MetadataVO> allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		List<MetadataVO> allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code")
 				.doesNotContain("folder_mySchema_myMetadata", "folder_mySchema2_myMetadata");
 
@@ -275,7 +268,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
 				.setOpenDate(LocalDate.now())
 				.setRetentionRuleEntered(rmRecords.ruleId_1));
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
 		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_mySchema2_myMetadata");
 
@@ -287,7 +280,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
 				.setOpenDate(LocalDate.now())
 				.setRetentionRuleEntered(rmRecords.ruleId_1));
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
 		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema2_myMetadata");
 
@@ -298,27 +291,29 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				mySchema2.get("myMetadata").setEnabled(false);
 			}
 		});
-		allowedMetadatas = presenter.getMetadataAllowedInCriteria();
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
 		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_mySchema2_myMetadata");
 	}
 
-	private void connectWithAdmin() {
+	private ConstellioHeaderPresenter presenterConnectedWithAdmin() {
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(header.getSessionContext()).thenReturn(sessionContext);
 		presenter = spy(new ConstellioHeaderPresenter(header));
 		presenter.schemaTypeSelected(Folder.SCHEMA_TYPE);
 		doNothing().when(presenter).sort(anyList());
+		return presenter;
 	}
 
-	private void connectWithBob() {
+	private ConstellioHeaderPresenter presenterConnectedWithBob() {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(header.getSessionContext()).thenReturn(sessionContext);
 		presenter = spy(new ConstellioHeaderPresenter(header));
 		presenter.schemaTypeSelected(Folder.SCHEMA_TYPE);
 		doNothing().when(presenter).sort(anyList());
+		return presenter;
 	}
 
 	private Folder newFolder(String title) {

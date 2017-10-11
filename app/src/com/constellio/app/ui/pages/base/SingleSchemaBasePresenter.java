@@ -51,7 +51,12 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected Record getRecord(String id) {
-		return schemaPresenterUtils.getRecord(id);
+		try {
+			return schemaPresenterUtils.getRecord(id);
+		} catch (Exception e) {
+			recordServices().flush();
+			return schemaPresenterUtils.getRecord(id);
+		}
 	}
 
 	public final Metadata getMetadata(String code) {

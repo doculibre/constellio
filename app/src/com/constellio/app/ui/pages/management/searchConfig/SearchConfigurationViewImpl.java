@@ -9,9 +9,8 @@ import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,10 +27,22 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+        VerticalLayout verticalLayout = new VerticalLayout();
         CssLayout layout = new CustomCssLayout();
         user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
         layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton());
-        return layout;
+
+        verticalLayout.addComponent(layout);
+        Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
+        systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
+        verticalLayout.addComponent(systemSectionTitle);
+
+        CssLayout layoutSystemPilot = new CustomCssLayout();
+        layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
+        verticalLayout.setSpacing(true);
+        verticalLayout.addComponent(layoutSystemPilot);
+
+        return verticalLayout;
     }
 
     private Button createBoostMetadataButton() {
@@ -42,6 +53,27 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
                 navigate().to().searchBoostByMetadatas();
             }
         }, "config/boost-metadata-search") : null;
+    }
+
+    private Button createSynonymsButton() {
+        return  createLink($("AdminView.synonymesManagement"), new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().displaySynonyms();
+            }
+        }, "config/synonyms");
+    }
+
+    private Button createElevationManagementButton() {
+        return  createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().editElevation();
+            }
+        }, "config/search-exclusions");
+
     }
 
     private Button createBoostRequestButton() {

@@ -52,14 +52,15 @@ public class SearchConfigurationsManager {
 	public Elevations getAllElevationsFromDisk() {
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
+		if(solrFileSystem != null) {
+			DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+			ElevationsView anElevationsView = readData.getView(new ElevationsView());
+			Elevations elevations = anElevationsView.getData();
 
-		// Facebook.com youtube.com
-
-		Elevations elevations = anElevationsView.getData();
-
-		return elevations;
+			return elevations;
+		} else {
+			return new Elevations();
+		}
 	}
 
 	public List<String> getAllQuery() {
@@ -258,25 +259,31 @@ public class SearchConfigurationsManager {
 		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-		TextView aStringView = readData.getView(new TextView());
-		aStringView.setData(getSynonymeAsOneString());
-		readData.setDataFromView(aStringView);
-
-		solrFileSystem.writeData(SYNONYME_FILE_PATH, readData);
-		server.reload();
+		if(solrFileSystem != null) {
+			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
+			TextView aStringView = readData.getView(new TextView());
+			aStringView.setData(getSynonymeAsOneString());
+			readData.setDataFromView(aStringView);
+			solrFileSystem.writeData(SYNONYME_FILE_PATH, readData);
+			server.reload();
+		}
 	}
 
 	private List<String> getSynonymsOnServer() {
 		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-		TextView aStringView = readData.getView(new TextView());
+		if(solrFileSystem != null) {
+			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
 
-		String synonymsAsOneString = aStringView.getData();
+			TextView aStringView = readData.getView(new TextView());
 
-		return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
+			String synonymsAsOneString = aStringView.getData();
+
+			return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
+		} else  {
+			return new ArrayList<>();
+		}
 	}
 
 
