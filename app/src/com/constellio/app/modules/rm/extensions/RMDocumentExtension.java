@@ -14,8 +14,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.ConversionManager;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
@@ -73,9 +75,12 @@ public class RMDocumentExtension extends RecordExtension {
 
 		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
 			Document document = rm.wrapDocument(event.getRecord());
-			Content content = document.getContent();
-			boolean requireConversion = content != null && isFilePreviewSupportedFor(content.getCurrentVersion().getFilename());
-			document.setMarkedForPreviewConversion(requireConversion ? true : null);
+			if (LangUtils.isTrueOrNull(document.get(Schemas.MARKED_FOR_PREVIEW_CONVERSION))) {
+				Content content = document.getContent();
+				boolean requireConversion =
+						content != null && isFilePreviewSupportedFor(content.getCurrentVersion().getFilename());
+				document.setMarkedForPreviewConversion(requireConversion ? true : null);
+			}
 		}
 	}
 
