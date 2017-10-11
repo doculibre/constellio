@@ -420,10 +420,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			actionMenuButtons.add(editFolderButton);
 
-			if (!isAFolderAndDestroyed) {
-
+			if(!isAFolderAndDestroyed)
+			{
 				actionMenuButtons.add(moveInFolderButton);
-				actionMenuButtons.add(deleteFolderButton);
+			}
+			actionMenuButtons.add(deleteFolderButton);
+			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(duplicateFolderButton);
 				actionMenuButtons.add(linkToFolderButton);
 				actionMenuButtons.add(addAuthorizationButton);
@@ -671,69 +673,66 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Tab folderContentTab = tabSheet.getTab(folderContentComponent);
 		folderContentTab.setCaption($("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 	}
-	
+
 	@Override
 	public void selectTasksTab() {
 		if (!(tasksComponent instanceof Table)) {
-			Table table = new RecordVOTable(tasksDataProvider) {
-				@Override
-				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
-								getSessionContext().getCurrentUser().getId()) {
-							@Override
-							public void updateTaskStarred(boolean isStarred, String taskId) {
-								presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
-							}
-						};
-					} else {
-						return super.buildMetadataComponent(metadataValue, recordVO);
-					}
-				}
-	
-				@Override
-				protected TableColumnsManager newColumnsManager() {
-					return new RecordVOTableColumnsManager() {
+		Table table = new RecordVOTable(tasksDataProvider) {
+			@Override
+			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
 						@Override
-						protected String toColumnId(Object propertyId) {
-							if (propertyId instanceof MetadataVO) {
-								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-									setColumnHeader(propertyId, "");
-									setColumnWidth(propertyId, 60);
-								}
-							}
-							return super.toColumnId(propertyId);
+						public void updateTaskStarred(boolean isStarred, String taskId) {
+							presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
 						}
 					};
+				} else {
+					return super.buildMetadataComponent(metadataValue, recordVO);
 				}
-	
-				@Override
-				public Collection<?> getSortableContainerPropertyIds() {
-					Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
-					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
-					while (iterator.hasNext()) {
-						Object property = iterator.next();
-						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
-								.equals(((MetadataVO) property).getLocalCode())) {
-							iterator.remove();
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new RecordVOTableColumnsManager() {
+					@Override
+					protected String toColumnId(Object propertyId) {
+						if(propertyId instanceof MetadataVO) {
+							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+								setColumnHeader(propertyId, "");
+								setColumnWidth(propertyId, 60);
+							}
 						}
+						return super.toColumnId(propertyId);
 					}
-					return sortableContainerPropertyIds;
+				};
+			}
+
+			@Override
+			public Collection<?> getSortableContainerPropertyIds() {
+				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+				while (iterator.hasNext()) {
+					Object property = iterator.next();
+					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+						iterator.remove();
+					}
 				}
-			};
-			table.setSizeFull();
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					RecordVO recordVO = item.getRecord();
-					presenter.taskClicked(recordVO);
-				}
-			});
-			table.setPageLength(Math.min(15, tasksDataProvider.size()));
-			tabSheet.replaceComponent(tasksComponent, table);
-			tasksComponent = table;
-		}
+				return sortableContainerPropertyIds;
+			}
+		};
+		table.setSizeFull();
+		table.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				RecordVOItem item = (RecordVOItem) event.getItem();
+				RecordVO recordVO = item.getRecord();
+				presenter.taskClicked(recordVO);
+			}
+		});
+		table.setPageLength(Math.min(15, tasksDataProvider.size()));
+		tabSheet.replaceComponent(tasksComponent, table);
+		tasksComponent = table;}
 		tabSheet.setSelectedTab(tasksComponent);
 	}
 
