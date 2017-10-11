@@ -1,5 +1,16 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -17,230 +28,215 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
-    public SearchConfigurationsManager searchConfigurationsManager;
-    public static final String SYNONYM_1 = "car";
-    public static final String TWO_SYNONYMS = SYNONYM_1 +  ", ppppppppppppppppp";
-    public static final String THREE_SYNONYMS = "auto, cccccccccccccc, dada";
+	public SearchConfigurationsManager searchConfigurationsManager;
+	public static final String SYNONYM_1 = "car";
+	public static final String TWO_SYNONYMS = SYNONYM_1 + ", ppppppppppppppppp";
+	public static final String THREE_SYNONYMS = "auto, cccccccccccccc, dada";
 
-    Users users = new Users();
-    RecordServices recordServices;
-    RMSchemasRecordsServices rm;
-    RMTestRecords records = new RMTestRecords(zeCollection);
-    SearchServices searchServices;
-    public static final String ELEVATED_KEY_1 = "abeil";
+	Users users = new Users();
+	RecordServices recordServices;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	SearchServices searchServices;
+	public static final String ELEVATED_KEY_1 = "abeil";
 
-    @Before
-    public void setUp() {
-        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users).withFoldersAndContainersOfEveryStatus());
+	@Before
+	public void setUp() {
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
+				.withFoldersAndContainersOfEveryStatus());
+		syncSolrConfigurationFiles(getDataLayerFactory());
+		searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();
+		recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		searchServices = getModelLayerFactory().newSearchServices();
 
-        searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();
-        recordServices = getModelLayerFactory().newRecordServices();
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        searchServices = getModelLayerFactory().newSearchServices();
+		Elevations elevations = searchConfigurationsManager.getAllElevationsFromDisk();
 
-        Elevations elevations = searchConfigurationsManager.getAllElevationsFromDisk();
+		for (Iterator<Elevations.QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ) {
+			Elevations.QueryElevation queryElevation = iterator.next();
 
-        for (Iterator<Elevations.QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ){
-            Elevations.QueryElevation queryElevation = iterator.next();
+			for (Iterator<Elevations.QueryElevation.DocElevation> queryElevationIterator =
+				 queryElevation.getDocElevations().iterator(); queryElevationIterator.hasNext(); ) {
+				Elevations.QueryElevation.DocElevation docElevation = queryElevationIterator.next();
+				searchConfigurationsManager.removeElevated(queryElevation.getQuery(), docElevation.getId());
+			}
+		}
+	}
 
-            for (Iterator<Elevations.QueryElevation.DocElevation> queryElevationIterator =
-                 queryElevation.getDocElevations().iterator(); queryElevationIterator.hasNext(); ) {
-                Elevations.QueryElevation.DocElevation docElevation = queryElevationIterator.next();
-                searchConfigurationsManager.removeElevated(queryElevation.getQuery(), docElevation.getId());
-            }
-        }
-    }
+	@Test
+	public void setElevationAndExlusionAndThenRemoveQuery() {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
-    @Test
-    public void setElevationAndExlusionAndThenRemoveQuery() {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+		List<Record> recordList = searchServices.search(logicalSearchQuery);
 
-        List<Record> recordList = searchServices.search(logicalSearchQuery);
+		Record record0 = recordList.get(3);
+		Record excludedRecord1 = recordList.get(2);
+		Record excludedRecord2 = recordList.get(0);
 
-        Record record0 = recordList.get(3);
-        Record excludedRecord1 = recordList.get(2);
-        Record excludedRecord2 = recordList.get(0);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
+	}
 
+	@Test
+	public void setElevatedAndExclutionThenRemoveAllExclusion() {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
+		List<Record> recordList = searchServices.search(logicalSearchQuery);
 
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
-    }
+		Record record0 = recordList.get(3);
+		Record excludedRecord1 = recordList.get(2);
+		Record excludedRecord2 = recordList.get(0);
 
-    @Test
-    public void setElevatedAndExclutionThenRemoveAllExclusion() {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
 
-        List<Record> recordList = searchServices.search(logicalSearchQuery);
+		searchConfigurationsManager.removeQuery(ELEVATED_KEY_1);
 
-        Record record0 = recordList.get(3);
-        Record excludedRecord1 = recordList.get(2);
-        Record excludedRecord2 = recordList.get(0);
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord1)).isFalse();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord2)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord1)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord2)).isFalse();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+	}
 
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord1, true);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludedRecord2, true);
+	@Test
+	public void setElevatedAndExclusionThenRemoveAllElevation() {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
-        searchConfigurationsManager.removeQuery(ELEVATED_KEY_1);
+		List<Record> recordList = searchServices.search(logicalSearchQuery);
 
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord1)).isFalse();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludedRecord2)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord1)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludedRecord2)).isFalse();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
-    }
+		Record record0 = recordList.get(3);
+		Record record1 = recordList.get(2);
+		Record excludeRecord = recordList.get(0);
 
-    @Test
-    public void setElevatedAndExclusionThenRemoveAllElevation() {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record1, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
 
-        List<Record> recordList = searchServices.search(logicalSearchQuery);
+		searchConfigurationsManager.removeAllElevation(ELEVATED_KEY_1);
 
-        Record record0 = recordList.get(3);
-        Record record1 = recordList.get(2);
-        Record excludeRecord = recordList.get(0);
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record1)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record1)).isFalse();
 
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+	}
 
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record1, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+	@Test
+	public void elevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
-        searchConfigurationsManager.removeAllElevation(ELEVATED_KEY_1);
+		List<Record> recordList = searchServices.search(logicalSearchQuery);
 
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record1)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record1)).isFalse();
+		Record record0 = recordList.get(3);
+		Record excludeRecord = recordList.get(0);
+		String excludedRecordId = excludeRecord.getId();
+		String elevatedId = record0.getId();
 
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
-    }
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
 
-    @Test
-    public void elevationsSetElevatedSetExclutionGetDefinedSearchWithParametersThenVerifyOrder() {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
 
-        List<Record> recordList = searchServices.search(logicalSearchQuery);
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
 
-        Record record0 = recordList.get(3);
-        Record excludeRecord = recordList.get(0);
-        String excludedRecordId = excludeRecord.getId();
-        String elevatedId = record0.getId();
+		List<Record> recordsListAfterElevation = searchServices.search(logicalSearchQuery);
+		assertThat(recordsListAfterElevation.get(0).getId()).isEqualTo(elevatedId);
 
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+		for (Record currentRecord : recordsListAfterElevation) {
+			assertThat(currentRecord.getId()).isNotEqualTo(excludedRecordId);
+		}
+	}
 
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+	@Test
+	public void setElevationAndExclusionRemoveElevationThanVerifyRemoval() {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
 
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
+		List<Record> recordList = searchServices.search(logicalSearchQuery);
 
+		Record record0 = recordList.get(3);
+		Record excludeRecord = recordList.get(0);
 
-        List<Record> recordsListAfterElevation = searchServices.search(logicalSearchQuery);
-        assertThat(recordsListAfterElevation.get(0).getId()).isEqualTo(elevatedId);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
+		searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
 
-        for(Record currentRecord : recordsListAfterElevation) {
-            assertThat(currentRecord.getId()).isNotEqualTo(excludedRecordId);
-        }
-    }
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
 
-    @Test
-    public void setElevationAndExclusionRemoveElevationThanVerifyRemoval() {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(ELEVATED_KEY_1);
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
 
+		searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, record0.getId());
+		searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, excludeRecord.getId());
 
-        List<Record> recordList = searchServices.search(logicalSearchQuery);
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
 
-        Record record0 = recordList.get(3);
-        Record excludeRecord = recordList.get(0);
+		assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isFalse();
+		assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
+	}
 
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, record0, false);
-        searchConfigurationsManager.setElevated(ELEVATED_KEY_1, excludeRecord, true);
+	@Test
+	public void getSetGetSynonymsOnServerThenOk() {
+		searchConfigurationsManager.setSynonyms(new ArrayList<String>());
+		searchConfigurationsManager.initialize();
+		assertThat(searchConfigurationsManager.getSynonyms().size()).isEqualTo(1);
+		assertThat(searchConfigurationsManager.getSynonyms().get(0)).isEqualTo("");
+		searchConfigurationsManager.setSynonyms(Arrays.asList(TWO_SYNONYMS, THREE_SYNONYMS));
+		searchConfigurationsManager.initialize();
+		assertThat(searchConfigurationsManager.getSynonyms().get(0)).isEqualTo(TWO_SYNONYMS);
+		assertThat(searchConfigurationsManager.getSynonyms().get(1)).isEqualTo(THREE_SYNONYMS);
+	}
 
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isTrue();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+	@Test
+	public void setTwoFileWithContentWithTwoSynonymsDisplayTheTwoDocumentThenOk()
+			throws Exception {
+		givenBackgroundThreadsEnabled();
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
+		uploadARecord(rm.newDocument().setFolder(records.folder_A03), "car.docx");
+		uploadARecord(rm.newDocument().setFolder(records.folder_C01), "p.docx");
 
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isTrue();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
+		searchConfigurationsManager.setSynonyms(Arrays.asList(TWO_SYNONYMS));
 
-        searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, record0.getId());
-        searchConfigurationsManager.removeElevated(ELEVATED_KEY_1, excludeRecord.getId());
+		LogicalSearchCondition condition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(SYNONYM_1);
 
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, record0)).isFalse();
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, record0)).isFalse();
+		List<Record> resultlist = searchServices.search(query);
 
-        assertThat(searchConfigurationsManager.isExcluded(ELEVATED_KEY_1, excludeRecord)).isFalse();
-        assertThat(searchConfigurationsManager.isElevated(ELEVATED_KEY_1, excludeRecord)).isFalse();
-    }
+		assertThat(resultlist.size()).isEqualTo(2);
+	}
 
-    @Test
-    public void getSetGetSynonymsOnServerThenOk() {
-        searchConfigurationsManager.setSynonyms(new ArrayList<String>());
-        searchConfigurationsManager.initialize();
-        assertThat(searchConfigurationsManager.getSynonyms().size()).isEqualTo(1);
-        assertThat(searchConfigurationsManager.getSynonyms().get(0)).isEqualTo("");
-        searchConfigurationsManager.setSynonyms(Arrays.asList(TWO_SYNONYMS, THREE_SYNONYMS));
-        searchConfigurationsManager.initialize();
-        assertThat(searchConfigurationsManager.getSynonyms().get(0)).isEqualTo(TWO_SYNONYMS);
-        assertThat(searchConfigurationsManager.getSynonyms().get(1)).isEqualTo(THREE_SYNONYMS);
-    }
+	private void uploadARecord(RecordWrapper recordWrapper, String newFile)
+			throws RecordServicesException {
+		User user = users.adminIn("zeCollection");
 
-    @Test
-    public void setTwoFileWithContentWithTwoSynonymsDisplayTheTwoDocumentThenOk() throws Exception {
-        givenBackgroundThreadsEnabled();
-        givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
-        uploadARecord(rm.newDocument().setFolder(records.folder_A03), "car.docx");
-        uploadARecord(rm.newDocument().setFolder(records.folder_C01),"p.docx");
+		ContentManager cm = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary version = cm.upload(getTestResourceInputStream(newFile));
+		Content content = cm.createMinor(user, newFile, version);
+		recordWrapper.setTitle(newFile);
 
-        searchConfigurationsManager.setSynonyms(Arrays.asList(TWO_SYNONYMS));
+		((Document) recordWrapper).setContent(content);
 
-        LogicalSearchCondition condition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(SYNONYM_1);
+		recordServices.add(recordWrapper);
 
-
-        List<Record> resultlist = searchServices.search(query);
-
-        assertThat(resultlist.size()).isEqualTo(2);
-    }
-
-
-    private void uploadARecord(RecordWrapper recordWrapper, String newFile)
-            throws RecordServicesException {
-        User user = users.adminIn("zeCollection");
-
-        ContentManager cm = getModelLayerFactory().getContentManager();
-        ContentVersionDataSummary version = cm.upload(getTestResourceInputStream(newFile));
-        Content content = cm.createMinor(user, newFile, version);
-        recordWrapper.setTitle(newFile);
-
-        ((Document) recordWrapper).setContent(content);
-
-        recordServices.add(recordWrapper);
-
-    }
+	}
 }

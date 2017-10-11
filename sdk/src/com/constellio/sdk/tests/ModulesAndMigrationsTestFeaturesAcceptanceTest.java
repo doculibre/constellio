@@ -303,7 +303,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 				"workflowInstance", "ddvMediumType", "filingSpace", "workflow", "ddvFolderType", "collection",
 				"userTask", "uniformSubdivision", "authorizationDetails", "administrativeUnit", "ddvDocumentType",
 				"folder", "task", "ddvTaskStatus", "containerRecord", "report", "category", "facet", "retentionRule",
-				"user", "printable", "userFolder", "temporaryRecord");
+				"user", "printable", "userFolder", "temporaryRecord", "capsule", "ddvYearType");
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",
 				RMTaxonomies.ADMINISTRATIVE_UNITS);

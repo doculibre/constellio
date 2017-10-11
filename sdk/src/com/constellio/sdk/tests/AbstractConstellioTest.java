@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
@@ -68,9 +69,14 @@ import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystemUtils;
+import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
@@ -1507,5 +1513,31 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException("Failed to initialize cmis session");
 		}
 		return session;
+	}
+
+	protected void syncSolrConfigurationFiles(DataLayerFactory dataLayerFactory) {
+		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
+		//for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
+		AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
+		AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
+				new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService(BASE64)),
+				getServerConfigurations(server.getName()));
+
+		LOGGER.info("Syncing the <{}> configurations...", server.getName());
+		if (!AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
+			server.reload();
+			LOGGER.info("Reloading the <{}> server", server.getName());
+		} else
+			LOGGER.info("No reloading for the <{}> server", server.getName());
+
+	}
+
+	private String getServerConfigurations(String coreName) {
+		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(), "configsets");
+		for (File configFile : configFld.listFiles()) {
+			if (configFile.getName().startsWith(coreName))
+				return new File(configFile, "conf").getAbsolutePath();
+		}
+		return null;
 	}
 }
