@@ -1,5 +1,29 @@
 package com.constellio.model.services.records;
 
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -8,7 +32,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -23,22 +51,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
@@ -530,23 +542,6 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
 
 		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
-	}
-
-	@Test
-	public void givenRecordsWith2SubRecordsInHierachyWithReferencesThenGetAllRecordsReferencing()
-			throws Exception {
-
-		doReturn(idsOfRecordsWithReferences).when(recordDeleteServices).getRecordsInHierarchyWithDependency(theRecord);
-
-		doReturn(Arrays.asList(firstRecord, secondRecord)).when(recordDeleteServices)
-				.getRecordsInTypeWithReferenceTo(user, idsOfRecordsWithReferences, type1,
-						Arrays.asList(type1Reference1, type1Reference2));
-		doReturn(Arrays.asList(thirdRecord)).when(recordDeleteServices).getRecordsInTypeWithReferenceTo(user,
-				idsOfRecordsWithReferences, type2, Arrays.asList(type2Reference1));
-
-		List<Record> records = recordDeleteServices.getVisibleRecordsWithReferenceToRecordInHierarchy(theRecord, user);
-		assertThat(records).containsExactly(firstRecord, secondRecord, thirdRecord);
-
 	}
 
 	@Test(expected = RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection.class)

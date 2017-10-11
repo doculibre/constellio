@@ -19,6 +19,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculat
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -2308,7 +2309,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(ids.get(0)).isNotNull();
 
 		ArgumentCaptor<SolrParams> params = ArgumentCaptor.forClass(SolrParams.class);
-		verify(recordDao).query(params.capture());
+		verify(recordDao).query(anyString(), params.capture());
 		assertThat(params.getValue().get("fl")).isEqualTo("id,schema_s,_version_,collection_s");
 	}
 

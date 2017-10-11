@@ -71,11 +71,13 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		LOGGER.info("Do a modification in the solr configuration.");
 		String testFilePath = "/cleanUpFile.txt";
 		String flag = "This content should not be in this file.";
-		for (BigVaultServer server : getConstellioFactories().getDataLayerFactory().getSolrServers().getServers()) {
-			AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-			assertThat(solrFileSystem.exists(testFilePath)).isFalse();
-			solrFileSystem.writeData(testFilePath, new DataWithVersion(flag.getBytes(), null));
-		}
+
+		//for (BigVaultServer server : getConstellioFactories().getDataLayerFactory().getSolrServers().getServers()) {
+		BigVaultServer server = getConstellioFactories().getDataLayerFactory().getRecordsVaultServer();
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+		assertThat(solrFileSystem.exists(testFilePath)).isFalse();
+		solrFileSystem.writeData(testFilePath, new DataWithVersion(flag.getBytes(), null));
+		//	}
 	}
 
 }

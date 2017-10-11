@@ -1,7 +1,5 @@
 package com.constellio.data.dao.services.solr.serverFactories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -9,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.constellio.data.conf.HashingEncoding;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
@@ -25,6 +22,7 @@ import org.apache.solr.common.util.SimpleOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
@@ -112,7 +110,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 			SimpleOrderedMap<String> coreInfo = status.get(core);
 
 			String instanceDir = coreInfo.get("instanceDir");
-			String baseDir = instanceDir + File.separator + "conf";
+			String baseDir = instanceDir + (instanceDir.endsWith(File.separator) ? "" : File.separator) + "conf";
 			return baseDir;
 		}
 
@@ -147,7 +145,8 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	protected AtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService(HashingEncoding.BASE64)), getRootFolder(core));
+			return new ChildAtomicFileSystem(
+					new AtomicLocalFileSystem(ioServicesFactory.newHashingService(HashingEncoding.BASE64)), getRootFolder(core));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
