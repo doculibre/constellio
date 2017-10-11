@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.FastContinueInfos;
@@ -57,6 +58,13 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
 						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
+		Boolean showOnlyTriangleIfContent = modelLayerFactory.getSystemConfigurationsManager().<Boolean>getValue(ConstellioEIMConfigs.SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT);
+		if(showOnlyTriangleIfContent) {
+			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
+		} else {
+			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY);
+		}
 		return options;
 	}
 
