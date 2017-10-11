@@ -6,6 +6,7 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,7 +16,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.sdk.tests.annotations.UiTest;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
@@ -53,7 +53,6 @@ import com.constellio.model.services.search.query.logical.condition.ConditionTem
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
@@ -961,32 +960,32 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		//assertThat(queryCount.get()).isEqualTo(3);
 	}
 
-//	@Test
-//	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
-//			throws Exception {
-//
-//		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
-//		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
-//
-//		Transaction transaction = new Transaction();
-//		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
-//
-//		for (int i = 1; i <= 300; i++) {
-//			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
-//			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
-//					.setTitle("Category #" + code).setParent(rootCategory);
-//			transaction.add(rm.newFolder().setTitle("A folder")
-//					.setCategoryEntered(category)
-//					.setRetentionRuleEntered(records.ruleId_1)
-//					.setAdministrativeUnitEntered(records.unitId_10a)
-//					.setOpenDate(new LocalDate(2014, 11, 1)));
-//		}
-//		transaction.add(rootCategory);
-//		getModelLayerFactory().newRecordServices().execute(transaction);
-//
-//		newWebDriver();
-//		waitUntilICloseTheBrowsers();
-//	}
+	//	@Test
+	//	public void givenPlethoraOfChildCategoriesThenValidGetRootResponseAndStartUI()
+	//			throws Exception {
+	//
+	//		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+	//		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+	//
+	//		Transaction transaction = new Transaction();
+	//		Category rootCategory = rm.newCategoryWithId("root").setCode("root").setTitle("root");
+	//
+	//		for (int i = 1; i <= 300; i++) {
+	//			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+	//			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+	//					.setTitle("Category #" + code).setParent(rootCategory);
+	//			transaction.add(rm.newFolder().setTitle("A folder")
+	//					.setCategoryEntered(category)
+	//					.setRetentionRuleEntered(records.ruleId_1)
+	//					.setAdministrativeUnitEntered(records.unitId_10a)
+	//					.setOpenDate(new LocalDate(2014, 11, 1)));
+	//		}
+	//		transaction.add(rootCategory);
+	//		getModelLayerFactory().newRecordServices().execute(transaction);
+	//
+	//		newWebDriver();
+	//		waitUntilICloseTheBrowsers();
+	//	}
 
 	@Test
 	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()
@@ -1299,14 +1298,17 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> secondCallQueryCounts(final int queries,
 			final int queryResults, final int facets) {
+		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
-				//assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
-				//		.isEqualTo(expected);
+				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+					assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
+							.isEqualTo(expected);
+				}
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
@@ -1318,14 +1320,17 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults,
 			final int facets) {
+		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.firstAnswerSolrQueries();
 
-				//assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-				//		.isEqualTo(expected);
+				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
+							.isEqualTo(expected);
+				}
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
@@ -1393,8 +1398,10 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				assertThat(value.firstAnswer().getRecords().size()).describedAs("first answer records list size").isEqualTo(expectedCount);
-				assertThat(value.secondAnswer().getRecords().size()).describedAs("second answer records list size").isEqualTo(expectedCount);
+				assertThat(value.firstAnswer().getRecords().size()).describedAs("first answer records list size")
+						.isEqualTo(expectedCount);
+				assertThat(value.secondAnswer().getRecords().size()).describedAs("second answer records list size")
+						.isEqualTo(expectedCount);
 				return true;
 			}
 		};
