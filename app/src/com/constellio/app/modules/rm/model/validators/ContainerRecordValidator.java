@@ -49,10 +49,10 @@ public class ContainerRecordValidator implements RecordValidator {
 			storageSpaces.add(new StorageSpace(params.getRecord(storageSpaceId), params.getTypes()));
 		}
 
-		if(capacity != null && linearSize != null && linearSize > capacity) {
+		if(capacity != null && linearSize != null && Math.round(linearSize * 100.0)/100.0 > capacity) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CAPACITY, formatToParameter(capacity));
-			parameters.put(LINEAR_SIZE, formatToParameter(linearSize));
+			parameters.put(LINEAR_SIZE, formatToParameter(Math.round(linearSize * 100.0)/100.0));
 			parameters.put(LINEAR_SIZE_ENTERED, formatToParameter(container.getLinearSizeEntered()));
 			parameters.put(LINEAR_SIZE_SUM, formatToParameter(container.getLinearSizeSum()));
 			parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
