@@ -1,9 +1,11 @@
 package com.constellio.app.ui.pages.elevations;
 
 import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.services.search.Elevations;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener;
@@ -34,9 +36,13 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 
     Map<Integer, Object> containerMapperWithElevationObject = new HashMap<>();
 
-
     public EditElevationViewImpl() {
         editElevationPresenter = new EditElevationPresenter(this);
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
     }
 
     @Override

@@ -30,7 +30,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         CssLayout layout = new CustomCssLayout();
         user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
-        layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton());
+        layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton(), createSynonymsButton(), createElevationManagementButton());
         return layout;
     }
 
@@ -42,6 +42,27 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
                 navigate().to().searchBoostByMetadatas();
             }
         }, "config/boost-metadata-search") : null;
+    }
+
+    private Button createSynonymsButton() {
+        return  createLink($("AdminView.synonymesManagement"), new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().displaySynonyms();
+            }
+        }, "config/synonyms");
+    }
+
+    private Button createElevationManagementButton() {
+        return  createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigate().to().editElevation();
+            }
+        }, "config/search-exclusions");
+
     }
 
     private Button createBoostRequestButton() {
