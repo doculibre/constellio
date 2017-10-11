@@ -68,6 +68,9 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 		SavedSearch savedSearch = new SavedSearch(getRecord(recordVO.getId()), types());
 		savedSearch.setTitle(recordVO.getTitle());
 		savedSearch.setPublic((boolean) recordVO.get(SavedSearch.PUBLIC));
+		if (savedSearch.isPublic()) {
+			savedSearch.setUser(null);
+		}
 		addOrUpdate(savedSearch.getWrappedRecord());
 		view.navigate().to().listSavedSearches();
 	}
