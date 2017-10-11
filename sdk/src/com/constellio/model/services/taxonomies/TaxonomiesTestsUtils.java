@@ -20,7 +20,8 @@ public class TaxonomiesTestsUtils {
 
 				if (element.getClassName().endsWith("AcceptTest")
 						&& !(element.getMethodName().equals("solrQueryCounts")
-						|| element.getMethodName().equals("secondSolrQueryCounts"))) {
+						|| element.getMethodName().equals("secondSolrQueryCounts")
+						|| element.getMethodName().equals("secondCallQueryCounts"))) {
 					filename = element.getFileName();
 					lineNumber = element.getLineNumber();
 
@@ -31,7 +32,8 @@ public class TaxonomiesTestsUtils {
 							List<String> lines = FileUtils.readLines(file, "UTF-8");
 							System.out.println(lines.size());
 							String line = lines.get(lineNumber - 1);
-							if (line.contains("solrQueryCounts") || line.contains("secondSolrQueryCounts")) {
+							if (line.contains("solrQueryCounts") || line.contains("secondSolrQueryCounts") || line
+									.contains("secondCallQueryCounts")) {
 								String modifiedLine = line.replace(toCommaSeparatedArgs(expected), toCommaSeparatedArgs(current));
 								lines.set(lineNumber - 1, modifiedLine);
 

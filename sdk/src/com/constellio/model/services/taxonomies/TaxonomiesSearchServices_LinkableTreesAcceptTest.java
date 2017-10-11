@@ -2707,17 +2707,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
 				.setShowInvisibleRecordsInLinkingMode(false);
 
-		//		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
-		//				.has(resultsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
-		//				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-		//				.has(numFoundAndListSize(3));
+		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
+				.has(resultsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(numFoundAndListSize(3))
+				.has(solrQueryCounts(10, 11, 3))
+				.has(secondSolrQueryCounts(1, 3, 0));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomyWithoutCalculatedChildrenFlag(records.getAdmin(), records.categoryId_X,
 				options)
 				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X13, records.categoryId_X100))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(15, 15, 0))
+				.has(solrQueryCounts(7, 7, 0))
 				.has(secondSolrQueryCounts(7, 7, 0));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomyWithoutCalculatedChildrenFlag(records.getAdmin(),
