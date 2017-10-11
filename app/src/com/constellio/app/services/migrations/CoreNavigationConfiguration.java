@@ -286,21 +286,6 @@ public class CoreNavigationConfiguration implements Serializable {
 						CorePermissions.MANAGE_SYSTEM_SERVERS));
 			}
 		});
-
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().listTemporaryRecord();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.ACCESS_TEMPORARY_RECORD));
-			}
-		});
 	}
 
 	private void configureCollectionAdmin(NavigationConfig config) {
@@ -332,10 +317,13 @@ public class CoreNavigationConfiguration implements Serializable {
 				navigate.to().searchConfiguration();
 			}
 
-			//TODO changer pour permission
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_CONFIG).globally());
+				return visibleIf(user.hasAny(
+						CorePermissions.MANAGE_SEARCH_BOOST,
+						CorePermissions.MANAGE_VALUELIST,
+						CorePermissions.ACCESS_SEARCH_CAPSULE
+				).globally());
 			}
 
 		});
