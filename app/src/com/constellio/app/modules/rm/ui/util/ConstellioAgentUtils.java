@@ -248,8 +248,8 @@ public class ConstellioAgentUtils {
 				sb.append("/userDocuments");
 				sb.append("/");
 				sb.append(userDocument.getId());
-				sb.append("/");
-				sb.append(filename);
+//				sb.append("/");
+//				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				resourcePath = null;
@@ -268,8 +268,8 @@ public class ConstellioAgentUtils {
 				sb.append("/checkedOutDocuments");
 				sb.append("/");
 				sb.append(document.getId());
-				sb.append("/");
-				sb.append(filename);
+//				sb.append("/");
+//				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				StringBuffer sb = new StringBuffer();
@@ -280,8 +280,8 @@ public class ConstellioAgentUtils {
 				sb.append("/notCheckedOutDocuments");
 				sb.append("/");
 				sb.append(document.getId());
-				sb.append("/");
-				sb.append(filename);
+//				sb.append("/");
+//				sb.append(filename);
 				resourcePath = sb.toString();
 			}
 		} else {
