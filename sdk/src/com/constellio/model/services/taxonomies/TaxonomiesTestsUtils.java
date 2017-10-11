@@ -35,7 +35,7 @@ public class TaxonomiesTestsUtils {
 								String modifiedLine = line.replace(toCommaSeparatedArgs(expected), toCommaSeparatedArgs(current));
 								lines.set(lineNumber - 1, modifiedLine);
 
-								//FileUtils.writeLines(file, "UTF-8", lines);
+								FileUtils.writeLines(file, "UTF-8", lines);
 								System.out.println(lines.size());
 								System.out.println(line + " > " + modifiedLine);
 							}
@@ -57,16 +57,16 @@ public class TaxonomiesTestsUtils {
 	}
 
 	private static boolean isBetterThanExpected(String current, String expected) {
-		if (!current.equals(expected)) {
-			String[] currentParts = current.split("-");
-			String[] expectedParts = expected.split("-");
-
-			if (currentParts[0].compareTo(currentParts[0]) <= 0
-					&& currentParts[1].compareTo(currentParts[1]) <= 0
-					&& currentParts[2].compareTo(currentParts[2]) <= 0) {
-				return true;
-			}
-		}
+//		if (!current.equals(expected)) {
+		//			String[] currentParts = current.split("-");
+		//			String[] expectedParts = expected.split("-");
+		//
+		//			if (currentParts[0].compareTo(currentParts[0]) <= 0
+		//					&& currentParts[1].compareTo(currentParts[1]) <= 0
+		//					&& currentParts[2].compareTo(currentParts[2]) <= 0) {
+		//				return true;
+		//			}
+		//		}
 		return false;
 	}
 }

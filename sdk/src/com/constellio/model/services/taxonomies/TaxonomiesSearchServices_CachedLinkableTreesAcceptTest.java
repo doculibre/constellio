@@ -731,8 +731,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -1002,8 +1002,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 

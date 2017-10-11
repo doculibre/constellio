@@ -153,8 +153,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 2)).has(secondCallQueryCounts(1, 0, 2));
-		//assertThatSolr().hasCounts(2,2,2);
+				.has(solrQueryCounts(2, 2, 2))
+				.has(secondCallQueryCounts(0, 0, 0));
 		System.out.println("------------------------");
 		//Calling another time, no solr query occur
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
@@ -193,7 +193,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(7, 7, 7));
+				.has(solrQueryCounts(2, 2, 2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X)
 				.has(recordsInOrder(records.categoryId_X100))
