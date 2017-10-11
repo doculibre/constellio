@@ -1,7 +1,10 @@
 package com.constellio.app.ui.pages.synonyms;
 
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -26,6 +29,11 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
 
     public DisplaySynonymsViewImpl() {
         displaySynonymsPresenter = new DisplaySynonymsPresenter(this);
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
     }
 
     @Override
