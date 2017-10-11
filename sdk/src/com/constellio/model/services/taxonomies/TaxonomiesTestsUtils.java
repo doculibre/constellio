@@ -20,7 +20,8 @@ public class TaxonomiesTestsUtils {
 
 				if (element.getClassName().endsWith("AcceptTest")
 						&& !(element.getMethodName().equals("solrQueryCounts")
-						|| element.getMethodName().equals("secondSolrQueryCounts"))) {
+						|| element.getMethodName().equals("secondSolrQueryCounts")
+						|| element.getMethodName().equals("secondCallQueryCounts"))) {
 					filename = element.getFileName();
 					lineNumber = element.getLineNumber();
 
@@ -31,11 +32,12 @@ public class TaxonomiesTestsUtils {
 							List<String> lines = FileUtils.readLines(file, "UTF-8");
 							System.out.println(lines.size());
 							String line = lines.get(lineNumber - 1);
-							if (line.contains("solrQueryCounts") || line.contains("secondSolrQueryCounts")) {
+							if (line.contains("solrQueryCounts") || line.contains("secondSolrQueryCounts") || line
+									.contains("secondCallQueryCounts")) {
 								String modifiedLine = line.replace(toCommaSeparatedArgs(expected), toCommaSeparatedArgs(current));
 								lines.set(lineNumber - 1, modifiedLine);
 
-								//FileUtils.writeLines(file, "UTF-8", lines);
+								FileUtils.writeLines(file, "UTF-8", lines);
 								System.out.println(lines.size());
 								System.out.println(line + " > " + modifiedLine);
 							}
@@ -57,16 +59,16 @@ public class TaxonomiesTestsUtils {
 	}
 
 	private static boolean isBetterThanExpected(String current, String expected) {
-		if (!current.equals(expected)) {
-			String[] currentParts = current.split("-");
-			String[] expectedParts = expected.split("-");
-
-			if (currentParts[0].compareTo(currentParts[0]) <= 0
-					&& currentParts[1].compareTo(currentParts[1]) <= 0
-					&& currentParts[2].compareTo(currentParts[2]) <= 0) {
-				return true;
-			}
-		}
+//		if (!current.equals(expected)) {
+		//			String[] currentParts = current.split("-");
+		//			String[] expectedParts = expected.split("-");
+		//
+		//			if (currentParts[0].compareTo(currentParts[0]) <= 0
+		//					&& currentParts[1].compareTo(currentParts[1]) <= 0
+		//					&& currentParts[2].compareTo(currentParts[2]) <= 0) {
+		//				return true;
+		//			}
+		//		}
 		return false;
 	}
 }
