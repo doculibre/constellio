@@ -63,7 +63,7 @@ public class EventService implements Runnable {
 	public static final String FOLDER = "eventsBackup";
 	public static final String IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT = "com.constellio.model.services.event.EventService#backupEventsInVault";
 	public static final String IO_STREAM_NAME_CLOSE = "com.constellio.model.services.event.EventService#close";
-	public static final LocalDateTime MIN_LOCAL_DATE_TIME = new LocalDateTime(0000, 1, 1, 0, 0, 0);
+	public static final LocalDateTime MIN_LOCAL_DATE_TIME = new LocalDateTime(-9999, 1, 1, 0, 0, 0);
 
 	private IOServices ioServices;
 	private ZipService zipService;
@@ -191,6 +191,7 @@ public class EventService implements Runnable {
             SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
 
             int dayOfTheMonth = -1;
+            int year = -9999;
 
             OutputStream fileOutputStream = null;
             XMLStreamWriter xmlStreamWriter = null;
@@ -207,8 +208,10 @@ public class EventService implements Runnable {
                     localDateTime = record.get(Schemas.CREATED_ON);
 
                     try {
-                        if (dayOfTheMonth != localDateTime.getDayOfMonth()) {
+                        if (dayOfTheMonth != localDateTime.getDayOfMonth() || localDateTime.getYear() != year) {
                             dayOfTheMonth = localDateTime.getDayOfMonth();
+                            year = localDateTime.getYear();
+
                             closeFile(currentFile, xmlStreamWriter, oldLocalDateTime, fileName, fileOutputStream);
                             fileName = dateAsFileName(localDateTime);
                             currentFile = createNewFile(fileName + ".xml");
