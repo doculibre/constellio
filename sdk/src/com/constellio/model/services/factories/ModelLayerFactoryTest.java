@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -63,6 +65,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
 	@Mock ConstellioCacheManager cacheManager;
+	@Mock BigVaultServer bigVaultServer;
 
 	ConstellioCache zeCache;
 
@@ -88,11 +91,13 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 		when(foldersLocator.getLanguageProfiles()).thenReturn(profiles);
+		when(dataLayerFactory.getRecordsVaultServer()).thenReturn(bigVaultServer);
 		when(profiles.listFiles()).thenReturn(new File[0]);
 
 		modelLayerFactory = spy(
 				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,
 						statefullServiceDecorator, new Delayed<>(constellioModulesManager), null, null));
+
 	}
 
 	@Test
