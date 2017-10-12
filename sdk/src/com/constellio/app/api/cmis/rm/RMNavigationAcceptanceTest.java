@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisSinglevalueContentManagementAcceptTest;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -101,6 +102,14 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		as(admin).session.getBinding().getObjectService()
 				.getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
 		recordServices.flush();
+		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").isEmpty();
+		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, true);
+
+		as(gandalf).session.getObject(records.folder_A02);
+		as(chuckNorris).session.getObjectByPath("/taxo_plan/categoryId_X/categoryId_X100/" + records.folder_C30);
+		as(admin).session.getBinding().getObjectService()
+				.getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
+		recordServices.flush();
 		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").containsOnly(
 				tuple("view_folder", "gandalf", "A02"),
 				tuple("view_folder", "chuck", "C30"),
@@ -152,6 +161,16 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		clearLogs();
 
 		String contentId = ((Folder) as(gandalf).session.getObject(records.document_B30)).getChildren().iterator().next().getId();
+
+		as(chuckNorris).session
+				.getObjectByPath("/taxo_plan/categoryId_X/categoryId_X100/" + records.folder_A49 + "/" + records.document_A49);
+		as(admin).session.getBinding().getObjectService().getProperties(zeCollection, records.document_A79, null, null);
+		as(aliceWonderland).session.getObject(contentId);
+		recordServices.flush();
+		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").isEmpty();
+		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, true);
+
+		contentId = ((Folder) as(gandalf).session.getObject(records.document_B30)).getChildren().iterator().next().getId();
 		as(chuckNorris).session
 				.getObjectByPath("/taxo_plan/categoryId_X/categoryId_X100/" + records.folder_A49 + "/" + records.document_A49);
 		as(admin).session.getBinding().getObjectService().getProperties(zeCollection, records.document_A79, null, null);

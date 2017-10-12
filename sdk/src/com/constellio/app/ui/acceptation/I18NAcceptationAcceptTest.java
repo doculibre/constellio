@@ -128,14 +128,15 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 		for (SystemConfiguration config : getModelLayerFactory().getSystemConfigurationsManager().getAllConfigurations()) {
 
-			//SystemConfigurationGroup.decommissioning.calculatedCloseDateNumberOfYearWhenVariableRule
-			String key = "SystemConfigurationGroup." + config.getConfigGroupCode() + "." + config.getCode();
-			addIfNoValueInMainI18N(key);
+			if (!config.isHidden()) {
+				//SystemConfigurationGroup.decommissioning.calculatedCloseDateNumberOfYearWhenVariableRule
+				String key = "SystemConfigurationGroup." + config.getConfigGroupCode() + "." + config.getCode();
+				addIfNoValueInMainI18N(key);
 
-			if (config.getEnumClass() != null) {
-				findEnumMissingKeys(config.getEnumClass());
+				if (config.getEnumClass() != null) {
+					findEnumMissingKeys(config.getEnumClass());
+				}
 			}
-
 		}
 
 		for (SystemConfigurationGroup group : getModelLayerFactory().getSystemConfigurationsManager().getConfigurationGroups()) {

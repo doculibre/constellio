@@ -64,6 +64,7 @@ public class CommonMetadataBuilder {
 	public static final String ATTACHED_ANCESTORS = "attachedAncestors";
 	public static final String ALL_REMOVED_AUTHS = "allRemovedAuths";
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
+	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
 
 	private interface MetadataCreator {
@@ -456,6 +457,17 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(MARKED_FOR_PARSING).setType(BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(CAPTION, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(CAPTION).setType(STRING)
+						.setSortable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

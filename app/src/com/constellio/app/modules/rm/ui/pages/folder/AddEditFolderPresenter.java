@@ -692,18 +692,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
+		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
+				Folder.ADMINISTRATIVE_UNIT_ENTERED);
 		if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 			folder.setRetentionRuleEntered(retentionRuleField.getFieldValue());
 		}
-
-		if (folder.getCopyStatus() != null && retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
-			try {
-				RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(retentionRuleField.getFieldValue());
-				return !retentionRule.isResponsibleAdministrativeUnits();
-			} catch (Exception e) {
-
-			}
+		if (administrativeUnitField != null && administrativeUnitField.getFieldValue() != null) {
+			folder.setAdministrativeUnitEntered(administrativeUnitField.getFieldValue());
 		}
+
 		return decommissioningService().isCopyStatusInputPossible(folder, getCurrentUser());
 	}
 

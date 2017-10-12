@@ -56,11 +56,11 @@ public class BaseTable extends Table {
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		return null;
 	}
-	
+
 	@Override
-	public void containerItemSetChange(ItemSetChangeEvent event) {
-		super.containerItemSetChange(event);
+	public void containerItemSetChange(Container.ItemSetChangeEvent event) {
 		cellProperties.clear();
+		super.containerItemSetChange(event);
 	}
 
 	@Override

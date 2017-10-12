@@ -19,6 +19,7 @@ public class CoreMigrationTo_7_4_AcceptanceTest extends ConstellioTest {
 	public void startApplicationWithSaveState() {
 		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 		givenTransactionLogIsEnabled();
+		givenBackgroundThreadsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
 				.givenSystemInState(getTestResourceFile("saveStateWithTemporaryMetadata.zip")).withPasswordsReset()
