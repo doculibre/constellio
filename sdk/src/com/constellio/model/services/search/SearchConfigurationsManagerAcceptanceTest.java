@@ -47,7 +47,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 				.withFoldersAndContainersOfEveryStatus());
-		syncSolrConfigurationFiles(getDataLayerFactory());
+		//syncSolrConfigurationFiles(getDataLayerFactory());
 		searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
