@@ -96,8 +96,6 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 
             MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA);
             importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
-
-            MetadataSchemaTypeBuilder temporaryRecordSchema = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
         }
     }
 }
