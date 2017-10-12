@@ -241,7 +241,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
     }
 
     @Test
-    public void whenCleaningAdministrativeUnitCheckIfRetentionRuleIsNotLongerLinkAndIsDeleted() throws Exception {
+    public void whenCleaningAdministrativeUnitWithOnlyOneRuleCheckIfRetentionRuleIsNotLongerLinkAndIsNowResponsible() throws Exception {
         AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.searchSingleResult(from(rm.administrativeUnit.schema())
                 .where(rm.administrativeUnit.code()).isEqualTo("10A")));
         CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
@@ -261,13 +261,87 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
         assertThat(retentionRule.getAdministrativeUnits()).hasSize(1).containsOnly(administrativeUnit.getId());
 
         RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+        RetentionRule rule = rm.getRetentionRule(retentionRule.getId());
+        assertThat(rule).isNotNull();
+        assertThat(rule.isResponsibleAdministrativeUnits()).isTrue();
+    }
 
+    @Test
+    public void whenCleaningAdministrativeUnitWithOnlyOneRuleButMultipleAdministrativeUnitCheckIfRetentionRuleIsNotLongerLinkAndIsNotResponsible() throws Exception {
+        AdministrativeUnit administrativeUnit1 = records.getUnit10();
+        AdministrativeUnit administrativeUnit2 = records.getUnit11();
+        CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
-        try{
-            rm.getRetentionRule(retentionRule.getId());
-            fail("Should not find the record");
-        }catch (RecordServicesRuntimeException.NoSuchRecordWithId runtimeException ) {
-            //OK
+        CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+        CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
+        RetentionRule retentionRule = rm.newRetentionRule()
+                .setTitle("rule1")
+                .setCode("r1")
+                .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+                .setAdministrativeUnits(asList(administrativeUnit1, administrativeUnit2));
+
+        Transaction t = new Transaction();
+        t.add(retentionRule);
+        recordServices.execute(t);
+
+        assertThat(retentionRule.getAdministrativeUnits()).hasSize(2).containsOnly(administrativeUnit1.getId(), administrativeUnit2.getId());
+
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit1.getId(), getAppLayerFactory());
+        RetentionRule rule = rm.getRetentionRule(retentionRule.getId());
+        assertThat(rule).isNotNull();
+        assertThat(rule.isResponsibleAdministrativeUnits()).isFalse();
+        assertThat(rule.getAdministrativeUnits()).hasSize(1).containsOnly(administrativeUnit2.getId());
+    }
+
+    @Test
+    public void whenCleaningAdministrativeUnitWithMultipleRulesCheckIfRetentionRulesAreNoLongerLinked() throws Exception {
+        AdministrativeUnit administrativeUnit1 = records.getUnit10();
+        CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+        CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+        CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
+        List<RetentionRule> rules = asList(
+                rm.newRetentionRule()
+                        .setTitle("rule1")
+                        .setCode("r1")
+                        .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+                        .setAdministrativeUnits(Collections.singletonList(administrativeUnit1)),
+                rm.newRetentionRule()
+                        .setTitle("rule2")
+                        .setCode("r2")
+                        .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+                        .setAdministrativeUnits(asList(administrativeUnit1, records.getUnit11b())),
+                rm.newRetentionRule()
+                        .setTitle("rule3")
+                        .setCode("r3")
+                        .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+                        .setAdministrativeUnits(Collections.singletonList(administrativeUnit1))
+        );
+        Transaction t = new Transaction();
+        t.addAll(rules);
+        recordServices.execute(t);
+
+        List<String> ids = new ArrayList<>();
+        for(RetentionRule retentionRule : rules) {
+            if(retentionRule.getCode().equals("r2")) {
+                assertThat(retentionRule.getAdministrativeUnits()).hasSize(2).containsOnly(administrativeUnit1.getId(), records.getUnit11b().getId());
+            } else {
+                assertThat(retentionRule.getAdministrativeUnits()).hasSize(1).containsOnly(administrativeUnit1.getId());
+
+            }
+            ids.add(retentionRule.getId());
+        }
+
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit1.getId(), getAppLayerFactory());
+
+        List<RetentionRule> updatedRules = rm.getRetentionRules(ids);
+        for(RetentionRule updatedRule : updatedRules) {
+            if(updatedRule.getCode().equals("r2")) {
+                assertThat(updatedRule.getAdministrativeUnits()).hasSize(1).containsOnly(records.getUnit11b().getId());
+                assertThat(updatedRule.isResponsibleAdministrativeUnits()).isFalse();
+            } else {
+                assertThat(updatedRule.getAdministrativeUnits()).isEmpty();
+                assertThat(updatedRule.isResponsibleAdministrativeUnits()).isTrue();
+            }
         }
     }
 

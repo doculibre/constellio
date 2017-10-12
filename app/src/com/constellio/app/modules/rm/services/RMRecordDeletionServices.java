@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -10,6 +11,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -175,8 +177,18 @@ public class RMRecordDeletionServices {
                 .where(rm.retentionRule.administrativeUnits()).isContaining(Collections.singletonList(administrativeUnit.getId()));
 
         SearchResponseIterator<Record> retentionRuleIterator = searchServices.recordsIterator(new LogicalSearchQuery(condition));
-        Set<String> recordIDs = deleteRecordFromIterator(retentionRuleIterator, recordServices);
-
+        while(retentionRuleIterator.hasNext()) {
+            RetentionRule currentRetentionRule = rm.wrapRetentionRule(retentionRuleIterator.next());
+            List<AdministrativeUnit> currentAdministrativeUnits = rm.getAdministrativeUnits(currentRetentionRule.getAdministrativeUnits());
+            currentAdministrativeUnits.remove(currentAdministrativeUnits.indexOf(administrativeUnit));
+            currentRetentionRule.setAdministrativeUnits(currentAdministrativeUnits);
+            currentRetentionRule.setResponsibleAdministrativeUnits(currentAdministrativeUnits.isEmpty());
+            try{
+                recordServices.update(currentRetentionRule);
+            }catch (RecordServicesException e) {
+                LOGGER.info("Error while updating retention rule" + currentRetentionRule.getId());
+            }
+        }
     }
 
     static private void unlinkDocumentFromDecommissioningLists(Record document, String collection, AppLayerFactory appLayerFactory) {
@@ -274,12 +286,13 @@ public class RMRecordDeletionServices {
     static private Set<String> deleteRecordFromIterator(Iterator<Record> recordIterator, RecordServices recordServices) {
         Set<String> recordIDs = new HashSet<>();
         while(recordIterator.hasNext()) {
-            Record currentRetentionRule = recordIterator.next();
-            if(recordIDs.add(currentRetentionRule.getId())) {
+            Record currentRecord = recordIterator.next();
+            if(recordIDs.add(currentRecord.getId())) {
                 try {
-                    recordServices.physicallyDeleteNoMatterTheStatus(currentRetentionRule, User.GOD, new RecordPhysicalDeleteOptions());
+                    recordServices.physicallyDeleteNoMatterTheStatus(currentRecord, User.GOD, new RecordPhysicalDeleteOptions());
                 } catch (Exception e) {
-                    LOGGER.info("Could not delete decommissioningList " + currentRetentionRule.getId());
+                    e.printStackTrace();
+                    LOGGER.info("Could not delete " + currentRecord.getTypeCode() + " " + currentRecord.getId());
                 }
             }
         }

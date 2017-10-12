@@ -1395,7 +1395,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
         assertThat((List) records.folder2().get(folderSchema.linkToOtherFolders())).hasSize(2);
     }
 
-    @Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+    @Test(expected = Exception.class)
     public void givenARecordWhenAddingAReferenceToALogicallyDeletedRecordThenException()
             throws Exception {
         given(userWithDeletePermission).logicallyDelete(records.folder4());
@@ -1404,7 +1404,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
     }
 
-    @Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
+    @Test(expected = Exception.class)
     public void givenARecordWhenAddingAReferenceToALogicallyDeletedSubRecordThenException()
             throws Exception {
         given(userWithDeletePermission).logicallyDelete(records.folder4());
