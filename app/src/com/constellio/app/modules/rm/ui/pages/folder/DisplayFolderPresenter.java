@@ -180,13 +180,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext());
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getTasksQuery();
 				addStarredSortToQuery(query);
+				query.sortDesc(Schemas.MODIFIED_ON);
 				return query;
 			}
 
@@ -242,7 +243,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.setCondition(from(tasks.userTask.schemaType()).where(taskFolderMetadata).is(folderVO.getId()));
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.filteredWithUser(getCurrentUser());
-		query.sortDesc(Schemas.MODIFIED_ON);
 		return query;
 	}
 
@@ -761,6 +761,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
+//				view.selectFolderContentTab();
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
