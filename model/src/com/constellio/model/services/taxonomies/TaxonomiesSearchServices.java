@@ -830,7 +830,7 @@ public class TaxonomiesSearchServices {
 		return new LinkableTaxonomySearchResponse(numFound, infos, returnedRecords);
 	}
 
-	private boolean isLinkable(final Record record, final Taxonomy taxonomy, TaxonomiesSearchOptions options) {
+	public boolean isLinkable(final Record record, final Taxonomy taxonomy, TaxonomiesSearchOptions options) {
 
 		if (options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()) {
 			return true;

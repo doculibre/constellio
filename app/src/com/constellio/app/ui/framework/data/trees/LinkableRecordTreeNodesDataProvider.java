@@ -117,4 +117,8 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		isShowAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}
+
+	public TaxonomiesSearchFilter getFilter() {
+		return filter;
+	}
 }
