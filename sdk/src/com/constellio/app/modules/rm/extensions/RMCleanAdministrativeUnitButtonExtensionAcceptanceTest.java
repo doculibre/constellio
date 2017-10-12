@@ -2,18 +2,24 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMRecordDeletionServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -26,11 +32,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
+import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -230,6 +238,37 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
         assertThat(getLinkedRecords(newTaskDocument)).isEmpty();
         assertThat(getLinkedRecords(newTaskFolder)).isEmpty();
         assertThat(getLinkedRecords(newTaskWithBoth)).isEmpty();
+    }
+
+    @Test
+    public void whenCleaningAdministrativeUnitCheckIfRetentionRuleIsNotLongerLinkAndIsDeleted() throws Exception {
+        AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.searchSingleResult(from(rm.administrativeUnit.schema())
+                .where(rm.administrativeUnit.code()).isEqualTo("10A")));
+        CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
+        CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+        CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
+        RetentionRule retentionRule = rm.newRetentionRule()
+                .setTitle("rule1")
+                .setCode("r1")
+                .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+                .setAdministrativeUnits(Collections.singletonList(administrativeUnit));
+
+        Transaction t = new Transaction();
+        t.add(retentionRule);
+        recordServices.execute(t);
+
+        assertThat(retentionRule.getAdministrativeUnits()).hasSize(1).containsOnly(administrativeUnit.getId());
+
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+
+
+        try{
+            rm.getRetentionRule(retentionRule.getId());
+            fail("Should not find the record");
+        }catch (RecordServicesRuntimeException.NoSuchRecordWithId runtimeException ) {
+            //OK
+        }
     }
 
     public List<String> extractIdentifier(List<DecommissioningList> decommissioningLists) {

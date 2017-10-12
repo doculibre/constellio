@@ -15,13 +15,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
@@ -46,6 +44,7 @@ public class RMRecordDeletionServices {
         cleanFoldersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanContainersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanDecommissioningListInAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
+        cleanRetentionRuleInAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
     }
 
     static public void cleanAdministrativeUnit(String collection, String administrativeUnitID,
@@ -165,18 +164,19 @@ public class RMRecordDeletionServices {
                 .where(rm.decommissioningList.administrativeUnit()).isEqualTo(administrativeUnit.getId()));
 
         SearchResponseIterator<Record> decommissioningListIterator = searchServices.recordsIterator(query);
-        Set<String> recordIDs = new HashSet<>();
+        Set<String> recordIDs = deleteRecordFromIterator(decommissioningListIterator, recordServices);
+    }
 
-        while(decommissioningListIterator.hasNext()) {
-            Record decommissioningList = decommissioningListIterator.next();
-            if(recordIDs.add(decommissioningList.getId())) {
-                try {
-                    recordServices.physicallyDeleteNoMatterTheStatus(decommissioningList, User.GOD, new RecordPhysicalDeleteOptions());
-                } catch (Exception e) {
-                    LOGGER.info("Could not delete decommissioningList " + decommissioningList.getId());
-                }
-            }
-        }
+    static private void cleanRetentionRuleInAdministrativeUnit(String collection, AdministrativeUnit administrativeUnit, AppLayerFactory appLayerFactory) {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+        RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+        LogicalSearchCondition condition = from(rm.retentionRule.schemaType())
+                .where(rm.retentionRule.administrativeUnits()).isContaining(Collections.singletonList(administrativeUnit.getId()));
+
+        SearchResponseIterator<Record> retentionRuleIterator = searchServices.recordsIterator(new LogicalSearchQuery(condition));
+        Set<String> recordIDs = deleteRecordFromIterator(retentionRuleIterator, recordServices);
+
     }
 
     static private void unlinkDocumentFromDecommissioningLists(Record document, String collection, AppLayerFactory appLayerFactory) {
@@ -269,5 +269,20 @@ public class RMRecordDeletionServices {
                 }
             }
         }
+    }
+
+    static private Set<String> deleteRecordFromIterator(Iterator<Record> recordIterator, RecordServices recordServices) {
+        Set<String> recordIDs = new HashSet<>();
+        while(recordIterator.hasNext()) {
+            Record currentRetentionRule = recordIterator.next();
+            if(recordIDs.add(currentRetentionRule.getId())) {
+                try {
+                    recordServices.physicallyDeleteNoMatterTheStatus(currentRetentionRule, User.GOD, new RecordPhysicalDeleteOptions());
+                } catch (Exception e) {
+                    LOGGER.info("Could not delete decommissioningList " + currentRetentionRule.getId());
+                }
+            }
+        }
+        return recordIDs;
     }
 }

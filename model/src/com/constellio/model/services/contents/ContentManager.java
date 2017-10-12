@@ -707,6 +707,11 @@ public class ContentManager implements StatefulService {
 		} finally {
 			ioServices.closeQuietly(inputStream);
 		}
+
+		if (org.apache.commons.lang3.StringUtils.isBlank(parsedContent)) {
+			throw new ContentManagerException_ContentNotParsed(hash);
+		}
+
 		try {
 			return newParsedContentConverter().convertToParsedContent(parsedContent);
 		} catch (Exception e) {
@@ -714,7 +719,7 @@ public class ContentManager implements StatefulService {
 					= new ContentManagerRuntimeException_CannotReadParsedContent(e, hash, parsedContent);
 			LOGGER.error(exception.getMessage(), exception);
 
-			return ParsedContent.unparsable("", parsedContent == null? 0:parsedContent.length());
+			return ParsedContent.unparsable("", parsedContent == null ? 0 : parsedContent.length());
 		}
 
 	}
