@@ -11,16 +11,16 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.util.FileIconUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Resource;
 
 public class FolderIdToContextCaptionConverter implements Converter<String, String> {
-	
+
 	public static final String DELIM = " | ";
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-	
+
 	public FolderIdToContextCaptionConverter() {
 		super();
 		initTransientObjects();
@@ -51,26 +51,9 @@ public class FolderIdToContextCaptionConverter implements Converter<String, Stri
 		String caption;
 		if (StringUtils.isNotBlank(value)) {
 			Folder folder = rmSchemasRecordsServices.getFolder(value);
-			if (folder != null) {
-				StringBuffer sb = new StringBuffer();
-				Folder currentFolder = folder;
-				while (currentFolder != null) {
-					if (sb.length() > 0) {
-						sb.insert(0, DELIM);
-					}
-					String currentFolderCaption = SchemaCaptionUtils.getCaptionForRecordId(currentFolder.getId());
-					sb.insert(0, currentFolderCaption);
-					
-					String parentFolderId = currentFolder.getParentFolder();
-					if (parentFolderId != null) {
-						currentFolder = rmSchemasRecordsServices.getFolder(parentFolderId);
-					} else {
-						currentFolder = null;
-					}
-				}
-				caption = sb.toString();
-			} else {
-				caption = "";
+			caption = folder.get(Schemas.CAPTION);
+			if (caption == null) {
+				caption = folder.getTitle();
 			}
 		} else {
 			caption = "";

@@ -1,19 +1,19 @@
 package com.constellio.app.modules.rm.ui.components.converters;
 
+import java.io.IOException;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.util.FileIconUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Resource;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
-import java.util.Locale;
 
 public class DocumentIdToContextCaptionConverter implements Converter<String, String> {
 
@@ -51,28 +51,11 @@ public class DocumentIdToContextCaptionConverter implements Converter<String, St
 		String caption = "";
 		if (StringUtils.isNotBlank(value)) {
 			Document document = rmSchemasRecordsServices.getDocument(value);
-			if(document != null) {
-				Folder folder = document.getFolder() == null? null:rmSchemasRecordsServices.getFolder(document.getFolder());
-				if (folder != null) {
-					StringBuffer sb = new StringBuffer();
-					Folder currentFolder = folder;
-					while (currentFolder != null) {
-						if (sb.length() > 0) {
-							sb.insert(0, DELIM);
-						}
-						String currentFolderCaption = SchemaCaptionUtils.getCaptionForRecordId(currentFolder.getId());
-						sb.insert(0, currentFolderCaption);
-
-						String parentFolderId = currentFolder.getParentFolder();
-						if (parentFolderId != null) {
-							currentFolder = rmSchemasRecordsServices.getFolder(parentFolderId);
-						} else {
-							currentFolder = null;
-						}
-					}
-					caption = sb.toString();
+			if (document != null) {
+				caption = document.get(Schemas.CAPTION);
+				if (caption == null) {
+					caption = document.getTitle();
 				}
-				caption += " " + DELIM + " " + document.getTitle();
 			} else {
 				caption = "";
 			}

@@ -20,7 +20,32 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.*;
+import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
+import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMCleanAdministrativeUnitButtonExtension;
+import com.constellio.app.modules.rm.extensions.RMCreateDecommissioningListExtension;
+import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
+import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
+import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMFolderExtension;
+import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
+import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
+import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordCaptionExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
+import com.constellio.app.modules.rm.extensions.RMRequestTaskApprovedExtension;
+import com.constellio.app.modules.rm.extensions.RMRequestTaskButtonExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemaTypesPageExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
+import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
+import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
+import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
+import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
+import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
@@ -94,6 +119,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -214,7 +240,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_5(),
 				new RMMigrationTo7_5_2(),
 				new RMMigrationTo7_5_3(),
-				new RMMigrationTo7_5_5()
+				new RMMigrationTo7_5_5(),
+				new RMMigrationTo7_6()
 		);
 	}
 
