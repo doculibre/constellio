@@ -7,7 +7,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.constellio.model.services.batch.xml.list.BatchProcessListWriterRuntimeException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.InMemoryBatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.StoredBatchProcessPart;
+import com.constellio.model.services.batch.xml.list.BatchProcessListWriterRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -98,7 +98,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 					}
 				} catch (BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished alreadyFinished) {
 
-			} catch (Exception e) {
+				} catch (Exception e) {
 					batchProcessesManager.markAsFinished(batchProcess, 1);
 					throw e;
 				}
@@ -143,7 +143,10 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
-			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size()-oldErrorCount);
+
+			if (batchIterator.hasNext()) {
+				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
+			}
 		}
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);
@@ -189,7 +192,9 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
-			batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size()-oldErrorCount);
+			if (batchIterator.hasNext()) {
+				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
+			}
 		}
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);

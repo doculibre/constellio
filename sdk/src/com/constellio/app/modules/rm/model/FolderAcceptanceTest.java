@@ -523,32 +523,23 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal_2_2_C, principal_5_5_D, secondary_1_0_D);
 
 		try {
-			Folder folder = saveAndLoad(principalFolderWithZeRule()
+			saveAndLoad(principalFolderWithZeRule()
 					.setOpenDate(february2_2015)
 					.setMainCopyRuleEntered(secondary_1_0_D.getId())
 					.setMediumTypes(MD, PA));
 		} catch (RecordServicesException.ValidationException e) {
-			assertThat(frenchMessages(e.getErrors().getValidationErrors())).containsOnly("todo");
+			List<ValidationError> validationErrors = e.getErrors().getValidationErrors();
+			assertThat(validationErrors.size()).isEqualTo(1);
+			
+			ValidationError validationError = validationErrors.get(0);
+			assertThat(validationError.getCode().endsWith(FolderValidator.FOLDER_INVALID_COPY_RETENTION_RULE));
+			
+			Map<String, Object> expectedParams = new HashMap<>();
+			expectedParams.put("ruleCode", "Ze rule");
+			expectedParams.put("schemaCode", "folder_default");
+			expectedParams.put("mainCopyRule", secondary_1_0_D.getId());
+			assertThat(validationError.getParameters()).isEqualTo(expectedParams);
 		}
-
-		//		assertThat(folder.hasAnalogicalMedium()).isTrue();
-		//		assertThat(folder.hasElectronicMedium()).isTrue();
-		//		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
-		//		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
-		//		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
-		//		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
-		//		assertThat(folder.getActualTransferDate()).isNull();
-		//		assertThat(folder.getActualDepositDate()).isNull();
-		//		assertThat(folder.getActualDestructionDate()).isNull();
-		//		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("2-2-C", PA), principal("5-5-D", MD));
-		//		assertThat(folder.getMainCopyRule()).isEqualTo(principal("2-2-C", PA));
-		//		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31_2018, march31_2021);
-		//		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(null, march31_2026);
-		//		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
-		//		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2018);
-		//		assertThat(folder.getExpectedDestructionDate()).isEqualTo(null);
-		//		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2020);
-
 	}
 
 	@Test

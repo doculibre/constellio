@@ -137,22 +137,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.sortAsc(Schemas.TITLE).setCondition(from(rm.documentSchemaType()).where(rm.documentFolder()).isEqualTo(id)));
 	}
 
-	//	@Test
-	//	public void givenUserCreateNewTaxonomyAndAssignRecordsToItThenRecordsVisibleInTheTaxonomyTree()
-	//			throws Exception {
-	//
-	//		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
-	//
-	//		ValueListServices services = new ValueListServices(getModelLayerFactory(), zeCollection);
-	//		String type = services.createTaxonomy("ZE").getSchemaTypes().get(0);
-	//
-	//		MetadataSchemaTypesBuilder types = manager.modifyTo(zeCollection);
-	//		types.getSchema(Folder.SCHEMA_TYPE).create("ZeMetadata").defineTaxonomyRelationshipToType(types.getSchemaType(type));
-	//		manager.saveUpdateSchemaTypes(types);
-	//
-	//		HierarchicalValueListItem item = rm.newHierarchicalValueListItem(type + "_default");
-	//
-	//	}
 
 	@Test
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
@@ -295,7 +279,6 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsAlwaysDisplayingConceptsWithReadAccessAndNoChildCalculatedThenSeesRecordsAndAllConcepts()
 			throws Exception {
 
-		//TODO Nicolas : Faire passer et ajouter des assertThatSolr().hasCounts(x,y,z);
 		recordServices.add(rm.newCategoryWithId("category_Y_id").setCode("Y").setTitle("Ze category Y"));
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()

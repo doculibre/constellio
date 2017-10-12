@@ -762,11 +762,11 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
 				.has(solrQueryCounts(2, 0, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -872,8 +872,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 

@@ -731,8 +731,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -1002,8 +1002,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 0))
-				.has(secondSolrQueryCounts(3, 2, 0));
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -1499,7 +1499,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
-	//@Test
+	@Test
 	public void givenPlethoraOfRootCategoriesInARubricThenValidGetRootResponse()
 			throws Exception {
 
@@ -1525,8 +1525,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
 				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(3, 50, 25))
+				.has(secondSolrQueryCounts(2, 50, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1534,8 +1534,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
 				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(2, 50, 0))
+				.has(secondSolrQueryCounts(2, 50, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1544,8 +1544,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(3, 50, 10))
+				.has(secondSolrQueryCounts(2, 50, 0));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -1555,8 +1555,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(3, 50, 1))
+				.has(secondSolrQueryCounts(2, 50, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(30).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1566,8 +1566,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(50)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(4, 75, 14))
+				.has(secondSolrQueryCounts(3, 75, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(null))
@@ -1576,8 +1576,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(302)).has(listSize(13))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(24, 302, 252))
+				.has(secondSolrQueryCounts(13, 302, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1586,8 +1586,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(302)).has(listSize(13))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(1, 13, 0))
+				.has(secondSolrQueryCounts(1, 13, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
@@ -1596,8 +1596,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(301)).has(listSize(12))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(0, 0, 0));
+				.has(solrQueryCounts(1, 12, 0))
+				.has(secondSolrQueryCounts(1, 12, 0));
 
 	}
 

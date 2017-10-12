@@ -395,6 +395,17 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		returnLink.addClickListener(listener);
 		return returnLink;
 	}
+	protected Button createLink(String caption, final Button.ClickListener listener, String iconName, boolean hasAccess) {
+		if(!hasAccess) {
+			return null;
+		}
+		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
+		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		returnLink.addStyleName(CATEGORY_BUTTON);
+		returnLink.addClickListener(listener);
+		return returnLink;
+	}
 
 	protected Table setTableProperty(Table table, int maxSize) {
 		table.setSizeFull();
