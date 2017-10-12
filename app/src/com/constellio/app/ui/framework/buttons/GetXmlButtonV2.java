@@ -46,8 +46,13 @@ public class GetXmlButtonV2 extends WindowButton{
 
     private Field elementLookUpField;
     private BaseView view;
+    private boolean isXmlForTest;
 
     public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleType currentSchema) {
+        this(caption, windowCaption, appLayerFactory, collection, view, currentSchema, false);
+    }
+
+    public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, BaseView view, PrintableReportListPossibleType currentSchema, boolean isXmlForTest ) {
         super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.factory = appLayerFactory;
         this.model = factory.getModelLayerFactory();
@@ -55,6 +60,7 @@ public class GetXmlButtonV2 extends WindowButton{
         this.contentManager = model.getContentManager();
         this.currentSchema = currentSchema;
         this.view = view;
+        this.isXmlForTest = isXmlForTest;
     }
 
     public void setCurrentSchema(PrintableReportListPossibleType schema) {
@@ -104,6 +110,9 @@ public class GetXmlButtonV2 extends WindowButton{
                 if(ids.size() > 0) {
                     XmlReportGeneratorParameters xmlGeneratorParameters =  new XmlReportGeneratorParameters(1);
                     xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
+                    if(parent.isXmlForTest) {
+                        xmlGeneratorParameters.markAsTestXml();
+                    }
                     XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                     String xml = xmlGenerator.generateXML();
                     String filename = "Constellio-Test.xml";
