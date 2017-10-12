@@ -59,8 +59,8 @@ public class BaseTable extends Table {
 	
 	@Override
 	public void containerItemSetChange(ItemSetChangeEvent event) {
-		super.containerItemSetChange(event);
 		cellProperties.clear();
+		super.containerItemSetChange(event);
 	}
 
 	@Override
