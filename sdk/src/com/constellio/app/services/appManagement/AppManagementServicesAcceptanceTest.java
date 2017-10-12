@@ -5,9 +5,7 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -337,7 +335,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 	public void givenUploadedWarIsPreviousVersionThenCannotUpload()
 			throws Exception {
 
-		uploadADummyUpdateJarWithVersion("5.0.3");
+		uploadADummyUpdateJarWithVersion("4.9.9");
 
 		appManagementService.update(new ProgressInfo());
 
