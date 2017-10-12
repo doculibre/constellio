@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +45,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected boolean onlyLinkables = false;
 	protected boolean writeAccess;
 	protected boolean includeDeactivated;
+	protected ConverterWithCache<String, String> converterWithCache;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 			String schemaTypeCode, boolean writeAccess) {
@@ -69,6 +71,12 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.modelLayerFactory = constellioFactories.getModelLayerFactory();
 		this.security = determineIfSecurity();
 		this.includeDeactivated = includeDeactivated;
+	}
+
+	public RecordTextInputDataProvider setConverterWithCache(
+			ConverterWithCache<String, String> converterWithCache) {
+		this.converterWithCache = converterWithCache;
+		return this;
 	}
 
 	private boolean determineIfSecurity() {
@@ -129,6 +137,13 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected List<String> toRecordIds(List<Record> matches) {
 		List<String> recordIds = new ArrayList<>();
 		for (Record match : matches) {
+			if (converterWithCache != null) {
+				String caption = match.get(Schemas.CAPTION);
+				if (caption != null) {
+					converterWithCache.preload(match.getId(), caption);
+				}
+			}
+
 			recordIds.add(match.getId());
 		}
 		return recordIds;
