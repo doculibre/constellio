@@ -1,7 +1,13 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
+import static com.constellio.model.entities.schemas.Schemas.PATH;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,6 +34,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
@@ -56,9 +63,10 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
-						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON, PATH));
+				return metadata.getLocalCode().startsWith("USR")
+						&& metadata.isEnabled()
+						&& !isDDVOrTaxonomy(metadata)
+						&& isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -66,9 +74,20 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved()
-						|| metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON, LEGACY_ID, PATH));
+				return !metadata.getLocalCode().startsWith("USR")
+						&& metadata.isEnabled()
+						&& !isDDVOrTaxonomy(metadata)
+						&& isNotAHiddenSystemReserved(metadata);
+			}
+		};
+
+		MetadataVODataProvider ddvTaxonomies = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory,
+				collection, schemaCode) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return metadata.isEnabled()
+						&& isDDVOrTaxonomy(metadata)
+						&& isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -76,17 +95,34 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 				schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata
-						.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-								CREATED_ON, MODIFIED_ON, PATH));
+				return !metadata.isEnabled()
+						&& isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.custom", custom.size()), custom);
+		dataProviders.put($("AddEditSchemaMetadataView.tabs.ddvsAndTaxonomies", ddvTaxonomies.size()), ddvTaxonomies);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.system", system.size()), system);
 		dataProviders.put($("AddEditSchemaMetadataView.tabs.disabled", disabled.size()), disabled);
 
 		return dataProviders;
+	}
+
+	private boolean isDDVOrTaxonomy(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE) {
+			String referencedSchemaType = metadata.getReferencedSchemaType();
+			return referencedSchemaType.startsWith("taxo")
+					|| (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
+
+		} else {
+			return false;
+		}
+
+	}
+
+	private boolean isNotAHiddenSystemReserved(Metadata metadata) {
+		return !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(
+				IDENTIFIER, CREATED_BY, MODIFIED_BY, CREATED_ON, MODIFIED_ON, LEGACY_ID, PATH);
 	}
 
 	public FormMetadataSchemaVO getSchemaVO() {
