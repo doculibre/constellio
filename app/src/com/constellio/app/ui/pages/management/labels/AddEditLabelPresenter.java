@@ -41,6 +41,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
     private transient RecordServices recordServices;
     private transient ModelLayerCollectionExtensions extensions;
     protected RecordVO container;
+    private RecordVODataProvider folderDataProvider, containerDataProvider;
 
 
     public AddEditLabelPresenter(AddEditLabelView view) {
@@ -71,31 +72,37 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
     }
 
     public RecordVODataProvider getLabelFolderDataProvider() {
-        final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        return new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-            @Override
-            protected LogicalSearchQuery getQuery() {
-                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
-                return new LogicalSearchQuery(
-                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
-                                .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
-            }
-        };
+        if(folderDataProvider == null) {
+            final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
+                    .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+            folderDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+                @Override
+                protected LogicalSearchQuery getQuery() {
+                    MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
+                    return new LogicalSearchQuery(
+                            from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+                                    .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
+                }
+            };
+        }
+       return folderDataProvider;
     }
 
     public RecordVODataProvider getLabelContainerDataProvider() {
-        final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        return new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-            @Override
-            protected LogicalSearchQuery getQuery() {
-                MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
-                return new LogicalSearchQuery(
-                        from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
-                                .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
-            }
-        };
+        if(containerDataProvider == null) {
+            final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
+                    .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+            containerDataProvider =  new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+                @Override
+                protected LogicalSearchQuery getQuery() {
+                    MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
+                    return new LogicalSearchQuery(
+                            from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+                                    .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
+                }
+            };
+        }
+        return containerDataProvider;
     }
 
     public void addLabelButtonClicked() {
