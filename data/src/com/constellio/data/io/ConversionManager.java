@@ -150,6 +150,8 @@ public class ConversionManager implements StatefulService {
 		"pct", "ppm", "sgf"
 	};
 	
+	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>(); 
+	
 	public static String[] SUPPORTED_EXTENSIONS = new String[0];
 	
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
@@ -158,6 +160,7 @@ public class ConversionManager implements StatefulService {
 		try {
 			OfficeManager officeManager = LocalOfficeManager.install();
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+			
 			List<String> supportedExtensionsList = new ArrayList<>();
 			for (int i = 0; i < TEXT_EXTENSIONS.length; i++) {
 				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(TEXT_EXTENSIONS[i]);
@@ -183,6 +186,12 @@ public class ConversionManager implements StatefulService {
 					supportedExtensionsList.add(DRAWING_EXTENSIONS[i]);
 				}
 			}
+			
+			COPY_EXTENSIONS.put("dot", "doc");
+			COPY_EXTENSIONS.put("pptm", "ppt");
+			COPY_EXTENSIONS.put("pps", "ppt");
+			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
+			
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
 			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS)); 
 			openOfficeOrLibreOfficeInstalled = true;
@@ -258,12 +267,17 @@ public class ConversionManager implements StatefulService {
 	}
 
 	public Future<File> convertToPDFAsync(final InputStream inputStream, final String originalName, final File workingFolder) {
-		return executor.submit(new Callable<File>() {
-			@Override
-			public File call() {
-				return convertToPDF(inputStream, originalName, workingFolder);
-			}
-		});
+		if (openOfficeOrLibreOfficeInstalled) {
+			ensureInitialized();
+			return executor.submit(new Callable<File>() {
+				@Override
+				public File call() {
+					return convertToPDF(inputStream, originalName, workingFolder);
+				}
+			});
+		} else {
+			return null;
+		}	
 	}
 
 	public File convertToPDF(InputStream inputStream, String originalName, File workingFolder) {
@@ -369,38 +383,9 @@ public class ConversionManager implements StatefulService {
 	private DocumentFormat getInputDocumentFormat(File input, OfficeDocumentConverter converter) {
 		String extension = StringUtils.toLowerCase(FilenameUtils.getExtension(input.getName()));
 		DocumentFormat inputFormat = converter.getFormatRegistry().getFormatByExtension(extension);
-//		if (inputFormat == null) {
-//			String filterName;
-//			DocumentFamily documentFamily = getDocumentFamily(input);
-//			if (documentFamily == DocumentFamily.TEXT) {
-//				filterName = "writer_pdf_Export";
-//			} else if (documentFamily == DocumentFamily.SPREADSHEET) {
-//				filterName = "calc_pdf_Export";
-//			} else if (documentFamily == DocumentFamily.PRESENTATION) {
-//				filterName = "impress_pdf_Export";
-//			} else {
-//				filterName = "draw_pdf_Export";
-//			}
-//			
-//			Map<String, Object> filterData = new HashMap<>();
-//
-//			Map<String, Object> properties = new HashMap<>();
-//			properties.put("FilterName", filterName);
-//			properties.put("FilterData", filterData);
-//
-//			Map<DocumentFamily, Map<String, Object>> storeProperties = new HashMap<>();
-//			storeProperties.put(DocumentFamily.TEXT, properties);
-//			storeProperties.put(DocumentFamily.SPREADSHEET, properties);
-//			storeProperties.put(DocumentFamily.PRESENTATION, properties);
-//			storeProperties.put(DocumentFamily.DRAWING, properties);
-//			
-//			try {
-//				MediaType mediaType = getMediaType(input);
-//				inputFormat = new DocumentFormat(extension, extension, mediaType.getType(), documentFamily, properties, storeProperties);
-//			} catch (IOException e) {
-//				inputFormat = null;
-//			}
-//		}
+		if (inputFormat == null && COPY_EXTENSIONS.containsKey(extension)) {
+			inputFormat = converter.getFormatRegistry().getFormatByExtension(COPY_EXTENSIONS.get(extension));
+		}
 		return inputFormat;
 	}
 	
