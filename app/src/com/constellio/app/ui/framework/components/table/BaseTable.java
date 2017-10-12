@@ -56,9 +56,9 @@ public class BaseTable extends Table {
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		return null;
 	}
-	
+
 	@Override
-	public void containerItemSetChange(ItemSetChangeEvent event) {
+	public void containerItemSetChange(Container.ItemSetChangeEvent event) {
 		cellProperties.clear();
 		super.containerItemSetChange(event);
 	}

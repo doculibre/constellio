@@ -101,7 +101,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext());
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
