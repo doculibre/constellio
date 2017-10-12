@@ -28,8 +28,8 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 	}
 
 	private static class RecordAutocompleteSuggestionsProvider implements AutocompleteSuggestionsProvider<String> {
-		
-		private static final int BUFFER_SIZE = 100;
+
+		private static final int BUFFER_SIZE = 20;
 
 		private RecordTextInputDataProvider suggestionsProvider;
 
