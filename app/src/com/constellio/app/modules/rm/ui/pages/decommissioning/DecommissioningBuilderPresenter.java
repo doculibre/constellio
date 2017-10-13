@@ -379,10 +379,16 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		} else {
+			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
+			if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				tmpSearchRecord = recordServices()
+						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+			}
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporaryDecommission")
+				.setTitle($("SearchView.savedSearch.temporaryDecommission"))
 				.setSearchType(DecommissioningBuilderView.SEARCH_TYPE)
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)

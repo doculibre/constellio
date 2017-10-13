@@ -8,9 +8,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -50,6 +55,31 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     private String currentSchema;
     final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this);
     public static final String TYPE_TABLE = "types";
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
+    }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {

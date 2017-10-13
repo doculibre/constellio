@@ -5,6 +5,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public interface SystemConfigurationScript<T> {
 
+	void onNewCollection(T newValue, String collection, ModelLayerFactory modelLayerFactory);
+
 	void validate(T newValue, ValidationErrors errors);
 
 	void onValueChanged(T previousValue, T newValue, ModelLayerFactory modelLayerFactory);

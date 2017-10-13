@@ -8,11 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
-import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
-import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -68,7 +64,8 @@ public class RMConfigs {
 			POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE,
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
-			CHECK_OUT_DOCUMENT_AFTER_CREATION;
+			CHECK_OUT_DOCUMENT_AFTER_CREATION,
+	 		LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -236,6 +233,8 @@ public class RMConfigs {
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
+
+
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
 						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
@@ -270,6 +269,8 @@ public class RMConfigs {
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
+
+		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -336,6 +337,10 @@ public class RMConfigs {
 
 	public boolean purgeMinorVersionsOnTransfer() {
 		return manager.getValue(MINOR_VERSIONS_PURGED_ON) == DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT;
+	}
+
+	public boolean isLoggingFolderDocumentAccessWithCMISEnable(){
+		return manager.getValue(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS);
 	}
 
 	public boolean purgeMinorVersionsOnDeposit() {

@@ -4,10 +4,12 @@ import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
+import com.constellio.data.utils.AuthCache;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -21,6 +23,8 @@ public class HttpServletRequestAuthenticator {
 	public static final String USER_SERVICE_KEY = "serviceKey";
 	public static final String USER_TOKEN = "token";
 	public static final String COLLECTION = "collection";
+
+	static AuthCache authCache = new AuthCache(Duration.standardMinutes(2));
 
 	UserServices userServices;
 	ModelLayerFactory modelLayerFactory;
@@ -52,14 +56,20 @@ public class HttpServletRequestAuthenticator {
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 
-		if (userServices.isAuthenticated(userServiceKey, userToken)) {
-			String username = userServices.getUserCredentialByServiceKey(userServiceKey);
-			return userServices.getUser(username);
+		String cachedUsername = authCache.get(userServiceKey, userToken);
+		if (cachedUsername != null) {
+			return userServices.getUser(cachedUsername);
 		} else {
-			return ssoLogin(request);
+			if (userServices.isAuthenticated(userServiceKey, userToken)) {
+				String username = userServices.getUserCredentialByServiceKey(userServiceKey);
+				authCache.insert(userServiceKey, userToken, username);
+				return userServices.getUser(username);
+			} else {
+				return ssoLogin(request);
+			}
 		}
 	}
-	
+
 	private UserCredential ssoLogin(HttpServletRequest request) {
 		Principal userPrincipal = (Principal) request.getSession().getAttribute(VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE);
 		if (userPrincipal != null) {

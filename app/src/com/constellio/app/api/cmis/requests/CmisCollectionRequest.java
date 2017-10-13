@@ -1,5 +1,15 @@
 package com.constellio.app.api.cmis.requests;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.util.Set;
+
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.slf4j.Logger;
+
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_UnsupportedOperation;
 import com.constellio.app.api.cmis.ConstellioCmisException;
@@ -16,6 +26,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -23,15 +34,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.slf4j.Logger;
-
-import java.io.InputStream;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class CmisCollectionRequest<T> {
 
@@ -145,19 +147,22 @@ public abstract class CmisCollectionRequest<T> {
 		}
 	}
 
-	protected ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, final String fileName) {
+	protected ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
+			final String fileName) {
+
+		UploadOptions options = new UploadOptions(fileName).setHandleDeletionOfUnreferencedHashes(false);
 		try {
-			return modelLayerFactory.getContentManager().upload(inputStream, fileName);
+			return modelLayerFactory.getContentManager().upload(inputStream, options);
 		} catch (final IcapException e) {
 			if (e instanceof IcapException.ThreatFoundException) {
 				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
 			}
 
-            if (e.getCause() == null) {
-                throw new IcapException($(e, e.getFileName()));
-            } else {
-                throw new IcapException($(e, e.getFileName()), e.getCause());
-            }
+			if (e.getCause() == null) {
+				throw new IcapException($(e, e.getFileName()));
+			} else {
+				throw new IcapException($(e, e.getFileName()), e.getCause());
+			}
 		}
 	}
 }

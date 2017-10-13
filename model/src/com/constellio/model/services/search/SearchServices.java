@@ -29,6 +29,7 @@ import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -169,6 +170,75 @@ public class SearchServices {
 		};
 	}
 
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, final int batchSize) {
+		LogicalSearchQuery querCompatibleWithCache = new LogicalSearchQuery(query);
+		querCompatibleWithCache.setStartRow(0);
+		querCompatibleWithCache.setNumberOfRows(100000);
+		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
+
+		//final List<Record> original = search(query);
+		final List<Record> records = cachedSearch(querCompatibleWithCache);
+
+		//		if (original.size() != records.size()) {
+		//			System.out.println("different");
+		//		}
+
+		final Iterator<Record> nestedIterator = records.iterator();
+		return new SearchResponseIterator<Record>() {
+			@Override
+			public long getNumFound() {
+				return records.size();
+			}
+
+			@Override
+			public SearchResponseIterator<List<Record>> inBatches() {
+				final SearchResponseIterator iterator = this;
+				return new BatchBuilderSearchResponseIterator<Record>(iterator, batchSize) {
+
+					@Override
+					public long getNumFound() {
+						return iterator.getNumFound();
+					}
+				};
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nestedIterator.hasNext();
+			}
+
+			@Override
+			public Record next() {
+				return nestedIterator.next();
+			}
+
+			@Override
+			public void remove() {
+				nestedIterator.remove();
+			}
+		};
+	}
+
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
+			int skipping) {
+
+		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
+
+		for (int i = 0; i < skipping && iterator.hasNext(); i++) {
+			iterator.next();
+		}
+		return iterator;
+		//		ModifiableSolrParams params = addSolrModifiableParams(query);
+		//		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		//		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
+		//
+		//			@Override
+		//			public Record convert(RecordDTO recordDTO) {
+		//				return recordServices.toRecord(recordDTO, fullyLoaded);
+		//			}
+		//		};
+	}
+
 	public long getResultsCount(LogicalSearchCondition condition) {
 		return getResultsCount(new LogicalSearchQuery(condition));
 	}
@@ -242,7 +312,7 @@ public class SearchServices {
 		for (String filterQuery : query.getFilterQueries()) {
 			params.add(CommonParams.FQ, filterQuery);
 		}
-		addUserFilter(params, query.getUserFilter());
+		addUserFilter(params, query.getUserFilters());
 
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language));
@@ -486,25 +556,28 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, UserFilter userFilter) {
-		if (userFilter == null) {
+	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
+		if (userFilters == null) {
 			return;
 		}
-		String filter;
-		switch (userFilter.getAccess()) {
-		case Role.READ:
-			filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		case Role.WRITE:
-			filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		case Role.DELETE:
-			filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-			break;
-		default:
-			filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
-		}
 
-		params.add(CommonParams.FQ, filter);
+		for(UserFilter userFilter: userFilters) {
+			String filter;
+			switch (userFilter.getAccess()) {
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
+			}
+
+			params.add(CommonParams.FQ, filter);
+		}
 	}
 }

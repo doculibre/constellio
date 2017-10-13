@@ -3,7 +3,11 @@ package com.constellio.app.modules.rm.services.sip.model;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.contents.ContentManagerException;
+import com.constellio.model.services.contents.ContentManagerRuntimeException;
+import com.constellio.model.services.schemas.MetadataList;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -24,8 +28,8 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
 
     private File sipFile;
 
-    public SIPDocument(Document document, List<Metadata> documentMetadata, List<Metadata> folderMetadata, EntityRetriever entityRetriever) {
-        super(document, documentMetadata);
+    public SIPDocument(Document document, List<Metadata> documentMetadata, EntityRetriever entityRetriever) {
+        super(document.getWrappedRecord(), documentMetadata);
         this.entityRetriever = entityRetriever;
 
         Content content = document.getContent();
@@ -38,7 +42,7 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
         if (document.getFolder() != null) {
             Folder ficheDossier = entityRetriever.getFoldersFromString(document.getFolder());
             if (ficheDossier != null) {
-                folder = new SIPFolder(ficheDossier, folderMetadata, entityRetriever);
+                folder = new SIPFolder(ficheDossier, ficheDossier.getSchema().getMetadatas(), entityRetriever);
             }
         }
     }
@@ -57,6 +61,8 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
                     sipFile = new File("in/Baginfo.txt");
                 }
             }
+        }catch( ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent e ){
+            // ok fine.
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -111,6 +117,16 @@ public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
         String folderZipPath = folder.getZipPath();
         sb.insert(0, folderZipPath);
         return sb.toString();
+    }
+
+    @Override
+    public List<Metadata> getMetadataList() {
+        return getSchemaMetadata();
+    }
+
+    @Override
+    public Record getRecord() {
+        return super.getRecord();
     }
 
 }

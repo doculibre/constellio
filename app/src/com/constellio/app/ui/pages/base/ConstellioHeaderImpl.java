@@ -518,7 +518,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		buildSelectionPanelButtons(actionMenuLayout);
 
 		VerticalLayout selectionActionMenu = new VerticalLayout();
-		selectionActionMenu.setWidth("200px");
+		selectionActionMenu.setWidth("210px");
 		selectionActionMenu.setSpacing(true);
 		selectionActionMenu.addComponent(actionMenuLayout);
 
@@ -830,6 +830,11 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		}
 		refreshButtons();
 	}
+
+	@Override
+	public BaseView getCurrentView() {
+		return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+}
 
 	public boolean containsOnly(List<String> list, List<String> values) {
 		for (String value : list) {

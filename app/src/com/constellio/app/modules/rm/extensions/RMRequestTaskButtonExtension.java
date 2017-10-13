@@ -448,12 +448,12 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				if (isContainer) {
 					String recordId = container.getId();
 					borrowRequest = taskSchemas
-							.newBorrowContainerRequestTask(currentUser.getId(), getAssignees(recordId), recordId, numberOfDays,
+							.newBorrowContainerRequestTask(currentUser.getId(), getAssigneesForContainer(recordId), recordId, numberOfDays,
 									container.getTitle());
 				} else {
 					String recordId = folder.getId();
 					borrowRequest = taskSchemas
-							.newBorrowFolderRequestTask(currentUser.getId(), getAssignees(recordId), recordId, numberOfDays,
+							.newBorrowFolderRequestTask(currentUser.getId(), getAssigneesForFolder(recordId), recordId, numberOfDays,
 									folder.getTitle());
 				}
 				modelLayerFactory.newRecordServices().add(borrowRequest);
@@ -482,13 +482,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 			else if (folder != null) {
 				String folderId = folder.getId();
 				Task returnRequest = taskSchemas
-						.newReturnFolderRequestTask(currentUser.getId(), getAssignees(folderId), folderId, folder.getTitle());
+						.newReturnFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle());
 				modelLayerFactory.newRecordServices().add(returnRequest);
 				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else if (container != null) {
 				String containerId = container.getId();
 				Task returnRequest = taskSchemas
-						.newReturnContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId,
+						.newReturnContainerRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 								container.getTitle());
 				modelLayerFactory.newRecordServices().add(returnRequest);
 				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
@@ -517,13 +517,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				if (folder != null) {
 					String folderId = folder.getId();
 					Task reactivationRequest = taskSchemas
-							.newReactivateFolderRequestTask(currentUser.getId(), getAssignees(folderId), folderId, folder.getTitle(),
+							.newReactivateFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle(),
 									localDate);
 					modelLayerFactory.newRecordServices().add(reactivationRequest);
 				} else if (container != null) {
 					String containerId = container.getId();
 					Task reactivationRequest = taskSchemas
-							.newReactivationContainerRequestTask(currentUser.getId(), getAssignees(containerId), containerId,
+							.newReactivationContainerRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 									container.getTitle(), localDate);
 					modelLayerFactory.newRecordServices().add(reactivationRequest);
 				} else {
@@ -551,13 +551,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				if (folder != null) {
 					String folderId = folder.getId();
 					Task borrowExtensionRequest = taskSchemas
-							.newBorrowFolderExtensionRequestTask(currentUser.getId(), getAssignees(folderId), folderId,
+							.newBorrowFolderExtensionRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId,
 									folder.getTitle(), new LocalDate(req.getValue()));
 					modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
 				} else if (container != null) {
 					String containerId = container.getId();
 					Task borrowExtensionRequest = taskSchemas
-							.newBorrowContainerExtensionRequestTask(currentUser.getId(), getAssignees(containerId), containerId,
+							.newBorrowContainerExtensionRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 									container.getTitle(), new LocalDate(req.getValue()));
 					modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
 				} else {
@@ -571,9 +571,15 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private List<String> getAssignees(String recordId) {
+	private List<String> getAssigneesForFolder(String recordId) {
 		return modelLayerFactory.newAuthorizationsServices()
 				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
+						modelLayerFactory.newRecordServices().getDocumentById(recordId));
+	}
+
+	private List<String> getAssigneesForContainer(String recordId) {
+		return modelLayerFactory.newAuthorizationsServices()
+				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
 						modelLayerFactory.newRecordServices().getDocumentById(recordId));
 	}
 

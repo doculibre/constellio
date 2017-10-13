@@ -1,5 +1,22 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_ContentAlreadyCheckedOut;
 import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_IOError;
@@ -17,22 +34,6 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 
 public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 
@@ -89,6 +90,7 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 		File file = null;
 		OutputStream out = null;
 		InputStream inFromCopy = null;
+		String hash = null;
 		if (contentStream != null) {
 			try {
 				file = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
@@ -98,8 +100,10 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 				inFromCopy = ioServices.newFileInputStream(file, READ_TEMP_FILE);
 
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentManager.ContentVersionDataSummaryResponse summaryResponse = uploadContent(inFromCopy, contentStream.getFileName());
+					ContentManager.ContentVersionDataSummaryResponse summaryResponse = uploadContent(inFromCopy,
+							contentStream.getFileName());
 					ContentVersionDataSummary dataSummary = summaryResponse.getContentVersionDataSummary();
+					hash = dataSummary.getHash();
 					content.checkInWithModificationAndName(dataSummary, major, contentStream.getFileName());
 				} else {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();
@@ -108,8 +112,10 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 				CheckInParams params = new CheckInParams(user, contentCmisDocument.getRecord());
 				appLayerFactory.getExtensions().forCollection(collection).onCheckIn(params);
 			} catch (IOException e) {
+				contentManager.markForDeletionIfNotReferenced(hash);
 				throw new ConstellioCmisException_IOError(e);
 			} catch (RecordServicesException e) {
+				contentManager.markForDeletionIfNotReferenced(hash);
 				throw new ConstellioCmisException_RecordServicesError(e);
 			} finally {
 				ioServices.closeQuietly(out);

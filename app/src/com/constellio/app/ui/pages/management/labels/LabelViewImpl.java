@@ -1,10 +1,14 @@
 package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -17,6 +21,7 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +33,31 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class LabelViewImpl extends BaseViewImpl implements AddEditLabelView {
     private AddEditLabelPresenter presenter;
     private RecordVO recordVO;
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return new TitleBreadcrumbTrail(this, getTitle()) {
+            @Override
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getTitle() {
+                        return $("ViewGroup.PrintableViewGroup");
+                    }
+
+                    @Override
+                    public void activate(Navigation navigate) {
+                        navigate.to().viewReport();
+                    }
+                });
+            }
+        };
+    }
 
     @Override
     public void setLabels(List<LabelVO> list) {

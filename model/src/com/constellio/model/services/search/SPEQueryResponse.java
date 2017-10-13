@@ -43,6 +43,19 @@ public class SPEQueryResponse {
 		this.recordsWithMoreLikeThis = recordsWithMoreLikeThis;
 	}
 
+	public SPEQueryResponse(List<Record> records, long numFound) {
+		this.fieldFacetValues = new HashMap<>();
+		this.statisticsValues = new HashMap<>();
+		this.queryFacetsValues = new HashMap<>();
+		this.qtime = -1;
+		this.numFound = numFound;
+		this.records = records;
+		this.highlights = new HashMap<>();
+		this.correctlySpelt = true;
+		this.spellcheckerSuggestions = new ArrayList<>();
+		this.recordsWithMoreLikeThis = new HashMap<>();
+	}
+
 	public SPEQueryResponse(
 			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
 			Map<String, Integer> queryFacetsValues, long qtime,

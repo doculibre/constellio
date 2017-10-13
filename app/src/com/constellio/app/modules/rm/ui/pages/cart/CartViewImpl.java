@@ -6,10 +6,14 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
@@ -39,15 +43,18 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.ArrayUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
@@ -94,7 +101,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
 		buttons.add(buildDecommissionButton());
-		//buttons.add(buildPrintMetadataReportButton());
+		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
 		return buttons;
 	}
@@ -240,8 +247,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		//ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), Print.ANY);
-		return null;
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), getConstellioFactories().getAppLayerFactory(), getCollection(), true);
+		List<RecordVO> allRecords = new ArrayList<>();
+		allRecords.addAll(presenter.getCartFoldersVO());
+		allRecords.addAll(presenter.getCartDocumentVO());
+		reportGeneratorButton.setRecordVoList(allRecords.toArray(new RecordVO[0]));
+		return reportGeneratorButton;
 	}
 
 		private Button buildDecommissionButton() {
@@ -467,7 +478,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
-				dataProvider, Arrays.asList(CommonMetadataBuilder.TITLE));
+				dataProvider, asList(CommonMetadataBuilder.TITLE));
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
@@ -485,7 +496,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildCreateSIPArchivesButton(){
-		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), this);
+		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
 		siPbutton.setAllObject(presenter.getCartFoldersVO().toArray(new FolderVO[0]));
 		return siPbutton;
 	}

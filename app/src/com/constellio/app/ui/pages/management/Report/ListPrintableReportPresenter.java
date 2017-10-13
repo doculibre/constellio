@@ -1,9 +1,6 @@
 package com.constellio.app.ui.pages.management.Report;
 
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,6 +14,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.StreamResource;
 import org.apache.commons.io.FileUtils;
@@ -62,8 +60,8 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
         return new RecordVODataProvider(printableReportVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
             protected LogicalSearchQuery getQuery() {
-                MetadataSchema metadataSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableReport.SCHEMA_NAME);
-                return schemaType == null ? null : new LogicalSearchQuery(from(metadataSchema).where(metadataSchema.getMetadata(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType.toUpperCase()));
+                MetadataSchemaType printableSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE);
+                return schemaType == null ? null : new LogicalSearchQuery(from(printableSchemaType).where(printableSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType.toUpperCase()));
             }
         };
     }

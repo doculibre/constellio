@@ -21,6 +21,7 @@ public class FolderValidator implements RecordValidator {
 	public static final String UNIFORM_SUBDIVISION = "categoryCode";
 	public static final String OPENING_DATE = "openingDate";
 	public static final String CLOSING_DATE = "closingDate";
+	public static final String PREFIX = "prefix";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -41,6 +42,7 @@ public class FolderValidator implements RecordValidator {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(RULE_CODE, retentionRule.getCode());
 				parameters.put(UNIFORM_SUBDIVISION, uniformSubdivision.getCode());
+				parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 				params.getValidationErrors()
 						.add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
@@ -51,6 +53,7 @@ public class FolderValidator implements RecordValidator {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(RULE_CODE, retentionRule.getCode());
 				parameters.put(CATEGORY_CODE, category.getCode());
+				parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 				params.getValidationErrors().add(FolderValidator.class, FOLDER_CATEGORY_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			}
@@ -61,9 +64,24 @@ public class FolderValidator implements RecordValidator {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(OPENING_DATE, folder.getOpeningDate());
 			parameters.put(CLOSING_DATE, folder.getCloseDate());
+			parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 			params.getValidationErrors().add(FolderValidator.class, FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE, parameters);
 		}
 	}
 
+	private String formatToParameter(Object parameter) {
+		if(parameter == null) {
+			return "";
+		}
+		return parameter.toString();
+	}
+
+	private String formatToParameter(Object parameter, String suffix) {
+		if(parameter == null) {
+			return formatToParameter(parameter);
+		} else {
+			return formatToParameter(parameter) + suffix;
+		}
+	}
 }

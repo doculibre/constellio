@@ -62,5 +62,9 @@ public class SchemaTypesFilters implements DataStoreFilters {
 	public List<MetadataSchemaType> getSchemaTypes() {
 		return schemaTypes;
 	}
+
+	public List<String> getSchemaTypesCodes() {
+		return schemaTypesCodes;
+	}
 }
 

@@ -446,17 +446,19 @@ public class ContentManager implements StatefulService {
 
 	public void markForDeletionIfNotReferenced(String hash) {
 
-		String id = UUIDV1Generator.newRandomId();
-		Map<String, Object> fields = new HashMap<>();
-		fields.put("type_s", "marker");
-		fields.put("contentMarkerHash_s", hash);
-		fields.put("time_dt", TimeProvider.getLocalDateTime());
+		if (hash != null) {
+			String id = UUIDV1Generator.newRandomId();
+			Map<String, Object> fields = new HashMap<>();
+			fields.put("type_s", "marker");
+			fields.put("contentMarkerHash_s", hash);
+			fields.put("time_dt", TimeProvider.getLocalDateTime());
 
-		RecordDTO recordDTO = new RecordDTO(id, fields);
-		try {
-			recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)));
-		} catch (OptimisticLocking e) {
-			throw new ImpossibleRuntimeException(e);
+			RecordDTO recordDTO = new RecordDTO(id, fields);
+			try {
+				recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)));
+			} catch (OptimisticLocking e) {
+				throw new ImpossibleRuntimeException(e);
+			}
 		}
 	}
 
@@ -688,7 +690,11 @@ public class ContentManager implements StatefulService {
 		try {
 			return newParsedContentConverter().convertToParsedContent(parsedContent);
 		} catch (Exception e) {
-			throw new ContentManagerRuntimeException_CannotReadParsedContent(e, hash, parsedContent);
+			ContentManagerRuntimeException_CannotReadParsedContent exception
+					= new ContentManagerRuntimeException_CannotReadParsedContent(e, hash, parsedContent);
+			LOGGER.error(exception.getMessage(), exception);
+
+			return ParsedContent.unparsable("", parsedContent == null? 0:parsedContent.length());
 		}
 
 	}

@@ -552,6 +552,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 
 		document = es.newConnectorSmbDocument(connectorInstance)
 				.setUrl(FILE_URL)
+				.setParentUrl(PARENT_URL)
 				.setLastModified(LAST_MODIFIED2)
 				.setLastFetched(LAST_FETCHED)
 				.setSize(SmbTestParams.EXISTING_FILE_LENGTH)
@@ -599,7 +600,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
 				.isNotNull();
 
-		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
+		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());
 		assertThat(document.getTraversalCode()).isEqualTo(connectorInstance.getTraversalCode());
 		assertThat(document.isFetched()).isFalse();

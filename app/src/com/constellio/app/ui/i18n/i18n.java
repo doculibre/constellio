@@ -182,6 +182,10 @@ public class i18n {
 
 	}
 
+	public static String $(EnumWithSmallCode enumWithSmallCode) {
+		return $(enumWithSmallCode.getClass().getSimpleName() + "." + enumWithSmallCode.getCode());
+	}
+
 	private static String callJexlScript(String expression, Map<String, Object> args)
 			throws Exception {
 

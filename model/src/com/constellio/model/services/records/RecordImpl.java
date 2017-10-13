@@ -954,7 +954,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		//LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {

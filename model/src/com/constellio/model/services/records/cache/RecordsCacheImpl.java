@@ -34,6 +34,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySign
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
 
 public class RecordsCacheImpl implements RecordsCache {
 
@@ -156,18 +157,34 @@ public class RecordsCacheImpl implements RecordsCache {
 	PermanentCache getCacheFor(LogicalSearchQuery query) {
 		LogicalSearchCondition condition = query.getCondition();
 		DataStoreFilters filters = condition.getFilters();
+
+		MetadataSchemaType schemaType = null;
+
 		if (filters instanceof SchemaFilters) {
 			SchemaFilters schemaFilters = (SchemaFilters) filters;
-
-			if (schemaFilters.getSchemaTypeFilter() != null
-					&& hasNoUnsupportedFeatureOrFilter(query)) {
-				CacheConfig cacheConfig = getCacheConfigOf(schemaFilters.getSchemaTypeFilter().getCode());
-				if (cacheConfig != null && cacheConfig.isPermanent()) {
-					return permanentCaches.get(cacheConfig.getSchemaType());
+			schemaType = schemaFilters.getSchemaTypeFilter();
+		} else if (filters instanceof SchemaTypesFilters) {
+			SchemaTypesFilters schemaTypesFilters = (SchemaTypesFilters) filters;
+			if (((SchemaTypesFilters) filters).getSchemaTypes() != null) {
+				schemaType = schemaTypesFilters.getSchemaTypes().size() == 1 ? schemaTypesFilters.getSchemaTypes().get(0) : null;
+			} else if (((SchemaTypesFilters) filters).getSchemaTypesCodes() != null) {
+				String schemaTypeCode = schemaTypesFilters.getSchemaTypesCodes().size() == 1 ?
+						schemaTypesFilters.getSchemaTypesCodes().get(0) :
+						null;
+				if (schemaTypeCode != null) {
+					schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(schemaTypeCode);
 				}
 			}
-
 		}
+
+		if (schemaType != null && hasNoUnsupportedFeatureOrFilter(query)) {
+			CacheConfig cacheConfig = getCacheConfigOf(schemaType.getCode());
+			if (cacheConfig != null && cacheConfig.isPermanent()) {
+				return permanentCaches.get(cacheConfig.getSchemaType());
+			}
+		}
+
 		return null;
 	}
 
@@ -183,7 +200,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				&& query.getFieldFacets().isEmpty()
 				&& query.getQueryFacets().isEmpty()
 				&& query.getReturnedMetadatas().isFullyLoaded()
-				&& query.getUserFilter() == null
+				&& query.getUserFilters() == null
 				&& !query.isHighlighting();
 	}
 
@@ -493,7 +510,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		void insert(RecordHolder holder) {
-
 
 			holder.volatileCacheOccurences = 1;
 			holders.add(holder);

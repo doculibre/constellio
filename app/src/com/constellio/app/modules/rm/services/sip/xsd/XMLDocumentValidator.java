@@ -41,12 +41,12 @@ public class XMLDocumentValidator {
             // we want to format the xml. This is used only for demonstration.
             // pretty formatting adds extra spaces and is generally not required.
             xml.setFormat(Format.getPrettyFormat());
-            try {
-				xml.output(jdomDoc, System.out);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			throw new RuntimeException(e);
+//            try {
+//				xml.output(jdomDoc, System.out);
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+			//throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
