@@ -5,6 +5,8 @@ import static com.constellio.data.utils.LangUtils.isEqual;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
@@ -44,7 +46,14 @@ public class LockedRecordsExtension extends RecordExtension {
 	@Override
 	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
-			return ExtensionBooleanResult.FALSE;
+			Record record = event.getRecord();
+			MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record);
+			if(schema.hasMetadataWithCode(Schemas.CODE.getLocalCode()) &&
+					collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.get(Schemas.CODE))) {
+				return ExtensionBooleanResult.FALSE;
+			} else if(collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.getId())) {
+				return ExtensionBooleanResult.FALSE;
+			}
 		}
 		return super.isLogicallyDeletable(event);
 	}
