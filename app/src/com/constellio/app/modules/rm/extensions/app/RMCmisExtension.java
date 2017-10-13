@@ -4,6 +4,7 @@ import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalen
 import static org.apache.chemistry.opencmis.commons.PropertyIds.CREATION_DATE;
 import static org.apache.chemistry.opencmis.commons.PropertyIds.LAST_MODIFICATION_DATE;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
@@ -36,11 +37,13 @@ public class RMCmisExtension extends CmisExtension {
 	RMSchemasRecordsServices rm;
 	LoggingServices loggingServices;
 	TaxonomiesManager taxonomiesManager;
+	RMConfigs configs;
 
 	public RMCmisExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.loggingServices = new LoggingServices(appLayerFactory.getModelLayerFactory());
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
+		configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -99,7 +102,7 @@ public class RMCmisExtension extends CmisExtension {
 
 	@Override
 	public void onGetObject(GetObjectParams params) {
-		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
+		if (configs.isLoggingFolderDocumentAccessWithCMISEnable() && (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE))) {
 			loggingServices.logRecordView(params.getRecord(), params.getUser());
 		}
 	}

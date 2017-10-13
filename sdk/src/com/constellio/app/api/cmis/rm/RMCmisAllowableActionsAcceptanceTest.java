@@ -19,6 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -294,6 +299,35 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		}
 
 	}
+
+	@Test
+	public void testForLoggingWhenConfigIsEnable() throws Exception{
+		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, true);
+		session = newCMISSessionAsUserInCollection(records.getAdmin().getUsername(), zeCollection);
+		session.getDefaultContext().setIncludeAcls(true);
+		MetadataSchema eventMetadataSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Event.SCHEMA_TYPE).getDefaultSchema();
+		long getNumberOfEventBeforeAccess = getModelLayerFactory().newSearchServices().getResultsCount(LogicalSearchQueryOperators.from(eventMetadataSchema).returnAll());
+		Folder cmisFolder2 = cmisFolder(records.getFolder_A01().getWrappedRecord());
+		waitForBatchProcess();
+		long getNumberOfEventAfterAcces = getModelLayerFactory().newSearchServices().getResultsCount(LogicalSearchQueryOperators.from(eventMetadataSchema).returnAll());
+		assertThat(getNumberOfEventAfterAcces).isEqualTo(getNumberOfEventBeforeAccess + 1);
+	}
+
+	@Test
+	public void testForLoggingIsDisableWhenConfigIsDisable() throws Exception{
+		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, false);
+		session = newCMISSessionAsUserInCollection(records.getAdmin().getUsername(), zeCollection);
+		session.getDefaultContext().setIncludeAcls(true);
+		MetadataSchema eventMetadataSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Event.SCHEMA_TYPE).getDefaultSchema();
+		long getNumberOfEventBeforeAccess = getModelLayerFactory().newSearchServices().getResultsCount(LogicalSearchQueryOperators.from(eventMetadataSchema).returnAll());
+		Folder cmisFolder2 = cmisFolder(records.getFolder_A01().getWrappedRecord());
+		waitForBatchProcess();
+		long getNumberOfEventAfterAcces = getModelLayerFactory().newSearchServices().getResultsCount(LogicalSearchQueryOperators.from(eventMetadataSchema).returnAll());
+		assertThat(getNumberOfEventAfterAcces).isEqualTo(getNumberOfEventBeforeAccess);
+	}
+
+
+
 
 	private void printTaxonomies(User user) {
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
