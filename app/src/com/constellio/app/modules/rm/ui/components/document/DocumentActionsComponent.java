@@ -52,7 +52,13 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setCheckOutButtonState(ComponentState state);
 
+	void setCartButtonState(ComponentState state);
+
+	void setAddToOrRemoveFromSelectionButtonState(ComponentState state);
+
 	void setGenerateMetadataButtonState(ComponentState state);
+
+	void setPublishButtonState(ComponentState state);
 
 	void setFinalizeButtonVisible(boolean visible);
 

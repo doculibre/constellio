@@ -184,7 +184,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
             }
         };
 
-        getXmlButtonV2 = new GetXmlButtonV2($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getCollection(), this, currentSchema);
+        getXmlButtonV2 = new GetXmlButtonV2($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getCollection(), this, currentSchema, true);
 
         downloadTemplateButton = new Button($("DisplayLabelViewImpl.menu.getTemplate"));
         StreamResource zip = presenter.createResource();

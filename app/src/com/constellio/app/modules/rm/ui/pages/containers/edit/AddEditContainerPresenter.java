@@ -227,7 +227,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		transaction.add(record);
 
 		for (int i = 0; i < value - 1; i++) {
-			Record container = newContainerRecord();
+			ContainerRecord container = rmRecordServices().newContainerRecord();
+			container.changeSchemaTo(record.getSchemaCode());
 			Iterator<Metadata> iterator = modifiedMetadatas.iterator();
 			while (iterator.hasNext()) {
 				Metadata metadata = iterator.next();

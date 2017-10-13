@@ -57,6 +57,9 @@ public class XmlReportGenerator extends XmlGenerator{
 
                 for(Metadata metadata : listOfMetadataOfTheCurrentElement) {
                     List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
+                    if(this.xmlGeneratorParameters.isForTest()) {
+                        metadataTags = fillEmptyTags(metadataTags);
+                    }
                     xmlSingularElementMetadata.addContent(metadataTags);
                 }
 
@@ -103,5 +106,16 @@ public class XmlReportGenerator extends XmlGenerator{
         MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
         LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
+    }
+
+    private List<Element> fillEmptyTags(List<Element> originalElements) {
+        List<Element> filledElements = new ArrayList<>();
+        for (Element element : originalElements) {
+            if(element.getText().isEmpty()) {
+                element.setText("This will not appear on the final report");
+            }
+            filledElements.add(element);
+        }
+        return filledElements;
     }
 }

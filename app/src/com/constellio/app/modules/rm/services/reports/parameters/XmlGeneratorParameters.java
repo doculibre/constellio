@@ -12,6 +12,8 @@ public abstract class XmlGeneratorParameters {
     private List<String> ids;
     private String schemaCode;
 
+    private boolean isForTest = false;
+
     public XmlGeneratorParameters(Record... recordsElements) {
         this.setRecordsElements(recordsElements);
     }
@@ -41,6 +43,20 @@ public abstract class XmlGeneratorParameters {
 
     public boolean isParametersUsingIds() {
         return recordsElements.length == 0 && ids.size() > 0 && !Strings.isNullOrEmpty(this.schemaCode);
+    }
+
+    public XmlGeneratorParameters markAsTestXml() {
+        isForTest = true;
+        return this;
+    }
+
+    public XmlGeneratorParameters markNotAsTestXml() {
+        isForTest = false;
+        return this;
+    }
+
+    public boolean isForTest() {
+        return isForTest;
     }
 
     public abstract void validateInputs();

@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 public class RecordLogicalDeleteOptions {
 
 	LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
+	private boolean checkForValidationError = true;
 
 	RecordsFlushing recordsFlushing = RecordsFlushing.NOW();
 
@@ -47,6 +48,20 @@ public class RecordLogicalDeleteOptions {
 	public RecordLogicalDeleteOptions setSkipRefresh(boolean skipRefresh) {
 		this.skipRefresh = skipRefresh;
 		return this;
+	}
+
+	public RecordLogicalDeleteOptions disableValidatorChecking() {
+		this.checkForValidationError = false;
+		return this;
+	}
+
+	public RecordLogicalDeleteOptions enableValidatorChecking(){
+		this.checkForValidationError  = true;
+		return this;
+	}
+
+	public boolean isCheckForValidationErrorEnable() {
+		return this.checkForValidationError;
 	}
 
 	public enum LogicallyDeleteTaxonomyRecordsBehavior {

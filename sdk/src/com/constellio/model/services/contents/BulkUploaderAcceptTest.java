@@ -15,7 +15,9 @@ import org.junit.Test;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BigFileIterator;
 import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -32,6 +34,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			throws Exception {
 		hashingService = getIOLayerFactory().newHashingService(BASE32);
 		fileParser = getModelLayerFactory().newFileParser();
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		File zipFile = getTestResourceFile("10000files.bigf.zip");
 		File tempFolder = newTempFolder();
@@ -56,6 +59,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 	@Test
 	public void whenBulkUploading100FilesWithDuplicatesThenNoExceptions()
 			throws Exception {
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		testWithDuplicates(100);
 	}
 

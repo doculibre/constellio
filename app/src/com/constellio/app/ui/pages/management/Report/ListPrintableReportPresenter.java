@@ -37,6 +37,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 
     private MetadataSchemaToVOBuilder schemaVOBuilder;
     private ListPrintableReportView view;
+    private RecordVODataProvider folderDataAdapter, documentDataAdapter, taskDataAdapter;
 
     public ListPrintableReportPresenter(ListPrintableReportView view) {
         super(view);
@@ -67,15 +68,24 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
     }
 
     public RecordVODataProvider getPrintableReportFolderDataProvider() {
-        return getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.toString());
+        if(this.folderDataAdapter == null) {
+            folderDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.toString());
+        }
+        return folderDataAdapter;
     }
 
     public RecordVODataProvider getPrintableReportDocumentDataProvider() {
-        return getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.toString());
+        if(this.documentDataAdapter == null) {
+            this.documentDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.toString());
+        }
+        return documentDataAdapter;
     }
 
     public RecordVODataProvider getPrintableReportTaskDataProvider() {
-        return getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.toString());
+        if(this.taskDataAdapter == null) {
+            taskDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.toString());
+        }
+        return taskDataAdapter;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -10,18 +11,17 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
@@ -46,6 +46,7 @@ public class RMRecordDeletionServices {
         cleanFoldersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanContainersInAdministrativeUnitRecursively(collection, administrativeUnit, appLayerFactory);
         cleanDecommissioningListInAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
+        cleanRetentionRuleInAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
     }
 
     static public void cleanAdministrativeUnit(String collection, String administrativeUnitID,
@@ -165,16 +166,27 @@ public class RMRecordDeletionServices {
                 .where(rm.decommissioningList.administrativeUnit()).isEqualTo(administrativeUnit.getId()));
 
         SearchResponseIterator<Record> decommissioningListIterator = searchServices.recordsIterator(query);
-        Set<String> recordIDs = new HashSet<>();
+        Set<String> recordIDs = deleteRecordFromIterator(decommissioningListIterator, recordServices);
+    }
 
-        while(decommissioningListIterator.hasNext()) {
-            Record decommissioningList = decommissioningListIterator.next();
-            if(recordIDs.add(decommissioningList.getId())) {
-                try {
-                    recordServices.physicallyDeleteNoMatterTheStatus(decommissioningList, User.GOD, new RecordPhysicalDeleteOptions());
-                } catch (Exception e) {
-                    LOGGER.info("Could not delete decommissioningList " + decommissioningList.getId());
-                }
+    static private void cleanRetentionRuleInAdministrativeUnit(String collection, AdministrativeUnit administrativeUnit, AppLayerFactory appLayerFactory) {
+        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+        RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+        LogicalSearchCondition condition = from(rm.retentionRule.schemaType())
+                .where(rm.retentionRule.administrativeUnits()).isContaining(Collections.singletonList(administrativeUnit.getId()));
+
+        SearchResponseIterator<Record> retentionRuleIterator = searchServices.recordsIterator(new LogicalSearchQuery(condition));
+        while(retentionRuleIterator.hasNext()) {
+            RetentionRule currentRetentionRule = rm.wrapRetentionRule(retentionRuleIterator.next());
+            List<AdministrativeUnit> currentAdministrativeUnits = rm.getAdministrativeUnits(currentRetentionRule.getAdministrativeUnits());
+            currentAdministrativeUnits.remove(currentAdministrativeUnits.indexOf(administrativeUnit));
+            currentRetentionRule.setAdministrativeUnits(currentAdministrativeUnits);
+            currentRetentionRule.setResponsibleAdministrativeUnits(currentAdministrativeUnits.isEmpty());
+            try{
+                recordServices.update(currentRetentionRule);
+            }catch (RecordServicesException e) {
+                LOGGER.info("Error while updating retention rule" + currentRetentionRule.getId());
             }
         }
     }
@@ -269,5 +281,21 @@ public class RMRecordDeletionServices {
                 }
             }
         }
+    }
+
+    static private Set<String> deleteRecordFromIterator(Iterator<Record> recordIterator, RecordServices recordServices) {
+        Set<String> recordIDs = new HashSet<>();
+        while(recordIterator.hasNext()) {
+            Record currentRecord = recordIterator.next();
+            if(recordIDs.add(currentRecord.getId())) {
+                try {
+                    recordServices.physicallyDeleteNoMatterTheStatus(currentRecord, User.GOD, new RecordPhysicalDeleteOptions());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.info("Could not delete " + currentRecord.getTypeCode() + " " + currentRecord.getId());
+                }
+            }
+        }
+        return recordIDs;
     }
 }
