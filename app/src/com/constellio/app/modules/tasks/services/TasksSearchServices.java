@@ -39,7 +39,7 @@ public class TasksSearchServices {
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getTerminatedStatus())
+						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -51,7 +51,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getTerminatedStatus())
+						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -60,7 +60,7 @@ public class TasksSearchServices {
 		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
 				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
-				where(tasksSchemas.userTask.status()).isNotEqual(getTerminatedStatus()),
+				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
