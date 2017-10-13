@@ -590,6 +590,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.setAlertWhenAvailableButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setFinalizeButtonVisible(false);
 			actionsComponent.setStartWorkflowButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setCartButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setAddToOrRemoveFromSelectionButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setPublishButtonState(ComponentState.INVISIBLE);
 			return;
 		}
 

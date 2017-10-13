@@ -8,9 +8,14 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentCaptionC
 import com.constellio.app.modules.rm.model.calculators.folder.FolderCaptionCalculator;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -22,6 +27,16 @@ public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		editTableMetadata(collection, appLayerFactory.getMetadataSchemasDisplayManager());
+	}
+
+	public void editTableMetadata(String collection, SchemasDisplayManager manager) {
+
+		manager.saveSchema(manager.getSchema(collection, SIParchive.SCHEMA).withTableMetadataCodes(asList(
+				TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
+				TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
+				TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
+				TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT)));
 	}
 
 	class SchemaAlterationFor7_6 extends MetadataSchemasAlterationHelper {

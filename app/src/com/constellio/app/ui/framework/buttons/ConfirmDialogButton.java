@@ -28,6 +28,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 					String notOKCaption) {
 				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
 				confirmDialog.setContentMode(ContentMode.HTML);
+				confirmDialog.setResizable(true);
 				confirmDialog.addAttachListener(new AttachListener() {
 					@Override
 					public void attach(AttachEvent event) {

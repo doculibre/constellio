@@ -44,6 +44,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.trash.TrashServices;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.InputStream;
@@ -64,6 +65,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RecordVODataProvider eventsDataProvider;
 	private RMSchemasRecordsServices rm;
 	private boolean hasWriteAccess;
+	private TrashServices trashServices;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -75,6 +77,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				updateContentVersions();
 			}
 		};
+		trashServices = new TrashServices(appLayerFactory.getModelLayerFactory(), collection);
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
