@@ -32,6 +32,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -366,5 +367,18 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	public boolean isLogicallyDeleted() {
 		RecordVO task = getTask();
 		return Boolean.TRUE.equals(task.getMetadataValue(task.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
+	}
+
+	private List<String> getFinishedOrClosedStatuses() {
+		return new RecordUtils().toWrappedRecordIdsList(tasksSchemas.getFinishedOrClosedStatuses());
+	}
+
+	public boolean isClosedOrTerminated() {
+		Record record = toRecord(taskVO);
+		Task  task = tasksSchemas.wrapTask(record);
+		String closed = task.getStatus();
+		boolean isClosedOrTerminated = getFinishedOrClosedStatuses().contains(closed);
+
+		return isClosedOrTerminated;
 	}
 }

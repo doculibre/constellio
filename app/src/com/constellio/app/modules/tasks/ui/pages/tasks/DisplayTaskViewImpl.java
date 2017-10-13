@@ -92,19 +92,22 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		List<Button> actionMenuButtons = new ArrayList<>();
 
 		if(!presenter.isLogicallyDeleted()) {
-			EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editButtonClicked();
-				}
 
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(editCurrentTask);
+			if(!presenter.isClosedOrTerminated()) {
 
+				EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.editButtonClicked();
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
+					}
+				};
+				actionMenuButtons.add(editCurrentTask);
+			}
 			ConfirmDialogButton autoAssignTask = new ConfirmDialogButton($("DisplayTaskView.autoAssignTask")) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -187,20 +190,20 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 				}
 			};
 			actionMenuButtons.add(closeTask);
+			if(!presenter.isClosedOrTerminated()) {
+				AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.createSubTaskButtonClicked();
+					}
 
-			AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.createSubTaskButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(createSubTask);
-
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
+					}
+				};
+				actionMenuButtons.add(createSubTask);
+			}
 			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {

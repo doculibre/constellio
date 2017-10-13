@@ -12,6 +12,7 @@ public class TaskStatus extends ValueListItem {
 
 	public static final String STATUS_TYPE = "statusType";
 	public static final String CLOSED_CODE = "X";
+	public static final String TERMINATED_STATUS = "F";
 	public static final String STANDBY_CODE = "O";
 
 	public TaskStatus(Record record,
