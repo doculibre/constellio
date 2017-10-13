@@ -91,4 +91,9 @@ public interface DataLayerConfiguration {
     String getKafkaTopic();
 
     long getReplayTransactionStartVersion();
+    
+    int getConversionProcesses();
+    
+    String getOnlineConversionUrl();
+    
 }

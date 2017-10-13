@@ -132,6 +132,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return getDuration("unreferencedContentsThread.delayBetweenChecks", Duration.standardSeconds(30));
 	}
 
+	@Override
+	public Duration getGeneratePreviewsThreadDelayBetweenChecks() {
+		return getDuration("generatePreviewsThread.delayBetweenChecks", Duration.standardSeconds(10));
+	}
+
 	public Duration getTokenRemovalThreadDelayBetweenChecks() {
 		return getDuration("tokenRemovalThread.delayBetweenChecks", Duration.standardHours(1));
 	}
