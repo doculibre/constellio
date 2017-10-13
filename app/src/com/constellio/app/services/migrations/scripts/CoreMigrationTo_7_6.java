@@ -60,12 +60,6 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
                 TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
                 TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
                 TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT)));
-
-        manager.saveSchema(manager.getSchema(collection, SIParchive.SCHEMA).withTableMetadataCodes(asList(
-                TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
-                TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
-                TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
-                TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT)));
     }
 
     class CoreSchemaAlterationFor_7_6_deleteStep extends MetadataSchemasAlterationHelper {
