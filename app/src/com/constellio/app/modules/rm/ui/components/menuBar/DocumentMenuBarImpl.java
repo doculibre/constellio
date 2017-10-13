@@ -61,6 +61,9 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
 	private boolean metadataReportButtonVisible;
+	private boolean addToOrRemoveFromSelectionButtonVisible;
+	private boolean addToCartButtonVisible;
+	private boolean publishButtonVisible;
 
 	protected DocumentMenuBarPresenter presenter;
 
@@ -382,8 +385,23 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 	}
 
 	@Override
+	public void setCartButtonState(ComponentState state) {
+		addToCartButtonVisible = state.isVisible();
+	}
+
+	@Override
+	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
+		addAuthorizationButtonVisible = state.isVisible();
+	}
+
+	@Override
 	public void setGenerateMetadataButtonState(ComponentState state) {
 		metadataReportButtonVisible = presenter.hasMetadataReport();
+	}
+
+	@Override
+	public void setPublishButtonState(ComponentState state) {
+		publishButtonVisible = state.isVisible();
 	}
 
 	@Override
