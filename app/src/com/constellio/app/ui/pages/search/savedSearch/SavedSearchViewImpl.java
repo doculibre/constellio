@@ -59,7 +59,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 		final ButtonsContainer container = buildButtonsContainer(dataProvider);
 
 		titleField = new BaseTextField($(SavedSearch.TITLE));
-		publicField = new CheckBox($(SavedSearch.PUBLIC));
+		publicField = new CheckBox($("SearchView.savedSearch.public"));
 
 		container.addButton(new ContainerButton() {
 			@Override
@@ -75,7 +75,8 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 							@Override
 							protected void saveButtonClick(RecordVO viewObject)
 									throws ValidationException {
-								presenter.searchModificationRequested(viewObject);
+								presenter.searchModificationRequested(viewObject.getId(), titleField.getValue(),
+										publicField.getValue());
 								getWindow().close();
 							}
 
