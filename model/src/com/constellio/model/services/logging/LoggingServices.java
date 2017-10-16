@@ -132,6 +132,11 @@ public class LoggingServices {
 				eventFactory.newRecordEvent(record, currentUser, EventType.SHARE, null, TimeProvider.getLocalDateTime()));
 	}
 
+	public void finalizeDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.FINALIZE, null, TimeProvider.getLocalDateTime()));
+	}
+
 	public void consultingRecord(Record record, User currentUser, LocalDateTime dateTime) {
 		logRecordView(record, currentUser, dateTime);
 		//executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));

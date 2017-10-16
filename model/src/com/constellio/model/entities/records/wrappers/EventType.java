@@ -24,6 +24,8 @@ public class EventType {
 
 	public static final String RETURN = "return";
 
+	public static final String FINALIZE = "finalize";
+
 	public static final String BORROW_REQUEST = "borrow_request";
 
 	public static final String RETURN_REQUEST = "return_request";
@@ -75,6 +77,8 @@ public class EventType {
 	public static final String UPLOAD_DOCUMENT = "upload_document";
 
 	public static final String SHARE_DOCUMENT = "share_document";
+
+	public static final String FINALIZE_DOCUMENT = "finalize_document";
 
 	public static final String BORROWING_TIME_EXTENSIONS = "borrowing_time_extensions";
 

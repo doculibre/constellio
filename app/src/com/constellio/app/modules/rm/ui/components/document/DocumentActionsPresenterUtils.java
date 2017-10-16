@@ -424,6 +424,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 				updateActionsComponent();
 				String newMajorVersion = content.getCurrentVersion().getVersion();
+				loggingServices.finalizeDocument(record, getCurrentUser());
 				actionsComponent.showMessage($("DocumentActionsComponent.finalizedVersion", newMajorVersion));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));

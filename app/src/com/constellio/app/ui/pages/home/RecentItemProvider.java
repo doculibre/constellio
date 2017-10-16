@@ -41,21 +41,16 @@ public class RecentItemProvider implements Serializable {
 	private transient MetadataSchemaTypes types;
 	private transient User user;
 	private final String schemaType;
-	private final String eventType;
 	private final int quantity;
 
-	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType,
-			String eventType,
-			int quantity) {
+	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType, int quantity) {
 		init(modelLayerFactory, sessionContext);
 		this.schemaType = schemaType;
-		this.eventType = eventType;
 		this.quantity = quantity;
 	}
 
-	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType,
-			String eventType) {
-		this(modelLayerFactory, sessionContext, schemaType, eventType, DEFAULT_QUANTITY);
+	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType) {
+		this(modelLayerFactory, sessionContext, schemaType, DEFAULT_QUANTITY);
 	}
 
 	public List<RecentItem> getItems() {
@@ -97,7 +92,7 @@ public class RecentItemProvider implements Serializable {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(sessionContext.getCurrentCollection(), modelLayerFactory);
 		return schemas.wrapEvents(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(schemas.eventSchema())
-						.where(schemas.eventType()).isEqualTo(eventType)
+						.where(schemas.eventType()).isEndingWithText(schemaType.toLowerCase())
 						.andWhere(schemas.eventUsername()).isEqualTo(user.getUsername()))
 				.setNumberOfRows(quantity * 2)
 				.sortDesc(schemas.eventCreation())));
