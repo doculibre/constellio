@@ -26,12 +26,12 @@ public class CorePermissions {
 	public static final String MANAGE_SEARCH_BOOST = permission(COLLECTION_MANAGEMENT, "manageSearchBoost");
 	public static final String MANAGE_METADATAEXTRACTOR = permission(COLLECTION_MANAGEMENT, "manageMetadataExtractor");
 	public static final String MANAGE_CONNECTORS = permission(COLLECTION_MANAGEMENT, "manageConnectors");
-	public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
+	//public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
 	public static final String MANAGE_TRASH = permission(COLLECTION_MANAGEMENT, "manageTrash");
 	public static final String MANAGE_SEARCH_REPORTS = permission(COLLECTION_MANAGEMENT, "manageSearchReports");
 	public static final String MANAGE_EMAIL_SERVER = permission(COLLECTION_MANAGEMENT, "manageEmailServer");
 	public static final String MANAGE_EXCEL_REPORT = permission(COLLECTION_MANAGEMENT, "manageExcelReport");
-	public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");
+	//public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");
 
 	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(COLLECTION_MANAGEMENT);
 
@@ -42,14 +42,15 @@ public class CorePermissions {
 	public static final String MANAGE_SYSTEM_GROUPS = permission(SYSTEM_MANAGEMENT, "manageSystemGroups");
 	public static final String MANAGE_SYSTEM_USERS = permission(SYSTEM_MANAGEMENT, "manageSystemUsers");
 	public static final String MANAGE_SYSTEM_COLLECTIONS = permission(SYSTEM_MANAGEMENT, "manageSystemCollections");
-	public static final String MANAGE_SYSTEM_MODULES = permission(SYSTEM_MANAGEMENT, "manageSystemModules");
+	//public static final String MANAGE_SYSTEM_MODULES = permission(SYSTEM_MANAGEMENT, "manageSystemModules");
 	public static final String MANAGE_SYSTEM_DATA_IMPORTS = permission(SYSTEM_MANAGEMENT, "manageSystemDataImports");
-	public static final String MANAGE_SYSTEM_SERVERS = permission(SYSTEM_MANAGEMENT, "manageSystemServers");
+	//public static final String MANAGE_SYSTEM_SERVERS = permission(SYSTEM_MANAGEMENT, "manageSystemServers");
 	public static final String MANAGE_SYSTEM_UPDATES = permission(SYSTEM_MANAGEMENT, "manageSystemUpdates");
 	public static final String MANAGE_LDAP = permission(SYSTEM_MANAGEMENT, "ldapConfigurationManagement");
 	public static final String MANAGE_LABELS = permission(SYSTEM_MANAGEMENT, "manageLabels");
 	public static final String MANAGE_PRINTABLE_REPORT = permission(SYSTEM_MANAGEMENT, "managePrintableReport");
 	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
+	public static final String MANAGE_SYNONYMS = permission(SYSTEM_MANAGEMENT, "manageSynonyms");
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
 
