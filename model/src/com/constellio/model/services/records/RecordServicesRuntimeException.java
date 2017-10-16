@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.utils.LoggerUtils;
 import com.constellio.model.entities.schemas.Metadata;
 
@@ -87,9 +88,9 @@ public class RecordServicesRuntimeException extends RuntimeException {
 
 	public static class UnresolvableOptimsiticLockingCausingInfiniteLoops extends RecordServicesRuntimeException {
 
-		public UnresolvableOptimsiticLockingCausingInfiniteLoops(TransactionDTO transaction) {
+		public UnresolvableOptimsiticLockingCausingInfiniteLoops(TransactionDTO transaction, OptimisticLocking e) {
 			super("Transaction is causing unresolvable optimistic locking (causing an infinite loop) : " +
-					LoggerUtils.toString(transaction));
+					LoggerUtils.toString(transaction), e);
 		}
 	}
 
@@ -100,7 +101,7 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-//	public static class NewReferenceToOtherLogicallyDeletedRecord extends RecordServicesRuntimeException {
+	//	public static class NewReferenceToOtherLogicallyDeletedRecord extends RecordServicesRuntimeException {
 	//
 	//		String id;
 	//
