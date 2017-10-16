@@ -10,6 +10,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -96,8 +97,10 @@ public class SearchResultDisplay extends VerticalLayout {
 		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
 		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
 
-		if(!Strings.isNullOrEmpty(query) && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-
+		if(!Strings.isNullOrEmpty(query) && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
+				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
+						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
+		{
 			exclude = new LinkButton($(EXCLUSION)) {
 				@Override
 				protected void buttonClick(ClickEvent event) {

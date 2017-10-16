@@ -8,6 +8,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -33,14 +34,18 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
         layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton());
 
         verticalLayout.addComponent(layout);
-        Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
-        systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
-        verticalLayout.addComponent(systemSectionTitle);
 
-        CssLayout layoutSystemPilot = new CustomCssLayout();
-        layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
-        verticalLayout.setSpacing(true);
-        verticalLayout.addComponent(layoutSystemPilot);
+        if(getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
+                .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true")) {
+            Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
+            systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
+            verticalLayout.addComponent(systemSectionTitle);
+
+            CssLayout layoutSystemPilot = new CustomCssLayout();
+            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
+            verticalLayout.setSpacing(true);
+            verticalLayout.addComponent(layoutSystemPilot);
+        }
 
         return verticalLayout;
     }
