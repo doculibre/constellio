@@ -27,7 +27,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return user.has(CorePermissions.ACCESS_TEMPORARY_RECORD).globally();
+        return user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally();
     }
 
     public RecordVODataProvider getDataProviderFromType(final String schema) {

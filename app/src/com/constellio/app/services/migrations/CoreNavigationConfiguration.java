@@ -323,7 +323,8 @@ public class CoreNavigationConfiguration implements Serializable {
 						CorePermissions.MANAGE_VALUELIST,
 						CorePermissions.ACCESS_SEARCH_CAPSULE,
 						CorePermissions.MANAGE_FACETS,
-						CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT
+						CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT,
+						CorePermissions.MANAGE_SYNONYMS
 				).globally());
 			}
 
@@ -468,8 +469,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.ACCESS_TEMPORARY_RECORD));
+						|| user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
 			}
 		});
 	}

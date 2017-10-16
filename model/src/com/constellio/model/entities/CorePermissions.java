@@ -57,9 +57,9 @@ public class CorePermissions {
 	public static final String OTHERS = "others";
 	public static final String USE_EXTERNAL_APIS_FOR_COLLECTION = permission(OTHERS, "useExternalAPIS");
 
-	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM, "managerTemporaryRecords");
-	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM, "seeAllTemporaryRecords");
+	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
+	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
 
 	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(SYSTEM_MANAGEMENT, "excludeAndRaiseOnSearchResult");
-	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM, "accessSearchCapsule");
+	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM_MANAGEMENT, "accessSearchCapsule");
 }
