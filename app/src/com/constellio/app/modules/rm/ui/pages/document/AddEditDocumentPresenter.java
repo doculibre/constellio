@@ -691,7 +691,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					Record documentRecord = toRecord(documentVO);
 					Document document = new Document(documentRecord, types());
 					try {
-						Content content = toContent(contentVersionVO);
+						Content content = toContent(documentVO, documentVO.getSchema().getMetadata(Document.CONTENT), contentVersionVO);
 						document.setContent(content);
 						String filename = contentVersionVO.getFileName();
 						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));

@@ -200,4 +200,20 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		return manager.getSchemaTypes(collection);
 	}
 
+	@Override
+	public String getExtensionForRecordVO(GetIconPathParams params) {
+		String extension;
+		RecordVO recordVO = params.getRecordVO();
+		String typeCode = recordVO.getSchema().getTypeCode();
+		if (Folder.SCHEMA_TYPE.equals(typeCode)) {
+			extension = getFolderExtension(recordVO, false);
+		} else if (Document.SCHEMA_TYPE.equals(typeCode)) {
+			ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+			extension = contentVersionVO != null ? FilenameUtils.getExtension(contentVersionVO.getFileName()) : null;
+		} else {
+			extension = super.getExtensionForRecordVO(params);
+		}
+		return extension;
+	}
+
 }

@@ -53,8 +53,7 @@ public class EventToVOBuilder extends RecordToVOBuilder {
             Object recordVOValue = getValue(record, metadata);
             if((Event.DEFAULT_SCHEMA + "_" + Event.TYPE).equals(metadataCode)) {
                 recordVOValue = EventTypeUtils.getEventTypeCaption(recordVOValue.toString());
-            }
-            else if (recordVOValue instanceof Content) {
+            } else if (recordVOValue instanceof Content) {
                 recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue, sessionContext);
             } else if (recordVOValue instanceof List) {
                 List<Object> listRecordVOValue = new ArrayList<Object>();

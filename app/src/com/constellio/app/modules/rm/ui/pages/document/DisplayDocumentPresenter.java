@@ -1,5 +1,20 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -12,11 +27,11 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -45,15 +60,6 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.trash.TrashServices;
-import org.apache.commons.lang3.ObjectUtils;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -66,6 +72,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RMSchemasRecordsServices rm;
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
+	
+	private String lastKnownContentVersionNumber;
+	private String lastKnownCheckoutUserId;
+	private Long lastKnownLength;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -128,6 +138,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			}
 		};
 		eventsDataProvider = getEventsDataProvider();
+
+		ContentVersionVO contentVersionVO = documentVO.getContent();
+		lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
+		lastKnownCheckoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+		lastKnownLength = contentVersionVO != null ? contentVersionVO.getLength() : null;
 	}
 
 	public int getTaskCount() {
@@ -139,9 +154,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		try {
 			ContentVersionVO contentVersionVO = documentVO.getContent();
-			String contentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
-			String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
-			Long length = contentVersionVO != null ? contentVersionVO.getLength() : null;
 			Record currentRecord = getRecord(documentVO.getId());
 			Document currentDocument = new Document(currentRecord, types());
 			Content currentContent = currentDocument.getContent();
@@ -150,14 +162,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			String currentContentVersionNumber = currentContentVersion != null ? currentContentVersion.getVersion() : null;
 			String currentCheckoutUserId = currentContent != null ? currentContent.getCheckoutUserId() : null;
 			Long currentLength = currentContentVersion != null ? currentContentVersion.getLength() : null;
-			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber)
-					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId)
-					|| ObjectUtils.notEqual(length, currentLength)) {
+			if (ObjectUtils.notEqual(lastKnownContentVersionNumber, currentContentVersionNumber)
+					|| ObjectUtils.notEqual(lastKnownCheckoutUserId, currentCheckoutUserId)
+					|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
 				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
 				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
 			}
+
+			contentVersionVO = documentVO.getContent();
+			lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
+			lastKnownCheckoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+			lastKnownLength = contentVersionVO != null ? contentVersionVO.getLength() : null;
 		} catch (NoSuchRecordWithId e) {
 			view.invalidate();
 		}
