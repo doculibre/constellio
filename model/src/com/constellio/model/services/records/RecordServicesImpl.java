@@ -248,7 +248,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		if (attempt > 35) {
 			//e.printStackTrace();
-			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO);
+			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO, e);
 		}
 
 		//Will wait up to 30 seconds given 35 attempt are made

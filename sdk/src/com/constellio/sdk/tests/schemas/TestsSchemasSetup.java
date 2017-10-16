@@ -783,6 +783,10 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return getSchema(zeDefaultSchemaCode());
 	}
 
+	public MetadataSchemaType zeDefaultSchemaType() {
+		return types.getSchemaType("zeSchemaType");
+	}
+
 	public MetadataSchema zeCustomSchema() {
 		return getSchema(zeCustomSchemaCode());
 	}
