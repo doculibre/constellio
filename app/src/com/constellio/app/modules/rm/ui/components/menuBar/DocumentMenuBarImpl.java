@@ -131,6 +131,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
 					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 					Page.getCurrent().open(downloadedResource, null, false);
+					presenter.logDownload(recordVO);
 				}
 			});
 		}

@@ -14,6 +14,14 @@ public class EventType {
 
 	public static final String CONSULTATION = "consultation";
 
+	public static final String OPEN = "open";
+
+	public static final String DOWNLOAD = "download";
+
+	public static final String UPLOAD = "upload";
+
+	public static final String SHARE = "share";
+
 	public static final String RETURN = "return";
 
 	public static final String BORROW_REQUEST = "borrow_request";
@@ -59,6 +67,14 @@ public class EventType {
 	public static final String DELETE_DOCUMENT = "delete_document";
 
 	public static final String BORROW_DOCUMENT = "borrow_document";
+
+	public static final String OPEN_DOCUMENT = "open_document";
+
+	public static final String DOWNLOAD_DOCUMENT = "download_document";
+
+	public static final String UPLOAD_DOCUMENT = "upload_document";
+
+	public static final String SHARE_DOCUMENT = "share_document";
 
 	public static final String BORROWING_TIME_EXTENSIONS = "borrowing_time_extensions";
 
