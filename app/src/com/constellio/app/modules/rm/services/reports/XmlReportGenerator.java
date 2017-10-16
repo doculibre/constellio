@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class XmlReportGenerator extends XmlGenerator{
@@ -110,9 +111,10 @@ public class XmlReportGenerator extends XmlGenerator{
 
     private List<Element> fillEmptyTags(List<Element> originalElements) {
         List<Element> filledElements = new ArrayList<>();
+        String noDataText = $("PrintableReport.noData");
         for (Element element : originalElements) {
             if(element.getText().isEmpty()) {
-                element.setText("This will not appear on the final report");
+                element.setText(noDataText);
             }
             filledElements.add(element);
         }
