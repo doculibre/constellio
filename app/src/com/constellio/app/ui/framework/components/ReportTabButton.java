@@ -23,7 +23,6 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;

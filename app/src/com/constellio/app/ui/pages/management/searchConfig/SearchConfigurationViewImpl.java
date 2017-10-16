@@ -33,9 +33,11 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
         layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton(), createCapsuleButton());
 
         verticalLayout.addComponent(layout);
-        Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
-        systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
-        verticalLayout.addComponent(systemSectionTitle);
+        if(user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally()) {
+            Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
+            systemSectionTitle.addStyleName(ValoTheme.LABEL_H2);
+            verticalLayout.addComponent(systemSectionTitle);
+        }
 
         CssLayout layoutSystemPilot = new CustomCssLayout();
         layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
@@ -56,23 +58,23 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
     }
 
     private Button createSynonymsButton() {
-        return  createLink($("AdminView.synonymesManagement"), new Button.ClickListener() {
+        return user.has(CorePermissions.MANAGE_SYNONYMS).globally() ? createLink($("AdminView.synonymesManagement"), new Button.ClickListener() {
 
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().displaySynonyms();
             }
-        }, "config/synonyms");
+        }, "config/synonyms") : null;
     }
 
     private Button createElevationManagementButton() {
-        return  createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
+        return user.has(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally() ? createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
 
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().editElevation();
             }
-        }, "config/search-exclusions");
+        }, "config/search-exclusions") : null;
 
     }
 
@@ -87,7 +89,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
     }
 
     private Button createFacetteButton() {
-        return user.has(CorePermissions.MANAGE_VALUELIST).globally() ? createLink($("perm.core.manageFacets"), new Button.ClickListener() {
+        return user.has(CorePermissions.MANAGE_FACETS).globally() ? createLink($("perm.core.manageFacets"), new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 navigate().to().listFacetConfiguration();
@@ -102,17 +104,6 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
                 navigate().to().listCapsule();
             }
         }, "config/capsules") : null;
-    }
-
-    private class CustomCssLayout extends CssLayout {
-        @Override
-        public void addComponents(Component... components) {
-            for (Component component : components) {
-                if (component != null) {
-                    super.addComponent(component);
-                }
-            }
-        }
     }
 
 
