@@ -21,6 +21,7 @@ import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
@@ -72,7 +73,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private BaseAutocompleteField<T> autoCompleteField;
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
-	private Converter<String, T> itemConverter;
+	private ConverterWithCache<String, T> itemConverter;
 	private int treeBufferSize = 20;
 
 	protected boolean isShowDeactivated = true;
@@ -116,7 +117,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
-		final int autoCompleteBuffer = 100;
+		final int autoCompleteBuffer = 15;
+
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
@@ -210,7 +212,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		this.itemConverter = itemConverter;
+		this.itemConverter = new ConverterWithCache<>(itemConverter);
+		suggestInputDataProvider.setConverterWithCache(this.itemConverter);
 	}
 
 	protected String getCaption(T object) {
@@ -504,6 +507,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		public abstract User getCurrentUser();
 
 		public abstract void setOnlyLinkables(boolean onlyLinkables);
+
+		public TextInputDataProvider setConverterWithCache(
+				ConverterWithCache<String, T> converterWithCache) {
+			return this;
+		}
 	}
 
 	private class LookupSearchResultContainer extends LazyQueryContainer {

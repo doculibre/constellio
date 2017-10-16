@@ -648,7 +648,9 @@ public class MetadataSchemaBuilder {
 	}
 
 	public void deleteMetadataWithoutValidation(String localCode) {
-		deleteMetadataWithoutValidation(getMetadata(localCode));
+		if (hasMetadata(localCode)) {
+			deleteMetadataWithoutValidation(getMetadata(localCode));
+		}
 	}
 
 	public void deleteMetadataWithoutValidation(MetadataBuilder metadataToDelete) {

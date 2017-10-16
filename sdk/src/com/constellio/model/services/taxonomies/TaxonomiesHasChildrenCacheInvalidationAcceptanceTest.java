@@ -27,6 +27,7 @@ import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -277,12 +278,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		String auth = authServices.add(authorizationForUsers(users.robinIn(zeCollection)).givingReadAccess().on(FOLDER1));
-//		cache.invalidateWithoutChildren(FOLDER1);
-		//		cache.invalidateWithoutChildren(records.categoryId_X110);
-		//		cache.invalidateWithoutChildren(records.categoryId_X100);
-		//		cache.invalidateWithoutChildren(records.categoryId_X);
-		//		cache.invalidateWithoutChildren(records.unitId_10a);
-		//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
@@ -296,18 +291,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
 				.withNewPrincipalIds(users.sasquatchIn(zeCollection).getId()));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder true",
@@ -331,18 +314,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
 				.withNewPrincipalIds(users.robinIn(zeCollection).getId()));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
@@ -362,12 +333,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(auth, zeCollection));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder true",
 				"categoryId_X robin visible true",
@@ -387,18 +352,61 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 	}
 
 	@Test
+	public void whenAUserReceiveOrLoseCollectionAccessThenInvalidated()
+			throws Exception {
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		recordServices.update(userServices.getUserInCollection(robin, zeCollection).setCollectionAllAccess(true));
+
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false",
+				"categoryId_Z robin visible false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false",
+				"unitId_30 robin visible false"
+		);
+
+		recordServices.update(userServices.getUserInCollection(robin, zeCollection).setAddress("2020 rue du Finfin"));
+		assertThatInvalidatedEntriesSinceLastCheck().isEmpty();
+
+		recordServices.update(userServices.getUserInCollection(robin, zeCollection).setCollectionAllAccess(false));
+
+		assertThatInvalidatedEntriesSinceLastCheck().contains(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder true",
+				"categoryId_X robin visible true",
+				"categoryId_X100 robin visible true",
+				"categoryId_X110 robin visible true",
+				"categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false",
+				"categoryId_Z robin visible false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder true",
+				"unitId_10 robin visible true",
+				"unitId_10a robin visible true",
+				"unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false",
+				"unitId_30 robin visible false"
+		);
+
+	}
+
+	@Test
 	public void givenDetachedFolderReceiveNewAuthorizationsThenInvalidated()
 			throws Exception {
 
 		authServices.detach(record(FOLDER1));
 
 		String auth = authServices.add(authorizationForUsers(users.robinIn(zeCollection)).givingReadAccess().on(FOLDER1));
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
@@ -412,18 +420,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
 				.withNewPrincipalIds(users.sasquatchIn(zeCollection).getId()));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder true",
@@ -447,18 +443,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
 				.withNewPrincipalIds(users.robinIn(zeCollection).getId()));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
@@ -478,12 +462,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(auth, zeCollection));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder true",
 				"categoryId_X robin visible true",
@@ -502,18 +480,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		authServices.reset(record(FOLDER1));
-//		cache.invalidateWithChildren(FOLDER1);
-//		cache.invalidateWithoutChildren(FOLDER1);
-//		cache.invalidateWithChildren(records.categoryId_X110);
-//		cache.invalidateWithChildren(records.categoryId_X100);
-//		cache.invalidateWithChildren(records.categoryId_X);
-//		cache.invalidateWithChildren(records.unitId_10a);
-//		cache.invalidateWithChildren(records.unitId_10);
-//		cache.invalidateWithoutChildren(records.categoryId_X110);
-//		cache.invalidateWithoutChildren(records.categoryId_X100);
-//		cache.invalidateWithoutChildren(records.categoryId_X);
-//		cache.invalidateWithoutChildren(records.unitId_10a);
-//		cache.invalidateWithoutChildren(records.unitId_10);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",

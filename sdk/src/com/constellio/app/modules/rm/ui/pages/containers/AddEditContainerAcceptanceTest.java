@@ -8,21 +8,40 @@ import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPr
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
+import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
+import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.taxonomies.*;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 import static java.util.Arrays.asList;
@@ -58,6 +77,7 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         recordServices = getModelLayerFactory().newRecordServices();
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+
 
         when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
         when(view.getCollection()).thenReturn(zeCollection);
@@ -124,6 +144,39 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
         assertThat(numberOfContainerCreated).isEqualTo(10);
     }
 
+    @Test
+    public void givenTreeWithConditionParentAreOnlySelectableIfTheyAlsoCorrespondToCriterias() throws RecordServicesException {
+        StorageSpace parent = buildDefaultStorageSpace();
+        recordServices.add(parent);
+        StorageSpace child = buildDefaultChildStorageSpace();
+        recordServices.add(child);
+        recordServices.recalculate(parent);
+        recordServices.update(parent);
+
+        TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
+
+        LinkableRecordTreeNodesDataProvider container = ContainerStorageSpaceLookupField.getDataProvider(STORAGES, records.containerTypeId_boite22x22, null);
+        Taxonomy taxonomy = getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(zeCollection, StorageSpace.SCHEMA_TYPE);
+
+        TaxonomiesSearchFilter filter = container.getFilter();
+        TaxonomiesSearchOptions options = buildDefaultOption(filter);
+
+        assertThat(taxonomiesSearchServices.isLinkable(child.getWrappedRecord(), taxonomy, options)).isTrue();
+        assertThat(taxonomiesSearchServices.isLinkable(parent.getWrappedRecord(), taxonomy, options)).isFalse();
+    }
+
+    private TaxonomiesSearchOptions buildDefaultOption(TaxonomiesSearchFilter filter) {
+        TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(0, 100, StatusFilter.ACTIVES)
+                .setFastContinueInfos(null)
+                .setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
+                        .withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+        options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
+        options.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(false);
+        options.setFilter(filter);
+        return options;
+    }
+
+
     public ContainerRecord buildDefaultContainer() {
         return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
                 .setTemporaryIdentifier("containerTestTemporary").setCapacity(100).setAdministrativeUnits(asList(records.unitId_10))
@@ -132,6 +185,10 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
     public StorageSpace buildDefaultStorageSpace() {
         return rm.newStorageSpaceWithId("storageTest").setCode("storageTest").setTitle("storageTest").setCapacity(150);
+    }
+
+    public StorageSpace buildDefaultChildStorageSpace() {
+        return rm.newStorageSpaceWithId("storageTestChild").setCode("storageTestChild").setParentStorageSpace("storageTest").setTitle("storageTestChild").setCapacity(150);
     }
 
     private void setAllStorageSpaceWithNoCapacity() {

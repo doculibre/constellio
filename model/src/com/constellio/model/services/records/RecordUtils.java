@@ -17,6 +17,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -559,21 +560,36 @@ public class RecordUtils {
 				}
 			}
 
+			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema userSchema = types.getSchema(User.DEFAULT_SCHEMA);
+
+				if (record.isModified(userSchema.getMetadata(User.COLLECTION_READ_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.COLLECTION_WRITE_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))) {
+					cache.invalidateUser(record.<String>get(userSchema.getMetadata(User.USERNAME)));
+				}
+			}
+
 		}
-		for (String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
+		for (
+				String idWithPossibleNewChildren : idsWithPossibleNewChildren)
+
+		{
 			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
 		}
-		for (String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
+		for (
+				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren)
+
+		{
 			cache.invalidateWithChildren(idWithPossibleNewChildren);
 		}
+
 	}
 
 	public static Set<String> getHierarchyIdsTo(Record record, ModelLayerFactory modelLayerFactory) {
 		List<String> ids = getHierarchyIdsTo(record.getId(),
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection()),
 				new RecordProvider(modelLayerFactory.newRecordServices()));
-
-
 
 		return new HashSet<>(ids);
 	}

@@ -670,9 +670,30 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setCartButtonState(ComponentState state) {
+		addToCartButton.setVisible(state.isVisible());
+		addToCartButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
+		addToOrRemoveFromSelectionButton.setVisible(state.isVisible());
+		addToOrRemoveFromSelectionButton.setEnabled(state.isEnabled());
+
+	}
+
+	@Override
 	public void setGenerateMetadataButtonState(ComponentState state) {
 		reportGeneratorButton.setVisible(state.isVisible());
 		reportGeneratorButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setPublishButtonState(ComponentState state) {
+		if(publishButton != null ){
+			publishButton.setEnabled(state.isEnabled());
+			publishButton.setVisible(state.isVisible());
+		}
 	}
 
 	@Override

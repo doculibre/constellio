@@ -63,6 +63,9 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean metadataReportButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
+	private boolean addToCartButtonVisible;
+	private boolean publishButtonVisible;
+	private boolean addToOrRemoveFromSelectionButtonVisible;
 
 	protected DocumentContextMenuPresenter presenter;
 
@@ -395,8 +398,23 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void setCartButtonState(ComponentState state) {
+		addToCartButtonVisible = state.isVisible();
+	}
+
+	@Override
+	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
+		addToOrRemoveFromSelectionButtonVisible = state.isVisible();
+	}
+
+	@Override
 	public void setGenerateMetadataButtonState(ComponentState state) {
 		metadataReportButtonVisible = presenter.hasMetadataReport();
+	}
+
+	@Override
+	public void setPublishButtonState(ComponentState state) {
+		publishButtonVisible = state.isVisible();
 	}
 
 	@Override

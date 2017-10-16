@@ -32,8 +32,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
 import static junit.framework.TestCase.fail;
@@ -228,6 +226,32 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
             }
             assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
         } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            ioServices.closeQuietly(inputStream);
+        }
+    }
+
+    @Test
+    public void checkIfTestXmlGeneratorAreReturningEveryTagsFilled(){
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
+            String xmlString = xmlReportGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
+            inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+            Document xmlDocument = saxBuilder.build(inputStream);
+
+            Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS);
+            for (Object ob : xmlRecordElement.getChild(XmlGenerator.XML_METADATA_TAGS).getChildren()) {
+                Element element = (Element) ob;
+                assertThat(element.getText()).isNotEmpty();
+            }
+        }catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {

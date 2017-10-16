@@ -1,13 +1,28 @@
 package com.constellio.app.ui.framework.data;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
@@ -15,15 +30,6 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
@@ -39,9 +45,10 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected boolean onlyLinkables = false;
 	protected boolean writeAccess;
 	protected boolean includeDeactivated;
+	protected ConverterWithCache<String, String> converterWithCache;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-									   String schemaTypeCode, boolean writeAccess) {
+			String schemaTypeCode, boolean writeAccess) {
 		this(constellioFactories, sessionContext, schemaTypeCode, null, writeAccess, true);
 	}
 
@@ -51,7 +58,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-									   String schemaTypeCode, String schemaCode, boolean writeAccess) {
+			String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, true);
 	}
 
@@ -66,6 +73,12 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.includeDeactivated = includeDeactivated;
 	}
 
+	public RecordTextInputDataProvider setConverterWithCache(
+			ConverterWithCache<String, String> converterWithCache) {
+		this.converterWithCache = converterWithCache;
+		return this;
+	}
+
 	private boolean determineIfSecurity() {
 		boolean security = false;
 
@@ -74,7 +87,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		if (schemaTypeCode != null) {
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
 			typesByCode.add(type);
-		} else if(schemaCode != null){
+		} else if (schemaCode != null) {
 			String schemaTypeCodeFromSchema = SchemaUtils.getSchemaTypeCode(schemaCode);
 			MetadataSchemaType type = types.getSchemaType(schemaTypeCodeFromSchema);
 			typesByCode.add(type);
@@ -124,6 +137,13 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected List<String> toRecordIds(List<Record> matches) {
 		List<String> recordIds = new ArrayList<>();
 		for (Record match : matches) {
+			if (converterWithCache != null) {
+				String caption = match.get(Schemas.CAPTION);
+				if (caption != null) {
+					converterWithCache.preload(match.getId(), caption);
+				}
+			}
+
 			recordIds.add(match.getId());
 		}
 		return recordIds;
@@ -142,8 +162,9 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
 
-				if(schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
-					condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE)).isFalseOrNull();
+				if (schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
+					condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE))
+							.isFalseOrNull();
 				}
 			} else {
 				String caption = $("caption." + type.getCode() + ".record");
@@ -176,6 +197,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
 
+		query.sortAsc(Schemas.CAPTION);
 		if (sort != null) {
 			query.sortAsc(sort);
 		}

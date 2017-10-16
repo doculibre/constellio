@@ -651,38 +651,42 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 
 		if (retentionRuleField != null) {
-			String currentValue = retentionRuleField.getFieldValue();
-			// Discover what options are available
-			List<String> availableOptions = decommissioningService().getRetentionRulesForCategory(
-					categoryField.getFieldValue(), uniformSubdivisionField.getFieldValue(), StatusFilter.ACTIVES);
-
-			// Set the options if they changed
-			if (!retentionRuleField.getOptions().equals(availableOptions)) {
-				retentionRuleField.setOptions(availableOptions);
-			}
-
-			// Set the value if necessary
-			if (availableOptions.size() > 1) {
-				if (currentValue != null && !availableOptions.contains(currentValue)) {
-					folderVO.setRetentionRule((String) null);
-					retentionRuleField.setFieldValue(null);
-				}
-				if (!retentionRuleField.isVisible()) {
-					setFieldVisible(retentionRuleField, true, Folder.RETENTION_RULE_ENTERED);
-				}
-			} else if (availableOptions.size() == 1) {
-				if (!availableOptions.get(0).equals(currentValue)) {
-					String onlyAvailableOption = availableOptions.get(0);
-					folderVO.setRetentionRule(onlyAvailableOption);
-					retentionRuleField.setFieldValue(availableOptions.get(0));
-				}
+			if (folderVO.getParentFolder() != null) {
 				setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 			} else {
-				if (currentValue != null) {
-					folderVO.setRetentionRule((String) null);
+				String currentValue = retentionRuleField.getFieldValue();
+				// Discover what options are available
+				List<String> availableOptions = decommissioningService().getRetentionRulesForCategory(
+						categoryField.getFieldValue(), uniformSubdivisionField.getFieldValue(), StatusFilter.ACTIVES);
+
+				// Set the options if they changed
+				if (!retentionRuleField.getOptions().equals(availableOptions)) {
+					retentionRuleField.setOptions(availableOptions);
 				}
-				if (retentionRuleField.isVisible()) {
+
+				// Set the value if necessary
+				if (availableOptions.size() > 1) {
+					if (currentValue != null && !availableOptions.contains(currentValue)) {
+						folderVO.setRetentionRule((String) null);
+						retentionRuleField.setFieldValue(null);
+					}
+					if (!retentionRuleField.isVisible()) {
+						setFieldVisible(retentionRuleField, true, Folder.RETENTION_RULE_ENTERED);
+					}
+				} else if (availableOptions.size() == 1) {
+					if (!availableOptions.get(0).equals(currentValue)) {
+						String onlyAvailableOption = availableOptions.get(0);
+						folderVO.setRetentionRule(onlyAvailableOption);
+						retentionRuleField.setFieldValue(availableOptions.get(0));
+					}
 					setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
+				} else {
+					if (currentValue != null) {
+						folderVO.setRetentionRule((String) null);
+					}
+					if (retentionRuleField.isVisible()) {
+						setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
+					}
 				}
 			}
 		}
@@ -692,18 +696,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
+		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
+				Folder.ADMINISTRATIVE_UNIT_ENTERED);
 		if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 			folder.setRetentionRuleEntered(retentionRuleField.getFieldValue());
 		}
-
-		if (folder.getCopyStatus() != null && retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
-			try {
-				RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(retentionRuleField.getFieldValue());
-				return !retentionRule.isResponsibleAdministrativeUnits();
-			} catch (Exception e) {
-
-			}
+		if (administrativeUnitField != null && administrativeUnitField.getFieldValue() != null) {
+			folder.setAdministrativeUnitEntered(administrativeUnitField.getFieldValue());
 		}
+
 		return decommissioningService().isCopyStatusInputPossible(folder, getCurrentUser());
 	}
 

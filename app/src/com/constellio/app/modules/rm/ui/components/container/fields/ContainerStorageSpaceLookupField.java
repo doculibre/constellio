@@ -10,6 +10,8 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -67,7 +69,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 			String containerRecordType, Double containerCapacity, AddEditContainerPresenter presenter) {
 		super(new RecordTextInputDataProvider(presenter.getConstellioFactories(), presenter.getSessionContext(), schemaTypeCode,
 						schemaCode, writeAccess),
-				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, false, containerRecordType, containerCapacity,
+				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, containerRecordType, containerCapacity,
 						presenter));
 		setItemConverter(new RecordIdToCaptionConverter());
 	}
@@ -102,25 +104,6 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		}
 	}
 
-	private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-		MetadataSchemaType storageSpaceType = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
-		Double containerCapacity = this.containerCapacity == null ? 0.0 : this.containerCapacity;
-		return new LogicalSearchQuery().setCondition(from(storageSpaceType).whereAllConditions(
-				where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-				anyConditions(
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE))
-								.isGreaterOrEqualThan(containerCapacity),
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
-				),
-				anyConditions(
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE))
-								.isContaining(asList(containerRecordType)),
-						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
-				)
-		));
-	}
-
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();
@@ -132,7 +115,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode, final String schemaCode,
-			boolean writeAccess, boolean onlySuggestions, final String containerRecordType,
+			boolean writeAccess, final String containerRecordType,
 			Double containerCapacity, AddEditContainerPresenter presenter) {
 		SessionContext sessionContext = presenter.getSessionContext();
 		final String collection = sessionContext.getCurrentCollection();
@@ -157,31 +140,14 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
 				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, writeAccess,
-						getDataProvider(taxonomyCode, containerRecordType, containerCapacity, presenter)));
+						getDataProvider(taxonomyCode, containerRecordType, containerCapacity)));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 
 	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, final String containerRecordType,
-			final Double containerCapacity, AddEditContainerPresenter presenter) {
-		ConstellioFactories constellioFactories = presenter.getConstellioFactories();
-		SessionContext sessionContext = presenter.getSessionContext();
-		MetadataSchemaType storageSpaceType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
-
-		//		LogicalSearchCondition searchCondition = from(storageSpaceType).whereAllConditions(
-		//				where(storageSpaceType.getDefaultSchema().get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
-		//				anyConditions(
-		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE))
-		//								.isGreaterOrEqualThan(containerCapacity),
-		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.AVAILABLE_SIZE)).isNull()
-		//				),
-		//				anyConditions(
-		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE))
-		//								.isContaining(asList(containerRecordType)),
-		//						where(storageSpaceType.getDefaultSchema().get(StorageSpace.CONTAINER_TYPE)).isNull()
-		//				));
+			final Double containerCapacity) {
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
 			@Override
@@ -191,17 +157,44 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 
 				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
 
-				boolean hasNoChildren = isEqual(0.0, storageSpace.getNumberOfChild());
-				boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
-						|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
-
-				boolean sameContainerType = storageSpace.getContainerType() == null
-						|| LangUtils.isEqual(storageSpace.getContainerType(), containerRecordType);
-
-				return hasNoChildren && enoughAvailableSize && sameContainerType;
+				return canStorageSpaceContainContainer(storageSpace, containerRecordType, containerCapacity);
 			}
 		});
 
 		return new LinkableRecordTreeNodesDataProvider(taxonomyCode, StorageSpace.SCHEMA_TYPE, false, taxonomiesSearchFilter);
+	}
+
+	private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+		MetadataSchemaType storageSpaceSchemaType = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
+		MetadataSchema storageSpaceSchema = storageSpaceSchemaType.getDefaultSchema();
+		Double containerCapacity = this.containerCapacity == null ? 0.0 : this.containerCapacity;
+		return new LogicalSearchQuery().setCondition(from(storageSpaceSchemaType).whereAllConditions(
+				anyConditions(
+						where(storageSpaceSchema.get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
+						where(storageSpaceSchema.get(StorageSpace.NUMBER_OF_CHILD)).isNull()
+				),
+				anyConditions(
+						where(storageSpaceSchema.get(StorageSpace.AVAILABLE_SIZE))
+								.isGreaterOrEqualThan(containerCapacity),
+						where(storageSpaceSchema.get(StorageSpace.AVAILABLE_SIZE)).isNull()
+				),
+				anyConditions(
+						where(storageSpaceSchema.get(StorageSpace.CONTAINER_TYPE))
+								.isContaining(asList(containerRecordType)),
+						where(storageSpaceSchema.get(StorageSpace.CONTAINER_TYPE)).isNull()
+				)
+		));
+	}
+
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, String containerRecordType, Double containerCapacity) {
+		Double numberOfChild = storageSpace.getNumberOfChild();
+		boolean hasNoChildren = numberOfChild == null || isEqual(0.0, numberOfChild);
+		boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
+				|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
+		boolean sameContainerType = storageSpace.getContainerType() == null
+				|| storageSpace.getContainerType().isEmpty() || storageSpace.getContainerType().contains(containerRecordType);
+
+		return hasNoChildren && enoughAvailableSize && sameContainerType;
 	}
 }
