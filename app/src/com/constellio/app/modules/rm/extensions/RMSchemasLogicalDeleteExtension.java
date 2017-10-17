@@ -132,14 +132,16 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
 				.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
 				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 		));
 		return documentVerification == taskVerification? documentVerification:ExtensionBooleanResult.FALSE;
 	}
 
 	private ExtensionBooleanResult isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
-				.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
+				.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
 				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 		));
 		return taskVerification == ExtensionBooleanResult.FALSE? ExtensionBooleanResult.FALSE:ExtensionBooleanResult.NOT_APPLICABLE;
 	}

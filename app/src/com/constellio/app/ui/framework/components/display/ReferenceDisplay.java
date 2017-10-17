@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
 
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.ui.Notification;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
@@ -127,7 +128,8 @@ public class ReferenceDisplay extends Button {
 
 	protected void prepareLink() {
 		final ConstellioUI ui = ConstellioUI.getCurrent();
-		String collection = ui.getSessionContext().getCurrentCollection();
+		SessionContext sessionContext = ui.getSessionContext();
+		String collection = sessionContext.getCurrentCollection();
 		AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
@@ -153,7 +155,7 @@ public class ReferenceDisplay extends Button {
 		}
 		if (navigationParams != null) {
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash);
+				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash, sessionContext.getCurrentLocale());
 			}
 		}
 	}

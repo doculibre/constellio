@@ -2,6 +2,8 @@ package com.constellio.app.extensions.records;
 
 import com.constellio.app.extensions.records.params.NavigationParams;
 
+import java.util.Locale;
+
 public interface RecordNavigationExtension {
 
 	void navigateToEdit(NavigationParams navigationParams);
@@ -10,5 +12,5 @@ public interface RecordNavigationExtension {
 
 	boolean isViewForSchemaTypeCode(String schemaTypeCode);
 
-	void prepareLinkToView(NavigationParams navigationParams, boolean isRecordInTrash);
+	void prepareLinkToView(NavigationParams navigationParams, boolean isRecordInTrash, Locale currentLocale);
 }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -154,6 +155,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.isDeleteBlocked(currentDocument(), getCurrentUser());
 	}
 
+	protected boolean isDeleteDocumentPossibleExtensively() {
+		return isDeleteDocumentPossible() && presenterUtils.recordServices().isLogicallyDeletable(currentDocument(), getCurrentUser());
+	}
+
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
@@ -193,7 +198,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked() {
-		if (isDeleteDocumentPossible()) {
+		if (isDeleteDocumentPossibleExtensively()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
@@ -214,6 +219,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} else {
 				actionsComponent.navigate().to().recordsManagement();
 			}
+		} else {
+			actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
 		}
 	}
 

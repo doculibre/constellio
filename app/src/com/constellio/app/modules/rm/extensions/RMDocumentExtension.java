@@ -167,6 +167,7 @@ public class RMDocumentExtension extends RecordExtension {
 			ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
 					.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
 					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 			));
 
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))

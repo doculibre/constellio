@@ -73,7 +73,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
-		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension());
+		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension(appLayerFactory, collection));
 
 	}
 
