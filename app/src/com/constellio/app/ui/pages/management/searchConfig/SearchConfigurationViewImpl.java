@@ -52,11 +52,14 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
             Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
             systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
             verticalLayout.addComponent(systemSectionTitle);
+        }  
 
-        if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {CssLayout layoutSystemPilot = new CustomCssLayout();
-        layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
-        verticalLayout.setSpacing(true);
-        verticalLayout.addComponent(layoutSystemPilot);}
+        if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+        	CssLayout layoutSystemPilot = new CustomCssLayout();
+            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
+            verticalLayout.setSpacing(true);
+            verticalLayout.addComponent(layoutSystemPilot);
+        }
 
 		return verticalLayout;
 	}
