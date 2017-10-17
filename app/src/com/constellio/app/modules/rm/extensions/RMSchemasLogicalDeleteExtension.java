@@ -10,13 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -38,14 +35,17 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	RMSchemasRecordsServices rm;
 
+	TasksSchemasRecordsServices taskSchemas;
+
 	SearchServices searchServices;
 
 	RecordServices recordServices;
 
-	public RMSchemasLogicalDeleteExtension(String collection, ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
+	public RMSchemasLogicalDeleteExtension(String collection, AppLayerFactory appLayerFactory) {
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.collection = collection;
-		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 	}
@@ -100,6 +100,9 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else if (event.isSchemaType(Category.SCHEMA_TYPE)) {
 			return isCategoryLogicallyDeletable(event);
 
+		} else if (event.isSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			return isContainerLogicallyDeletable(event);
+
 		} else if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			return isFolderLogicallyDeletable(event);
 
@@ -122,12 +125,25 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		return ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.document.schemaType())
+		ExtensionBooleanResult documentVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
 				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())
 		));
-
+		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
+				.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
+				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+		));
+		return documentVerification == taskVerification? documentVerification:ExtensionBooleanResult.FALSE;
 	}
+
+	private ExtensionBooleanResult isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
+				.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
+				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+		));
+		return taskVerification == ExtensionBooleanResult.FALSE? ExtensionBooleanResult.FALSE:ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		return ExtensionBooleanResult.falseIf(event.isRecordReferenced());

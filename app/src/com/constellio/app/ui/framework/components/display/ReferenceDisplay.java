@@ -2,6 +2,8 @@ package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
 
+import com.constellio.model.entities.schemas.Schemas;
+import com.vaadin.ui.Notification;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
 
@@ -29,6 +31,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReferenceDisplay extends Button {
 
@@ -128,25 +132,28 @@ public class ReferenceDisplay extends Button {
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
+		boolean isRecordInTrash = false;
 
 		NavigationParams navigationParams = null;
 		if (recordVO != null) {
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
+			isRecordInTrash = Boolean.TRUE.equals(recordServices.getDocumentById(recordVO.getId()).get(Schemas.LOGICALLY_DELETED_STATUS));
 		} else if (recordId != null) {
 			try {
 				Record record = recordServices.getDocumentById(recordId);
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 				navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
 						this);
+				isRecordInTrash = Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				e.printStackTrace();
 			}
 		}
 		if (navigationParams != null) {
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-				recordNavigationExtension.prepareLinkToView(navigationParams);
+				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash);
 			}
 		}
 	}

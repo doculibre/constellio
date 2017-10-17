@@ -10,5 +10,5 @@ public interface RecordNavigationExtension {
 
 	boolean isViewForSchemaTypeCode(String schemaTypeCode);
 
-	void prepareLinkToView(NavigationParams navigationParams);
+	void prepareLinkToView(NavigationParams navigationParams, boolean isRecordInTrash);
 }

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -41,7 +42,7 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams) {
+	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash) {
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
 			Component component = navigationParams.getComponent();
 			if (component instanceof ReferenceDisplay) {
@@ -49,14 +50,22 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 				ClickListener clickListener = new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						navigateToView(navigationParams);
+						if(isRecordInTrash) {
+							RecordNavigationExtensionUtils.showMessage("un test");
+						} else {
+							navigateToView(navigationParams);
+						}
 					}
 				};
 				referenceDisplay.setEnabled(true);
 				referenceDisplay.addClickListener(clickListener);
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
-				navigateToView(navigationParams);
+				if(isRecordInTrash) {
+					RecordNavigationExtensionUtils.showMessage("un test");
+				} else {
+					navigateToView(navigationParams);
+				}
 			}
 		}
 	}

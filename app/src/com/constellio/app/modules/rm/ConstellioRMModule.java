@@ -372,7 +372,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 
-		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMUserRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMEmailDocumentRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMOldSchemasBlockageRecordExtension());
