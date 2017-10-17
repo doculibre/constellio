@@ -2,8 +2,19 @@ package com.constellio.model.entities;
 
 import java.util.List;
 
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+
 public class CorePermissions {
 	public static Permissions PERMISSIONS = new Permissions("core");
+
+	private static String permission(String group, String permission, AvailableToggle toggle) {
+		if (toggle.isEnabled()) {
+			return PERMISSIONS.add(group, permission);
+		} else {
+			return PERMISSIONS.getId() + "." + permission;
+		}
+	}
 
 	private static String permission(String group, String permission) {
 		return PERMISSIONS.add(group, permission);
@@ -50,7 +61,7 @@ public class CorePermissions {
 	public static final String MANAGE_LABELS = permission(SYSTEM_MANAGEMENT, "manageLabels");
 	public static final String MANAGE_PRINTABLE_REPORT = permission(SYSTEM_MANAGEMENT, "managePrintableReport");
 	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
-	public static final String MANAGE_SYNONYMS = permission(SYSTEM_MANAGEMENT, "manageSynonyms");
+	public static final String MANAGE_SYNONYMS = permission(SYSTEM_MANAGEMENT, "manageSynonyms", Toggle.ADVANCED_SEARCH_CONFIGS);
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
 
@@ -60,6 +71,8 @@ public class CorePermissions {
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
 
-	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(SYSTEM_MANAGEMENT, "excludeAndRaiseOnSearchResult");
-	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM_MANAGEMENT, "accessSearchCapsule");
+	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(SYSTEM_MANAGEMENT, "excludeAndRaiseOnSearchResult",
+			Toggle.ADVANCED_SEARCH_CONFIGS);
+	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM_MANAGEMENT, "accessSearchCapsule",
+			Toggle.ADVANCED_SEARCH_CONFIGS);
 }

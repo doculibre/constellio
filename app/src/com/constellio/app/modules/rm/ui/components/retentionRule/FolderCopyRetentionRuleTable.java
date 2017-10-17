@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecor
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -60,7 +61,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
-	
+
 	private static final String CODE = "code";
 	private static final String DETAILS = "details";
 	private static final String COPY_TYPE = "copyType";
@@ -85,8 +86,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 	private RecordIdToCaptionConverter folderTypeConverter = new RecordIdToCaptionConverter();
 	private MediumTypeIdListToCodesConverter mediumTypeIdListToCodesConverter = new MediumTypeIdListToCodesConverter();
-//	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
-//			DisposalType.class);
+	//	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
+	//			DisposalType.class);
 	private MetadataCodeToStringConverter metadataCodeToStringConverter = new MetadataCodeToStringConverter();
 	private RetentionRuleVO retentionRuleVO;
 	private VerticalLayout mainLayout;
@@ -162,7 +163,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.setColumnWidth(INACTIVE_DISPOSAL_COMMENT, 50);
 			table.setColumnWidth(ESSENTIAL, 50);
 			table.setColumnWidth(TITLE, 200);
-			
+
 			table.addContainerProperty(CODE, BaseTextField.class, null);
 			table.addContainerProperty(TITLE, BaseTextField.class, null);
 			table.addContainerProperty(DETAILS, DetailsFieldGroup.class, null);
@@ -191,7 +192,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.setColumnWidth(ESSENTIAL, 50);
 			table.setColumnWidth(TITLE, 200);
 			table.setColumnExpandRatio(TITLE, 1);
-			
+
 			table.addContainerProperty(CODE, Label.class, null);
 			table.addContainerProperty(TITLE, Label.class, null);
 			table.addContainerProperty(COPY_TYPE, CopyTypeFolderTypePanel.class, null);
@@ -364,11 +365,11 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 				niceTitle.append(":");
 				niceTitle.append($("" + copyRetentionRule.isIgnoreActivePeriod()));
 			}
-			
+
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
 			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
 			mediumTypesLabel.setConverter(mediumTypeIdListToCodesConverter);
-//			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
+			//			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
 			codeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			mediumTypesLabel.setPropertyDataSource(new NestedMethodProperty<List<String>>(copyRetentionRule, MEDIUM_TYPES));
@@ -608,7 +609,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
 			WindowConfiguration windowConfiguration = WindowConfiguration.modalDialog("50%", "500px");
-			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"), $("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),
+					$("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout windowLayout = new VerticalLayout();
@@ -617,25 +619,28 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
 					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule, "ignoreActivePeriod");
-					Property<Boolean> semiActiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,"semiActiveYearTypeId");
-					Property<Boolean> inactiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,"inactiveYearTypeId");
+					Property<Boolean> semiActiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,
+							"semiActiveYearTypeId");
+					Property<Boolean> inactiveYearTypeProperty = new MethodProperty<>(copyRetentionRule, "inactiveYearTypeId");
 
 					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
 					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
-					
+
 					semiActiveYearTypeField = new RecordComboBox(YearType.DEFAULT_SCHEMA);
 					semiActiveYearTypeField.setCaption($("DetailsFieldGroup.semiActiveYearType"));
 					semiActiveYearTypeField.setPropertyDataSource(semiActiveYearTypeProperty);
-					
+					semiActiveYearTypeField.setVisible(Toggle.RETENTION_RULE_DATE_TYPES.isEnabled());
+
 					inactiveYearTypeField = new RecordComboBox(YearType.DEFAULT_SCHEMA);
 					inactiveYearTypeField.setCaption($("DetailsFieldGroup.inactiveYearType"));
 					inactiveYearTypeField.setPropertyDataSource(inactiveYearTypeProperty);
-					
+					inactiveYearTypeField.setVisible(Toggle.RETENTION_RULE_DATE_TYPES.isEnabled());
+
 					if (DetailsFieldGroup.this.isReadOnly()) {
 						descriptionField.setReadOnly(true);
 						ignoreActivePeriodProperty.setReadOnly(true);
 					}
-					
+
 					descriptionField.setWidth("90%");
 
 					Button closeButton = new BaseButton($("OK")) {
@@ -645,12 +650,13 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 						}
 					};
 
-					windowLayout.addComponents(descriptionField, ignoreActivePeriodField, semiActiveYearTypeField, inactiveYearTypeField, closeButton);
+					windowLayout.addComponents(descriptionField, ignoreActivePeriodField, semiActiveYearTypeField,
+							inactiveYearTypeField, closeButton);
 					return windowLayout;
 				}
 			};
 			addComponent(windowButton);
-			
+
 			StringBuilder niceTitleContent = new StringBuilder();
 			if (StringUtils.isNotBlank(copyRetentionRule.getTitle())) {
 				niceTitleContent.append(copyRetentionRule.getTitle());
