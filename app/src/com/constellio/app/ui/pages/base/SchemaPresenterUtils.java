@@ -9,6 +9,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -236,7 +237,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 					metadataVOValue = ((RecordVO) metadataVOValue).getId();
 				} else if (metadataVOValue instanceof ContentVersionVO) {
 					ContentVersionVO contentVersionVO = (ContentVersionVO) metadataVOValue;
-					Content content = toContent(contentVersionVO, newMinorEmpty);
+					Content content = toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
 					if (content != null) {
 						metadataVOValue = content;
 					} else {
@@ -254,7 +255,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 						} else if (element instanceof ContentVersionVO) {
 							contentMetadata = true;
 							ContentVersionVO contentVersionVO = (ContentVersionVO) element;
-							Content content = toContent(contentVersionVO, newMinorEmpty);
+							Content content = toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
 							if (content == null) {
 								content = getContent(contentVersionVO.getHash(), (List<Content>) metadataValue);
 							}
@@ -303,11 +304,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return match;
 	}
 
-	public Content toContent(ContentVersionVO contentVersionVO) {
-		return toContent(contentVersionVO, false);
+	public Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO) {
+		return toContent(recordVO, metadataVO, contentVersionVO, false);
 	}
 
-	public Content toContent(ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
+	public Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
 		Content content;
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -341,8 +342,19 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				ioServices.closeQuietly(inputStream);
 			}
 			if (majorVersion == null) {
-				// TODO Use the right kind of exception
-				throw new RuntimeException("Must specify if the version is minor or major");
+				boolean versioning;
+				if (metadataVO != null) {
+					MetadataInputType inputType = metadataVO.getMetadataInputType();
+					versioning = inputType == MetadataInputType.CONTENT_CHECK_IN_CHECK_OUT;
+				} else {
+					versioning = false;
+				}
+				if (versioning) {
+					// TODO Use the right kind of exception
+					throw new RuntimeException("Must specify if the version is minor or major");
+				} else {
+					content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+				}
 			} else if (majorVersion) {
 				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
 			} else if (newMinorEmpty) {

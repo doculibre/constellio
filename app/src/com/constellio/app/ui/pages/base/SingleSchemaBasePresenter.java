@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -119,12 +120,12 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.toNewRecord(recordVO, newMinorEmpty);
 	}
 
-	protected Content toContent(ContentVersionVO contentVersionVO) {
-		return schemaPresenterUtils.toContent(contentVersionVO);
+	protected Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO) {
+		return schemaPresenterUtils.toContent(recordVO, metadataVO, contentVersionVO);
 	}
 
-	protected Content toContent(ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
-		return schemaPresenterUtils.toContent(contentVersionVO, newMinorEmpty);
+	protected Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
+		return schemaPresenterUtils.toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
 	}
 
 	@Deprecated

@@ -24,6 +24,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
@@ -101,8 +102,10 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		if (!Strings.isNullOrEmpty(query)
 				&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-
+				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
+				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
+						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
+		{
 			exclude = new LinkButton($(EXCLUSION)) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
