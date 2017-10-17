@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorPar
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
@@ -112,23 +113,33 @@ public abstract class XmlGenerator {
 
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
         List<Element> listOfMetadataTags = new ArrayList<>();
-        if(metadata.getLocalCode().contains("CopyRule")) {
-            List<Object> metadataValue;
+        if(metadata.getLocalCode().toLowerCase().contains("copyrule")) {
+            List<ModifiableStructure> metadataValue;
             if(metadata.isMultivalue()) {
                 metadataValue = recordElement.getList(metadata);
             } else {
-                metadataValue = Collections.singletonList(recordElement.get(metadata));
+                metadataValue = Collections.singletonList(recordElement.<ModifiableStructure>get(metadata));
             }
 
-            for(Object value : metadataValue) {
+            for(ModifiableStructure value : metadataValue) {
                 CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ? ((CopyRetentionRuleInRule) value).getCopyRetentionRule() : (CopyRetentionRule) value;
                 listOfMetadataTags.addAll(asList(
+                        new Element(escapeForXmlTag(getLabelOfMetadata(metadata))).setText(retentionRule.toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period").setText(retentionRule.getActiveRetentionPeriod().toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment").setText(retentionRule.getActiveRetentionComment()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period").setText(retentionRule.getSemiActiveRetentionPeriod().toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period_comment").setText(retentionRule.getSemiActiveRetentionComment())
                 ));
             }
+        } else if(metadata.getLocalCode().equals("comments")){
+            List<Comment> comments = recordElement.getList(metadata);
+            StringBuilder commentsText = new StringBuilder();
+            for(Comment comment : comments) {
+                commentsText.append(comment.getMessage()).append("\n");
+            }
+            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(commentsText.toString()));
+        } else {
+            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(defaultFormatData(recordElement.get(metadata).toString(), metadata, factory, collection)));
         }
         return listOfMetadataTags;
     }
