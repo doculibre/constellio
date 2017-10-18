@@ -65,6 +65,7 @@ public abstract class XmlGenerator {
     private RecordServices recordServices;
 
     private MetadataSchemasManager metadataSchemasManager;
+    private RMSchemasRecordsServices rm;
 
     XmlGeneratorParameters xmlGeneratorParameters;
 
@@ -73,6 +74,16 @@ public abstract class XmlGenerator {
         this.collection = collection;
         this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
         this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
+        this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+    }
+
+
+    public RecordServices getRecordServices() {
+        return recordServices;
+    }
+
+    public RMSchemasRecordsServices getRMSchemasRecordsServices() {
+        return rm;
     }
 
     public AppLayerFactory getFactory() {
@@ -139,7 +150,8 @@ public abstract class XmlGenerator {
             }
             listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(commentsText.toString()));
         } else {
-            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(defaultFormatData(recordElement.get(metadata).toString(), metadata, factory, collection)));
+            Object metadataValue = recordElement.get(metadata);
+            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(defaultFormatData(metadataValue != null ? metadataValue.toString() : null, metadata, factory, collection)));
         }
         return listOfMetadataTags;
     }
