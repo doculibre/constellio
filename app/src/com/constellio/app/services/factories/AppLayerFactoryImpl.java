@@ -121,7 +121,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(),
 				dataLayerFactory.getSettingsCacheManager()));
-		
+
 		String warVersion = newApplicationService().getWarVersion();
 		dataLayerFactory.setConstellioVersion(warVersion);
 
@@ -226,6 +226,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		}
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+			dataLayerFactory.getConstellioJobManager().onSystemStarted();
 		}
 		upgradeAppRecoveryService.close();
 	}

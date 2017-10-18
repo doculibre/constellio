@@ -90,6 +90,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
+	private static DataLayerFactory lastCreatedInstance;
 
 	public static int countConstructor;
 
@@ -185,7 +186,13 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
-		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(), dataLayerConfiguration.getOnlineConversionUrl()));
+		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
+				dataLayerConfiguration.getOnlineConversionUrl()));
+		lastCreatedInstance = this;
+	}
+
+	public static DataLayerFactory getLastCreatedInstance() {
+		return lastCreatedInstance;
 	}
 
 	public void setConstellioVersion(String constellioVersion) {

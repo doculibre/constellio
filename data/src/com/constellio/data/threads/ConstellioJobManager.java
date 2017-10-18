@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joda.time.DateTime;
 import org.quartz.JobDetail;
@@ -28,6 +29,10 @@ public class ConstellioJobManager implements StatefulService {
 	private Scheduler scheduler;
 
 	private DataLayerConfiguration dataLayerConfiguration;
+
+	AtomicBoolean systemStarted = new AtomicBoolean();
+
+	List<ConstellioJobInStandby> jobsInStandby = new ArrayList<>();
 
 	public ConstellioJobManager(DataLayerConfiguration dataLayerConfiguration) {
 		this.dataLayerConfiguration = dataLayerConfiguration;
@@ -60,7 +65,10 @@ public class ConstellioJobManager implements StatefulService {
 	}
 
 	public Date addJob(final ConstellioJob job, final boolean cleanPreviousTriggers) {
-		if (scheduler != null) {
+
+		if (!systemStarted.get()) {
+			jobsInStandby.add(new ConstellioJobInStandby(job, cleanPreviousTriggers));
+		} else if (scheduler != null) {
 
 			//
 			final Set<Trigger> triggers = job.buildIntervalTriggers();
@@ -102,5 +110,23 @@ public class ConstellioJobManager implements StatefulService {
 
 		}
 		return null;
+	}
+
+	public void onSystemStarted() {
+		systemStarted.set(true);
+		for (ConstellioJobInStandby jobInStandby : jobsInStandby) {
+			addJob(jobInStandby.job, jobInStandby.cleanPreviousTriggers);
+		}
+		jobsInStandby.clear();
+	}
+
+	private static class ConstellioJobInStandby {
+		ConstellioJob job;
+		boolean cleanPreviousTriggers;
+
+		public ConstellioJobInStandby(ConstellioJob job, boolean cleanPreviousTriggers) {
+			this.job = job;
+			this.cleanPreviousTriggers = cleanPreviousTriggers;
+		}
 	}
 }

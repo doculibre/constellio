@@ -1,39 +1,39 @@
 package com.constellio.data.threads;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
 
-public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
-	RMTestRecords records = new RMTestRecords(zeCollection);
-	Users users = new Users();
+public class ConstellioJobManagerAcceptTest extends ConstellioTest {
 
-	AtomicInteger counter = new AtomicInteger();
-	AtomicInteger counter2 = new AtomicInteger();
+	static AtomicInteger counter = new AtomicInteger();
+	static AtomicInteger counter2 = new AtomicInteger();
 
-	BackgroundThreadsManager backgroundThreadsManager;
+	ConstellioJobManager backgroundThreadsManager;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
 		givenBackgroundThreadsEnabled();
-		backgroundThreadsManager = getDataLayerFactory().getBackgroundThreadsManager();
+		backgroundThreadsManager = getDataLayerFactory().getConstellioJobManager();
 		backgroundThreadsManager.initialize();
+		backgroundThreadsManager.onSystemStarted();
+		counter.set(0);
+		counter2.set(0);
 	}
 
 	@After
@@ -43,19 +43,16 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		}
 	}
 
-	//@SlowTest
 	@Test
 	public void givenSystemIsNotYetStartedThenWaitUntilStartedBeforeExecuting()
 			throws Exception {
 		backgroundThreadsManager.systemStarted.set(false);
-		Runnable threadAction = spy(new TestSleepingRunnable(50, counter));
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action1", threadAction).executedEvery(
-				Duration.standardSeconds(1)));
+		backgroundThreadsManager.addJob(new Job1(), true);
 
 		Thread.sleep(5000);
 		assertThat(counter.get()).isZero();
 
-		backgroundThreadsManager.systemStarted.set(true);
+		backgroundThreadsManager.onSystemStarted();
 		Thread.sleep(5000);
 		assertThat(counter.get()).isGreaterThan(1);
 
@@ -63,15 +60,11 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	//@SlowTest
 	@Test
 	public void whenConfiguringAThreadToExecuteAnActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
 
-		Runnable threadAction = spy(new TestSleepingRunnable(50, counter));
-
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action1", threadAction).executedEvery(
-				Duration.standardSeconds(1)));
+		backgroundThreadsManager.addJob(new Job1(), false);
 
 		Thread.sleep(5000);
 
@@ -88,23 +81,16 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait2SecondsBetweenRuns()
+	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
 
-		Runnable threadAction = spy(new TestSleepingRunnable(2000, counter));
-		Runnable threadAction2 = spy(new TestSleepingRunnable(2000, counter2));
+		backgroundThreadsManager.addJob(new Job1(), false);
 
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration
-				.repeatingAction("action1", threadAction).executedEvery(
-						Duration.standardSeconds(1)));
-
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration
-				.repeatingAction("action2", threadAction2).executedEvery(
-						Duration.standardSeconds(2)));
+		backgroundThreadsManager.addJob(new Job2(), false);
 
 		Thread.sleep(5000);
 
-		assertThat(counter.get()).isBetween(2, 3);
+		assertThat(counter.get()).isBetween(4, 6);
 		assertThat(counter2.get()).isBetween(2, 3);
 		backgroundThreadsManager.close();
 
@@ -119,17 +105,15 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		assertThat(threadAction2counter1).isEqualTo(threadAction2Counter2);
 	}
 
-	//@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToContinueOnExceptionThenContinueUntilAnErrorOccur()
 			throws InterruptedException {
-		Runnable runnable = mock(Runnable.class);
+		final Runnable runnable = mock(Runnable.class);
 
 		doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowError())
 				.doAnswer(increase()).when(runnable).run();
 
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action", runnable).executedEvery(
-				Duration.standardSeconds(1)).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+		backgroundThreadsManager.addJob(new Job1(), false);
 
 		Thread.sleep(10000);
 
@@ -137,16 +121,12 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	}
 
-	//@SlowTest
 	@Test
 	public void givenBackgroundThreadConfiguredToStopOnExceptionThenStopAtTheFirstRuntimeException()
 			throws InterruptedException {
-		Runnable runnable = mock(Runnable.class);
+		final Runnable runnable = mock(Runnable.class);
 
-		doAnswer(increaseAndThrowException()).doAnswer(increase()).when(runnable).run();
-
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action", runnable).executedEvery(
-				Duration.standardSeconds(1)).handlingExceptionWith(BackgroundThreadExceptionHandling.STOP));
+		backgroundThreadsManager.addJob(new Job1StoppingOnException(), false);
 
 		Thread.sleep(10000);
 
@@ -235,5 +215,91 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 			atomicInteger.incrementAndGet();
 		}
 	}
-}
 
+	public static class Job1 extends ConstellioJob {
+		@Override
+		protected String name() {
+			return "action1";
+		}
+
+		@Override
+		protected Runnable action() {
+			return new ConstellioJobManagerAcceptTest.TestSleepingRunnable(50, counter);
+		}
+
+		@Override
+		protected boolean unscheduleOnException() {
+			return false;
+		}
+
+		@Override
+		protected Set<Integer> intervals() {
+			return new HashSet<>(asList(1));
+		}
+
+		@Override
+		protected Set<String> cronExpressions() {
+			return new HashSet<>();
+		}
+	}
+
+	public static class Job1StoppingOnException extends ConstellioJob {
+		@Override
+		protected String name() {
+			return "action1";
+		}
+
+		@Override
+		protected Runnable action() {
+			return new Runnable() {
+				@Override
+				public void run() {
+					counter.incrementAndGet();
+					throw new RuntimeException("Something wrong");
+				}
+			};
+		}
+
+		@Override
+		protected boolean unscheduleOnException() {
+			return true;
+		}
+
+		@Override
+		protected Set<Integer> intervals() {
+			return new HashSet<>(asList(2));
+		}
+
+		@Override
+		protected Set<String> cronExpressions() {
+			return new HashSet<>();
+		}
+	}
+
+	public static class Job2 extends ConstellioJob {
+		@Override
+		protected String name() {
+			return "action2";
+		}
+
+		@Override
+		protected Runnable action() {
+			return new ConstellioJobManagerAcceptTest.TestSleepingRunnable(2000, counter2);
+		}
+
+		@Override
+		protected boolean unscheduleOnException() {
+			return false;
+		}
+
+		@Override
+		protected Set<Integer> intervals() {
+			return new HashSet<>(asList(1));
+		}
+
+		@Override
+		protected Set<String> cronExpressions() {
+			return new HashSet<>();
+		}
+	}
+}
