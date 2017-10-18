@@ -37,6 +37,8 @@ public class Toggle {
 
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
+	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

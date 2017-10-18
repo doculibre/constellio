@@ -493,10 +493,10 @@ exports.localized = localized;
 {
   var pdfjsLib;
   if (typeof __pdfjsdev_webpack__ === 'undefined') {
-    if (typeof window !== 'undefined' && window['pdfjs-dist/build/pdf']) {
-      pdfjsLib = window['pdfjs-dist/build/pdf'];
+    if (typeof window !== 'undefined' && window['pdfjs-dist/lib/pdf']) {
+      pdfjsLib = window['pdfjs-dist/lib/pdf'];
     } else if (typeof require === 'function') {
-      pdfjsLib = require('../build/pdf.js');
+      pdfjsLib = require('../lib/pdf.js');
     } else {
       throw new Error('Neither `require` nor `window` found');
     }
@@ -1215,7 +1215,7 @@ var DEFAULT_SCALE_DELTA = 1.1;
 var DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT = 5000;
 function configure(PDFJS) {
   PDFJS.imageResourcesPath = './images/';
-  PDFJS.workerSrc = '../build/pdf.worker.js';
+  PDFJS.workerSrc = '../lib/pdf.worker.js';
   PDFJS.cMapUrl = '../web/cmaps/';
   PDFJS.cMapPacked = true;
 }

@@ -40,4 +40,8 @@ public class Permissions {
 	public List<String> getGroup(String group) {
 		return Collections.unmodifiableList(groupedPermissions.get(id + "." + group));
 	}
+
+	public String getId() {
+		return id;
+	}
 }

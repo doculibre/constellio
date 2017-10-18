@@ -244,6 +244,7 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				default:
 					field = new ContentVersionUploadField();
+					((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 					break;
 				}
 				break;
@@ -384,7 +385,8 @@ public class MetadataFieldFactory implements Serializable {
 					field = new ContentVersionUploadField(true, false, isViewOnly);
 					break;
 				default:
-					field = new ContentVersionUploadField(true, false, isViewOnly);
+					field = new ContentVersionUploadField(true, true, isViewOnly);
+					((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 					break;
 				}
 				break;

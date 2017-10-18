@@ -8,6 +8,8 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.security.roles.RolesManager;
 
 public class MigrationHelper {
 	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
@@ -50,5 +52,24 @@ public class MigrationHelper {
 			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
 		}
 		return newSchema;
+	}
+
+	protected void migrateRoles(String collection, AppLayerFactory appLayerFactory, RolesAlteration rolesAlteration) {
+
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+
+		for (Role role : rolesManager.getAllRoles(collection)) {
+			Role updatedRole = rolesAlteration.alter(role);
+			if (updatedRole != null && !updatedRole.equals(role)) {
+				rolesManager.updateRole(updatedRole);
+			}
+		}
+
+	}
+
+	public interface RolesAlteration {
+
+		Role alter(Role role);
+
 	}
 }

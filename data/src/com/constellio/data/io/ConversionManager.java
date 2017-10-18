@@ -190,6 +190,8 @@ public class ConversionManager implements StatefulService {
 			COPY_EXTENSIONS.put("dot", "doc");
 			COPY_EXTENSIONS.put("pptm", "ppt");
 			COPY_EXTENSIONS.put("pps", "ppt");
+			COPY_EXTENSIONS.put("tif", "png");
+			COPY_EXTENSIONS.put("tiff", "png");
 			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
 			
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);

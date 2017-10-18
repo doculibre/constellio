@@ -49,6 +49,7 @@ public class MetadataDisplayFactory implements Serializable {
 
 	private JodaDateTimeToStringConverter jodaDateTimeConverter = new JodaDateTimeToStringConverter();
 
+	@SuppressWarnings("unchecked")
 	public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
 		Component displayComponent;
 		MetadataVO metadataVO = metadataValue.getMetadata();

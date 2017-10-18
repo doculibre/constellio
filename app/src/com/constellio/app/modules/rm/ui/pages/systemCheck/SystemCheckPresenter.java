@@ -40,8 +40,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 		UserServices userServices = userServices();
 		return userServices.getUser(user.getUsername()).isSystemAdmin()
 				|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-				CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY,
-				CorePermissions.MANAGE_SYSTEM_SERVERS);
+				CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY);
 	}
 
 	SystemCheckManager getSystemCheckManager() {

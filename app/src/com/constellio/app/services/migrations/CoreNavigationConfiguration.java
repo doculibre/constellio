@@ -282,8 +282,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
 						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY,
-						CorePermissions.MANAGE_SYSTEM_SERVERS));
+						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY));
 			}
 		});
 	}
@@ -322,7 +321,10 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.hasAny(
 						CorePermissions.MANAGE_SEARCH_BOOST,
 						CorePermissions.MANAGE_VALUELIST,
-						CorePermissions.ACCESS_SEARCH_CAPSULE
+						CorePermissions.ACCESS_SEARCH_CAPSULE,
+						CorePermissions.MANAGE_FACETS,
+						CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT,
+						CorePermissions.MANAGE_SYNONYMS
 				).globally());
 			}
 
@@ -339,7 +341,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
 						.has(user.getUsername());
-				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LABELS));
+				return visibleIf(user.hasAny(CorePermissions.MANAGE_LABELS, CorePermissions.MANAGE_EXCEL_REPORT, CorePermissions.MANAGE_PRINTABLE_REPORT).globally());
 			}
 		});
 
@@ -467,8 +469,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
-						CorePermissions.ACCESS_TEMPORARY_RECORD));
+						|| user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
 			}
 		});
 	}
