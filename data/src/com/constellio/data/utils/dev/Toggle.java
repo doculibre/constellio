@@ -125,5 +125,9 @@ public class Toggle {
 		public void disable() {
 			enabled = false;
 		}
+
+		public String getId() {
+			return id;
+		}
 	}
 }
