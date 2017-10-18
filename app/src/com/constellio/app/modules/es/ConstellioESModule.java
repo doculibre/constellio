@@ -5,8 +5,6 @@ import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCacheNotLoadedInitially;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
-import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
@@ -30,7 +27,6 @@ import com.constellio.app.modules.es.constants.ESPermissionsTo;
 import com.constellio.app.modules.es.extensions.*;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.*;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -83,7 +79,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo7_4_2(),
 				new ESMigrationTo7_4_3(),
 				new ESMigrationTo7_5(),
-				new ESMigrationTo7_6_1()
+				new ESMigrationTo7_6_1(),
+				new ESMigrationTo7_6_1_1()
 		);
 	}
 
@@ -159,7 +156,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension(appLayerFactory));
 		extensions.treeNodeAppExtension.add(new TreeNodeAppExtension());
-		extensions.searchCriterionExtensions.add(new ESSMBParentConnectorUrlCriterionExtension(appLayerFactory, collection));
+		extensions.searchCriterionExtensions.add(new ESSMBConnectorUrlCriterionExtension(appLayerFactory, collection));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
