@@ -70,8 +70,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration LAZY_LOADED_FACETS;
 
-
-
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
@@ -160,7 +158,7 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
-		add(ADVANCED_SEARCH_CONFIGS = search.createBooleanFalseByDefault("elevationSynonym"));
+		add(ADVANCED_SEARCH_CONFIGS = search.createBooleanFalseByDefault("elevationSynonym").whichIsHidden());
 
 		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
@@ -184,7 +182,8 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(null, "trees");
 
-		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
+		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
+				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
