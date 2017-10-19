@@ -25,14 +25,14 @@ import static com.constellio.app.services.factories.ConstellioFactories.getInsta
 import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ESSMBParentConnectorUrlCriterionExtension extends SearchCriterionExtension {
+public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtension {
 
 	AppLayerFactory appLayerFactory;
 	String collection;
 	ESSchemasRecordsServices esSchemasRecordsServices;
 	RecordServices recordServices;
 
-	public ESSMBParentConnectorUrlCriterionExtension(AppLayerFactory appLayerFactory, String collection) {
+	public ESSMBConnectorUrlCriterionExtension(AppLayerFactory appLayerFactory, String collection) {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.esSchemasRecordsServices = new ESSchemasRecordsServices(collection, appLayerFactory);
@@ -41,7 +41,11 @@ public class ESSMBParentConnectorUrlCriterionExtension extends SearchCriterionEx
 
 	@Override
 	public Component getComponentForCriterion(Criterion criterion) {
-		if(criterion.getMetadataCode().endsWith("_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL)) {
+		String metadataCode = criterion.getMetadataCode();
+		if(metadataCode.endsWith("_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL) ||
+				(metadataCode.startsWith(ConnectorSmbFolder.SCHEMA_TYPE + "_") &&
+						metadataCode.endsWith("_" + ConnectorSmbFolder.CONNECTOR_URL))) {
+
 			return buildComponentForParentConnectorUrl(criterion);
 		}
 		return null;
