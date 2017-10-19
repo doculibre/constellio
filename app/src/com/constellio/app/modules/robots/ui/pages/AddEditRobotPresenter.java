@@ -2,6 +2,8 @@ package com.constellio.app.modules.robots.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.robots.model.RegisteredAction;
 import com.constellio.app.modules.robots.model.services.RobotsService;
@@ -217,7 +219,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
 				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch()  && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString || isTextOrString && metadata.isSearchable() || Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()))) {
+				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}

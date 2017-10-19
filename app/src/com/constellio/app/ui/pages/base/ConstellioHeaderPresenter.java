@@ -16,6 +16,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -213,8 +215,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| (isTextOrString && metadata.isSearchable()) || Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()))) {
+				if (config.isVisibleInAdvancedSearch() &&
+						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+						(!isTextOrString || (isTextOrString && metadata.isSearchable()) ||
+								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, header.getSessionContext()));
 				}
 			}

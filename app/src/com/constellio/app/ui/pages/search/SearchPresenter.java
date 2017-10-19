@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -559,9 +561,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| isTextOrString && metadata.isSearchable() || Schemas.PATH.getLocalCode()
-						.equals(metadata.getLocalCode()))) {
+				if (config.isVisibleInAdvancedSearch() &&
+						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
