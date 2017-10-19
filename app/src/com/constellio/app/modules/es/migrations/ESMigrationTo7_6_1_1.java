@@ -38,11 +38,11 @@ public class ESMigrationTo7_6_1_1 extends MigrationHelper implements MigrationSc
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder documentDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema();
-            documentDefaultSchema.get(ConnectorSmbDocument.PARENT_CONNECTOR_URL).addLabel(Language.French, "Chemin réseau parent");
+            documentDefaultSchema.get(ConnectorSmbDocument.PARENT_CONNECTOR_URL).addLabel(Language.French, "Chemin réseau parent").setSearchable(false);
             documentDefaultSchema.get(ConnectorSmbDocument.CONNECTOR_URL).addLabel(Language.French, "Chemin réseau").setSearchable(false);
 
             MetadataSchemaBuilder folderDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).getDefaultSchema();
-            folderDefaultSchema.get(ConnectorSmbFolder.PARENT_CONNECTOR_URL).addLabel(Language.French, "Chemin réseau parent");
+            folderDefaultSchema.get(ConnectorSmbFolder.PARENT_CONNECTOR_URL).addLabel(Language.French, "Chemin réseau parent").setSearchable(false);
             folderDefaultSchema.get(ConnectorSmbFolder.CONNECTOR_URL).addLabel(Language.French, "Chemin réseau").setSearchable(false).setSystemReserved(false);
         }
     }

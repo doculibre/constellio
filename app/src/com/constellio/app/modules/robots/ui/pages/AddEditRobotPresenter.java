@@ -223,6 +223,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
 								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
 								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+								ConnectorSmbFolder.CONNECTOR_URL.equals(metadata.getLocalCode()) ||
 								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
