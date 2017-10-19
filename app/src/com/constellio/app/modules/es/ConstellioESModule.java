@@ -82,7 +82,9 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo7_4_1(),
 				new ESMigrationTo7_4_2(),
 				new ESMigrationTo7_4_3(),
-				new ESMigrationTo7_5()
+				new ESMigrationTo7_5(),
+				new ESMigrationTo7_6_1(),
+				new ESMigrationTo7_6_1_1()
 		);
 	}
 
@@ -158,7 +160,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension(appLayerFactory));
 		extensions.treeNodeAppExtension.add(new TreeNodeAppExtension());
-		extensions.searchCriterionExtensions.add(new ESSMBParentConnectorUrlCriterionExtension(appLayerFactory, collection));
+		extensions.searchCriterionExtensions.add(new ESSMBConnectorUrlCriterionExtension(appLayerFactory, collection));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
