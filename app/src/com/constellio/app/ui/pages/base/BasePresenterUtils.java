@@ -21,6 +21,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -111,6 +112,10 @@ public class BasePresenterUtils implements Serializable {
 		return modelLayerFactory.newRecordServices();
 		//}
 		//return recordServices;
+	}
+
+	public final LoggingServices loggingServices() {
+		return modelLayerFactory.newLoggingServices();
 	}
 
 	public final PresenterService presenterService() {

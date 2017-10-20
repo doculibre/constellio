@@ -203,6 +203,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 				try {
 					getPresenterUtils(recordVO).addOrUpdate(record);
+					modelLayerFactory.newLoggingServices().uploadDocument(record, currentUser);
 					if (newVersionVO != null) {
 						newVersionVO.setVersion(content.getCurrentVersion().getVersion());
 						newVersionVO.setHash(content.getCurrentVersion().getHash());

@@ -112,6 +112,31 @@ public class LoggingServices {
 				eventFactory.newRecordEvent(record, currentUser, EventType.BORROW, null, TimeProvider.getLocalDateTime()));
 	}
 
+	public void openDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.OPEN, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void downloadDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.DOWNLOAD, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void uploadDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.UPLOAD, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void shareDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.SHARE, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void finalizeDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.FINALIZE, null, TimeProvider.getLocalDateTime()));
+	}
+
 	public void consultingRecord(Record record, User currentUser, LocalDateTime dateTime) {
 		logRecordView(record, currentUser, dateTime);
 		//executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));
