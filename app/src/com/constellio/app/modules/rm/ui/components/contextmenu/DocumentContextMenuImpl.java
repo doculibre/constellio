@@ -131,6 +131,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 					openAgentURL(agentURL);
+					presenter.logOpenAgentUrl(recordVO);
 				}
 			});
 		}

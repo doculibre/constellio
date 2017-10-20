@@ -713,4 +713,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void logDownload(RecordVO recordVO) {
 		loggingServices.downloadDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
 	}
+
+	public void logOpenDocument(RecordVO recordVO) {
+		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
 }

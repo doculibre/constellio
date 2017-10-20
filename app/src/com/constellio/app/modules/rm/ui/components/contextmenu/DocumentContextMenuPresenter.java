@@ -84,4 +84,8 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 
+	public void logOpenAgentUrl(RecordVO recordVO) {
+		presenterUtils.loggingServices().openDocument(presenterUtils.getRecord(recordVO.getId()), presenterUtils.getCurrentUser());
+	}
+
 }

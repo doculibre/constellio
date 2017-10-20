@@ -118,6 +118,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				public void menuSelected(MenuItem selectedItem) {
 					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 					openAgentURL(agentURL);
+					presenter.logOpenDocument(recordVO);
 				}
 			});
 		}
