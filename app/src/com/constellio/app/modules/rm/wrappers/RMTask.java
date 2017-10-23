@@ -13,6 +13,7 @@ public class RMTask extends Task {
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
+	public static final String LINKED_CONTAINERS = "linkedContainers";
 
 	public RMTask(Record record, MetadataSchemaTypes types) {
 		super(record, types);

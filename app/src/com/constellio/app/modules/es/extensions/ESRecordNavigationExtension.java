@@ -1,8 +1,8 @@
 package com.constellio.app.modules.es.extensions;
 
 import java.io.InputStream;
+import java.util.Locale;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.model.entities.records.Record;
@@ -130,7 +130,7 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams) {
+	public void prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash, Locale currentLocale) {
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
 			ClickListener clickListener = null;
 
