@@ -75,7 +75,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
             @Override
             protected Component buildMetadataComponent(final MetadataValueVO metadataValue, final RecordVO recordVO) {
                 final Component defaultComponent = super.buildMetadataComponent(metadataValue, recordVO);
-                if(metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null) {
+                if(metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
                     final String value = metadataValue.getValue();
                     if(!value.isEmpty()) {
                         int maxLength = (value.length() < 40)? value.length():40;
