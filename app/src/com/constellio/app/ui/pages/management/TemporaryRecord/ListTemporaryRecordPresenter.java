@@ -33,7 +33,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
     public RecordVODataProvider getDataProviderFromType(final String schema) {
         final MetadataSchemaType temporaryRecordSchemaType = types().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
         MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(schema),
-                RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+                RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
         return new RecordVODataProvider(
                 schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
