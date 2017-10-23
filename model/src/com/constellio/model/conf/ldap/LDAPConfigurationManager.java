@@ -17,6 +17,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
@@ -29,6 +30,7 @@ import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
 
 public class LDAPConfigurationManager implements StatefulService {
+	private static final String CACHE_KEY = "configs";
 	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
 	public static final long MIN_DURATION = 1000 * 60 * 10;//10mns
 	private final ModelLayerFactory modelLayerFactory;
@@ -37,10 +39,12 @@ public class LDAPConfigurationManager implements StatefulService {
 	EncryptionServices encryptionServices;
 	ConfigManager configManager;
 	Date nextUsersSyncFireTime;
+	ConstellioCache configsCache;
 
 	public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
 		this.configManager = configManager;
 		this.modelLayerFactory = modelLayerFactory;
+		this.configsCache = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager().getCache(getClass().getName());
 		configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
@@ -180,6 +184,7 @@ public class LDAPConfigurationManager implements StatefulService {
 				}
 			}
 		});
+		configsCache.clear();
 		modelLayerFactory.getLdapAuthenticationService().reloadServiceConfiguration();
 		modelLayerFactory.getLdapUserSyncManager().reloadLDAPUserSynchConfiguration();
 	}
@@ -271,7 +276,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
-		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration configuration = getConfigs();
 		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
@@ -299,7 +304,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(boolean decryptPassword) {
-		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration configuration = getConfigs();
 		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 		RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex",
 				"ldap.syncConfiguration.userFilter.rejectedRegex");
@@ -353,8 +358,20 @@ public class LDAPConfigurationManager implements StatefulService {
 		}
 	}
 
+	private PropertiesConfiguration getConfigs() {
+		PropertiesConfiguration cachedConfigs = configsCache.get(CACHE_KEY);
+
+		if (cachedConfigs != null) {
+			return cachedConfigs;
+		}
+
+		PropertiesConfiguration configs = configManager.getProperties(LDAP_CONFIGS);
+		configsCache.put(CACHE_KEY, configs);
+		return configs;
+	}
+
 	public boolean isLDAPAuthentication() {
-		PropertiesConfiguration properties = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration properties = getConfigs();
 		if (properties == null) {
 			return false;
 		} else {

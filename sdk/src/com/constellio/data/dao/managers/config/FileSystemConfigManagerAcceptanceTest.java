@@ -35,6 +35,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ThreadList;
@@ -76,6 +77,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 	@Mock ConfigUpdatedEventListener secondListener;
 	@Mock ConfigUpdatedEventListener otherPathListener;
 	@Mock ConfigEventListener otherEventListener;
+	@Mock DataLayerExtensions dataLayerExtensions;
 
 	ConstellioCache cache;
 
@@ -90,7 +92,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 		ioServices = getIOLayerFactory().newIOServices();
 
 		cache = new SerializationCheckCache("zeCache");
-		configManager = spy(new FileSystemConfigManager(root, ioServices, hashService, cache));
+		configManager = spy(new FileSystemConfigManager(root, ioServices, hashService, cache, dataLayerExtensions));
 
 		this.loadProperties();
 

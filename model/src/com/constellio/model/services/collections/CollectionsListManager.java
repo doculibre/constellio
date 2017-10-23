@@ -3,7 +3,9 @@ package com.constellio.model.services.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -24,6 +26,9 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	List<String> collections = new ArrayList<>();
 	List<String> collectionsExcludingSystem = new ArrayList<>();
+
+	//Language never change
+	Map<String, List<String>> languageCache = new HashMap<>();
 
 	List<CollectionsListManagerListener> listeners = new ArrayList<>();
 
@@ -144,10 +149,19 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public List<String> getCollectionLanguages(String collection) {
+
+		List<String> collectionLanguage = languageCache.get(collection);
+
+		if (collectionLanguage != null) {
+			return collectionLanguage;
+		}
+
 		Document document = configManager.getXML(CONFIG_FILE_PATH).getDocument();
 		for (Element collectionElement : document.getRootElement().getChildren()) {
 			if (collection.equals(collectionElement.getName())) {
-				return Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
+				List<String> returnedLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
+				languageCache.put(collection, returnedLanguages);
+				return returnedLanguages;
 			}
 		}
 		throw new CollectionsListManagerRuntimeException_NoSuchCollection(collection);

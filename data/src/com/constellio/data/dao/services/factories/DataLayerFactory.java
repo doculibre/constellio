@@ -141,7 +141,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
-					settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");

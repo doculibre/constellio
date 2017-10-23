@@ -37,6 +37,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -63,17 +64,20 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private final HashingService hashService;
 	private final IOServices ioServices;
 	private final ConstellioCache cache;
+	private DataLayerExtensions extensions;
 
 	//	private final Map<String, Object> cache = new HashMap<>();
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 
-	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache) {
+	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache,
+			DataLayerExtensions extensions) {
 		super();
 		this.configFolder = configFolder;
 		this.ioServices = ioServices;
 		this.hashService = hashService;
 		this.cache = cache;
+		this.extensions = extensions;
 	}
 
 	@Override
@@ -107,6 +111,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void add(String path, Document newDocument) {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		validateFileNonExistance(path);
 		LOGGER.debug("add document => " + path);
 		String content = getContentOfDocument(newDocument);
@@ -120,6 +125,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void add(String path, InputStream newBinaryStream) {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		validateFileNonExistance(path);
 		LOGGER.debug("add inputstream => " + path);
 
@@ -142,6 +148,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void add(String path, Map<String, String> newProperties) {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		validateFileNonExistance(path);
 		LOGGER.debug("add properties => " + path);
 
@@ -169,6 +176,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void delete(String path) {
+		extensions.getSystemWideExtensions().onDeleteConfig(path);
 		LOGGER.debug("delete document => " + path);
 		removeFromCache(path);
 		new File(configFolder, path).delete();
@@ -176,6 +184,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void deleteFolder(String path) {
+		extensions.getSystemWideExtensions().onDeleteConfig(path);
 		LOGGER.debug("delete folder => " + path);
 		// TODO Remove from cache? Are folders in cache??
 		File folderToDelete = new File(configFolder, path);
@@ -190,6 +199,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized void delete(String path, String hash)
 			throws OptimisticLockingConfiguration {
+		extensions.getSystemWideExtensions().onDeleteConfig(path);
 		LOGGER.debug("delete document  => " + path);
 		String content;
 		try {
@@ -213,18 +223,21 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized boolean exist(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		File file = new File(configFolder, path);
 		return file.exists() && file.isFile();
 	}
 
 	@Override
 	public synchronized boolean folderExist(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		File file = new File(configFolder, path);
 		return file.exists() && file.isDirectory();
 	}
 
 	@Override
 	public List<String> list(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		List<String> fileNames = new ArrayList<>();
 		File file = new File(configFolder, path);
 		if (file.exists()) {
@@ -235,6 +248,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized BinaryConfiguration getBinary(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		LOGGER.debug("get binary => " + path);
 		if (!exist(path)) {
 			return null;
@@ -275,6 +289,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized PropertiesConfiguration getProperties(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		LOGGER.debug("get properties  => " + path);
 		if (!exist(path)) {
 			return null;
@@ -311,6 +326,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized XMLConfiguration getXML(String path) {
+		extensions.getSystemWideExtensions().onReadConfig(path);
 		LOGGER.debug("get XML  => " + path);
 		XMLConfiguration cachedConfiguration = (XMLConfiguration) getFromCache(path);
 		if (cachedConfiguration == null) {
@@ -386,6 +402,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized void update(String path, String version, Document newDocument)
 			throws OptimisticLockingConfiguration {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		LOGGER.debug("update document  => " + path + " to version => " + version);
 		File xmlFile = new File(configFolder, path);
 		validateFileExistance(path);
@@ -414,6 +431,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized void update(String path, String version, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		LOGGER.debug("update inputstream  => " + path + " to version => " + version);
 		validateFileExistance(path);
 
@@ -436,6 +454,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized void update(String path, String version, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		LOGGER.debug("update properties  => " + path + " to version => " + version);
 		validateFileExistance(path);
 
@@ -482,7 +501,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void updateXML(String path, DocumentAlteration documentAlteration) {
-
+		//Read/update extension called when calling getXML and update
 		XMLConfiguration xmlConfiguration = this.getXML(path);
 
 		Document doc = xmlConfiguration.getDocument();
@@ -499,7 +518,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void updateProperties(String path, PropertiesAlteration propertiesAlteration) {
-
+		//Read/update extension called when calling getProperties and update
 		PropertiesConfiguration propertiesConfiguration = this.getProperties(path);
 
 		Map<String, String> doc = propertiesConfiguration.getProperties();
@@ -568,6 +587,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public void move(String src, String dest) {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(dest);
 		if (!exist(src)) {
 			throw new NoSuchConfiguration(src);
 		}
@@ -632,6 +652,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public TextConfiguration getText(String path) {
+		extensions.getSystemWideExtensions().onAddUpdateConfig(path);
 		LOGGER.debug("get Text  => " + path);
 		TextConfiguration cachedConfiguration = null;// (XMLConfiguration) getFromCache(path);
 		if (cachedConfiguration == null) {
