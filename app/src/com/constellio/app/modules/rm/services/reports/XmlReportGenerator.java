@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.services.reports;
 
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -97,7 +99,11 @@ public class XmlReportGenerator extends XmlGenerator{
         Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
         metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-        metadataXmlElement.setText(formatData(getToStringOrNull(recordElement.get(metadata)), metadata));
+        String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+        if(metadata.getLocalCode().toLowerCase().contains("path")) {
+            data = this.getPath(recordElement);
+        }
+        metadataXmlElement.setText(data);
         return Collections.singletonList(metadataXmlElement);
     }
 
@@ -117,5 +123,43 @@ public class XmlReportGenerator extends XmlGenerator{
             filledElements.add(element);
         }
         return filledElements;
+    }
+
+    public String getPath(Record recordElement){
+        StringBuilder builder = new StringBuilder();
+        String parentId = recordElement.getParentId();
+        if(parentId == null) {
+            if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+                parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();
+            } else if(recordElement.getTypeCode().equals(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)) {
+                parentId = getRMSchemasRecordsServices().wrapDocument(recordElement).getFolder();
+            }
+        }
+        if(parentId != null ) {
+            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+        }
+        builder.append(recordElement.getTitle());
+        return builder.toString();
+    }
+
+    private String getParentPath(Record recordElement) {
+        StringBuilder builder = new StringBuilder();
+        String parentId = null;
+        if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+            Folder folder = getRMSchemasRecordsServices().wrapFolder(recordElement);
+            parentId = folder.getParentFolder();
+            if(parentId == null) {
+                parentId = folder.getCategory();
+            }
+        } else if(recordElement.getTypeCode().equals(Category.SCHEMA_TYPE)) {
+            Category category = getRMSchemasRecordsServices().wrapCategory(recordElement);
+            parentId = category.getParent();
+        }
+        if(parentId != null) {
+            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+        }
+        builder.append(recordElement.getTitle());
+        builder.append(" > ");
+        return builder.toString();
     }
 }

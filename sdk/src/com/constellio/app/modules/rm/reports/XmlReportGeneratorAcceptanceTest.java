@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.reports.XmlGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -257,5 +258,21 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         } finally {
             ioServices.closeQuietly(inputStream);
         }
+    }
+
+    @Test
+    public void testForPathGeneration() throws Exception{
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+
+        assertThat(xmlReportGenerator.getPath(records.getFolder_C30().getWrappedRecord())).isEqualTo("Xe category > X100 > X110 > Haricot");
+
+        Transaction transaction = new Transaction();
+        transaction.add(records.getFolder_A20().setParentFolder(records.getFolder_A12()));
+        recordServices.execute(transaction);
+
+        assertThat(xmlReportGenerator.getPath(records.getFolder_A20().getWrappedRecord())).isEqualTo("Xe category > X100 > X110 > Castor > Chien");
     }
 }
