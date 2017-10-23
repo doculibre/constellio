@@ -56,9 +56,12 @@ public class CoreMigrationTo_7_6_2_1 implements MigrationScript {
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA);
+            MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA).addLabel(Language.French, "Audit d'importation");
             importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true)
             .addLabel(Language.French, "Erreurs").addLabel(Language.English, "Errors");
+
+            MetadataSchemaBuilder exportAuditSchema = typesBuilder.getSchema(ExportAudit.FULL_SCHEMA).addLabel(Language.French, "Audit d'exportation");
+
         }
     }
 }
