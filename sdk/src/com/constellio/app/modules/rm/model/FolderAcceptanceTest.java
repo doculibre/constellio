@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -39,11 +43,6 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.utils.Builder;
@@ -3034,6 +3033,34 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			parameters.put(FolderValidator.RULE_CODE, records.getRule1().getCode());
 			ensureValidationError(e, FolderValidator.class, FolderValidator.FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
 		}
+	}
+
+	@Test
+	public void givenFolderInNonCompletedAndNotDeletedTaskThenCannotDelete() throws RecordServicesException {
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		recordServices.add(folder);
+
+		Task task = rm.newRMTask().setLinkedFolders(asList(folder.getId())).setTitle("Task");
+		recordServices.add(task);
+		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+
+		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
+		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
+		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 	}
 
 	// -------------------------------------------------------------------------
