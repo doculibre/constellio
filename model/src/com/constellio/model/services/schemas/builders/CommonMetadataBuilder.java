@@ -498,9 +498,7 @@ public class CommonMetadataBuilder {
 
 	private void defineTokenMetadata(MetadataSchemaBuilder schema, String code) {
 		MetadataBuilder metadataBuilder = schema.createSystemReserved(code).setType(STRING).setMultivalue(true);
-		metadataBuilder = metadataBuilder.setLabels(schema.getLabels());
 		metadataBuilder.defineValidators().add(ManualTokenValidator.class);
-
 	}
 
 	private boolean isCollectionUserOrGroupSchema(MetadataSchemaBuilder schema) {
