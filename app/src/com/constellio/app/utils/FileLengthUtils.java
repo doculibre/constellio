@@ -12,7 +12,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class FileLengthUtils {
 
     public static String readableFileSize(long size) {
-        if(size <= 0) return "0";
+        if(size <= 0) return "0 " + $("FileLengthUtils.bytes");
         final String[] units = new String[] {
                 $("FileLengthUtils.bytes"),
                 $("FileLengthUtils.kiloBytes"),

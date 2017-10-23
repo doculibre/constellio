@@ -124,7 +124,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
             public Object generateCell(Table source, final Object itemId, Object columnId) {
                 final RecordVO recordVO = records.getRecordVO((int) itemId);
                 ContentVersionVO content = recordVO.get(TemporaryRecord.CONTENT);
-                return new Label(FileLengthUtils.readableFileSize(content.getLength()));
+                return new Label(FileLengthUtils.readableFileSize((content != null ? content.getLength() : 0)));
             }
         });
         table.setColumnHeader(columnId, $("ListTemporaryRecordViewImpl.contentLength"));
