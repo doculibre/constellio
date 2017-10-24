@@ -46,16 +46,21 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
+import com.constellio.app.services.extensions.plugins.PluginActivationFailureCause;
 import com.constellio.app.services.extensions.plugins.PluginServices;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -63,8 +68,6 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class AppManagementService {
 
@@ -86,18 +89,57 @@ public class AppManagementService {
 	private final ZipService zipService;
 	private final IOServices ioServices;
 	private final FoldersLocator foldersLocator;
-	protected final ConstellioEIMConfigs eimConfigs;
 	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
 
-	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
+	public static AppManagementService createFailsafeService() {
+		DataLayerFactory dataLayerFactory = null;
+		SystemGlobalConfigsManager systemGlobalConfigsManager = null;
+		ConstellioPluginManager constellioPluginManager = null;
 
+		try {
+			dataLayerFactory = ConstellioFactories.getInstance().getDataLayerFactory();
+			systemGlobalConfigsManager = ConstellioFactories.getInstance().getAppLayerFactory().getSystemGlobalConfigsManager();
+			constellioPluginManager = ConstellioFactories.getInstance().getAppLayerFactory().getPluginManager();
+		} catch (Exception e) {
+			//Situation seems very bad, new managers will be created
+		}
+
+		if (dataLayerFactory == null) {
+			dataLayerFactory = DataLayerFactory.getLastCreatedInstance();
+		}
+
+		if (systemGlobalConfigsManager == null) {
+			systemGlobalConfigsManager = new SystemGlobalConfigsManager(dataLayerFactory.getConfigManager());
+		}
+
+		if (constellioPluginManager == null) {
+			constellioPluginManager = JSPFConstellioPluginManager.constructWithRegisteredModules(dataLayerFactory);
+		}
+
+		return new AppManagementService(dataLayerFactory, systemGlobalConfigsManager, constellioPluginManager);
+	}
+
+	public AppManagementService(DataLayerFactory dataLayerFactory,
+			SystemGlobalConfigsManager systemGlobalConfigsManager, ConstellioPluginManager constellioPluginManager) {
+
+		this.foldersLocator = new FoldersLocator();
+		this.ioServices = new IOServices(foldersLocator.getDefaultTempFolder());
+		this.fileService = new FileService(foldersLocator.getDefaultTempFolder());
+		this.zipService = new ZipService(ioServices);
+		this.pluginServices = new JSPFPluginServices(ioServices);
+
+		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
+		this.pluginManager = constellioPluginManager;
+		this.upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(dataLayerFactory);
+	}
+
+	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
 		this.systemGlobalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
 		this.pluginManager = appLayerFactory.getPluginManager();
 		this.fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
 		this.foldersLocator = foldersLocator;
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
-		this.eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.upgradeAppRecoveryService = appLayerFactory.newUpgradeAppRecoveryService();
 		this.pluginServices = new JSPFPluginServices(ioServices);
 	}
@@ -110,6 +152,13 @@ public class AppManagementService {
 			writeCommand(commandFile, RESTART_COMMAND);
 		} catch (IOException e) {
 			throw new AppManagementServiceException.CannotWriteInCommandFile(commandFile, e);
+		}
+	}
+
+	public void installPlugin(File tempPluginFile) {
+		PluginActivationFailureCause cause = pluginManager.prepareInstallablePlugin(tempPluginFile);
+		if (cause == null) {
+			systemGlobalConfigsManager.setRestartRequired(true);
 		}
 	}
 
@@ -173,18 +222,16 @@ public class AppManagementService {
 			LOGGER.info(currentStep);
 			warFile.delete();
 
-			if (eimConfigs.isCleanDuringInstall()) {
-				currentStep = "Deleting older versions";
-				progressInfo.setProgressMessage(currentStep);
-				LOGGER.info(currentStep);
-				keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(currentAppFolder.getParentFile(),
-						deployFolder);
-			}
+			currentStep = "Deleting older versions";
+			progressInfo.setProgressMessage(currentStep);
+			LOGGER.info(currentStep);
+			keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(currentAppFolder.getParentFile(),
+					deployFolder);
 
 			currentStep = "Updating wrapper conf to boot on new version";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
-			updateWrapperConf(deployFolder);
+			newWrapperConfServices().updateWrapperConf(deployFolder);
 			upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo,
 					new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
 		} catch (AppManagementServiceException e) {
@@ -195,6 +242,10 @@ public class AppManagementService {
 		}
 		progressInfo.setCurrentState(1);
 
+	}
+
+	private WrapperConfService newWrapperConfServices() {
+		return new WrapperConfService(fileService, foldersLocator);
 	}
 
 	private void updatePluginsWithThoseInWar(File nextWebapp) {
@@ -346,30 +397,6 @@ public class AppManagementService {
 			}
 		}
 		return existingWebAppsMappedByVersion;
-	}
-
-	private void updateWrapperConf(File deployFolder) {
-
-		LOGGER.info("New webapp path is '" + deployFolder.getAbsolutePath() + "'");
-		File wrapperConf = foldersLocator.getWrapperConf();
-		if (foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT) && !wrapperConf.exists()) {
-			return;
-		}
-		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
-		for (int i = 0; i < lines.size(); i++) {
-
-			String line = lines.get(i);
-			if (line.startsWith("wrapper.java.classpath.2=")) {
-				lines.set(i, "wrapper.java.classpath.2=" + deployFolder.getAbsolutePath() + "/WEB-INF/lib/*.jar");
-			}
-			if (line.startsWith("wrapper.java.classpath.3=")) {
-				lines.set(i, "wrapper.java.classpath.3=" + deployFolder.getAbsolutePath() + "/WEB-INF/classes");
-			}
-			if (line.startsWith("wrapper.commandfile=")) {
-				lines.set(i, "wrapper.commandfile=" + deployFolder.getAbsolutePath() + "/WEB-INF/command/cmd");
-			}
-		}
-		fileService.writeLinesToFile(wrapperConf, lines);
 	}
 
 	File findDeployFolder(File parent, String version) {
@@ -601,6 +628,10 @@ public class AppManagementService {
 		systemGlobalConfigsManager.setMarkedForReindexing(true);
 	}
 
+	public void unmarkForReindexing() {
+		systemGlobalConfigsManager.setMarkedForReindexing(false);
+	}
+
 	public boolean isLicensedForAutomaticUpdate() {
 		return getLicenseInfo() != null;
 	}
@@ -633,10 +664,6 @@ public class AppManagementService {
 		File versionDirectory = foldersLocator.getConstellioWebappFolder();
 		String version = GetWarVersionUtils.getWarVersion(versionDirectory);
 		return new ConstellioVersionInfo(version, versionDirectory.getAbsolutePath());
-	}
-
-	public void pointToVersionDuringApplicationStartup(ConstellioVersionInfo constellioVersionInfo) {
-		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
 	}
 
 	private class WebAppFileNameFilter implements FilenameFilter {

@@ -8,7 +8,6 @@ import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
-import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class PropertiesAppLayerConfiguration extends PropertiesConfiguration implements AppLayerConfiguration {
@@ -43,11 +42,11 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 		}
 
 		public void setPluginsFolder(File value) {
-			setFile("plugins.folder", value);
+			setFile("donotoverride.plugins.folder", value);
 		}
 
 		public void setPluginsManagementOnStartupFile(File value) {
-			setFile("pluginsToMoveOnStartup.file", value);
+			setFile("donotoverride.pluginsToMoveOnStartup.file", value);
 		}
 
 		public void setFastMigrationsEnabled(boolean value) {
@@ -78,12 +77,12 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 
 	@Override
 	public File getPluginsFolder() {
-		return getFile("plugins.folder", new FoldersLocator().getPluginsJarsFolder());
+		return getFile("donotoverride.plugins.folder", new FoldersLocator().getPluginsJarsFolder());
 	}
 
 	@Override
 	public File getPluginsManagementOnStartupFile() {
-		return getFile("pluginsToMoveOnStartup.file", new FoldersLocator().getPluginsToMoveOnStartupFile());
+		return getFile("donotoverride.pluginsToMoveOnStartup.file", new FoldersLocator().getPluginsToMoveOnStartupFile());
 	}
 
 	@Override

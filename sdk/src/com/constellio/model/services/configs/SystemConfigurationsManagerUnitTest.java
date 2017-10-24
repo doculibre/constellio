@@ -12,7 +12,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -26,7 +25,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
-import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationScript;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -67,7 +66,8 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		when(cacheManager.getCache(any(String.class))).thenReturn(cache);
 
 		systemConfigurationsManager = spy(
-				new SystemConfigurationsManager(modelLayerFactory, configManager, new Delayed<>(constellioModulesManager), cacheManager));
+				new SystemConfigurationsManager(modelLayerFactory, configManager, new Delayed<>(constellioModulesManager),
+						cacheManager));
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "firstCollection");
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "secondCollection");
 		inOrder.verify(configManager)
-				.updateProperties(eq(SystemConfigurationsManager.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
+				.updateProperties(eq(SystemConfigurationIOServices.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
 		inOrder.verify(batchProcessesManager).markAsPending(aBatchProcess);
 		inOrder.verify(batchProcessesManager).markAsPending(anotherBatchProcess);
 	}

@@ -151,6 +151,7 @@ public class ConstellioFactories {
 						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
 	}
 
+
 	private static AtomicInteger factoryIdSeq = new AtomicInteger();
 
 	public void onRequestStarted() {

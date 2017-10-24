@@ -13,25 +13,17 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.io.streamFactories.services.one.StreamOperation;
 import com.constellio.data.utils.Delayed;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -68,8 +60,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	ModelLayerFactory modelLayerFactory;
 
-	static final String CONFIG_FILE_PATH = "/systemConfigs.properties";
-	ConfigManager configManager;
+	SystemConfigurationIOServices systemConfigurationIOServices;
 
 	Delayed<ConstellioModulesManager> constellioModulesManagerDelayed;
 
@@ -80,21 +71,17 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	public SystemConfigurationsManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager,
 			Delayed<ConstellioModulesManager> constellioModulesManagerDelayed, ConstellioCacheManager cacheManager) {
 		this.modelLayerFactory = modelLayerFactory;
-		this.configManager = configManager;
 		this.constellioModulesManagerDelayed = constellioModulesManagerDelayed;
-		this.configManager.registerListener(CONFIG_FILE_PATH, this);
-		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		configManager.registerListener(SystemConfigurationIOServices.CONFIG_FILE_PATH, this);
+		this.systemConfigurationIOServices = new SystemConfigurationIOServices(configManager,
+				modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices());
 		this.cache = cacheManager.getCache(getClass().getName());
 	}
 
 	@Override
 	public void initialize() {
 		clearCache();
-		configManager.createPropertiesDocumentIfInexistent(CONFIG_FILE_PATH, new PropertiesAlteration() {
-			@Override
-			public void alter(Map<String, String> properties) {
-			}
-		});
+		systemConfigurationIOServices.createEmptyFileIfInexistent();
 	}
 
 	private void clearCache() {
@@ -109,7 +96,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	public boolean signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
 		String propertyKey = config.getPropertyKey();
-		Object currentValue = toObject(config, configManager.getProperties(CONFIG_FILE_PATH).getProperties().get(propertyKey));
+		Object currentValue = systemConfigurationIOServices.getConvertedValue(config);
 		if (currentValue == null) {
 			return reindex(config, config.getDefaultValue(), previousDefaultValue);
 		}
@@ -119,50 +106,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	public boolean setValue(final SystemConfiguration config, final Object newValue) {
 		try {
 			if (config.getType() == SystemConfigurationType.BINARY) {
-				StreamFactory<InputStream> streamFactory = (StreamFactory<InputStream>) newValue;
-				final String configPath = "/systemConfigs/" + config.getCode();
-				if (configManager.exist(configPath)) {
-					if (streamFactory == null) {
-						configManager.delete(configPath);
-					} else {
-
-						try {
-							ioServices.execute(new StreamOperation<InputStream>() {
-								@Override
-								public void execute(InputStream stream) {
-									String hash = configManager.getBinary(configPath).getHash();
-									try {
-										configManager.update(configPath, hash, stream);
-									} catch (OptimisticLockingConfiguration e) {
-										throw new ImpossibleRuntimeException(e);
-									}
-								}
-							}, streamFactory);
-						} catch (IOException e) {
-							LOGGER.error("error when saving stream", e);
-							throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
-						}
-
-					}
-				} else {
-					if (streamFactory != null) {
-						try {
-							ioServices.execute(new StreamOperation<InputStream>() {
-								@Override
-								public void execute(InputStream stream) {
-									configManager.add(configPath, stream);
-								}
-							}, streamFactory);
-						} catch (IOException e) {
-							LOGGER.error("error when saving stream", e);
-							throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
-						}
-
-					}
-				}
+				systemConfigurationIOServices.setBinaryValue(config, (StreamFactory<InputStream>) newValue);
 
 			} else {
-
 				final Object oldValue = getValue(config);
 
 				ValidationErrors errors = new ValidationErrors();
@@ -171,7 +117,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 					throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
 				}
 				if (config.equals(ConstellioEIMConfigs.IN_UPDATE_PROCESS)) {
-					configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+					systemConfigurationIOServices.setValue(config, newValue);
 				} else {
 					return reindex(config, newValue, oldValue);
 				}
@@ -200,12 +146,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	}
 
 	private boolean doesReindexNeedToSetFlag(SystemConfiguration config, Object newValue, Object oldValue) {
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
-		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
-		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
-		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
-
 		List<RecordBatchProcess> batchProcesses = startBatchProcessesToReindex(config);
 		int totalRecordsToReindex = 0;
 		for (RecordBatchProcess process : batchProcesses) {
@@ -238,7 +178,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				}
 			}
 
-			configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+			systemConfigurationIOServices.setValue(config, newValue);
 
 			boolean reindex = totalRecordsToReindex > 10000 || (config.isRequireReIndexing() && totalRecordsToReindex > 0);
 
@@ -271,19 +211,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 		}
 
-	}
-
-	private PropertiesAlteration updateConfigValueAlteration(final SystemConfiguration config, final Object newValue) {
-		return new PropertiesAlteration() {
-			@Override
-			public void alter(Map<String, String> properties) {
-				if (LangUtils.isEqual(newValue, config.getDefaultValue())) {
-					properties.remove(config.getPropertyKey());
-				} else {
-					properties.put(config.getPropertyKey(), SystemConfigurationsManager.this.toString(config, newValue));
-				}
-			}
-		};
 	}
 
 	List<RecordBatchProcess> startBatchProcessesToReindex(SystemConfiguration config) {
@@ -342,62 +269,18 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	public void reset(final SystemConfiguration config) {
 		setValue(config, config.getDefaultValue());
 
-		configManager.updateProperties(CONFIG_FILE_PATH, new PropertiesAlteration() {
-			@Override
-			public void alter(Map<String, String> properties) {
-				properties.remove(config.getPropertyKey());
-			}
-		});
+		systemConfigurationIOServices.reset(config);
 
-	}
-
-	private String toString(SystemConfiguration config, Object value) {
-		if (value == null) {
-			return null;
-		}
-		switch (config.getType()) {
-
-		case STRING:
-			return value.toString();
-		case BOOLEAN:
-			return ((Boolean) value) ? "true" : "false";
-		case INTEGER:
-			return "" + value;
-		case ENUM:
-			return ((Enum<?>) value).name();
-		}
-		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
-	}
-
-	private Object toObject(SystemConfiguration config, String value) {
-		if (value == null) {
-			return null;
-		}
-		switch (config.getType()) {
-
-		case STRING:
-			return value;
-		case BOOLEAN:
-			return "true".equals(value);
-		case INTEGER:
-			return Integer.valueOf(value);
-		case ENUM:
-			return EnumUtils.getEnum((Class) config.getEnumClass(), value);
-		}
-		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
 
 	private synchronized void loadPropertiesFileInCacheIfNecessary() {
 		if (readPropertiesFileRequired) {
-			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
-			if (propertiesConfig != null) {
-				Map<String, String> properties = propertiesConfig.getProperties();
-				for (String key : properties.keySet()) {
-					String value = properties.get(key);
-					cache.put(key, value);
-				}
-				readPropertiesFileRequired = false;
+			Map<String, String> properties = systemConfigurationIOServices.getRawProperties();
+			for (String key : properties.keySet()) {
+				String value = properties.get(key);
+				cache.put(key, value);
 			}
+			readPropertiesFileRequired = false;
 		}
 	}
 
@@ -409,9 +292,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			byte[] binaryContentFromCache = cache.get(configKey);
 			StreamFactory<InputStream> inputStreamFactory;
 			if (binaryContentFromCache == null) {
-				BinaryConfiguration binaryConfiguration = configManager.getBinary(configKey);
-				if (binaryConfiguration != null) {
-					inputStreamFactory = binaryConfiguration.getInputStreamFactory();
+				inputStreamFactory = systemConfigurationIOServices.getBinaryValue(config);
+
+				if (inputStreamFactory != null) {
 					try (InputStream in = inputStreamFactory.create(configKey + ".loadingInCache")) {
 						byte[] binaryContent = IOUtils.toByteArray(in);
 						cache.put(configKey, binaryContent);
@@ -432,7 +315,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			String propertyKey = config.getPropertyKey();
 			String valueFromCache = cache.get(propertyKey);
 			if (valueFromCache != null) {
-				value = (T) toObject(config, valueFromCache);
+				value = (T) systemConfigurationIOServices.toObject(config, valueFromCache);
 			} else {
 				value = (T) config.getDefaultValue();
 			}

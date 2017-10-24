@@ -1,5 +1,7 @@
 package com.constellio.model.services.security.authentification;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationServiceRuntimeException.IncorrectPassword;
@@ -23,6 +26,14 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 	private final ConfigManager configManager;
 
 	private final HashingService hashingService;
+
+	public static PasswordFileAuthenticationService createFailSafeService() {
+		return new PasswordFileAuthenticationService(DataLayerFactory.getLastCreatedInstance());
+	}
+
+	public PasswordFileAuthenticationService(DataLayerFactory dataLayerFactory) {
+		this(dataLayerFactory.getConfigManager(), dataLayerFactory.getIOServicesFactory().newHashingService(BASE64));
+	}
 
 	public PasswordFileAuthenticationService(ConfigManager configManager, HashingService hashingService) {
 		this.configManager = configManager;

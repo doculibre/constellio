@@ -19,17 +19,11 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
-import com.constellio.app.modules.complementary.ESRMRobotsModule;
-import com.constellio.app.modules.es.ConstellioESModule;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.robots.ConstellioRobotsModule;
-import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.metadata.AppSchemasServices;
@@ -52,7 +46,6 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactoryImpl;
 import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
@@ -125,16 +118,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		String warVersion = newApplicationService().getWarVersion();
 		dataLayerFactory.setConstellioVersion(warVersion);
 
-		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),
-				appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
-				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
-		pluginManager.registerModule(new ConstellioRMModule());
-
-		pluginManager.registerModule(new ConstellioESModule());
-		pluginManager.registerModule(new TaskModule());
-		pluginManager.registerModule(new ConstellioRobotsModule());
-		pluginManager.registerModule(new ESRMRobotsModule());
+		pluginManager = add(JSPFConstellioPluginManager.constructWithRegisteredModules(appLayerConfiguration, dataLayerFactory));
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
@@ -201,8 +185,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
-		return new UpgradeAppRecoveryServiceImpl(this,
-				dataLayerFactory.getIOServicesFactory().newIOServices());
+		return new UpgradeAppRecoveryServiceImpl(dataLayerFactory);
 	}
 
 	public SystemCheckManager getSystemCheckManager() {
@@ -211,8 +194,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	@Override
 	public void initialize() {
-		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(this,
-				dataLayerFactory.getIOServicesFactory().newIOServices());
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(dataLayerFactory);
 		upgradeAppRecoveryService.deletePreviousWarCausingFailure();
 		SystemConfigurationsManager configManager = modelLayerFactory
 				.getSystemConfigurationsManager();
@@ -240,6 +222,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			} catch (Throwable exception) {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
+
+					close(false);
+					getModelLayerFactory().close(false);
 					recoveryService.rollback(exception);
 					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {

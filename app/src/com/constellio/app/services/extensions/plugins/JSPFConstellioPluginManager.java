@@ -38,7 +38,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.modules.complementary.ESRMRobotsModule;
+import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.robots.ConstellioRobotsModule;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_BlankId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_ExistingId;
@@ -53,6 +59,7 @@ import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPlugi
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -71,6 +78,38 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
 	private IOServices ioServices;
 	private final File pluginsManagementOnStartupFile;
+
+	public static JSPFConstellioPluginManager constructWithRegisteredModules(DataLayerFactory dataLayerFactory) {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		JSPFConstellioPluginManager pluginManager = new JSPFConstellioPluginManager(dataLayerFactory,
+				foldersLocator.getPluginsJarsFolder(), foldersLocator.getPluginsToMoveOnStartupFile());
+		registerBuiltinModules(pluginManager);
+		return pluginManager;
+	}
+
+	public static JSPFConstellioPluginManager constructWithRegisteredModules(AppLayerConfiguration appLayerConfiguration,
+			DataLayerFactory dataLayerFactory) {
+		JSPFConstellioPluginManager pluginManager = new JSPFConstellioPluginManager(dataLayerFactory,
+				appLayerConfiguration.getPluginsFolder(), appLayerConfiguration.getPluginsManagementOnStartupFile());
+		registerBuiltinModules(pluginManager);
+		return pluginManager;
+	}
+
+	public JSPFConstellioPluginManager(DataLayerFactory dataLayerFactory,
+			File pluginsFolder, File pluginsManagementOnStartupFile) {
+		this(pluginsFolder, pluginsManagementOnStartupFile,
+				dataLayerFactory.getIOServicesFactory().newIOServices(),
+				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager()));
+	}
+
+	private static void registerBuiltinModules(JSPFConstellioPluginManager pluginManager) {
+		pluginManager.registerModule(new ConstellioRMModule());
+
+		pluginManager.registerModule(new ConstellioESModule());
+		pluginManager.registerModule(new TaskModule());
+		pluginManager.registerModule(new ConstellioRobotsModule());
+		pluginManager.registerModule(new ESRMRobotsModule());
+	}
 
 	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile, IOServices ioServices,
 			ConstellioPluginConfigurationManager pluginConfigManger) {
