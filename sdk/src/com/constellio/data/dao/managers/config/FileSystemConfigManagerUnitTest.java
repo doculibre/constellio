@@ -33,6 +33,7 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.hashing.HashingService;
@@ -46,6 +47,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock SAXBuilder builder;
 
 	@Mock DataLayerExtensions dataLayerExtensions;
+	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 	@Mock FileOutputStream binaryOutputStream;
 
 	PropertiesConfiguration propertiesConfiguration;
@@ -111,6 +113,8 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 		xmlConfiguration = new XMLConfiguration(hashOfAllFile, hashOfAllFile, document);
 
 		binaryConfiguration = new BinaryConfiguration(hashOfAllFile, binStreamFactory);
+
+		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
 	}
 
 	@Test

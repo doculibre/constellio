@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,6 +37,7 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ThreadList;
@@ -78,6 +80,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 	@Mock ConfigUpdatedEventListener otherPathListener;
 	@Mock ConfigEventListener otherEventListener;
 	@Mock DataLayerExtensions dataLayerExtensions;
+	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 
 	ConstellioCache cache;
 
@@ -100,6 +103,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 
 		this.loadElementWithRoot();
 
+		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
 	}
 
 	private void loadElementWithRoot() {
