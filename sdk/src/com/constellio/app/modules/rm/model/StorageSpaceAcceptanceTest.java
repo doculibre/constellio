@@ -1,7 +1,12 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.data.utils.LangUtils.isEqual;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.services.taxonomies.*;
+import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,6 +18,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
+import java.util.List;
+
 public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -23,6 +30,8 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	SearchServices searchServices;
 
+	Users users = new Users();
+
 	@Before
 	public void setUp() {
 		prepareSystem(
@@ -30,6 +39,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
+		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices());
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -173,5 +183,56 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(child1.setDescription("test"));
 		recordServices.update(child4.setDescription("test"));
+	}
+
+	@Test
+	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree() throws RecordServicesException {
+		StorageSpace parentStorageSpace = buildStorageSpace();
+		recordServices.add(parentStorageSpace);
+		StorageSpace child = buildStorageSpace().setParentStorageSpace(parentStorageSpace);
+		recordServices.add(child);
+		StorageSpace childChild = buildStorageSpace().setParentStorageSpace(child).setCapacity(10);
+		recordServices.add(childChild);
+
+		TaxonomiesSearchServices taxonomiesSearchServices = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService();
+		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						ConstellioFactories.getInstance().getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				return canStorageSpaceContainContainer(storageSpace, 20D);
+			}
+		});
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(new TaxonomiesSearchFilter());
+		List<TaxonomySearchRecord> visibleChild = taxonomiesSearchServices.getLinkableChildConcept(users.adminIn(zeCollection), parentStorageSpace.getWrappedRecord(), "plan", StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
+						ConstellioFactories.getInstance().getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				return canStorageSpaceContainContainer(storageSpace, 5D);
+			}
+		});
+		taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(new TaxonomiesSearchFilter());
+		visibleChild = taxonomiesSearchServices.getLinkableChildConcept(users.adminIn(zeCollection), parentStorageSpace.getWrappedRecord(), "plan", StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+	}
+
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
+		Double numberOfChild = storageSpace.getNumberOfChild();
+		boolean hasNoChildren = numberOfChild == null || isEqual(0.0, numberOfChild);
+		boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
+				|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
+
+		return hasNoChildren && enoughAvailableSize;
 	}
 }
