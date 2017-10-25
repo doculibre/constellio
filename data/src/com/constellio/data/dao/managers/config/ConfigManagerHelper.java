@@ -23,33 +23,11 @@ public class ConfigManagerHelper {
 	}
 
 	public void updateXML(String path, DocumentAlteration documentAlteration) {
-		//Read/update extension called when calling getXML and update
-		XMLConfiguration xmlConfiguration = configManager.getXML(path);
-
-		Document doc = xmlConfiguration.getDocument();
-		documentAlteration.alter(doc);
-
-		try {
-			configManager.update(path, xmlConfiguration.getHash(), doc);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
-		}
-
+		updateXML(path, documentAlteration, 0);
 	}
 
 	public void updateProperties(String path, PropertiesAlteration propertiesAlteration) {
-		//Read/update extension called when calling getProperties and update
-		PropertiesConfiguration propertiesConfiguration = configManager.getProperties(path);
-
-		Map<String, String> doc = propertiesConfiguration.getProperties();
-		propertiesAlteration.alter(doc);
-
-		try {
-			configManager.update(path, propertiesConfiguration.getHash(), doc);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
-		}
-
+		updateProperties(path, propertiesAlteration, 0);
 	}
 
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
@@ -75,6 +53,44 @@ public class ConfigManagerHelper {
 				LOGGER.info("Configuration was created by another instance", e);
 			}
 		}
+	}
+
+	public void updateXML(String path, DocumentAlteration documentAlteration, int attempt) {
+		//Read/update extension called when calling getXML and update
+		XMLConfiguration xmlConfiguration = configManager.getXML(path);
+
+		Document doc = xmlConfiguration.getDocument();
+		documentAlteration.alter(doc);
+
+		try {
+			configManager.update(path, xmlConfiguration.getHash(), doc);
+		} catch (OptimisticLockingConfiguration e) {
+			if (attempt > 2) {
+				throw new ImpossibleRuntimeException(e);
+			} else {
+				updateXML(path, documentAlteration, attempt + 1);
+			}
+		}
+
+	}
+
+	public void updateProperties(String path, PropertiesAlteration propertiesAlteration, int attempt) {
+		//Read/update extension called when calling getProperties and update
+		PropertiesConfiguration propertiesConfiguration = configManager.getProperties(path);
+
+		Map<String, String> doc = propertiesConfiguration.getProperties();
+		propertiesAlteration.alter(doc);
+
+		try {
+			configManager.update(path, propertiesConfiguration.getHash(), doc);
+		} catch (OptimisticLockingConfiguration e) {
+			if (attempt > 2) {
+				throw new ImpossibleRuntimeException(e);
+			} else {
+				updateProperties(path, propertiesAlteration, attempt + 1);
+			}
+		}
+
 	}
 
 }

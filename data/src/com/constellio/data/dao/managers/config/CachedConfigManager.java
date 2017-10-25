@@ -88,21 +88,30 @@ public class CachedConfigManager implements ConfigManager {
 
 	@Override
 	public void delete(String path) {
-		configManager.delete(path);
-		constellioCache.remove(path);
+		try {
+			configManager.delete(path);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
 	public void deleteFolder(String path) {
-		configManager.deleteFolder(path);
-		constellioCache.remove(path);
+		try {
+			configManager.deleteFolder(path);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
 	public void delete(String path, String hash)
 			throws OptimisticLockingConfiguration {
-		configManager.delete(path, hash);
-		constellioCache.remove(path);
+		try {
+			configManager.delete(path, hash);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
@@ -112,14 +121,20 @@ public class CachedConfigManager implements ConfigManager {
 
 	@Override
 	public void add(String path, Document newDocument) {
-		configManager.add(path, newDocument);
-		constellioCache.remove(path);
+		try {
+			configManager.add(path, newDocument);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
 	public void add(String path, Map<String, String> newProperties) {
-		configManager.add(path, newProperties);
-		constellioCache.remove(path);
+		try {
+			configManager.add(path, newProperties);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
@@ -131,52 +146,76 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void update(String path, String hash, Document newDocument)
 			throws OptimisticLockingConfiguration {
-		configManager.update(path, hash, newDocument);
-		removeFromCache(path);
+		try {
+			configManager.update(path, hash, newDocument);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
 	public void update(String path, String hash, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
-		configManager.update(path, hash, newProperties);
-		constellioCache.remove(path);
+		try {
+			configManager.update(path, hash, newProperties);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override
 	public void registerListener(String path, ConfigEventListener listener) {
-		configManager.registerListener(path, listener);
-		constellioCache.clear();
+		try {
+			configManager.registerListener(path, listener);
+		} finally {
+			constellioCache.clear();
+		}
 	}
 
 	@Override
 	public void deleteAllConfigsIn(String collection) {
-		configManager.deleteAllConfigsIn(collection);
-		constellioCache.clear();
+		try {
+			configManager.deleteAllConfigsIn(collection);
+		} finally {
+			constellioCache.clear();
+		}
 	}
 
 	@Override
 	public void copySettingsFrom(File setting) {
-		configManager.copySettingsFrom(setting);
-		constellioCache.clear();
+		try {
+			configManager.copySettingsFrom(setting);
+		} finally {
+			constellioCache.clear();
+		}
 	}
 
 	@Override
 	public void move(String src, String dest) {
-		configManager.move(src, dest);
-		constellioCache.remove(src);
-		constellioCache.remove(dest);
+		try {
+			configManager.move(src, dest);
+		} finally {
+			constellioCache.remove(src);
+			constellioCache.remove(dest);
+		}
 	}
 
 	@Override
 	public void importFrom(File settingsFolder) {
-		configManager.importFrom(settingsFolder);
-		constellioCache.clear();
+		try {
+			configManager.importFrom(settingsFolder);
+		} finally {
+			constellioCache.clear();
+		}
 	}
 
 	@Override
 	public void exportTo(File settingsFolder) {
-		configManager.exportTo(settingsFolder);
-		constellioCache.clear();
+		try {
+			configManager.exportTo(settingsFolder);
+		} finally {
+			constellioCache.clear();
+		}
 	}
 
 	@Override
