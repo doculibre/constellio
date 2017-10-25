@@ -1,12 +1,30 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.taxonomies.*;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -186,57 +204,64 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree() throws RecordServicesException {
-		StorageSpace parentStorageSpace = buildStorageSpace();
-		recordServices.add(parentStorageSpace);
-		StorageSpace child = buildStorageSpace().setParentStorageSpace(parentStorageSpace);
-		recordServices.add(child);
-		StorageSpace childChild = buildStorageSpace().setParentStorageSpace(child).setCapacity(10);
-		recordServices.add(childChild);
-		recordServices.recalculate(child);
-		recordServices.update(child);
-		recordServices.recalculate(parentStorageSpace);
-		recordServices.update(parentStorageSpace);
+	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree() throws Exception {
+		cleanStorageSpaces();
+		StorageSpace ancestor = buildStorageSpace();
+		StorageSpace parent = buildStorageSpace().setParentStorageSpace(ancestor);
+		StorageSpace child = buildStorageSpace().setParentStorageSpace(parent).setCapacity(10);
 
-		TaxonomiesSearchServices taxonomiesSearchServices = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService();
+		Transaction transaction = new Transaction();
+		transaction.addAll(ancestor, parent, child);
+		recordServices.execute(transaction);
+		waitForBatchProcess();
+
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
 			@Override
 			public boolean isLinkable(LinkableConceptFilterParams params) {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
-						ConstellioFactories.getInstance().getAppLayerFactory());
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
 
 				return canStorageSpaceContainContainer(storageSpace, 20D);
 			}
 		});
-		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(new TaxonomiesSearchFilter());
-		List<TaxonomySearchRecord> visibleChild = taxonomiesSearchServices.getLinkableChildConcept(users.adminIn(zeCollection), parentStorageSpace.getWrappedRecord(), "plan", StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
+
+		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).isEmpty();
 
-		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
-			@Override
-			public boolean isLinkable(LinkableConceptFilterParams params) {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getRecord().getCollection(),
-						ConstellioFactories.getInstance().getAppLayerFactory());
+		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES, StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
 
-				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+		child.setCapacity(30);
+		recordServices.update(child);
 
-				return canStorageSpaceContainContainer(storageSpace, 5D);
-			}
-		});
-		taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(new TaxonomiesSearchFilter());
-		visibleChild = taxonomiesSearchServices.getLinkableChildConcept(users.adminIn(zeCollection), parentStorageSpace.getWrappedRecord(), "plan", StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES, StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
 	}
 
 	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
-		Double numberOfChild = storageSpace.getNumberOfChild();
-		boolean hasNoChildren = numberOfChild == null || isEqual(0.0, numberOfChild);
-		boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
-				|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
+		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null && storageSpace.getCapacity() > containerCapacity;
+	}
 
-		return hasNoChildren && enoughAvailableSize;
+	public void cleanStorageSpaces() {
+		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+		modifiableSolrParams.set("q", "schema_s:storageSpace*");
+		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+		try {
+			recordDao.execute(transaction);
+		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+			optimisticLocking.printStackTrace();
+		}
 	}
 }
