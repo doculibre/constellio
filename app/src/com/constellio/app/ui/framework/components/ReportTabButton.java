@@ -19,6 +19,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
+import com.vaadin.event.FieldEvents;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
@@ -37,39 +38,45 @@ public class ReportTabButton extends WindowButton {
     private ComboBox reportComboBox, customElementSelected;
     private PrintableReportListPossibleType selectedReporType;
     private String selectedSchemaType;
-    private boolean noExcelButton = false, noPDFButton = false;
+    private boolean noExcelButton = false, noPDFButton = false, removePrintableTab = false, removeExcelTab = false;
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
+    private TabSheet.Tab excelTab, pdfTab;
+    private NewReportPresenter presenter;
+    private List<PrintableReportTemplate> printableReportTemplateList;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false, null);
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton, null);
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false, null);
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
-        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
+        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false, null);
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter) {
 
         super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
+        this.presenter = presenter;
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
         this.noPDFButton = noPDFButton;
         recordVOList = new ArrayList<>();
     }
+
+
 
     public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
         if (recordVOS.length > 0) {
@@ -84,33 +91,61 @@ public class ReportTabButton extends WindowButton {
     }
 
     @Override
+    public void afterOpenModal() {
+        if(this.removePrintableTab) {
+            pdfTab.setVisible(false);
+        }
+
+        if(this.removeExcelTab) {
+            excelTab.setVisible(false);
+        }
+
+        if(this.removeExcelTab && this.removePrintableTab) {
+            UI.getCurrent().removeWindow(super.getWindow());
+            String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
+            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+            notification.setHtmlContentAllowed(true);
+            notification.show(Page.getCurrent());
+        }
+    }
+
+    @Override
     protected Component buildWindowContent() {
         mainLayout = new VerticalLayout();
-
         tabSheet = new TabSheet();
         if (!this.noExcelButton) {
-            tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
+            excelTab = tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
         if (!this.noPDFButton) {
-            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+            pdfTab = tabSheet.addTab( createPDFTab(), $("ReportTabButton.PDFReport"));
         }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
 
-    private Component createExcelTab() {
+    private VerticalLayout createExcelTab() {
         VerticalLayout verticalLayout = new VerticalLayout();
         try {
-            AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-            presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-            verticalLayout.addComponent(new ReportSelector(presenter));
+            NewReportPresenter newReportPresenter;
+            if(presenter == null) {
+                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+                newReportPresenter = Advancedpresenter;
+            } else {
+                newReportPresenter = this.presenter;
+            }
+
+            verticalLayout.addComponent(new ReportSelector(newReportPresenter));
+            if(!verticalLayout.getComponent(0).isVisible()) {
+                this.removeExcelTab = true;
+            }
         } catch (UnsupportedReportException unsupportedReport) {
             view.showErrorMessage($("ReportTabButton.noExcelReport"));
         }
         return verticalLayout;
     }
 
-    private Component createPDFTab() {
+    private VerticalLayout createPDFTab() {
         PDFTabLayout = new VerticalLayout();
         occurence = getAllMetadataSchemas();
         PDFTabLayout.addComponent(createDefaultSelectComboBox());
@@ -283,10 +318,8 @@ public class ReportTabButton extends WindowButton {
 
     private ComboBox fillTemplateComboBox(ComboBox comboBox) {
         comboBox.removeAllItems();
-        List<PrintableReportTemplate> printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
-        if (printableReportTemplateList.isEmpty()) {
-            showNoDefinedReportTemplateForConditionError();
-        } else {
+        printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
+        if (!printableReportTemplateList.isEmpty())  {
             if (printableReportTemplateList.size() == 1) {
                 PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
                 comboBox.addItem(onlyTemplate);
@@ -302,6 +335,8 @@ public class ReportTabButton extends WindowButton {
                     }
                 }
             }
+        } else {
+            removePrintableTab = true;
         }
         return comboBox;
     }
@@ -328,7 +363,7 @@ public class ReportTabButton extends WindowButton {
 
     private void showNoDefinedReportTemplateForConditionError() {
         String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
-        //TODO remove tab
+        pdfTab.setVisible(false);
         if (view == null) {
             Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
             notification.setHtmlContentAllowed(true);

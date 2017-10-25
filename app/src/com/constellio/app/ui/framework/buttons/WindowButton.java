@@ -96,6 +96,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 					}
 
 					UI.getCurrent().addWindow(window);
+					this.afterOpenModal();
 				} else {
 					window.close();
 				}
@@ -105,6 +106,9 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	
 	protected boolean acceptWindowOpen(ClickEvent event) {
 		return true;
+	}
+	public void afterOpenModal ( ){
+
 	}
 
 	public WindowConfiguration getConfiguration() {
