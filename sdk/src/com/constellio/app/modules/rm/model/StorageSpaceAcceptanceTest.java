@@ -193,6 +193,10 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		recordServices.add(child);
 		StorageSpace childChild = buildStorageSpace().setParentStorageSpace(child).setCapacity(10);
 		recordServices.add(childChild);
+		recordServices.recalculate(child);
+		recordServices.update(child);
+		recordServices.recalculate(parentStorageSpace);
+		recordServices.update(parentStorageSpace);
 
 		TaxonomiesSearchServices taxonomiesSearchServices = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService();
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
