@@ -78,6 +78,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		this.hashService = hashService;
 		this.cache = cache;
 		this.extensions = extensions;
+		this.configManagerHelper = new ConfigManagerHelper(this);
 	}
 
 	@Override
@@ -226,7 +227,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		return exist(path, true);
 	}
 
-	public synchronized boolean exist(String path, boolean callExtensions) {
+	public final synchronized boolean exist(String path, boolean callExtensions) {
 		if (callExtensions) {
 			extensions.getSystemWideExtensions().onReadConfig(path);
 		}
