@@ -23,7 +23,6 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -42,21 +41,19 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class BatchProcessesManager implements StatefulService, ConfigUpdatedEventListener {
 
-	static final String CACHE_KEY = "list";
 	static final String BATCH_PROCESS_LIST_PATH = "/batchProcesses/list.xml";
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessesManager.class);
 	private final ConfigManager configManager;
 	private final SearchServices searchServices;
 	private final List<BatchProcessesListUpdatedEventListener> listeners = new ArrayList<>();
 	private final ModelLayerFactory modelLayerFactory;
-	ConstellioCache cache;
 
 	public BatchProcessesManager(ModelLayerFactory modelLayerFactory) {
 		super();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
-		this.cache = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager().getCache(getClass().getName());
+		configManager.keepInCache(BATCH_PROCESS_LIST_PATH);
 	}
 
 	@Override
@@ -87,7 +84,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			configManager.delete("/batchProcesses/" + batchProcessId + ".xml");
 		}
 
-		cache.clear();
 	}
 
 	public RecordBatchProcess addPendingBatchProcess(LogicalSearchCondition condition, BatchProcessAction action, String title) {
@@ -234,7 +230,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	private void updateBatchProcesses(DocumentAlteration documentAlteration) {
 		configManager.updateXML(BATCH_PROCESS_LIST_PATH, documentAlteration);
-		cache.clear();
 	}
 
 	private BatchProcess withQueryIfBatchProcessFromPreviousFramework(BatchProcess batchProcess) {
@@ -313,19 +308,12 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	XMLConfiguration getProcessListXMLConfiguration() {
 
-		XMLConfiguration cachedConfig = cache.get(CACHE_KEY);
-
-		if (cachedConfig != null) {
-			return cachedConfig;
-		}
-
 		XMLConfiguration config = configManager.getXML(BATCH_PROCESS_LIST_PATH);
 		if (config == null) {
 			saveEmptyProcessListXMLDocument();
 
 			config = getProcessListXMLConfiguration();
 		}
-		cache.put(CACHE_KEY, config);
 		return config;
 	}
 
@@ -449,7 +437,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		writer.createEmptyProcessList();
 
 		configManager.add(BATCH_PROCESS_LIST_PATH, document);
-		cache.clear();
 
 	}
 
@@ -458,7 +445,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		BatchProcessListWriter writer = newBatchProcessListWriter(processList);
 		writer.startNextBatchProcess(getCurrentTime());
 		configManager.update(BATCH_PROCESS_LIST_PATH, xmlConfiguration.getHash(), processList);
-		cache.clear();
 	}
 
 	public void registerBatchProcessesListUpdatedEvent(BatchProcessesListUpdatedEventListener listener) {
@@ -524,7 +510,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).markBatchProcessAsFinished(batchProcess, errorsCount);
 			}
 		});
-		cache.clear();
 	}
 
 	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement,
@@ -535,6 +520,5 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).incrementProgression(batchProcess, progressionIncrement, errorsIncrement);
 			}
 		});
-		cache.clear();
 	}
 }

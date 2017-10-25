@@ -419,12 +419,18 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 						throw new RuntimeException(e);
 					}
 				} else {
+					cache.put(configKey, new byte[0]);
 					inputStreamFactory = null;
 				}
+
+			} else if (binaryContentFromCache.length == 0) {
+				inputStreamFactory = null;
+
 			} else {
 				inputStreamFactory = ioServices
 						.newByteArrayStreamFactory(binaryContentFromCache, getClass().getName() + "." + configKey);
 			}
+
 			value = (T) inputStreamFactory;
 
 		} else {

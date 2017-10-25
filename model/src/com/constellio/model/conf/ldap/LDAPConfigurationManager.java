@@ -17,7 +17,6 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
@@ -39,12 +38,11 @@ public class LDAPConfigurationManager implements StatefulService {
 	EncryptionServices encryptionServices;
 	ConfigManager configManager;
 	Date nextUsersSyncFireTime;
-	ConstellioCache configsCache;
 
 	public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
 		this.configManager = configManager;
 		this.modelLayerFactory = modelLayerFactory;
-		this.configsCache = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager().getCache(getClass().getName());
+		configManager.keepInCache(LDAP_CONFIGS);
 		configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
@@ -184,7 +182,6 @@ public class LDAPConfigurationManager implements StatefulService {
 				}
 			}
 		});
-		configsCache.clear();
 		modelLayerFactory.getLdapAuthenticationService().reloadServiceConfiguration();
 		modelLayerFactory.getLdapUserSyncManager().reloadLDAPUserSynchConfiguration();
 	}
@@ -359,15 +356,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private PropertiesConfiguration getConfigs() {
-		PropertiesConfiguration cachedConfigs = configsCache.get(CACHE_KEY);
-
-		if (cachedConfigs != null) {
-			return cachedConfigs;
-		}
-
-		PropertiesConfiguration configs = configManager.getProperties(LDAP_CONFIGS);
-		configsCache.put(CACHE_KEY, configs);
-		return configs;
+		return configManager.getProperties(LDAP_CONFIGS);
 	}
 
 	public boolean isLDAPAuthentication() {

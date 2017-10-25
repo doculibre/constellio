@@ -40,7 +40,6 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.hashing.HashingService;
@@ -65,6 +64,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private final IOServices ioServices;
 	private final ConstellioCache cache;
 	private DataLayerExtensions extensions;
+	private ConfigManagerHelper configManagerHelper;
 
 	//	private final Map<String, Object> cache = new HashMap<>();
 
@@ -223,7 +223,13 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized boolean exist(String path) {
-		extensions.getSystemWideExtensions().onReadConfig(path);
+		return exist(path, true);
+	}
+
+	public synchronized boolean exist(String path, boolean callExtensions) {
+		if (callExtensions) {
+			extensions.getSystemWideExtensions().onReadConfig(path);
+		}
 		File file = new File(configFolder, path);
 		return file.exists() && file.isFile();
 	}
@@ -250,7 +256,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	public synchronized BinaryConfiguration getBinary(String path) {
 		extensions.getSystemWideExtensions().onReadConfig(path);
 		LOGGER.debug("get binary => " + path);
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 
@@ -291,7 +297,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	public synchronized PropertiesConfiguration getProperties(String path) {
 		extensions.getSystemWideExtensions().onReadConfig(path);
 		LOGGER.debug("get properties  => " + path);
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 
@@ -501,63 +507,22 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public synchronized void updateXML(String path, DocumentAlteration documentAlteration) {
-		//Read/update extension called when calling getXML and update
-		XMLConfiguration xmlConfiguration = this.getXML(path);
-
-		Document doc = xmlConfiguration.getDocument();
-		documentAlteration.alter(doc);
-
-		try {
-			update(path, xmlConfiguration.getHash(), doc);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
-		}
-
-		removeFromCache(path);
+		configManagerHelper.updateXML(path, documentAlteration);
 	}
 
 	@Override
 	public synchronized void updateProperties(String path, PropertiesAlteration propertiesAlteration) {
-		//Read/update extension called when calling getProperties and update
-		PropertiesConfiguration propertiesConfiguration = this.getProperties(path);
-
-		Map<String, String> doc = propertiesConfiguration.getProperties();
-		propertiesAlteration.alter(doc);
-
-		try {
-			update(path, propertiesConfiguration.getHash(), doc);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
-		}
-
-		removeFromCache(path);
+		configManagerHelper.updateProperties(path, propertiesAlteration);
 	}
 
 	@Override
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
-		if (!exist(path)) {
-			Document document = new Document();
-			documentAlteration.alter(document);
-			try {
-				add(path, document);
-			} catch (ConfigurationAlreadyExists e) {
-				LOGGER.info("Configuration was created by another instance", e);
-			}
-		}
-
+		configManagerHelper.createXMLDocumentIfInexistent(path, documentAlteration);
 	}
 
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
-		if (!exist(path)) {
-			Map<String, String> properties = new HashMap<>();
-			propertiesAlteration.alter(properties);
-			try {
-				add(path, properties);
-			} catch (ConfigurationAlreadyExists e) {
-				LOGGER.info("Configuration was created by another instance", e);
-			}
-		}
+		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
 	}
 
 	@Override
@@ -588,10 +553,10 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void move(String src, String dest) {
 		extensions.getSystemWideExtensions().onAddUpdateConfig(dest);
-		if (!exist(src)) {
+		if (!exist(src, false)) {
 			throw new NoSuchConfiguration(src);
 		}
-		if (exist(dest)) {
+		if (exist(dest, false)) {
 			throw new ConfigurationAlreadyExists(dest);
 		}
 		File srcFile = new File(configFolder, src);
@@ -622,14 +587,19 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
+	@Override
+	public void keepInCache(String path) {
+		//This config manager has no cache
+	}
+
 	private void validateFileExistance(String path) {
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			throw new NoSuchConfiguration(path);
 		}
 	}
 
 	private void validateFileNonExistance(String path) {
-		if (exist(path)) {
+		if (exist(path, false)) {
 			throw new ConfigManagerRuntimeException.ConfigurationAlreadyExists(path);
 		}
 	}
