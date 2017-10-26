@@ -557,8 +557,9 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	private WindowButton buildAddToCartButton(final VerticalLayout actionMenuLayout) {
+		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
 		WindowButton windowButton = new WindowButton($("ConstellioHeader.selection.actions.addToCart"),
-				$("ConstellioHeader.selection.actions.addToCart")) {
+				$("ConstellioHeader.selection.actions.addToCart"), configuration) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
