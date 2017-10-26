@@ -45,7 +45,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 public class MigrationServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MigrationServices.class);
-	private static final String VERSION_PROPERTIES_FILE = "/version.properties";
+	public static final String VERSION_PROPERTIES_FILE = "/version.properties";
 
 	ConfigManager configManager;
 	ConstellioEIM constellioEIM;

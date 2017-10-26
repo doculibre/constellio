@@ -69,6 +69,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		this.migrationServicesDelayed = migrationServicesDelayed;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.constellioPluginManager = constellioPluginManager;
+		this.configManager.keepInCache(MODULES_CONFIG_PATH);
 	}
 
 	@Override
@@ -84,8 +85,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getInstalledModules() {
 		List<InstallableModule> installedModules = new ArrayList<>();
-		XMLConfiguration xmlConfig;
-		xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readConfigs();
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 		for (InstallableModule module : getAllModules()) {
 			Element moduleElement = moduleElements.get(module.getId());
@@ -99,7 +99,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	public List<InstallableModule> getEnabledModules(String collection) {
 		List<InstallableModule> enabledModules = new ArrayList<>();
 
-		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readConfigs();
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 
 		Map<String, Set<String>> dependencies = new HashMap<>();
@@ -173,7 +173,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getDisabledModules(String collection) {
 		List<InstallableModule> disabledModules = new ArrayList<>();
-		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readConfigs();
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 		for (InstallableModule module : getAllModules()) {
 			Element moduleElement = moduleElements.get(module.getId());
@@ -186,7 +186,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getModulesAvailableForInstallation() {
 		List<InstallableModule> availableModules = new ArrayList<>();
-		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readConfigs();
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 
 		for (InstallableModule module : getAllModules()) {
@@ -510,6 +510,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			permissions.putAll(PluginUtil.getPermissions(module));
 		}
 		return permissions;
+	}
+
+	private XMLConfiguration readConfigs() {
+		return configManager.getXML(MODULES_CONFIG_PATH);
 	}
 
 	public void markAsEnabled(final Module module, final String collection) {

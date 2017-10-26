@@ -105,6 +105,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private final SystemCheckManager systemCheckManager;
 
+	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
+
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 		super(modelLayerFactory, statefullServiceDecorator, instanceName);
@@ -128,7 +130,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),
 				appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
-				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
+				new ConstellioPluginConfigurationManager(dataLayerFactory)));
 		pluginManager.registerModule(new ConstellioRMModule());
 
 		pluginManager.registerModule(new ConstellioESModule());
@@ -139,8 +141,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
-		this.systemGlobalConfigsManager = add(
-				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager()));
+		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
 		this.collectionsManager = add(
 				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -152,7 +153,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager(), this);
 		this.navigatorConfigService = new NavigatorConfigurationService();
 		this.systemCheckManager = add(new SystemCheckManager(this));
+		this.upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 
+		dataLayerFactory.getConfigManager().keepInCache(MigrationServices.VERSION_PROPERTIES_FILE);
 	}
 
 	private void setDefaultLocale() {
@@ -201,8 +205,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
-		return new UpgradeAppRecoveryServiceImpl(this,
-				dataLayerFactory.getIOServicesFactory().newIOServices());
+		return upgradeAppRecoveryService;
 	}
 
 	public SystemCheckManager getSystemCheckManager() {

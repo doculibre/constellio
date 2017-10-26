@@ -53,7 +53,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
-
+		configManager.keepInCache(BATCH_PROCESS_LIST_PATH);
 	}
 
 	@Override
@@ -307,6 +307,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	XMLConfiguration getProcessListXMLConfiguration() {
+
 		XMLConfiguration config = configManager.getXML(BATCH_PROCESS_LIST_PATH);
 		if (config == null) {
 			saveEmptyProcessListXMLDocument();
@@ -511,7 +512,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		});
 	}
 
-	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement, final int errorsIncrement) {
+	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement,
+			final int errorsIncrement) {
 		configManager.updateXML(BATCH_PROCESS_LIST_PATH, new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {

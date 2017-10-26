@@ -7,6 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
+import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
+import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
+import com.constellio.data.extensions.extensions.configManager.ReadConfigParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
@@ -18,10 +22,13 @@ public class DataLayerSystemExtensions {
 	//------------ Extension points -----------
 	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
 	}
+
+	//----------------- Callers ---------------
 
 	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
@@ -67,8 +74,6 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
-	//----------------- Callers ---------------
-
 	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema, final String collection,
 			boolean defaultValue) {
 		return getBooleanValue(getTransactionLogExtensions(), defaultValue, new BooleanCaller<TransactionLogExtension>() {
@@ -83,4 +88,36 @@ public class DataLayerSystemExtensions {
 		return transactionLogExtensions;
 	}
 
+	public void onReadConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.readConfigs(new ReadConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
+
+	public void onAddUpdateConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.addUpdateConfig(new AddUpdateConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
+
+	public void onDeleteConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.deleteConfig(new DeleteConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
 }

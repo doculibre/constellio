@@ -1,26 +1,28 @@
 package com.constellio.data.dao.managers.config;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.events.ConfigEventListener;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.dao.managers.config.values.TextConfiguration;
-import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.KeyListMap;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.utils.CloseableUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -32,8 +34,16 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.managers.config.values.TextConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.KeyListMap;
 
 public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
@@ -49,12 +59,13 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	private String address;
 	private String rootFolder;
 	private IOServices ioServices;
+	private ConfigManagerHelper configManagerHelper;
 
 	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices) {
 		this.address = address;
 		this.rootFolder = StringUtils.removeEnd(rootFolder, "/");
 		this.ioServices = ioServices;
-
+		this.configManagerHelper = new ConfigManagerHelper(this);
 		init(address);
 	}
 
@@ -80,7 +91,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public BinaryConfiguration getBinary(String path) {
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 		try {
@@ -97,7 +108,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public XMLConfiguration getXML(String path) {
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 		try {
@@ -115,7 +126,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public PropertiesConfiguration getProperties(String path) {
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 		try {
@@ -135,7 +146,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public TextConfiguration getText(String path) {
-		if (!exist(path)) {
+		if (!exist(path, false)) {
 			return null;
 		}
 		try {
@@ -152,6 +163,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public boolean exist(String path) {
+		return exist(path, true);
+	}
+
+	public boolean exist(String path, boolean callExtensions) {
 		String clientPath = getClientPath(path);
 		try {
 			Stat stat = CLIENT.checkExists().forPath(clientPath);
@@ -165,7 +180,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 
 	@Override
 	public boolean folderExist(String path) {
-		return exist(path);
+		return exist(path, false);
 	}
 
 	@Override
@@ -182,72 +197,23 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
+	public synchronized void updateXML(String path, DocumentAlteration documentAlteration) {
+		configManagerHelper.updateXML(path, documentAlteration);
+	}
+
+	@Override
+	public synchronized void updateProperties(String path, PropertiesAlteration propertiesAlteration) {
+		configManagerHelper.updateProperties(path, propertiesAlteration);
+	}
+
+	@Override
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
-		if (!exist(path)) {
-			Document newDocument = new Document();
-			documentAlteration.alter(newDocument);
-			try {
-				this.add(path, newDocument);
-			} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
-				LOGGER.info("Configuration was created by another instance", e);
-			}
-		}
+		configManagerHelper.createXMLDocumentIfInexistent(path, documentAlteration);
 	}
 
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
-		if (!exist(path)) {
-			Map<String, String> mapProperties = new HashMap<>();
-			propertiesAlteration.alter(mapProperties);
-			try {
-				this.add(path, mapProperties);
-			} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
-				LOGGER.info("Configuration was created by another instance", e);
-			}
-		}
-	}
-
-	@Override
-	public synchronized void updateXML(String path, final DocumentAlteration documentAlteration) {
-		String clientPath = getClientPath(path);
-		try {
-			Stat stat = new Stat();
-			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
-			Document document = getDocumentFrom(ret);
-			documentAlteration.alter(document);
-
-			byte[] bytes = getByteFromDocument(document);
-			CLIENT.setData().withVersion(stat.getVersion()).forPath(clientPath, bytes);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
-			listener.onConfigUpdated(path);
-		}
-	}
-
-	@Override
-	public synchronized void updateProperties(String path, final PropertiesAlteration propertiesAlteration) {
-		String clientPath = getClientPath(path);
-		try {
-			Stat stat = new Stat();
-			byte[] ret = CLIENT.getData().storingStatIn(stat).forPath(clientPath);
-			Properties properties = new Properties();
-			properties.load(new ByteArrayInputStream(ret));
-
-			Map<String, String> mapProperties = propertiesToMap(properties);
-			propertiesAlteration.alter(mapProperties);
-			Properties prop = mapToProperties(mapProperties);
-			ByteArrayOutputStream output = new ByteArrayOutputStream();
-			prop.store(output, null);
-
-			CLIENT.setData().withVersion(stat.getVersion()).forPath(clientPath, output.toByteArray());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
-			listener.onConfigUpdated(path);
-		}
+		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
 	}
 
 	@Override
@@ -349,7 +315,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		String clientPath = getClientPath(path);
 		try {
 			CLIENT.delete().deletingChildrenIfNeeded().forPath(clientPath);
-		} catch (NoNodeException nodeNode){
+		} catch (NoNodeException nodeNode) {
 			//Ignore
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -397,7 +363,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void importFrom(File settingsFolder) {
 		try {
-			if (this.exist("/")) {
+			if (this.exist("/", false)) {
 				this.delete("/");
 			}
 			Iterator<File> files = FileUtils.iterateFiles(settingsFolder, null, true);
@@ -423,7 +389,8 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
-	private byte[] fixVersionNumber(File schemasXml)throws IOException {
+	private byte[] fixVersionNumber(File schemasXml)
+			throws IOException {
 		Document document = getDocumentFrom(FileUtils.readFileToByteArray(schemasXml));
 		document.getRootElement().setAttribute("version", "0");
 		return getByteFromDocument(document);
@@ -547,5 +514,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 				innerListener.onConfigUpdated(path);
 			}
 		}
+	}
+
+	@Override
+	public void keepInCache(String path) {
+		//This config manager has no cache
 	}
 }

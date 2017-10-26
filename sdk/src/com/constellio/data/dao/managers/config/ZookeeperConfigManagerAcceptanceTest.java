@@ -1,21 +1,25 @@
 package com.constellio.data.dao.managers.config;
 
-import com.constellio.data.conf.PropertiesDataLayerConfiguration;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
-import com.constellio.data.dao.managers.config.events.ConfigEventListener;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.utils.ThreadList;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.CloudTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -31,18 +35,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
+import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.ThreadList;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.CloudTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 @CloudTest
 @SlowTest
@@ -91,9 +97,10 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 		ioServices = getIOLayerFactory().newIOServices();
 
-		File configFile = new FoldersLocator().getConstellioProperties();
-		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
-		String zhHost = new PropertiesDataLayerConfiguration(configs, null, null, null).getRecordsDaoCloudSolrServerZKHost();
+		//File configFile = new FoldersLocator().getConstellioProperties();
+		//Map<String, String> configs = load PropertyFileUtils.loadKeyValues(configFile);
+		DataLayerConfiguration dataLayerConfiguration = getDataLayerFactory().getDataLayerConfiguration();
+		String zhHost = dataLayerConfiguration.getSettingsZookeeperAddress();
 
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
 		client = CuratorFrameworkFactory.newClient(zhHost, retryPolicy);
@@ -114,7 +121,8 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@After
-	public void cleanUp() throws Exception {
+	public void cleanUp()
+			throws Exception {
 		CloseableUtils.closeQuietly(client);
 	}
 
@@ -570,8 +578,6 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		final AtomicInteger exceptionsB = new AtomicInteger(0);
 		final AtomicInteger exceptions = new AtomicInteger(0);
 
-
-
 		ThreadList<Thread> threadList = new ThreadList<>();
 		for (int i = 0; i < 5; i++) {
 			threadList.add(new Thread() {
@@ -614,7 +620,8 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 		threadList.joinAll();
 
 		document = configManager.getXML("/zePath.xml").getDocument();
-		assertThat(document.getRootElement().getAttributeValue("a")).isEqualTo("" + (-35 - exceptionsA.get()));;
+		assertThat(document.getRootElement().getAttributeValue("a")).isEqualTo("" + (-35 - exceptionsA.get()));
+		;
 		assertThat(document.getRootElement().getAttributeValue("b")).isEqualTo("" + (35 - exceptionsB.get()));
 
 	}
