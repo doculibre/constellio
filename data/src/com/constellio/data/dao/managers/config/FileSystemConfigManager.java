@@ -64,7 +64,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private final IOServices ioServices;
 	private final ConstellioCache cache;
 	private DataLayerExtensions extensions;
-	private ConfigManagerHelper configManagerHelper;
+	ConfigManagerHelper configManagerHelper;
 
 	//	private final Map<String, Object> cache = new HashMap<>();
 
@@ -227,7 +227,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		return exist(path, true);
 	}
 
-	public final synchronized boolean exist(String path, boolean callExtensions) {
+	public synchronized boolean exist(String path, boolean callExtensions) {
 		if (callExtensions) {
 			extensions.getSystemWideExtensions().onReadConfig(path);
 		}
