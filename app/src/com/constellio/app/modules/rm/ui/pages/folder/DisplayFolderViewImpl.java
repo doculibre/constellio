@@ -503,7 +503,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-//				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
@@ -517,7 +516,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-//				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
