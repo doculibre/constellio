@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
@@ -34,7 +35,7 @@ public class ReportTabButton extends WindowButton {
     private TabSheet tabSheet;
     private BaseView view;
     private List<RecordVO> recordVOList;
-    MetadataSchemaCounter occurence;
+    ReportTabButtonPresenter.MetadataSchemaCounter occurence;
     private List<PrintableReport> printableReportList;
     private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
@@ -44,60 +45,70 @@ public class ReportTabButton extends WindowButton {
     private String collection;
     private TextField numberOfCopies;
     private TabSheet.Tab excelTab, pdfTab;
-    private NewReportPresenter presenter;
+    private NewReportPresenter viewPresenter;
     private List<PrintableReportTemplate> printableReportTemplateList;
+    private ReportTabButtonPresenter buttonPresenter;
+    private SessionContext sessionContext;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false, null);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false, null, view.getSessionContext());
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton, null);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton, null, view.getSessionContext());
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false, null);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false, null, view.getSessionContext());
         this.view = view;
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
-        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false, null);
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, SessionContext sessionContext) {
+        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false, null, sessionContext);
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter) {
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter, SessionContext sessionContext) {
 
         super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
-        this.presenter = presenter;
+        this.viewPresenter = presenter;
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
         this.noPDFButton = noPDFButton;
-        recordVOList = new ArrayList<>();
+        this.sessionContext = sessionContext;
+        this.buttonPresenter = new ReportTabButtonPresenter(this);
     }
-
-
-
     public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
-        if (recordVOS.length > 0) {
-            recordVOList.addAll(asList(recordVOS));
-        }
+        buttonPresenter.setRecordVoList(recordVOS);
         return this;
     }
 
     public ReportTabButton addRecordToVoList(RecordVO recordVO) {
-        recordVOList.add(recordVO);
+        buttonPresenter.addRecordToVoList(recordVO);
         return this;
+    }
+
+    public String getCollection (){
+        return collection;
+    }
+
+    public AppLayerFactory getFactory (){
+        return this.factory;
+    }
+
+    public SessionContext getSessionContext() {
+        return this.sessionContext;
     }
 
     @Override
     public void afterOpenModal() {
-        if(this.removePrintableTab) {
+        if(buttonPresenter.isNeedToRemovePDFTab()) {
             pdfTab.setVisible(false);
         }
 
-        if(this.removeExcelTab) {
+        if(buttonPresenter.isNeedToRemoveExcelTab()) {
             excelTab.setVisible(false);
         }
 
@@ -128,12 +139,12 @@ public class ReportTabButton extends WindowButton {
         VerticalLayout verticalLayout = new VerticalLayout();
         try {
             NewReportPresenter newReportPresenter;
-            if(presenter == null) {
+            if(viewPresenter == null) {
                 AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
                 Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
                 newReportPresenter = Advancedpresenter;
             } else {
-                newReportPresenter = this.presenter;
+                newReportPresenter = this.viewPresenter;
             }
 
             verticalLayout.addComponent(new ReportSelector(newReportPresenter));
@@ -205,7 +216,7 @@ public class ReportTabButton extends WindowButton {
         defaultElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                defaultElementSelectedValueChangeListener(event);
+                buttonPresenter.defaultElementSelectedValueChangeListener(event);
             }
         });
         defaultElementSelected.setCaption($("ReportTabButton.selectDefaultReportType"));
@@ -234,7 +245,7 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                customElementSelectedValueChangeListener(event);
+                buttonPresenter.customElementSelectedValueChangeListener(event);
             }
         });
         customElementSelected.setCaption($("ReportTabButton.selectCustomReportSchema"));
@@ -341,175 +352,22 @@ public class ReportTabButton extends WindowButton {
         return comboBox;
     }
 
-    private void showNoDefinedReportTemplateForConditionError() {
-        String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
-        pdfTab.setVisible(false);
-        if (view == null) {
-            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
-            notification.setHtmlContentAllowed(true);
-            notification.show(Page.getCurrent());
-        }
-        tabSheet.setSelectedTab(0);
-        if (view != null) {
-            view.showErrorMessage(errorMessage);
-        }
-
-    }
-
     private void selectFirstDefaultReport(){
         if(!defaultElementSelected.getItemIds().isEmpty()) {
             final PrintableReportListPossibleType firstDefaultItem = ((List<PrintableReportListPossibleType>)defaultElementSelected.getItemIds()).get(0);
             defaultElementSelected.setValue(firstDefaultItem);
-            defaultElementSelectedValueChangeListener(new customValueChangeEvent(firstDefaultItem));
+            buttonPresenter.defaultElementSelectedValueChangeListener(new ReportTabButtonPresenter.customValueChangeEvent(firstDefaultItem));
         }
         if(!customElementSelected.getItemIds().isEmpty()) {
             final MetadataSchemaVO firstCustomItem =  ((List<MetadataSchemaVO>)customElementSelected.getItemIds()).get(0);
-            customElementSelectedValueChangeListener(new customValueChangeEvent(firstCustomItem));
-        }
-    }
-
-    private void customElementSelectedValueChangeListener(Property.ValueChangeEvent event){
-        if (event.getProperty() != null && event.getProperty().getValue() != null) {
-            selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-            if (selectedSchemaType != null && selectedReporType != null) {
-                reportComboBox = fillTemplateComboBox(reportComboBox);
-            }
-        }
-    }
-
-    private void defaultElementSelectedValueChangeListener(Property.ValueChangeEvent event) {
-        selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-        if (fillSchemaCombobox(customElementSelected) == null) {
-            customElementSelected.setVisible(false);
-            customElementSelected.setEnabled(false);
-            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-            do {
-                selectedSchemaType = setIterator.next().getCode();
-            } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
-
-        } else {
-            customElementSelected.setVisible(true);
-            customElementSelected.setEnabled(true);
-            selectedSchemaType = null;
-            reportComboBox.setValue(null);
-
-        }
-        if (selectedSchemaType != null && selectedReporType != null) {
-            reportComboBox = fillTemplateComboBox(reportComboBox);
-        }
-        final MetadataSchemaVO firstCustomItem =  ((List<MetadataSchemaVO>)customElementSelected.getItemIds()).get(0);
-        customElementSelectedValueChangeListener(new customValueChangeEvent((firstCustomItem)));
-    }
-
-    private class MetadataSchemaCounter {
-        Map<PrintableReportListPossibleType, Integer> defaultMetadataOccurence;
-        Map<MetadataSchemaVO, Integer> customMetadataOccurence;
-
-        public MetadataSchemaCounter() {
-            defaultMetadataOccurence = new HashMap<>();
-            customMetadataOccurence = new HashMap<>();
-        }
-
-        void addDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            defaultMetadataOccurence.put(metadataSchemaVO, 1);
-        }
-
-        void addCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            customMetadataOccurence.put(metadataSchemaVO, 1);
-        }
-
-        void incrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            this.defaultMetadataOccurence.put(metadataSchemaVO, getDefaultMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        void incrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            this.customMetadataOccurence.put(metadataSchemaVO, getCustomMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        int getDefaultMetadataSchemaOccurence(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        int getCustomMetadataSchemaOccurence(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        Map<PrintableReportListPossibleType, Integer> getAllDefaultMetadataSchemaOccurence() {
-            return this.defaultMetadataOccurence;
-        }
-
-        Map<MetadataSchemaVO, Integer> getAllCustomMetadataSchemaOccurence() {
-            return this.customMetadataOccurence;
-        }
-
-        void addOrIncrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            if (this.doesDefaultMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementDefaultSchema(metadataSchemaVO);
-            } else {
-                this.addDefaultSchema(metadataSchemaVO);
-            }
-        }
-
-        void addOrIncrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            if (this.doesCustomMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementCustomSchema(metadataSchemaVO);
-            } else {
-                this.addCustomSchema(metadataSchemaVO);
-            }
-        }
-
-        boolean doesDefaultMetadataSchemaContains(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        boolean doesCustomMetadataSchemaContains(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        int getNumberOfCustomSchemaOccurence() {
-            return this.customMetadataOccurence.size();
-        }
-
-        int getNumberOfDefaultSchemaOccurence() {
-            return this.defaultMetadataOccurence.size();
+            buttonPresenter.customElementSelectedValueChangeListener(new ReportTabButtonPresenter.customValueChangeEvent(firstCustomItem));
         }
     }
 
 
-    private class customValueChangeEvent implements Property.ValueChangeEvent {
-        private Object value;
-        public customValueChangeEvent(Object value) {
-            this.value = value;
-        }
-        @Override
-        public Property getProperty() {
-            final Object finalValue = this.value;
-            return new Property() {
-                @Override
-                public Object getValue() {
-                    return finalValue;
-                }
 
-                @Override
-                public void setValue(Object newValue) throws ReadOnlyException {
 
-                }
 
-                @Override
-                public Class getType() {
-                    return null;
-                }
 
-                @Override
-                public boolean isReadOnly() {
-                    return false;
-                }
 
-                @Override
-                public void setReadOnly(boolean newStatus) {
-
-                }
-            };
-        }
-    }
 }
