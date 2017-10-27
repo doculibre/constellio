@@ -2,6 +2,7 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
@@ -18,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
@@ -41,7 +43,11 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
@@ -125,6 +131,56 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	}
 
 	@Test
+	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree()
+			throws Exception {
+		cleanStorageSpaces();
+		StorageSpace ancestor = buildStorageSpace();
+		StorageSpace parent = buildStorageSpace().setParentStorageSpace(ancestor);
+		StorageSpace child = buildStorageSpace().setParentStorageSpace(parent).setCapacity(10);
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(ancestor, parent, child);
+		recordServices.execute(transaction);
+		waitForBatchProcess();
+
+		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				return canStorageSpaceContainContainer(storageSpace, 20D);
+			}
+		});
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
+
+		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		child.setCapacity(30);
+		recordServices.update(child);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+	}
+
+	@Test
 	public void whenGetListOfCategoriesThenReturnNotDeactivatedTaxonomie()
 			throws Exception {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -152,6 +208,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
 			}
 		});
+
+		loadCaches();
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(taxonomiesSearchFilter)
 				.has(numFoundAndListSize(2))
@@ -466,6 +524,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		recordServices.execute(tx);
 
+		loadCaches();
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
@@ -480,10 +540,10 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(2))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
-				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
@@ -548,6 +608,19 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(noItemsWithChildren())
 				.has(solrQueryCounts(2, 2, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
+
+	}
+
+	private void loadCaches() {
+		for (MetadataSchemaType aSchemaType : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaTypes()) {
+			if (recordServices.getRecordsCaches().getCache(zeCollection).isConfigured(aSchemaType)) {
+				getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(from(aSchemaType).returnAll()));
+			}
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
 
 	}
 
@@ -3365,5 +3438,29 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				return true;
 			}
 		};
+	}
+
+	public StorageSpace buildStorageSpace() {
+		StorageSpace storageSpace = rm.newStorageSpace().setTitle("storageTest");
+		storageSpace.setCode(storageSpace.getId());
+		return storageSpace;
+	}
+
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
+		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null
+				&& storageSpace.getCapacity() > containerCapacity;
+	}
+
+	public void cleanStorageSpaces() {
+		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+		modifiableSolrParams.set("q", "schema_s:storageSpace*");
+		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+		try {
+			recordDao.execute(transaction);
+		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+			optimisticLocking.printStackTrace();
+		}
 	}
 }
