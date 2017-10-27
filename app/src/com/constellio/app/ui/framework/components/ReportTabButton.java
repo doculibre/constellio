@@ -16,6 +16,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
@@ -35,7 +36,7 @@ public class ReportTabButton extends WindowButton {
     private List<RecordVO> recordVOList;
     MetadataSchemaCounter occurence;
     private List<PrintableReport> printableReportList;
-    private ComboBox reportComboBox, customElementSelected;
+    private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
     private String selectedSchemaType;
     private boolean noExcelButton = false, noPDFButton = false, removePrintableTab = false, removeExcelTab = false;
@@ -153,6 +154,7 @@ public class ReportTabButton extends WindowButton {
         PDFTabLayout.addComponent(createReportSelectorComboBox());
         PDFTabLayout.addComponent(createButtonLayout());
         PDFTabLayout.setSpacing(true);
+        selectFirstDefaultReport();
         return PDFTabLayout;
     }
 
@@ -175,6 +177,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createDefaultSelectComboBox() {
+        defaultElementSelected = new ComboBox();
         if (occurence.getNumberOfDefaultSchemaOccurence() == 1) {
             Iterator<PrintableReportListPossibleType> setIterator = occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
             if (setIterator.hasNext()) {
@@ -183,7 +186,6 @@ public class ReportTabButton extends WindowButton {
             return new HorizontalLayout();
         }
 
-        final ComboBox defaultElementSelected = new ComboBox();
         for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
@@ -203,25 +205,7 @@ public class ReportTabButton extends WindowButton {
         defaultElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                if (fillSchemaCombobox(customElementSelected) == null) {
-                    customElementSelected.setVisible(false);
-                    customElementSelected.setEnabled(false);
-                    Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-                    do {
-                        selectedSchemaType = setIterator.next().getCode();
-                    } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
-
-                } else {
-                    customElementSelected.setVisible(true);
-                    customElementSelected.setEnabled(true);
-                    selectedSchemaType = null;
-                    reportComboBox.setValue(null);
-
-                }
-                if (selectedSchemaType != null && selectedReporType != null) {
-                    reportComboBox = fillTemplateComboBox(reportComboBox);
-                }
+                defaultElementSelectedValueChangeListener(event);
             }
         });
         defaultElementSelected.setCaption($("ReportTabButton.selectDefaultReportType"));
@@ -230,13 +214,13 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createCustomSelectComboBox() {
+        customElementSelected = new ComboBox();
         if (occurence.getNumberOfCustomSchemaOccurence() == 1) {
             Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
             selectedSchemaType = setIterator.next().getCode();
             return new HorizontalLayout();
         }
 
-        customElementSelected = new ComboBox();
         this.fillSchemaCombobox(customElementSelected);
 //        customElementSelected.setNullSelectionAllowed(false);
         customElementSelected.addValidator(new Validator() {
@@ -250,12 +234,7 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                if (event.getProperty() != null && event.getProperty().getValue() != null) {
-                    selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-                    if (selectedSchemaType != null && selectedReporType != null) {
-                        reportComboBox = fillTemplateComboBox(reportComboBox);
-                    }
-                }
+                customElementSelectedValueChangeListener(event);
             }
         });
         customElementSelected.setCaption($("ReportTabButton.selectCustomReportSchema"));
@@ -320,6 +299,7 @@ public class ReportTabButton extends WindowButton {
         comboBox.removeAllItems();
         printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
         if (!printableReportTemplateList.isEmpty())  {
+            removePrintableTab = false;
             if (printableReportTemplateList.size() == 1) {
                 PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
                 comboBox.addItem(onlyTemplate);
@@ -374,6 +354,51 @@ public class ReportTabButton extends WindowButton {
             view.showErrorMessage(errorMessage);
         }
 
+    }
+
+    private void selectFirstDefaultReport(){
+        if(!defaultElementSelected.getItemIds().isEmpty()) {
+            final PrintableReportListPossibleType firstDefaultItem = ((List<PrintableReportListPossibleType>)defaultElementSelected.getItemIds()).get(0);
+            defaultElementSelected.setValue(firstDefaultItem);
+            defaultElementSelectedValueChangeListener(new customValueChangeEvent(firstDefaultItem));
+        }
+        if(!customElementSelected.getItemIds().isEmpty()) {
+            final MetadataSchemaVO firstCustomItem =  ((List<MetadataSchemaVO>)customElementSelected.getItemIds()).get(0);
+            customElementSelectedValueChangeListener(new customValueChangeEvent(firstCustomItem));
+        }
+    }
+
+    private void customElementSelectedValueChangeListener(Property.ValueChangeEvent event){
+        if (event.getProperty() != null && event.getProperty().getValue() != null) {
+            selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
+            if (selectedSchemaType != null && selectedReporType != null) {
+                reportComboBox = fillTemplateComboBox(reportComboBox);
+            }
+        }
+    }
+
+    private void defaultElementSelectedValueChangeListener(Property.ValueChangeEvent event) {
+        selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
+        if (fillSchemaCombobox(customElementSelected) == null) {
+            customElementSelected.setVisible(false);
+            customElementSelected.setEnabled(false);
+            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
+            do {
+                selectedSchemaType = setIterator.next().getCode();
+            } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
+
+        } else {
+            customElementSelected.setVisible(true);
+            customElementSelected.setEnabled(true);
+            selectedSchemaType = null;
+            reportComboBox.setValue(null);
+
+        }
+        if (selectedSchemaType != null && selectedReporType != null) {
+            reportComboBox = fillTemplateComboBox(reportComboBox);
+        }
+        final MetadataSchemaVO firstCustomItem =  ((List<MetadataSchemaVO>)customElementSelected.getItemIds()).get(0);
+        customElementSelectedValueChangeListener(new customValueChangeEvent((firstCustomItem)));
     }
 
     private class MetadataSchemaCounter {
@@ -447,6 +472,44 @@ public class ReportTabButton extends WindowButton {
 
         int getNumberOfDefaultSchemaOccurence() {
             return this.defaultMetadataOccurence.size();
+        }
+    }
+
+
+    private class customValueChangeEvent implements Property.ValueChangeEvent {
+        private Object value;
+        public customValueChangeEvent(Object value) {
+            this.value = value;
+        }
+        @Override
+        public Property getProperty() {
+            final Object finalValue = this.value;
+            return new Property() {
+                @Override
+                public Object getValue() {
+                    return finalValue;
+                }
+
+                @Override
+                public void setValue(Object newValue) throws ReadOnlyException {
+
+                }
+
+                @Override
+                public Class getType() {
+                    return null;
+                }
+
+                @Override
+                public boolean isReadOnly() {
+                    return false;
+                }
+
+                @Override
+                public void setReadOnly(boolean newStatus) {
+
+                }
+            };
         }
     }
 }
