@@ -501,8 +501,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(unlinkable(records.categoryId_X100))
 				.has(resultsInOrder(records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100))
-				.has(solrQueryCounts(4, 18, 2))
-				.has(secondSolrQueryCounts(3, 18, 0));
+				.has(solrQueryCounts(3, 3, 2))
+				.has(secondSolrQueryCounts(2, 3, 0));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X100, options)
 				.has(numFoundAndListSize(1))
@@ -531,8 +531,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(linkable(records.categoryId_Z120))
 				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(itemsWithChildren(records.categoryId_Z110))
-				.has(solrQueryCounts(4, 18, 2))
-				.has(secondSolrQueryCounts(3, 18, 0));
+				.has(solrQueryCounts(3, 3, 2))
+				.has(secondSolrQueryCounts(2, 3, 0));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_Z110, options)
 				.has(numFoundAndListSize(1))

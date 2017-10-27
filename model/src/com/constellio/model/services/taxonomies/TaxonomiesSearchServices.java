@@ -581,7 +581,11 @@ public class TaxonomiesSearchServices {
 				boolean hasChildren = true;
 				if (calculateHasChildren || !hasAccess[i]) {
 					hasChildren = hasChildrenQueryHandler.hasChildren(child);
-					if (hasChildren && context.options.getFilter().getLinkableConceptsFilter() != null) {
+					if (hasChildren && context.options.getFilter().getLinkableConceptsFilter() != null
+							&& context.hasPermanentCache
+							&& !context.principalTaxonomy
+							&& context.isSelectingAConcept()
+							&& context.taxonomy.getSchemaTypes().size() == 1) {
 						hasChildren = hasLinkableConceptInHierarchy(child, context.taxonomy, context.options);
 					}
 				}
