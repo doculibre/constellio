@@ -257,7 +257,7 @@ public class SearchServices {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		long result = recordDao.query(params).getNumFound();
+		long result = recordDao.query(query.getName(), params).getNumFound();
 		query.setNumberOfRows(oldNumberOfRows);
 		return result;
 	}

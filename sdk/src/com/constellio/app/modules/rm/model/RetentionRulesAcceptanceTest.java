@@ -4,6 +4,8 @@ import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.FIND_DOCUMENTS_USING_COPY_RULE_QUERY;
+import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.FIND_FOLDERS_USING_COPY_RULE_QUERY;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static java.util.Arrays.asList;
@@ -40,6 +42,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.QueryCounter;
 
 public class RetentionRulesAcceptanceTest extends ConstellioTest {
 
@@ -69,12 +72,18 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
+	QueryCounter folderQueryCounter;
+	QueryCounter documentsQueryCounter;
+
 	@Before
 	public void setUp()
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule()
 		);
+
+		folderQueryCounter = new QueryCounter(getDataLayerFactory(), FIND_FOLDERS_USING_COPY_RULE_QUERY);
+		documentsQueryCounter = new QueryCounter(getDataLayerFactory(), FIND_DOCUMENTS_USING_COPY_RULE_QUERY);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -491,7 +500,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		CopyRetentionRule principal2 = copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D");
 		CopyRetentionRule principal3 = copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D");
 		CopyRetentionRule secondary = copyBuilder.newSecondary(asList(rm.PA()), "1-4-D");
-		retentionRule.setCopyRetentionRules(principal1, principal2, secondary);
+		retentionRule.setCopyRetentionRules(principal1, principal2, principal3, secondary);
 
 		final Category category = tx.add(rm.newCategory().setCode("zeCategory").setTitle("Ze category")
 				.setRetentionRules(asList(retentionRule)));
@@ -529,7 +538,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 									"copyRetentionRules"),
 							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-2-D", "2", "type", "nullRequired",
 									"copyRetentionRules"),
-							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-4-D", "3", "type", "nullRequired",
+							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-4-D", "4", "type", "nullRequired",
 									"copyRetentionRules")
 					);
 
@@ -539,6 +548,15 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 					"Le délai «1-4-D» ne peut pas être supprimé, car il est utilisé"
 			);
 		}
+
+		assertThat(folderQueryCounter.newQueryCalls()).isEqualTo(4);
+
+		tx = new Transaction();
+		tx.add(rm.getRetentionRule(retentionRule.getId()).setCopyRetentionRules(
+				principal1, principal2, secondary
+		));
+		recordServices.executeWithoutImpactHandling(tx);
+		assertThat(folderQueryCounter.newQueryCalls()).isEqualTo(1);
 	}
 
 	@Test
@@ -600,20 +618,30 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 
 			assertThat(extractingSimpleCodeAndParameters(e, "stringValue", "index", "field", "errorType", "metadata"))
 					.containsOnly(
-							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-1-C", "1", "type", "nullRequired",
+							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-1-D", "1", "type", "nullRequired",
 									"copyRetentionRules"),
 							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-2-D", "2", "type", "nullRequired",
 									"copyRetentionRules"),
-							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-4-D", "3", "type", "nullRequired",
+							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-4-C", "1", "type", "nullRequired",
+									"copyRetentionRules"),
+							tuple("RetentionRuleValidator_cannotDeleteCopyInUse", "1-5-D", "1", "type", "nullRequired",
 									"copyRetentionRules")
 					);
 
 			assertThat(frenchMessages(e)).containsOnly(
-					"Le délai «1-1-C» ne peut pas être supprimé, car il est utilisé",
+					"Le délai «1-1-D» ne peut pas être supprimé, car il est utilisé",
 					"Le délai «1-2-D» ne peut pas être supprimé, car il est utilisé",
-					"Le délai «1-4-D» ne peut pas être supprimé, car il est utilisé"
+					"Le délai «1-4-C» ne peut pas être supprimé, car il est utilisé",
+					"Le délai «1-5-D» ne peut pas être supprimé, car il est utilisé"
 			);
 		}
+		assertThat(documentsQueryCounter.newQueryCalls()).isEqualTo(5);
+
+		tx = new Transaction();
+
+		tx.add(rm.getRetentionRule(retentionRule.getId()).setDocumentCopyRetentionRules(principal1, principal2));
+		recordServices.executeWithoutImpactHandling(tx);
+		assertThat(documentsQueryCounter.newQueryCalls()).isEqualTo(1);
 	}
 
 	// ---------------------------------------------------------------
