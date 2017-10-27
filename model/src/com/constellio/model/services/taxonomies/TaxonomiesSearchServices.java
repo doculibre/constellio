@@ -581,7 +581,9 @@ public class TaxonomiesSearchServices {
 				boolean hasChildren = true;
 				if (calculateHasChildren || !hasAccess[i]) {
 					hasChildren = hasChildrenQueryHandler.hasChildren(child);
-					if (hasChildren && context.options.getFilter().getLinkableConceptsFilter() != null
+					if (hasChildren
+							&& context.options.getFilter() != null
+							&& context.options.getFilter().getLinkableConceptsFilter() != null
 							&& context.hasPermanentCache
 							&& !context.principalTaxonomy
 							&& context.isSelectingAConcept()
@@ -828,7 +830,7 @@ public class TaxonomiesSearchServices {
 				}
 
 				if (hasChildren
-						&& options.getFilter().getLinkableConceptsFilter() != null
+						&& options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null
 						&& ctx.hasPermanentCache
 						&& !ctx.principalTaxonomy
 						&& ctx.isSelectingAConcept()
