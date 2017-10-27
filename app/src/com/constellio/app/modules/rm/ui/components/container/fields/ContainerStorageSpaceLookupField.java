@@ -191,7 +191,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		Double numberOfChild = storageSpace.getNumberOfChild();
 		boolean hasNoChildren = numberOfChild == null || isEqual(0.0, numberOfChild);
 		boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
-				|| storageSpace.getAvailableSize() > (containerCapacity == null ? 0.0 : containerCapacity);
+				|| storageSpace.getAvailableSize() >= (containerCapacity == null ? 0.0 : containerCapacity);
 		boolean sameContainerType = storageSpace.getContainerType() == null
 				|| storageSpace.getContainerType().isEmpty() || storageSpace.getContainerType().contains(containerRecordType);
 
