@@ -62,6 +62,10 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.v-Notification-caption {
+		z-index: 20003;
+	}
+
 	.nicetitle-link {
 		cursor: pointer !important;	
 	}

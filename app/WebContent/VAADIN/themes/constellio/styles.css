@@ -11906,6 +11906,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-Notification-caption {
+	z-index: 20003;
+}
+
 .constellio .nicetitle-link {
 	cursor: pointer !important;
 }
