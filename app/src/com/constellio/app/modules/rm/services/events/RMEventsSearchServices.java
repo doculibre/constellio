@@ -331,6 +331,12 @@ public class RMEventsSearchServices {
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
+	public LogicalSearchQuery exceptEventTypes(LogicalSearchQuery query, List<String> eventTypesToExclude) {
+		Metadata metadataEventType = schemas.eventSchema().getMetadata(Event.TYPE);
+		query.setCondition(query.getCondition().andWhere(metadataEventType).isNotIn(eventTypesToExclude));
+		return query;
+	}
+
 	public LogicalSearchQuery andWhereRecordIdIsNotNull(LogicalSearchQuery query) {
 		return query.setCondition(query.getCondition().andWhere(schemas.event.recordIdentifier()).isNotNull());
 	}

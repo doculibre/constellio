@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.records.wrappers.EventType;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -427,8 +428,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
-				return rmEventsSearchServices
+				LogicalSearchQuery query = rmEventsSearchServices
 						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+				return rmEventsSearchServices.exceptEventTypes(query,
+						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
+								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
 			}
 		};
 	}
