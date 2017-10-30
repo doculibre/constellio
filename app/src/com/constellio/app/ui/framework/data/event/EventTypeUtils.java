@@ -114,6 +114,16 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.reactivationRequestContainer");
 		} else if (eventType.equals(EventType.BORROW_EXTENSION_REQUEST_CONTAINER)) {
 			return $("ListEventsView.borrowExtensionRequestContainer");
+		} else if (eventType.equals(EventType.OPEN_DOCUMENT)) {
+			return $("ListEventsView.openDocument");
+		} else if (eventType.equals(EventType.DOWNLOAD_DOCUMENT)) {
+			return $("ListEventsView.downloadDocument");
+		} else if (eventType.equals(EventType.UPLOAD_DOCUMENT)) {
+			return $("ListEventsView.uploadDocument");
+		} else if (eventType.equals(EventType.SHARE_DOCUMENT)) {
+			return $("ListEventsView.shareDocument");
+		} else if (eventType.equals(EventType.FINALIZE_DOCUMENT)) {
+			return $("ListEventsView.finalize");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
