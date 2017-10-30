@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.extensions.imports;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -112,25 +113,26 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 
 	private void ajustCreationModificationDates(Map<String, Object> fields, Folder folder) {
 
+
 		String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
-		if (createdBy != null) {
+		if (createdBy != null && !fields.containsKey(RMObject.FORM_CREATED_BY)) {
 			folder.setFormCreatedBy(folder.getCreatedBy());
 		}
 
 		LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
 
-		if (createdOn != null) {
+		if (createdOn != null && !fields.containsKey(RMObject.FORM_CREATED_ON)) {
 			folder.setFormCreatedOn(createdOn);
 		}
 
 		String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
-		if (modifiedBy != null) {
+		if (modifiedBy != null && !fields.containsKey(RMObject.FORM_MODIFIED_BY)) {
 			folder.setFormModifiedBy(folder.getModifiedBy());
 		}
 
 		LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
 
-		if (modifiedOn != null) {
+		if (modifiedOn != null && !fields.containsKey(RMObject.FORM_MODIFIED_ON)) {
 			folder.setFormModifiedOn(modifiedOn);
 		}
 	}
