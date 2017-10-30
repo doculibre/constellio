@@ -62,6 +62,10 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.v-Notification-caption {
+		z-index: 20003;
+	}
+
 	.nicetitle-link {
 		cursor: pointer !important;	
 	}
@@ -605,7 +609,7 @@ $popup-view-z-index: 3;
 	}
 
 	.v-window {
-
+	
 		.popupContent {
 			z-index: 20001;
 
@@ -620,7 +624,108 @@ $popup-view-z-index: 3;
 			.v-window-maximizebox {
 				height: initial;
 			}
+			
+			.action-menu {
+		        position: fixed;
+		        top: $header-height;
+		        right: 20px;
+		        margin-top: 70px;
+
+			    width: 225px;
+			    border: 1px solid #3a434d;
+			    border-radius: 4px;
+	
+				.v-button {
+			    	color: white;
+			    	font-weight: normal;
+					text-decoration: none;
+					font-size: 14px;
+					width: 100%;
+					border-radius: 0;
+					text-align: left;
+					border: none;
+	
+				    background-color: #414B56;
+					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
+					background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
+				}
+	
+			    .v-button:hover {
+			    	color: #197de1;
+				    background-color: #3a434d;
+			    }
+	
+			    .v-button:after {
+					box-shadow: none;
+					border: none;
+			    }
+	
+			    .v-disabled:hover {
+			    	color: white;
+				    background-color: #414B56;
+			    }
+		    }
+				
+			.action-menu-wrapper {
+				overflow: auto;
+	            padding-right: 260px;
+	            padding-left: 10px;
+	
+				.back-button {
+					position: fixed;
+				}
+	
+				.base-display {
+					.v-slot-display-value {
+						.display-value {
+	            			padding-right: 300px;
+	            			
+	            			.agent-link {
+	            				padding-right: 26px;
+	            			}
+						}
+					
+						.v-label-display-value {
+	            			margin-right: 300px;
+						}
+						
+						.reference-display {
+	            			padding-right: 300px;
+						}
+					}
+						
+					.record-comments-layout {
+						width: 100%;
+						
+						.v-slot-list-add-remove-comment {
+							width: 100%;
+							
+							.list-add-remove-comment {
+								width: 100%;
+								padding-left: 0px;
+							}
+						}
+					}	
+	
+					.v-has-caption {
+						width: 100%;
+					}
+				}
+		
+				.retention-rule-display {
+					
+					.v-slot-display-value {
+					
+						.display-value-retentionRule_default_copyRetentionRules, .display-value-retentionRule_default_documentCopyRetentionRules {
+							padding-right: 0px;
+						}
+						
+					}
+				}
+	        }
+	        
 		}
+		
 	}
 
 	.window-button-window {

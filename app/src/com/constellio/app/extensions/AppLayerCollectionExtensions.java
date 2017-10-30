@@ -255,9 +255,18 @@ public class AppLayerCollectionExtensions {
 	//	}
 
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam params) {
-		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			SearchResultDisplay result = extension.getCustomResultDisplayFor(params);
+			if (result != null) {
+				return result;
+			}
+		}
+		return null;
+	}
+
+	public Component getSimpleTableWindowComponent(GetSearchResultSimpleTableWindowComponentParam params) {
+		for (SearchPageExtension extension : searchPageExtensions) {
+			Component result = extension.getSimpleTableWindowComponent(params);
 			if (result != null) {
 				return result;
 			}

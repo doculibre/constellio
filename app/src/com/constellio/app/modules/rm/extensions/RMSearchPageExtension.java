@@ -1,12 +1,19 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.modules.rm.ui.components.DocumentSearchResultDisplay;
+import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.vaadin.ui.Component;
 
 public class RMSearchPageExtension extends SearchPageExtension {
 
@@ -26,5 +33,23 @@ public class RMSearchPageExtension extends SearchPageExtension {
 
 	@Override
 	public void notifyNewUserSearch(UserSearchEvent event) {
+	}
+
+	@Override
+	public Component getSimpleTableWindowComponent(GetSearchResultSimpleTableWindowComponentParam param) {
+		Component result;
+		RecordVO recordVO = param.getRecordVO();
+		String typeCode = param.getSchemaType();
+		//TODO add event
+		if (typeCode.equals(Document.SCHEMA_TYPE)) {
+			result = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+		} else 	if (typeCode.equals(Folder.SCHEMA_TYPE)) {
+			DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true);
+			view.enter(null);
+			result = view;
+		} else {
+			result = null;
+		}
+		return result;
 	}
 }

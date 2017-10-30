@@ -231,7 +231,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
 		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
 
-		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView);
+		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView, null, false);
 		displayFolderPresenter.forParams(folder.getId());
 
 		displayFolderPresenter.deleteFolderButtonClicked("No reason");

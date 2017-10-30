@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.vaadin.server.Responsive;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
@@ -14,14 +15,20 @@ public class BaseWindow extends Window {
 	private Integer zIndex = null;
 
 	public BaseWindow() {
+		init();
 	}
 
 	public BaseWindow(String caption) {
 		super(caption);
+		init();
 	}
 
 	public BaseWindow(String caption, Component content) {
 		super(caption, content);
+		init();
+	}
+	
+	private void init() {
 	}
 
 	public final Integer getZIndex() {

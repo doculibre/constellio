@@ -11906,6 +11906,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-Notification-caption {
+	z-index: 20003;
+}
+
 .constellio .nicetitle-link {
 	cursor: pointer !important;
 }
@@ -12926,6 +12930,91 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window .popupContent .v-window-maximizebox {
 	height: initial;
+}
+
+.constellio .v-window .popupContent .action-menu {
+	position: fixed;
+	top: 63px;
+	right: 20px;
+	margin-top: 70px;
+	width: 225px;
+	border: 1px solid #3a434d;
+	border-radius: 4px;
+}
+
+.constellio .v-window .popupContent .action-menu .v-button {
+	color: white;
+	font-weight: normal;
+	text-decoration: none;
+	font-size: 14px;
+	width: 100%;
+	border-radius: 0;
+	text-align: left;
+	border: none;
+	background-color: #414B56;
+	background-image: linear, to left, #38414a 0%, #414B56 9px;
+}
+
+.constellio .v-window .popupContent .action-menu .v-button:hover {
+	color: #197de1;
+	background-color: #3a434d;
+}
+
+.constellio .v-window .popupContent .action-menu .v-button:after {
+	box-shadow: none;
+	border: none;
+}
+
+.constellio .v-window .popupContent .action-menu .v-disabled:hover {
+	color: white;
+	background-color: #414B56;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper {
+	overflow: auto;
+	padding-right: 260px;
+	padding-left: 10px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .back-button {
+	position: fixed;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	padding-right: 300px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: 26px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	margin-right: 300px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: 300px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout {
+	width: 100%;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment {
+	width: 100%;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment .list-add-remove-comment {
+	width: 100%;
+	padding-left: 0px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-has-caption {
+	width: 100%;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: 0px;
 }
 
 .constellio .window-button-window .v-scrollable {
