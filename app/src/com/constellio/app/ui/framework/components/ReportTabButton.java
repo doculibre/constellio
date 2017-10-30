@@ -37,7 +37,6 @@ public class ReportTabButton extends WindowButton {
     private TabSheet tabSheet;
     private BaseView view;
     private List<RecordVO> recordVOList;
-    ReportTabButtonPresenter.MetadataSchemaCounter occurence;
     private List<PrintableReport> printableReportList;
     private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
@@ -247,15 +246,6 @@ public class ReportTabButton extends WindowButton {
         updateAvailableReportForCurrentCustomSchema();
         reportComboBox.setNullSelectionAllowed(false);
         return reportComboBox;
-    }
-
-    private Component createNumberOfCopiesField() {
-        numberOfCopies = new TextField();
-        numberOfCopies.setConverter(Integer.class);
-        numberOfCopies.setValue("1");
-        numberOfCopies.setCaption($("ReportTabButton.inputNumberOfCopies"));
-        numberOfCopies.setWidth("100%");
-        return numberOfCopies;
     }
 
     private Button createButtonLayout() {

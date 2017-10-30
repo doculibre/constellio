@@ -171,9 +171,9 @@ class ReportTabButtonPresenter  {
         List<RecordVO> printableReportVOS = new ArrayList<>();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         SearchServices searchServices = view.getFactory().getModelLayerFactory().newSearchServices();
-        MetadataSchema reportType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchema(PrintableReport.SCHEMA_NAME);
+        MetadataSchema reportSchema = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchema(PrintableReport.SCHEMA_NAME);
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view.getFactory());
-        List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(reportType).returnAll())));
+        List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(reportSchema).returnAll())));
         for(PrintableReport currentReport: allPrintableReport) {
             MetadataSchemaVO metadataSchemaVO = new MetadataSchemaToVOBuilder().build(currentReport.getSchema(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
             printableReportVOS.add(builder.build(currentReport.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, metadataSchemaVO, view.getSessionContext()));
@@ -182,116 +182,5 @@ class ReportTabButtonPresenter  {
             this.removePrintableTab = true;
         }
         return printableReportVOS;
-    }
-
-    protected class MetadataSchemaCounter {
-        Map<PrintableReportListPossibleType, Integer> defaultMetadataOccurence;
-        Map<MetadataSchemaVO, Integer> customMetadataOccurence;
-
-        public MetadataSchemaCounter() {
-            defaultMetadataOccurence = new HashMap<>();
-            customMetadataOccurence = new HashMap<>();
-        }
-
-        void addDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            defaultMetadataOccurence.put(metadataSchemaVO, 1);
-        }
-
-        void addCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            customMetadataOccurence.put(metadataSchemaVO, 1);
-        }
-
-        void incrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            this.defaultMetadataOccurence.put(metadataSchemaVO, getDefaultMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        void incrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            this.customMetadataOccurence.put(metadataSchemaVO, getCustomMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        int getDefaultMetadataSchemaOccurence(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        int getCustomMetadataSchemaOccurence(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        Map<PrintableReportListPossibleType, Integer> getAllDefaultMetadataSchemaOccurence() {
-            return this.defaultMetadataOccurence;
-        }
-
-        Map<MetadataSchemaVO, Integer> getAllCustomMetadataSchemaOccurence() {
-            return this.customMetadataOccurence;
-        }
-
-        void addOrIncrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            if (this.doesDefaultMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementDefaultSchema(metadataSchemaVO);
-            } else {
-                this.addDefaultSchema(metadataSchemaVO);
-            }
-        }
-
-        void addOrIncrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            if (this.doesCustomMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementCustomSchema(metadataSchemaVO);
-            } else {
-                this.addCustomSchema(metadataSchemaVO);
-            }
-        }
-
-        boolean doesDefaultMetadataSchemaContains(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        boolean doesCustomMetadataSchemaContains(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        int getNumberOfCustomSchemaOccurence() {
-            return this.customMetadataOccurence.size();
-        }
-
-        int getNumberOfDefaultSchemaOccurence() {
-            return this.defaultMetadataOccurence.size();
-        }
-    }
-
-    protected static class customValueChangeEvent implements Property.ValueChangeEvent {
-        private Object value;
-        public customValueChangeEvent(Object value) {
-            this.value = value;
-        }
-        @Override
-        public Property getProperty() {
-            final Object finalValue = this.value;
-            return new Property() {
-                @Override
-                public Object getValue() {
-                    return finalValue;
-                }
-
-                @Override
-                public void setValue(Object newValue) throws ReadOnlyException {
-
-                }
-
-                @Override
-                public Class getType() {
-                    return null;
-                }
-
-                @Override
-                public boolean isReadOnly() {
-                    return false;
-                }
-
-                @Override
-                public void setReadOnly(boolean newStatus) {
-
-                }
-            };
-        }
     }
 }
