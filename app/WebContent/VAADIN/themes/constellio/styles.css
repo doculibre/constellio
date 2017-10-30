@@ -12932,6 +12932,11 @@ div.v-layout.v-horizontal.v-widget {
 	height: initial;
 }
 
+.constellio .v-window .popupContent .v-slot-borrowed-document-message {
+	max-height: 30px;
+	vertical-align: center;
+}
+
 .constellio .v-window .popupContent .action-menu {
 	position: fixed;
 	top: 63px;
