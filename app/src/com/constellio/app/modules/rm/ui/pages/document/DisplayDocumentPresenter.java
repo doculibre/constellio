@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.records.wrappers.EventType;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -49,6 +48,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -73,12 +73,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RMSchemasRecordsServices rm;
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
-	
+
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 
-	public DisplayDocumentPresenter(DisplayDocumentView view, RecordVO recordVO, boolean popup) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
@@ -92,7 +92,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		
+
 		if (recordVO != null) {
 			forParams(recordVO.getId());
 		}
@@ -119,7 +119,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
+				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -222,7 +223,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+				.getBetaWorkflow(record.getId());
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
@@ -410,8 +412,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public boolean hasWritePermission()
-	{
+	public boolean hasWritePermission() {
 		return hasWriteAccess;
 	}
 
@@ -465,7 +466,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = taskSchemas.getTask(taskId);
-		if(isStarred) {
+		if (isStarred) {
 			task.addStarredBy(getCurrentUser().getId());
 		} else {
 			task.removeStarredBy(getCurrentUser().getId());
@@ -481,7 +482,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private void addStarredSortToQuery(LogicalSearchQuery query) {
 		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
 		LogicalSearchQuerySort sortField
-				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')",
+				false);
 		query.sortFirstOn(sortField);
 	}
 }
