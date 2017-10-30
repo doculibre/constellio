@@ -12938,7 +12938,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu {
-	position: fixed;
+	position: absolute;
 	top: 63px;
 	right: 20px;
 	margin-top: 70px;
