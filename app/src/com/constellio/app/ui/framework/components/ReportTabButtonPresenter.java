@@ -10,7 +10,9 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -42,6 +44,20 @@ class ReportTabButtonPresenter  {
         }
     }
 
+    public List<RecordVO> getRecordVOList() {
+        return recordVOList;
+    }
+
+    public List<String> getRecordVOIdFilteredList(MetadataSchemaVO schemaVO){
+        List<String> ids = new ArrayList<>();
+        for(RecordVO recordVO : recordVOList) {
+            if(recordVO.getSchema().equals(schemaVO)) {
+                ids.add(recordVO.getId());
+            }
+        }
+        return ids;
+    }
+
     public void addRecordToVoList(RecordVO recordVO) {
         recordVOList.add(recordVO);
     }
@@ -50,8 +66,50 @@ class ReportTabButtonPresenter  {
         return removePrintableTab;
     }
 
+    public void setNeedToRemoveExcelTab(boolean needToRemove) {
+        this.removeExcelTab = needToRemove;
+    }
+
     public boolean isNeedToRemoveExcelTab() {
         return removeExcelTab;
+    }
+
+    public List<PrintableReportListPossibleType> getAllGeneralSchema(){
+        List<PrintableReportListPossibleType> currentPossibleGeneralSchema = new ArrayList<>();
+        for(RecordVO recordVO : recordVOList ) {
+            PrintableReportListPossibleType currentGeneralSchema = PrintableReportListPossibleType.getValueFromSchemaType(recordVO.getSchema().getTypeCode());
+            if(!currentPossibleGeneralSchema.contains(currentGeneralSchema)) {
+                currentPossibleGeneralSchema.add(currentGeneralSchema);
+            }
+        }
+        return currentPossibleGeneralSchema;
+    }
+
+    public List<MetadataSchemaVO> getAllCustomSchema(PrintableReportListPossibleType generalSchema){
+        List<MetadataSchemaVO> currentPossibleCustomSchema = new ArrayList<>();
+        for(RecordVO recordVO : recordVOList ) {
+            MetadataSchemaVO currentCustomSchema = recordVO.getSchema();
+            if(!currentPossibleCustomSchema.contains(currentCustomSchema) && PrintableReportListPossibleType.getValueFromSchemaType(currentCustomSchema.getTypeCode()).equals(generalSchema)) {
+                currentPossibleCustomSchema.add(currentCustomSchema);
+            }
+        }
+        return currentPossibleCustomSchema;
+    }
+
+    public List<RecordVO> getAllAvailableReport(MetadataSchemaVO currentCustomSchema) {
+        List<RecordVO> currentAvailableReport = new ArrayList<>();
+        for(RecordVO recordVO : reportList) {
+            if(recordVO.<String>get(PrintableReport.RECORD_SCHEMA).equals(currentCustomSchema.getCode())) {
+                currentAvailableReport.add(recordVO);
+            }
+        }
+        return currentAvailableReport;
+    }
+
+    public Content getReportContent(RecordVO recordVO) {
+        Record record = this.view.getFactory().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+        MetadataSchema schema = this.view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(this.view.getCollection()).getSchema(PrintableReport.SCHEMA_NAME);
+        return record.get(schema.getMetadata(PrintableReport.JASPERFILE));
     }
 
     private void initLists(){
@@ -60,43 +118,32 @@ class ReportTabButtonPresenter  {
         reportList = getAllReport();
     }
 
-    private List<RecordVO> filterPrintableReportForCurrentCondition() {
-        List<RecordVO> currentRecordVO
+    private List<RecordVO> filterPrintableReportForCurrentCondition(PrintableReportListPossibleType selectedGeneralSchema, String selectedCustomSchema) {
+        List<RecordVO> currentRecordVO = reportList;
+        currentRecordVO = filterGeneralSchemaList(currentRecordVO, selectedGeneralSchema);
+        currentRecordVO = filterCustomSchemaList(currentRecordVO, selectedCustomSchema);
+        return currentRecordVO;
     }
 
-    protected void defaultElementSelectedValueChangeListener(Property.ValueChangeEvent event) {
-        selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-        if (fillSchemaCombobox(customElementSelected) == null) {
-            customElementSelected.setVisible(false);
-            customElementSelected.setEnabled(false);
-            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-            do {
-                selectedSchemaType = setIterator.next().getCode();
-            } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
-
-        } else {
-            customElementSelected.setVisible(true);
-            customElementSelected.setEnabled(true);
-            selectedSchemaType = null;
-            reportComboBox.setValue(null);
-
-        }
-        if (selectedSchemaType != null && selectedReporType != null) {
-            reportComboBox = fillTemplateComboBox(reportComboBox);
-        }
-        final MetadataSchemaVO firstCustomItem =  ((List<MetadataSchemaVO>)customElementSelected.getItemIds()).get(0);
-        customElementSelectedValueChangeListener(new ReportTabButton.customValueChangeEvent((firstCustomItem)));
-    }
-
-    protected void customElementSelectedValueChangeListener(Property.ValueChangeEvent event){
-        if (event.getProperty() != null && event.getProperty().getValue() != null) {
-            selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-            if (selectedSchemaType != null && selectedReporType != null) {
-                reportComboBox = fillTemplateComboBox(reportComboBox);
+    private List<RecordVO> filterGeneralSchemaList(List<RecordVO> recordVOList, PrintableReportListPossibleType selectedGeneralSchema) {
+        List<RecordVO> filteredVOs = new ArrayList<>();
+        for(RecordVO record : recordVOList) {
+            if(record.getSchema().getTypeCode().equals(selectedGeneralSchema.getSchemaType())){
+                filteredVOs.add(record);
             }
         }
+        return filteredVOs;
     }
 
+    private List<RecordVO> filterCustomSchemaList(List<RecordVO> recordVOList, String selectedCustomSchema) {
+        List<RecordVO> filteredVOs = new ArrayList<>();
+        for(RecordVO record : recordVOList) {
+            if(record.getSchema().getCode().equals(selectedCustomSchema)){
+                filteredVOs.add(record);
+            }
+        }
+        return filteredVOs;
+    }
 
     private List<PrintableReportListPossibleType> getGeneralListFromRecordVoList(){
         List<PrintableReportListPossibleType> generalList = new ArrayList<>();
@@ -124,12 +171,15 @@ class ReportTabButtonPresenter  {
         List<RecordVO> printableReportVOS = new ArrayList<>();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         SearchServices searchServices = view.getFactory().getModelLayerFactory().newSearchServices();
-        MetadataSchemaType reportType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchemaType(PrintableReport.SCHEMA_TYPE);
+        MetadataSchema reportType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchema(PrintableReport.SCHEMA_NAME);
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view.getFactory());
         List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(reportType).returnAll())));
         for(PrintableReport currentReport: allPrintableReport) {
             MetadataSchemaVO metadataSchemaVO = new MetadataSchemaToVOBuilder().build(currentReport.getSchema(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
             printableReportVOS.add(builder.build(currentReport.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, metadataSchemaVO, view.getSessionContext()));
+        }
+        if(printableReportVOS.isEmpty()) {
+            this.removePrintableTab = true;
         }
         return printableReportVOS;
     }
