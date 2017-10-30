@@ -26,6 +26,7 @@ import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPlugi
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
 
 public class ConstellioPluginConfigurationManager {
@@ -44,8 +45,9 @@ public class ConstellioPluginConfigurationManager {
 	private static final String STACK_TRACE = "stackTrace";
 	private final ConfigManager configManager;
 
-	public ConstellioPluginConfigurationManager(ConfigManager configManager) {
-		this.configManager = configManager;
+	public ConstellioPluginConfigurationManager(DataLayerFactory dataLayerFactory) {
+		this.configManager = dataLayerFactory.getConfigManager();
+		this.configManager.keepInCache(PLUGINS_CONFIG_PATH);
 	}
 
 	public List<String> getActivePluginsIds() {
@@ -55,7 +57,7 @@ public class ConstellioPluginConfigurationManager {
 	private List<String> getPluginsWithStatus(ConstellioPluginStatus status) {
 		List<String> selectedPluginsIds = new ArrayList<>();
 		if (status != null) {
-			XMLConfiguration xmlConfig = configManager.getXML(PLUGINS_CONFIG_PATH);
+			XMLConfiguration xmlConfig = readPlugins();
 			for (Element pluginElement : xmlConfig.getDocument().getRootElement().getChildren()) {
 				ConstellioPluginInfo pluginInfo = populateInfoFromElement(pluginElement);
 				if (pluginInfo.getPluginStatus() != null && pluginInfo.getPluginStatus().equals(status)) {
@@ -130,7 +132,7 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	public ConstellioPluginInfo getPluginInfo(String pluginId) {
-		XMLConfiguration xmlConfig = configManager.getXML(PLUGINS_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readPlugins();
 		Element pluginElement = xmlConfig.getDocument().getRootElement().getChild(pluginId);
 		if (pluginElement == null) {
 			return null;
@@ -245,7 +247,7 @@ public class ConstellioPluginConfigurationManager {
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus status) {
 		List<ConstellioPluginInfo> returnList = new ArrayList<>();
 		if (status != null) {
-			XMLConfiguration xmlConfig = configManager.getXML(PLUGINS_CONFIG_PATH);
+			XMLConfiguration xmlConfig = readPlugins();
 			for (Element pluginInfoElement : xmlConfig.getDocument().getRootElement().getChildren()) {
 				ConstellioPluginInfo pluginInfo = populateInfoFromElement(pluginInfoElement);
 				if (pluginInfo.getPluginStatus() != null && pluginInfo.getPluginStatus().equals(status)) {
@@ -310,10 +312,16 @@ public class ConstellioPluginConfigurationManager {
 
 	public List<String> getAllPluginsCodes() {
 		List<String> returnList = new ArrayList<>();
-		XMLConfiguration xmlConfig = configManager.getXML(PLUGINS_CONFIG_PATH);
+		XMLConfiguration xmlConfig = readPlugins();
 		for (Element pluginInfoElement : xmlConfig.getDocument().getRootElement().getChildren()) {
 			returnList.add(pluginInfoElement.getName());
 		}
 		return returnList;
+	}
+
+	private XMLConfiguration readPlugins() {
+		XMLConfiguration configuration = configManager.getXML(PLUGINS_CONFIG_PATH);
+
+		return configuration;
 	}
 }

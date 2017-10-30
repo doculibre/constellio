@@ -49,6 +49,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -459,6 +460,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.setTitle("ZeCategoryWithoutChildren").setRetentionRules(asList(records.ruleId_4)));
 
 		recordServices.execute(tx);
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
@@ -3610,5 +3612,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				return true;
 			}
 		};
+	}
+
+	private void loadCaches() {
+		for (MetadataSchemaType aSchemaType : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaTypes()) {
+			if (recordServices.getRecordsCaches().getCache(zeCollection).isConfigured(aSchemaType)) {
+				getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(from(aSchemaType).returnAll()));
+			}
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 }

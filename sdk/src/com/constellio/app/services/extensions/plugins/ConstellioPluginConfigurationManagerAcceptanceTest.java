@@ -43,8 +43,8 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		configManager = getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		pluginConfigManger = new ConstellioPluginConfigurationManager(configManager);
+		pluginConfigManger = new ConstellioPluginConfigurationManager(getDataLayerFactory());
+		configManager = getDataLayerFactory().getConfigManager();
 	}
 
 	@Test

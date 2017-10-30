@@ -23,6 +23,8 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -121,12 +123,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RecordVODataProvider eventsDataProvider;
 
 	public DisplayFolderViewImpl() {
-		presenter = new DisplayFolderPresenter(this);
+		this(null, false);
+	}
+
+	public DisplayFolderViewImpl(RecordVO recordVO, boolean popup) {
+		presenter = new DisplayFolderPresenter(this, recordVO, popup);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
 	}
 
 	@Override
@@ -304,7 +312,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						@Override
 						protected void buttonClick(ClickEvent event) {
 							presenter.duplicateFolderButtonClicked();
-							getWindow().close();
 						}
 					};
 
@@ -312,7 +319,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						@Override
 						protected void buttonClick(ClickEvent event) {
 							presenter.duplicateStructureButtonClicked();
-							getWindow().close();
 						}
 					};
 
@@ -761,7 +767,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void setLogicallyDeletable(ComponentState state) {
 		deleteFolderButton.setVisible(state.isVisible());
 		deleteFolderButton.setEnabled(state.isEnabled());
-
 	}
 
 	@Override
@@ -1081,5 +1086,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void clearUploadField() {
 		uploadField.setInternalValue(null);
+	}
+
+	@Override
+	public Navigation navigate() {
+		Navigation navigation = super.navigate();
+		closeAllWindows();
+		return navigation;
 	}
 }

@@ -144,4 +144,16 @@ public class Category extends RecordWrapper {
 	public static Category wrap(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new Category(record, types);
 	}
+
+	public Category addRetentionRules(String... rules) {
+		return add(RETENTION_RULES, rules);
+	}
+
+	public Category addRetentionRules(Record... rules) {
+		return add(RETENTION_RULES, rules);
+	}
+
+	public Category addRetentionRules(RetentionRule... rules) {
+		return add(RETENTION_RULES, rules);
+	}
 }

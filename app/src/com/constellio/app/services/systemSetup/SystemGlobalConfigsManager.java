@@ -5,6 +5,7 @@ import java.util.Map;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 public class SystemGlobalConfigsManager implements StatefulService {
 
@@ -21,8 +22,9 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	private final ConfigManager configManager;
 
-	public SystemGlobalConfigsManager(ConfigManager configManager) {
-		this.configManager = configManager;
+	public SystemGlobalConfigsManager(DataLayerFactory dataLayerFactory) {
+		this.configManager = dataLayerFactory.getConfigManager();
+		this.configManager.keepInCache(SYSTEM_GLOBAL_PROPERTIES);
 	}
 
 	@Override

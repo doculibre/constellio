@@ -241,6 +241,11 @@ public class TaxonomiesSearchServices {
 			return user == null ? null : user.getUsername();
 
 		}
+
+		public GetChildrenContext createCopyFor(Record child) {
+			return new GetChildrenContext(user, child, options, forSelectionOfSchemaType, taxonomy);
+
+		}
 	}
 
 	private ReturnedMetadatasFilter returnedMetadatasForRecordsIn(GetChildrenContext context) {
@@ -576,6 +581,15 @@ public class TaxonomiesSearchServices {
 				boolean hasChildren = true;
 				if (calculateHasChildren || !hasAccess[i]) {
 					hasChildren = hasChildrenQueryHandler.hasChildren(child);
+					if (hasChildren
+							&& context.options.getFilter() != null
+							&& context.options.getFilter().getLinkableConceptsFilter() != null
+							&& context.hasPermanentCache
+							&& !context.principalTaxonomy
+							&& context.isSelectingAConcept()
+							&& context.taxonomy.getSchemaTypes().size() == 1) {
+						hasChildren = hasLinkableConceptInHierarchy(child, context.taxonomy, context.options);
+					}
 				}
 				boolean linkable;
 				if (context.isSelectingAConcept() && calculateLinkability) {
@@ -711,7 +725,9 @@ public class TaxonomiesSearchServices {
 		int lastIteratedRecordIndex = 0;
 		FastContinueInfos continueInfos = options.getFastContinueInfos();
 
-		GetChildrenContext ctx = new GetChildrenContext(user, null, options, null, taxonomy);
+		MetadataSchemaType schemaType = forSelectionOfSchemaType == null ? null :
+				metadataSchemasManager.getSchemaTypes(collection).getSchemaType(forSelectionOfSchemaType);
+		GetChildrenContext ctx = new GetChildrenContext(user, null, options, schemaType, taxonomy);
 
 		if (ctx.hasPermanentCache) {
 			if (continueInfos != null) {
@@ -813,7 +829,19 @@ public class TaxonomiesSearchServices {
 					//response.hasQueryFacetResults("id:" + child.getId());
 				}
 
-				if (showEvenIfNoChildren || hasChildren || linkable) {
+				if (hasChildren
+						&& options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null
+						&& ctx.hasPermanentCache
+						&& !ctx.principalTaxonomy
+						&& ctx.isSelectingAConcept()
+						&& ctx.taxonomy.getSchemaTypes().size() == 1
+						&& (!linkable || options.getHasChildrenFlagCalculated() != NEVER)) {
+					TaxonomiesSearchOptions childrenOptions = new TaxonomiesSearchOptions(ctx.options)
+							.setHasChildrenFlagCalculated(HasChildrenFlagCalculated.NEVER);
+					hasChildren = hasLinkableConceptInHierarchy(child, ctx.taxonomy, ctx.options);
+
+				}
+				if (showEvenIfNoChildren || linkable || hasChildren) {
 					visibleRecords.add(new TaxonomySearchRecord(child, linkable, hasChildren));
 				}
 			}
@@ -1157,4 +1185,33 @@ public class TaxonomiesSearchServices {
 	}
 
 	private enum TreeNavigationPurpose {SHOW_RECORDS_WITH_ACCESS, SET_METADATA}
+
+	public boolean hasLinkableConceptInHierarchy(final Record concept, final Taxonomy taxonomy,
+			TaxonomiesSearchOptions options) {
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(concept.getCollection())
+				.getSchemaType(taxonomy.getSchemaTypes().get(0));
+		List<Record> records = searchServices.cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+		for (final Record record : records) {
+			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
+				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));
+				boolean linkableUsingFilter = options.getFilter().getLinkableConceptsFilter()
+						.isLinkable(new LinkableConceptFilterParams() {
+							@Override
+							public Record getRecord() {
+								return record;
+							}
+
+							@Override
+							public Taxonomy getTaxonomy() {
+								return taxonomy;
+							}
+						});
+
+				if (linkableFlag && linkableUsingFilter) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

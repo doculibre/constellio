@@ -76,4 +76,6 @@ public interface ConfigManager {
 	void importFrom(File settingsFolder);
 
 	void exportTo(File settingsFolder);
+
+	void keepInCache(String path);
 }

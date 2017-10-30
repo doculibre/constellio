@@ -3,6 +3,7 @@ package com.constellio.data.io.services.facades;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 
@@ -74,13 +75,14 @@ public class FileService {
 	public void replaceFileContent(File file, String data)
 			throws IOException {
 		File tempFile = getAtomicWriteTempFileFor(file);
-		FileUtils.writeStringToFile(tempFile, data, "UTF-8",false);
-		moveFile(tempFile, file);
+		FileUtils.writeStringToFile(tempFile, data, "UTF-8", false);
+		//moveFile(tempFile, file);
+		java.nio.file.Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
 	}
 
 	public synchronized void appendFileContent(File file, String data)
 			throws IOException {
-		FileUtils.writeStringToFile(file, data, "UTF8",true);
+		FileUtils.writeStringToFile(file, data, "UTF8", true);
 	}
 
 	public synchronized void appendFileContent(File file, String data, String encoding)
@@ -208,7 +210,7 @@ public class FileService {
 
 	public File newTemporaryFileWithoutGuid(String resourceName) {
 		final String name = resourceName;
-		File file = new File(tempFolder, name){
+		File file = new File(tempFolder, name) {
 			@Override
 			public String toString() {
 				return name + "[" + getPath() + "]";

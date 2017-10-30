@@ -15,10 +15,12 @@ import org.mockito.Mock;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SystemGlobalConfigsManagerTest extends ConstellioTest {
 
+	@Mock DataLayerFactory dataLayerFactory;
 	@Mock ConstellioPluginManager constellioPluginManager;
 	@Mock ConfigManager configManager;
 
@@ -29,7 +31,8 @@ public class SystemGlobalConfigsManagerTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		systemGlobalConfigsManager = spy(new SystemGlobalConfigsManager(configManager));
+		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
+		systemGlobalConfigsManager = spy(new SystemGlobalConfigsManager(dataLayerFactory));
 
 	}
 

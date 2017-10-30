@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -43,8 +39,16 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.data.utils.Builder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -529,15 +533,16 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		} catch (RecordServicesException.ValidationException e) {
 			List<ValidationError> validationErrors = e.getErrors().getValidationErrors();
 			assertThat(validationErrors.size()).isEqualTo(1);
-			
+
 			ValidationError validationError = validationErrors.get(0);
 			assertThat(validationError.getCode().endsWith(FolderValidator.FOLDER_INVALID_COPY_RETENTION_RULE));
-			
+
 			Map<String, Object> expectedParams = new HashMap<>();
 			expectedParams.put("ruleCode", "Ze rule");
 			expectedParams.put("schemaCode", "folder_default");
 			expectedParams.put("mainCopyRule", secondary_1_0_D.getId());
 			assertThat(validationError.getParameters()).isEqualTo(expectedParams);
+			assertThat(frenchMessages(e.getErrors())).containsOnly("Le délai sélectionné doit être principal");
 		}
 	}
 
@@ -3015,7 +3020,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenInvalidMainCopyRuleIdEnteredWhenSavingThenValidationFails() {
+	public void givenInvalidMainCopyRuleIdEnteredWhenSavingThenValidationFails()
+			throws Exception {
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_10a);
 		folder.setCategoryEntered(records.categoryId_X13);
@@ -3026,17 +3032,58 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		try {
 			recordServices.add(folder);
 			fail();
-		} catch (RecordServicesException e) {
+		} catch (ValidationException e) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(FolderValidator.MAIN_COPY_RULE, "zeInvalidCopyRuleIdEntered");
 			parameters.put("schemaCode", Folder.DEFAULT_SCHEMA);
 			parameters.put(FolderValidator.RULE_CODE, records.getRule1().getCode());
 			ensureValidationError(e, FolderValidator.class, FolderValidator.FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
+			assertThat(frenchMessages(e.getErrors()))
+					.containsOnly("Le délai sélectionné n'est pas un choix disponible selon la règle de conservation");
 		}
 	}
 
 	@Test
-	public void givenFolderInNonCompletedAndNotDeletedTaskThenCannotDelete() throws RecordServicesException {
+	public void givenPrincipalCopyRuleChoosedForPrincipalFolderThenValidationError()
+			throws Exception {
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setMainCopyRuleEntered(records.getRule2().getSecondaryCopy().getId());
+		folder.setTitle("Ze title");
+		folder.setOpenDate(new LocalDate());
+		try {
+			recordServices.add(folder);
+			fail();
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e.getErrors())).containsOnly("Le délai sélectionné doit être principal");
+		}
+	}
+
+	@Test
+	public void givenPrincipalCopyRuleChoosedForSecondaryFolderThenValidationError()
+			throws Exception {
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.SECONDARY);
+		folder.setMainCopyRuleEntered(records.getRule2().getPrincipalCopies().get(0).getId());
+		folder.setTitle("Ze title");
+		folder.setOpenDate(new LocalDate());
+		try {
+			recordServices.add(folder);
+			fail();
+		} catch (ValidationException e) {
+			assertThat(frenchMessages(e.getErrors())).containsOnly("Le délai sélectionné doit être secondaire");
+		}
+	}
+
+	@Test
+	public void givenFolderInNonCompletedAndNotDeletedTaskThenCannotDelete()
+			throws RecordServicesException {
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_10a);
 		folder.setCategoryEntered(records.categoryId_X13);

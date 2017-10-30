@@ -27,6 +27,7 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 	public PasswordFileAuthenticationService(ConfigManager configManager, HashingService hashingService) {
 		this.configManager = configManager;
 		this.hashingService = hashingService;
+		configManager.keepInCache(AUTHENTIFICATION_PROPERTIES);
 		configManager.createPropertiesDocumentIfInexistent(AUTHENTIFICATION_PROPERTIES, new PropertiesAlteration() {
 
 			@Override

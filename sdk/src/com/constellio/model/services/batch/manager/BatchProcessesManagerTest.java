@@ -32,6 +32,8 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -97,6 +99,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Mock BatchProcessPart zePreviousPart;
 	@Mock CollectionsListManager collectionsListManager;
 
+	@Mock ConstellioCacheManager constellioCacheManager;
+	@Mock ConstellioCache cache;
+
 	@Mock BatchProcessesListUpdatedEventListener firstListener;
 	@Mock BatchProcessesListUpdatedEventListener secondListener;
 
@@ -137,6 +142,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
+
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCacheManager);
+		when(constellioCacheManager.getCache(anyString())).thenReturn(cache);
 	}
 
 	private void createManager() {

@@ -3,9 +3,12 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -60,6 +63,7 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
+	
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
@@ -85,14 +89,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
 	private DisplayDocumentPresenter presenter;
+	
+	private boolean popup;
 
 	public DisplayDocumentViewImpl() {
-		presenter = new DisplayDocumentPresenter(this);
+		this(null, false);
+	}
+
+	public DisplayDocumentViewImpl(RecordVO recordVO, boolean popup) {
+		this.popup = popup;
+		presenter = new DisplayDocumentPresenter(this, recordVO, popup);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
 	}
 
 	@Override
@@ -127,8 +140,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+		borrowedLabel.addStyleName("borrowed-document-message");
 
 		contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		if (popup) {
+			// FIXME CSS bug when displayed in window, hiding for now.
+			contentViewer.setVisible(false);
+		}
 
 		tabSheet = new TabSheet();
 
@@ -798,6 +816,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void refreshParent() {
 		// No parent
+	}
+
+	@Override
+	public Navigation navigate() {
+		Navigation navigation = super.navigate();
+		closeAllWindows();
+		return navigation;
 	}
 
 	private class StartWorkflowButton extends WindowButton {
