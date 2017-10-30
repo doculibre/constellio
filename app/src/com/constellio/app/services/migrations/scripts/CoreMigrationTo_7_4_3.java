@@ -37,11 +37,12 @@ public class CoreMigrationTo_7_4_3 implements MigrationScript {
 			List<MetadataSchema> allSchemas = type.getAllSchemas();
 			for (MetadataSchema schema : allSchemas) {
 				if (schema.hasMetadataWithCode(Schemas.PATH.getLocalCode())) {
-					metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(collection,
+					transaction.add(metadataSchemasDisplayManager.getMetadata(collection,
 							schema.get(Schemas.PATH.getLocalCode()).getCode()).withVisibleInAdvancedSearchStatus(true));
 				}
 			}
 		}
+		metadataSchemasDisplayManager.execute(transaction);
 	}
 
 	private class CoreSchemaAlterationFor7_4_3 extends MetadataSchemasAlterationHelper {
