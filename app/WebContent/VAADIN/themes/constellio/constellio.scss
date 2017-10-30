@@ -625,8 +625,13 @@ $popup-view-z-index: 3;
 				height: initial;
 			}
 			
+			.v-slot-borrowed-document-message {
+				max-height: 30px;
+				vertical-align: center;
+			}
+			
 			.action-menu {
-		        position: fixed;
+		        position: absolute;
 		        top: $header-height;
 		        right: 20px;
 		        margin-top: 70px;

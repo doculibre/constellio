@@ -78,7 +78,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 
-	public DisplayDocumentPresenter(final DisplayDocumentView view) {
+	public DisplayDocumentPresenter(DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
@@ -92,6 +92,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		
+		if (recordVO != null) {
+			forParams(recordVO.getId());
+		}
 	}
 
 	@Override

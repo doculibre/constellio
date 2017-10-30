@@ -283,12 +283,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
-			actionsComponent.navigateTo().listObjectAccessAuthorizations(documentVO.getId());
+			actionsComponent.navigate().to().listObjectAccessAuthorizations(documentVO.getId());
 		}
 	}
 
 	public void shareDocumentButtonClicked() {
-		actionsComponent.navigateTo().shareContent(documentVO.getId());
+		actionsComponent.navigate().to().shareContent(documentVO.getId());
 	}
 
 	public void updateWindowClosed() {

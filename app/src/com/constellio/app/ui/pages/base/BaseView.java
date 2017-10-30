@@ -35,6 +35,8 @@ public interface BaseView extends ViewComponent {
 	void updateUI();
 
 	void invalidate();
+	
+	void closeAllWindows();
 
 	void removeViewEnterListener(ViewEnterListener listener);
 
