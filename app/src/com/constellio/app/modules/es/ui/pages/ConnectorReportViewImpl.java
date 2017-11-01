@@ -61,6 +61,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		table.setColumnHeader("type", $("ConnectorReportView.type"));
 		tableControls = table.createControls();
 		mainLayout.addComponents(statsDisplay, filterComponent, table, tableControls);
+
 		return mainLayout;
 	}
 
