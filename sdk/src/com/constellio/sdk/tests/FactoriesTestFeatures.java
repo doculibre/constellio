@@ -423,7 +423,6 @@ public class FactoriesTestFeatures {
 					try {
 						File tempUnzipSettingsFolder = loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder,
 								pluginsFolder, tlogWorkFolder, dummyPasswords);
-						System.out.println("SAVESTATE! " + contentFolder.getAbsolutePath());
 						decorator.importSettings(tempUnzipSettingsFolder);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
