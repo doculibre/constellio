@@ -85,44 +85,79 @@ public class FactoriesTestFeatures {
 		ConstellioFactories.instanceProvider = new SDKConstellioFactoriesInstanceProvider();
 	}
 
-	public void afterTest() {
+	public List<Runnable> afterTest() {
+
+		List<Runnable> runtimes = new ArrayList<>();
 
 		if (ConstellioFactories.instanceProvider.isInitialized()) {
-			clear();
+			runtimes.addAll(clear());
 		}
 
 		ConstellioFactories.clear();
 
+		return runtimes;
+
 	}
 
-	public void clear() {
+	public List<Runnable> clear() {
+		List<Runnable> runnables = new ArrayList<>();
 		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
 
 		for (ConstellioFactories factoriesInstance : instanceProvider.instances.values()) {
 
-			File licenseFile = factoriesInstance.getFoldersLocator().getLicenseFile();
-			if (licenseFile.exists()) {
-				licenseFile.delete();
-			}
+			final File licenseFile = factoriesInstance.getFoldersLocator().getLicenseFile();
+			runnables.add(new Runnable() {
+				@Override
+				public void run() {
+					if (licenseFile.exists()) {
+						licenseFile.delete();
+					}
+				}
+			});
 
-			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
-			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
-				deleteServerRecords(server);
+			final DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
+			for (final BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
+				//
+				runnables.add(new Runnable() {
+					@Override
+					public void run() {
+						deleteServerRecords(server);
+					}
+				});
 			}
 
 			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
-				deleteFromHadoop(conf.getContentDaoHadoopUser(), conf.getContentDaoHadoopUrl());
+
+				runnables.add(new Runnable() {
+					@Override
+					public void run() {
+						deleteFromHadoop(conf.getContentDaoHadoopUser(), conf.getContentDaoHadoopUrl());
+					}
+				});
 
 			}
 
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
-				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
+
+				runnables.add(new Runnable() {
+					@Override
+					public void run() {
+						deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
+					}
+				});
 			}
 		}
 
 		deleteFromCaches();
 
-		i18n.clearBundles();
+		runnables.add(new Runnable() {
+			@Override
+			public void run() {
+				i18n.clearBundles();
+			}
+		});
+
+		return runnables;
 	}
 
 	private void deleteFromCaches() {
@@ -383,10 +418,12 @@ public class FactoriesTestFeatures {
 
 			if (initialState != null) {
 				if (!ConstellioTest.isCurrentPreservingState()) {
+
 					File tempFolder = fileSystemTestFeatures.newTempFolder();
 					try {
 						File tempUnzipSettingsFolder = loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder,
 								pluginsFolder, tlogWorkFolder, dummyPasswords);
+						System.out.println("SAVESTATE! " + contentFolder.getAbsolutePath());
 						decorator.importSettings(tempUnzipSettingsFolder);
 					} catch (Exception e) {
 						throw new RuntimeException(e);

@@ -64,6 +64,9 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		while (!isStopRequested()) {
 			try {
 				process();
+			} catch (NullPointerException t) {
+				LOGGER.error("Error while batch processing", t);
+
 			} catch (Throwable t) {
 				LOGGER.error("Error while batch processing", t);
 			}
