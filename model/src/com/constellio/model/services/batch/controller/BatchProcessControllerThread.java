@@ -65,6 +65,12 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			try {
 				process();
 			} catch (NullPointerException t) {
+				t.printStackTrace();
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
 				LOGGER.error("Error while batch processing", t);
 
 			} catch (Throwable t) {
