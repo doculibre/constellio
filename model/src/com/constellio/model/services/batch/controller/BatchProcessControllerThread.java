@@ -57,6 +57,11 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
 		this.userServices = modelLayerFactory.newUserServices();
+
+		if (modelLayerFactory == null || modelLayerFactory.getDataLayerFactory() == null
+				|| modelLayerFactory.getDataLayerFactory().getLeaderElectionService() == null) {
+			throw new IllegalArgumentException("modelLayerFactory parameter is invalid");
+		}
 	}
 
 	@Override
