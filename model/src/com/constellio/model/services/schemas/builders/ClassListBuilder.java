@@ -142,4 +142,12 @@ public class ClassListBuilder<T> {
 
 		return values1Classes.equals(values2Classes);
 	}
+
+	public boolean contains(Class<?> aClass) {
+		return implementationsClassname.contains(aClass.getName());
+	}
+
+	public boolean contains(String aClassName) {
+		return implementationsClassname.contains(aClassName);
+	}
 }

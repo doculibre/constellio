@@ -38,6 +38,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+	// Step 1
 	@Test
 	public void validateCoreMigrationHighway()
 			throws Exception {
@@ -55,6 +56,25 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
+	// Step 2
+	@Test
+	public void validateCoreTasksMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withTaskModule();
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
+						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+			}
+		});
+
+	}
+
+	// Step 3
 	@Test
 	public void validateCoreRMMigrationHighway()
 			throws Exception {
@@ -75,23 +95,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void validateCoreTasksMigrationHighway()
-			throws Exception {
-
-		validate(new SetupScript() {
-			@Override
-			public void setupCollection() {
-				givenCollection(zeCollection).withTaskModule();
-				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
-				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
-				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
-			}
-		});
-
-	}
-
+	// Step 4
 	@Test
 	public void validateCoreRobotsMigrationHighway()
 			throws Exception {
@@ -109,6 +113,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
+	// Step 5
 	@Test
 	public void validateCoreESMigrationHighway()
 			throws Exception {
@@ -384,9 +389,13 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 			} else {
 
-				assertThat(contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
-						+ "' generated using combo script is not equal to the content generated using atomic scripts")
-						.isEqualTo(contentOfFileMigratedUsingAtomicScripts);
+				if (!contentOfFileMigratedUsingComboScript.equals(contentOfFileMigratedUsingAtomicScripts)) {
+					assertThat("FICHIER GÉNÉRÉ AVEC LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
+							+ contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
+							+ "' generated using combo script is not equal to the content generated using atomic scripts")
+							.isEqualTo("FICHIER GÉNÉRÉ SANS LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
+									+ contentOfFileMigratedUsingAtomicScripts);
+				}
 			}
 			System.out.println(file1.getName() + " is OK");
 			//}

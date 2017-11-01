@@ -1,6 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType.VERTICAL;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
@@ -48,6 +47,12 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_3_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_5;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2_1;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -87,9 +92,9 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_6_5_14());
 		scripts.add(new CoreMigrationTo_6_5_19());
 		scripts.add(new CoreMigrationTo_6_5_21());
+		scripts.add(new CoreMigrationTo_6_5_50());
 		scripts.add(new CoreMigrationTo_6_5_22());
 		scripts.add(new CoreMigrationTo_6_5_42());
-		scripts.add(new CoreMigrationTo_6_5_50());
 		scripts.add(new CoreMigrationTo_6_6());
 		scripts.add(new CoreMigrationTo_7_0());
 		scripts.add(new CoreMigrationTo_7_0_1());
@@ -100,6 +105,12 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_7_3());
 		scripts.add(new CoreMigrationTo_7_3_0_1());
 		scripts.add(new CoreMigrationTo_7_4());
+		scripts.add(new CoreMigrationTo_7_4_2());
+		scripts.add(new CoreMigrationTo_7_4_3());
+		scripts.add(new CoreMigrationTo_7_5());
+		scripts.add(new CoreMigrationTo_7_6());
+		scripts.add(new CoreMigrationTo_7_6_2());
+		scripts.add(new CoreMigrationTo_7_6_2_1());
 
 		return scripts;
 	}
@@ -173,13 +184,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				"user_default_allroles"
 		)));
 
-		transaction.add(manager.getMetadata(collection, "event_default_recordVersion").withDisplayType(VERTICAL));
-
 		transaction.in("savedSearch").addToDisplay("resultsViewMode").beforeMetadata("schemaFilter");
 
 		transaction.in("savedSearch").addToForm("resultsViewMode").beforeMetadata("schemaFilter");
 
-		manager.execute(transaction.build());
 	}
 
 	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
@@ -215,9 +223,11 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
 			if (Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
+
 				generatedSystemMigrationCombo.applyGeneratedSchemaAlteration(typesBuilder);
 			} else {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
+
 			}
 			//
 			//
