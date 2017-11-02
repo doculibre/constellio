@@ -63,13 +63,13 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 					System.out.println("Table : " + StringUtils.join(schemaDisplayConfig.getTableMetadataCodes(), ", "));
 
 					for (Metadata metadata : type.getAllMetadatas()) {
-						if (restrictedMetadatasCode.contains(metadata.getLocalCode())) {
+						if (!restrictedMetadatasCode.contains(metadata.getLocalCode())) {
 							MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager
 									.getMetadata(zeCollection, metadata.getCode());
 
 							if (typesVisibleInSearch.contains(type.getCode())) {
 								System.out.println(metadata.getCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
-										+ metadataDisplayConfig.getDisplayType().name() + " "
+										+ metadataDisplayConfig.getDisplayType().name()
 										+ (metadataDisplayConfig.isVisibleInAdvancedSearch() ? " visibleInAdvancedSearch" : "")
 										+ (metadataDisplayConfig.isHighlight() ? " highlighted" : "")
 								);
