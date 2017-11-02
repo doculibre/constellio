@@ -17,7 +17,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -29,7 +28,7 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 @MainTest
 public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 
-	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, Event.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE);
+	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE);
 
 	private static List<String> restrictedMetadatasCode = asList("followers", "path");
 
@@ -62,7 +61,7 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 					System.out.println("Search : " + StringUtils.join(schemaDisplayConfig.getSearchResultsMetadataCodes(), ", "));
 					System.out.println("Table : " + StringUtils.join(schemaDisplayConfig.getTableMetadataCodes(), ", "));
 
-					for (Metadata metadata : type.getAllMetadatas()) {
+					for (Metadata metadata : schema.getMetadatas()) {
 						if (!restrictedMetadatasCode.contains(metadata.getLocalCode())) {
 							MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager
 									.getMetadata(zeCollection, metadata.getCode());
