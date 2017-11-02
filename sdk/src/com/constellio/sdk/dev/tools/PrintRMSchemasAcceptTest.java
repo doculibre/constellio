@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -20,7 +19,7 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 @MainTest
 public class PrintRMSchemasAcceptTest extends ConstellioTest {
 
-	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, Event.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE);
+	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE);
 
 	private static List<String> restrictedMetadatasCode = asList("followers", "id", "schema", "legacyIdentifier",
 			"removedauthorizations", "detachedauthorizations", "authorizations", "deleted");
@@ -39,7 +38,7 @@ public class PrintRMSchemasAcceptTest extends ConstellioTest {
 				.getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
-				for (Metadata metadata : type.getAllMetadatas().onlyManuals()) {
+				for (Metadata metadata : type.getAllMetadatas()) {
 					if (!restrictedMetadatasCode.contains(metadata.getLocalCode())) {
 						StringBuilder stringBuilder = new StringBuilder();
 						stringBuilder.append(metadata.getLocalCode() + " '" + metadata.getLabel(Language.French) + "' : ");
