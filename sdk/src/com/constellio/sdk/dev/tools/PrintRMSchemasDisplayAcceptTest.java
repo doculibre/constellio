@@ -9,6 +9,11 @@ import org.junit.Test;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -26,8 +31,10 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 
 	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, Event.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE);
 
-	private static List<String> restrictedMetadatasCode = asList("followers", "id", "schema", "legacyIdentifier",
-			"removedauthorizations", "detachedauthorizations", "authorizations", "deleted");
+	private static List<String> restrictedMetadatasCode = asList("followers", "path");
+
+	private static List<String> typesVisibleInSearch = asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
+			ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE);
 
 	@Test
 	@MainTestDefaultStart
@@ -56,15 +63,23 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 					System.out.println("Table : " + StringUtils.join(schemaDisplayConfig.getTableMetadataCodes(), ", "));
 
 					for (Metadata metadata : type.getAllMetadatas()) {
-						MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager
-								.getMetadata(zeCollection, metadata.getCode());
+						if (restrictedMetadatasCode.contains(metadata.getLocalCode())) {
+							MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager
+									.getMetadata(zeCollection, metadata.getCode());
 
-						System.out.println(metadata.getLocalCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
-								+ metadataDisplayConfig.getDisplayType().name() + " "
-								+ (metadataDisplayConfig.isVisibleInAdvancedSearch() ? " visibleInAdvancedSearch" : "")
-								+ (metadataDisplayConfig.isHighlight() ? " highlighted" : "")
-						);
+							if (typesVisibleInSearch.contains(type.getCode())) {
+								System.out.println(metadata.getCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
+										+ metadataDisplayConfig.getDisplayType().name() + " "
+										+ (metadataDisplayConfig.isVisibleInAdvancedSearch() ? " visibleInAdvancedSearch" : "")
+										+ (metadataDisplayConfig.isHighlight() ? " highlighted" : "")
+								);
+							} else {
+								System.out.println(metadata.getCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
+										+ metadataDisplayConfig.getDisplayType().name() + " "
+								);
+							}
 
+						}
 					}
 				}
 
