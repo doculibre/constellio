@@ -53,6 +53,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 	@Override
 	public void navigateToView(NavigationParams navigationParams) {
 		RMViews constellioNavigator = navigationParams.navigate().to(RMViews.class);
+		constellioNavigator.closeAllWindows();
+		
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		String recordId = navigationParams.getRecordId();
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {

@@ -594,11 +594,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 	
 	private Navigation navigate() {
-		Navigation navigation = view.navigate();
-		if (popup) {
-			view.closeWindow();
-		}
-		return navigation;
+		return view.navigate();
 	}
 
 	public void backButtonClicked() {
@@ -639,7 +635,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
 		if (!popup) {
-			view.closeWindow();
+			view.closeAllWindows();
 		}
 	}
 
@@ -647,7 +643,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
 		if (!popup) {
-			view.closeWindow();
+			view.closeAllWindows();
 		}
 	}
 

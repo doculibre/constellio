@@ -1,5 +1,6 @@
 package com.constellio.app.ui.application;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,12 +17,19 @@ import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresent
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.Window;
 
 public class CoreViews {
 	protected Navigator navigator;
 
 	public CoreViews(Navigator navigator) {
 		this.navigator = navigator;
+	}
+	
+	public void closeAllWindows() {
+		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+			window.close();
+		}
 	}
 
 	public String getState() {

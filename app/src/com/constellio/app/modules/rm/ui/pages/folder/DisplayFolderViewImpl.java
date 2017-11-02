@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -1090,9 +1091,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void closeWindow() {
-		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
-			window.close();
-		}
+	public Navigation navigate() {
+		Navigation navigation = super.navigate();
+		closeAllWindows();
+		return navigation;
 	}
 }

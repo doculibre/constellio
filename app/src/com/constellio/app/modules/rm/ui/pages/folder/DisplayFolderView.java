@@ -76,6 +76,4 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void clearUploadField();
 	
-	void closeWindow();
-
 }
