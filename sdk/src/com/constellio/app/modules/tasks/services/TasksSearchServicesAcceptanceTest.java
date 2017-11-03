@@ -161,7 +161,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedByUserQuery(chuck));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(1);
 		//TODO: Assert on records
 	}
 
@@ -182,7 +182,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedToUserQuery(alice));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(1);
 		//TODO: Assert on records
 	}
 
@@ -211,7 +211,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
 		assertThat(results.size()).isEqualTo(2);
-		assertThat(results).extracting("title").containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
+		assertThat(results).extracting("title")
+				.containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test
