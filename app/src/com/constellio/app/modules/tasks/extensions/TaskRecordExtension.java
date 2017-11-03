@@ -124,18 +124,18 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	private void saveEmailToSend(EmailToSend emailToSend, Task task) {
+		if(!task.isModel()) {
+			prepareTaskParameters(emailToSend, task);
 
-		prepareTaskParameters(emailToSend, task);
-
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.LATER());
-		transaction.add(emailToSend);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
+			Transaction transaction = new Transaction();
+			transaction.setRecordFlushing(RecordsFlushing.LATER());
+			transaction.add(emailToSend);
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
 		}
-
 	}
 
 	private EmailToSend prepareEmailToSend(Task task, Set<String> followersIds, String templateId) {
