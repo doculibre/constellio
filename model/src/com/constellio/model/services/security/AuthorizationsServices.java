@@ -348,14 +348,15 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+	private void refreshCaches(Record grantedOnRecord, List<String> principalsWithNewAccess,
+			List<String> principalsWithRemovedAccess) {
 		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
 
 		for (String id : hierarchyIds) {
-			if (newAccess) {
+			if (!principalsWithNewAccess.isEmpty()) {
 				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
 			}
-			if (removedAccess) {
+			if (!principalsWithRemovedAccess.isEmpty()) {
 				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
 			}
 		}

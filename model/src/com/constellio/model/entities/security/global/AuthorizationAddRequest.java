@@ -3,9 +3,7 @@ package com.constellio.model.entities.security.global;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import org.joda.time.LocalDate;
 
@@ -14,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
 
@@ -130,6 +127,10 @@ public class AuthorizationAddRequest {
 			rolesCodes.add(role.getCode());
 		}
 		return withRoles(rolesCodes);
+	}
+
+	public static AuthorizationAddRequest authorizationForGroups(Group... groups) {
+		return new AuthorizationAddRequest(groups[0].getCollection()).forGroups(groups);
 	}
 
 	public static AuthorizationAddRequest authorizationForUsers(User... users) {
