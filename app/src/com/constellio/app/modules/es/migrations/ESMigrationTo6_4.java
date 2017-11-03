@@ -1,5 +1,7 @@
 package com.constellio.app.modules.es.migrations;
 
+import static com.constellio.app.modules.es.ESTypes.esSchemaTypes;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +33,9 @@ public class ESMigrationTo6_4 implements MigrationScript {
 		List<MetadataSchemaType> schemaTypes = metadataSchemasManager
 				.getSchemaTypes(collection).getSchemaTypes();
 		SchemasDisplayManager manager = factory.getMetadataSchemasDisplayManager();
-		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
+		for (MetadataSchemaType metadataSchemaType : esSchemaTypes(factory, collection)) {
 
-			for (MetadataSchema metadataSchema : metadataSchemaType.getCustomSchemas()) {
+			for (MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
 				if (!metadataSchema.getCode().contains(" ")) {
 					SchemaDisplayConfig customConfig = manager.getSchema(collection, metadataSchema.getCode());
 					SchemaDisplayConfig newCustomConfig = customConfig.withTableMetadataCodes(new ArrayList<String>());

@@ -17,7 +17,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 /**
  * Created by constellios on 2017-07-13.
  */
-public class RMMigrationTo7_4 extends MigrationHelper implements MigrationScript {
+public class
+RMMigrationTo7_4 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
 		return "7.4";

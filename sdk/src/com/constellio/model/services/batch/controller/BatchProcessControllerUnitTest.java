@@ -83,14 +83,6 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenThreadStopedWhenStartingThenRestarts()
-			throws InterruptedException {
-		givenStartedController();
-		controller.close();
-		controller.start();
-	}
-
-	@Test
 	public void givenUnstartedManagerWhenBatchProcessesListUpdatedThenDoNothing()
 			throws Exception {
 		controller.onBatchProcessesListUpdated();

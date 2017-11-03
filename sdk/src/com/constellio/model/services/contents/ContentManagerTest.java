@@ -257,12 +257,12 @@ public class ContentManagerTest extends ConstellioTest {
 
 	}
 
-	@Test()
-	public void givenContentDaoReturnNullWhenGetContentParsedContentThenReturnEmptyString()
+	@Test(expected = ContentManagerException.ContentManagerException_ContentNotParsed.class)
+	public void givenContentDaoReturnNullWhenGetContentParsedContentThenThrowContentNotParsedException()
 			throws Exception {
 		when(contentDao.getContentInputStream(newContentId + "__parsed", zeStreamName)).thenReturn(null);
 
-		assertThat(contentManager.getParsedContent(newContentId)).isNull();
+		contentManager.getParsedContent(newContentId);
 
 	}
 
