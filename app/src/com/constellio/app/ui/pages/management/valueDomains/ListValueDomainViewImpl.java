@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -17,22 +18,20 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
 	private final ListValueDomainPresenter presenter;
-	private VerticalLayout layout;
-	private Table domainValues;
+	private VerticalLayout mainLayout;
+	private TabSheet sheet;
+	private List<TabWithTable> tabs;
 
 	public ListValueDomainViewImpl() {
 		presenter = new ListValueDomainPresenter(this);
@@ -45,11 +44,41 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		domainValues = buildTable();
-		layout = new VerticalLayout(buildCreationComponent(), domainValues);
-		layout.setSpacing(true);
-		layout.setWidth("100%");
-		return layout;
+		initTabs();
+		mainLayout = new VerticalLayout(buildCreationComponent(), sheet);
+		mainLayout.setSpacing(true);
+		mainLayout.setWidth("100%");
+		return mainLayout;
+	}
+
+	private void initTabs() {
+		sheet = new TabSheet();
+		tabs = new ArrayList<>();
+		addTab(SYSTEM_TAB, $("ListValueDomainView.systemTabCaption"));
+		addTab(CUSTOM_TAB, $("ListValueDomainView.customTabCaption"));
+	}
+
+	private void addTab(final String id, String caption) {
+		TabWithTable tab = new TabWithTable(id) {
+			@Override
+			public Table buildTable() {
+				return ListValueDomainViewImpl.this.buildTable(id);
+			}
+		};
+		tabs.add(tab);
+		sheet.addTab(tab.getTabLayout(), caption);
+	}
+
+	private void removeTab(String id) {
+		TabWithTable tabToRemove = null;
+		for(TabWithTable tab: tabs) {
+			if(tab.getId().equals(id)) {
+				tabToRemove = tab;
+				sheet.removeComponent(tab.getTabLayout());
+				break;
+			}
+		}
+		tabs.remove(tabToRemove);
 	}
 
 	@Override
@@ -64,9 +93,9 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 	@Override
 	public void refreshTable() {
-		Table table = buildTable();
-		layout.replaceComponent(domainValues, table);
-		domainValues = table;
+		for(TabWithTable tab: tabs) {
+			tab.refreshTable();
+		}
 	}
 
 	private Component buildCreationComponent() {
@@ -97,9 +126,9 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 		return creation;
 	}
 
-	private Table buildTable() {
+	private Table buildTable(String id) {
 		BeanItemContainer elements = new BeanItemContainer<>(
-				MetadataSchemaTypeVO.class, presenter.getDomainValues());
+				MetadataSchemaTypeVO.class, presenter.getDomainValues(CUSTOM_TAB.equals(id)));
 
 		ButtonsContainer container = new ButtonsContainer<>(elements, "buttons");
 		container.addButton(new ContainerButton() {
