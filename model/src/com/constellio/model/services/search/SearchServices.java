@@ -230,7 +230,7 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
-			int skipping) {
+																			int skipping) {
 
 		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
 
@@ -257,7 +257,7 @@ public class SearchServices {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		long result = recordDao.query(query.getName(), params).getNumFound();
+		long result = recordDao.query(params).getNumFound();
 		query.setNumberOfRows(oldNumberOfRows);
 		return result;
 	}
@@ -574,17 +574,17 @@ public class SearchServices {
 		for (UserFilter userFilter : userFilters) {
 			String filter;
 			switch (userFilter.getAccess()) {
-			case Role.READ:
-				filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			case Role.WRITE:
-				filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			case Role.DELETE:
-				filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			default:
-				filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 			}
 
 			params.add(CommonParams.FQ, filter);
