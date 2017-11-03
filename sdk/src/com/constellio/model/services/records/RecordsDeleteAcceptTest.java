@@ -1099,20 +1099,6 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
-			throws Exception {
-		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		when(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
-
-		assertThat(records.taxo1_category2()).is(logicallyDeleted());
-		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
-		assertThat(records.folder3()).is(logicallyDeleted());
-		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
-
-	}
-
-	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
 		when(User.GOD).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecords);
