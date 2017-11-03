@@ -8,8 +8,6 @@ import static org.assertj.core.api.Assertions.entry;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,17 +42,6 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 		//DataLayerLogger.logAllTransactions = true;
-
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", "*:*");
-		params.set("rows", "1");
-		try {
-			if (new HttpSolrClient("http://localhost:8983/solr/records").query(params).getResults().getNumFound() > 0) {
-				throw new RuntimeException("dirty!");
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
