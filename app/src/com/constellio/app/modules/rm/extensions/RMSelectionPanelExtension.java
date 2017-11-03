@@ -209,7 +209,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true, this.getSessionContext());
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
