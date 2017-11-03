@@ -48,10 +48,10 @@ public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript
 	public void editTableMetadata(String collection, SchemasDisplayManager manager) {
 
 		manager.saveSchema(manager.getSchema(collection, SIParchive.SCHEMA).withNewTableMetadatas(
-				TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
-				TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
-				TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
-				TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT));
+				SIParchive.SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
+				SIParchive.SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
+				SIParchive.SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
+				SIParchive.SCHEMA + "_" + TemporaryRecord.CONTENT));
 	}
 
 	class SchemaAlterationFor7_6 extends MetadataSchemasAlterationHelper {
