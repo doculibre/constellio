@@ -16,11 +16,28 @@ dao.settings.type=filesystem
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
 skip.uitests=true
-skip.drivertests=true
+skip.drivertests=false
 skip.loadtests=true
 skip.internettests=true
 skip.indevelopment=true
 
 
 tests.whitelist=
-tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,com.constellio.model.conf.ldap.services.AzureAdClientAcceptanceTest,com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteAcceptanceTest,com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteAcceptanceTest,com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManagerAcceptTest,com.constellio.app.modules.migrations.PluginsComboMigrationsAcceptanceTest
+tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
+com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,\
+com.constellio.model.conf.ldap.services.AzureAdClientAcceptanceTest,\
+com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,\
+com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteAcceptanceTest,\
+com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteAcceptanceTest,\
+com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManagerAcceptTest,\
+com.constellio.app.modules.migrations.PluginsComboMigrationsAcceptanceTest,\
+com.constellio.model.services.security.authentification.LDAPAuthenticationServiceAcceptanceTest,\
+com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
+com.constellio.agent.ui.tray.AgentTrayAcceptancePresenterAcceptanceTest,\
+com.constellio.agent.fileImport.FileImportRequesterAcceptanceTest,\
+com.constellio.agent.fileImport.FileImportResponderAcceptanceTest,\
+com.constellio.workflows.model.authorizations.AuthorizationsWorkflowAcceptanceTest,\
+com.constellio.app.modules.ai.services.AIDocumentServicesAcceptanceTest,\
+com.constellio.app.modules.ai.ui.components.userDocument.DeclareRMRecordPresenterAcceptanceTest,\
+com.constellio.app.modules.sct.services.document.SCTMigrationAcceptanceTest,\
+com.constellio.model.services.contents.BulkUploaderAcceptTest

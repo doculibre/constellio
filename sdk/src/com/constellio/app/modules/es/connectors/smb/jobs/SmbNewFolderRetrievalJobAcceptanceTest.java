@@ -1,5 +1,23 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
+import static com.constellio.app.modules.es.sdk.ESTestUtils.assertThatEventsObservedBy;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.addEvent;
+import static java.util.Arrays.asList;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
@@ -15,28 +33,12 @@ import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
-import static com.constellio.app.modules.es.sdk.ESTestUtils.assertThatEventsObservedBy;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.addEvent;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -75,13 +77,15 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
-		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, SmbTestParams.CONNECTOR_OBSERVER));
+		eventObserver = new TestConnectorEventObserver(es,
+				new DefaultConnectorEventObserver(es, logger, SmbTestParams.CONNECTOR_OBSERVER));
 
 		smbRecordService = Mockito.spy(new SmbRecordService(es, connectorInstance));
 		updater = Mockito.spy(new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService));
 		smbUtils = new ConnectorSmbUtils();
 
-		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
+		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService,
+				updater);
 	}
 
 	@Test
@@ -92,7 +96,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, SHARE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService,
+				updater, jobFactory, SHARE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), true);
 		retrievalJob.execute(connector);
 
@@ -100,8 +105,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 				.containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
 						.setUrl(SHARE_URL)));
 
-		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
-		verify(smbRecordService, times(1)).updateResumeUrl(SHARE_URL);
+		verify(updater, times(1))
+				.updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
 	}
 
 	@Test
@@ -112,7 +117,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, SHARE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService,
+				updater, jobFactory, SHARE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), true);
 		retrievalJob.execute(connector);
 
@@ -131,7 +137,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, SHARE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService,
+				updater, jobFactory, SHARE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), true);
 		retrievalJob.execute(connector);
 

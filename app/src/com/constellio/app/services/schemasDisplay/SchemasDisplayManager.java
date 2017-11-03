@@ -50,8 +50,8 @@ public class SchemasDisplayManager
 	private ConfigManager configManager;
 
 	private CollectionsListManager collectionsListManager;
-	
-	private ConstellioCacheManager cacheManager; 
+
+	private ConstellioCacheManager cacheManager;
 
 	private OneXMLConfigPerCollectionManager<SchemasDisplayManagerCache> oneXMLConfigPerCollectionManager;
 
@@ -75,7 +75,7 @@ public class SchemasDisplayManager
 
 	public void execute(final SchemaDisplayManagerTransaction transaction) {
 		validate(transaction);
-		String collection = transaction.getCollection();
+		final String collection = transaction.getCollection();
 		if (collection != null) {
 			oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
 				@Override
@@ -90,10 +90,36 @@ public class SchemasDisplayManager
 					}
 
 					for (SchemaDisplayConfig schemaDisplayConfig : transaction.getModifiedSchemas()) {
-						writer.saveSchema(schemaDisplayConfig);
+						if (!schemaDisplayConfig.getSchemaCode().endsWith("_default")) {
+							writer.saveSchema(schemaDisplayConfig);
+
+						} else {
+							SchemaDisplayConfig defaultSchemaDisplayConfig = getCacheForCollection(collection)
+									.getSchemaDefaultDisplay(schemaDisplayConfig.getSchemaCode(), metadataSchemasManager);
+
+							if (defaultSchemaDisplayConfig.equals(schemaDisplayConfig)) {
+								writer.resetSchema(schemaDisplayConfig.getSchemaCode());
+							} else {
+								writer.saveSchema(schemaDisplayConfig);
+							}
+						}
 					}
 
 					for (MetadataDisplayConfig metadataDisplayConfig : transaction.getModifiedMetadatas()) {
+						if (!metadataDisplayConfig.getMetadataCode().contains("_default_")) {
+							writer.saveMetadata(metadataDisplayConfig);
+
+						} else {
+							MetadataDisplayConfig defaultMetadataDisplayConfig = getCacheForCollection(collection)
+									.getMetadata(metadataDisplayConfig.getMetadataCode(), metadataSchemasManager);
+
+							if (defaultMetadataDisplayConfig.equals(metadataDisplayConfig)) {
+								writer.resetSchema(metadataDisplayConfig.getMetadataCode());
+							} else {
+								writer.saveMetadata(metadataDisplayConfig);
+							}
+						}
+
 						writer.saveMetadata(metadataDisplayConfig);
 					}
 				}
@@ -301,10 +327,11 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id".equals(metadata.getLocalCode()) || "path".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
-					&& !restrictedTypes
-					.contains(metadata.getType()) && !metadata
-					.isSystemReserved())) {
+			if ("id".equals(metadata.getLocalCode()) || "path".equals(metadata.getLocalCode()) || (
+					!metadata.getCode().toLowerCase().contains("entered")
+							&& !restrictedTypes
+							.contains(metadata.getType()) && !metadata
+							.isSystemReserved())) {
 				transaction.getModifiedMetadatas().add(
 						getMetadata(collection, metadata.getCode()).withVisibleInAdvancedSearchStatus(true));
 			}
@@ -472,6 +499,5 @@ public class SchemasDisplayManager
 			element.addContent(children);
 		}
 	}
-
 
 }

@@ -11,6 +11,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.RMTypes;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
@@ -47,10 +48,8 @@ import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransactio
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -138,21 +137,16 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 		private void configureTableMetadatas(String collection, AppLayerFactory factory) {
 			SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
-			MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-			List<MetadataSchemaType> schemaTypes = metadataSchemasManager
-					.getSchemaTypes(collection).getSchemaTypes();
 			SchemasDisplayManager manager = factory.getMetadataSchemasDisplayManager();
-			for (MetadataSchemaType metadataSchemaType : schemaTypes) {
 
-				for (MetadataSchema metadataSchema : metadataSchemaType.getCustomSchemas()) {
+			for (MetadataSchema metadataSchema : RMTypes.rmSchemas(factory, collection)) {
+				if ("default".equals(metadataSchema.getLocalCode())) {
+					SchemaDisplayConfig config = manager.getSchema(collection, metadataSchema.getCode());
+					transaction.add(config.withTableMetadataCodes(config.getSearchResultsMetadataCodes()));
+				} else {
 					SchemaDisplayConfig customConfig = manager.getSchema(collection, metadataSchema.getCode());
-					SchemaDisplayConfig newCustomConfig = customConfig.withTableMetadataCodes(new ArrayList<String>());
-					transaction.add(newCustomConfig);
+					transaction.add(customConfig.withTableMetadataCodes(new ArrayList<String>()));
 				}
-
-				SchemaDisplayConfig config = manager.getSchema(collection, metadataSchemaType.getDefaultSchema().getCode());
-				SchemaDisplayConfig newConfig = config.withTableMetadataCodes(config.getSearchResultsMetadataCodes());
-				transaction.add(newConfig);
 			}
 			manager.execute(transaction);
 		}

@@ -64,6 +64,8 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 				searchConfigurationsManager.removeElevated(queryElevation.getQuery(), docElevation.getId());
 			}
 		}
+
+		assumeNotSolrCloud();
 	}
 
 	@Test

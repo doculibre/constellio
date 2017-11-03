@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.util.List;
+import static com.constellio.app.modules.rm.RMTypes.rmSchemas;
 
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -10,8 +10,7 @@ import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransactio
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.entities.schemas.Schemas;
 
 public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -22,20 +21,25 @@ public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		List<MetadataSchemaType> schemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection).getSchemaTypes();
-		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+		//Transaction 1
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
-		for (MetadataSchemaType type : schemaTypes) {
-			List<MetadataSchema> allSchemas = type.getAllSchemas();
-			for (MetadataSchema schema : allSchemas) {
-				MetadataList metadataList = schema.getMetadatas().onlySearchable();
-				for (Metadata metadata : metadataList) {
-					transaction.add(metadataSchemasDisplayManager.getMetadata(collection, metadata.getCode())
-							.withHighlightStatus(true));
-				}
+		for (MetadataSchema schema : rmSchemas(appLayerFactory, collection)) {
+			if (schema.hasMetadataWithCode(Schemas.PATH.getLocalCode())) {
+				transaction.add(schemasDisplayManager.getMetadata(collection, schema.get(Schemas.PATH.getLocalCode()).getCode())
+						.withVisibleInAdvancedSearchStatus(true));
 			}
 		}
-		metadataSchemasDisplayManager.execute(transaction);
+		schemasDisplayManager.execute(transaction);
+
+		//Transaction 2
+		transaction = new SchemaDisplayManagerTransaction();
+		for (MetadataSchema schema : rmSchemas(appLayerFactory, collection)) {
+			for (Metadata metadata : schema.getMetadatas().onlySearchable()) {
+				transaction.add(schemasDisplayManager.getMetadata(collection, metadata.getCode()).withHighlightStatus(true));
+			}
+		}
+		schemasDisplayManager.execute(transaction);
 	}
 }
