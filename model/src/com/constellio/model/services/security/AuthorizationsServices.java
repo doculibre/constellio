@@ -339,7 +339,8 @@ public class AuthorizationsServices {
 
 		executeTransaction(transaction);
 
-		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()), true, false);
+		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()),
+				authorization.getGrantedToPrincipals(), new ArrayList<String>());
 
 		if (userAddingTheAuth != null) {
 			loggingServices.grantPermission(authorization, userAddingTheAuth);
@@ -364,11 +365,12 @@ public class AuthorizationsServices {
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
-		String grantedOnRecord = execute(request, transaction);
+		AuthorizationDetails removedAuthorization = execute(request, transaction);
 		executeTransaction(transaction);
 		if (grantedOnRecord != null) {
 			try {
-				refreshCaches(recordServices.getDocumentById(grantedOnRecord), false, true);
+				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
+						new ArrayList<String>(), request.get);
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
 			}
@@ -395,7 +397,7 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private String execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
+	private AuthorizationDetails execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
 
 		List<String> authId = asList(request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
@@ -428,16 +430,15 @@ public class AuthorizationsServices {
 
 		}
 
-		String grantedOnRecordId = null;
+		AuthorizationDetails removedAuthorization = null;
 		try {
-			AuthorizationDetails details = getDetails(request.getCollection(), request.getAuthId());
-			if (details != null) {
-				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) details);
-				grantedOnRecordId = details.getTarget();
+			removedAuthorization = getDetails(request.getCollection(), request.getAuthId());
+			if (removedAuthorization != null) {
+				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) removedAuthorization);
 			}
 
 			try {
-				Record target = recordServices.getDocumentById(details.getTarget());
+				Record target = recordServices.getDocumentById(removedAuthorization.getTarget());
 				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
 					transaction.recordsToResetIfNoAuths.add(target.getId());
 				}
@@ -448,7 +449,7 @@ public class AuthorizationsServices {
 			//No problemo
 		}
 
-		return grantedOnRecordId;
+		return removedAuthorization;
 
 	}
 
