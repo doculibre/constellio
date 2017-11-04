@@ -1489,6 +1489,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
 	}
 
+	protected void assumeLocalSolr() {
+		assumeNotSolrCloud();
+
+		String httpUrl = sdkProperties.get("dao.records.http.url").toLowerCase();
+		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
+	}
+
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);

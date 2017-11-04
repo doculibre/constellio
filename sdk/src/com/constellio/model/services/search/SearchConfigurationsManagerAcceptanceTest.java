@@ -45,6 +45,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
+		assumeLocalSolr();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 				.withFoldersAndContainersOfEveryStatus());
 		//syncSolrConfigurationFiles(getDataLayerFactory());
@@ -65,7 +66,6 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		assumeNotSolrCloud();
 	}
 
 	@Test

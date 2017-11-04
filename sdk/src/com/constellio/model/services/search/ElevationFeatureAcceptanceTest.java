@@ -26,7 +26,7 @@ public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptance
 	public void givenANonRelevantDocumentWhenSettingUpElevationWithItForAQueryThenItAppearsInTheTop()
 			throws Exception {
 		//given
-		assumeNotSolrCloud();
+		assumeLocalSolr();
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
 		transaction.addUpdate(relevantDoc = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "A relevant document."));
 		transaction.addUpdate(elevatedDoc = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "An elevated document."));
