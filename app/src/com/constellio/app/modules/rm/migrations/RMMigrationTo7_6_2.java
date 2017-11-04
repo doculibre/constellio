@@ -4,22 +4,12 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCaptionCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderCaptionCalculator;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import static java.util.Arrays.asList;
 
 public class RMMigrationTo7_6_2 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -42,7 +32,10 @@ public class RMMigrationTo7_6_2 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.LEGACY_ID.getLocalCode()).addLabel(Language.French, "Ancien Identifiant");
+			if (typesBuilder.getSchemaType(Document.SCHEMA_TYPE).hasSchema(Email.SCHEMA)) {
+				typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.LEGACY_ID.getLocalCode())
+						.addLabel(Language.French, "Ancien Identifiant");
+			}
 		}
 	}
 }
