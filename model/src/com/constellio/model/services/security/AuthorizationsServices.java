@@ -358,6 +358,10 @@ public class AuthorizationsServices {
 			if (removedAccess) {
 				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
 			}
+			//Temporary fix, there will be a better one in the next release
+			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
+				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+			}
 		}
 	}
 
