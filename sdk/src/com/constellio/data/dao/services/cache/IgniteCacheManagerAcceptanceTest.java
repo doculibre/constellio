@@ -17,11 +17,12 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.IgniteTest;
 
 @IgniteTest
-public class IgniteCacheManagerAcceptanceTest {
-	
+public class IgniteCacheManagerAcceptanceTest extends ConstellioTest {
+
 	private static List<String> splitAddress(String addressList) {
 		String[] addresses = addressList.split(",");
 		return new ArrayList<>(Arrays.asList(addresses));
@@ -36,7 +37,7 @@ public class IgniteCacheManagerAcceptanceTest {
 		IgniteConfiguration cfg = new IgniteConfiguration();
 		cfg.setDiscoverySpi(spi);
 		cfg.setClientMode(true);
-		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT,  EventType.EVT_CACHE_OBJECT_REMOVED);
+		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT, EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
@@ -49,16 +50,17 @@ public class IgniteCacheManagerAcceptanceTest {
 
 		return cfg;
 	}
-	
-	public static void main(String[] args) throws Exception {
+
+	public static void main(String[] args)
+			throws Exception {
 		IgniteConfiguration igniteConfiguration = getConfiguration();
 		Ignite client = Ignition.start(igniteConfiguration);
 
 		IgniteCache<String, Object> igniteCache = client.getOrCreateCache(MetadataSchemasManager.class.getName());
-		
+
 		igniteCache.remove("zeCollection");
 		igniteCache.put("test", "OneTwo! " + new Date());
-		
+
 		client.close();
 	}
 
