@@ -528,6 +528,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		getCurrentTestSession().getFactoriesTestFeatures().configure(appLayerConfigurationAlteration);
 	}
 
+	protected boolean isLayersInitialized() {
+		return getCurrentTestSession().getFactoriesTestFeatures().isInitialized();
+	}
+
 	protected AppLayerFactory getAppLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(DEFAULT_NAME);
