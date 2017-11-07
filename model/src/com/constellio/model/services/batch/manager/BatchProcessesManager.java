@@ -123,20 +123,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
-		String collection = logicalQuery.getCondition().getCollection();
-		String id = newBatchProcessId();
-
-		ModifiableSolrParams params = searchServices.addSolrModifiableParams(logicalQuery);
-		String solrQuery = SolrUtils.toSingleQueryString(params);
-
-		LocalDateTime requestDateTime = getCurrentTime();
-
-		long recordsCount = searchServices.getResultsCount(logicalQuery);
-		updateBatchProcesses(
-				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, null,
-						title));
-
-		return (RecordBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+		return  addBatchProcessInStandby(logicalQuery, action, null, title);
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
