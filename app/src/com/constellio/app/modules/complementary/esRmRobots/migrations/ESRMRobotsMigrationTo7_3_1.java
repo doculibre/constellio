@@ -34,6 +34,9 @@ public class ESRMRobotsMigrationTo7_3_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+
+			// Just to change labels, don't delete this script
+
 		}
 
 	}

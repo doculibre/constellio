@@ -2324,7 +2324,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(count).isEqualTo(4);
 
 		ArgumentCaptor<SolrParams> params = ArgumentCaptor.forClass(SolrParams.class);
-		verify(recordDao).query(params.capture());
+		verify(recordDao).query(anyString(), params.capture());
 		assertThat(params.getValue().get("rows")).isEqualTo("0");
 	}
 

@@ -32,7 +32,7 @@ public class DataLayerLogger {
 
 	private int verySlowQueryDuration = 2000;
 
-	private boolean logAllTransactions = false;
+	public boolean logAllTransactions = false;
 
 	private boolean queryLoggingEnabled = true;
 

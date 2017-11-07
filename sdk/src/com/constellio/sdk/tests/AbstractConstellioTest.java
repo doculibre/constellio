@@ -528,6 +528,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		getCurrentTestSession().getFactoriesTestFeatures().configure(appLayerConfigurationAlteration);
 	}
 
+	protected boolean isLayersInitialized() {
+		return getCurrentTestSession().getFactoriesTestFeatures().isInitialized();
+	}
+
 	protected AppLayerFactory getAppLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(DEFAULT_NAME);
@@ -1487,6 +1491,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void assumeNotSolrCloud() {
 		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+	}
+
+	protected void assumeLocalSolr() {
+		assumeNotSolrCloud();
+
+		String httpUrl = sdkProperties.get("dao.records.http.url").toLowerCase();
+		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
 	}
 
 	protected Session newCMISSessionAsUserInZeCollection(String username) {

@@ -53,6 +53,9 @@ import com.constellio.model.services.search.query.logical.condition.SolrQueryBui
 import com.constellio.model.services.security.SecurityTokenManager;
 
 public class SearchServices {
+
+	private static String[] STOP_WORDS_FR = {"au","aux","avec","ce","ces","dans","de","des","du","elle","en","et","eux","il","je","la","le","leur","lui","ma","mais","me","même","mes","moi","mon","ne","nos","notre","nous","on","ou","par","pas","pour","qu","que","qui","sa","se","ses","son","sur","ta","te","tes","toi","ton","tu","un","une","vos","votre","vous","c","d","j","l","à","m","n","s","t","y","été","étée","étées","étés","étant","suis","es","est","sommes","êtes","sont","serai","seras","sera","serons","serez","seront","serais","serait","serions","seriez","seraient","étais","était","étions","étiez","étaient","fus","fut","fûmes","fûtes","furent","sois","soit","soyons","soyez","soient","fusse","fusses","fût","fussions","fussiez","fussent","ayant","eu","eue","eues","eus","ai","as","avons","avez","ont","aurai","auras","aura","aurons","aurez","auront","aurais","aurait","aurions","auriez","auraient","avais","avait","avions","aviez","avaient","eut","eûmes","eûtes","eurent","aie","aies","ait","ayons","ayez","aient","eusse","eusses","eût","eussions","eussiez","eussent","ceci","cela","celà","cet","cette","ici","ils","les","leurs","quel","quels","quelle","quelles","sans","soi"};
+
 	RecordDao recordDao;
 	RecordServices recordServices;
 	SecurityTokenManager securityTokenManager;
@@ -230,7 +233,7 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
-			int skipping) {
+																			int skipping) {
 
 		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
 
@@ -335,7 +338,8 @@ public class SearchServices {
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
-				params.add(DisMaxParams.MM, "100%");
+				int mm = calcMM(query.getFreeTextQuery());
+				params.add(DisMaxParams.MM, "" + mm);
 			} else {
 				params.add(DisMaxParams.MM, "1");
 			}
@@ -456,6 +460,17 @@ public class SearchServices {
 		return params;
 	}
 
+	/**
+	 * FIXME With solr 6+, use mm autorelax instead
+	 * @param userQuery
+	 * @return
+	 */
+	private int calcMM(String userQuery) {
+		HashSet queryTerms = new HashSet(Arrays.asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
+		queryTerms.removeAll(Arrays.asList(STOP_WORDS_FR));
+		return queryTerms.size();
+	}
+
 	private String getQfFor(String collection, List<SearchBoost> boosts) {
 		StringBuilder sb = new StringBuilder();
 
@@ -574,17 +589,17 @@ public class SearchServices {
 		for (UserFilter userFilter : userFilters) {
 			String filter;
 			switch (userFilter.getAccess()) {
-			case Role.READ:
-				filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			case Role.WRITE:
-				filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			case Role.DELETE:
-				filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-				break;
-			default:
-				filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
 			}
 
 			params.add(CommonParams.FQ, filter);

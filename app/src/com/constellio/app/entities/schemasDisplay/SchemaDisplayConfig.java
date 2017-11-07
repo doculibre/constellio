@@ -186,5 +186,40 @@ public class SchemaDisplayConfig implements Serializable {
 		return returnedCodes;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof SchemaDisplayConfig))
+			return false;
 
+		SchemaDisplayConfig that = (SchemaDisplayConfig) o;
+
+		if (schemaCode != null ? !schemaCode.equals(that.schemaCode) : that.schemaCode != null)
+			return false;
+		if (collection != null ? !collection.equals(that.collection) : that.collection != null)
+			return false;
+		if (displayMetadataCodes != null ?
+				!displayMetadataCodes.equals(that.displayMetadataCodes) :
+				that.displayMetadataCodes != null)
+			return false;
+		if (formMetadataCodes != null ? !formMetadataCodes.equals(that.formMetadataCodes) : that.formMetadataCodes != null)
+			return false;
+		if (searchResultsMetadataCodes != null ?
+				!searchResultsMetadataCodes.equals(that.searchResultsMetadataCodes) :
+				that.searchResultsMetadataCodes != null)
+			return false;
+		return tableMetadataCodes != null ? tableMetadataCodes.equals(that.tableMetadataCodes) : that.tableMetadataCodes == null;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = schemaCode != null ? schemaCode.hashCode() : 0;
+		result = 31 * result + (collection != null ? collection.hashCode() : 0);
+		result = 31 * result + (displayMetadataCodes != null ? displayMetadataCodes.hashCode() : 0);
+		result = 31 * result + (formMetadataCodes != null ? formMetadataCodes.hashCode() : 0);
+		result = 31 * result + (searchResultsMetadataCodes != null ? searchResultsMetadataCodes.hashCode() : 0);
+		result = 31 * result + (tableMetadataCodes != null ? tableMetadataCodes.hashCode() : 0);
+		return result;
+	}
 }
