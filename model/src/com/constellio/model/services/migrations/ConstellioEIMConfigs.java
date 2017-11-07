@@ -92,6 +92,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration DEFAULT_TAXONOMY;
 
+	public static final SystemConfiguration TAXONOMY_ORDER_IN_HOME_VIEW;
+
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
@@ -140,6 +142,8 @@ public class ConstellioEIMConfigs {
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
+		add(TAXONOMY_ORDER_IN_HOME_VIEW = others.createString("taxonomyOrderInHomeView"));
+
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
@@ -345,6 +349,9 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
+	public String getTaxonomyOrderInHomeView() {
+		return manager.getValue(TAXONOMY_ORDER_IN_HOME_VIEW);
+	}
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
 }
