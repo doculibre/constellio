@@ -5,6 +5,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -179,8 +180,10 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			try {
 				Metadata metadata = schema.getMetadata(localCode);
 				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
-					if(metadata.getDefaultValue() != null) {
-						container.set(metadata, metadata.getDefaultValue());
+					Object defaultValue = metadata.getDefaultValue();
+					if(!(defaultValue == null ||
+							(defaultValue instanceof List && ((List) defaultValue).isEmpty()))) {
+						container.set(metadata, defaultValue);
 						hasOverriddenAMetadata = hasOverriddenAMetadata || record.get(metadataVO) != null;
 					} else {
 						container.set(metadata, record.get(metadataVO));
