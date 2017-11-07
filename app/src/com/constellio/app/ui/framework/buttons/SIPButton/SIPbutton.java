@@ -120,7 +120,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     @Override
     protected Component buildWindowContent() {
-        return build();
+        return null;
     }
 
     public ConstellioHeader getView() {
@@ -214,84 +214,6 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     @Override
     public void uploadSucceeded(Upload.SucceededEvent event) {}
-
-    public BaseForm build(){
-        bagInfoVO = new BagInfoVO();
-        limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
-        limitSizeCheckbox.setId("limitSize");
-
-        deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
-        deleteCheckBox.setId("deleteFile");
-
-        identificationOrganismeTextField = new TextField($("BagInfoForm.identificationOrganisme"));
-        identificationOrganismeTextField.setId("identificationOrganismeVerseurOuDonateur");
-        identificationOrganismeTextField.setNullRepresentation("");
-
-        IDOrganismeTextField = new TextField($("BagInfoForm.IDOrganisme"));
-        IDOrganismeTextField.setId("IDOrganismeVerseurOuDonateur");
-        IDOrganismeTextField.setNullRepresentation("");
-
-        adresseTextField = new TextField($("BagInfoForm.address"));
-        adresseTextField.setId("address");
-        adresseTextField.setNullRepresentation("");
-
-        regionAdministrativeTextField = new TextField($("BagInfoForm.regionAdministrative"));
-        regionAdministrativeTextField.setId("regionAdministrative");
-        regionAdministrativeTextField.setNullRepresentation("");
-
-        entiteResponsableTextField = new TextField($("BagInfoForm.entiteResponsable"));
-        entiteResponsableTextField.setId("entiteResponsable");
-        entiteResponsableTextField.setNullRepresentation("");
-
-        identificationEntiteResponsableTextField = new TextField($("BagInfoForm.identificationEntiteResponsable"));
-        identificationEntiteResponsableTextField.setId("identificationEntiteResponsable");
-        identificationEntiteResponsableTextField.setNullRepresentation("");
-
-        courrielResponsableTextField = new TextField($("BagInfoForm.courrielResponsable"));
-        courrielResponsableTextField.setId("courrielResponsable");
-        courrielResponsableTextField.setNullRepresentation("");
-
-        telephoneResponsableTextField = new TextField($("BagInfoForm.telephoneResponsable"));
-        telephoneResponsableTextField.setId("telephoneResponsable");
-        telephoneResponsableTextField.setNullRepresentation("");
-
-        categoryDocumentTextField = new TextField($("BagInfoForm.categoryDocument"));
-        categoryDocumentTextField.setId("categoryDocument");
-        categoryDocumentTextField.setNullRepresentation("");
-
-        methodeTransfereTextField = new TextField($("BagInfoForm.methodeTransfere"));
-        methodeTransfereTextField.setId("methodeTransfere");
-        methodeTransfereTextField.setNullRepresentation("");
-
-        restrictionAccessibiliteTextField = new TextField($("BagInfoForm.restrictionAccessibilite"));
-        restrictionAccessibiliteTextField.setId("restrictionAccessibilite");
-        restrictionAccessibiliteTextField.setNullRepresentation("");
-
-        noteTextArea = new TextArea($("BagInfoForm.note"));
-        noteTextArea.setId("note");
-        noteTextArea.setNullRepresentation("");
-
-        descriptionSommaire = new TextArea($("BagInfoForm.descriptionSommaire"));
-        descriptionSommaire.setId("descriptionSommaire");
-        descriptionSommaire.setNullRepresentation("");
-
-        return new BagInfoForm(bagInfoVO, this.objectList, this,
-                limitSizeCheckbox,
-                deleteCheckBox,
-                identificationOrganismeTextField,
-                IDOrganismeTextField,
-                adresseTextField,
-                regionAdministrativeTextField,
-                entiteResponsableTextField,
-                identificationEntiteResponsableTextField,
-                courrielResponsableTextField,
-                telephoneResponsableTextField,
-                categoryDocumentTextField,
-                methodeTransfereTextField,
-                restrictionAccessibiliteTextField,
-                noteTextArea,
-                descriptionSommaire);
-    }
 
     private boolean validateBagInfoLines(){
         List<String> lines = asList(noteTextArea.getValue(),

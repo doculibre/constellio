@@ -30,8 +30,8 @@ import static java.util.Arrays.asList;
 
 public class BagInfoForm extends BaseForm<BagInfoVO> {
     private List<RecordVO> objectList = new ArrayList<>();
-    private SIPbutton button;
-    public BagInfoForm(BagInfoVO bagInfoVO, List<RecordVO> objectList, SIPbutton button, Field<?>... fields){
+    private BaseViewImpl button;
+    public BagInfoForm(BagInfoVO bagInfoVO, List<RecordVO> objectList, BaseViewImpl button, Field<?>... fields){
         super(bagInfoVO, button, fields);
         this.objectList = objectList;
         this.button = button;
@@ -58,10 +58,9 @@ public class BagInfoForm extends BaseForm<BagInfoVO> {
 // TODO check if necessary                   $("BagInfoForm.encoding") + ":" + encodingTextField.getValue());
             List<String> documentList = getDocumentIDListFromObjectList();
             List<String> folderList = getFolderIDListFromObjectList();
-            SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), button.getView().getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), button.getView().getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-            button.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, button.getView().getCollection(), "SIPArchives"));
-            button.getView().getCurrentView().showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-            button.getWindow().close();
+            SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), button.getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), button.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
+            button.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, button.getCollection(), "SIPArchives"));
+            button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
         } else {
             showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }
