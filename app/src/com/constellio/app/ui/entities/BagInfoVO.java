@@ -1,6 +1,13 @@
 package com.constellio.app.ui.entities;
 
-public class BagInfoVO  {
+import java.io.Serializable;
+
+public class BagInfoVO implements Serializable{
+
+
+    private boolean limitSize;
+
+    private boolean deleteFile;
 
     private String note;
 
@@ -28,149 +35,125 @@ public class BagInfoVO  {
 
     private String restrictionAccessibilite;
 
-    private String encodage;
+    public BagInfoVO() { }
 
-    public BagInfoVO() {
-        setNote("");
-        setIdentificationEntiteResponsable("");
-        setIdentificationOrganismeVerseurOuDonateur("");
-        setIDOrganismeVerseurOuDonateur("");
-        setAddress("");
-        setRegionAdministrative("");
-        setEntiteResponsable("");
-        setCourrielResponsable("");
-        setTelephoneResponsable("");
-        setDescriptionSommaire("");
-        setCategoryDocument("");
-        setMethodeTransfere("");
-        setRestrictionAccessibilite("");
-        setEncodage("");
+    public boolean isLimitSize() {
+        return limitSize;
+    }
 
+    public void setLimitSize(boolean limitSize) {
+        this.limitSize = limitSize;
+    }
+
+    public boolean isDeleteFile() {
+        return deleteFile;
+    }
+
+    public void setDeleteFile(boolean deleteFile) {
+        this.deleteFile = deleteFile;
     }
 
     public String getNote() {
-        return note;
+        return note != null ? note : "";
     }
 
-    public BagInfoVO setNote(String note) {
+    public void setNote(String note) {
         this.note = note;
-        return this;
     }
 
     public String getIdentificationOrganismeVerseurOuDonateur() {
-        return identificationOrganismeVerseurOuDonateur;
+        return identificationOrganismeVerseurOuDonateur != null ? identificationOrganismeVerseurOuDonateur : "";
     }
 
-    public BagInfoVO setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
+    public void setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
         this.identificationOrganismeVerseurOuDonateur = identificationOrganismeVerseurOuDonateur;
-        return this;
     }
 
     public String getIDOrganismeVerseurOuDonateur() {
-        return IDOrganismeVerseurOuDonateur;
+        return IDOrganismeVerseurOuDonateur != null ? IDOrganismeVerseurOuDonateur : "";
     }
 
-    public BagInfoVO setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
+    public void setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
         this.IDOrganismeVerseurOuDonateur = IDOrganismeVerseurOuDonateur;
-        return this;
     }
 
     public String getAddress() {
-        return address;
+        return address != null ? address : "";
     }
 
-    public BagInfoVO setAddress(String address) {
+    public void setAddress(String address) {
         this.address = address;
-        return this;
     }
 
     public String getRegionAdministrative() {
-        return regionAdministrative;
+        return regionAdministrative != null ? regionAdministrative : "";
     }
 
-    public BagInfoVO setRegionAdministrative(String regionAdministrative) {
+    public void setRegionAdministrative(String regionAdministrative) {
         this.regionAdministrative = regionAdministrative;
-        return this;
     }
 
     public String getEntiteResponsable() {
-        return entiteResponsable;
+        return entiteResponsable != null ? entiteResponsable : "";
     }
 
-    public BagInfoVO setEntiteResponsable(String entiteResponsable) {
+    public void setEntiteResponsable(String entiteResponsable) {
         this.entiteResponsable = entiteResponsable;
-        return this;
     }
 
     public String getIdentificationEntiteResponsable() {
-        return identificationEntiteResponsable;
+        return identificationEntiteResponsable != null ? identificationEntiteResponsable : "";
     }
 
-    public BagInfoVO setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
+    public void setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
         this.identificationEntiteResponsable = identificationEntiteResponsable;
-        return this;
     }
 
     public String getCourrielResponsable() {
-        return courrielResponsable;
+        return courrielResponsable != null ? courrielResponsable : "";
     }
 
-    public BagInfoVO setCourrielResponsable(String courrielResponsable) {
+    public void setCourrielResponsable(String courrielResponsable) {
         this.courrielResponsable = courrielResponsable;
-        return this;
     }
 
     public String getTelephoneResponsable() {
-        return telephoneResponsable;
+        return telephoneResponsable != null ? telephoneResponsable : "";
     }
 
-    public BagInfoVO setTelephoneResponsable(String telephoneResponsable) {
+    public void setTelephoneResponsable(String telephoneResponsable) {
         this.telephoneResponsable = telephoneResponsable;
-        return this;
     }
 
     public String getDescriptionSommaire() {
-        return descriptionSommaire;
+        return descriptionSommaire != null ? descriptionSommaire : "";
     }
 
-    public BagInfoVO setDescriptionSommaire(String descriptionSommaire) {
+    public void setDescriptionSommaire(String descriptionSommaire) {
         this.descriptionSommaire = descriptionSommaire;
-        return this;
     }
 
     public String getCategoryDocument() {
-        return categoryDocument;
+        return categoryDocument != null ? categoryDocument : "";
     }
 
-    public BagInfoVO setCategoryDocument(String categoryDocument) {
+    public void setCategoryDocument(String categoryDocument) {
         this.categoryDocument = categoryDocument;
-        return this;
     }
 
     public String getMethodeTransfere() {
-        return methodeTransfere;
+        return methodeTransfere != null ? methodeTransfere  : "";
     }
 
-    public BagInfoVO setMethodeTransfere(String methodeTransfere) {
+    public void setMethodeTransfere(String methodeTransfere) {
         this.methodeTransfere = methodeTransfere;
-        return this;
     }
 
     public String getRestrictionAccessibilite() {
-        return restrictionAccessibilite;
+        return restrictionAccessibilite != null ? restrictionAccessibilite : "";
     }
 
-    public BagInfoVO setRestrictionAccessibilite(String restrictionAccessibilite) {
+    public void setRestrictionAccessibilite(String restrictionAccessibilite) {
         this.restrictionAccessibilite = restrictionAccessibilite;
-        return this;
-    }
-
-    public String getEncodage() {
-        return encodage;
-    }
-
-    public BagInfoVO setEncodage(String encodage) {
-        this.encodage = encodage;
-        return this;
     }
 }
