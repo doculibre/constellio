@@ -5,20 +5,26 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.SIPButton.BagInfoForm;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsulePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BagInfoSIPForm extends BaseViewImpl {
 
     private List<RecordVO> objectList;
+
+    private BagInfoSIPFormPresenter presenter;
 
     private BagInfoVO bagInfoVO;
 
@@ -65,6 +71,26 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     @PropertyId("restrictionAccessibilite")
     private TextField restrictionAccessibiliteTextField;
+
+    @Override
+    protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
+        super.initBeforeCreateComponents(event);
+        presenter = new BagInfoSIPFormPresenter(this);
+        if (StringUtils.isNotEmpty(event.getParameters())) {
+            Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
+            if (paramsMap.containsKey("decommissioningList")) {
+                presenter.initRecordListFromDecommissioningList(paramsMap.get("decommissioningList"));
+            } else if (paramsMap.containsKey("cart")) {
+                presenter.initRecordListFromCart(paramsMap.get("cart"));
+            } else if (paramsMap.containsKey("folder")) {
+                presenter.initRecordListFromFolder(paramsMap.get("folder"));
+            } else if (paramsMap.containsKey("document")) {
+                presenter.initRecordListFromDocument("document");
+            } else {
+                // invalid request
+            }
+        }
+    }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
