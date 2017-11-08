@@ -85,23 +85,27 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	private View currentView;
 
 	static {
-		ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
-			@Override
-			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
-										String notOKCaption) {
-				DefaultConfirmDialogFactory factory = new DefaultConfirmDialogFactory();
-				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
-				confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
-				confirmDialog.setResizable(true);
-				confirmDialog.addAttachListener(new AttachListener() {
-					@Override
-					public void attach(AttachEvent event) {
-						BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-					}
-				});
-				return confirmDialog;
-			}
-		});
+		try {
+			ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
+				@Override
+				public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
+											String notOKCaption) {
+					DefaultConfirmDialogFactory factory = new DefaultConfirmDialogFactory();
+					ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
+					confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
+					confirmDialog.setResizable(true);
+					confirmDialog.addAttachListener(new AttachListener() {
+						@Override
+						public void attach(AttachEvent event) {
+							BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+						}
+					});
+					return confirmDialog;
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void addRequestHandler(RequestHandler handler) {
