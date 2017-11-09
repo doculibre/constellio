@@ -15,30 +15,9 @@ public abstract class ConfirmDialogButton extends IconButton {
 	
 	public static enum DialogMode {
 		TEXT, INFO, WARNING, ERROR, STOP
-	};
-
-	private static ConfirmDialog.Factory factory = new DefaultConfirmDialogFactory();
+	}
 	
 	private DialogMode dialogMode = DialogMode.TEXT;
-
-	static {
-		ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
-			@Override
-			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
-					String notOKCaption) {
-				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
-				confirmDialog.setContentMode(ContentMode.HTML);
-				confirmDialog.setResizable(true);
-				confirmDialog.addAttachListener(new AttachListener() {
-					@Override
-					public void attach(AttachEvent event) {
-						BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-					}
-				});
-				return confirmDialog;
-			}
-		});
-	}
 
 	public ConfirmDialogButton(String caption) {
 		this(null, caption, false);
