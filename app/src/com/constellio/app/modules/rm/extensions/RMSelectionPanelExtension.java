@@ -516,8 +516,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             recordServices.add(newFolder);
                             break;
                         case Document.SCHEMA_TYPE:
-                            Document newDocument = rmSchemas.newDocument();
-                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            Document oldDocument = rmSchemas.wrapDocument(record);
+                            Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
+                            for (Metadata metadata: oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
                             if (newDocument.getContent() != null) {
