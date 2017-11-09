@@ -129,11 +129,6 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
-	public BatchProcessesManager newBatchProcessesManager() {
-		return modelLayerFactory.newBatchProcessesManager();
-	}
-
-	@Override
 	public FoldersLocator getFoldersLocator() {
 		return modelLayerFactory.getFoldersLocator();
 	}
