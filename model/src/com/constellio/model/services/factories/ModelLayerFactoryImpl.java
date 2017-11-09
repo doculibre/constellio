@@ -159,7 +159,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches, cacheManager));
+						recordsCaches, cacheManager, getSystemConfigs()));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
