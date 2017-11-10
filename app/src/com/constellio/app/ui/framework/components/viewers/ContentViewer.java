@@ -50,5 +50,9 @@ public class ContentViewer extends CustomComponent {
 			setCompositionRoot(viewerComponent);
 		}
 	}
+	
+	public boolean isViewerComponentVisible() {
+		return isVisible() && viewerComponent != null && viewerComponent.isVisible();
+	}
 
 }
