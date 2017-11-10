@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
@@ -38,6 +39,10 @@ Schemas {
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
 	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
+	public static final Metadata PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION = add(
+			new Metadata("principalsWithSpecificAuthorization_ss", STRING, true));
+	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
+			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));

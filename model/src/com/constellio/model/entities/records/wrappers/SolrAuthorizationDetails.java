@@ -1,13 +1,13 @@
 package com.constellio.model.entities.records.wrappers;
 
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
-
-import org.joda.time.LocalDate;
-
-import java.util.List;
 
 /**
  * Created by Constellio on 2016-12-21.
@@ -20,6 +20,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String START_DATE = "startDate";
 	public static final String END_DATE = "endDate";
 	public static final String TARGET = "target";
+	public static final String TARGET_SCHEMA_TYPE = "targetSchemaType";
 	public static final String SYNCED = "synced";
 
 	public SolrAuthorizationDetails(Record record,
@@ -68,6 +69,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 
 	public SolrAuthorizationDetails setEndDate(LocalDate endDate) {
 		set(END_DATE, endDate);
+		return this;
+	}
+
+	public String getTargetSchemaType() {
+		return get(TARGET_SCHEMA_TYPE);
+	}
+
+	public SolrAuthorizationDetails setTargetSchemaType(String targetSchemaType) {
+		set(TARGET_SCHEMA_TYPE, targetSchemaType);
 		return this;
 	}
 

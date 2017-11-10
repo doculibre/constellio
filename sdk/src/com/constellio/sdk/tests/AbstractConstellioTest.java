@@ -1513,6 +1513,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	protected void reindex() {
+		ensureNotUnitTest();
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+	}
+
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();

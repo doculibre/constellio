@@ -1,6 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.Schemas.PATH;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
@@ -29,7 +28,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -123,10 +121,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem1;
 
 		record.markAsModified(taxonomy1FirstSchema.path());
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInFirstAndSecondSchema(record, impacts);
+		assertPathAndAuthorizationsImpactInFirstAndSecondSchema(record, response.getImpacts());
 	}
 
 	@Test
@@ -136,10 +134,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TestRecord record = records.taxo1_firstTypeItem2_firstTypeItem1;
 
 		record.set(taxonomy1FirstSchema.title(), "newTitle");
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertThat(impacts).isEmpty();
+		assertThat(response.getImpacts()).isEmpty();
 	}
 
 	@Test
@@ -149,10 +147,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.markAsModified(folderSchema.path());
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(record, impacts);
+		assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
 	}
 
 	@Test
@@ -162,10 +160,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.markAsModified(folderSchema.allRemovedAuths());
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, impacts);
+		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
 	}
 
 	@Test
@@ -175,10 +173,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.set(taxonomy1SecondSchema.title(), "newTitle");
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertThat(impacts).isEmpty();
+		assertThat(response.getImpacts()).isEmpty();
 	}
 
 	@Test
@@ -189,10 +187,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		recordServices.add(record);
 
 		record.markAsModified(folderSchema.path());
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(record, impacts);
+		assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(record, response.getImpacts());
 	}
 
 	@Test
@@ -203,10 +201,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		recordServices.add(record);
 
 		record.markAsModified(folderSchema.attachedAncestors());
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, impacts);
+		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, response.getImpacts());
 	}
 
 	@Test
@@ -217,10 +215,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		recordServices.add(record);
 
 		record.set(folderSchema.title(), "newTitle");
-		List<ModificationImpact> impacts = impactCalculator
+		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertThat(impacts).isEmpty();
+		assertThat(response.getImpacts()).isEmpty();
 	}
 
 	// ------------------------------------------------------------------------------------------------------------

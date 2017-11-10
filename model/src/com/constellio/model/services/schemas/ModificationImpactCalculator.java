@@ -1,11 +1,15 @@
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -13,15 +17,20 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
@@ -30,14 +39,20 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 //AFTER : Move in com.constellio.model.services.records.
 public class ModificationImpactCalculator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModificationImpactCalculator.class);
+
+	private static final List<Metadata> SPECIFIC_AUTH_METADATAS = asList(Schemas.NON_TAXONOMY_AUTHORIZATIONS,
+			Schemas.PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION, Schemas.TOKENS);
 
 	SearchServices searchServices;
 
@@ -63,9 +78,10 @@ public class ModificationImpactCalculator {
 		this.schemaUtils = schemaUtils;
 	}
 
-	public List<ModificationImpact> findTransactionImpact(Transaction transaction,
+	public ModificationImpactCalculatorResponse findTransactionImpact(Transaction transaction,
 			boolean executedAfterTransaction) {
 
+		List<String> idsToReindex = new ArrayList<>();
 		List<ModificationImpact> recordsModificationImpacts = new ArrayList<>();
 		List<RecordsModification> recordsModifications = new RecordsModificationBuilder(recordServices)
 				.build(transaction, metadataSchemaTypes);
@@ -76,7 +92,39 @@ public class ModificationImpactCalculator {
 			recordsModificationImpacts
 					.addAll(findImpactOfARecordsModification(recordsModification, transactionRecordIds, transaction.getTitle()));
 		}
-		return recordsModificationImpacts;
+
+		for (Record record : transaction.getRecords()) {
+
+			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				if (record.isModified(AUTHORIZATIONS)) {
+					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, AUTHORIZATIONS);
+
+					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record)
+							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
+
+					List<String> ids = searchServices.searchRecordIds(condition);
+					transaction.addAllRecordsToReindex(ids);
+				}
+
+			}
+
+			if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema groupSchema = metadataSchemaTypes.getSchema(Group.DEFAULT_SCHEMA);
+				Metadata allGroupAuthorizations = groupSchema.getMetadata(Group.ALL_AUTHORIZATIONS);
+				if (record.isModified(allGroupAuthorizations)) {
+					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, allGroupAuthorizations);
+
+					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record)
+							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
+					List<String> ids = searchServices.searchRecordIds(condition);
+					transaction.addAllRecordsToReindex(ids);
+				}
+
+			}
+
+		}
+
+		return new ModificationImpactCalculatorResponse(recordsModificationImpacts, idsToReindex);
 	}
 
 	List<ModificationImpact> findImpactOfARecordsModification(RecordsModification recordsModification,
@@ -104,53 +152,25 @@ public class ModificationImpactCalculator {
 				recordsModificationImpactsInType, references, reindexedMetadatas, transactionTitle);
 	}
 
-	//	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
-	//			RecordsModification recordsModification, List<String> transactionRecordIds,
-	//			List<ModificationImpact> recordsModificationImpactsInType, List<Metadata> references,
-	//			List<Metadata> reindexedMetadatas) {
-	//		if (!references.isEmpty()) {
-	//			Iterator<List<Record>> batchIterator = splitModifiedRecordsInBatchOf1000(recordsModification);
-	//			while (batchIterator.hasNext()) {
-	//
-	//				LogicalSearchCondition facetsMainCondition = from(schemaType).whereAny(references).isNotNull();
-	//				if (transactionRecordIds != null) {
-	//					facetsMainCondition = facetsMainCondition.andWhere(Schemas.IDENTIFIER).isNotIn(transactionRecordIds);
-	//				}
-	//
-	//				LogicalSearchQuery query = new LogicalSearchQuery(facetsMainCondition);
-	//				List<Record> records = batchIterator.next();
-	//				List<String> queries = new ArrayList<>();
-	//				for (Record record : records) {
-	//					LogicalSearchCondition facetCondition = from(schemaType).whereAny(references).isEqualTo(record.getId());
-	//					queries.add(facetCondition.getSolrQuery());
-	//				}
-	//				query.addQueryFacets("batch", queries);
-	//				query.setNumberOfRows(0);
-	//
-	//				SPEQueryResponse response = searchServices.query(query);
-	//
-	//				List<String> recordIdsWithModificationImpacts = new ArrayList<>();
-	//				for(int i = 0 ; i < queries.size() ; i++) {
-	//					Record record = records.get(i);
-	//					String facetQuery = queries.get(i);
-	//					if (response.getQueryFacetCount(facetQuery) > 0) {
-	//						recordIdsWithModificationImpacts.add(record.getId());
-	//					}
-	//				}
-	//
-	//
-	//				LogicalSearchCondition condition = getLogicalSearchConditionFor(schemaType, batchIterator.next(),
-	//						transactionRecordIds, references);
-	//				if (searchServices.hasResults(condition)) {
-	//					recordsModificationImpactsInType.add(new ModificationImpact(reindexedMetadatas, condition));
-	//				}
-	//			}
-	//		}
-	//
-	//		return recordsModificationImpactsInType;
-	//	}
+	private KeyIntMap<String> countImpactsOnSchemaTypes(LogicalSearchCondition condition) {
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setNumberOfRows(0);
+		query.addFieldFacet(Schemas.SCHEMA.getDataStoreCode());
+		query.setName("Count impacts on schema types");
 
-	LogicalSearchCondition getLogicalSearchConditionFor(MetadataSchemaType schemaType,
+		SPEQueryResponse response = searchServices.query(query);
+
+		KeyIntMap<String> counts = new KeyIntMap<>();
+		for (FacetValue facetValue : response.getFieldFacetValues(Schemas.SCHEMA.getDataStoreCode())) {
+			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(facetValue.getValue());
+			counts.increment(schemaTypeCode, (int) facetValue.getQuantity());
+		}
+
+		return counts;
+
+	}
+
+	private LogicalSearchCondition getLogicalSearchConditionFor(MetadataSchemaType schemaType,
 			List<Record> modifiedRecordsBatch, List<String> transactionRecordIds, List<Metadata> references) {
 		LogicalSearchCondition condition = from(schemaType).whereAny(references).isIn(modifiedRecordsBatch);
 		if (transactionRecordIds != null) {
@@ -210,7 +230,7 @@ public class ModificationImpactCalculator {
 
 		if (automaticMetadata.getDataEntry().getType() == DataEntryType.COPIED) {
 			if (isCopiedMetadataReferencingTheGivenModifiedMetadata(automaticMetadata, modifiedMetadata)) {
-				referencesToMetadata = Arrays.asList(getReferenceMetadataUsedByCopiedMetadata(automaticMetadata));
+				referencesToMetadata = asList(getReferenceMetadataUsedByCopiedMetadata(automaticMetadata));
 			} else {
 				referencesToMetadata = Collections.emptyList();
 			}
@@ -263,7 +283,7 @@ public class ModificationImpactCalculator {
 			return getReferenceMetadatasUsedByTheGivenReferenceDependencyToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata, (ReferenceDependency) dependency);
 
-		} else if (SpecialDependencies.HIERARCHY.equals(dependency) 
+		} else if (SpecialDependencies.HIERARCHY.equals(dependency)
 				&& modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(automaticMetadata, modifiedMetadata)) {
 			return getReferenceMetadatasUsedByTheGivenHierarchyDependencyToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata);
@@ -277,9 +297,11 @@ public class ModificationImpactCalculator {
 			Metadata modifiedMeta) {
 
 		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
+				|| (modifiedMeta.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS) && automaticMeta
+				.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS))
+				|| (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
+				|| (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
 				|| (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))
-				//				|| (modifiedMeta.isLocalCode(REMOVED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
-				//				|| (modifiedMeta.isLocalCode(DETACHED_AUTHORIZATIONS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS))
 				|| (modifiedMeta.isLocalCode(ALL_REMOVED_AUTHS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
 	}
 

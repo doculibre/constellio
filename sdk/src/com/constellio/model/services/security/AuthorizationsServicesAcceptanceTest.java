@@ -7,6 +7,8 @@ import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.NON_TAXONOMY_AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -39,6 +41,7 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
+import static com.constellio.sdk.tests.TestUtils.asOrderedList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +68,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
@@ -300,6 +305,175 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER4_1_DOC1, new ArrayList<>()),
 				tuple(FOLDER4_2, new ArrayList<>()),
 				tuple(FOLDER4_2_DOC1, new ArrayList<>())
+		);
+
+	}
+
+	@Test
+	public void whenRecordIsSecurizedThenHasAccuratePrincipalsWithSpecificAuthorization()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				fromAllSchemasIn(zeCollection).where(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).isNotNull());
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
+				.isEmpty();
+
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
+		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
+		auth3 = add(authorizationForGroup(heroes).on(FOLDER4).giving(ROLE1));
+
+		String heroesId = users.heroesIn(zeCollection).getId();
+		String sidekicksId = users.sidekicksIn(zeCollection).getId();
+		String legendsId = users.legendsIn(zeCollection).getId();
+		String rumorsId = users.rumorsIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String gandalfId = users.gandalfIn(zeCollection).getId();
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, new ArrayList<>()),
+				tuple(FOLDER1_DOC1, new ArrayList<>()),
+				tuple(FOLDER2, new ArrayList<>()),
+				tuple(FOLDER2_1, new ArrayList<>()),
+				tuple(FOLDER2_2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
+				tuple(FOLDER3, new ArrayList<>()),
+				tuple(FOLDER3_DOC1, new ArrayList<>()),
+				tuple(FOLDER4, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+		);
+
+		String copyOfAuth1 = detach(FOLDER2_2).get(auth1);
+		Map<String, String> newFolder3Auths = detach(FOLDER3_DOC1);
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, new ArrayList<>()),
+				tuple(FOLDER1_DOC1, new ArrayList<>()),
+				tuple(FOLDER2, new ArrayList<>()),
+				tuple(FOLDER2_1, new ArrayList<>()),
+				tuple(FOLDER2_2, asList(bobId)),
+				tuple(FOLDER2_2_DOC2, asList(bobId)),
+				tuple(FOLDER2_2_DOC1, asList(bobId)),
+				tuple(FOLDER3, new ArrayList<>()),
+				tuple(FOLDER3_DOC1, asList(heroesId, sidekicksId, bobId)),
+				tuple(FOLDER4, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+		);
+
+		modify(authorizationOnRecord(newFolder3Auths.get(auth1), FOLDER3_DOC1).withNewPrincipalIds(gandalfId));
+		modify(authorizationOnRecord(newFolder3Auths.get(auth2), FOLDER3_DOC1).withNewPrincipalIds(legendsId));
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, new ArrayList<>()),
+				tuple(FOLDER1_DOC1, new ArrayList<>()),
+				tuple(FOLDER2, new ArrayList<>()),
+				tuple(FOLDER2_1, new ArrayList<>()),
+				tuple(FOLDER2_2, asList(bobId)),
+				tuple(FOLDER2_2_DOC2, asList(bobId)),
+				tuple(FOLDER2_2_DOC1, asList(bobId)),
+				tuple(FOLDER3, new ArrayList<>()),
+				tuple(FOLDER3_DOC1, asList(legendsId, rumorsId, gandalfId)),
+				tuple(FOLDER4, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+		);
+	}
+
+	@Test
+	public void whenRecordIsSecurizedThenHasAccurateNonTaxonomyAuthorizations()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				fromAllSchemasIn(zeCollection).where(NON_TAXONOMY_AUTHORIZATIONS).isNotNull());
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).isEmpty();
+
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
+		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
+		auth3 = add(authorizationForGroup(heroes).on(FOLDER4).giving(ROLE1));
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, new ArrayList<>()),
+				tuple(FOLDER1_DOC1, new ArrayList<>()),
+				tuple(FOLDER2, new ArrayList<>()),
+				tuple(FOLDER2_1, new ArrayList<>()),
+				tuple(FOLDER2_2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC2, new ArrayList<>()),
+				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
+				tuple(FOLDER3, new ArrayList<>()),
+				tuple(FOLDER3_DOC1, new ArrayList<>()),
+				tuple(FOLDER4, asList(auth3)),
+				tuple(FOLDER4_1, asList(auth3)),
+				tuple(FOLDER4_1_DOC1, asList(auth3)),
+				tuple(FOLDER4_2, asList(auth3)),
+				tuple(FOLDER4_2_DOC1, asList(auth3))
+		);
+
+		String copyOfAuth1 = detach(FOLDER2_2).get(auth1);
+		Map<String, String> newFolder3Auths = detach(FOLDER3_DOC1);
+
+		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
+				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
+				tuple(TAXO1_FOND1, new ArrayList<>()),
+				tuple(TAXO1_FOND1_1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
+				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
+
+				tuple(FOLDER1, new ArrayList<>()),
+				tuple(FOLDER1_DOC1, new ArrayList<>()),
+				tuple(FOLDER2, new ArrayList<>()),
+				tuple(FOLDER2_1, new ArrayList<>()),
+				tuple(FOLDER2_2, asList(copyOfAuth1)),
+				tuple(FOLDER2_2_DOC2, asList(copyOfAuth1)),
+				tuple(FOLDER2_2_DOC1, asList(copyOfAuth1)),
+				tuple(FOLDER3, new ArrayList<>()),
+				tuple(FOLDER3_DOC1, asOrderedList(newFolder3Auths.get(auth1), newFolder3Auths.get(auth2))),
+				tuple(FOLDER4, asList(auth3)),
+				tuple(FOLDER4_1, asList(auth3)),
+				tuple(FOLDER4_1_DOC1, asList(auth3)),
+				tuple(FOLDER4_2, asList(auth3)),
+				tuple(FOLDER4_2_DOC1, asList(auth3))
 		);
 
 	}
@@ -644,7 +818,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf);
 		}
 
-		assertThatBatchProcessDuringTest().hasSize(0);
+		assertThatBatchProcessDuringTest().hasSize(2);
 
 	}
 
@@ -926,6 +1100,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		forUser(charles).assertThatAllFoldersAndDocuments().contains(FOLDER4_1, FOLDER4_1_DOC1);
 
 		modify(authorizationOnRecord(newAuths.get(auth1), FOLDER4_1).removingItOnRecord());
+
 		verifyRecord(records.folder4().getId()).detachedAuthorizationFlag().isFalse();
 		verifyRecord(records.folder4_1().getId()).detachedAuthorizationFlag().isTrue();
 		forUser(charles).assertThatAllFoldersAndDocuments().doesNotContain(FOLDER4_1, FOLDER4_1_DOC1);
@@ -1061,7 +1236,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenAuthorizationsWithStartAndEndDateThenOnlyActiveDuringSpecifiedTimerange()
+	public void givenAuthorizationsWithStartAndEndDateOnConceptThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 
 		givenTimeIs(date(2016, 4, 4));
@@ -1126,6 +1301,81 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		givenTimeIs(date(2016, 4, 9));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
+		}
+
+		assertThatAllAuthorizationsIds().containsOnly(auth1, auth2, auth3, auth4, auth5, auth6);
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		assertThatAllAuthorizationsIds().containsOnly(auth3, auth5);
+
+	}
+
+	@Test
+	public void givenAuthorizationsWithStartAndEndDateOnFolderThenOnlyActiveDuringSpecifiedTimerange()
+			throws Exception {
+
+		givenTimeIs(date(2016, 4, 4));
+
+		//A daily authorizaiton
+		auth1 = add(authorizationForUser(aliceWonderland).on(FOLDER4)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 5)).givingReadWriteAccess());
+
+		//A 4 day authorizaiton
+		auth2 = add(authorizationForUser(bob).on(FOLDER4)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 8)).givingReadWriteAccess());
+
+		//A future authorization
+		auth3 = add(authorizationForUser(charles).on(FOLDER4)
+				.startingOn(date(2016, 4, 7)).givingReadWriteAccess());
+
+		//An authorization with an end
+		auth4 = add(authorizationForUser(dakota).on(FOLDER4)
+				.endingOn(date(2016, 4, 6)).givingReadWriteAccess());
+
+		auth5 = add(authorizationForUser(edouard).on(FOLDER4).givingReadWriteAccess());
+
+		//An authorization started in the past
+		auth6 = add(authorizationForUser(gandalf).on(FOLDER4)
+				.during(date(2016, 4, 3), date(2016, 4, 6)).givingReadWriteAccess());
+
+		//An authorization already finished
+		try {
+			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
+					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
+			fail("Exception expected");
+		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+			//OK
+		}
+
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+
+		givenTimeIs(date(2016, 4, 4));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 5));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 6));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 7));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
+		}
+
+		givenTimeIs(date(2016, 4, 8));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
+		}
+
+		givenTimeIs(date(2016, 4, 9));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
 
@@ -1577,6 +1827,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck, sasquatch);
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck, bob);
+	}
+
+	public void givenTimeIs(LocalDate newDate) {
+		super.givenTimeIs(newDate);
+
+		//TODO Francis temporaire
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE);
 	}
 
 	@Test

@@ -69,9 +69,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		record = new TestRecord(zeSchema);
 
-		services = new RecordAutomaticMetadataServices(getModelLayerFactory().getMetadataSchemasManager(),
-				getModelLayerFactory().getTaxonomiesManager(), getModelLayerFactory().getSystemConfigurationsManager(),
-				getModelLayerFactory().getModelLayerLogger(), getModelLayerFactory().newSearchServices());
+		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		recordServices = spy((CachedRecordServices) getModelLayerFactory().newRecordServices());
 		recordProvider = new RecordProvider(recordServices, null, new ArrayList<Record>(), new Transaction());

@@ -76,9 +76,10 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withStringAndDateMetadataUsedForCopyAndCalculationInOtherSchemas());
 		Record newRecord = newRecordWithAStringAndADate();
 
-		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(newRecord), false);
+		ModificationImpactCalculatorResponse response = newImpactCalculator()
+				.findTransactionImpact(new Transaction(newRecord), false);
 
-		assertThat(impacts).isEmpty();
+		assertThat(response.getImpacts()).isEmpty();
 	}
 
 	@Test
@@ -89,9 +90,10 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		recordServices.update(record);
 		record.set(zeSchema.booleanMetadata(), true);
 
-		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), false);
+		ModificationImpactCalculatorResponse response = newImpactCalculator()
+				.findTransactionImpact(new Transaction(record), false);
 
-		assertThat(impacts).isEmpty();
+		assertThat(response.getImpacts()).isEmpty();
 	}
 
 	@Test
@@ -106,19 +108,20 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), aNewString);
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
-		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), false);
+		ModificationImpactCalculatorResponse response = newImpactCalculator()
+				.findTransactionImpact(new Transaction(record), false);
 
-		assertThat(impacts).hasSize(2);
+		assertThat(response.getImpacts()).hasSize(2);
 
 		ModificationImpact anotherSchemaImpact;
 		ModificationImpact thirdSchemaImpact;
 
-		if (impacts.get(0).getMetadataToReindex().iterator().next().getCode().startsWith("another")) {
-			anotherSchemaImpact = impacts.get(0);
-			thirdSchemaImpact = impacts.get(1);
+		if (response.getImpacts().get(0).getMetadataToReindex().iterator().next().getCode().startsWith("another")) {
+			anotherSchemaImpact = response.getImpacts().get(0);
+			thirdSchemaImpact = response.getImpacts().get(1);
 		} else {
-			anotherSchemaImpact = impacts.get(1);
-			thirdSchemaImpact = impacts.get(0);
+			anotherSchemaImpact = response.getImpacts().get(1);
+			thirdSchemaImpact = response.getImpacts().get(0);
 		}
 
 		LogicalSearchCondition anotherSchemaCondition = from(anotherSchemaType.type())
@@ -152,19 +155,20 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), aNewString);
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
-		List<ModificationImpact> impacts = newImpactCalculator().findTransactionImpact(new Transaction(record), true);
+		ModificationImpactCalculatorResponse response = newImpactCalculator()
+				.findTransactionImpact(new Transaction(record), true);
 
-		assertThat(impacts).hasSize(2);
+		assertThat(response.getImpacts()).hasSize(2);
 
 		ModificationImpact anotherSchemaImpact;
 		ModificationImpact thirdSchemaImpact;
 
-		if (impacts.get(0).getMetadataToReindex().iterator().next().getCode().startsWith("another")) {
-			anotherSchemaImpact = impacts.get(0);
-			thirdSchemaImpact = impacts.get(1);
+		if (response.getImpacts().get(0).getMetadataToReindex().iterator().next().getCode().startsWith("another")) {
+			anotherSchemaImpact = response.getImpacts().get(0);
+			thirdSchemaImpact = response.getImpacts().get(1);
 		} else {
-			anotherSchemaImpact = impacts.get(1);
-			thirdSchemaImpact = impacts.get(0);
+			anotherSchemaImpact = response.getImpacts().get(1);
+			thirdSchemaImpact = response.getImpacts().get(0);
 		}
 
 		LogicalSearchCondition anotherSchemaCondition = from(anotherSchemaType.type())

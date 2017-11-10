@@ -982,4 +982,12 @@ public class TestUtils {
 	public static void assumeWindows() {
 		org.junit.Assume.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
 	}
+
+	public static List<String> asOrderedList(String... values) {
+
+		List<String> list = new ArrayList<>(asList(values));
+		Collections.sort(list);
+
+		return list;
+	}
 }

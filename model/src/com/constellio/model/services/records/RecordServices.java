@@ -12,9 +12,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -112,7 +112,7 @@ public interface RecordServices {
 	List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
-	List<ModificationImpact> calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
+	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
 			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction);
 
 	RecordsCaches getRecordsCaches();

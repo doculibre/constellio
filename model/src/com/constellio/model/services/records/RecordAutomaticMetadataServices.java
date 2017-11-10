@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.data.utils.LangUtils.isFalseOrNull;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -12,7 +14,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.constellio.model.entities.schemas.entries.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,8 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
+import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
@@ -32,13 +35,25 @@ import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.AggregationType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -46,6 +61,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RecordAutomaticMetadataServices {
@@ -57,16 +74,16 @@ public class RecordAutomaticMetadataServices {
 	private final TaxonomiesManager taxonomiesManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final SearchServices searchServices;
+	private final ModelLayerFactory modelLayerFactory;
 
-	public RecordAutomaticMetadataServices(MetadataSchemasManager schemasManager, TaxonomiesManager taxonomiesManager,
-			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger,
-			SearchServices searchServices) {
+	public RecordAutomaticMetadataServices(ModelLayerFactory modelLayerFactory) {
 		super();
-		this.modelLayerLogger = modelLayerLogger;
-		this.schemasManager = schemasManager;
-		this.taxonomiesManager = taxonomiesManager;
-		this.systemConfigurationsManager = systemConfigurationsManager;
-		this.searchServices = searchServices;
+		this.modelLayerLogger = modelLayerFactory.getModelLayerLogger();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		this.systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
@@ -130,24 +147,25 @@ public class RecordAutomaticMetadataServices {
 		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
-		if(agregationType != null) {
-			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata, aggregatedDataEntry, types, searchServices);
+		if (agregationType != null) {
+			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata,
+					aggregatedDataEntry, types, searchServices);
 			switch (agregationType) {
-				case SUM:
-					setSumValuesInRecords(aggregatedValuesParams);
-					break;
-				case REFERENCE_COUNT:
-					setReferenceCountInRecords(aggregatedValuesParams);
-					break;
-				case MIN:
-					setMinValuesInRecords(aggregatedValuesParams);
-					break;
-				case MAX:
-					setMaxValuesInRecords(aggregatedValuesParams);
-					break;
-				case CALCULATED:
-					setCalculatedAggregatedValuesInRecords(aggregatedValuesParams);
-					break;
+			case SUM:
+				setSumValuesInRecords(aggregatedValuesParams);
+				break;
+			case REFERENCE_COUNT:
+				setReferenceCountInRecords(aggregatedValuesParams);
+				break;
+			case MIN:
+				setMinValuesInRecords(aggregatedValuesParams);
+				break;
+			case MAX:
+				setMaxValuesInRecords(aggregatedValuesParams);
+				break;
+			case CALCULATED:
+				setCalculatedAggregatedValuesInRecords(aggregatedValuesParams);
+				break;
 			}
 		}
 	}
@@ -165,28 +183,32 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private void setStatValuesInRecords(AggregatedValuesParams aggregatedValuesParams, String statName) {
-		Metadata inputMetadata = aggregatedValuesParams.getTypes().getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
+		Metadata inputMetadata = aggregatedValuesParams.getTypes()
+				.getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
 		LogicalSearchQuery query = aggregatedValuesParams.getQuery();
 		query.computeStatsOnField(inputMetadata);
 		query.setNumberOfRows(0);
 		SPEQueryResponse response = searchServices.query(query);
 
 		Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-		Double value = statsValues == null || statsValues.get(statName) == null? 0.0 : (Double) statsValues.get(statName);
+		Double value = statsValues == null || statsValues.get(statName) == null ? 0.0 : (Double) statsValues.get(statName);
 		((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(aggregatedValuesParams.getMetadata(), value);
 	}
 
 	private void setReferenceCountInRecords(AggregatedValuesParams aggregatedValuesParams) {
 		Double childrenCount = new Double(searchServices.getResultsCount(aggregatedValuesParams.getQuery()));
-		((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(aggregatedValuesParams.getMetadata(), childrenCount);
+		((RecordImpl) aggregatedValuesParams.getRecord())
+				.updateAutomaticValue(aggregatedValuesParams.getMetadata(), childrenCount);
 	}
 
 	private void setCalculatedAggregatedValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		Class<? extends AggregatedCalculator<?>> calculatorClass = aggregatedValuesParams.getAggregatedDataEntry().getAggregatedCalculator();
+		Class<? extends AggregatedCalculator<?>> calculatorClass = aggregatedValuesParams.getAggregatedDataEntry()
+				.getAggregatedCalculator();
 		Metadata metadata = aggregatedValuesParams.getMetadata();
-		if(calculatorClass != null) {
+		if (calculatorClass != null) {
 			try {
-				((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatorClass.newInstance().calculate(aggregatedValuesParams));
+				((RecordImpl) aggregatedValuesParams.getRecord())
+						.updateAutomaticValue(metadata, calculatorClass.newInstance().calculate(aggregatedValuesParams));
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
@@ -226,6 +248,12 @@ public class RecordAutomaticMetadataServices {
 				calculatorDependencyModified = true;
 
 			} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
+				calculatorDependencyModified = true;
+
+			} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
+				calculatorDependencyModified = true;
+
+			} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
 				calculatorDependencyModified = true;
 
 			} else if (dependency instanceof DynamicLocalDependency) {
@@ -344,6 +372,12 @@ public class RecordAutomaticMetadataServices {
 		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
 
+		} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
+			values.put(dependency, newPrincipalsAuthorizations(record, recordProvider));
+
+		} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
+			values.put(dependency, toAuthorizationsTargettingRecord(record, recordProvider));
+
 		} else if (SpecialDependencies.IDENTIFIER.equals(dependency)) {
 			values.put(dependency, record.getId());
 		} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
@@ -366,6 +400,89 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
+	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(RecordImpl calculatedRecord, RecordProvider recordProvider) {
+
+		List<Group> groups = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		Set<String> usersInTransaction = new HashSet<>();
+		Set<String> groupsInTransaction = new HashSet<>();
+
+		//TODO Francis : temporaire
+		if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+			RolesManager rolesManager = modelLayerFactory.getRolesManager();
+			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+
+			if (recordProvider.transaction != null) {
+				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+					if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+						User user = User.wrapNullable(transactionRecord, types, roles);
+						usersInTransaction.add(user.getId());
+						users.add(user);
+					}
+
+					if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+						Group group = Group.wrapNullable(transactionRecord, types);
+						groupsInTransaction.add(group.getId());
+						groups.add(group);
+					}
+				}
+			}
+
+			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(Group.SCHEMA_TYPE)).returnAll()))) {
+				if (!groupsInTransaction.contains(record.getId())) {
+					groups.add(Group.wrapNullable(record, types));
+				}
+			}
+
+			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(User.SCHEMA_TYPE)).returnAll()))) {
+				if (!usersInTransaction.contains(record.getId())) {
+					users.add(User.wrapNullable(record, types, roles));
+				}
+			}
+
+		}
+		return new AllPrincipalsAuthsDependencyValue(groups, users);
+	}
+
+	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(RecordImpl calculatedRecord,
+			RecordProvider recordProvider) {
+
+		Set<String> authsInTransaction = new HashSet<>();
+		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+
+		//TODO Francis : temporaire
+		if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+
+			if (recordProvider.transaction != null) {
+				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+					if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
+						authsInTransaction.add(authorizationDetail.getId());
+						if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
+								&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+							authorizationDetails.add(authorizationDetail);
+						}
+					}
+				}
+			}
+
+			for (Record record : searchServices
+					.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
+				SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
+						&& !authsInTransaction.contains(authorizationDetail.getId())
+						&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+					authorizationDetails.add(authorizationDetail);
+				}
+			}
+		}
+		return new AllAuthorizationsTargettingRecordDependencyValue(authorizationDetails);
+	}
+
 	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
 			Dependency dependency) {
 
@@ -375,6 +492,7 @@ public class RecordAutomaticMetadataServices {
 		List<String> paths = new ArrayList<>();
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
+		List<String> inheritedNonTaxonomyAuthorizations = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -385,6 +503,7 @@ public class RecordAutomaticMetadataServices {
 				paths.addAll(parentPaths);
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
+				inheritedNonTaxonomyAuthorizations.addAll(referencedRecord.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS));
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -416,7 +535,7 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
-				attachedAncestors);
+				inheritedNonTaxonomyAuthorizations, attachedAncestors);
 		values.put(dependency, value);
 		return true;
 	}

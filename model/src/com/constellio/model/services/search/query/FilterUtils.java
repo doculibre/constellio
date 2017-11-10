@@ -152,7 +152,23 @@ public class FilterUtils {
 
 		if (!user.has(permission).globally()) {
 			addTokenA38(stringBuilder);
+
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
+			for(String role : rolesGivingPermission) {
+
+				stringBuilder.append(" OR ");
+				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+				stringBuilder.append(":" + role + "_");
+				stringBuilder.append(user.getId());
+
+				for (String aGroup : user.getUserGroups()) {
+					stringBuilder.append(" OR ");
+					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(":" + role + "_");
+					stringBuilder.append(aGroup);
+				}
+			}
+
 			addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
 		}
 		return stringBuilder.toString();

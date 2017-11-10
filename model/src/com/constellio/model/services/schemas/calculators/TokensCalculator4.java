@@ -1,0 +1,90 @@
+package com.constellio.model.services.schemas.calculators;
+
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+
+import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+
+public class TokensCalculator4 implements MetadataValueCalculator<List<String>> {
+
+	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(MANUAL_TOKENS);
+
+	ReferenceDependency<SortedMap<String, List<String>>> authorizationsRolesParam = ReferenceDependency.toAString(
+			CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS, SolrAuthorizationDetails.ROLES).whichIsMultivalue()
+			.whichAreReferencedMultiValueGroupedByReference();
+
+	SpecialDependency<AllPrincipalsAuthsDependencyValue> allPrincipalsAuthsParam = SpecialDependencies.ALL_PRINCIPALS;
+
+	@Override
+	public List<String> calculate(CalculatorParameters parameters) {
+		List<String> tokens = new ArrayList<>();
+		List<String> manualTokens = parameters.get(manualTokensParam);
+		AllPrincipalsAuthsDependencyValue principalsAuthorizations = parameters.get(allPrincipalsAuthsParam);
+
+		SortedMap<String, List<String>> authorizationsRoles = parameters.get(authorizationsRolesParam);
+
+		KeyListMap<String, String> principalsTokens = principalsAuthorizations
+				.getPrincipalIdsWithAnyAuthorization(authorizationsRoles);
+
+		for (Entry<String, List<String>> entry : principalsTokens.getMapEntries()) {
+			for (String access : entry.getValue()) {
+				if (Role.READ.equals(access)) {
+					tokens.add("r_" + entry.getKey());
+
+				} else if (Role.WRITE.equals(access)) {
+					tokens.add("r_" + entry.getKey());
+					tokens.add("w_" + entry.getKey());
+
+				} else if (Role.DELETE.equals(access)) {
+					tokens.add("r_" + entry.getKey());
+					tokens.add("d_" + entry.getKey());
+
+				} else {
+					tokens.add(access + "_" + entry.getKey());
+				}
+			}
+		}
+
+		tokens.addAll(manualTokens);
+		Collections.sort(tokens);
+		return tokens;
+	}
+
+	@Override
+	public List<String> getDefaultValue() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public MetadataValueType getReturnType() {
+		return MetadataValueType.STRING;
+	}
+
+	@Override
+	public boolean isMultiValue() {
+		return true;
+	}
+
+	@Override
+	public List<? extends Dependency> getDependencies() {
+		return Arrays.asList(allPrincipalsAuthsParam, authorizationsRolesParam, manualTokensParam);
+	}
+}

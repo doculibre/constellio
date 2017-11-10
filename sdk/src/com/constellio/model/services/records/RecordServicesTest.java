@@ -79,6 +79,7 @@ import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -935,7 +936,9 @@ public class RecordServicesTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction(zeRecord);
 
-		when(impactCalculator.findTransactionImpact(transaction, true)).thenReturn(zeModifications);
+		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
+				zeModifications, new ArrayList<String>());
+		when(impactCalculator.findTransactionImpact(transaction, true)).thenReturn(response);
 		doReturn(impactCalculator).when(recordServices).newModificationImpactCalculator(taxonomiesManager, metadataSchemaTypes,
 				searchServices);
 

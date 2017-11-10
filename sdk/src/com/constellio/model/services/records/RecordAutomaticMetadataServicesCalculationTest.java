@@ -95,8 +95,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		define(schemasManager).using(schemas.withCalculatedDaysBetweenLocalDateAndAnotherSchemaRequiredDate(false));
 
-		services = spy(new RecordAutomaticMetadataServices(schemasManager, taxonomiesManager, systemConfigurationsManager,
-				modelLayerLogger, searchServices));
+		services = spy(new RecordAutomaticMetadataServices(getModelLayerFactory()));
 
 		record = spy(new TestRecord(zeSchema));
 

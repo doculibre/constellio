@@ -15,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -615,5 +617,48 @@ public class RecordUtils {
 
 		}
 		return ids;
+	}
+
+	public static <T> List<T> getNewAndRemovedValues(Record record, Metadata metadata) {
+
+		List<T> values = new ArrayList<>();
+
+		if (record.isSaved()) {
+
+			if (record.isModified(metadata)) {
+				Record originalRecord = record.getCopyOfOriginalRecord();
+				if (metadata.isMultivalue()) {
+					List<T> previousValues = originalRecord.getList(metadata);
+					List<T> newValues = record.getList(metadata);
+
+					ListComparisonResults<T> comparisonResults = LangUtils.compare(previousValues, newValues);
+					values.addAll(previousValues);
+					values.addAll(newValues);
+
+				} else {
+					T previousValue = originalRecord.get(metadata);
+					T newValue = record.get(metadata);
+					if (previousValue != null) {
+						values.add(previousValue);
+					}
+					if (newValue != null) {
+						values.add(newValue);
+					}
+				}
+			}
+		} else {
+			if (metadata.isMultivalue()) {
+				values.addAll(record.<T>getList(metadata));
+
+			} else {
+				T newValue = record.get(metadata);
+				if (newValue != null) {
+					values.add(newValue);
+				}
+			}
+		}
+
+		return values;
+
 	}
 }

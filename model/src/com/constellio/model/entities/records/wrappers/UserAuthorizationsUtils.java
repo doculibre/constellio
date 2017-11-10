@@ -22,6 +22,7 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class UserAuthorizationsUtils {
 
@@ -176,7 +177,13 @@ public class UserAuthorizationsUtils {
 		for (String authId : authsId) {
 			try {
 				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
-				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)) {
+
+				TaxonomiesManager taxonomiesManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+						.getTaxonomiesManager();
+				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
+						authorizationDetails.getTargetSchemaType());
+
+				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails) && isConcept) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

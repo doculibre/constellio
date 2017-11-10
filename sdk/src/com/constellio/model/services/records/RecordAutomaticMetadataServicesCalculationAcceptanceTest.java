@@ -56,9 +56,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 
 		record = new TestRecord(zeSchema);
 
-		services = new RecordAutomaticMetadataServices(getModelLayerFactory().getMetadataSchemasManager(),
-				getModelLayerFactory().getTaxonomiesManager(), getModelLayerFactory().getSystemConfigurationsManager(),
-				getModelLayerFactory().getModelLayerLogger(), getModelLayerFactory().newSearchServices());
+		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		recordProvider = recordServices.newRecordProvider(null, new Transaction());

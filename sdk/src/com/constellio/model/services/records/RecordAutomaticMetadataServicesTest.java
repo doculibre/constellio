@@ -41,10 +41,12 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -98,6 +100,10 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 	@Mock SearchServices searchServices;
 
+	@Mock ModelLayerFactory modelLayerFactory;
+
+	@Mock RolesManager rolesManager;
+
 	@Before
 	public void setUp() {
 
@@ -115,8 +121,14 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		sortedMetadatas.add(zeSchema.stringCopiedFromFirstReferenceStringMeta());
 		sortedMetadatas.add(zeSchema.dateCopiedFromSecondReferenceDateMeta());
 
-		services = spy(new RecordAutomaticMetadataServices(schemasManager, taxonomiesManager, systemConfigurationsManager,
-				modelLayerLogger, searchServices));
+		when(modelLayerFactory.getModelLayerLogger()).thenReturn(modelLayerLogger);
+		when(modelLayerFactory.getRolesManager()).thenReturn(rolesManager);
+		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+		when(modelLayerFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+
+		services = spy(new RecordAutomaticMetadataServices(modelLayerFactory));
 
 		createOtherSchemaRecordsWithSingleValueMetadata();
 
