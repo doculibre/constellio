@@ -674,15 +674,20 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenMovingFolderInFolderWithoutParentWriteAuthorizationThenGoodErrorMessage()
-			throws RecordServicesException {
+			throws Exception {
 
 		session = newCMISSessionAsUserInZeCollection(admin);
 		Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
 		oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
+
 		Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
 		movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
+
 		Folder newParent = cmisFolder(zeCollectionRecords.folder1);
 		newParent.addAcl(asList(ace(bobGratton, R), ace(charles, R)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
 
 		Record record = zeCollectionRecords.folder2_2;
 		String newParentID = zeCollectionRecords.folder1.getId();

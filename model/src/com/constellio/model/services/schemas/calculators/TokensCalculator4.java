@@ -5,8 +5,10 @@ import static com.constellio.model.services.schemas.builders.CommonMetadataBuild
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 
 import com.constellio.data.utils.KeyListMap;
@@ -35,7 +37,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> tokens = new ArrayList<>();
+		Set<String> tokens = new HashSet<>();
 		List<String> manualTokens = parameters.get(manualTokensParam);
 		AllPrincipalsAuthsDependencyValue principalsAuthorizations = parameters.get(allPrincipalsAuthsParam);
 
@@ -64,8 +66,10 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		}
 
 		tokens.addAll(manualTokens);
-		Collections.sort(tokens);
-		return tokens;
+
+		List<String> tokensList = new ArrayList<>(tokens);
+		Collections.sort(tokensList);
+		return tokensList;
 	}
 
 	@Override

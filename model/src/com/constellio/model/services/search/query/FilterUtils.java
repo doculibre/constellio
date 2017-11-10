@@ -154,7 +154,7 @@ public class FilterUtils {
 			addTokenA38(stringBuilder);
 
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
-			for(String role : rolesGivingPermission) {
+			for (String role : rolesGivingPermission) {
 
 				stringBuilder.append(" OR ");
 				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
@@ -215,7 +215,9 @@ public class FilterUtils {
 	}
 
 	private static void addAuthsTokens(StringBuilder stringBuilder, User user, AuthorizationDetailsFilter filter) {
-		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, filter);
+
+		//Specific auths are excluded, they are handled with tokens
+		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, false, filter);
 
 		for (Map.Entry<String, Set<String>> token : tokens.getNestedMap().entrySet()) {
 			stringBuilder.append(" OR (");

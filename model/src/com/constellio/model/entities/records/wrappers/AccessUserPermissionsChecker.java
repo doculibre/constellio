@@ -2,7 +2,7 @@ package com.constellio.model.entities.records.wrappers;
 
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
-import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorization;
+import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorizationIncludingSpecifics;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -73,13 +73,13 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	private boolean hasDeleteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, DELETE)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
+				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
 				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE);
 	}
 
 	private boolean hasWriteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, WRITE)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
+				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
 				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE);
 	}
 
@@ -87,7 +87,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		return containsAnyUserGroupTokens(user, record, READ)
 				|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
 				|| UserAuthorizationsUtils.containsAUserToken(user, record)
-				|| hasMatchingAuthorization(user, record, UserAuthorizationsUtils.READ_ACCESS)
+				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
 				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
 	}
 

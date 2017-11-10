@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -85,6 +86,8 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 
 	@Mock SearchServices searchServices;
 
+	@Mock ModelLayerFactory modelLayerFactory;
+
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp()
@@ -95,7 +98,12 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		define(schemasManager).using(schemas.withCalculatedDaysBetweenLocalDateAndAnotherSchemaRequiredDate(false));
 
-		services = spy(new RecordAutomaticMetadataServices(getModelLayerFactory()));
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(modelLayerFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
+		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
+		when(modelLayerFactory.getModelLayerLogger()).thenReturn(modelLayerLogger);
+
+		services = spy(new RecordAutomaticMetadataServices(modelLayerFactory));
 
 		record = spy(new TestRecord(zeSchema));
 

@@ -152,7 +152,8 @@ public class UserAuthorizationsUtils {
 		}
 	};
 
-	public static KeySetMap<String, String> retrieveUserTokens(User user, AuthorizationDetailsFilter filter) {
+	public static KeySetMap<String, String> retrieveUserTokens(User user,
+			boolean includeSpecifics, AuthorizationDetailsFilter filter) {
 
 		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
 
@@ -183,7 +184,8 @@ public class UserAuthorizationsUtils {
 				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
 						authorizationDetails.getTargetSchemaType());
 
-				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails) && isConcept) {
+				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
+						&& (isConcept || includeSpecifics)) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -206,7 +208,7 @@ public class UserAuthorizationsUtils {
 	}
 
 	public static Set<String> getRolesOnRecord(User user, Record record) {
-		Set<String> auths = getMatchingAuthorization(user, record, ROLE_AUTHS);
+		Set<String> auths = getMatchingAuthorizationIncludingSpecifics(user, record, ROLE_AUTHS);
 
 		Set<String> roles = new HashSet<>();
 		for (String authId : auths) {
@@ -221,8 +223,9 @@ public class UserAuthorizationsUtils {
 		return roles;
 	}
 
-	public static boolean hasMatchingAuthorization(User user, Record record, AuthorizationDetailsFilter filter) {
-		KeySetMap<String, String> tokens = retrieveUserTokens(user, filter);
+	public static boolean hasMatchingAuthorizationIncludingSpecifics(User user, Record record,
+			AuthorizationDetailsFilter filter) {
+		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
 		List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
 		List<String> allRemovedAuths = record.<String>getList(Schemas.ALL_REMOVED_AUTHS);
@@ -240,8 +243,9 @@ public class UserAuthorizationsUtils {
 		return false;
 	}
 
-	public static Set<String> getMatchingAuthorization(User user, Record record, AuthorizationDetailsFilter filter) {
-		KeySetMap<String, String> tokens = retrieveUserTokens(user, filter);
+	public static Set<String> getMatchingAuthorizationIncludingSpecifics(User user, Record record,
+			AuthorizationDetailsFilter filter) {
+		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
 		Set<String> authIds = new HashSet<>();
 		List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
