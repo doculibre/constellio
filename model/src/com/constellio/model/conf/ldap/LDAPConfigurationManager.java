@@ -329,7 +329,7 @@ public class LDAPConfigurationManager implements StatefulService {
 					.setGroupsFilter(groupsFilter)
 					.setUsersFilter(usersFilter)
 					.setUserGroups(userGroups);
-			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
+			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution, scheduleTimeList,
 					selectedCollections);
 		} else {
 			String user = getString(configs, "ldap.syncConfiguration.user.login", null);
