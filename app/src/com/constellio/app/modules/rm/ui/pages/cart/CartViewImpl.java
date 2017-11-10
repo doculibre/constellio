@@ -247,7 +247,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), getConstellioFactories().getAppLayerFactory(), getCollection(), true);
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext());
 		List<RecordVO> allRecords = new ArrayList<>();
 		allRecords.addAll(presenter.getCartFoldersVO());
 		allRecords.addAll(presenter.getCartDocumentVO());
