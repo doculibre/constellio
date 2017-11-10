@@ -64,7 +64,6 @@ public class FilterUtils {
 
 			}
 		}
-		System.out.println(filter.toString());
 		return filter.toString();
 	}
 

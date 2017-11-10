@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -219,7 +220,9 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				//				asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
 				//						&&
-				if (types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+						.contains(schema.getSchemaTypeBuilder().getCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 							.setMultivalue(true)
 							.defineDataEntry().asCalculated(TokensCalculator4.class);
@@ -498,7 +501,9 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				//				asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
 				//						&&
-				if (types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+						.contains(schema.getSchemaTypeBuilder().getCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS)
 							.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).setMultivalue(true)
 							.defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
@@ -522,7 +527,9 @@ public class CommonMetadataBuilder {
 				MetadataCreator() {
 					@Override
 					public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-						if (types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+						if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+								.contains(schema.getSchemaTypeBuilder().getCode())
+								&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 							MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
 									.setType(STRING).setMultivalue(true)
 									.defineDataEntry().asCalculated(PrincipalsWithSpecificAuthCalculator.class);

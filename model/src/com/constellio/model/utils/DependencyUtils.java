@@ -8,16 +8,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-
-import org.apache.commons.collections.map.HashedMap;
 
 public class DependencyUtils<V> {
 
@@ -66,7 +58,14 @@ public class DependencyUtils<V> {
 
 			if (iterationResults.valuesWithoutDependencies.isEmpty()) {
 				List<V> cycleElements = getCyclicElements(dependenciesMapCopy.keySet());
-				throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements);
+
+				StringBuilder sb = new StringBuilder();
+
+				for (Entry<V, Set<V>> entry : dependenciesMapCopy.entrySet()) {
+					sb.append(entry.getKey() + " => " + entry.getValue() + "\n");
+				}
+
+				throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements, sb.toString());
 			} else {
 				if (params.isSortTie()) {
 					Collections.sort(iterationResults.valuesWithoutDependencies, params.<V>getTieComparator());
