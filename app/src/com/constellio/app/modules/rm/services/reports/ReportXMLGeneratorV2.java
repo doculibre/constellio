@@ -151,6 +151,7 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
         }catch (Exception e) {
             //error in validation
+            e.printStackTrace();
         }
        return "";
     }
@@ -225,19 +226,33 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
         for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-            listOfMetadataTags.addAll(asList(
+            List<Element> elementToAdd = new ArrayList<>(asList(
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(recordReferenced.<String>get(Schemas.CODE)),
                     new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE))
             ));
+            if(!metadata.getCode().contains("_default_")) {
+                elementToAdd.addAll(asList(
+                        new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + "_code").setText(recordReferenced.<String>get(Schemas.CODE)),
+                        new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + "_title").setText(recordReferenced.<String>get(Schemas.TITLE))
+                ));
+            }
+            listOfMetadataTags.addAll(elementToAdd);
             if(AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
                 Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
                 String parentMetadataId = recordReferenced.get(parentMetadata);
                 if(parentMetadataId != null) {
                     Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                    listOfMetadataTags.addAll(asList(
+                    List<Element> elementToAddParebt = new ArrayList<>(asList(
                             new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
                             new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
                     ));
+                    if(!metadata.getCode().contains("_default_")) {
+                        elementToAdd.addAll(asList(
+                                new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
+                                new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
+                        ));
+                    }
+                    listOfMetadataTags.addAll(elementToAddParebt);
                 }
             }
         }
