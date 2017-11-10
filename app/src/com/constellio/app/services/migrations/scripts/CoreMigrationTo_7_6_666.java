@@ -31,8 +31,7 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);
-			authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(MetadataValueType.STRING)
-					.setDefaultRequirement(true);
+			authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(MetadataValueType.STRING);
 
 		}
 	}

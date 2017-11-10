@@ -20,27 +20,51 @@ import com.constellio.model.services.users.UserServices;
 
 public class FilterUtils {
 
-	public static String multiCollectionUserReadFilter(UserCredential user, UserServices userServices,
+	public static String multiCollectionUserReadFilter(UserCredential userCredential, UserServices userServices,
 			SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
-		if (user.getCollections().isEmpty()) {
+		if (userCredential.getCollections().isEmpty()) {
 			addTokenA38(filter);
 		} else {
-			filter.append("(");
-			boolean firstCollection = true;
-			for (String collection : user.getCollections()) {
-				if (!firstCollection) {
+			addTokenA38(filter);
+
+			for (String collection : userCredential.getCollections()) {
+				User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
+				if (user.hasCollectionReadAccess()) {
 					filter.append(" OR ");
+					filter.append(Schemas.COLLECTION.getDataStoreCode());
+					filter.append(":");
+					filter.append(collection);
 				}
-				firstCollection = false;
-				User userInCollection = userServices.getUserInCollection(user.getUsername(), collection);
-				filter.append("(");
-				filter.append(userReadFilter(userInCollection, securityTokenManager));
+
+				filter.append(" OR ");
+				filter.append(Schemas.TOKENS.getDataStoreCode());
+				filter.append(":r_");
+				filter.append(user.getId());
+
+				for (String schemaType : securityTokenManager
+						.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+					filter.append(" OR ");
+					filter.append(Schemas.SCHEMA.getDataStoreCode());
+					filter.append(":");
+					filter.append(schemaType);
+					filter.append("_*");
+				}
+
+				for (String aGroup : user.getUserGroups()) {
+					filter.append(" OR ");
+					filter.append(Schemas.TOKENS.getDataStoreCode());
+					filter.append(":r_");
+					filter.append(aGroup);
+				}
+
+				filter.append(" OR (");
+				filter.append(userReadFilter(user, securityTokenManager));
 				filter.append(")");
 
 			}
-			filter.append(")");
 		}
+		System.out.println(filter.toString());
 		return filter.toString();
 	}
 
