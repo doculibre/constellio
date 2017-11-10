@@ -218,7 +218,8 @@ public class CommonMetadataBuilder {
 		metadata.put(TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())) {
+				if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 							.setMultivalue(true)
 							.defineDataEntry().asCalculated(TokensCalculator4.class);
@@ -494,7 +495,9 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				//TODO Francis : temporaire
-				if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())) {
+				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
+				if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS)
 							.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).setMultivalue(true)
 							.defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
@@ -516,7 +519,8 @@ public class CommonMetadataBuilder {
 				MetadataCreator() {
 					@Override
 					public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-						if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())) {
+						if (asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
+								&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 							MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
 									.setType(STRING).setMultivalue(true)
 									.defineDataEntry().asCalculated(PrincipalsWithSpecificAuthCalculator.class);
