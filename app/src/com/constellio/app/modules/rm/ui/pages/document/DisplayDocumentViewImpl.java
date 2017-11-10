@@ -146,9 +146,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void refreshContentViewer() {
 		ContentViewer newContentViewer = newContentViewer();
-		mainLayout.replaceComponent(contentViewer, newContentViewer);
-		contentViewer = newContentViewer;
-		if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
+		if (newContentViewer.isViewerComponentVisible()) {
+			mainLayout.replaceComponent(contentViewer, newContentViewer);
+			contentViewer = newContentViewer;
+			waitForContentViewerToBecomeVisible = false;
+		} else if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
+			if (contentViewer.isVisible()) {
+				contentViewer.setVisible(false);
+			}
 			waitForContentViewerToBecomeVisible = true;
 		} else {
 			waitForContentViewerToBecomeVisible = false;
