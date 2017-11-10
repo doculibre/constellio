@@ -36,8 +36,6 @@ public class BasePresenterUtils implements Serializable {
 	private transient User currentUser;
 
 	private transient ConstellioFactories constellioFactories;
-	private transient AppLayerFactory appLayerFactory;
-	private transient ModelLayerFactory modelLayerFactory;
 	private transient RecordServices recordServices;
 	private transient PresenterService presenterService;
 	private transient SearchServices searchServices;
@@ -59,8 +57,6 @@ public class BasePresenterUtils implements Serializable {
 		if (constellioFactories == null) {
 			constellioFactories = ConstellioFactories.getInstance();
 		}
-		appLayerFactory = constellioFactories.getAppLayerFactory();
-		modelLayerFactory = constellioFactories.getModelLayerFactory();
 	}
 
 	public final String getCollection() {
@@ -72,7 +68,7 @@ public class BasePresenterUtils implements Serializable {
 	}
 
 	public final MetadataSchemaTypes types() {
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory().getMetadataSchemasManager();
 		return metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection());
 	}
 
@@ -100,41 +96,41 @@ public class BasePresenterUtils implements Serializable {
 	}
 
 	public final ModelLayerFactory modelLayerFactory() {
-		return modelLayerFactory;
+		return constellioFactories.getModelLayerFactory();
 	}
 
 	public final AppLayerFactory appLayerFactory() {
-		return appLayerFactory;
+		return constellioFactories.getAppLayerFactory();
 	}
 
 	public final RecordServices recordServices() {
 		//if (recordServices == null) {
-		return modelLayerFactory.newRecordServices();
+		return modelLayerFactory().newRecordServices();
 		//}
 		//return recordServices;
 	}
 
 	public final LoggingServices loggingServices() {
-		return modelLayerFactory.newLoggingServices();
+		return modelLayerFactory().newLoggingServices();
 	}
 
 	public final PresenterService presenterService() {
 		if (presenterService == null) {
-			presenterService = appLayerFactory.newPresenterService();
+			presenterService = appLayerFactory().newPresenterService();
 		}
 		return presenterService;
 	}
 
 	public final SearchServices searchServices() {
 		if (searchServices == null) {
-			searchServices = modelLayerFactory.newSearchServices();
+			searchServices = modelLayerFactory().newSearchServices();
 		}
 		return searchServices;
 	}
 
 	public final SchemasDisplayManager schemasDisplayManager() {
 		if (schemasDisplayManager == null) {
-			schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+			schemasDisplayManager = appLayerFactory().getMetadataSchemasDisplayManager();
 		}
 		return schemasDisplayManager;
 	}
@@ -152,8 +148,8 @@ public class BasePresenterUtils implements Serializable {
 
 	public final List<String> getAllRecordIds(String schemaCode) {
 		String collection = sessionContext.getCurrentCollection();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		SearchServices searchServices = modelLayerFactory().newSearchServices();
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 		MetadataSchema schema = schemaTypes.getSchema(schemaCode);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -167,16 +163,16 @@ public class BasePresenterUtils implements Serializable {
 
 	public Roles getCollectionRoles() {
 		String collection = getCollection();
-		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+		return modelLayerFactory().getRolesManager().getCollectionRoles(collection);
 	}
 
 	public CollectionsManager getCollectionManager() {
-		return appLayerFactory.getCollectionsManager();
+		return appLayerFactory().getCollectionsManager();
 	}
 
 	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
 		try {
-			return modelLayerFactory.getContentManager().upload(inputStream, options);
+			return modelLayerFactory().getContentManager().upload(inputStream, options);
 		} catch (final IcapException e) {
 			if (e instanceof IcapException.ThreatFoundException) {
 				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));

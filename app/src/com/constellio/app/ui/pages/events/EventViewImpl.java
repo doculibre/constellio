@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -15,6 +17,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
+import com.constellio.app.ui.framework.data.event.UnsupportedEventTypeRuntimeException;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -31,6 +34,9 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(EventViewImpl.class);
+	
 	public static final String EVENT_TABLE_STYLE = "selenium-event-table";
 	private EventPresenter presenter;
 	private Table table;
@@ -59,7 +65,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		final String eventType = presenter.getEventType();
 		Container container = new RecordVOLazyContainer(dataProvider, false);
 
-		String title = EventTypeUtils.getEventTypeCaption(eventType) + " (" + container.size() + ")";
+		String eventTypeCaption;
+    	try {
+    		eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
+		} catch (UnsupportedEventTypeRuntimeException e) {
+			LOGGER.error("Error while retrieving event type caption", e);
+			eventTypeCaption = eventType;
+		}
+		String title = eventTypeCaption + " (" + container.size() + ")";
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
 		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
@@ -162,7 +175,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 	@Override
 	protected String getTitle() {
-		return EventTypeUtils.getEventTypeCaption(presenter.getEventType());
+		String eventType = presenter.getEventType();
+		String eventTypeCaption;
+    	try {
+    		eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
+		} catch (UnsupportedEventTypeRuntimeException e) {
+			LOGGER.error("Error while retrieving event type caption", e);
+			eventTypeCaption = eventType;
+		}
+		return eventTypeCaption;
 	}
 
 	public Table getTable()
