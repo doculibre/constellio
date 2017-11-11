@@ -29,7 +29,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
-public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
+public class RecordServicesAgregatedSumMetadatasAcceptTest extends ConstellioTest {
 
 	TestsSchemasSetup schemas = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();

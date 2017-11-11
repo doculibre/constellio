@@ -157,6 +157,9 @@ public class RecordAutomaticMetadataServices {
 			case REFERENCE_COUNT:
 				setReferenceCountInRecords(aggregatedValuesParams);
 				break;
+			case VALUES_UNION:
+				setValuesUnion(aggregatedValuesParams);
+				break;
 			case MIN:
 				setMinValuesInRecords(aggregatedValuesParams);
 				break;
@@ -199,6 +202,21 @@ public class RecordAutomaticMetadataServices {
 		Double childrenCount = new Double(searchServices.getResultsCount(aggregatedValuesParams.getQuery()));
 		((RecordImpl) aggregatedValuesParams.getRecord())
 				.updateAutomaticValue(aggregatedValuesParams.getMetadata(), childrenCount);
+	}
+
+	//
+	private void setValuesUnion(AggregatedValuesParams aggregatedValuesParams) {
+		Metadata inputMetadata = aggregatedValuesParams.getTypes()
+				.getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
+		LogicalSearchQuery query = aggregatedValuesParams.getQuery();
+		query.computeStatsOnField(inputMetadata);
+		query.setNumberOfRows(0);
+		SPEQueryResponse response = searchServices.query(query);
+
+		Map<String, Object> statsValues = response.getStatValues(inputMetadata);
+		System.out.println(statsValues);
+		((RecordImpl) aggregatedValuesParams.getRecord())
+				.updateAutomaticValue(aggregatedValuesParams.getMetadata(), new ArrayList<>());
 	}
 
 	private void setCalculatedAggregatedValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {

@@ -47,6 +47,7 @@ Schemas {
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
+	public static final Metadata TOKENS_OF_HIERARCHY = add(new Metadata("tokensHierarchy_ss", STRING, true));
 	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 	public static final Metadata DENY_TOKENS = add(new Metadata("denyTokens_ss", STRING, true));
 	public static final Metadata SHARE_TOKENS = add(new Metadata("shareTokens_ss", STRING, true));
