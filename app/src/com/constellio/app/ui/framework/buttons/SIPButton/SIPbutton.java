@@ -205,10 +205,10 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     public void uploadSucceeded(Upload.SucceededEvent event) {}
 
     public FormLayout build(){
-        bagInfoVO = new BagInfoVO();
+        //bagInfoVO = new BagInfoVO();
         formLayout = new FormLayout();
         binder = new BeanFieldGroup<>(BagInfoVO.class);
-        binder.setItemDataSource(bagInfoVO);
+        //binder.setItemDataSource(bagInfoVO);
 
         deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
         limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));

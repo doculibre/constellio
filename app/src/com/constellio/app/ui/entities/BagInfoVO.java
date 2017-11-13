@@ -1,6 +1,10 @@
 package com.constellio.app.ui.entities;
 
-public class BagInfoVO  {
+import java.util.List;
+
+public class BagInfoVO extends RecordVO{
+
+    private String id;
 
     private String note;
 
@@ -30,22 +34,8 @@ public class BagInfoVO  {
 
     private String encodage;
 
-    public BagInfoVO() {
-        setNote("");
-        setIdentificationEntiteResponsable("");
-        setIdentificationOrganismeVerseurOuDonateur("");
-        setIDOrganismeVerseurOuDonateur("");
-        setAddress("");
-        setRegionAdministrative("");
-        setEntiteResponsable("");
-        setCourrielResponsable("");
-        setTelephoneResponsable("");
-        setDescriptionSommaire("");
-        setCategoryDocument("");
-        setMethodeTransfere("");
-        setRestrictionAccessibilite("");
-        setEncodage("");
-
+    public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
+        super(id, metadataValues, viewMode);
     }
 
     public String getNote() {
@@ -172,5 +162,13 @@ public class BagInfoVO  {
     public BagInfoVO setEncodage(String encodage) {
         this.encodage = encodage;
         return this;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

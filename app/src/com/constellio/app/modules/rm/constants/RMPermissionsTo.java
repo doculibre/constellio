@@ -122,5 +122,8 @@ public class RMPermissionsTo {
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
 
+	//BagInfo
+	public static final String MANAGE_BAG_INFO = permission(RM_MANAGEMENT, "manageBagInfo");
+
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }

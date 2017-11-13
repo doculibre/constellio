@@ -36,6 +36,10 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAu
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoPresenter;
+import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.capsule.addEdit.AddEditCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleView;
@@ -173,6 +177,10 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
 	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
 	public static final String EXCEL_REPORT_DISPLAY = "excelReportDisplay";
+
+	public static final String LIST_BAG_INFO = "listBagInfo";
+	public static final String DISPLAY_BAG_INFO = "displayBagInfo";
+	public static final String ADD_EDIT_BAG_INFO = "addEditBagInfo";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -318,6 +326,10 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_ELEVATION, EditElevationViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_BAG_INFO, DisplayBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_BAG_INFO, ListBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_BAG_INFO, AddEditBagInfoViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {
