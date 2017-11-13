@@ -18,11 +18,13 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -101,13 +103,17 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     @Override
     public void addAvailableActions(AvailableActionsParam param) {
+        UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+        boolean hasAccessToSIP = userServices.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), collection).has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
         addMoveButton(param);
         addDuplicateButton(param);
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
-        addSIPbutton(param);
+        if(hasAccessToSIP) {
+            addSIPbutton(param);
+        }
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
