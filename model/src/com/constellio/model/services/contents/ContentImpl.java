@@ -467,6 +467,14 @@ public class ContentImpl implements Content {
 	}
 
 	public ContentImpl finalizeVersion() {
+		return updateVersion(true);
+	}
+
+	public ContentImpl updateMinorVersion() {
+		return updateVersion(false);
+	}
+
+	private ContentImpl updateVersion(boolean toMajorVersion) {
 		this.dirty = true;
 		if (currentCheckedOutVersion != null) {
 			this.checkoutDateTime = null;
@@ -479,7 +487,7 @@ public class ContentImpl implements Content {
 			this.currentCheckedOutVersion = null;
 
 		} else {
-			String finalizedVersionLabel = getVersionAfter(getCurrentVersion().getVersion(), true);
+			String finalizedVersionLabel = getVersionAfter(getCurrentVersion().getVersion(), toMajorVersion);
 			ensureHistoryIsLoaded();
 			currentVersion = getCurrentVersion().withVersion(finalizedVersionLabel);
 		}

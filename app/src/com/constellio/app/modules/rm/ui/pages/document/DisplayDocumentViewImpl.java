@@ -81,6 +81,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton renameContentButton;
 	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
+	
+	private boolean contentViewerInitiallyVisible;
+	private boolean waitForContentViewerToBecomeVisible;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
@@ -130,6 +133,27 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	protected String getTitle() {
 		return null;
 	}
+	
+	private ContentViewer newContentViewer() {
+		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		if (popup) {
+			// FIXME CSS bug when displayed in window, hiding for now.
+			contentViewer.setVisible(false);
+		}
+		return contentViewer;
+	}
+
+	@Override
+	public void refreshContentViewer() {
+		ContentViewer newContentViewer = newContentViewer();
+		mainLayout.replaceComponent(contentViewer, newContentViewer);
+		contentViewer = newContentViewer;
+		if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
+			waitForContentViewerToBecomeVisible = true;
+		} else {
+			waitForContentViewerToBecomeVisible = false;
+		}
+	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -142,11 +166,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
 		borrowedLabel.addStyleName("borrowed-document-message");
 
-		contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
-		if (popup) {
-			// FIXME CSS bug when displayed in window, hiding for now.
-			contentViewer.setVisible(false);
-		}
+		contentViewer = newContentViewer();
+		contentViewerInitiallyVisible = contentViewer.isViewerComponentVisible();
 
 		tabSheet = new TabSheet();
 
@@ -219,6 +240,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected void onBackgroundViewMonitor() {
 		presenter.backgroundViewMonitor();
+		if (waitForContentViewerToBecomeVisible) {
+			refreshContentViewer();
+		}
 	}
 
 //	@Override

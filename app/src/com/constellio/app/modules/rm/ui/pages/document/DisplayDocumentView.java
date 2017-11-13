@@ -12,6 +12,8 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface DisplayDocumentView extends BaseView, RecordsManagementViewGroup, DocumentActionsComponent {
 	
 	DocumentVO getDocumentVO();
+	
+	void refreshContentViewer();
 
 	void refreshMetadataDisplay();
 

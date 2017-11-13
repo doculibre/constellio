@@ -47,11 +47,12 @@ public class TrashServices {
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForType(String selectedType, User currentUser) {
-		if(!modelLayerFactory
-				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType).hasSecurity()) {
+		MetadataSchemaType schemaType = modelLayerFactory
+				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType);
+		if(!schemaType.hasSecurity()) {
 			LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(selectedType, currentUser);
 			if(deletableRecordsForUnsecuredType != null) {
-				return new LogicalSearchQuery().setCondition(deletableRecordsForUnsecuredType).sortDesc(Schemas.LOGICALLY_DELETED_ON);
+				return new LogicalSearchQuery().setCondition(from(schemaType).whereAllConditions(deletableRecordsForUnsecuredType)).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 			} else {
 				return new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.impossibleCondition(collection));
 			}

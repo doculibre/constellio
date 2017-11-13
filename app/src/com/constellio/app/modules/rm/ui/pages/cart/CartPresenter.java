@@ -721,7 +721,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
 	}
 
-	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value, String schemaType) {
+	public void batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
