@@ -339,7 +339,11 @@ public class AuthorizationsServices {
 
 		executeTransaction(transaction);
 
-		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()), true, false);
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+
+		//		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()),
+		//				authorization.getGrantedToPrincipals(), new ArrayList<String>());
 
 		if (userAddingTheAuth != null) {
 			loggingServices.grantPermission(authorization, userAddingTheAuth);
@@ -348,34 +352,40 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
-		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
-
-		for (String id : hierarchyIds) {
-			if (newAccess) {
-				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
-			}
-			if (removedAccess) {
-				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
-			}
-			//Temporary fix, there will be a better one in the next release
-			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
-				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
-			}
-		}
-	}
+//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+//
+//		for (String id : hierarchyIds) {
+//			if (newAccess) {
+//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+//			}
+//			if (removedAccess) {
+//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+//			}
+//			//Temporary fix, there will be a better one in the next release
+//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
+//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+//			}
+//		}
+//	}
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
-		String grantedOnRecord = execute(request, transaction);
+		AuthorizationDetails removedAuthorization = execute(request, transaction);
+		String grantedOnRecord = removedAuthorization.getTarget();
 		executeTransaction(transaction);
 		if (grantedOnRecord != null) {
-			try {
-				refreshCaches(recordServices.getDocumentById(grantedOnRecord), false, true);
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
-			}
+			//			try {
+			////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
+			////						new ArrayList<String>(), request.get);
+			//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
+			//			}
+
 		}
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private static class AuthTransaction extends Transaction {
@@ -398,7 +408,7 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private String execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
+	private AuthorizationDetails execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
 
 		List<String> authId = asList(request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
@@ -431,16 +441,15 @@ public class AuthorizationsServices {
 
 		}
 
-		String grantedOnRecordId = null;
+		AuthorizationDetails removedAuthorization = null;
 		try {
-			AuthorizationDetails details = getDetails(request.getCollection(), request.getAuthId());
-			if (details != null) {
-				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) details);
-				grantedOnRecordId = details.getTarget();
+			removedAuthorization = getDetails(request.getCollection(), request.getAuthId());
+			if (removedAuthorization != null) {
+				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) removedAuthorization);
 			}
 
 			try {
-				Record target = recordServices.getDocumentById(details.getTarget());
+				Record target = recordServices.getDocumentById(removedAuthorization.getTarget());
 				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
 					transaction.recordsToResetIfNoAuths.add(target.getId());
 				}
@@ -451,7 +460,7 @@ public class AuthorizationsServices {
 			//No problemo
 		}
 
-		return grantedOnRecordId;
+		return removedAuthorization;
 
 	}
 
@@ -498,7 +507,9 @@ public class AuthorizationsServices {
 			}
 		}
 
-		refreshCaches(record, true, true);
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+		//refreshCaches(record, true, true);
 
 		return response;
 	}
@@ -656,7 +667,9 @@ public class AuthorizationsServices {
 		AuthTransaction transaction = new AuthTransaction();
 		reset(record, transaction);
 		executeTransaction(transaction);
-		refreshCaches(record, true, true);
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
@@ -703,6 +716,9 @@ public class AuthorizationsServices {
 		if (newRecordInTransaction) {
 			transaction.add(record);
 		}
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,
