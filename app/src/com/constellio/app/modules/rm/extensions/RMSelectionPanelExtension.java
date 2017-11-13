@@ -104,7 +104,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     @Override
     public void addAvailableActions(AvailableActionsParam param) {
         UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-        boolean hasAccessToSIP = userServices.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), collection).has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+        boolean hasAccessToSIP = userServices.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), collection)
+                .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
         addMoveButton(param);
         addDuplicateButton(param);
         addClassifyButton(param);
@@ -215,7 +216,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true, this.getSessionContext());
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
+                appLayerFactory, collection, true, this.getSessionContext());
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
@@ -405,7 +407,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                                 super.close();
                                 if(!this.isCancel()) {
                                     if (numberOfRecords != param.getIds().size()) {
-                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn",
+                                                numberOfRecords, param.getIds().size()));
                                     } else {
                                         RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
                                     }
