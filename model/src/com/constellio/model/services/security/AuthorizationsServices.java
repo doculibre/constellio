@@ -339,8 +339,11 @@ public class AuthorizationsServices {
 
 		executeTransaction(transaction);
 
-		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()),
-				authorization.getGrantedToPrincipals(), new ArrayList<String>());
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+
+		//		refreshCaches(recordServices.getDocumentById(authorization.getGrantedOnRecord()),
+		//				authorization.getGrantedToPrincipals(), new ArrayList<String>());
 
 		if (userAddingTheAuth != null) {
 			loggingServices.grantPermission(authorization, userAddingTheAuth);
@@ -349,32 +352,37 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-	private void refreshCaches(Record grantedOnRecord, List<String> principalsWithNewAccess,
-			List<String> principalsWithRemovedAccess) {
-		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
-
-		for (String id : hierarchyIds) {
-			if (!principalsWithNewAccess.isEmpty()) {
-				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
-			}
-			if (!principalsWithRemovedAccess.isEmpty()) {
-				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
-			}
-		}
-	}
+	//	private void refreshCaches(Record grantedOnRecord, List<String> principalsWithNewAccess,
+	//			List<String> principalsWithRemovedAccess) {
+	//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+	//
+	//		for (String id : hierarchyIds) {
+	//			if (!principalsWithNewAccess.isEmpty()) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+	//			}
+	//			if (!principalsWithRemovedAccess.isEmpty()) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+	//			}
+	//		}
+	//	}
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
 		AuthorizationDetails removedAuthorization = execute(request, transaction);
+		String grantedOnRecord = removedAuthorization.getTarget();
 		executeTransaction(transaction);
 		if (grantedOnRecord != null) {
-			try {
-				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
-						new ArrayList<String>(), request.get);
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
-			}
+			//			try {
+			////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
+			////						new ArrayList<String>(), request.get);
+			//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
+			//			}
+
 		}
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private static class AuthTransaction extends Transaction {
@@ -496,7 +504,9 @@ public class AuthorizationsServices {
 			}
 		}
 
-		refreshCaches(record, true, true);
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+		//refreshCaches(record, true, true);
 
 		return response;
 	}
@@ -654,7 +664,9 @@ public class AuthorizationsServices {
 		AuthTransaction transaction = new AuthTransaction();
 		reset(record, transaction);
 		executeTransaction(transaction);
-		refreshCaches(record, true, true);
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	private void executeTransaction(AuthTransaction transaction) {
@@ -701,6 +713,9 @@ public class AuthorizationsServices {
 		if (newRecordInTransaction) {
 			transaction.add(record);
 		}
+
+		//TODO Support more precise invalidation
+		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,
