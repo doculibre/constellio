@@ -9,9 +9,11 @@ import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -22,7 +24,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
+import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -41,7 +45,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
 
     private List<RecordVO> objectList = new ArrayList<>();
-    private CheckBox deleteCheckBox, limitSizeCheckbox;
+
     private ConstellioHeader view;
     private IOServices ioServices;
     private File bagInfoFile;
@@ -55,21 +59,49 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     private FormLayout formLayout;
 
-    private TextArea noteTextArea, descriptionSommaire;
+    @PropertyId("deleteFile")
+    private CheckBox deleteCheckBox;
+    @PropertyId("limitSize")
+    private CheckBox limitSizeCheckbox;
 
-    private TextField
-            identificationOrganismeTextField,
-            IDOrganismeTextField,
-            adresseTextField,
-            regionAdministrativeTextField,
-            entiteResponsableTextField,
-            identificationEntiteResponsableTextField,
-            courrielResponsableTextField,
-            telephoneResponsableTextField,
-            categoryDocumentTextField,
-            methodeTransfereTextField,
-            restrictionAccessibiliteTextField,
-            encodingTextField;
+    @PropertyId("note")
+    private TextArea noteTextArea;
+
+    @PropertyId("descriptionSommaire")
+    private TextArea descriptionSommaire;
+
+    @PropertyId("identificationOrganismeVerseurOuDonateur")
+    private TextField identificationOrganismeTextField;
+
+    @PropertyId("IDOrganismeVerseurOuDonateur")
+    private TextField IDOrganismeTextField;
+
+    @PropertyId("address")
+    private TextField adresseTextField;
+
+    @PropertyId("regionAdministrative")
+    private TextField regionAdministrativeTextField;
+
+    @PropertyId("entiteResponsable")
+    private TextField entiteResponsableTextField;
+
+    @PropertyId("identificationEntiteResponsable")
+    private TextField identificationEntiteResponsableTextField;
+
+    @PropertyId("courrielResponsable")
+    private TextField courrielResponsableTextField;
+
+    @PropertyId("telephoneResponsable")
+    private TextField telephoneResponsableTextField;
+
+    @PropertyId("categoryDocument")
+    private TextField categoryDocumentTextField;
+
+    @PropertyId("methodTransfere")
+    private TextField methodeTransfereTextField;
+
+    @PropertyId("restrictionAccessibilite")
+    private TextField restrictionAccessibiliteTextField;
 
     public SIPbutton(String caption, String windowCaption, ConstellioHeader view) {
         super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
@@ -83,37 +115,16 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
             if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
                 super.setVisible(false);
             }
-
         }
     }
 
     @Override
     protected Component buildWindowContent() {
-        VerticalLayout mainLayout = new VerticalLayout();
-        SIPForm form = new SIPForm(build());
-        Button cancelButton = new BaseButton($("cancel")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                getWindow().close();
-            }
-        };
-        Button continueButton = new BaseButton($("ok")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                try {
-                    continueButtonClicked();
-                } catch (IOException | JDOMException | RecordServicesException e) {
-                    view.getCurrentView().showErrorMessage(e.getMessage());
-                }
-            }
-        };
-        form.getFooter().addComponents(cancelButton, continueButton);
-        form.getFooter().setComponentAlignment(cancelButton, Alignment.MIDDLE_RIGHT);
-        form.getFooter().setComponentAlignment(continueButton, Alignment.MIDDLE_RIGHT);
-        mainLayout.addComponent(form);
-        mainLayout.setWidth("100%");
-        mainLayout.setHeight("100%");
-        return mainLayout;
+        return null;
+    }
+
+    public ConstellioHeader getView() {
+        return view;
     }
 
     public void addAllObject(RecordVO... objects) {
@@ -162,7 +173,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                     $("BagInfoForm.categoryDocument") + ":" + categoryDocumentTextField.getValue(),
                     $("BagInfoForm.methodeTransfere") + ":" + methodeTransfereTextField.getValue(),
                     $("BagInfoForm.restrictionAccessibilite") + ":" + restrictionAccessibiliteTextField.getValue(),
-                    $("BagInfoForm.encoding") + ":" + encodingTextField.getValue());
+                    $("BagInfoForm.encoding") + ": UTF-8");
             List<String> documentList = getDocumentIDListFromObjectList();
             List<String> folderList = getFolderIDListFromObjectList();
             if(!documentList.isEmpty() || !folderList.isEmpty()) {
@@ -274,8 +285,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                 descriptionSommaire.getValue(),
                 categoryDocumentTextField.getValue(),
                 methodeTransfereTextField.getValue(),
-                restrictionAccessibiliteTextField.getValue(),
-                encodingTextField.getValue());
+                restrictionAccessibiliteTextField.getValue());
         for(String line : lines) {
             if(!line.isEmpty()) {
                 return true;
