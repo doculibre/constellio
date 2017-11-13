@@ -81,7 +81,11 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     public void completeBorrowRequest(RMTask task, boolean isAccepted) throws RecordServicesException {
         User applicant = rmSchemas.getUser((String) task.get(RequestTask.APPLICANT));
-        User respondant = rmSchemas.getUser((String) task.get(RequestTask.RESPONDANT));
+        String respondantId = (String) task.get(RequestTask.RESPONDANT);
+        if(respondantId == null) {
+            respondantId = task.getModifiedBy();
+        }
+        User respondant = rmSchemas.getUser(respondantId);
         Double borrowDuration = task.get(BorrowRequest.BORROW_DURATION);
         int numberOfDays = borrowDuration == null? 0:borrowDuration.intValue();
         borrowingServices.borrowRecordsFromTask(task.getId(), LocalDate.now(), LocalDate.now().plusDays(numberOfDays),
