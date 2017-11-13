@@ -208,7 +208,7 @@ public class SolrUtils {
 	public static String toSingleQueryString(ModifiableSolrParams params) {
 		params = new ModifiableSolrParams(params);
 		params.remove("bq");
-		return params.toString();
+		return params.toQueryString();
 	}
 
 	public static ModifiableSolrParams parseQueryString(String queryString) {
