@@ -112,6 +112,9 @@ public class Folder extends RMObject {
 	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
 	public static final String MANUAL_DISPOSAL_TYPE = "manualDisposalType";
 
+	public static final String SUB_FOLDERS_TOKENS = "subFoldersTokens";
+	public static final String DOCUMENTS_TOKENS = "documentsTokens";
+
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -806,6 +809,14 @@ public class Folder extends RMObject {
 	public Folder setManualDisposalType(DisposalType disposalType) {
 		set(MANUAL_DISPOSAL_TYPE, disposalType);
 		return this;
+	}
+
+	public List<String> getSubFoldersTokens() {
+		return getList(SUB_FOLDERS_TOKENS);
+	}
+
+	public List<String> getDocumentsTokens() {
+		return getList(DOCUMENTS_TOKENS);
 	}
 
 }
