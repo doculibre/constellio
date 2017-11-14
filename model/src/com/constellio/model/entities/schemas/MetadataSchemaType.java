@@ -94,6 +94,23 @@ public class MetadataSchemaType implements Serializable {
 		return code;
 	}
 
+	public String getSmallCode() {
+		//TODO
+		switch (code) {
+		case "folder":
+			return "f";
+
+		case "document":
+			return "d";
+
+		case "usertask":
+			return "t";
+
+		default:
+			return code;
+		}
+	}
+
 	public Map<Language, String> getLabels() {
 		return labels;
 	}

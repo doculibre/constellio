@@ -46,18 +46,22 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		KeyListMap<String, String> principalsTokens = principalsAuthorizations
 				.getPrincipalIdsWithAnyAuthorization(authorizationsRoles);
 
+		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		for (Entry<String, List<String>> entry : principalsTokens.getMapEntries()) {
 			for (String access : entry.getValue()) {
 				if (Role.READ.equals(access)) {
 					tokens.add("r_" + entry.getKey());
+					tokens.add("r" + typeSmallCode + "_" + entry.getKey());
 
 				} else if (Role.WRITE.equals(access)) {
 					tokens.add("r_" + entry.getKey());
-					tokens.add("w_" + entry.getKey());
+					tokens.add("w_" + entry.getKey());//TODO Check to remove this token
+					tokens.add("r" + typeSmallCode + "_" + entry.getKey());//TODO Check to remove this token
+					tokens.add("w" + typeSmallCode + "_" + entry.getKey());
 
 				} else if (Role.DELETE.equals(access)) {
-					tokens.add("r_" + entry.getKey());
-					tokens.add("d_" + entry.getKey());
+					tokens.add("r" + typeSmallCode + "_" + entry.getKey());
+					//tokens.add("d_" + entry.getKey()); //TODO Check to remove this token
 
 				} else {
 					tokens.add(access + "_" + entry.getKey());

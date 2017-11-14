@@ -1,6 +1,7 @@
 package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -15,11 +16,11 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
 
@@ -151,7 +152,7 @@ public class MetadataNetworkBuilder {
 		return builder.build();
 	}
 
-	private static void build(MetadataNetworkBuilder builder, MetadataSchema schema, Metadata metadata) {
+	private static void build(final MetadataNetworkBuilder builder, MetadataSchema schema, Metadata metadata) {
 
 		if (metadata.getLocalCode().equals("refText")) {
 			System.out.println("todo");
@@ -215,23 +216,17 @@ public class MetadataNetworkBuilder {
 
 			List<Metadata> metadatas = new ArrayList<>();
 			metadatas.add(builder.metadata(dataEntry.getReferenceMetadata()));
-			if (dataEntry.getAgregationType() == AggregationType.SUM) {
-				metadatas.add(builder.metadata(dataEntry.getInputMetadata()));
-			}
 
-			if (dataEntry.getAgregationType() == AggregationType.CALCULATED) {
-				try {
-					List<String> metadataDependencies = dataEntry.getAggregatedCalculator().newInstance().getMetadataDependencies();
-					if(metadataDependencies != null) {
-						for(String metadataCode: metadataDependencies) {
-							metadatas.add(builder.metadata(metadataCode));
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					throw new RuntimeException("Invalid AggregatedCalculator for metadata : " + metadata.getCode());
+			GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(builder.typesMap, metadata) {
+
+				@Override
+				public Metadata getMetadata(String metadataCode) {
+					return builder.metadata(metadataCode);
 				}
-			}
+			};
+
+			metadatas.addAll(getHandlerFor(metadata).getMetadatasUsedToCalculate(params));
+
 			builder.addNetworkLink(metadata, metadatas, true);
 		}
 	}

@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.data.utils.LangUtils.isFalseOrNull;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -44,7 +45,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -58,7 +58,6 @@ import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.Roles;
@@ -150,89 +149,8 @@ public class RecordAutomaticMetadataServices {
 		if (agregationType != null) {
 			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata,
 					aggregatedDataEntry, types, searchServices);
-			switch (agregationType) {
-			case SUM:
-				setSumValuesInRecords(aggregatedValuesParams);
-				break;
-			case REFERENCE_COUNT:
-				setReferenceCountInRecords(aggregatedValuesParams);
-				break;
-			case VALUES_UNION:
-				setValuesUnion(aggregatedValuesParams);
-				break;
-			case MIN:
-				setMinValuesInRecords(aggregatedValuesParams);
-				break;
-			case MAX:
-				setMaxValuesInRecords(aggregatedValuesParams);
-				break;
-			case CALCULATED:
-				setCalculatedAggregatedValuesInRecords(aggregatedValuesParams);
-				break;
-			}
-		}
-	}
-
-	private void setSumValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		setStatValuesInRecords(aggregatedValuesParams, "sum");
-	}
-
-	private void setMinValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		setStatValuesInRecords(aggregatedValuesParams, "min");
-	}
-
-	private void setMaxValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		setStatValuesInRecords(aggregatedValuesParams, "max");
-	}
-
-	private void setStatValuesInRecords(AggregatedValuesParams aggregatedValuesParams, String statName) {
-		Metadata inputMetadata = aggregatedValuesParams.getTypes()
-				.getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
-		LogicalSearchQuery query = aggregatedValuesParams.getQuery();
-		query.computeStatsOnField(inputMetadata);
-		query.setNumberOfRows(0);
-		SPEQueryResponse response = searchServices.query(query);
-
-		Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-		Double value = statsValues == null || statsValues.get(statName) == null ? 0.0 : (Double) statsValues.get(statName);
-		((RecordImpl) aggregatedValuesParams.getRecord()).updateAutomaticValue(aggregatedValuesParams.getMetadata(), value);
-	}
-
-	private void setReferenceCountInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		Double childrenCount = new Double(searchServices.getResultsCount(aggregatedValuesParams.getQuery()));
-		((RecordImpl) aggregatedValuesParams.getRecord())
-				.updateAutomaticValue(aggregatedValuesParams.getMetadata(), childrenCount);
-	}
-
-	//
-	private void setValuesUnion(AggregatedValuesParams aggregatedValuesParams) {
-		Metadata inputMetadata = aggregatedValuesParams.getTypes()
-				.getMetadata(aggregatedValuesParams.getAggregatedDataEntry().getInputMetadata());
-		LogicalSearchQuery query = aggregatedValuesParams.getQuery();
-		query.computeStatsOnField(inputMetadata);
-		query.setNumberOfRows(0);
-		SPEQueryResponse response = searchServices.query(query);
-
-		Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-		System.out.println(statsValues);
-		((RecordImpl) aggregatedValuesParams.getRecord())
-				.updateAutomaticValue(aggregatedValuesParams.getMetadata(), new ArrayList<>());
-	}
-
-	private void setCalculatedAggregatedValuesInRecords(AggregatedValuesParams aggregatedValuesParams) {
-		Class<? extends AggregatedCalculator<?>> calculatorClass = aggregatedValuesParams.getAggregatedDataEntry()
-				.getAggregatedCalculator();
-		Metadata metadata = aggregatedValuesParams.getMetadata();
-		if (calculatorClass != null) {
-			try {
-				((RecordImpl) aggregatedValuesParams.getRecord())
-						.updateAutomaticValue(metadata, calculatorClass.newInstance().calculate(aggregatedValuesParams));
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
-			}
-		} else {
-			throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
+			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
+			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
 	}
 

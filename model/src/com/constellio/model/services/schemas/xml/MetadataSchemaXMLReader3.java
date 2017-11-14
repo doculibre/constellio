@@ -1,9 +1,10 @@
 package com.constellio.model.services.schemas.xml;
 
 import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,8 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
-import com.constellio.model.services.schemas.builders.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -30,6 +29,7 @@ import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -39,6 +39,13 @@ import com.constellio.model.services.records.extractions.DefaultMetadataPopulato
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
+import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.model.utils.InstanciationUtils;
@@ -75,7 +82,7 @@ public class MetadataSchemaXMLReader3 {
 
 	private List<Language> getLanguages(Element rootElement) {
 		List<Language> languages = new ArrayList<>();
-		List<String> languagesCodes = Arrays.asList(rootElement.getAttributeValue("languages").split(","));
+		List<String> languagesCodes = asList(rootElement.getAttributeValue("languages").split(","));
 		for (String code : languagesCodes) {
 			languages.add(Language.withCode(code));
 		}
@@ -412,10 +419,10 @@ public class MetadataSchemaXMLReader3 {
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
 			if (populateConfigsElement.getAttributeValue("styles") != null) {
-				styles.addAll(Arrays.asList(populateConfigsElement.getAttributeValue("styles").split(",")));
+				styles.addAll(asList(populateConfigsElement.getAttributeValue("styles").split(",")));
 			}
 			if (populateConfigsElement.getAttributeValue("properties") != null) {
-				properties.addAll(Arrays.asList(populateConfigsElement.getAttributeValue("properties").split(",")));
+				properties.addAll(asList(populateConfigsElement.getAttributeValue("properties").split(",")));
 			}
 			if (populateConfigsElement.getChild("regexConfigs") != null) {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
@@ -469,19 +476,19 @@ public class MetadataSchemaXMLReader3 {
 		if (metadataElement.getChild("accessRestrictions") != null) {
 			Element accessRestrictionsElement = metadataElement.getChild("accessRestrictions");
 			if (accessRestrictionsElement.getAttributeValue("readAccessRestrictions") != null) {
-				metadataAccessRestrictionBuilder.getRequiredReadRoles().addAll(Arrays.asList(
+				metadataAccessRestrictionBuilder.getRequiredReadRoles().addAll(asList(
 						accessRestrictionsElement.getAttributeValue("readAccessRestrictions").split(",")));
 			}
 			if (accessRestrictionsElement.getAttributeValue("writeAccessRestrictions") != null) {
-				metadataAccessRestrictionBuilder.getRequiredWriteRoles().addAll(Arrays.asList(
+				metadataAccessRestrictionBuilder.getRequiredWriteRoles().addAll(asList(
 						accessRestrictionsElement.getAttributeValue("writeAccessRestrictions").split(",")));
 			}
 			if (accessRestrictionsElement.getAttributeValue("deleteAccessRestrictions") != null) {
-				metadataAccessRestrictionBuilder.getRequiredDeleteRoles().addAll(Arrays.asList(
+				metadataAccessRestrictionBuilder.getRequiredDeleteRoles().addAll(asList(
 						accessRestrictionsElement.getAttributeValue("deleteAccessRestrictions").split(",")));
 			}
 			if (accessRestrictionsElement.getAttributeValue("modifyAccessRestrictions") != null) {
-				metadataAccessRestrictionBuilder.getRequiredModificationRoles().addAll(Arrays.asList(
+				metadataAccessRestrictionBuilder.getRequiredModificationRoles().addAll(asList(
 						accessRestrictionsElement.getAttributeValue("modifyAccessRestrictions").split(",")));
 			}
 		}
@@ -512,7 +519,7 @@ public class MetadataSchemaXMLReader3 {
 			if (StringUtils.isBlank(strValue)) {
 				return new ArrayList<>();
 			} else {
-				return Arrays.asList(strValue.split(","));
+				return asList(strValue.split(","));
 			}
 		} else if (collectionSchemaBuilder != null) {
 			return new ArrayList<>(collectionSchemaBuilder.defineValidators().getClassnames());
@@ -556,7 +563,7 @@ public class MetadataSchemaXMLReader3 {
 				if (StringUtils.isNotEmpty(schemaType)) {
 					metadataBuilder.defineReferences().setCompleteSchemaTypeCode(schemaType);
 				} else {
-					List<String> schemas = Arrays.asList(references.getAttributeValue("schemas").split(","));
+					List<String> schemas = asList(references.getAttributeValue("schemas").split(","));
 					for (String schema : schemas) {
 						metadataBuilder.defineReferences().addCompleteSchemaCode(schema);
 					}
@@ -598,18 +605,22 @@ public class MetadataSchemaXMLReader3 {
 				AggregationType aggregationType = (AggregationType)
 						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
-				String inputMetadata = dataEntry.getAttributeValue("inputMetadata");
+				String inputMetadataStr = dataEntry.getAttributeValue("inputMetadata");
+				List<String> inputMetadatas = isBlank(inputMetadataStr) ? new ArrayList<String>() :
+						asList(inputMetadataStr.split(","));
 				String calculatorClassName = dataEntry.getAttributeValue("aggregatedCalculator");
-				if(calculatorClassName != null) {
+				if (calculatorClassName != null) {
 					Class<? extends AggregatedCalculator<?>> calculatorClass;
 					try {
 						calculatorClass = classProvider.loadClass(calculatorClassName);
 					} catch (ClassNotFoundException e) {
 						throw new MetadataBuilderRuntimeException.CannotInstanciateClass(calculatorClassName, e);
 					}
-					metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType, calculatorClass));
+					metadataBuilder.defineDataEntry()
+							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType, calculatorClass));
 				} else {
-					metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, aggregationType));
+					metadataBuilder.defineDataEntry()
+							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType));
 				}
 			}
 		} else if (!isInheriting(metadataElement)) {

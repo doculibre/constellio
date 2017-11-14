@@ -956,7 +956,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 								main.addStatement("$L.defineDataEntry().asSum($L, $L)",
 										variableOf(metadata),
 										variableOfMetadata(dataEntry.getReferenceMetadata()),
-										variableOfMetadata(dataEntry.getInputMetadata()));
+										variableOfMetadata(StringUtils.join(dataEntry.getInputMetadatas(), ", ")));
 							}
 						}
 					}

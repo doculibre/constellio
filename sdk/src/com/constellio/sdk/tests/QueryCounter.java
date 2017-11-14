@@ -8,17 +8,27 @@ import com.constellio.data.extensions.BigVaultServerExtension;
 
 public class QueryCounter extends BigVaultServerExtension {
 
-	private String name;
+	private QueryCounterFilter filter;
 	private AtomicInteger counter = new AtomicInteger();
 
-	public QueryCounter(DataLayerFactory dataLayerFactory, String name) {
-		this.name = name;
+	public QueryCounter(DataLayerFactory dataLayerFactory, final String name) {
+		this.filter = new QueryCounterFilter() {
+			@Override
+			public boolean isCounted(AfterQueryParams params) {
+				return params.getQueryName() != null && params.getQueryName().equals(name);
+			}
+		};
+		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
+	}
+
+	public QueryCounter(DataLayerFactory dataLayerFactory, QueryCounterFilter filter) {
+		this.filter = filter;
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
 	}
 
 	@Override
 	public void afterQuery(AfterQueryParams params) {
-		if (params.getQueryName() != null && params.getQueryName().equals(name)) {
+		if (filter.isCounted(params)) {
 			counter.incrementAndGet();
 		}
 	}
@@ -32,4 +42,17 @@ public class QueryCounter extends BigVaultServerExtension {
 	public void reset() {
 		counter.set(0);
 	}
+
+	public interface QueryCounterFilter {
+
+		boolean isCounted(AfterQueryParams params);
+	}
+
+	public static QueryCounterFilter ACCEPT_ALL = new QueryCounterFilter() {
+
+		@Override
+		public boolean isCounted(AfterQueryParams params) {
+			return true;
+		}
+	};
 }

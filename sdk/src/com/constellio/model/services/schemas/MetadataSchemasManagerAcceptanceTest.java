@@ -760,7 +760,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		AggregatedDataEntry dataEntry = (AggregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
 		assertThat(dataEntry.getType()).isEqualTo(AGGREGATED);
-		assertThat(dataEntry.getInputMetadata()).isEqualTo("anotherSchemaType_default_number");
+		assertThat(dataEntry.getInputMetadatas()).containsOnly("anotherSchemaType_default_number");
 		assertThat(dataEntry.getReferenceMetadata()).isEqualTo("anotherSchemaType_default_ref");
 		assertThat(dataEntry.getAgregationType()).isEqualTo(AggregationType.SUM);
 	}

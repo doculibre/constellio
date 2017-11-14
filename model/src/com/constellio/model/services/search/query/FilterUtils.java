@@ -99,7 +99,7 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.WRITE_ACCESS);
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.WRITE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'w');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'w');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
@@ -142,7 +142,7 @@ public class FilterUtils {
 			stringBuilder.append(aGroup);
 		}
 
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.READ_ACCESS);
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
@@ -192,7 +192,8 @@ public class FilterUtils {
 				}
 			}
 
-			addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
+			addAuthsTokens(stringBuilder, user, false,
+					UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
 		}
 		return stringBuilder.toString();
 	}
@@ -230,17 +231,18 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.DELETE_ACCESS);
+		addAuthsTokens(stringBuilder, user, true, UserAuthorizationsUtils.DELETE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'd');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'd');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
 		return stringBuilder.toString();
 	}
 
-	private static void addAuthsTokens(StringBuilder stringBuilder, User user, AuthorizationDetailsFilter filter) {
+	private static void addAuthsTokens(StringBuilder stringBuilder, User user, boolean includeSpecifics,
+			AuthorizationDetailsFilter filter) {
 
 		//Specific auths are excluded, they are handled with tokens
-		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, false, filter);
+		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, includeSpecifics, filter);
 
 		for (Map.Entry<String, Set<String>> token : tokens.getNestedMap().entrySet()) {
 			stringBuilder.append(" OR (");

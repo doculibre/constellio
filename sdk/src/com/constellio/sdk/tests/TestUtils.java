@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
@@ -456,6 +457,21 @@ public class TestUtils {
 			IOUtils.closeQuietly(fileWriter);
 		}
 
+	}
+
+	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, Metadata... metadatas) {
+
+		SolrInputDocument solrInputDocument = new SolrInputDocument();
+		solrInputDocument.setField("id", id);
+		for (Metadata metadata : metadatas) {
+
+			Map<String, Object> map = new HashMap<>();
+			map.put("set", null);
+
+			solrInputDocument.setField(metadata.getDataStoreCode(), map);
+		}
+
+		return solrInputDocument;
 	}
 
 	public static class MapBuilder<K, V> {

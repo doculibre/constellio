@@ -121,6 +121,10 @@ public class MetadataSchemaTypeBuilder {
 		return this;
 	}
 
+	public MetadataBuilder createMetadata(String localCode) {
+		return getDefaultSchema().create(localCode);
+	}
+
 	public MetadataSchemaBuilder getDefaultSchema() {
 		return defaultSchema;
 	}
