@@ -8,7 +8,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.vaadin.data.Property;
 import org.apache.commons.lang3.StringUtils;
@@ -175,8 +174,25 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			}
 
 		} else {
+			CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
+			if(retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 
-			if (request.getQuery() != null) {
+				RetentionRule retentionRule = rm.getRetentionRule(retentionRuleField.getFieldValue());
+				CopyType uniformCopyType = getUniformCopyType(request);
+
+				options = new ArrayList<>();
+				Set<String> ids = new HashSet<>();
+				for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+					if (copyRetentionRule.getTypeId() == null
+							&& copyRetentionRule.getCopyType() == uniformCopyType
+							&& !ids.contains(copyRetentionRule.getId())) {
+						ids.add(copyRetentionRule.getId());
+						options.add(copyRetentionRule);
+					}
+				}
+			} else if(request.getQuery() != null) {
 				options = getOptionsWithQuery(request);
 			} else {
 				options = getOptionsWithIds(request);
