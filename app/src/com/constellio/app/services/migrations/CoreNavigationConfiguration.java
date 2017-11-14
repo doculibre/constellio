@@ -85,9 +85,6 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
-	public static final String BAG_INFO = "bagInfo";
-	public static final String BAG_INFO_ICON = "images/icons/config/baginfo.png";
-
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -423,18 +420,6 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
-			}
-		});
-
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(BAG_INFO, BAG_INFO_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().listBagInfo();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(RMPermissionsTo.MANAGE_BAG_INFO).globally());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_AUTHORIZATIONS, IMPORT_AUTHORIZATIONS_ICON) {

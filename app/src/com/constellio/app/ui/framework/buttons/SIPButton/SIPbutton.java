@@ -2,16 +2,19 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.BagInfoVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SIPForm;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.pages.SIP.BagInfoSIPForm;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
@@ -19,6 +22,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -51,63 +55,11 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     private File bagInfoFile;
     private AppLayerFactory factory;
     private String collection;
-    private BaseUploadField upload;
-    private RMSchemasRecordsServices rm;
-    private BeanFieldGroup<BagInfoVO> binder;
-
-    private BagInfoVO bagInfoVO;
-
-    private FormLayout formLayout;
-
-    @PropertyId("deleteFile")
-    private CheckBox deleteCheckBox;
-    @PropertyId("limitSize")
-    private CheckBox limitSizeCheckbox;
-
-    @PropertyId("note")
-    private TextArea noteTextArea;
-
-    @PropertyId("descriptionSommaire")
-    private TextArea descriptionSommaire;
-
-    @PropertyId("identificationOrganismeVerseurOuDonateur")
-    private TextField identificationOrganismeTextField;
-
-    @PropertyId("IDOrganismeVerseurOuDonateur")
-    private TextField IDOrganismeTextField;
-
-    @PropertyId("address")
-    private TextField adresseTextField;
-
-    @PropertyId("regionAdministrative")
-    private TextField regionAdministrativeTextField;
-
-    @PropertyId("entiteResponsable")
-    private TextField entiteResponsableTextField;
-
-    @PropertyId("identificationEntiteResponsable")
-    private TextField identificationEntiteResponsableTextField;
-
-    @PropertyId("courrielResponsable")
-    private TextField courrielResponsableTextField;
-
-    @PropertyId("telephoneResponsable")
-    private TextField telephoneResponsableTextField;
-
-    @PropertyId("categoryDocument")
-    private TextField categoryDocumentTextField;
-
-    @PropertyId("methodTransfere")
-    private TextField methodeTransfereTextField;
-
-    @PropertyId("restrictionAccessibilite")
-    private TextField restrictionAccessibiliteTextField;
 
     public SIPbutton(String caption, String windowCaption, ConstellioHeader view) {
         super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
         this.view = view;
         if (this.view != null) {
-            this.rm = new RMSchemasRecordsServices(view.getCollection(), view.getConstellioFactories().getAppLayerFactory());
             this.factory = this.view.getConstellioFactories().getAppLayerFactory();
             this.collection = this.view.getCollection();
             ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
@@ -120,7 +72,36 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
 
     @Override
     protected Component buildWindowContent() {
-        return null;
+        return new BagInfoSIPForm(){
+            @Override
+            protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
+                if(validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
+                    String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
+                    List<String> packageInfoLines = asList(
+                            $("BagInfoForm.note") + ":" + viewObject.getNote(),
+                            $("BagInfoForm.identificationOrganisme") + ":" + viewObject.getIdentificationOrganismeVerseurOuDonateur(),
+                            $("BagInfoForm.IDOrganisme") + ":" + viewObject.getIDOrganismeVerseurOuDonateur(),
+                            $("BagInfoForm.address") + ":" + viewObject.getAddress(),
+                            $("BagInfoForm.regionAdministrative") + ":" + viewObject.getRegionAdministrative(),
+                            $("BagInfoForm.entiteResponsable") + ":" + viewObject.getEntiteResponsable(),
+                            $("BagInfoForm.identificationEntiteResponsable") + ":" + viewObject.getIdentificationEntiteResponsable(),
+                            $("BagInfoForm.courrielResponsable") + ":" + viewObject.getCourrielResponsable(),
+                            $("BagInfoForm.telephoneResponsable") + ":" + viewObject.getTelephoneResponsable(),
+                            $("BagInfoForm.descriptionSommaire") + ":" + viewObject.getDescriptionSommaire(),
+                            $("BagInfoForm.categoryDocument") + ":" + viewObject.getCategoryDocument(),
+                            $("BagInfoForm.methodeTransfere") + ":" + viewObject.getMethodeTransfere(),
+                            $("BagInfoForm.restrictionAccessibilite") + ":" + viewObject.getRestrictionAccessibilite(),
+                            $("BagInfoForm.encoding") + ":" + viewObject.getEncoding());
+                    List<String> documentList = getDocumentIDListFromObjectList();
+                    List<String> folderList = getFolderIDListFromObjectList();
+                    SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), view.getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
+                    view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
+                    showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                } else {
+                    showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+                }
+            }
+        };
     }
 
     public ConstellioHeader getView() {
@@ -156,43 +137,6 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         return folders;
     }
 
-    private void continueButtonClicked() throws IOException, JDOMException, RecordServicesException {
-        String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-        if(validateBagInfoLines()){
-            List<String> packageInfoLines = asList(
-                    $("BagInfoForm.note") + ":" + noteTextArea.getValue(),
-                    $("BagInfoForm.identificationOrganisme") + ":" + identificationOrganismeTextField.getValue(),
-                    $("BagInfoForm.IDOrganisme") + ":" + IDOrganismeTextField.getValue(),
-                    $("BagInfoForm.address") + ":" + adresseTextField.getValue(),
-                    $("BagInfoForm.regionAdministrative") + ":" + regionAdministrativeTextField.getValue(),
-                    $("BagInfoForm.entiteResponsable") + ":" + entiteResponsableTextField.getValue(),
-                    $("BagInfoForm.identificationEntiteResponsable") + ":" + identificationEntiteResponsableTextField.getValue(),
-                    $("BagInfoForm.courrielResponsable") + ":" + courrielResponsableTextField.getValue(),
-                    $("BagInfoForm.telephoneResponsable") + ":" + telephoneResponsableTextField.getValue(),
-                    $("BagInfoForm.descriptionSommaire") + ":" + descriptionSommaire.getValue(),
-                    $("BagInfoForm.categoryDocument") + ":" + categoryDocumentTextField.getValue(),
-                    $("BagInfoForm.methodeTransfere") + ":" + methodeTransfereTextField.getValue(),
-                    $("BagInfoForm.restrictionAccessibilite") + ":" + restrictionAccessibiliteTextField.getValue(),
-                    $("BagInfoForm.encoding") + ": UTF-8");
-            List<String> documentList = getDocumentIDListFromObjectList();
-            List<String> folderList = getFolderIDListFromObjectList();
-            if(!documentList.isEmpty() || !folderList.isEmpty()) {
-                if(!documentList.isEmpty() || validateFolderHasDocument()){
-                    SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, this.limitSizeCheckbox.getValue(), view.getSessionContext().getCurrentUser().getUsername(), this.deleteCheckBox.getValue(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-                    view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
-                    view.getCurrentView().showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-                    getWindow().close();
-                } else {
-                    view.getCurrentView().showErrorMessage($("SIPButton.cannotCreateSIPArchivesFromEmptyFolder"));
-                }
-            } else {
-                view.getCurrentView().showErrorMessage($("SIPButton.thereMustBeAtleastOneElement"));
-            }
-        } else {
-            view.getCurrentView().showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
-        }
-    }
-
     @Override
     public void uploadFailed(Upload.FailedEvent event) {}
 
@@ -215,91 +159,21 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
     @Override
     public void uploadSucceeded(Upload.SucceededEvent event) {}
 
-    public FormLayout build(){
-        //bagInfoVO = new BagInfoVO();
-        formLayout = new FormLayout();
-        binder = new BeanFieldGroup<>(BagInfoVO.class);
-        //binder.setItemDataSource(bagInfoVO);
-
-        deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
-        limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
-        deleteCheckBox.setWidth("100%");
-        limitSizeCheckbox.setWidth("100%");
-        formLayout.addComponent(deleteCheckBox);
-        formLayout.addComponent(limitSizeCheckbox);
-
-        noteTextArea = new TextArea($("BagInfoForm.note"));
-        formLayout.addComponent(noteTextArea);
-
-        identificationOrganismeTextField = new TextField($("BagInfoForm.identificationOrganisme"));
-        formLayout.addComponent(identificationOrganismeTextField);
-
-        IDOrganismeTextField = new TextField($("BagInfoForm.IDOrganisme"));
-        formLayout.addComponent(IDOrganismeTextField);
-
-        adresseTextField = new TextField($("BagInfoForm.address"));
-        formLayout.addComponent(adresseTextField);
-
-        regionAdministrativeTextField = new TextField($("BagInfoForm.regionAdministrative"));
-        formLayout.addComponent(regionAdministrativeTextField);
-
-        entiteResponsableTextField = new TextField($("BagInfoForm.entiteResponsable"));
-        formLayout.addComponent(entiteResponsableTextField);
-
-        identificationEntiteResponsableTextField = new TextField($("BagInfoForm.identificationEntiteResponsable"));
-        formLayout.addComponent(identificationEntiteResponsableTextField);
-
-        courrielResponsableTextField = new TextField($("BagInfoForm.courrielResponsable"));
-        formLayout.addComponent(courrielResponsableTextField);
-
-        telephoneResponsableTextField = new TextField($("BagInfoForm.telephoneResponsable"));
-        formLayout.addComponent(telephoneResponsableTextField);
-
-        descriptionSommaire = new TextArea($("BagInfoForm.descriptionSommaire"));
-        formLayout.addComponent(descriptionSommaire);
-
-        categoryDocumentTextField = new TextField($("BagInfoForm.categoryDocument"));
-        formLayout.addComponent(categoryDocumentTextField);
-
-        methodeTransfereTextField = new TextField($("BagInfoForm.methodeTransfere"));
-        formLayout.addComponent(methodeTransfereTextField);
-
-        restrictionAccessibiliteTextField = new TextField($("BagInfoForm.restrictionAccessibilite"));
-        formLayout.addComponent(restrictionAccessibiliteTextField);
-
-        encodingTextField = new TextField($("BagInfoForm.encoding"));
-        formLayout.addComponent(encodingTextField);
-        return formLayout;
-    }
-
-    private boolean validateBagInfoLines(){
-        List<String> lines = asList(noteTextArea.getValue(),
-                identificationOrganismeTextField.getValue(),
-                IDOrganismeTextField.getValue(),
-                adresseTextField.getValue(),
-                regionAdministrativeTextField.getValue(),
-                entiteResponsableTextField.getValue(),
-                identificationEntiteResponsableTextField.getValue(),
-                courrielResponsableTextField.getValue(),
-                telephoneResponsableTextField.getValue(),
-                descriptionSommaire.getValue(),
-                categoryDocumentTextField.getValue(),
-                methodeTransfereTextField.getValue(),
-                restrictionAccessibiliteTextField.getValue());
-        for(String line : lines) {
-            if(!line.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean validateFolderHasDocument(){
         SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
         MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
         for(String folderId : getFolderIDListFromObjectList()) {
             LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
             if(searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean validateBagInfoLine(BagInfoVO object) {
+        for(MetadataVO field : object.getFormMetadatas()) {
+            if(!"".equals(object.get(field))) {
                 return true;
             }
         }

@@ -2,39 +2,13 @@ package com.constellio.app.ui.entities;
 
 import java.util.List;
 
-public class BagInfoVO extends RecordVO{
+import static com.constellio.app.modules.rm.wrappers.BagInfo.*;
+
+public class BagInfoVO extends RecordVO {
 
     private boolean limitSize;
 
     private boolean deleteFile;
-
-    private String id;
-
-    private String note;
-
-    private String identificationOrganismeVerseurOuDonateur;
-
-    private String IDOrganismeVerseurOuDonateur;
-
-    private String address;
-
-    private String regionAdministrative;
-
-    private String entiteResponsable;
-
-    private String identificationEntiteResponsable;
-
-    private String courrielResponsable;
-
-    private String telephoneResponsable;
-
-    private String descriptionSommaire;
-
-    private String categoryDocument;
-
-    private String methodeTransfere;
-
-    private String restrictionAccessibilite;
 
     public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
         super(id, metadataValues, viewMode);
@@ -57,114 +31,114 @@ public class BagInfoVO extends RecordVO{
     }
 
     public String getNote() {
-        return note != null ? note : "";
+        return get(NOTE);
     }
 
     public void setNote(String note) {
-        this.note = note;
+        set(NOTE, note);
     }
 
     public String getIdentificationOrganismeVerseurOuDonateur() {
-        return identificationOrganismeVerseurOuDonateur != null ? identificationOrganismeVerseurOuDonateur : "";
+        return get(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR);
     }
 
     public void setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
-        this.identificationOrganismeVerseurOuDonateur = identificationOrganismeVerseurOuDonateur;
+        set(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR, identificationOrganismeVerseurOuDonateur);
     }
 
     public String getIDOrganismeVerseurOuDonateur() {
-        return IDOrganismeVerseurOuDonateur != null ? IDOrganismeVerseurOuDonateur : "";
+        return get(ID_ORGANISME_VERSEUR_OU_DONATEUR);
     }
 
     public void setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
-        this.IDOrganismeVerseurOuDonateur = IDOrganismeVerseurOuDonateur;
+        set(ID_ORGANISME_VERSEUR_OU_DONATEUR, IDOrganismeVerseurOuDonateur);
     }
 
     public String getAddress() {
-        return address != null ? address : "";
+        return get(ADRESSE);
     }
 
     public void setAddress(String address) {
-        this.address = address;
+        set(ADRESSE, address);
     }
 
     public String getRegionAdministrative() {
-        return regionAdministrative != null ? regionAdministrative : "";
+        return get(REGION_ADMINISTRATIVE);
     }
 
     public void setRegionAdministrative(String regionAdministrative) {
-        this.regionAdministrative = regionAdministrative;
+        set(REGION_ADMINISTRATIVE, regionAdministrative);
     }
 
     public String getEntiteResponsable() {
-        return entiteResponsable != null ? entiteResponsable : "";
+        return get(ENTITE_RESPONSABLE);
     }
 
     public void setEntiteResponsable(String entiteResponsable) {
-        this.entiteResponsable = entiteResponsable;
+        set(ENTITE_RESPONSABLE, entiteResponsable);
     }
 
     public String getIdentificationEntiteResponsable() {
-        return identificationEntiteResponsable != null ? identificationEntiteResponsable : "";
+        return get(IDENTIFICATION_RESPONSABLE);
     }
 
     public void setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
-        this.identificationEntiteResponsable = identificationEntiteResponsable;
+        set(IDENTIFICATION_RESPONSABLE, identificationEntiteResponsable);
     }
 
     public String getCourrielResponsable() {
-        return courrielResponsable != null ? courrielResponsable : "";
+        return get(COURRIEL_RESPONSABLE);
     }
 
     public void setCourrielResponsable(String courrielResponsable) {
-        this.courrielResponsable = courrielResponsable;
+        set(COURRIEL_RESPONSABLE, courrielResponsable);
     }
 
     public String getTelephoneResponsable() {
-        return telephoneResponsable != null ? telephoneResponsable : "";
+        return get(NUMERO_TELEPHONE_RESPONSABLE);
     }
 
     public void setTelephoneResponsable(String telephoneResponsable) {
-        this.telephoneResponsable = telephoneResponsable;
+        set(NUMERO_TELEPHONE_RESPONSABLE, telephoneResponsable);
     }
 
     public String getDescriptionSommaire() {
-        return descriptionSommaire != null ? descriptionSommaire : "";
+        return get(DESCRIPTION_SOMMAIRE);
     }
 
     public void setDescriptionSommaire(String descriptionSommaire) {
-        this.descriptionSommaire = descriptionSommaire;
+        set(DESCRIPTION_SOMMAIRE, descriptionSommaire);
     }
 
     public String getCategoryDocument() {
-        return categoryDocument != null ? categoryDocument : "";
+        return get(CATEGORIE_DOCUMENT);
     }
 
     public void setCategoryDocument(String categoryDocument) {
-        this.categoryDocument = categoryDocument;
+        set(CATEGORIE_DOCUMENT, categoryDocument);
     }
 
     public String getMethodeTransfere() {
-        return methodeTransfere != null ? methodeTransfere  : "";
+        return get(METHODE_TRANSFERE);
     }
 
     public void setMethodeTransfere(String methodeTransfere) {
-        this.methodeTransfere = methodeTransfere;
+       set(METHODE_TRANSFERE, methodeTransfere);
     }
 
     public String getRestrictionAccessibilite() {
-        return restrictionAccessibilite != null ? restrictionAccessibilite : "";
+        return get(RESTRICTION_ACCESSIBILITE);
+    }
+
+    public String getEncoding() {
+        return get(ENCODAGE);
+    }
+
+    public void setEncoding(String encoding){
+        set(ENCODAGE, encoding);
     }
 
     public void setRestrictionAccessibilite(String restrictionAccessibilite) {
-        this.restrictionAccessibilite = restrictionAccessibilite;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        set(RESTRICTION_ACCESSIBILITE, restrictionAccessibilite);
     }
 }

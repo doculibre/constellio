@@ -1,32 +1,19 @@
 package com.constellio.app.ui.pages.SIP;
 
 import com.constellio.app.ui.entities.BagInfoVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.SIPButton.BagInfoForm;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsulePresenter;
-import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
-import java.util.Map;
+import com.vaadin.ui.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BagInfoSIPForm extends BaseViewImpl {
-
-    private List<RecordVO> objectList;
-
-    private BagInfoSIPFormPresenter presenter;
-
-    private BagInfoVO bagInfoVO;
+    private BagInfoSIPPresenter presenter;
 
     @PropertyId("deleteFile")
     private CheckBox deleteCheckBox;
@@ -74,27 +61,23 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-        super.initBeforeCreateComponents(event);
-        presenter = new BagInfoSIPFormPresenter(this);
-        if (StringUtils.isNotEmpty(event.getParameters())) {
-            Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            if (paramsMap.containsKey("decommissioningList")) {
-                presenter.initRecordListFromDecommissioningList(paramsMap.get("decommissioningList"));
-            } else if (paramsMap.containsKey("cart")) {
-                presenter.initRecordListFromCart(paramsMap.get("cart"));
-            } else if (paramsMap.containsKey("folder")) {
-                presenter.initRecordListFromFolder(paramsMap.get("folder"));
-            } else if (paramsMap.containsKey("document")) {
-                presenter.initRecordListFromDocument("document");
-            } else {
-                // invalid request
-            }
-        }
+        presenter = new BagInfoSIPPresenter(this);
     }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        bagInfoVO = new BagInfoVO();
+        ComboBox cb = new ComboBox($("SIPButton.predefinedBagInfo"));
+        for(BagInfoVO bagInfoVO : presenter.getAllBagInfo()) {
+            cb.addItem(bagInfoVO);
+            cb.setItemCaption(bagInfoVO, bagInfoVO.getTitle());
+        }
+        cb.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                updateValue((BagInfoVO) event.getProperty().getValue());
+            }
+        });
+
         limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
         limitSizeCheckbox.setId("limitSize");
 
@@ -153,9 +136,10 @@ public class BagInfoSIPForm extends BaseViewImpl {
         descriptionSommaire.setId("descriptionSommaire");
         descriptionSommaire.setNullRepresentation("");
 
-        return new BagInfoForm(bagInfoVO, this.objectList, this,
+        return new BaseForm<BagInfoVO>(presenter.newRecord(),this,
                 limitSizeCheckbox,
                 deleteCheckBox,
+                cb,
                 identificationOrganismeTextField,
                 IDOrganismeTextField,
                 adresseTextField,
@@ -168,7 +152,42 @@ public class BagInfoSIPForm extends BaseViewImpl {
                 methodeTransfereTextField,
                 restrictionAccessibiliteTextField,
                 noteTextArea,
-                descriptionSommaire);
+                descriptionSommaire) {
+            @Override
+            protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
+                BagInfoSIPForm.this.saveButtonClick(viewObject);
+            }
 
+            @Override
+            protected void cancelButtonClick(BagInfoVO viewObject) {
+                navigateTo().previousView();
+            }
+        };
+
+    }
+
+    private void updateValue(BagInfoVO viewObject) {
+        identificationOrganismeTextField.setValue(viewObject.getIDOrganismeVerseurOuDonateur());
+        IDOrganismeTextField.setValue(viewObject.getIdentificationOrganismeVerseurOuDonateur());
+        adresseTextField.setValue(viewObject.getAddress());
+        regionAdministrativeTextField.setValue(viewObject.getRegionAdministrative());
+        entiteResponsableTextField.setValue(viewObject.getEntiteResponsable());
+        identificationEntiteResponsableTextField.setValue(viewObject.getIdentificationEntiteResponsable());
+        courrielResponsableTextField.setValue(viewObject.getCourrielResponsable());
+        telephoneResponsableTextField.setValue(viewObject.getTelephoneResponsable());
+        categoryDocumentTextField.setValue(viewObject.getCategoryDocument());
+        methodeTransfereTextField.setValue(viewObject.getMethodeTransfere());
+        restrictionAccessibiliteTextField.setValue(viewObject.getRestrictionAccessibilite());
+        noteTextArea.setValue(viewObject.getNote());
+        descriptionSommaire.setValue(viewObject.getDescriptionSommaire());
+    }
+
+    protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
+
+    }
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return null;
     }
 }
