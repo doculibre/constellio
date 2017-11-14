@@ -68,8 +68,9 @@ public class ReportXMLGenerator {
 	private UserServices userServices;
 	private List<DataField> otherDataForContainer;
 	private MetadataSchemasManager metadataSchemasManager;
+	private Boolean isTestXml;
 
-	public ReportXMLGenerator(String collection, AppLayerFactory appLayerFactory, String username) {
+	public ReportXMLGenerator(String collection, AppLayerFactory appLayerFactory, String username, Boolean isTestXml) {
 		this.factory = appLayerFactory;
 		this.collection = collection;
 		this.rm = new RMSchemasRecordsServices(collection, factory);
@@ -82,6 +83,7 @@ public class ReportXMLGenerator {
 		this.userServices = factory.getModelLayerFactory().newUserServices();
 		this.otherDataForContainer = getotherDataForContainer();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		this.isTestXml = isTestXml;
 
 		JasperReportsContext jasperReportsContext = DefaultJasperReportsContext.getInstance();
 		jasperReportsContext.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
@@ -284,10 +286,17 @@ public class ReportXMLGenerator {
 						metadatas.addContent(m);
 					}
 				}
+
+				if(isTestXml) {
+					List<Element> children = fillEmptyTags(metadatas.getChildren());
+					metadatas.setContent(children);
+				}
+
 				folder.setContent(metadatas);
 				root.addContent(folder);
 			}
 		}
+
 		XMLOutputter xmlOutputter = new XMLOutputter(DEV ? Format.getPrettyFormat() : Format.getCompactFormat());
 		return xmlOutputter.outputString(document);
 	}
@@ -490,6 +499,10 @@ public class ReportXMLGenerator {
 					e.setText(value);
 					metadatas.addContent(e);
 				}
+				if(isTestXml) {
+					List<Element> children = fillEmptyTags(metadatas.getChildren());
+					metadatas.setContent(children);
+				}
 				container.setContent(metadatas);
 				root.addContent(container);
 			}
@@ -560,6 +573,17 @@ public class ReportXMLGenerator {
 		return input.replace(" ", "_").replaceAll("[éèëê]", "e").replaceAll("[àâáä]", "a").replaceAll("[öòóô]", "o")
 				.replace("'", "").replaceAll("-", "_").replaceAll("[üùúû]", "u").replaceAll("[îìíï]", "i")
 				.replaceAll("[\\( \\)]", "").replaceAll("[&$%]", "").toLowerCase();
+	}
+
+	protected List<Element> fillEmptyTags(List<Element> originalElements) {
+		List<Element> filledElements = new ArrayList<>();
+		for (Element element : originalElements) {
+			if(element.getText().isEmpty()) {
+				element.setText("This will not appear on the final report");
+			}
+			filledElements.add(element);
+		}
+		return filledElements;
 	}
 
 	private class DataField {

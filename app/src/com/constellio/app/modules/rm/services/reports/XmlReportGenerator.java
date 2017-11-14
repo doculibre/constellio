@@ -114,17 +114,6 @@ public class XmlReportGenerator extends XmlGenerator{
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
     }
 
-    private List<Element> fillEmptyTags(List<Element> originalElements) {
-        List<Element> filledElements = new ArrayList<>();
-        for (Element element : originalElements) {
-            if(element.getText().isEmpty()) {
-                element.setText("This will not appear on the final report");
-            }
-            filledElements.add(element);
-        }
-        return filledElements;
-    }
-
     public String getPath(Record recordElement){
         StringBuilder builder = new StringBuilder();
         String parentId = recordElement.getParentId();

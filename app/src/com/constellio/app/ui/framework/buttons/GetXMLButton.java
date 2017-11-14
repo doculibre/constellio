@@ -64,7 +64,7 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.reportXmlGenerator = new ReportXMLGenerator(collection, factory, view.getSessionContext().getCurrentUser().getUsername());
+        this.reportXmlGenerator = new ReportXMLGenerator(collection, factory, view.getSessionContext().getCurrentUser().getUsername(), true);
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
     }

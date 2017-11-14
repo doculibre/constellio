@@ -141,6 +141,9 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
                         //Create the metadata tags.
                         List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
                         //add them to the childrens.
+//                        if(this.xmlGeneratorParameters.isForTest()) {
+//                            metadataTags = fillEmptyTags(metadataTags);
+//                        }
                         XMLMetadatasOfSingularElement.addContent(metadataTags);
                     }
 
