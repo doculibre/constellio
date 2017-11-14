@@ -546,18 +546,18 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(zeCollection)) {
 
 				TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(100);
-				for (TaxonomySearchRecord record : new TaxonomiesSearchServices(getModelLayerFactory())
+				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
 						.getVisibleRootConcept(user, zeCollection, taxonomy.getCode(), options)) {
 					navigateVisible(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
-				for (TaxonomySearchRecord record : new TaxonomiesSearchServices(getModelLayerFactory())
+				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
 						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Folder.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingAFolder(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
-				for (TaxonomySearchRecord record : new TaxonomiesSearchServices(getModelLayerFactory())
+				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
 						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Document.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingADocument(user, taxonomy.getCode(), record.getRecord(), options);

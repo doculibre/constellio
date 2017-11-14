@@ -39,6 +39,8 @@ public class Toggle {
 
 	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
 
+	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

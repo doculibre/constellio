@@ -1989,7 +1989,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						"category_77", "category_78", "category_79", "category_80", "category_81", "category_82", "category_83",
 						"category_84", "category_85", "category_86", "category_87", "category_88", "category_89", "category_90"))
 				.has(numFound(400)).has(listSize(20)).has(fastContinuationInfos(false, 90))
-				.has(solrQueryCounts(15, 124, 120))
+				.has(solrQueryCounts(14, 123, 120))
 				.has(secondSolrQueryCounts(9, 123, 20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(89).setRows(20)

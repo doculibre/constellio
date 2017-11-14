@@ -31,15 +31,17 @@ public class AggregatedDataEntry implements DataEntry {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata, REFERENCE);
 		}
 
-		for (String inputMetadata : inputMetadatas) {
-			String inputMetadataSchema = inputMetadata == null ? null : new SchemaUtils().getSchemaCode(inputMetadata);
+		if (inputMetadatas != null) {
+			for (String inputMetadata : inputMetadatas) {
+				String inputMetadataSchema = inputMetadata == null ? null : new SchemaUtils().getSchemaCode(inputMetadata);
 
-			if (inputMetadataSchema != null && !inputMetadataSchema.endsWith("_default")) {
-				throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata, NUMBER);
-			}
+				if (inputMetadataSchema != null && !inputMetadataSchema.endsWith("_default")) {
+					throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata, NUMBER);
+				}
 
-			if (inputMetadataSchema != null && !inputMetadataSchema.equals(referenceMetadataSchema)) {
-				throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);
+				if (inputMetadataSchema != null && !inputMetadataSchema.equals(referenceMetadataSchema)) {
+					throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);
+				}
 			}
 		}
 	}

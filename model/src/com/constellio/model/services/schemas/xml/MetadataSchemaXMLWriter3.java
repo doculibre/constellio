@@ -640,7 +640,7 @@ public class MetadataSchemaXMLWriter3 {
 			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().getCode());
 			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
 
-			if (!agregatedDataEntry.getInputMetadatas().isEmpty()) {
+			if (agregatedDataEntry.getInputMetadatas() != null && !agregatedDataEntry.getInputMetadatas().isEmpty()) {
 				String inputMetadatasStr = StringUtils.join(agregatedDataEntry.getInputMetadatas(), ",");
 				dataEntry.setAttribute("inputMetadata", inputMetadatasStr);
 			}

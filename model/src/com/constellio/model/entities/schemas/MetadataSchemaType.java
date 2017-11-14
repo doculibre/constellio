@@ -106,6 +106,9 @@ public class MetadataSchemaType implements Serializable {
 		case "usertask":
 			return "t";
 
+		case "containerRecord":
+			return "c";
+
 		default:
 			return code;
 		}

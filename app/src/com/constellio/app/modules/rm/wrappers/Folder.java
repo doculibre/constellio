@@ -92,9 +92,6 @@ public class Folder extends RMObject {
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String DATE_TYPES = "dateTypes";
 
-	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
-	public static final String CALENDAR_YEAR = "calendarYear";
-
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
 	public static final String MANUAL_EXPECTED_DESTRUCTION_DATE = "manualExpectedDesctructionDate";

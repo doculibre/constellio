@@ -22,6 +22,7 @@ import com.constellio.model.services.schemas.calculators.AllReferencesCalculator
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
+import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
@@ -44,6 +45,7 @@ public class CommonMetadataBuilder {
 	public static final String DETACHED_AUTHORIZATIONS = "detachedauthorizations";
 	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 	public static final String TOKENS = "tokens";
+	public static final String TOKENS_OF_HIERARCHY = "tokensHierarchy";
 	public static final String DENY_TOKENS = "denyTokens";
 	public static final String SHARE_TOKENS = "shareTokens";
 	public static final String SHARE_DENY_TOKENS = "shareDenyTokens";
@@ -239,6 +241,18 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
+
+		metadata.put(TOKENS_OF_HIERARCHY, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS_OF_HIERARCHY).setType(STRING)
+						.setMultivalue(true).defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 		metadata.put(DENY_TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
