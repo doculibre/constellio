@@ -17,6 +17,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     @PropertyId("deleteFile")
     private CheckBox deleteCheckBox;
+
     @PropertyId("limitSize")
     private CheckBox limitSizeCheckbox;
 
@@ -62,6 +63,11 @@ public class BagInfoSIPForm extends BaseViewImpl {
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
         presenter = new BagInfoSIPPresenter(this);
+    }
+
+    @Override
+    protected boolean isBreadcrumbsVisible() {
+        return false;
     }
 
     @Override

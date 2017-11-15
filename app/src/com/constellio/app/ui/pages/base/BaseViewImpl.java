@@ -110,18 +110,23 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 		removeAllComponents();
 
-		breadcrumbTrail = buildBreadcrumbTrail();
+		if(isBreadcrumbsVisible()) {
+			breadcrumbTrail = buildBreadcrumbTrail();
+		}
 
 		titleBackButtonLayout = new HorizontalLayout();
 		titleBackButtonLayout.setWidth("100%");
 
 		String title = getTitle();
-		if (breadcrumbTrail == null && title != null) {
-			breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-		} else if (title != null) {
-			titleLabel = new Label(title);
-			titleLabel.addStyleName(ValoTheme.LABEL_H1);
+		if(isBreadcrumbsVisible()) {
+			if (breadcrumbTrail == null && title != null) {
+				breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+			} else if (title != null) {
+				titleLabel = new Label(title);
+				titleLabel.addStyleName(ValoTheme.LABEL_H1);
+			}
 		}
+
 
 		backButton = new BackButton();
 		ClickListener backButtonClickListener = getBackButtonClickListener();
@@ -399,12 +404,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		if(!hasAccess) {
 			return null;
 		}
-		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
-		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		returnLink.addStyleName(CATEGORY_BUTTON);
-		returnLink.addClickListener(listener);
-		return returnLink;
+		return createLink(caption, listener, iconName);
 	}
 
 	protected Table setTableProperty(Table table, int maxSize) {
@@ -433,5 +433,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 		}
+	}
+
+	protected boolean isBreadcrumbsVisible(){
+		return true;
 	}
 }
