@@ -38,6 +38,8 @@ public class RecordUpdateOptions {
 
 	boolean allowSchemaTypeLockedRecordsModification = false;
 
+	boolean updateAggregatedMetadatas = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -72,6 +74,17 @@ public class RecordUpdateOptions {
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
 		this.skipFindingRecordsToReindex = copy.skipFindingRecordsToReindex;
+
+		this.updateAggregatedMetadatas = copy.updateAggregatedMetadatas;
+	}
+
+	public boolean isUpdateAggregatedMetadatas() {
+		return updateAggregatedMetadatas;
+	}
+
+	public RecordUpdateOptions setUpdateAggregatedMetadatas(boolean updateAggregatedMetadatas) {
+		this.updateAggregatedMetadatas = updateAggregatedMetadatas;
+		return this;
 	}
 
 	public boolean isSkipFindingRecordsToReindex() {

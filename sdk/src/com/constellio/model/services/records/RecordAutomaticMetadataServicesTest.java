@@ -34,6 +34,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -56,7 +57,9 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
-	RecordUpdateOptions options = new RecordUpdateOptions();
+	Transaction zeTransaction = new Transaction();
+	RecordUpdateOptions options = zeTransaction.getRecordUpdateOptions();
+
 
 	@Mock ModelLayerLogger modelLayerLogger;
 
@@ -145,7 +148,6 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		reset(schemasManager.getSchemaTypes(zeCollection));
 
 		reindexedMetadata = new TransactionRecordsReindexation(new MetadataList(firstReindexedMetadata, secondReindexedMetadata));
-
 	}
 
 	@Test
@@ -157,7 +159,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		List<Metadata> sortedAutomaticMetadatas = asList(firstMetadata, secondMetadata);
 
 		doNothing().when(services).updateAutomaticMetadata(any(RecordImpl.class), any(RecordProvider.class), any(Metadata.class),
-				eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(RecordUpdateOptions.class));
+				eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
 
 		MetadataSchemaTypes types = mock(MetadataSchemaTypes.class);
 		MetadataSchema schema = mock(MetadataSchema.class);
@@ -166,13 +168,13 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		when(types.getSchema(zeSchema.code())).thenReturn(schema);
 		when(schema.getAutomaticMetadatas()).thenReturn(sortedAutomaticMetadatas);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		InOrder inOrder = Mockito.inOrder(services);
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, firstMetadata, reindexedMetadata, types, options);
+				.updateAutomaticMetadata(record, recordProvider, firstMetadata, reindexedMetadata, types, zeTransaction);
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, secondMetadata, reindexedMetadata, types, options);
+				.updateAutomaticMetadata(record, recordProvider, secondMetadata, reindexedMetadata, types, zeTransaction);
 
 	}
 
@@ -181,9 +183,10 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
-		doNothing().when(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, options);
+		doNothing().when(services).setCopiedValuesInRecords(
+				eq(record), eq(metadata), eq(recordProvider), eq(reindexedMetadata), any(RecordUpdateOptions.class));
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), options);
+		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), zeTransaction);
 
 		verify(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, options);
 
@@ -195,12 +198,13 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CalculatedDataEntry(mock(MetadataValueCalculator.class)));
 		doNothing().when(services).setCalculatedValuesInRecords(eq(record), eq(metadata), eq(recordProvider), eq(
-				reindexedMetadata), any(MetadataSchemaTypes.class), eq(options));
+				reindexedMetadata), any(MetadataSchemaTypes.class), eq(zeTransaction));
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), options);
+		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), zeTransaction);
 
 		verify(services)
-				.setCalculatedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, schemas.getTypes(), options);
+				.setCalculatedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, schemas.getTypes(),
+						zeTransaction);
 
 	}
 
@@ -253,7 +257,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 			throws Exception {
 		when(recordWithReferenceToRecordWithValue.getModifiedValues()).thenReturn(new HashMap<String, Object>());
 
-		services.updateAutomaticMetadatas(recordWithReferenceToRecordWithValue, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(recordWithReferenceToRecordWithValue, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(recordWithReferenceToRecordWithValue.getModifiedValues().isEmpty()).isTrue();
 	}

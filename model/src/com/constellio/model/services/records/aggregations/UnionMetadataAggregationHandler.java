@@ -10,6 +10,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -41,6 +42,12 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationWithF
 	@Override
 	public List<Metadata> getMetadatasUsedToCalculate(GetMetadatasUsedToCalculateParams params) {
 		return params.getInputMetadatas();
+	}
+
+	@Override
+	public Object calculate(TransactionAggregatedValuesParams params) {
+		//TODO
+		return new ArrayList<>();
 	}
 
 	@Override

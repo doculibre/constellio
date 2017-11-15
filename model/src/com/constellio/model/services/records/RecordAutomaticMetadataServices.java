@@ -35,6 +35,7 @@ import com.constellio.model.entities.calculators.dependencies.SpecialDependencie
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
@@ -51,6 +52,7 @@ import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -86,49 +88,54 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, RecordUpdateOptions options) {
+			TransactionRecordsReindexation reindexation, Transaction transaction) {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
-	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, RecordUpdateOptions options) {
+	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getEagerTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
-	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, RecordUpdateOptions options) {
+	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getLazyTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, options);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
 	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, RecordUpdateOptions options) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 		if (metadata.isMarkedForDeletion()) {
 			record.updateAutomaticValue(metadata, null);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
-			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, options);
+			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, transaction.getRecordUpdateOptions());
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types, options);
+			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types,
+					transaction);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 			//We don't want to calculate this metadata during record imports
-			if (record.get(Schemas.LEGACY_ID) == null || record.isSaved()) {
+
+			if (!record.isSaved()) {
+				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(record, metadata, transaction, types);
+
+			} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
 				setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
 			}
 
@@ -149,6 +156,32 @@ public class RecordAutomaticMetadataServices {
 		if (agregationType != null) {
 			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata,
 					aggregatedDataEntry, types, searchServices);
+			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
+			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
+		}
+	}
+
+	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(RecordImpl record, Metadata metadata,
+			Transaction transaction, MetadataSchemaTypes types) {
+
+		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+
+		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
+		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
+
+		List<Record> aggregatedRecords = new ArrayList<>();
+
+		for (Record transactionRecord : transaction.getRecords()) {
+			if (transactionRecord.getTypeCode().equals(schemaType.getCode())
+					&& transactionRecord.getValues(referenceMetadata).contains(record.getId())) {
+				aggregatedRecords.add(transactionRecord);
+			}
+		}
+
+		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
+		if (agregationType != null) {
+			TransactionAggregatedValuesParams aggregatedValuesParams = new TransactionAggregatedValuesParams(
+					record, metadata, aggregatedDataEntry, types, aggregatedRecords);
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
@@ -212,11 +245,11 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			MetadataSchemaTypes types, RecordUpdateOptions options) {
+			MetadataSchemaTypes types, Transaction transaction) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(record, metadataWithCalculatedDataEntry, recordProvider,
-				calculator, values, types, options);
+				calculator, values, types, transaction);
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
@@ -237,7 +270,7 @@ public class RecordAutomaticMetadataServices {
 
 	boolean addValuesFromDependencies(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
 			MetadataValueCalculator<?> calculator,
-			Map<Dependency, Object> values, MetadataSchemaTypes types, RecordUpdateOptions options) {
+			Map<Dependency, Object> values, MetadataSchemaTypes types, Transaction transaction) {
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
 				if (!addValueForLocalDependency(record, values, dependency)) {
@@ -245,13 +278,14 @@ public class RecordAutomaticMetadataServices {
 				}
 
 			} else if (dependency instanceof ReferenceDependency<?>) {
-				if (!addValueForReferenceDependency(record, recordProvider, values, dependency, options)) {
+				if (!addValueForReferenceDependency(record, recordProvider, values, dependency,
+						transaction.getRecordUpdateOptions())) {
 					return false;
 				}
 
 			} else if (dependency instanceof DynamicLocalDependency) {
 				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types,
-						recordProvider, options);
+						recordProvider, transaction);
 
 			} else if (dependency instanceof ConfigDependency<?>) {
 				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
@@ -267,7 +301,7 @@ public class RecordAutomaticMetadataServices {
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
 			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types,
-			RecordProvider recordProvider, RecordUpdateOptions options) {
+			RecordProvider recordProvider, Transaction transaction) {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
@@ -277,7 +311,7 @@ public class RecordAutomaticMetadataServices {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 					&& record.getLazyTransientValues().isEmpty()) {
-				loadTransientLazyMetadatas(record, recordProvider, options);
+				loadTransientLazyMetadatas(record, recordProvider, transaction);
 			}
 
 			if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dependency)) {
@@ -695,7 +729,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCalculatedValuesInRecords(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, RecordUpdateOptions options) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
@@ -705,7 +739,7 @@ public class RecordAutomaticMetadataServices {
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
 				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
 				|| lazyTransientMetadataToLoad) {
-			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types, options);
+			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types, transaction);
 		}
 	}
 

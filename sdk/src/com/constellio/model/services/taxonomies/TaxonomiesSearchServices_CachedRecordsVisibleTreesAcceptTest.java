@@ -825,6 +825,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
 
 		User sasquatch = users.sasquatchIn(zeCollection);
+
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
 				.has(numFoundAndListSize(1))
 				.has(recordsWithChildren(records.categoryId_X));
@@ -905,6 +906,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 

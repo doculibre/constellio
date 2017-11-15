@@ -407,7 +407,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		Record record = new RecordImpl(recordDTO, allFields);
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 		return record;
 	}
 
@@ -446,7 +446,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDao.get(id), true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			return record;
 
@@ -460,7 +460,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDao.realGet(id), true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			return record;
 
@@ -476,7 +476,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDTO, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			records.add(record);
 		}
@@ -592,7 +592,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						try {
 							for (Metadata metadata : step.getMetadatas()) {
 								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
-										reindexationOptionForThisRecord, types, transaction.getRecordUpdateOptions());
+										reindexationOptionForThisRecord, types, transaction);
 							}
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
@@ -650,8 +650,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 					}
 				}
 
-				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll() &&
-						schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
+				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll()
+						&& transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()
+						&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
 						&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
 						&& !transaction.getIdsToReindex().contains(record.getId())) {
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
@@ -709,7 +710,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 							newAutomaticMetadataServices().updateAutomaticMetadatas(
 									(RecordImpl) record, newRecordProvider(transaction),
 									TransactionRecordsReindexation.ALL(),
-									new RecordUpdateOptions());
+									transaction);
 						}
 					}, options);
 				}
@@ -1270,20 +1271,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL(),
-				new RecordUpdateOptions());
+				new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
 	public void loadLazyTransientMetadatas(Record record) {
 		newAutomaticMetadataServices()
 				.loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
 	public void reloadEagerTransientMetadatas(Record record) {
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 	}
 }

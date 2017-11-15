@@ -37,7 +37,8 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends ConstellioTest {
 
-	RecordUpdateOptions options = new RecordUpdateOptions();
+	Transaction zeTransaction = new Transaction();
+	RecordUpdateOptions options = zeTransaction.getRecordUpdateOptions();
 	CachedRecordServices recordServices;
 	RecordProvider recordProvider;
 
@@ -84,7 +85,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(aDate);
@@ -98,7 +99,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(),
 				asList(idReferencedRecordWithAStringAndADateValue, idReferencedRecordWithAnotherDateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString));
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(aDate, anotherDate));
@@ -111,7 +112,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(aDateList);
@@ -126,7 +127,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(),
 				asList(idReferencedRecordWithAStringAndADateValue, idReferencedRecordWithAnotherDateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		List<String> expectedStrings = new ArrayList<>();
 		expectedStrings.addAll(aStringList);
@@ -146,7 +147,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithoutValue);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isNull();
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(aDate);
@@ -161,7 +162,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(),
 				asList(idReferencedRecordWithAStringAndADateValue, idReferencedRecordWithoutValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(aDate));
@@ -175,7 +176,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithoutValue);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(aDateList);
@@ -191,7 +192,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(),
 				asList(idReferencedRecordWithoutValue, idReferencedRecordWithAStringAndADateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(aDateList);
@@ -203,7 +204,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		givenSchemaWithTextAndDateCopiedEntryUsingSingleValueReferenceAndSomeRecordsInOtherSchema();
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isNull();
@@ -215,7 +216,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		givenSchemaWithTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema();
 		record.set(zeSchema.firstReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString));
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(new ArrayList<>());
@@ -228,7 +229,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 		record.set(zeSchema.secondReferenceToAnotherSchema(), new ArrayList<>());
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString));
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(new ArrayList<>());
@@ -240,7 +241,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		givenSchemaWithMultivalueTextAndDateCopiedEntryAndSomeRecordsInOtherSchema();
 		record.set(zeSchema.firstReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(new ArrayList<>());
@@ -252,7 +253,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		givenSchemaWithMultivalueTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema();
 		record.set(zeSchema.firstReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.getList(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.getList(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(new ArrayList<>());
@@ -265,7 +266,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.firstReferenceToAnotherSchema(), new ArrayList<>());
 		record.set(zeSchema.firstReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(new ArrayList<>());
@@ -280,7 +281,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 		add();
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 		assertThat(record.getModifiedValues().isEmpty());
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
@@ -297,7 +298,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 		add();
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 		assertThat(record.getModifiedValues().isEmpty());
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString));
@@ -314,7 +315,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAStringAndADateValue);
 		add();
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 		assertThat(record.getModifiedValues().isEmpty());
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
@@ -331,7 +332,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 		add();
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 		assertThat(record.getModifiedValues().isEmpty());
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
@@ -347,7 +348,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithoutValue);
 		add();
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAnotherDateValue);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDate);
@@ -367,7 +368,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithoutValue));
 		add();
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithAnotherDateValue));
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString, aString));
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(anotherDate));
@@ -385,7 +386,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithoutValue);
 		add();
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithAnotherDateValue);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDateList);
@@ -403,7 +404,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		add();
 		record.set(zeSchema.firstReferenceToAnotherSchema(), asList(idReferencedRecordWithAStringAndADateValue));
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithAnotherDateValue));
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDateList);
