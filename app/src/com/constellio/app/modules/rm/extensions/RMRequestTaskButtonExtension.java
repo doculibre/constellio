@@ -191,7 +191,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
 		if (folder != null) {
 			return folder != null && Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.getId()
-					.equals(folder.getBorrowUser());
+					.equals(folder.getBorrowUserEntered());
 		} else {
 			return container != null && Boolean.TRUE.equals(container.getBorrowed()) && currentUser.getId()
 					.equals(container.getBorrower());
