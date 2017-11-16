@@ -18,7 +18,7 @@ import java.util.List;
 public class CorrectorExcluderManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<CorrectorExclusion>> {
 
     private static String EXCLUSION_CONFIG = "/exclusion.xml";
-    private OneXMLConfigPerCollectionManager<List<String>> oneXMLConfigPerCollectionManager;
+    private OneXMLConfigPerCollectionManager<List<CorrectorExclusion>> oneXMLConfigPerCollectionManager;
     private ConfigManager configManager;
     private CollectionsListManager collectionsListManager;
     private ModelLayerFactory modelLayerFactory;
@@ -51,7 +51,7 @@ public class CorrectorExcluderManager implements StatefulService, OneXMLConfigPe
                 return newExclusionReader(document).getAllCorrection();
             }
 
-            public List<String> getAllExclusion(String collection) {
+            public List<CorrectorExclusion> getAllExclusion(String collection) {
                 return oneXMLConfigPerCollectionManager.get(collection);
             }
 
