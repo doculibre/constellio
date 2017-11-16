@@ -25,7 +25,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 
-public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
+public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUtils {
 
 	private Document document;
 	private SettingsXMLFileReader reader;
@@ -186,7 +186,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo1 = list1.get(0);
 		assertThat(taxo1.getCode()).isEqualTo("taxoT1Type");
-		assertThat(taxo1.getTitle()).isEqualTo( "taxo1Titre1");
+		assertThat(taxo1.getTitle()).isEqualTo("taxo1Titre1");
 		assertThat(taxo1.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo1.getGroupIds()).containsExactly("group1");
 		assertThat(taxo1.getUserIds()).containsExactly("user1", "user2");
@@ -194,7 +194,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo2 = list1.get(1);
 		assertThat(taxo2.getCode()).isEqualTo("taxoT2Type");
-		assertThat(taxo2.getTitle()).isEqualTo( "taxo1Titre2");
+		assertThat(taxo2.getTitle()).isEqualTo("taxo1Titre2");
 		assertThat(taxo2.getClassifiedTypes()).isEmpty();
 		assertThat(taxo2.getGroupIds()).isEmpty();
 		assertThat(taxo2.getUserIds()).isEmpty();
@@ -219,7 +219,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo3 = list2.get(0);
 		assertThat(taxo3.getCode()).isEqualTo("taxoT3Type");
-		assertThat(taxo3.getTitle()).isEqualTo( "taxo1Titre3");
+		assertThat(taxo3.getTitle()).isEqualTo("taxo1Titre3");
 		assertThat(taxo3.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo3.getGroupIds()).containsExactly("group1");
 		assertThat(taxo3.getUserIds()).containsExactly("user1", "user2");
@@ -388,7 +388,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 	}
 
 	public Document getDocument() {
-		String inputFilePath = "settings-input.xml";
+		String inputFilePath = getTestResourceFile("settings-input.xml").getPath();
 		File inputFile = new File(inputFilePath);
 		SAXBuilder builder = new SAXBuilder();
 		try {

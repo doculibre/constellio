@@ -8,17 +8,18 @@ import static org.assertj.core.api.Assertions.entry;
 
 import java.util.Map;
 
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -91,7 +92,7 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenValidationExceptionThenParamsAreOK()
-			throws RecordServicesException {
+			throws Exception {
 
 		ContainerRecordType containerType = buildDefaultContainerType();
 		recordServices.add(containerType);
@@ -103,8 +104,11 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 		recordServices.add(containerRecord);
 		addFoldersLinkedToContainer(containerRecord.getId());
 		containerRecord.setLinearSizeEntered(20.0).setStorageSpace(storageSpace);
+		waitForBatchProcess();
 		try {
-			recordServices.add(containerRecord);
+			Transaction tx = new Transaction(containerRecord);
+			tx.getRecordUpdateOptions().setUpdateAggregatedMetadatas(true);
+			recordServices.execute(tx);
 			fail("No exception was thrown");
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(e.getErrors().getValidationErrors()).hasSize(2);

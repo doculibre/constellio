@@ -72,8 +72,8 @@ import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCa
 import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesOldImpl;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
@@ -291,7 +291,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServicesOldImpl(this);
+		return new TaxonomiesSearchServicesBasedOnHierarchyTokensImpl(this);
 	}
 
 	public RolesManager getRolesManager() {

@@ -39,8 +39,6 @@ Schemas {
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
 	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
-	public static final Metadata PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION = add(
-			new Metadata("principalsWithSpecificAuthorization_ss", STRING, true));
 	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
 			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
@@ -93,7 +91,6 @@ Schemas {
 	public static final Metadata MARKED_FOR_PARSING = add(new Metadata("markedForParsing_s", BOOLEAN, false));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
-
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

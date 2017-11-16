@@ -3,8 +3,6 @@ package com.constellio.model.services.taxonomies;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.entities.records.Record;
-
 public class FastContinueInfos {
 
 	boolean finishedConceptsIteration;
@@ -15,9 +13,15 @@ public class FastContinueInfos {
 
 	public FastContinueInfos(boolean finishedConceptsIteration, int lastReturnRecordIndex,
 			List<String> shownRecordsWithVisibleChildren) {
+
+		//TODO : Remove the shownRecordsWithVisibleChildren parameter
+
 		this.finishedConceptsIteration = finishedConceptsIteration;
-		this.lastReturnRecordIndex = lastReturnRecordIndex;
-		this.shownRecordsWithVisibleChildren = shownRecordsWithVisibleChildren;
+		//		this.lastReturnRecordIndex = lastReturnRecordIndex;
+		//		this.shownRecordsWithVisibleChildren = shownRecordsWithVisibleChildren;
+
+		this.lastReturnRecordIndex = lastReturnRecordIndex + shownRecordsWithVisibleChildren.size();
+		this.shownRecordsWithVisibleChildren = new ArrayList<>();
 	}
 
 	public boolean isFinishedConceptsIteration() {

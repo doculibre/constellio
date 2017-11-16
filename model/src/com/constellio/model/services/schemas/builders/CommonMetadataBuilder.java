@@ -29,7 +29,6 @@ import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.PrincipalsWithSpecificAuthCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
@@ -73,7 +72,6 @@ public class CommonMetadataBuilder {
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
-	public static final String PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION = "principalsWithSpecificAuthorization";
 	public static final String NON_TAXONOMY_AUTHORIZATIONS = "nonTaxonomyAuthorizations";
 
 	private interface MetadataCreator {
@@ -534,31 +532,6 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		//		asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
-		//				&&
-		metadata.put(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION, new
-
-				MetadataCreator() {
-					@Override
-					public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-						if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
-								.contains(schema.getSchemaTypeBuilder().getCode())
-								&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
-							MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
-									.setType(STRING).setMultivalue(true)
-									.defineDataEntry().asCalculated(PrincipalsWithSpecificAuthCalculator.class);
-							for (Language language : types.getLanguages()) {
-								metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-							}
-						} else {
-							MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
-									.setType(STRING).setMultivalue(true);
-							for (Language language : types.getLanguages()) {
-								metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-							}
-						}
-					}
-				});
 	}
 
 	public void addCommonMetadataToAllExistingSchemas(MetadataSchemaTypesBuilder types) {

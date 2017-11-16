@@ -8,8 +8,8 @@ import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.NON_TAXONOMY_AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
@@ -317,9 +317,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				fromAllSchemasIn(zeCollection).where(PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).isNotNull());
-		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION)
-				.isEmpty();
+				fromAllSchemasIn(zeCollection).where(TOKENS).isNotNull());
+		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, TOKENS).isEmpty();
 
 		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
 		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
@@ -333,7 +332,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		String gandalfId = users.gandalfIn(zeCollection).getId();
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				.extractingMetadatas(IDENTIFIER, TOKENS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, new ArrayList<>()),
 				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
@@ -349,18 +348,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
 				tuple(FOLDER3, new ArrayList<>()),
 				tuple(FOLDER3_DOC1, new ArrayList<>()),
-				tuple(FOLDER4, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+				tuple(FOLDER4, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId))
 		);
 
 		String copyOfAuth1 = detach(FOLDER2_2).get(auth1);
 		Map<String, String> newFolder3Auths = detach(FOLDER3_DOC1);
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				.extractingMetadatas(IDENTIFIER, TOKENS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, new ArrayList<>()),
 				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
@@ -371,23 +370,23 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER1_DOC1, new ArrayList<>()),
 				tuple(FOLDER2, new ArrayList<>()),
 				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, asList(bobId)),
-				tuple(FOLDER2_2_DOC2, asList(bobId)),
-				tuple(FOLDER2_2_DOC1, asList(bobId)),
+				tuple(FOLDER2_2, asList("role1_" + bobId)),
+				tuple(FOLDER2_2_DOC2, asList("role1_" + bobId)),
+				tuple(FOLDER2_2_DOC1, asList("role1_" + bobId)),
 				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, asList(heroesId, sidekicksId, bobId)),
-				tuple(FOLDER4, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+				tuple(FOLDER3_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId, "role1_" + bobId)),
+				tuple(FOLDER4, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId))
 		);
 
 		modify(authorizationOnRecord(newFolder3Auths.get(auth1), FOLDER3_DOC1).withNewPrincipalIds(gandalfId));
 		modify(authorizationOnRecord(newFolder3Auths.get(auth2), FOLDER3_DOC1).withNewPrincipalIds(legendsId));
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION).containsOnly(
+				.extractingMetadatas(IDENTIFIER, TOKENS).containsOnly(
 				tuple(TAXO1_FOND1, new ArrayList<>()),
 				tuple(TAXO1_FOND1_1, new ArrayList<>()),
 				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
@@ -398,16 +397,16 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER1_DOC1, new ArrayList<>()),
 				tuple(FOLDER2, new ArrayList<>()),
 				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, asList(bobId)),
-				tuple(FOLDER2_2_DOC2, asList(bobId)),
-				tuple(FOLDER2_2_DOC1, asList(bobId)),
+				tuple(FOLDER2_2, asList("role1_" + bobId)),
+				tuple(FOLDER2_2_DOC2, asList("role1_" + bobId)),
+				tuple(FOLDER2_2_DOC1, asList("role1_" + bobId)),
 				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, asList(legendsId, rumorsId, gandalfId)),
-				tuple(FOLDER4, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_1_DOC1, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2, asList(heroesId, sidekicksId)),
-				tuple(FOLDER4_2_DOC1, asList(heroesId, sidekicksId))
+				tuple(FOLDER3_DOC1, asList("role1_" + legendsId, "role1_" + rumorsId, "role1_" + gandalfId)),
+				tuple(FOLDER4, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_1_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2, asList("role1_" + heroesId, "role1_" + sidekicksId)),
+				tuple(FOLDER4_2_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId))
 		);
 	}
 

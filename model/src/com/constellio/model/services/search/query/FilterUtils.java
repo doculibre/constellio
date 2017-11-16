@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -148,6 +149,85 @@ public class FilterUtils {
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
 		stringBuilder.append(" OR ");
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":");
+		stringBuilder.append(Record.PUBLIC_TOKEN);
+		if (deny) {
+			stringBuilder.append(")");
+		}
+		return stringBuilder.toString();
+	}
+
+	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
+			MetadataSchemaType selectedType, boolean includeInvisible) {
+
+		String tokenPrefix;
+		if (Role.READ.equals(access)) {
+			if (selectedType == null) {
+				tokenPrefix = "r";
+			} else {
+				tokenPrefix = "r" + selectedType.getSmallCode();
+			}
+		} else {
+			if (selectedType == null) {
+				tokenPrefix = "w";
+			} else {
+				tokenPrefix = "w" + selectedType.getSmallCode();
+			}
+		}
+
+		StringBuilder stringBuilder = new StringBuilder();
+		UserTokens tokens = securityTokenManager.getTokens(user);
+		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+		boolean deny = stringBuilder.length() > 0;
+		if (deny) {
+			stringBuilder.append(" AND (");
+		}
+		addTokenA38(stringBuilder);
+		if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(user.getCollection());
+		}
+
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+		stringBuilder.append(":" + tokenPrefix + "_");
+		stringBuilder.append(user.getId());
+		if (includeInvisible) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+			stringBuilder.append(":" + "z" + tokenPrefix + "_");
+			stringBuilder.append(user.getId());
+		}
+
+		for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(schemaType);
+			stringBuilder.append("_*");
+		}
+
+		for (String aGroup : user.getUserGroups()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+			stringBuilder.append(":" + tokenPrefix + "_");
+			stringBuilder.append(aGroup);
+			if (includeInvisible) {
+				stringBuilder.append(" OR ");
+				stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+				stringBuilder.append(":z" + tokenPrefix + "_");
+				stringBuilder.append(aGroup);
+			}
+		}
+
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
+		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
+		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
 		stringBuilder.append(":");
 		stringBuilder.append(Record.PUBLIC_TOKEN);
 		if (deny) {

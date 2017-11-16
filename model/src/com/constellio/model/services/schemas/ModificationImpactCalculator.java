@@ -51,9 +51,6 @@ public class ModificationImpactCalculator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModificationImpactCalculator.class);
 
-	private static final List<Metadata> SPECIFIC_AUTH_METADATAS = asList(Schemas.NON_TAXONOMY_AUTHORIZATIONS,
-			Schemas.PRINCIPALS_WITH_SPECIFIC_AUTHORIZATION, Schemas.TOKENS);
-
 	SearchServices searchServices;
 
 	RecordServices recordServices;

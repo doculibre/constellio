@@ -1,6 +1,8 @@
 package com.constellio.model.services.schemas.calculators;
 
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +31,10 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(MANUAL_TOKENS);
 
+	LocalDependency<Boolean> logicallyDeletedParam = LocalDependency.toABoolean(LOGICALLY_DELETED);
+
+	LocalDependency<Boolean> visibleInTreesParam = LocalDependency.toABoolean(VISIBLE_IN_TREES);
+
 	ReferenceDependency<SortedMap<String, List<String>>> authorizationsRolesParam = ReferenceDependency.toAString(
 			CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS, SolrAuthorizationDetails.ROLES).whichIsMultivalue()
 			.whichAreReferencedMultiValueGroupedByReference();
@@ -38,6 +44,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> tokens = new HashSet<>();
+
 		List<String> manualTokens = parameters.get(manualTokensParam);
 		AllPrincipalsAuthsDependencyValue principalsAuthorizations = parameters.get(allPrincipalsAuthsParam);
 
@@ -61,7 +68,6 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 				} else if (Role.DELETE.equals(access)) {
 					tokens.add("r" + typeSmallCode + "_" + entry.getKey());
-					//tokens.add("d_" + entry.getKey()); //TODO Check to remove this token
 
 				} else {
 					tokens.add(access + "_" + entry.getKey());
@@ -93,6 +99,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(allPrincipalsAuthsParam, authorizationsRolesParam, manualTokensParam);
+		return Arrays.asList(allPrincipalsAuthsParam, authorizationsRolesParam, manualTokensParam, logicallyDeletedParam,
+				visibleInTreesParam);
 	}
 }

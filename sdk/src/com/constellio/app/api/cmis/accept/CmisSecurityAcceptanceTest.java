@@ -1,7 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
@@ -214,41 +213,6 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			assertThat(e.getMessage())
 					.isEqualTo("L'utilisateur bob n'a pas de droit en lecture sur l'enregistrement folder1_doc1 - folder1_doc1");
 		}
-
-	}
-
-	@Test
-	public void givenRecordAsAuthOnALeafRecordThenCanCallGetChildrenAndGetParentsOnNodeLeadingToIt()
-			throws Exception {
-
-		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
-				.on(zeCollectionRecords.folder1_doc1).givingReadAccess(), users.adminIn(zeCollection));
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
-		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
-		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
-		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
-		assertThatChildren("zetaxo1_category1").containsOnly("folder1", "folder2");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
-		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2", "zetaxo2_unit1_1");
-		assertThatChildren("zetaxo2_station2").containsOnly("folder1", "zetaxo2_station2_1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		session = newCMISSessionAsUserInZeCollection(robin);
-		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
-		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
-		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
-		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
-		assertThatChildren("zetaxo1_category1").containsOnly("folder1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
-		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2");
-		assertThatChildren("zetaxo2_station2").containsOnly("folder1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
 
 	}
 

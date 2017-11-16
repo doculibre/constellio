@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS_OF_HIERARCHY;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
@@ -21,7 +20,7 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 public class RMMigrationTo7_6_666 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "7.6.3";
+		return "7.6.666";
 	}
 
 	@Override
@@ -51,7 +50,8 @@ public class RMMigrationTo7_6_666 extends MigrationHelper implements MigrationSc
 
 				MetadataBuilder folderParent = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.PARENT_FOLDER);
 				MetadataBuilder documentFolder = typesBuilder.getSchema(Document.DEFAULT_SCHEMA).get(Document.FOLDER);
-				MetadataBuilder documentTokens = typesBuilder.getSchema(Document.DEFAULT_SCHEMA).get(TOKENS);
+				MetadataBuilder documentTokensHierarchy = typesBuilder.getSchema(Document.DEFAULT_SCHEMA)
+						.get(TOKENS_OF_HIERARCHY);
 
 				MetadataBuilder tokensHierarchy = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(TOKENS_OF_HIERARCHY)
 						.defineDataEntry().asCalculated(FolderTokensOfHierarchyCalculator.class);
@@ -62,7 +62,7 @@ public class RMMigrationTo7_6_666 extends MigrationHelper implements MigrationSc
 
 				typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.DOCUMENTS_TOKENS)
 						.setType(STRING).setMultivalue(true)
-						.defineDataEntry().asUnion(documentFolder, documentTokens);
+						.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 
 			}
 		}

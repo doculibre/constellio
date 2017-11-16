@@ -19,6 +19,7 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_7_6_666(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	class CoreSchemaAlterationFor_7_6_666 extends MetadataSchemasAlterationHelper {

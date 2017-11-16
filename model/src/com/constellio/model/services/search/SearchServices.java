@@ -34,7 +34,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -44,7 +43,6 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.entities.SearchBoost;
-import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
@@ -54,7 +52,18 @@ import com.constellio.model.services.security.SecurityTokenManager;
 
 public class SearchServices {
 
-	private static String[] STOP_WORDS_FR = {"au","aux","avec","ce","ces","dans","de","des","du","elle","en","et","eux","il","je","la","le","leur","lui","ma","mais","me","même","mes","moi","mon","ne","nos","notre","nous","on","ou","par","pas","pour","qu","que","qui","sa","se","ses","son","sur","ta","te","tes","toi","ton","tu","un","une","vos","votre","vous","c","d","j","l","à","m","n","s","t","y","été","étée","étées","étés","étant","suis","es","est","sommes","êtes","sont","serai","seras","sera","serons","serez","seront","serais","serait","serions","seriez","seraient","étais","était","étions","étiez","étaient","fus","fut","fûmes","fûtes","furent","sois","soit","soyons","soyez","soient","fusse","fusses","fût","fussions","fussiez","fussent","ayant","eu","eue","eues","eus","ai","as","avons","avez","ont","aurai","auras","aura","aurons","aurez","auront","aurais","aurait","aurions","auriez","auraient","avais","avait","avions","aviez","avaient","eut","eûmes","eûtes","eurent","aie","aies","ait","ayons","ayez","aient","eusse","eusses","eût","eussions","eussiez","eussent","ceci","cela","celà","cet","cette","ici","ils","les","leurs","quel","quels","quelle","quelles","sans","soi"};
+	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
+			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
+			"nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
+			"toi", "ton", "tu", "un", "une", "vos", "votre", "vous", "c", "d", "j", "l", "à", "m", "n", "s", "t", "y", "été",
+			"étée", "étées", "étés", "étant", "suis", "es", "est", "sommes", "êtes", "sont", "serai", "seras", "sera", "serons",
+			"serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "étais", "était", "étions", "étiez",
+			"étaient", "fus", "fut", "fûmes", "fûtes", "furent", "sois", "soit", "soyons", "soyez", "soient", "fusse", "fusses",
+			"fût", "fussions", "fussiez", "fussent", "ayant", "eu", "eue", "eues", "eus", "ai", "as", "avons", "avez", "ont",
+			"aurai", "auras", "aura", "aurons", "aurez", "auront", "aurais", "aurait", "aurions", "auriez", "auraient", "avais",
+			"avait", "avions", "aviez", "avaient", "eut", "eûmes", "eûtes", "eurent", "aie", "aies", "ait", "ayons", "ayez",
+			"aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
+			"ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi" };
 
 	RecordDao recordDao;
 	RecordServices recordServices;
@@ -233,7 +242,7 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
-																			int skipping) {
+			int skipping) {
 
 		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
 
@@ -587,22 +596,7 @@ public class SearchServices {
 		}
 
 		for (UserFilter userFilter : userFilters) {
-			String filter;
-			switch (userFilter.getAccess()) {
-				case Role.READ:
-					filter = FilterUtils.userReadFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				case Role.WRITE:
-					filter = FilterUtils.userWriteFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				case Role.DELETE:
-					filter = FilterUtils.userDeleteFilter(userFilter.getUser(), securityTokenManager);
-					break;
-				default:
-					filter = FilterUtils.permissionFilter(userFilter.getUser(), userFilter.getAccess());
-			}
-
-			params.add(CommonParams.FQ, filter);
+			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
 		}
 	}
 }

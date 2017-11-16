@@ -57,6 +57,8 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
+
 	String subFolderId;
 
 	Users users = new Users();
@@ -1676,7 +1678,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.firstAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
@@ -1698,7 +1700,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 

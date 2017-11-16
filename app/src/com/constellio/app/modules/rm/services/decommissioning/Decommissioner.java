@@ -1,5 +1,14 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -34,14 +43,6 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -135,10 +136,10 @@ public abstract class Decommissioner {
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
-        if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
-            folder.setManualArchivisticStatus(null);
-        }
-    }
+		if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
+			folder.setManualArchivisticStatus(null);
+		}
+	}
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;
@@ -202,7 +203,8 @@ public abstract class Decommissioner {
 
 	protected abstract void processDocuments();
 
-	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail, DecommissioningListType decommissioningListType) {
+	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail,
+			DecommissioningListType decommissioningListType) {
 		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
@@ -362,11 +364,11 @@ public abstract class Decommissioner {
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
 			if (containerIdUsed.contains(containerRecordId)) {
-				if(!detailsToProcess.containsKey(containerRecordId)) {
+				if (!detailsToProcess.containsKey(containerRecordId)) {
 					detailsToProcess.put(containerRecordId, detail);
 				} else {
 					DecomListContainerDetail previousDetail = detailsToProcess.get(containerRecordId);
-					if(!previousDetail.isFull() && detail.isFull()) {
+					if (!previousDetail.isFull() && detail.isFull()) {
 						detailsToProcess.put(containerRecordId, detail);
 					}
 				}
@@ -376,7 +378,7 @@ public abstract class Decommissioner {
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
 			if (containerIdUsed.contains(containerRecordId)) {
-				if(detailsToProcess.get(containerRecordId) == detail) {
+				if (detailsToProcess.get(containerRecordId) == detail) {
 					processContainer(rm.getContainerRecord(containerRecordId), detail);
 				}
 			} else {
@@ -422,7 +424,7 @@ public abstract class Decommissioner {
 					empty = false;
 					break;
 				}
-			}	
+			}
 		} else {
 			empty = false;
 		}
@@ -458,8 +460,11 @@ public abstract class Decommissioner {
 			recordServices.update(decommissioningList);
 			for (Record record : recordsToDeletePhysically) {
 				try {
-					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD,
+							new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 				} catch (Exception e) {
+					e.printStackTrace();
+					record = recordServices.getDocumentById(record.getId());
 					recordServices.logicallyDelete(record, user);
 				}
 			}
