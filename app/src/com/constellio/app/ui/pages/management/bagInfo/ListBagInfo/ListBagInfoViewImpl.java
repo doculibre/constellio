@@ -34,6 +34,16 @@ public class ListBagInfoViewImpl extends BaseViewImpl implements ListBagInfoView
     }
 
     @Override
+    protected Button.ClickListener getBackButtonClickListener() {
+        return new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigateTo().previousView();
+            }
+        };
+    }
+
+    @Override
     protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
         List<Button> buttons = new ArrayList<>();
         buttons.add(new BaseButton($("ListBagInfoViewImpl.addBagInfo")) {

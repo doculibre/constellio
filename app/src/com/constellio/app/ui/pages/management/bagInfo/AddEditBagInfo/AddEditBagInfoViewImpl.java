@@ -10,6 +10,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +39,16 @@ public class AddEditBagInfoViewImpl extends BaseViewImpl implements AddEditBagIn
                 this.navigateTo().previousView();
             }
         }
+    }
+
+    @Override
+    protected Button.ClickListener getBackButtonClickListener() {
+        return new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigateTo().previousView();
+            }
+        };
     }
 
     @Override

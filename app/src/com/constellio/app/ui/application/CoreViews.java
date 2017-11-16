@@ -648,4 +648,10 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_BAG_INFO, params));
 	}
 
+	public void displaySIPProgression(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
+	}
+
 }

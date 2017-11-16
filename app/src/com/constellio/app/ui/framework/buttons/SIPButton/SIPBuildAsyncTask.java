@@ -26,6 +26,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 public class SIPBuildAsyncTask implements AsyncTask {
 
@@ -37,6 +38,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
     private String username;
     private boolean deleteFiles;
     private String currentVersion;
+    private UUID uuid;
 
     public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion) {
         this.bagInfoLines = bagInfoLines;
@@ -47,6 +49,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
         this.username = username;
         this.deleteFiles = deleteFiles;
         this.currentVersion = currentVersion;
+        this.uuid = UUID.randomUUID();
         validateParams();
     }
 
@@ -108,6 +111,10 @@ public class SIPBuildAsyncTask implements AsyncTask {
             ioServices.deleteQuietly(outFile);
             ioServices.deleteQuietly(outFolder);
         }
+    }
+
+    public String getUUID() {
+        return uuid.toString();
     }
 
     @Override

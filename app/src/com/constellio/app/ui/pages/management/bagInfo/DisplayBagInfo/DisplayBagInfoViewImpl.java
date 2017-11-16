@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,6 +31,16 @@ public class DisplayBagInfoViewImpl extends BaseViewImpl implements DisplayBagIn
         } else {
             showErrorMessage($("DisplayBagInfoView.idMustNotBeNull"));
         }
+    }
+
+    @Override
+    protected Button.ClickListener getBackButtonClickListener() {
+        return new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                navigateTo().previousView();
+            }
+        };
     }
 
     @Override

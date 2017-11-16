@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
+import com.constellio.app.ui.pages.SIP.SIPProgressionViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
@@ -181,6 +182,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_BAG_INFO = "listBagInfo";
 	public static final String DISPLAY_BAG_INFO = "displayBagInfo";
 	public static final String ADD_EDIT_BAG_INFO = "addEditBagInfo";
+	public static final String SIP_PROGRESSION = "sipProgression";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
@@ -330,6 +332,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_BAG_INFO, DisplayBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BAG_INFO, ListBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_BAG_INFO, AddEditBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

@@ -19,6 +19,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -95,8 +96,9 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                     List<String> documentList = getDocumentIDListFromObjectList();
                     List<String> folderList = getFolderIDListFromObjectList();
                     SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), view.getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-                    view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
+                    AsyncTaskBatchProcess asyncTaskBatchProcess = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
                     showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                    navigate().to().displaySIPProgression(asyncTaskBatchProcess.getId());
                 } else {
                     showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
                 }
