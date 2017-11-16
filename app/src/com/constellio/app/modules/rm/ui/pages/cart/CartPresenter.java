@@ -27,7 +27,6 @@ import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -133,7 +132,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		try {
 			DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
 			for (Folder folder : getCartFolders()) {
-				service.duplicateStructureAndSave(folder, getCurrentUser());
+				if(!folder.isLogicallyDeletedStatus()) {
+					service.duplicateStructureAndSave(folder, getCurrentUser());
+				}
 			}
 			view.showMessage($("CartView.duplicated"));
 		} catch (RecordServicesException.ValidationException e) {
@@ -315,20 +316,36 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
 	}
 
-	List<FolderVO> getCartFoldersVO(){
+	List<Folder> getNotDeletedCartFolders() {
+		List<Folder> cartFolders = getCartFolders();
+		Iterator<Folder> iterator = cartFolders.iterator();
+		while (iterator.hasNext()) {
+			Folder currentFolder = iterator.next();
+			if(currentFolder.isLogicallyDeletedStatus()) {
+				iterator.remove();
+			}
+		}
+		return cartFolders;
+	}
+
+	List<FolderVO> getNotDeletedCartFoldersVO(){
 		FolderToVOBuilder builder = new FolderToVOBuilder();
 		List<FolderVO> folderVOS = new ArrayList<>();
 		for(Folder folder : this.getCartFolders()){
-			folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+			if(!folder.isLogicallyDeletedStatus()) {
+				folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+			}
 		}
 		return folderVOS;
 	}
 
-	List<DocumentVO> getCartDocumentVO() {
+	List<DocumentVO> getNotDeletedCartDocumentVO() {
 		DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
 		List<DocumentVO> documentVOS = new ArrayList<>();
 		for(Document document : this.getCartDocuments()) {
-			documentVOS.add(builder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+			if(!document.isLogicallyDeletedStatus()) {
+				documentVOS.add(builder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
+			}
 		}
 		return documentVOS;
 	}
@@ -365,22 +382,35 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		cartId = parameters;
 	}
 
-	public List<String> getRecordsIds(String schemaType) {
+	public List<String> getNotDeletedRecordsIds(String schemaType) {
 		switch (schemaType) {
 		case Folder.SCHEMA_TYPE:
-			return cart().getFolders();
+			List<String> folders = cart().getFolders();
+			return getNonDeletedRecordsIds(rm.getFolders(folders));
 		case Document.SCHEMA_TYPE:
-			return cart().getDocuments();
+			List<String> documents = cart().getDocuments();
+			return getNonDeletedRecordsIds(rm.getDocuments(documents));
 		case ContainerRecord.SCHEMA_TYPE:
-			return cart().getContainers();
+			List<String> containers = cart().getContainers();
+			return getNonDeletedRecordsIds(rm.getContainerRecords(containers));
 		default:
 			throw new RuntimeException("Unsupported type : " + schemaType);
 		}
 	}
 
+	private List<String> getNonDeletedRecordsIds(List<? extends RecordWrapper> records) {
+		ArrayList<String> ids = new ArrayList<>();
+		for(RecordWrapper record: records) {
+			if(!record.isLogicallyDeletedStatus()) {
+				ids.add(record.getId());
+			}
+		}
+		return ids;
+	}
+
 	@Override
 	public String getOriginType(String schemaType) {
-		return batchProcessingPresenterService().getOriginType(getRecordsIds(schemaType));
+		return batchProcessingPresenterService().getOriginType(getNotDeletedRecordsIds(schemaType));
 	}
 
 	public String getOriginType(List<String> selectedRecordIds) {
@@ -389,7 +419,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext) {
-		return newRecordVO(getRecordsIds(schemaType), schema, sessionContext);
+		return newRecordVO(getNotDeletedRecordsIds(schemaType), schema, sessionContext);
 	}
 
 	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
@@ -399,7 +429,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	@Override
 	public InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		return simulateButtonClicked(selectedType, getRecordsIds(schemaType), viewObject);
+		return simulateButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
 	}
 
 	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
@@ -412,7 +442,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	@Override
 	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		processBatchButtonClicked(selectedType, getRecordsIds(schemaType), viewObject);
+		processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
 	}
 
 	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
@@ -424,12 +454,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public boolean hasWriteAccessOnAllRecords(String schemaType) {
-		return hasWriteAccessOnAllRecords(getRecordsIds(schemaType));
+		return hasWriteAccessOnAllRecords(getNotDeletedRecordsIds(schemaType));
 	}
 
 	@Override
 	public long getNumberOfRecords(String schemaType) {
-		return (long) getRecordsIds(schemaType).size();
+		return (long) getNotDeletedRecordsIds(schemaType).size();
 	}
 
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
@@ -458,7 +488,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType) {
-		return newRecordFieldFactory(schemaType, selectedType, getRecordsIds(schemaType));
+		return newRecordFieldFactory(schemaType, selectedType, getNotDeletedRecordsIds(schemaType));
 	}
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
@@ -492,7 +522,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				.onSomething()) {
 			hasRightToProcessSchemaType = false;
 		}
-		return getRecordsIds(schemaType).size() != 0 && hasRightToProcessSchemaType;
+		return getNotDeletedRecordsIds(schemaType).size() != 0 && hasRightToProcessSchemaType;
 	}
 
 	public void shareWithUsersRequested(List<String> userids) {
@@ -585,7 +615,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFor(getCartFolders());
+		list.setFolderDetailsFor(getNotDeletedCartFolders());
 
 		try {
 			recordServices().add(list);
@@ -686,7 +716,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	public Object getReportParameters(String report) {
-		List<String> recordids = getRecordsIds(view.getCurrentSchemaType());
+		List<String> recordids = getNotDeletedRecordsIds(view.getCurrentSchemaType());
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
 
 		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
@@ -736,7 +766,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getRecordsIds(schemaType));
+		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getNotDeletedRecordsIds(schemaType));
 		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
 		manager.markAsPending(process);
 	}
