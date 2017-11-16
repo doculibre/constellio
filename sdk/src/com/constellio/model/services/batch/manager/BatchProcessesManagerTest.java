@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -256,11 +258,12 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
-		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
+//		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
+		String urlQueryString = SolrUtils.toSingleQueryString(searchServices.addSolrModifiableParams(new LogicalSearchQuery().setCondition(condition)));//"?fq=%28*%3A*+-type_s%3Aindex%29&fq=collection_s%3AzeCollection&fq=zeQuery&qt=%2Fspell&shards.qt=%2Fspell&q=*%3A*&rows=100000&start=0";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)
-				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection",
+				.newAddBatchProcessDocumentAlteration(aBatchProcessId, urlQueryString, "zeCollection",
 						currentDate, 42, action, null, null);
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
@@ -271,10 +274,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
 		InOrder inOrder = Mockito.inOrder(manager, configManager, batchProcessListReader);
 		inOrder.verify(manager).newAddBatchProcessDocumentAlteration(
-				aBatchProcessId, solrQuery, "zeCollection", currentDate, 42, action, null, null);
+				aBatchProcessId, urlQueryString, "zeCollection", currentDate, 42, action, null, null);
 		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, addBatchProcessDocumentAlteration);
 		inOrder.verify(batchProcessListReader).read(aBatchProcessId);
-
 	}
 
 	@Test

@@ -860,11 +860,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		documentFromZeCollection = documentList.get(0);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		documentFromZeCollection.setFormModifiedOn(new LocalDateTime());
-		documentFromZeCollection.setFormCreatedOn(new LocalDateTime());
 
-		LocalDateTime originalFormModifiedOn = documentFromZeCollection.getFormModifiedOn();
-		LocalDateTime originalFormCreatedOn = documentFromZeCollection.getFormCreatedOn();
+		LocalDateTime zeDateTime = new LocalDateTime(2000,1,1,1,1);
+		documentFromZeCollection.setCreatedOn(zeDateTime);
+		documentFromZeCollection.setModifiedOn(zeDateTime.plusSeconds(1));
+		documentFromZeCollection.setFormCreatedOn(zeDateTime.plusSeconds(2));
+		documentFromZeCollection.setFormModifiedOn(zeDateTime.plusSeconds(3));
 
 		String originalTitle = documentFromZeCollection.getTitle();
 
@@ -901,8 +902,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			assertThat(found).isTrue();
 		}
 
-		assertThat(updatedDocument.getFormModifiedOn()).isEqualTo(originalFormModifiedOn.withMillisOfSecond(0));
-		assertThat(updatedDocument.getFormCreatedOn()).isEqualTo(originalFormCreatedOn.withMillisOfSecond(0));
+		assertThat(updatedDocument.getCreatedOn()).isEqualTo(zeDateTime);
+		assertThat(updatedDocument.getModifiedOn()).isEqualTo(zeDateTime.plusSeconds(1));
+		assertThat(updatedDocument.getFormCreatedOn()).isEqualTo(zeDateTime.plusSeconds(2));
+		assertThat(updatedDocument.getFormModifiedOn()).isEqualTo(zeDateTime.plusSeconds(3));
 	}
 
 	@Test
