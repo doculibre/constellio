@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
@@ -299,7 +300,8 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 				.setQuery(new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
 						.isContainingText("Chat")))
 				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
-		presenter.getOptions(request);
+		List<CopyRetentionRule> copyRuleOptions = presenter.getOptions(request);
+		assertThat(copyRuleOptions).extractingResultOf("toString").containsOnly("42-5-C");
 	}
 
 	@Test
@@ -310,6 +312,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection)).setSchemaType(rm.documentSchemaType())
 				.setIds(searchServices.searchRecordIds(query))
 				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
-		presenter.getOptions(request);
+		List<CopyRetentionRule> copyRuleOptions = presenter.getOptions(request);
+		assertThat(copyRuleOptions).extractingResultOf("toString").containsOnly("42-5-C");
 	}
 }

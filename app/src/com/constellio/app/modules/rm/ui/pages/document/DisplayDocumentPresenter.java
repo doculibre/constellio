@@ -175,6 +175,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
+				view.refreshContentViewer();
 			}
 
 			contentVersionVO = documentVO.getContent();

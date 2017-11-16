@@ -352,7 +352,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 		User currentUser = getCurrentUser();
 		LocalDateTime time = TimeProvider.getLocalDateTime();
-		if (isAddView()) {
+		if (isAddView() || isDuplicateAction) {
 			folder.setFormCreatedBy(currentUser);
 			if (folder.getFormCreatedOn() == null) {
 				folder.setFormCreatedOn(time);

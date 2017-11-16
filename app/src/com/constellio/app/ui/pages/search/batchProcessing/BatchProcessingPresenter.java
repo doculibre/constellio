@@ -40,7 +40,7 @@ public interface BatchProcessingPresenter {
 
 	boolean isSearchResultsSelectionForm();
 
-	void batchEditRequested(List<String> selectedRecordIds, String code, Object convertedValue, String schemaType);
+	void batchEditRequested(String code, Object convertedValue, String schemaType);
 
 	List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType);
 }

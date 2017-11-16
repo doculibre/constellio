@@ -43,6 +43,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -221,9 +222,13 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			reportButton.addStyleName(ValoTheme.BUTTON_LINK);
 			selectionActions.add(reportButton);
 			addListenerToButton(results);
-
+			UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
+			boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
+					.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
 			sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
 			sipButton.addStyleName(ValoTheme.BUTTON_LINK);
+			sipButton.setVisible(hasAccessToSIP);
+			sipButton.setEnabled(hasAccessToSIP);
 			selectionActions.add(sipButton);
 		}
 

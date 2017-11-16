@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.vaadin.data.validator.AbstractStringValidator;
+import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
@@ -24,21 +25,8 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigManagementView {
@@ -119,6 +107,9 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					}
 					
 					field.setCaption(fieldCaption);
+					if(field instanceof AbstractComponent) {
+						((AbstractComponent) field).setCaptionAsHtml(true);
+					}
 					groupLayout.addComponent(field);
 				}
 

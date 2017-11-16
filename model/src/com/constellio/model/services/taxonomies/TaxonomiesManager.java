@@ -4,12 +4,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.jdom2.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,16 +55,18 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private ConstellioCacheManager cacheManager;
 	private final BatchProcessesManager batchProcessesManager;
 	private OneXMLConfigPerCollectionManager<TaxonomiesManagerCache> oneXMLConfigPerCollectionManager;
+	private ConstellioEIMConfigs eimConfigs;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
-			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
-			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager) {
+							 BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
+							 RecordsCaches recordsCaches, ConstellioCacheManager cacheManager, ConstellioEIMConfigs eimConfigs) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.batchProcessesManager = batchProcessesManager;
 		this.recordsCaches = recordsCaches;
 		this.cacheManager = cacheManager;
+		this.eimConfigs = eimConfigs;
 	}
 
 	@Override
@@ -348,6 +347,32 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			}
 		}
 
+		return sortTaxonomies(taxonomies);
+	}
+
+	private List<Taxonomy> sortTaxonomies(List<Taxonomy> taxonomies) {
+		final List<String> taxonomiesInOrder = new ArrayList<>();
+
+		String stringOrder = eimConfigs.getTaxonomyOrderInHomeView();
+		if(stringOrder != null) {
+			taxonomiesInOrder.addAll(asList(stringOrder.replaceAll("\\s","").split(",")));
+		}
+
+		Collections.sort(taxonomies, new Comparator<Taxonomy>() {
+			@Override
+			public int compare(Taxonomy o1, Taxonomy o2) {
+				int index1 = taxonomiesInOrder.indexOf(o1.getCode());
+				int index2 = taxonomiesInOrder.indexOf(o2.getCode());
+
+				if(index1 == -1) {
+					return 1;
+				} else if(index2 == -1) {
+					return -1;
+				} else {
+					return index1-index2;
+				}
+			}
+		});
 		return taxonomies;
 	}
 
@@ -363,7 +388,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		List<Taxonomy> schemaTaxonomies = getAvailableTaxonomiesForSelectionOfType(schemaType, user, metadataSchemasManager);
 		taxonomies.addAll(schemaTaxonomies);
 
-		return new ArrayList<>(taxonomies);
+		return sortTaxonomies(new ArrayList<>(taxonomies));
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,
@@ -373,7 +398,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 		Taxonomy taxonomyWithType = getTaxonomyFor(user.getCollection(), schemaType);
 		if (taxonomyWithType != null) {
-			return asList(taxonomyWithType);
+			return sortTaxonomies(asList(taxonomyWithType));
 		} else {
 
 			MetadataSchemaType type = types.getSchemaType(schemaType);
@@ -395,7 +420,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 				}
 			}
 
-			return new ArrayList<>(taxonomies);
+			return sortTaxonomies(new ArrayList<>(taxonomies));
 		}
 
 	}

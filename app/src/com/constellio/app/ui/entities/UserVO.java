@@ -26,8 +26,12 @@ public class UserVO extends RecordVO {
 
 	public int getDefaultPageLength() {
 		try {
-			SearchPageLength searchPageLength = get(User.DEFAULT_PAGE_LENGTH);
-			return searchPageLength == null ? 10 : searchPageLength.getValue();
+			if(getMetadataCodes().contains(User.DEFAULT_PAGE_LENGTH)) {
+				SearchPageLength searchPageLength = get(User.DEFAULT_PAGE_LENGTH);
+				return searchPageLength == null ? 10 : searchPageLength.getValue();
+			} else {
+				return 10;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return 10;

@@ -257,7 +257,7 @@ public class BatchProcessingPresenterService {
 		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.newBatchProcessesManager();
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		batchProcessesManager.addPendingBatchProcess(records, action, username, title, collection);
 
 		return null;
@@ -376,7 +376,7 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.newBatchProcessesManager();
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		batchProcessesManager.addPendingBatchProcess(query, action, username, title);
 
 		return null;

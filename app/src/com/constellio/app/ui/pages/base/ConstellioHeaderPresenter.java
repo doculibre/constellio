@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -18,6 +19,13 @@ import java.util.Set;
 
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.SearchPresenter;
+import com.constellio.app.ui.pages.search.SearchResultsViewMode;
+import com.constellio.app.ui.pages.search.SimpleSearchView;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -74,7 +82,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -113,9 +120,133 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public void searchRequested(String expression, String schemaTypeCode) {
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
-			header.hideAdvancedSearchPopup().navigateTo().advancedSearch();
+			SavedSearch temporarySearch = buildAdvancedTemporarySearch(null, expression);
+			if(temporarySearch != null) {
+				header.hideAdvancedSearchPopup().navigateTo().advancedSearchReplay(temporarySearch.getId());
+			} else {
+				header.hideAdvancedSearchPopup().navigateTo().advancedSearch();
+			}
 		} else if (StringUtils.isNotBlank(expression)) {
-			header.hideAdvancedSearchPopup().navigateTo().simpleSearch(expression);
+			SavedSearch temporarySearch = buildSimpleTemporarySearch(null, expression);
+			if(temporarySearch != null) {
+				header.hideAdvancedSearchPopup().navigateTo().simpleSearchReplay(temporarySearch.getId());
+			} else {
+				header.hideAdvancedSearchPopup().navigateTo().simpleSearch(expression);
+			}
+		}
+	}
+
+	private SavedSearch buildTemporarySearch(Record tmpSearchRecord, String expression, String searchType) {
+		if(tmpSearchRecord == null) {
+			tmpSearchRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+		}
+		SortParameters sortParameters = buildSortParameters();
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(sortParameters.getSortCriterion())
+				.setSortOrder(SavedSearch.SortOrder.valueOf(sortParameters.getSortOrder().name()))
+				.setSelectedFacets(new HashMap<String, Set<String>>())
+				.setTemporary(true)
+				.setSearchType(searchType)
+				.setPageNumber(1)
+				.setResultsViewMode(SearchResultsViewMode.DETAILED)
+				.setPageLength(0);
+
+		if(StringUtils.isNotBlank(expression)) {
+			search.setFreeTextSearch(expression);
+		}
+
+		if(AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
+			search.setSchemaFilter(schemaTypeCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
+					.setTitle($("SearchView.savedSearch.temporaryAdvance"));
+		} else {
+			search.setTitle($("SearchView.savedSearch.temporarySimple"));
+		}
+
+		try {
+			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
+			modelLayerFactory.getRecordsCaches().getCache(header.getCollection()).forceInsert(search.getWrappedRecord());
+			return search;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private SavedSearch buildAdvancedTemporarySearch(Record tmpSearchRecord, String expression) {
+		return buildTemporarySearch(null, expression, AdvancedSearchView.SEARCH_TYPE);
+	}
+
+	private SavedSearch buildSimpleTemporarySearch(Record tmpSearchRecord, String expression) {
+		return buildTemporarySearch(null, expression, SimpleSearchView.SEARCH_TYPE);
+	}
+
+	private SortParameters buildSortParameters() {
+		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
+		String sortCriterion;
+		SearchPresenter.SortOrder sortOrder;
+		switch (searchSortType) {
+			case RELEVENCE:
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				sortCriterion = null;
+				break;
+			case PATH_ASC:
+				sortCriterion = Schemas.PATH.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case PATH_DES:
+				sortCriterion = Schemas.PATH.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case ID_ASC:
+				sortCriterion = Schemas.IDENTIFIER.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case ID_DES:
+				sortCriterion = Schemas.IDENTIFIER.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case CREATION_DATE_ASC:
+				sortCriterion = Schemas.CREATED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case CREATION_DATE_DES:
+				sortCriterion = Schemas.CREATED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case MODIFICATION_DATE_ASC:
+				sortCriterion = Schemas.MODIFIED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case MODIFICATION_DATE_DES:
+				sortCriterion = Schemas.MODIFIED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			default:
+				throw new RuntimeException("Unsupported type " + searchSortType);
+		}
+
+		return new SortParameters(sortCriterion, sortOrder);
+	}
+
+	static public class SortParameters {
+		private String sortCriterion;
+		private SearchPresenter.SortOrder sortOrder;
+
+		public SortParameters(String sortCriterion, SearchPresenter.SortOrder sortOrder) {
+			this.sortCriterion = sortCriterion;
+			this.sortOrder = sortOrder;
+		}
+
+		public String getSortCriterion() {
+			return sortCriterion;
+		}
+
+		public SearchPresenter.SortOrder getSortOrder() {
+			return sortOrder;
 		}
 	}
 

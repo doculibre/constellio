@@ -191,9 +191,14 @@ public class UpdateContentVersionPresenter implements Serializable {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
 						content.checkIn();
-						content.finalizeVersion();
+						if(!wasMajorVersion(content)) {
+							content.finalizeVersion();
+						}
 					} else if (newMinorVersion) {
 						content.checkIn();
+						if(!wasMinorVersion(content)) {
+							content.updateMinorVersion();
+						}
 					} else {
 						// TODO Throw appropriate exception
 						throw new RuntimeException("A new version must be specified if no new content is uploaded");
@@ -217,6 +222,14 @@ public class UpdateContentVersionPresenter implements Serializable {
 				}
 			}
 		}
+	}
+
+	private boolean wasMajorVersion(Content content) {
+		return content != null && content.getCurrentVersion().isMajor();
+	}
+
+	private boolean wasMinorVersion(Content content) {
+		return content != null && !content.getCurrentVersion().isMajor();
 	}
 
 	public SchemaPresenterUtils getPresenterUtils(RecordVO recordVO) {

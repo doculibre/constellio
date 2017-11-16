@@ -182,7 +182,7 @@ public class QuickCompleteWindow {
         }
         if (tasksSchemas.isRequestTask(task)) {
             task.set(RequestTask.RESPONDANT, respondantId);
-            task.set(RequestTask.ACCEPTED, true);
+            task.set(RequestTask.ACCEPTED, accepted);
             task.set(RequestTask.REASON, reason);
         }
 

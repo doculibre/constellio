@@ -150,6 +150,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
+		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed, cacheManager));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
@@ -160,7 +161,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches, cacheManager));
+						recordsCaches, cacheManager, getSystemConfigs()));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
@@ -177,8 +178,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
 		this.contentsManager = add(new ContentManager(this));
-
-		securityTokenManager = add(new SecurityTokenManager(this));
 
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
@@ -268,10 +267,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public BatchProcessesManager getBatchProcessesManager() {
 		return batchProcessesManager;
-	}
-
-	public BatchProcessesManager newBatchProcessesManager() {
-		return new BatchProcessesManager(this);
 	}
 
 	public FoldersLocator getFoldersLocator() {

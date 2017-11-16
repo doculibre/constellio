@@ -313,6 +313,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			recordServices().update(containerRecord);
 		} catch (RecordServicesException e) {
 			view.showErrorMessage("Could not update report creation time");
+			e.printStackTrace();
 		}
 	}
 
