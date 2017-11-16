@@ -36,14 +36,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -54,21 +55,17 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
 
-	@Before
-	public void setup()
+	@Test
+	public void whenQueryingFoldersFilteredByUserThenReturnsGoodFolders()
 			throws Exception {
+
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
-		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		users.setUp(getModelLayerFactory().newUserServices());
 		waitForBatchProcess();
-	}
-
-	@Test
-	public void whenQueryingFoldersFilteredByUserThenReturnsGoodFolders() {
 
 		assertThat(getReadWriteDeleteRecordsForUser(users.adminIn(zeCollection)))
 				.containsExactly(getExpectedAdminRead(), getExpectedAdminWrite(), getExpectedAdminDelete());
@@ -104,6 +101,119 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 				.containsExactly(getExpectedSasquatchRead(), getExpectedSasquatchWrite(), getExpectedSasquatchDelete());
 	}
 
+	@Test
+	public void givenAuthorizationWithTimeRangeThenActiveAtTheRightTime()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		SolrAuthorizationDetails auth = schemas.newSolrAuthorizationDetails();
+
+		givenTimeIs(date(2017, 11, 16));
+
+		//Auth is now active
+		auth.setStartDate(date(2017, 11, 15));
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 14));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isTrue();
+
+		//Auth is active and has accurate tokens
+		auth.setStartDate(date(2017, 11, 15));
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is active and has accurate tokens
+		auth.setStartDate(date(2017, 11, 15));
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 16));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is active and has accurate tokens
+		auth.setStartDate(date(2017, 11, 15));
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 17));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth was already inactive the last time it was recalculated
+		auth.setStartDate(date(2017, 11, 15));
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 17));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is now inactive
+		auth.setStartDate(date(2017, 11, 12));
+		auth.setEndDate(date(2017, 11, 15));
+		auth.setLastTokenRecalculate(date(2017, 11, 12));
+		assertThat(auth.isActiveAuthorization()).isFalse();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isTrue();
+
+		//Auth is not yet active
+		auth.setStartDate(date(2017, 11, 17));
+		auth.setEndDate(null);
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isFalse();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is now active
+		auth.setStartDate(date(2017, 11, 16));
+		auth.setEndDate(null);
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isTrue();
+
+		//Auth is already active
+		auth.setStartDate(date(2017, 11, 16));
+		auth.setEndDate(null);
+		auth.setLastTokenRecalculate(date(2017, 11, 16));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is already active
+		auth.setStartDate(date(2017, 11, 16));
+		auth.setEndDate(null);
+		auth.setLastTokenRecalculate(date(2017, 11, 17));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is active
+		auth.setStartDate(null);
+		auth.setEndDate(date(2017, 11, 17));
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is active
+		auth.setStartDate(null);
+		auth.setEndDate(date(2017, 11, 16));
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isTrue();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isFalse();
+
+		//Auth is now inactive
+		auth.setStartDate(null);
+		auth.setEndDate(date(2017, 11, 15));
+		auth.setLastTokenRecalculate(date(2017, 11, 14));
+		assertThat(auth.isActiveAuthorization()).isFalse();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isTrue();
+
+		//Auth is already inactive
+		auth.setStartDate(null);
+		auth.setEndDate(date(2017, 11, 15));
+		auth.setLastTokenRecalculate(date(2017, 11, 15));
+		assertThat(auth.isActiveAuthorization()).isFalse();
+		assertThat(auth.hasModifiedStatusSinceLastTokenRecalculate()).isTrue();
+
+	}
+
 	public List<List<String>> getReadWriteDeleteRecordsForUser(User user) {
 		return asList(getReadRecordsForUser(user), getWriteRecordsForUser(user), getDeleteRecordsForUser(user));
 	}
@@ -131,4 +241,5 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
 				from(type).returnAll()).filteredWithUserDelete(user).sortAsc(Schemas.IDENTIFIER));
 	}
+
 }

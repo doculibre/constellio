@@ -48,25 +48,27 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		List<Record> auths = searchServices
 				.search(new LogicalSearchQuery(from(rm.authorizationDetails.schemaType()).returnAll()));
 
-		assertThatRecords(auths).extractingMetadatas(IDENTIFIER, rm.authorizationDetails.targetSchemaType()).containsOnly(
-				tuple("00000000409", "folder"),
-				tuple("00000000088", "administrativeUnit"),
-				tuple("00000000087", "administrativeUnit"),
-				tuple("00000000089", "administrativeUnit"),
-				tuple("00000000404", "document"),
-				tuple("00000000084", "administrativeUnit"),
-				tuple("00000000095", "administrativeUnit"),
-				tuple("00000000083", "administrativeUnit"),
-				tuple("00000000094", "administrativeUnit"),
-				tuple("00000000086", "administrativeUnit"),
-				tuple("00000000085", "administrativeUnit"),
-				tuple("00000000080", "administrativeUnit"),
-				tuple("00000000091", "administrativeUnit"),
-				tuple("00000000090", "administrativeUnit"),
-				tuple("00000000082", "administrativeUnit"),
-				tuple("00000000093", "administrativeUnit"),
-				tuple("00000000081", "administrativeUnit"),
-				tuple("00000000092", "administrativeUnit")
+		givenTimeIs(date(2017, 11, 16));
+		assertThatRecords(auths).extractingMetadatas(IDENTIFIER, rm.authorizationDetails.targetSchemaType(),
+				rm.authorizationDetails.lastTokenRecalculate()).containsOnly(
+				tuple("00000000409", "folder", date(2017, 11, 16)),
+				tuple("00000000088", "administrativeUnit", null),
+				tuple("00000000087", "administrativeUnit", null),
+				tuple("00000000089", "administrativeUnit", null),
+				tuple("00000000404", "document", date(2017, 11, 16)),
+				tuple("00000000084", "administrativeUnit", null),
+				tuple("00000000095", "administrativeUnit", null),
+				tuple("00000000083", "administrativeUnit", null),
+				tuple("00000000094", "administrativeUnit", null),
+				tuple("00000000086", "administrativeUnit", null),
+				tuple("00000000085", "administrativeUnit", null),
+				tuple("00000000080", "administrativeUnit", null),
+				tuple("00000000091", "administrativeUnit", null),
+				tuple("00000000090", "administrativeUnit", null),
+				tuple("00000000082", "administrativeUnit", null),
+				tuple("00000000093", "administrativeUnit", null),
+				tuple("00000000081", "administrativeUnit", null),
+				tuple("00000000092", "administrativeUnit", null)
 		);
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);

@@ -62,13 +62,14 @@ import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
@@ -160,6 +161,20 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
 			assertThat(foldersWithWriteFound).hasSize(0);
 			assertThat(foldersWithDeleteFound).hasSize(0);
+		}
+	}
+
+	@After
+	public void validateNoAuthorizationsToRecalculate()
+			throws Exception {
+
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, getModelLayerFactory());
+			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizations()) {
+				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
+					fail("authorization '" + auth.getId() + "' on target '" + auth.getTarget() + "'");
+				}
+			}
 		}
 	}
 
@@ -1310,6 +1325,81 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void givenAuthorizationsWithStartAndEndDateOnNonConceptRecordThenOnlyActiveDuringSpecifiedTimerange()
+			throws Exception {
+
+		givenTimeIs(date(2016, 4, 4));
+
+		//A daily authorizaiton
+		auth1 = add(authorizationForUser(aliceWonderland).on(FOLDER4)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 5)).givingReadWriteAccess());
+
+		//A 4 day authorizaiton
+		auth2 = add(authorizationForUser(bob).on(FOLDER4)
+				.startingOn(date(2016, 4, 5)).endingOn(date(2016, 4, 8)).givingReadWriteAccess());
+
+		//A future authorization
+		auth3 = add(authorizationForUser(charles).on(FOLDER4)
+				.startingOn(date(2016, 4, 7)).givingReadWriteAccess());
+
+		//An authorization with an end
+		auth4 = add(authorizationForUser(dakota).on(FOLDER4)
+				.endingOn(date(2016, 4, 6)).givingReadWriteAccess());
+
+		auth5 = add(authorizationForUser(edouard).on(FOLDER4).givingReadWriteAccess());
+
+		//An authorization started in the past
+		auth6 = add(authorizationForUser(gandalf).on(FOLDER4)
+				.during(date(2016, 4, 3), date(2016, 4, 6)).givingReadWriteAccess());
+
+		//An authorization already finished
+		try {
+			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
+					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
+			fail("Exception expected");
+		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+			//OK
+		}
+
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+
+		givenTimeIs(date(2016, 4, 4));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 5));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 6));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
+		}
+
+		givenTimeIs(date(2016, 4, 7));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
+		}
+
+		givenTimeIs(date(2016, 4, 8));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
+		}
+
+		givenTimeIs(date(2016, 4, 9));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
+		}
+
+		assertThatAllAuthorizationsIds().containsOnly(auth1, auth2, auth3, auth4, auth5, auth6);
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		assertThatAllAuthorizationsIds().containsOnly(auth3, auth5);
+
+	}
+
+	@Test
 	public void givenAuthorizationsWithStartAndEndDateOnFolderThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 
@@ -1831,9 +1921,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenTimeIs(LocalDate newDate) {
 		super.givenTimeIs(newDate);
 
-		//TODO Francis temporaire
-		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE);
+		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
+				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
 	}
 
 	@Test
