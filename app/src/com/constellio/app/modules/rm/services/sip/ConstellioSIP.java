@@ -31,6 +31,7 @@ import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
 
 import au.edu.apsr.mtk.base.*;
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.ead.EAD;
 import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
@@ -244,13 +245,16 @@ public class ConstellioSIP {
 
 	private String currentVersion;
 
+	private ProgressInfo progressInfo;
+
 	public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize,
-			String currentVersion) {
+						 String currentVersion, ProgressInfo progressInfo) {
 		this.sipObjectsProvider = sipObjectsProvider;
 		this.providedBagInfoLines = bagInfoLines;
 		this.currentDocumentIndex = sipObjectsProvider.getStartIndex();
 		this.limitSize = limitSize;
 		this.currentVersion = currentVersion;
+		this.progressInfo = progressInfo;
 	}
 
 	public void build(File zipFile)
@@ -673,7 +677,10 @@ public class ConstellioSIP {
 		bagDiv.setType("folder");
 
 		List<SIPObject> sipObjects = sipObjectsProvider.list();
+		int index = 0;
+		progressInfo.setEnd(sipObjects.size());
 		for (SIPObject sipObject : sipObjects) {
+			progressInfo.setCurrentState(++index);
 			addToSIP(sipObject, mets, documentFileGroup, bagDiv, errors);
 		}
 		mets.setFileSec(fileSec);
@@ -727,6 +734,7 @@ public class ConstellioSIP {
 		manifestFile.delete();
 		metsFile.delete();
 		tagmanifestFile.delete();
+		progressInfo.setDone(true);
 	}
 
 	private String printable(String text) {

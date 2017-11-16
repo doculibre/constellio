@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.sip.data.intelligid;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
@@ -56,11 +57,17 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 
     private MetadataSchemaTypes types;
 
-    public ConstellioSIPObjectsProvider(String collection, AppLayerFactory factory, SIPFilter filter) {
+    private int currentProgress;
+
+    private ProgressInfo progressInfo;
+
+    public ConstellioSIPObjectsProvider(String collection, AppLayerFactory factory, SIPFilter filter, ProgressInfo progressInfo) {
         this.collection = collection;
         this.factory = factory;
         this.filter = filter;
         this.rm = new RMSchemasRecordsServices(collection, factory);
+        this.progressInfo = progressInfo;
+        this.currentProgress = 0;
         init();
     }
 
@@ -80,6 +87,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 
         System.out.println("Obtention de la liste des documents");
         documents = rm.searchDocuments(filter.getSearchQuery());
+        this.progressInfo.setEnd(documents.size());
         System.out.println("Liste de documents obtenue (" + documents.size() + ")");
     }
 
@@ -173,6 +181,8 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
             public SIPObject get(int index) {
                 System.out.println("Document " + (index + 1) + " de " + documents.size());
                 Document document = documents.get(index);
+//                progressInfo.setCurrentState(++currentProgress);
+//                progressInfo.setProgressMessage("Document " + (index + 1) + " de " + documents.size());
                 return new SIPDocument(document, document.getSchema().getMetadatas(), new EntityRetriever(collection, factory));
             }
 

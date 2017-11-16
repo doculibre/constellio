@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.BagInfo;
@@ -46,14 +47,12 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class SIPbutton extends WindowButton implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver, Component {
+public class SIPbutton extends WindowButton {
 
 
     private List<RecordVO> objectList = new ArrayList<>();
 
     private ConstellioHeader view;
-    private IOServices ioServices;
-    private File bagInfoFile;
     private AppLayerFactory factory;
     private String collection;
 
@@ -63,7 +62,6 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         if (this.view != null) {
             this.factory = this.view.getConstellioFactories().getAppLayerFactory();
             this.collection = this.view.getCollection();
-            ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
             User user = this.view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection(this.view.getSessionContext().getCurrentUser().getUsername(), this.view.getCollection());
             if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
                 super.setVisible(false);
@@ -98,6 +96,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
                     SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), view.getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
                     AsyncTaskBatchProcess asyncTaskBatchProcess = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
                     showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+                    closeAllWindows();
                     navigate().to().displaySIPProgression(asyncTaskBatchProcess.getId());
                 } else {
                     showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
@@ -138,28 +137,6 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         }
         return folders;
     }
-
-    @Override
-    public void uploadFailed(Upload.FailedEvent event) {}
-
-    @Override
-    public OutputStream receiveUpload(String filename, String mimeType) {
-        FileOutputStream fos = null; // Output stream to write to
-        bagInfoFile = ioServices.newTemporaryFile(filename);
-        try {
-            // Open the file for writing.
-            fos = new FileOutputStream(bagInfoFile);
-        } catch (final java.io.FileNotFoundException e) {
-            // Error while opening the file. Not reported here.
-            e.printStackTrace();
-            return null;
-        }
-
-        return fos; // Return the output stream to write to
-    }
-
-    @Override
-    public void uploadSucceeded(Upload.SucceededEvent event) {}
 
     private boolean validateFolderHasDocument(){
         SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
