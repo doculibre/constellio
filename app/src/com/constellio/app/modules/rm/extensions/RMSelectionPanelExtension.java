@@ -104,7 +104,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     @Override
     public void addAvailableActions(AvailableActionsParam param) {
         UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-        boolean hasAccessToSIP = userServices.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), collection)
+        boolean hasAccessToSIP = userServices.getUserInCollection(param.getUser().getUsername(), collection)
                 .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
         addMoveButton(param);
         addDuplicateButton(param);
@@ -215,9 +215,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
-                appLayerFactory, collection, true, this.getSessionContext());
+                appLayerFactory, collection, true, param.getView().getSessionContext());
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
@@ -226,7 +226,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
         SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
         setStyles(tabButton);
         tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
@@ -393,7 +393,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
                             if(isCheckInPossible(param, id)) {
                                 RecordVO documentVo = recordToVOBuilder.build(appLayerFactory.getModelLayerFactory().newRecordServices()
-                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, getSessionContext());
+                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, param.getView().getSessionContext());
                                 records.put(documentVo, documentVo.getMetadata(Document.CONTENT));
                             }
                         }
@@ -465,10 +465,6 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         button.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         button.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(button);
-    }
-
-    protected SessionContext getSessionContext() {
-        return ConstellioUI.getCurrentSessionContext();
     }
 
     private DecommissioningService decommissioningService(AvailableActionsParam param) {
@@ -854,12 +850,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return defaultAdministrativeUnit;
     }
 
-    private List<RecordVO> getRecordVOFromIds(List<String> ids) {
+    private List<RecordVO> getRecordVOFromIds(List<String> ids, AvailableActionsParam param) {
         List<RecordVO> recordVOS = new ArrayList<>();
         RecordServices recordServices = recordServices();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         for(String id : ids) {
-            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, param.getView().getSessionContext()));
         }
         return recordVOS;
     }
