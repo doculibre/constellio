@@ -96,6 +96,10 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		public Metadata target() {
 			return metadata("target");
 		}
+
+		public Metadata targetSchemaType() {
+			return metadata("targetSchemaType");
+		}
 	}
 	public Capsule wrapCapsule(Record record) {
 		return record == null ? null : new Capsule(record, getTypes());
