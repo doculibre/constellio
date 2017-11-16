@@ -337,6 +337,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return cart().getFolders();
 	}
 
+	List<String> getCartContainerIds() {
+		return cart().getContainers();
+	}
+
+	List<String> getCartDocumentIds() {
+		return cart().getDocuments();
+	}
+
 	private List<Document> getCartDocuments() {
 		return rm().wrapDocuments(recordServices().getRecordsById(view.getCollection(), cart().getDocuments()));
 	}

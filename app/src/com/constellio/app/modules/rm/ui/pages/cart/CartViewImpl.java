@@ -453,6 +453,23 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.deletionRequested();
 			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				List<String> cartFolderIds = presenter.getCartFolderIds();
+				List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+				StringBuilder stringBuilder = new StringBuilder();
+				String prefix = "";
+				if(cartFolderIds != null && !cartFolderIds.isEmpty()) {
+					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+					prefix = " " + $("CartView.andAll") + " ";
+				}
+				if(cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+				}
+				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
+			}
 		};
 		button.setEnabled(presenter.canDelete());
 		button.setVisible(presenter.canDelete());
