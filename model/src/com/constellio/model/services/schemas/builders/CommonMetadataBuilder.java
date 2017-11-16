@@ -218,24 +218,19 @@ public class CommonMetadataBuilder {
 		metadata.put(TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				//				asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
-				//						&&
-				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
-						.contains(schema.getSchemaTypeBuilder().getCode())
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
+						.setMultivalue(true);
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
 						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
-					MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
-							.setMultivalue(true)
-							.defineDataEntry().asCalculated(TokensCalculator4.class);
-					for (Language language : types.getLanguages()) {
-						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-					}
+					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
+
 				} else {
-					MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
-							.setMultivalue(true)
-							.defineDataEntry().asCalculated(TokensCalculator2.class);
-					for (Language language : types.getLanguages()) {
-						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-					}
+					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator2.class);
+
+				}
+
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
 			}
 		});
@@ -511,23 +506,18 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				//TODO Francis : temporaire
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
-				//				asList("folder", "document").contains(schema.getSchemaTypeBuilder().getCode())
-				//						&&
-				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
-						.contains(schema.getSchemaTypeBuilder().getCode())
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
 						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
-					MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS)
-							.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).setMultivalue(true)
-							.defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
-					for (Language language : types.getLanguages()) {
-						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-					}
+
+					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
+							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
+
 				} else {
-					MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS)
-							.setType(STRING).setMultivalue(true);
-					for (Language language : types.getLanguages()) {
-						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-					}
+					metadataBuilder.setType(STRING).setMultivalue(true);
+				}
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
 			}
 		});

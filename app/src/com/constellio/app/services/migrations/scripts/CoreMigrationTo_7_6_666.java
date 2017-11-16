@@ -1,12 +1,18 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static java.util.Arrays.asList;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class CoreMigrationTo_7_6_666 implements MigrationScript {
@@ -33,6 +39,13 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);
 			authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(MetadataValueType.STRING);
+
+			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(typeBuilder.getCode())) {
+					//typeBuilder.getDefaultSchema().get(Schemas.TOKENS).defineDataEntry().asCalculated(TokensCalculator4.class);
+				}
+
+			}
 
 		}
 	}
