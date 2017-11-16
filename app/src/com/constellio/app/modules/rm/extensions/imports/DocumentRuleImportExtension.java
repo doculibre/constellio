@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.extensions.imports;
 
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -36,22 +37,22 @@ public class DocumentRuleImportExtension extends RecordImportExtension {
 
 
 		String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());
-		if (createdBy != null) {
+		if (createdBy != null && !fields.containsKey(RMObject.FORM_CREATED_BY)) {
 			document.setFormCreatedBy(document.getCreatedBy());
 		}
 
 		LocalDateTime createdOn = (LocalDateTime) fields.get(Schemas.CREATED_ON.getLocalCode());
-		if (createdOn != null) {
+		if (createdOn != null && !fields.containsKey(RMObject.FORM_CREATED_ON)) {
 			document.setFormCreatedOn(createdOn);
 		}
 
 		String modifiedBy = (String) fields.get(Schemas.MODIFIED_BY.getLocalCode());
-		if (modifiedBy != null) {
+		if (modifiedBy != null && !fields.containsKey(RMObject.FORM_MODIFIED_BY)) {
 			document.setFormModifiedBy(document.getModifiedBy());
 		}
 
 		LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
-		if (modifiedOn != null) {
+		if (modifiedOn != null && !fields.containsKey(RMObject.FORM_MODIFIED_ON)) {
 			document.setFormModifiedOn(modifiedOn);
 		}
 	}
