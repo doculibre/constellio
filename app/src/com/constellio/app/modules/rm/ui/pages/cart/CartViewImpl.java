@@ -445,10 +445,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchDeleteButton() {
-		Button button = new DeleteButton(false) {
+		Button button = new DeleteWithJustificationButton(false) {
 			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deletionRequested();
+			protected void deletionConfirmed(String reason) {
+				presenter.deletionRequested(reason);
 			}
 
 			@Override

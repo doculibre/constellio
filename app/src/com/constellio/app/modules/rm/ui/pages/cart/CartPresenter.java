@@ -149,13 +149,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
-	public void deletionRequested() {
+	public void deletionRequested(String reason) {
 		if (!canDelete()) {
 			view.showErrorMessage($("CartView.cannotDelete"));
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), cart().getAllItems())) {
-			delete(record);
+			delete(record, reason);
 		}
 		cartEmptyingRequested();
 	}
