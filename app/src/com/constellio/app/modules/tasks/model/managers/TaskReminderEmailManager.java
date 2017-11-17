@@ -1,15 +1,6 @@
 package com.constellio.app.modules.tasks.model.managers;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -169,7 +160,11 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
+		if(task.getDueDate() != null) {
+			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
+		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
+
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
 		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		String constellioURL = eimConfigs.getConstellioUrl();
