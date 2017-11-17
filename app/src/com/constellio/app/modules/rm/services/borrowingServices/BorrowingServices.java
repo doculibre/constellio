@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -247,7 +248,7 @@ public class BorrowingServices {
 				previewReturnDate,
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
-		recordServices.update(folder);
+		recordServices.update(folder.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -271,7 +272,7 @@ public class BorrowingServices {
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
 				borrowerEntered.getId());
-		recordServices.update(containerRecord);
+		recordServices.update(containerRecord.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());

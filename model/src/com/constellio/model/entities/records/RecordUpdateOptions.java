@@ -38,6 +38,8 @@ public class RecordUpdateOptions {
 
 	boolean allowSchemaTypeLockedRecordsModification = false;
 
+	private boolean overwriteModificationDateAndUser = true;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -72,6 +74,7 @@ public class RecordUpdateOptions {
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
 		this.skipFindingRecordsToReindex = copy.skipFindingRecordsToReindex;
+		this.overwriteModificationDateAndUser = copy.overwriteModificationDateAndUser;
 	}
 
 	public boolean isSkipFindingRecordsToReindex() {
@@ -241,6 +244,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setCatchBrokenReferenceErrors(boolean catchBrokenReferenceErrors) {
 		this.catchBrokenReferenceErrors = catchBrokenReferenceErrors;
+		return this;
+	}
+
+	public boolean isOverwriteModificationDateAndUser() {
+		return overwriteModificationDateAndUser;
+	}
+
+	public RecordUpdateOptions setOverwriteModificationDateAndUser(boolean overwriteModificationDateAndUser) {
+		this.overwriteModificationDateAndUser = overwriteModificationDateAndUser;
 		return this;
 	}
 }

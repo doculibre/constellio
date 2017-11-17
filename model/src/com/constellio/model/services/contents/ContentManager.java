@@ -516,6 +516,7 @@ public class ContentManager implements StatefulService {
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
+						transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
 								convertRecordContents(record, conversionManager, tempFolder);

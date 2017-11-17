@@ -761,10 +761,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 				record.set(Schemas.MODIFIED_ON, record.get(Schemas.CREATED_ON));
 			}
 		} else {
-			if (!record.isModified(Schemas.MODIFIED_BY) && !userGroupOrCollection) {
+			boolean overwriteModificationDateAndUser = transaction.getRecordUpdateOptions().isOverwriteModificationDateAndUser();
+			if (!record.isModified(Schemas.MODIFIED_BY) && !userGroupOrCollection && overwriteModificationDateAndUser) {
 				record.set(Schemas.MODIFIED_BY, currentUserId);
 			}
-			if (!record.isModified(Schemas.MODIFIED_ON)) {
+			if (!record.isModified(Schemas.MODIFIED_ON) && overwriteModificationDateAndUser) {
 				record.set(Schemas.MODIFIED_ON, now);
 			}
 		}
