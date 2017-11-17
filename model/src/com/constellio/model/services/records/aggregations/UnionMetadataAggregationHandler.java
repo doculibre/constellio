@@ -10,6 +10,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.ReindexingAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -51,7 +52,8 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationWithF
 	}
 
 	@Override
-	public ReindexingMetadataAggregationCalculator newReindexingMetadataAggregationCalculator(Record record) {
+	public Object calculate(ReindexingAggregatedValuesParams params) {
+
 		return null;
 	}
 }

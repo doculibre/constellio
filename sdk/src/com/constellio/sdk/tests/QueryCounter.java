@@ -55,4 +55,27 @@ public class QueryCounter extends BigVaultServerExtension {
 			return true;
 		}
 	};
+
+	public static QueryCounterFilter ON_SCHEMA_TYPES(final String... schemaTypes) {
+		return new QueryCounterFilter() {
+
+			@Override
+			public boolean isCounted(AfterQueryParams params) {
+				for (String fq : params.getSolrParams().getParams("fq")) {
+					for (String schemaType : schemaTypes) {
+						if (fq.equals("schema_s:" + schemaType + "_*")) {
+							return true;
+						}
+
+						if (fq.equals("schema_s:" + schemaType)) {
+							return true;
+						}
+
+					}
+				}
+				return false;
+			}
+		};
+	}
+
 }

@@ -159,7 +159,40 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(recordDao, params, batchSize) {
+		return new LazyResultsIterator<Record>(recordDao, params, batchSize, true) {
+
+			@Override
+			public Record convert(RecordDTO recordDTO) {
+				return recordServices.toRecord(recordDTO, fullyLoaded);
+			}
+		};
+	}
+
+	public Iterator<List<Record>> reverseRecordsBatchIterator(int batch, LogicalSearchQuery query) {
+		Iterator<Record> recordsIterator = reverseRecordsIterator(query, batch);
+		return new BatchBuilderIterator<>(recordsIterator, batch);
+	}
+
+	public Iterator<List<Record>> reverseRecordsBatchIterator(LogicalSearchQuery query) {
+		return reverseRecordsBatchIterator(100, query);
+	}
+
+	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchCondition condition) {
+		return reverseRecordsIterator(new LogicalSearchQuery(condition));
+	}
+
+	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchCondition condition, int batchSize) {
+		return reverseRecordsIterator(new LogicalSearchQuery(condition), batchSize);
+	}
+
+	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchQuery query) {
+		return reverseRecordsIterator(query, 100);
+	}
+
+	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchQuery query, int batchSize) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		return new LazyResultsIterator<Record>(recordDao, params, batchSize, false) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -292,7 +325,18 @@ public class SearchServices {
 
 	public Iterator<String> recordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return new LazyResultsIterator<String>(recordDao, params, 10000) {
+		return new LazyResultsIterator<String>(recordDao, params, 10000, true) {
+
+			@Override
+			public String convert(RecordDTO recordDTO) {
+				return recordDTO.getId();
+			}
+		};
+	}
+
+	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		return new LazyResultsIterator<String>(recordDao, params, 10000, false) {
 
 			@Override
 			public String convert(RecordDTO recordDTO) {

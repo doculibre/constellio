@@ -1,9 +1,8 @@
 package com.constellio.model.services.records.aggregations;
 
-import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.entries.ReindexingAggregatedValuesParams;
 
 public interface MetadataAggregationWithFastReindexingHandler extends MetadataAggregationHandler {
 
-	ReindexingMetadataAggregationCalculator newReindexingMetadataAggregationCalculator(Record record);
-
+	Object calculate(ReindexingAggregatedValuesParams params);
 }

@@ -265,6 +265,43 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenIteratingInAscendingOrDescendingOrderThenOK()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
+
+		Transaction tx = new Transaction();
+		for (int i = 10; i < 42; i++) {
+			tx.add(recordServices.newRecordWithSchema(zeSchema.instance(), "record" + i)
+					.set(zeSchema.stringMetadata(), "V" + i));
+		}
+
+		recordServices.execute(tx);
+
+		List<String> stringMetadatasOfRecordsWhenIteratingAsc = new ArrayList<>();
+		Iterator<Record> recordIterator = searchServices.recordsIterator(from(zeSchema.type()).returnAll(), 5);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			stringMetadatasOfRecordsWhenIteratingAsc.add(record.<String>get(zeSchema.stringMetadata()));
+		}
+		assertThat(stringMetadatasOfRecordsWhenIteratingAsc).isEqualTo(
+				asList("V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24",
+						"V25", "V26", "V27", "V28", "V29", "V30", "V31", "V32", "V33", "V34", "V35", "V36", "V37", "V38", "V39",
+						"V40", "V41"));
+
+		List<String> stringMetadatasOfRecordsWhenIteratingDesc = new ArrayList<>();
+		recordIterator = searchServices.reverseRecordsIterator(from(zeSchema.type()).returnAll(), 5);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			stringMetadatasOfRecordsWhenIteratingDesc.add(record.<String>get(zeSchema.stringMetadata()));
+		}
+		assertThat(stringMetadatasOfRecordsWhenIteratingDesc).isEqualTo(
+				asList("V41", "V40", "V39", "V38", "V37", "V36", "V35", "V34", "V33", "V32", "V31", "V30", "V29", "V28", "V27",
+						"V26", "V25", "V24", "V23", "V22", "V21", "V20", "V19", "V18", "V17", "V16", "V15", "V14", "V13", "V12",
+						"V11", "V10"));
+	}
+
+	@Test
 	public void whenSearchingRecordsReturningWithFullValueContainingSpacesAsteriskAndQuestionMarkThenFindResult()
 			throws Exception {
 

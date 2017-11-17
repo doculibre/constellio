@@ -1,7 +1,6 @@
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -11,11 +10,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -243,13 +240,15 @@ public class ReindexingServices {
 			recreateIndexes(collection);
 		}
 
+		ReindexingRecordsProvider reindexingRecordsProvider = new ReindexingRecordsProvider(modelLayerFactory,
+				mainThreadQueryRows);
+
 		int level = 0;
 		while (isReindexingLevel(level, types)) {
 
 			BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 					.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
-					.setTransactionOptions(transactionOptions)
-					.showProgressionInConsole(false);
+					.setTransactionOptions(transactionOptions).showProgressionInConsole(false);
 
 			if (Toggle.FASTER_REINDEXING.isEnabled()) {
 				options.withRecordsPerBatch(100000);
@@ -267,16 +266,16 @@ public class ReindexingServices {
 					modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
 
 			try {
-
 				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
 					if (isReindexingOfTypeRequired(level, types, typeCode)) {
 						if (level == 0) {
 							LOGGER.info("Collection '" + collection + "' - Indexing '" + typeCode + "'");
 						} else {
-							LOGGER.info("Collection '" + collection + "' - Indexing '" + typeCode + "' (Dependency level " + level
-									+ ")");
+							LOGGER.info("Collection '" + collection + "' - Indexing '" + typeCode
+									+ "' (Dependency level " + level + ")");
 						}
-						reindexCollectionType(bulkTransactionHandler, types, typeCode, params);
+						reindexCollectionType(bulkTransactionHandler, types, params,
+								reindexingRecordsProvider.newSchemaTypeProvider(types.getSchemaType(typeCode), level));
 					}
 				}
 
@@ -319,10 +318,10 @@ public class ReindexingServices {
 	}
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,
-			String typeCode, ReindexationParams params) {
+			ReindexationParams params, ReindexingSchemaTypeRecordsProvider recordsProvider) {
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		MetadataSchemaType type = types.getSchemaType(typeCode);
+		MetadataSchemaType type = recordsProvider.type;
 		boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager().getValue(WRITE_ZZRECORDS_IN_TLOG);
 
 		boolean typeReindexed = type.isInTransactionLog() || writeZZrecords;
@@ -334,84 +333,62 @@ public class ReindexingServices {
 		}
 
 		if (typeReindexed) {
-
-			List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
+			long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
+			List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
 			List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
-			Set<String> ids = new HashSet<>();
 
-			//long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
 			long current = 0;
-			int iteration = 0;
-			Set<String> skipped = new HashSet<>();
+			REINDEXING_TYPE:
 			while (true) {
-
-				iteration++;
-				Set<String> idsInCurrentBatch = new HashSet<>();
-				long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
-
-				Iterator<Record> recordsIterator;
-				if (!skipped.isEmpty() && skipped.size() < 1000) {
-					recordsIterator = searchServices.recordsIterator(
-							new LogicalSearchQuery(from(type).where(IDENTIFIER).isIn(new ArrayList<>(skipped))), 1000);
-
-				} else {
-					recordsIterator = searchServices
-							.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), mainThreadQueryRows);
-				}
-				skipped.clear();
-
+				Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
 				while (recordsIterator.hasNext()) {
-					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), typeCode, current, counter);
+					REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter);
 					Record record = recordsIterator.next();
 					for (Metadata metadata : metadatasMarkedForDeletion) {
 						if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
 							record.set(metadata, null);
 						}
 					}
-					if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
-						if (metadatas.isEmpty()) {
+					if (metadatas.isEmpty()) {
+						current++;
+						if (current % 1000 == 0 || current == counter) {
+							LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + type.getCode() + "' : "
+									+ current + "/" + counter);
+						}
+						bulkTransactionHandler.append(record);
+					} else {
+						String parentId = getParentIdOfSameType(metadatas, record);
+
+						if (parentId == null || recordsProvider.isAlreadyHandled(parentId) || parentId.equals(record.getId())) {
 							current++;
-							if (current % 1000 == 0 || current == counter) {
-								LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
+							if (current % 100 == 0 || current == counter) {
+								LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + type.getCode() + "' : "
 										+ current + "/" + counter);
 							}
 							bulkTransactionHandler.append(record);
+							recordsProvider.markRecordAsHandled(record);
+
 						} else {
-							String parentId = getParentIdOfSameType(metadatas, record);
+							recordsProvider.markRecordAsSkipped(record);
 
-							if (parentId == null || ids.contains(parentId)) {
-								current++;
-								if (current % 100 == 0 || current == counter) {
-									LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
-											+ current + "/" + counter);
-								}
-								bulkTransactionHandler.append(record);
-								idsInCurrentBatch.add(record.getId());
-
-							} else {
-								skipped.add(record.getId());
-								if (skipped.size() % 100 == 0) {
-									LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : "
-											+ skipped.size() + " records skipped");
-								}
-							}
 						}
-
 					}
+
 				}
 
 				bulkTransactionHandler.barrier();
 				modelLayerFactory.newRecordServices().flush();
-				ids.addAll(idsInCurrentBatch);
-				if (metadatas.isEmpty() || ids.size() == counter) {
-					break;
-				}
-
-				if (!skipped.isEmpty()) {
-					LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + typeCode + "' : Iteration "
-							+ iteration + " has finished with " + skipped.size()
+				recordsProvider.markIterationAsFinished();
+				int skippedRecordsCount = recordsProvider.getSkippedRecordsCount();
+				if (skippedRecordsCount > 0) {
+					LOGGER.info("Collection '" + types.getCollection() + "' - Indexing '" + type.getCode() + "' : Iteration "
+							+ recordsProvider.getCurrentIteration() + " has finished with " + skippedRecordsCount
 							+ " records skipped, iterating an other time...");
 				}
+				if (!recordsProvider.isRequiringAnotherIteration()) {
+					break REINDEXING_TYPE;
+				}
+
 			}
 		}
 
