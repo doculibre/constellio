@@ -10,8 +10,9 @@ public class SIPProgressionViewPresenter extends BasePresenter<SIPProgressionVie
 
     private ProgressInfo progressInfo;
 
-    public SIPProgressionViewPresenter(SIPProgressionViewImpl view) {
+    public SIPProgressionViewPresenter(SIPProgressionViewImpl view, String id) {
         super(view);
+        setTask(id);
     }
 
     @Override
