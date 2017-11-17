@@ -12,6 +12,6 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 	@Override
 	public void init(ServletConfig config)
 			throws ServletException {
-		//	super.init(config);
+			super.init(config);
 	}
 }
