@@ -1,22 +1,24 @@
 package com.constellio.app.services.corrector;
 
 public class CorrectorExclusion {
-    public String collection;
-    public String exclusion;
+    private String collection;
+    private String exclusion;
 
     public String getCollection() {
         return collection;
     }
 
-    public void setCollection(String collection) {
+    public CorrectorExclusion setCollection(String collection) {
         this.collection = collection;
+        return this;
     }
 
     public String getExclusion() {
         return exclusion;
     }
 
-    public void setExclusion(String exclusion) {
+    public CorrectorExclusion setExclusion(String exclusion) {
         this.exclusion = exclusion;
+        return this;
     }
 }

@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CorrectorExcluderReader {
-    private static final String TITLE = "title";
-    private static final String EXCEPTION = "exception";
-    private static final String COLLECTION = "collection";
     private Document document;
 
     public CorrectorExcluderReader(Document document) {
@@ -30,8 +27,8 @@ public class CorrectorExcluderReader {
     private CorrectorExclusion getException(Element element) {
         CorrectorExclusion correctorExclusion = new CorrectorExclusion();
 
-        correctorExclusion.setCollection(element.getAttributeValue(COLLECTION));
-        correctorExclusion.setExclusion(element.getAttributeValue(EXCEPTION));
+        correctorExclusion.setCollection(element.getAttributeValue(CorrectorExcluderWriter.COLLECTION));
+        correctorExclusion.setExclusion(element.getAttributeValue(CorrectorExcluderWriter.EXCLUSION));
 
         return correctorExclusion;
     }

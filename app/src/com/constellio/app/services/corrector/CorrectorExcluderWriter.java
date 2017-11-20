@@ -1,34 +1,32 @@
 package com.constellio.app.services.corrector;
 
-import com.constellio.model.entities.security.Role;
-import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
 import java.util.Iterator;
 
 public class CorrectorExcluderWriter {
-    private static final String EXCEPTION = "exception";
-    private static final String COLLECTION = "collection";
-    private static final String EXCEPTION_ROOT = "exceptions";
+    public static final String EXCLUSION = "exclusion";
+    public static final String COLLECTION = "collection";
+    public static final String EXCEPTION_ROOT = "exceptions";
     private Document document;
 
     public CorrectorExcluderWriter(Document document) {
         this.document = document;
     }
 
-    public void createEmptyExceltion() {
-        Element roles = new Element(EXCEPTION);
-        document.setRootElement(roles);
+    public void createEmptyException() {
+        Element exclusion_root = new Element(EXCEPTION_ROOT);
+        document.setRootElement(exclusion_root);
     }
 
     public void addExclusion(final CorrectorExclusion addExceptions) {
-        Element rootElement = document.getRootElement();
-        Element roleElement = new Element(EXCEPTION);
-        roleElement.setAttribute(EXCEPTION_ROOT, addExceptions.getExclusion());
-        roleElement.setAttribute(COLLECTION, addExceptions.getCollection());
+        Element exclusionRoot = document.getRootElement();
+        Element exclusionElement = new Element(EXCLUSION);
+        exclusionElement.setAttribute(EXCLUSION, addExceptions.getExclusion());
+        exclusionElement.setAttribute(COLLECTION, addExceptions.getCollection());
 
-        rootElement.addContent(roleElement);
+        exclusionRoot.addContent(exclusionElement);
     }
 
     public void updateExclusion(final CorrectorExclusion exclusion, CorrectorExclusion oldExclusion) {
@@ -37,10 +35,12 @@ public class CorrectorExcluderWriter {
         Iterator<Element> iterator = rootElement.getChildren().listIterator();
         while (iterator.hasNext()) {
             Element nextValue = iterator.next();
-            if (nextValue.getAttribute(EXCEPTION_ROOT).equals(oldExclusion.collection)
-                    && oldExclusion.getCollection().equals(oldExclusion.getCollection())) {
+            if (nextValue.getAttributeValue(COLLECTION).equals(oldExclusion.getCollection())
+                    && nextValue.getAttributeValue(EXCLUSION).equals(oldExclusion.getExclusion())) {
                 iterator.remove();
-                Element element = new Element(EXCEPTION);
+                Element element = new Element(EXCLUSION);
+                element.setAttribute(EXCLUSION, exclusion.getExclusion());
+                element.setAttribute(COLLECTION, exclusion.getCollection());
                 rootElement.addContent(element);
                 break;
             }
@@ -53,7 +53,7 @@ public class CorrectorExcluderWriter {
 
         while (iterator.hasNext()) {
             Element child = iterator.next();
-            if (child.getAttribute(EXCEPTION).getValue().equals(exclusion.getExclusion())
+            if (child.getAttribute(EXCLUSION).getValue().equals(exclusion.getExclusion())
                     && child.getAttribute(COLLECTION).getValue().equals(exclusion.getCollection())) {
                 iterator.remove();
                 break;

@@ -40,7 +40,6 @@ public class ConfigManagerHelper {
 				LOGGER.info("Configuration was created by another instance", e);
 			}
 		}
-
 	}
 
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
