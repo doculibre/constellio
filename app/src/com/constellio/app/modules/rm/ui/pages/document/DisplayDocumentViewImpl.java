@@ -192,7 +192,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setSizeFull();
 
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
-		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
+		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
 		eventsComponent = new CustomComponent();
@@ -220,6 +220,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		
 		return mainLayout;
+	}
+
+	private Component buildVersionTab() {
+		VerticalLayout tabLayout = new VerticalLayout();
+		DeleteButton deleteButton = new DeleteButton() {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
+				for(ContentVersionVO contentVersionVO: selectedContentVersions) {
+					presenter.deleteContentVersionButtonClicked(contentVersionVO);
+				}
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return "";
+			}
+		};
+		tabLayout.addComponents(deleteButton, versionTable);
+		return tabLayout;
 	}
 
 	@Override
