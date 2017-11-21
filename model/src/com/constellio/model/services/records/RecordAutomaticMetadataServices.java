@@ -404,14 +404,22 @@ public class RecordAutomaticMetadataServices {
 			}
 
 			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(Group.SCHEMA_TYPE)).returnAll()))) {
-				if (!groupsInTransaction.contains(record.getId())) {
-					groups.add(Group.wrapNullable(record, types));
+				if (record != null) {
+					if (!groupsInTransaction.contains(record.getId())) {
+						groups.add(Group.wrapNullable(record, types));
+					}
+				} else {
+					LOGGER.warn("Null record returned while getting all groups");
 				}
 			}
 
 			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(User.SCHEMA_TYPE)).returnAll()))) {
-				if (!usersInTransaction.contains(record.getId())) {
-					users.add(User.wrapNullable(record, types, roles));
+				if (record != null) {
+					if (!usersInTransaction.contains(record.getId())) {
+						users.add(User.wrapNullable(record, types, roles));
+					}
+				} else {
+					LOGGER.warn("Null record returned while getting all users");
 				}
 			}
 
@@ -445,11 +453,15 @@ public class RecordAutomaticMetadataServices {
 
 			for (Record record : searchServices
 					.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
-				SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
-				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
-						&& !authsInTransaction.contains(authorizationDetail.getId())
-						&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-					authorizationDetails.add(authorizationDetail);
+				if (record != null) {
+					SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+					if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
+							&& !authsInTransaction.contains(authorizationDetail.getId())
+							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+						authorizationDetails.add(authorizationDetail);
+					}
+				} else {
+					LOGGER.warn("Null record returned while getting all authorizations");
 				}
 			}
 		}

@@ -1,5 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -56,6 +58,7 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 						throws Exception {
 
 					Transaction tx = new Transaction();
+					tx.setOptions(validationExceptionSafeOptions().setOptimisticLockingResolution(EXCEPTION));
 
 					for (Record record : records) {
 						SolrAuthorizationDetails auth = schemas.wrapSolrAuthorizationDetails(record);
