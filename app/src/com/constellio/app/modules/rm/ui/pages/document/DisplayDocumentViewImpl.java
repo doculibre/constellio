@@ -81,6 +81,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton renameContentButton;
 	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
+	private ConfirmDialogButton deleteSelectedVersions;
 	
 	private boolean contentViewerInitiallyVisible;
 	private boolean waitForContentViewerToBecomeVisible;
@@ -174,6 +175,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
 		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
+			protected boolean isSelectionColumn() {
+				return isDeleteColumn();
+			}
+
+			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
 			}
@@ -223,22 +229,35 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	private Component buildVersionTab() {
-		VerticalLayout tabLayout = new VerticalLayout();
-		DeleteButton deleteButton = new DeleteButton() {
+		final VerticalLayout tabLayout = new VerticalLayout();
+		deleteSelectedVersions = new ConfirmDialogButton($("delete.icon") + " " + $("DisplayDocumentView.deleteSelectedVersionsLabel")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
 				for(ContentVersionVO contentVersionVO: selectedContentVersions) {
 					presenter.deleteContentVersionButtonClicked(contentVersionVO);
 				}
+				versionTable.removeAllSelection();
+			}
+
+			@Override
+			public boolean isVisible() {
+				return presenter.isDeleteContentVersionPossible();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return versionTable.getContentVersions() != null && versionTable.getContentVersions().size() > 1 && !versionTable.getSelectedContentVersions().isEmpty();
 			}
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return "";
+				return $("DisplayDocumentView.deleteSelectedVersionsConfirmation");
 			}
 		};
-		tabLayout.addComponents(deleteButton, versionTable);
+		deleteDocumentButton.setEnabled(deleteDocumentButton.isEnabled());
+		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
+		tabLayout.addComponents(deleteSelectedVersions, versionTable);
 		return tabLayout;
 	}
 

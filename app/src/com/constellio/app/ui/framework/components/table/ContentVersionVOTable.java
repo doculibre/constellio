@@ -65,7 +65,9 @@ public class ContentVersionVOTable extends Table {
 		this.isShowingSystemFileName = isShowingSystemFileName;
 		this.selectedContentVersions = new HashSet<>();
 
-		addContainerProperty(CHECK_BOX, CheckBox.class, null);
+		if (isSelectionColumn()) {
+			addContainerProperty(CHECK_BOX, CheckBox.class, null);
+		}
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
@@ -120,6 +122,10 @@ public class ContentVersionVOTable extends Table {
 		return false;
 	}
 
+	protected boolean isSelectionColumn() {
+		return false;
+	}
+
 	protected boolean isDeletePossible(ContentVersionVO contentVersionVO) {
 		return false;
 	}
@@ -160,7 +166,12 @@ public class ContentVersionVOTable extends Table {
 
 			final Object itemId = addItem();
 			Item item = getItem(itemId);
-			final CheckBox checkBox = new CheckBox();
+			final CheckBox checkBox = new CheckBox() {
+				@Override
+				public boolean isVisible() {
+					return isDeletePossible(contentVersion);
+				}
+			};
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -171,7 +182,12 @@ public class ContentVersionVOTable extends Table {
 					}
 				}
 			});
-			item.getItemProperty(CHECK_BOX).setValue(checkBox);
+			checkBox.setValue(selectedContentVersions.contains(contentVersion));
+
+			if(isSelectionColumn()) {
+				item.getItemProperty(CHECK_BOX).setValue(checkBox);
+			}
+
 			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
@@ -182,6 +198,10 @@ public class ContentVersionVOTable extends Table {
 				item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
 			}
 		}
+	}
+
+	public void removeAllSelection() {
+		selectedContentVersions.clear();
 	}
 
 	public HashSet<ContentVersionVO> getSelectedContentVersions() {
