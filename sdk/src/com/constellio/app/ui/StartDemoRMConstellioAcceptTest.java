@@ -22,6 +22,7 @@ import com.constellio.app.ui.tools.AuthorizationReportBuilder;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -95,6 +96,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		setup();
+
+		MetadataNetwork network = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getMetadataNetwork();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();

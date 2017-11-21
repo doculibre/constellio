@@ -5,13 +5,13 @@ import java.util.List;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 
 public class CalculatorMetadataAggregationHandler implements MetadataAggregationHandler {
 
 	@Override
-	public Object calculate(AggregatedValuesParams params) {
+	public Object calculate(SearchAggregatedValuesParams params) {
 		Class<? extends AggregatedCalculator<?>> calculatorClass = params.getAggregatedDataEntry().getAggregatedCalculator();
 		Metadata metadata = params.getMetadata();
 		if (calculatorClass != null) {
@@ -26,20 +26,25 @@ public class CalculatorMetadataAggregationHandler implements MetadataAggregation
 		}
 	}
 
+	//	@Override
+	//	public Object calculate(TransactionAggregatedValuesParams params) {
+	//		Class<? extends AggregatedCalculator<?>> calculatorClass = params.getAggregatedDataEntry().getAggregatedCalculator();
+	//		Metadata metadata = params.getMetadata();
+	//		if (calculatorClass != null) {
+	//			try {
+	//				return calculatorClass.newInstance().calculate(params);
+	//			} catch (Exception e) {
+	//				e.printStackTrace();
+	//				throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
+	//			}
+	//		} else {
+	//			throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
+	//		}
+	//	}
+
 	@Override
-	public Object calculate(TransactionAggregatedValuesParams params) {
-		Class<? extends AggregatedCalculator<?>> calculatorClass = params.getAggregatedDataEntry().getAggregatedCalculator();
-		Metadata metadata = params.getMetadata();
-		if (calculatorClass != null) {
-			try {
-				return calculatorClass.newInstance().calculate(params);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
-			}
-		} else {
-			throw new RuntimeException("Invalid aggregatedCalculator for metadata : " + metadata.getCode());
-		}
+	public Object calculate(InMemoryAggregatedValuesParams params) {
+		return 0.0;
 	}
 
 	@Override
@@ -55,7 +60,7 @@ public class CalculatorMetadataAggregationHandler implements MetadataAggregation
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException("Invalid AggregatedCalculator for metadata : " + params.getMetadata().getCode());
+			throw new RuntimeException("Invalid AggregatedCalculator for metadata : " + params.getAggregatedMetadata().getCode());
 		}
 		return metadatas;
 	}

@@ -2,10 +2,10 @@ package com.constellio.model.entities.schemas.entries;
 
 import java.util.List;
 
-public class ReindexingAggregatedValuesParams {
+public class InMemoryAggregatedValuesParams {
 	List<Object> values;
 
-	public ReindexingAggregatedValuesParams(List<Object> values) {
+	public InMemoryAggregatedValuesParams(List<Object> values) {
 		this.values = values;
 	}
 

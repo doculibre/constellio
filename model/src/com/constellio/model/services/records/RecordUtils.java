@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -40,6 +42,14 @@ public class RecordUtils {
 
 	public RecordUtils() {
 		schemaUtils = newSchemaUtils();
+	}
+
+	public static void removeMetadataValuesOn(List<Metadata> metadatas, Record record) {
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
+				record.set(metadata, null);
+			}
+		}
 	}
 
 	public static long estimateRecordSize(Record record) {

@@ -1,5 +1,9 @@
 package com.constellio.model.services.records.reindexing;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +16,13 @@ public class ReindexingRecordsProvider {
 
 	int mainThreadQueryRows;
 
+	int thresholdForReturningLastIgnoredDocumentById = 1000;
+
+	ReindexingRecordPriorityInfo info = new ReindexingRecordPriorityInfo();
+
 	ModelLayerFactory modelLayerFactory;
+
+	Map<String, List<HashMap<String, Integer>>> map;
 
 	public ReindexingRecordsProvider(ModelLayerFactory modelLayerFactory, int mainThreadQueryRows) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -20,7 +30,17 @@ public class ReindexingRecordsProvider {
 	}
 
 	ReindexingSchemaTypeRecordsProvider newSchemaTypeProvider(MetadataSchemaType type, int dependencyLevel) {
-		return new ReindexingSchemaTypeRecordsProvider(modelLayerFactory, mainThreadQueryRows, type, dependencyLevel);
+		return new ReindexingSchemaTypeRecordsProvider(modelLayerFactory, mainThreadQueryRows, type, dependencyLevel,
+				thresholdForReturningLastIgnoredDocumentById, info);
 	}
 
+	public int getThresholdForReturningLastIgnoredDocumentById() {
+		return thresholdForReturningLastIgnoredDocumentById;
+	}
+
+	public ReindexingRecordsProvider setThresholdForReturningLastIgnoredDocumentById(
+			int thresholdForReturningLastIgnoredDocumentById) {
+		this.thresholdForReturningLastIgnoredDocumentById = thresholdForReturningLastIgnoredDocumentById;
+		return this;
+	}
 }

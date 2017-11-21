@@ -8,7 +8,7 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class AggregatedValuesParams {
+public class SearchAggregatedValuesParams {
 	LogicalSearchQuery query;
 	RecordImpl record;
 	Metadata metadata;
@@ -16,7 +16,7 @@ public class AggregatedValuesParams {
 	MetadataSchemaTypes types;
 	SearchServices searchServices;
 
-	public AggregatedValuesParams(LogicalSearchQuery query, RecordImpl record, Metadata metadata,
+	public SearchAggregatedValuesParams(LogicalSearchQuery query, RecordImpl record, Metadata metadata,
 			AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types, SearchServices searchServices) {
 		this.query = query;
 		this.record = record;

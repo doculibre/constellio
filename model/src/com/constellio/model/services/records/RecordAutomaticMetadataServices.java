@@ -47,7 +47,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -154,7 +155,7 @@ public class RecordAutomaticMetadataServices {
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
-			AggregatedValuesParams aggregatedValuesParams = new AggregatedValuesParams(query, record, metadata,
+			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, record, metadata,
 					aggregatedDataEntry, types, searchServices);
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
@@ -182,7 +183,9 @@ public class RecordAutomaticMetadataServices {
 		if (agregationType != null) {
 			TransactionAggregatedValuesParams aggregatedValuesParams = new TransactionAggregatedValuesParams(
 					record, metadata, aggregatedDataEntry, types, aggregatedRecords);
-			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
+			List<Object> values = new ArrayList<>();
+			//TODO!
+			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(values));
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
 	}

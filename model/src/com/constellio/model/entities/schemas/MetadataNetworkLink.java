@@ -13,12 +13,19 @@ public class MetadataNetworkLink implements Serializable {
 	 * Metadata used by 'fromMetadata'
 	 */
 	Metadata toMetadata;
+	/**
+	 * Metadata used by 'fromMetadata'
+	 */
+	Metadata refMetadata;
 
 	int level;
 
+	MetadataNetworkLinkType linkType;
+
 	//	int toNetworkLevel;
 
-	public MetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, int level) {
+	public MetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, Metadata refMetadata, int level,
+			MetadataNetworkLinkType linkType) {
 		if (fromMetadata == null) {
 			throw new IllegalArgumentException("fromMetadata is null");
 		}
@@ -26,8 +33,10 @@ public class MetadataNetworkLink implements Serializable {
 			throw new IllegalArgumentException("toMetadata is null");
 		}
 		this.fromMetadata = fromMetadata;
+		this.refMetadata = refMetadata;
 		this.toMetadata = toMetadata;
 		this.level = level;
+		this.linkType = linkType;
 	}
 
 	public Metadata getFromMetadata() {
@@ -38,8 +47,22 @@ public class MetadataNetworkLink implements Serializable {
 		return toMetadata;
 	}
 
+	public Metadata getRefMetadata() {
+		return refMetadata;
+	}
+
 	public int getLevel() {
 		return level;
+	}
+
+	public boolean isWithingSameSchemaType() {
+		String fromSchemaType = fromMetadata.getSchemaTypeCode();
+		String toSchemaType = toMetadata.getSchemaTypeCode();
+		return fromSchemaType.equals(toSchemaType);
+	}
+
+	public MetadataNetworkLinkType getLinkType() {
+		return linkType;
 	}
 
 	@Override

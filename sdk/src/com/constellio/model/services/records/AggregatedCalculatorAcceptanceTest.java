@@ -17,7 +17,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -145,7 +145,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 	static public class TestCalculatorThatConcatenatesTitles implements AggregatedCalculator<String> {
 
 		@Override
-		public String calculate(AggregatedValuesParams params) {
+		public String calculate(SearchAggregatedValuesParams params) {
 			SearchServices searchServices = params.getSearchServices();
 			LogicalSearchQuery query = params.getQuery();
 			query.sortAsc(Schemas.TITLE);

@@ -1,5 +1,9 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AUTOMATIC_METADATA_INPUT;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.SEQUENCE_INPUT;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static java.util.Arrays.asList;
@@ -48,7 +52,8 @@ public class MetadataNetworkBuilder {
 		KeyListMap<String, MetadataNetworkLink> linksFromMetadata = new KeyListMap<>();
 		KeyListMap<String, MetadataNetworkLink> linksToMetadata = new KeyListMap<>();
 		for (ModifiableMetadataNetworkLink link : this.links) {
-			MetadataNetworkLink finalLink = new MetadataNetworkLink(link.fromMetadata, link.toMetadata, link.level);
+			MetadataNetworkLink finalLink = new MetadataNetworkLink(link.fromMetadata, link.toMetadata, link.refMetadata,
+					link.level, link.linkType);
 			links.add(finalLink);
 			linksFromMetadata.add(finalLink.getFromMetadata().getCode(), finalLink);
 			linksToMetadata.add(finalLink.getToMetadata().getCode(), finalLink);
@@ -77,20 +82,39 @@ public class MetadataNetworkBuilder {
 		return type(schemaTypeCode).getMetadata(code);
 	}
 
-	public void addNetworkLink(Metadata from, List<Metadata> tos, boolean increasingLevel) {
+	public void addNetworkLink(Metadata from, Metadata to, Metadata refMetadata, boolean increasingLevel,
+			MetadataNetworkLinkType linkType) {
+
+		List<Metadata> tosIncludingReference = new ArrayList<>();
+		tosIncludingReference.add(to);
+		tosIncludingReference.add(refMetadata);
+
+		addNetworkLink(from, tosIncludingReference, refMetadata, increasingLevel, linkType);
+	}
+
+	public void addNetworkLink(Metadata from, List<Metadata> tos, Metadata refMetadata, boolean increasingLevel,
+			MetadataNetworkLinkType linkType) {
 		int level = 0;
 
 		String fromSchemaType = schemaUtils.getSchemaTypeCode(from);
 
 		for (Metadata to : tos) {
-			int metadataLevel = 0;
+
 			if (linksFromMetadata != null && to != null && linksFromMetadata.contains(to.getCode())) {
+				int metadataLevel = 0;
 				for (ModifiableMetadataNetworkLink link : linksFromMetadata.get(to.getCode())) {
 					metadataLevel = Math.max(metadataLevel, link.level);
 				}
+				level = Math.max(metadataLevel, level);
+			}
+		}
 
-				String toSchemaType = schemaUtils.getSchemaTypeCode(to);
-
+		if (refMetadata != null) {
+			if (linksFromMetadata != null && refMetadata != null && linksFromMetadata.contains(refMetadata.getCode())) {
+				int metadataLevel = 0;
+				for (ModifiableMetadataNetworkLink link : linksFromMetadata.get(refMetadata.getCode())) {
+					metadataLevel = Math.max(metadataLevel, link.level);
+				}
 				level = Math.max(metadataLevel, level);
 			}
 		}
@@ -101,15 +125,19 @@ public class MetadataNetworkBuilder {
 
 		for (Metadata to : tos) {
 			if (to != null) {
-				ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, level);
-				//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
-				//			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
-				//				System.out.println(message);
-				//			}
+				ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, refMetadata, level, linkType);
 				links.add(link);
 				linksFromMetadata.add(from.getCode(), link);
 				linksToMetadata.add(to.getCode(), link);
 			}
+		}
+
+		if (refMetadata != null) {
+			ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, refMetadata, refMetadata, level,
+					MetadataNetworkLinkType.REFERENCE);
+			links.add(link);
+			linksFromMetadata.add(from.getCode(), link);
+			linksToMetadata.add(refMetadata.getCode(), link);
 		}
 
 		ajustingMetadatasLevel(from, level);
@@ -162,26 +190,26 @@ public class MetadataNetworkBuilder {
 
 			Metadata toMetadata = builder.idMetadataOfType(metadata.getReferencedSchemaType());
 
-			if (metadata != null) {
-				builder.addNetworkLink(metadata, asList(toMetadata), false);
-			}
+			builder.addNetworkLink(metadata, asList(toMetadata), null, false, REFERENCE);
 
 		} else if (DataEntryType.COPIED == metadata.getDataEntry().getType()) {
 			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
-			List<Metadata> metadatas = asList(builder.metadata(dataEntry.getCopiedMetadata()),
-					builder.metadata(dataEntry.getReferenceMetadata()));
-			builder.addNetworkLink(metadata, metadatas, false);
+
+			Metadata refMetadata = builder.metadata(dataEntry.getReferenceMetadata());
+
+			builder.addNetworkLink(metadata, builder.metadata(dataEntry.getCopiedMetadata()), refMetadata, false,
+					AUTOMATIC_METADATA_INPUT);
 
 		} else if (DataEntryType.CALCULATED == metadata.getDataEntry().getType()) {
 			CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
 
-			List<Metadata> metadatas = new ArrayList<>();
 			for (Dependency aDependency : dataEntry.getCalculator().getDependencies()) {
 
 				if (aDependency instanceof LocalDependency) {
 					LocalDependency dependency = (LocalDependency) aDependency;
 					try {
-						metadatas.add(schema.getMetadata(dependency.getLocalMetadataCode()));
+						builder.addNetworkLink(metadata, schema.getMetadata(dependency.getLocalMetadataCode()), null, false,
+								AUTOMATIC_METADATA_INPUT);
 					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 						//Metadata may be created later
 					}
@@ -194,30 +222,27 @@ public class MetadataNetworkBuilder {
 						Metadata dependentMetadata = referencedType.getDefaultSchema()
 								.getMetadata(dependency.getDependentMetadataCode());
 
-						metadatas.add(refMetadata);
-						metadatas.add(dependentMetadata);
+						builder.addNetworkLink(metadata, dependentMetadata, refMetadata, false, AUTOMATIC_METADATA_INPUT);
 					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 						//Metadata may be created later
 					}
 
 				}
 			}
-			builder.addNetworkLink(metadata, metadatas, false);
 
 		} else if (DataEntryType.SEQUENCE == metadata.getDataEntry().getType()) {
 			SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
 			if (dataEntry.getMetadataProvidingSequenceCode() != null) {
 				Metadata sequenceInputMetadata = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
-				builder.addNetworkLink(metadata, asList(sequenceInputMetadata), false);
+				builder.addNetworkLink(metadata, sequenceInputMetadata, null, false, SEQUENCE_INPUT);
 			}
 
 		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
 			AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
-			List<Metadata> metadatas = new ArrayList<>();
-			metadatas.add(builder.metadata(dataEntry.getReferenceMetadata()));
+			Metadata refMetadata = builder.metadata(dataEntry.getReferenceMetadata());
 
-			GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(builder.typesMap, metadata) {
+			GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(metadata) {
 
 				@Override
 				public Metadata getMetadata(String metadataCode) {
@@ -225,9 +250,9 @@ public class MetadataNetworkBuilder {
 				}
 			};
 
-			metadatas.addAll(getHandlerFor(metadata).getMetadatasUsedToCalculate(params));
+			builder.addNetworkLink(metadata, getHandlerFor(metadata).getMetadatasUsedToCalculate(params), refMetadata, true,
+					AGGREGATION_INPUT);
 
-			builder.addNetworkLink(metadata, metadatas, true);
 		}
 	}
 

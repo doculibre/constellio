@@ -31,6 +31,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		testSession.close(false, failed);
 	}
 
+	private static ConstellioTest currentInstance;
+
 	@Before
 	public void beforeConstellioTest() {
 		MockitoAnnotations.initMocks(this);
@@ -70,6 +72,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 						.setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
 			}
 		}
+		currentInstance = this;
+	}
+
+	public static ConstellioTest getInstance() {
+		return currentInstance;
 	}
 
 	public void resetTestSession() {

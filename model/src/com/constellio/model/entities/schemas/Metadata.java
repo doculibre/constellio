@@ -454,6 +454,10 @@ public class Metadata implements DataStoreField {
 		return new SchemaUtils().getSchemaCode(this);
 	}
 
+	public String getSchemaTypeCode() {
+		return new SchemaUtils().getSchemaTypeCode(this);
+	}
+
 	public MetadataPopulateConfigs getPopulateConfigs() {
 		return populateConfigs;
 	}
@@ -474,7 +478,8 @@ public class Metadata implements DataStoreField {
 		boolean globalMetadataWithNormalizedSortField =
 				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());
 		boolean isIdentifier = IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
-		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE) && !isMultivalue() && !isIdentifier;
+		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE) && !isMultivalue()
+				&& !isIdentifier;
 	}
 
 	public Metadata getSortField() {

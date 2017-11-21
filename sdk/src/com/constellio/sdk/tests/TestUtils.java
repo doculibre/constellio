@@ -459,7 +459,7 @@ public class TestUtils {
 
 	}
 
-	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, Metadata... metadatas) {
+	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, List<Metadata> metadatas) {
 
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.setField("id", id);
@@ -472,6 +472,10 @@ public class TestUtils {
 		}
 
 		return solrInputDocument;
+	}
+
+	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, Metadata... metadatas) {
+		return solrInputDocumentRemovingMetadatas(id, asList(metadatas));
 	}
 
 	public static class MapBuilder<K, V> {

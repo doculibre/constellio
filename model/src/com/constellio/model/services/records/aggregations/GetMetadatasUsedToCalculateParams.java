@@ -2,38 +2,29 @@ package com.constellio.model.services.records.aggregations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 
 public abstract class GetMetadatasUsedToCalculateParams {
 
-	Map<String, MetadataSchemaType> typesMap;
-	Metadata metadata;
+	Metadata aggregatedMetadata;
 
-	public GetMetadatasUsedToCalculateParams(
-			Map<String, MetadataSchemaType> typesMap, Metadata metadata) {
-		this.typesMap = typesMap;
-		this.metadata = metadata;
+	public GetMetadatasUsedToCalculateParams(Metadata aggregatedMetadata) {
+		this.aggregatedMetadata = aggregatedMetadata;
 	}
 
-	public Map<String, MetadataSchemaType> getTypesMap() {
-		return typesMap;
-	}
-
-	public Metadata getMetadata() {
-		return metadata;
+	public Metadata getAggregatedMetadata() {
+		return aggregatedMetadata;
 	}
 
 	public Metadata getFirstInputMetadata() {
-		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) aggregatedMetadata.getDataEntry();
 		return getMetadata(aggregatedDataEntry.getFirstInputMetadata());
 	}
 
 	public List<Metadata> getInputMetadatas() {
-		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) aggregatedMetadata.getDataEntry();
 
 		List<Metadata> metadatas = new ArrayList<>();
 
@@ -45,7 +36,7 @@ public abstract class GetMetadatasUsedToCalculateParams {
 	}
 
 	public AggregatedDataEntry getAggregatedDataEntry() {
-		return (AggregatedDataEntry) metadata.getDataEntry();
+		return (AggregatedDataEntry) aggregatedMetadata.getDataEntry();
 	}
 
 	public abstract Metadata getMetadata(String metadataCode);

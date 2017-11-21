@@ -9,16 +9,15 @@ import java.util.Set;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.ReindexingAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class UnionMetadataAggregationHandler implements MetadataAggregationWithFastReindexingHandler {
+public class UnionMetadataAggregationHandler implements MetadataAggregationHandler {
 
 	@Override
-	public Object calculate(AggregatedValuesParams params) {
+	public Object calculate(SearchAggregatedValuesParams params) {
 		List<Metadata> inputMetadatas = params.getInputMetadatas();
 		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(inputMetadatas));
@@ -46,14 +45,11 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationWithF
 	}
 
 	@Override
-	public Object calculate(TransactionAggregatedValuesParams params) {
-		//TODO
-		return new ArrayList<>();
-	}
+	public Object calculate(InMemoryAggregatedValuesParams params) {
+		Set<Object> values = new HashSet<>(params.getValues());
+		List<Comparable> listValues = new ArrayList(values);
+		Collections.sort(listValues);
 
-	@Override
-	public Object calculate(ReindexingAggregatedValuesParams params) {
-
-		return null;
+		return listValues;
 	}
 }
