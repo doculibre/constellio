@@ -8,6 +8,7 @@ public class ReindexingLogger {
 	String collection;
 	String currentSchemaType;
 	int currentDependencyLevel;
+	String currentPrefix;
 
 	public ReindexingLogger(String collection, Logger logger) {
 		this.collection = collection;
@@ -18,31 +19,31 @@ public class ReindexingLogger {
 		this.currentSchemaType = typeCode;
 		this.currentDependencyLevel = dependencyLevel;
 		if (dependencyLevel == 0) {
-			logger.info("Collection '" + collection + "' - Indexing '" + typeCode + "'");
+			currentPrefix = "Collection '" + collection + "' - Indexing '" + typeCode + "'";
 		} else {
-			logger.info(
-					"Collection '" + collection + "' - Indexing '" + typeCode + "' (Dependency level " + dependencyLevel + ")");
+			currentPrefix =
+					"Collection '" + collection + "' - Indexing '" + typeCode + "' (Dependency level " + dependencyLevel + ")";
 		}
+		logger.info(currentPrefix);
 	}
 
 	public void updateProgression(long current, long qty) {
 		if (current % 1000 == 0 || current == qty) {
-			logger.info("Collection '" + collection + "' - Indexing '" + currentSchemaType + "' : " + current + "/" + qty);
+			logger.info(currentPrefix + " : " + current + "/" + qty);
 		}
 	}
 
 	public void updateSkipsCount(int skippedRecordsSize) {
 		if (skippedRecordsSize % 100 == 0) {
-			logger.info("Collection '" + collection + "' - Indexing '" + currentSchemaType + "' : " + skippedRecordsSize
-					+ " records skipped");
+			logger.info(currentPrefix + " : " + skippedRecordsSize + " records skipped");
 		}
 
 	}
 
 	public void onEndOfIteration(int skippedRecordsCount, int currentIteration) {
 		if (skippedRecordsCount > 0) {
-			logger.info("Collection '" + collection + "' - Indexing '" + currentSchemaType + "' : Iteration " + currentIteration
-					+ " has finished with " + skippedRecordsCount + " records skipped, iterating an other time...");
+			logger.info(currentPrefix + " : Iteration " + currentIteration + " has finished with " + skippedRecordsCount
+					+ " records skipped, iterating an other time...");
 		}
 
 	}

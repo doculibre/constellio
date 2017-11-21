@@ -129,14 +129,16 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_sum", 1),
 				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_ref", 1),
-				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_sumX10", 1),
-				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "aThirdSchemaType_default_sum", 1),
-				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "anotherSchemaType_default_ref", 1),
+				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_sumX10", 3),
+				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "aThirdSchemaType_default_sum", 2),
+				//Changed from 1 to 2
+				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "anotherSchemaType_default_ref", 0),
+				//Changed from 1 to 0
 				tuple("anotherSchemaType_default_sum", "zeSchemaType_default_ref", 1),
 				tuple("anotherSchemaType_default_sum", "zeSchemaType_default_number", 1),
-				tuple("anotherSchemaType_default_sumX10", "anotherSchemaType_default_sum", 1),
-				tuple("zeSchemaType_default_pct", "zeSchemaType_default_ref", 2),
-				tuple("zeSchemaType_default_pct", "zeSchemaType_default_number", 2),
+				tuple("anotherSchemaType_default_sumX10", "anotherSchemaType_default_sum", 2), //Changed from 2 to 1
+				tuple("zeSchemaType_default_pct", "zeSchemaType_default_ref", 0),//Changed from 2 to 0
+				tuple("zeSchemaType_default_pct", "zeSchemaType_default_number", 0),//Changed from 2 to 0
 				tuple("zeSchemaType_default_pct", "anotherSchemaType_default_copiedThirdSchemaTypeSum", 2),
 				tuple("zeSchemaType_default_refText", "anotherSchemaType_default_text", 0),
 				tuple("zeSchemaType_default_refText", "zeSchemaType_default_ref", 0)
@@ -203,16 +205,15 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("anotherSchemaRecord2", 7.0, 70.0, 10.0)
 		);
 
-		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
-				tuple("aThirdSchemaRecord1", 10.0, 100.0),
-				tuple("aThirdSchemaRecord2", 0.0, 0.0)
-		);
-
 		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
 				tuple("zeSchemaRecord1", 1.0, 0.1),
 				tuple("zeSchemaRecord2", 2.0, 0.2),
 				tuple("zeSchemaRecord3", 3.0, 0.3),
 				tuple("zeSchemaRecord4", 4.0, 0.4)
+		);
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 10.0, 100.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
 	}

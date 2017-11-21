@@ -23,13 +23,26 @@ public class ModifiableMetadataNetworkLink {
 
 	//	int toNetworkLevel;
 
-	public ModifiableMetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, Metadata refMetadata, int level,
-			MetadataNetworkLinkType linkType) {
+	boolean mustBeOdd;
+	boolean mustBeEven;
+
+	public ModifiableMetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, Metadata refMetadata,
+			MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
 		this.fromMetadata = fromMetadata;
 		this.toMetadata = toMetadata;
 		this.refMetadata = refMetadata;
-		this.level = level;
 		this.linkType = linkType;
+		this.mustBeOdd = mustBeOdd;
+		this.mustBeEven = mustBeEven;
+		this.level = 0;
+	}
+
+	public boolean isMustBeOdd() {
+		return mustBeOdd;
+	}
+
+	public boolean isMustBeEven() {
+		return mustBeEven;
 	}
 
 	public Metadata getFromMetadata() {
