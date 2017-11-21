@@ -130,4 +130,8 @@ public class CorrectorExcluderManager implements StatefulService, OneXMLConfigPe
     public void onValueModified(String collection, List<CorrectorExclusion> newValue) {
 
     }
+
+    public List<String> getCollectionListExceptSystem() {
+        return collectionsListManager.getCollectionsExcludingSystem();
+    }
 }
