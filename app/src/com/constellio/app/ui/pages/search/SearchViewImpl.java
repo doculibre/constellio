@@ -12,10 +12,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.IconButton;
-import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
@@ -42,6 +39,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
@@ -60,7 +58,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
-	private HashMap<Button,String> buttonExclusion = new HashMap<>();
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -274,8 +271,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
         caption.addStyleName(ValoTheme.LABEL_BOLD);
         suggestions.addComponent(caption);
 
-        List<CorrectorExclusion> correctorExclusions;
-
 		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
 
@@ -289,21 +284,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				});
 			HorizontalLayout horizontalLayout = new HorizontalLayout();
-			final Button excludeButton = new Button();
 
-			excludeButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-
-			buttonExclusion.put(excludeButton, suggestion);
-
-			excludeButton.addClickListener(new ClickListener() {
+			final DeleteButton excludeButton = new DeleteButton() {
 				@Override
-				public void buttonClick(ClickEvent event) {
-
-					String exclusion = buttonExclusion.get(event.getButton());
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					String exclusion = (String) dialog.getData();
 					presenter.addExclusion(exclusion, getCollection());
 					updateUI();
 				}
-			});
+			};
+			excludeButton.setData(suggestion);
+
+			excludeButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 
 			excludeButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
 			horizontalLayout.addComponent(activateSuggestion);
