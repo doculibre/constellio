@@ -255,7 +255,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return $("DisplayDocumentView.deleteSelectedVersionsConfirmation");
 			}
 		};
-		deleteDocumentButton.setEnabled(deleteDocumentButton.isEnabled());
+		deleteSelectedVersions.setEnabled(deleteSelectedVersions.isEnabled());
 		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
 		tabLayout.addComponents(deleteSelectedVersions, versionTable);
 		return tabLayout;
