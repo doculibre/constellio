@@ -10,6 +10,8 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 
+import java.util.List;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BagInfoSIPForm extends BaseViewImpl {
@@ -72,8 +74,9 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+        List<BagInfoVO> bagInfoVOList = presenter.getAllBagInfo();
         ComboBox cb = new ComboBox($("SIPButton.predefinedBagInfo"));
-        for(BagInfoVO bagInfoVO : presenter.getAllBagInfo()) {
+        for (BagInfoVO bagInfoVO : bagInfoVOList) {
             cb.addItem(bagInfoVO);
             cb.setItemCaption(bagInfoVO, bagInfoVO.getTitle());
         }
@@ -83,6 +86,11 @@ public class BagInfoSIPForm extends BaseViewImpl {
                 updateValue((BagInfoVO) event.getProperty().getValue());
             }
         });
+
+        if (bagInfoVOList.isEmpty()) {
+            cb.setVisible(false);
+            cb.setEnabled(false);
+        }
 
         limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
         limitSizeCheckbox.setId("limitSize");
@@ -142,7 +150,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
         descriptionSommaire.setId("descriptionSommaire");
         descriptionSommaire.setNullRepresentation("");
 
-        return new BaseForm<BagInfoVO>(presenter.newRecord(),this,
+        return new BaseForm<BagInfoVO>(presenter.newRecord(), this,
                 limitSizeCheckbox,
                 deleteCheckBox,
                 cb,
