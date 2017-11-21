@@ -141,4 +141,13 @@ public class BagInfoVO extends RecordVO {
     public void setRestrictionAccessibilite(String restrictionAccessibilite) {
         set(RESTRICTION_ACCESSIBILITE, restrictionAccessibilite);
     }
+
+    @Override
+    public <T> T get(String metadataCode) {
+        try{
+            return super.get(metadataCode);
+        } catch(RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e ){
+            return null;
+        }
+    }
 }

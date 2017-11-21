@@ -1,6 +1,10 @@
 package com.constellio.app.ui.pages.SIP;
 
 import com.constellio.app.ui.entities.BagInfoVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.BagInfoToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -10,6 +14,7 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -83,7 +88,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
         cb.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                updateValue((BagInfoVO) event.getProperty().getValue());
+                updateValue(event.getProperty().getValue() != null ? (BagInfoVO) event.getProperty().getValue() : new BagInfoVO("", Collections.<MetadataValueVO>emptyList(), RecordVO.VIEW_MODE.FORM));
             }
         });
 
@@ -198,10 +203,5 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
 
-    }
-
-    @Override
-    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-        return null;
     }
 }

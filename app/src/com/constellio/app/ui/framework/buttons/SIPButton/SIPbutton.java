@@ -71,10 +71,10 @@ public class SIPbutton extends WindowButton {
 
     @Override
     protected Component buildWindowContent() {
-        return new BagInfoSIPForm(){
+        return new BagInfoSIPForm() {
             @Override
             protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
-                if(validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
+                if (validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
                     String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
                     List<String> packageInfoLines = asList(
                             $("BagInfoForm.note") + ":" + viewObject.getNote(),
@@ -138,12 +138,12 @@ public class SIPbutton extends WindowButton {
         return folders;
     }
 
-    private boolean validateFolderHasDocument(){
+    private boolean validateFolderHasDocument() {
         SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
         MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
-        for(String folderId : getFolderIDListFromObjectList()) {
+        for (String folderId : getFolderIDListFromObjectList()) {
             LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
-            if(searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
+            if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
                 return true;
             }
         }
@@ -151,8 +151,8 @@ public class SIPbutton extends WindowButton {
     }
 
     private boolean validateBagInfoLine(BagInfoVO object) {
-        for(MetadataVO field : object.getFormMetadatas()) {
-            if(!"".equals(object.get(field))) {
+        for (MetadataVO field : object.getFormMetadatas()) {
+            if (!"".equals(object.get(field)) && object.get(field) != null) {
                 return true;
             }
         }
