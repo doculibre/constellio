@@ -442,11 +442,13 @@ public class RecordAutomaticMetadataServices {
 
 			for (Record record : searchServices
 					.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
-				SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
-				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
-						&& !authsInTransaction.contains(authorizationDetail.getId())
-						&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-					authorizationDetails.add(authorizationDetail);
+				if (record != null) {
+					SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+					if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
+							&& !authsInTransaction.contains(authorizationDetail.getId())
+							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+						authorizationDetails.add(authorizationDetail);
+					}
 				}
 			}
 		}
