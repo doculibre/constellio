@@ -1,5 +1,13 @@
 package com.constellio.model.services.records.aggregations;
 
+import java.util.Iterator;
+import java.util.Set;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 
 public class MinMetadataAggregationHandler extends SolrStatMetadataAggregationHandler {
@@ -10,16 +18,55 @@ public class MinMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 	@Override
 	public Object calculate(InMemoryAggregatedValuesParams params) {
-		Double min = null;
+		return getMin(params.getMetadata().getType(), params.getValues());
 
-		for (Object value : params.getValues()) {
-			if (value instanceof Number
-					&& (min == null || min.doubleValue() > ((Number) value).doubleValue())) {
-				min = ((Number) value).doubleValue();
+	}
+
+	public static Object getMin(MetadataValueType valueType, java.util.Collection<Object> values) {
+
+		Object min = null;
+		Iterator<Object> objectIterator = values.iterator();
+
+		while (objectIterator.hasNext()) {
+			Object value = objectIterator.next();
+
+			if (valueType == MetadataValueType.NUMBER) {
+				if (value instanceof Number
+						&& (min == null || ((Double) min).doubleValue() > ((Number) value).doubleValue())) {
+					min = ((Number) value).doubleValue();
+				}
+			} else if (valueType == MetadataValueType.DATE) {
+				if (value instanceof LocalDate
+						&& (min == null || ((LocalDate) min).isAfter((LocalDate) value))) {
+					min = value;
+
+				} else if (value instanceof LocalDateTime
+						&& (min == null || ((LocalDate) min).isAfter(((LocalDateTime) value).toLocalDate()))) {
+					min = ((LocalDateTime) value).toLocalDate();
+
+				}
+
+			} else if (valueType == MetadataValueType.DATE_TIME) {
+				if (value instanceof LocalDate
+						&& (min == null || ((LocalDateTime) min)
+						.isAfter(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT)))) {
+					min = ((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT);
+
+				} else if (value instanceof LocalDateTime
+						&& (min == null || ((LocalDateTime) min).isAfter((LocalDateTime) value))) {
+					min = value;
+
+				}
+
 			}
+
 		}
 
 		return min;
+	}
 
+	@Override
+	protected Object calculateForNonNumber(MetadataValueType metadataValueType, Set<Object> values) {
+		return getMin(metadataValueType, values);
 	}
 }

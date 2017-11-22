@@ -1,5 +1,8 @@
 package com.constellio.model.services.records.aggregations;
 
+import java.util.Set;
+
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 
 public class SumMetadataAggregationHandler extends SolrStatMetadataAggregationHandler {
@@ -20,5 +23,12 @@ public class SumMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 		}
 
 		return sum;
+	}
+
+	@Override
+	protected Object calculateForNonNumber(MetadataValueType metadataValueType, Set<Object> values) {
+
+		//Not working with other types
+		return null;
 	}
 }

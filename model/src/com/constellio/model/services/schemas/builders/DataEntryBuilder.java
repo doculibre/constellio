@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -110,7 +112,7 @@ public class DataEntryBuilder {
 		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.MAX);
 	}
 
-	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number,
+	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder inputMetadata,
 			AggregationType aggregationType) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
@@ -118,19 +120,20 @@ public class DataEntryBuilder {
 
 		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
-					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+					referenceToAgregatingSchemaType.getCode());
 		}
 
-		if (number.getType() != NUMBER) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode(), NUMBER);
+		if (inputMetadata.getType() != NUMBER && inputMetadata.getType() != DATE && inputMetadata.getType() != DATE_TIME) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata.getCode(),
+					NUMBER, DATE, DATE_TIME);
 		}
 
 		if (metadata.getType() == null) {
-			metadata.setType(number.getType());
+			metadata.setType(inputMetadata.getType());
 		}
 
-		metadata.dataEntry = new AggregatedDataEntry(asList(number.getCode()), referenceToAgregatingSchemaType.getCode(),
-				aggregationType);
+		metadata.dataEntry = new AggregatedDataEntry(
+				asList(inputMetadata.getCode()), referenceToAgregatingSchemaType.getCode(), aggregationType);
 		return metadata;
 	}
 
