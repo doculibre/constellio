@@ -81,6 +81,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton renameContentButton;
 	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
+	private ConfirmDialogButton deleteSelectedVersions;
 	
 	private boolean contentViewerInitiallyVisible;
 	private boolean waitForContentViewerToBecomeVisible;
@@ -174,6 +175,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
 		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
+			protected boolean isSelectionColumn() {
+				return isDeleteColumn();
+			}
+
+			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
 			}
@@ -192,7 +198,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setSizeFull();
 
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
-		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
+		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
 		eventsComponent = new CustomComponent();
@@ -220,6 +226,39 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		
 		return mainLayout;
+	}
+
+	private Component buildVersionTab() {
+		final VerticalLayout tabLayout = new VerticalLayout();
+		deleteSelectedVersions = new ConfirmDialogButton($("delete.icon") + " " + $("DisplayDocumentView.deleteSelectedVersionsLabel")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
+				for(ContentVersionVO contentVersionVO: selectedContentVersions) {
+					presenter.deleteContentVersionButtonClicked(contentVersionVO);
+				}
+				versionTable.removeAllSelection();
+			}
+
+			@Override
+			public boolean isVisible() {
+				return presenter.isDeleteContentVersionPossible();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return versionTable.getContentVersions() != null && versionTable.getContentVersions().size() > 1 && !versionTable.getSelectedContentVersions().isEmpty();
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DisplayDocumentView.deleteSelectedVersionsConfirmation");
+			}
+		};
+		deleteDocumentButton.setEnabled(deleteDocumentButton.isEnabled());
+		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
+		tabLayout.addComponents(deleteSelectedVersions, versionTable);
+		return tabLayout;
 	}
 
 	@Override
