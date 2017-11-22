@@ -11,6 +11,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
 import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
 import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.assertj.core.groups.Tuple;
 import org.junit.Test;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
@@ -29,11 +29,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -47,6 +46,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
 public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends ConstellioTest {
 
@@ -125,18 +125,18 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 		setUpWithAgregatedSumMetadatas();
 
-		assertThat(getNetworkLinks()).containsOnly(
+		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_sum", 1),
 				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_ref", 1),
-				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_sumX10", 3),
+				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_sumX10", 1),//Changed from 3 to 1
 				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "aThirdSchemaType_default_sum", 2),
 				//Changed from 1 to 2
 				tuple("anotherSchemaType_default_copiedThirdSchemaTypeSum", "anotherSchemaType_default_ref", 0),
 				//Changed from 1 to 0
 				tuple("anotherSchemaType_default_sum", "zeSchemaType_default_ref", 1),
 				tuple("anotherSchemaType_default_sum", "zeSchemaType_default_number", 1),
-				tuple("anotherSchemaType_default_sumX10", "anotherSchemaType_default_sum", 2), //Changed from 2 to 1
+				tuple("anotherSchemaType_default_sumX10", "anotherSchemaType_default_sum", 1), //Changed from 2 to 1
 				tuple("zeSchemaType_default_pct", "zeSchemaType_default_ref", 0),//Changed from 2 to 0
 				tuple("zeSchemaType_default_pct", "zeSchemaType_default_number", 0),//Changed from 2 to 0
 				tuple("zeSchemaType_default_pct", "anotherSchemaType_default_copiedThirdSchemaTypeSum", 2),
@@ -195,10 +195,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("zeSchemaRecord4", 4.0, null)
 		);
 
-		clearAggregatedMetadatas();
-
-		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
 				tuple("anotherSchemaRecord1", 3.0, 30.0, 10.0),
@@ -216,6 +213,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
+		assertThat(nbQueries).isEqualTo(16);
 	}
 
 	@Test
@@ -520,29 +518,6 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 	}
 
-	private List<Tuple> getNetworkLinks() {
-
-		List<Tuple> tuples = new ArrayList();
-
-		for (MetadataNetworkLink link : schemas.getTypes().getMetadataNetwork().getLinks()) {
-
-			if (!link.getToMetadata().isGlobal()
-					&& !link.getFromMetadata().isGlobal()
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
-				Tuple tuple = new Tuple();
-				tuple.addData(link.getFromMetadata().getCode());
-				tuple.addData(link.getToMetadata().getCode());
-				tuple.addData(link.getLevel());
-				tuples.add(tuple);
-			}
-
-		}
-
-		return tuples;
-	}
-
 	@Test
 	public void givenAUnionAggregatedMetadataInAHierarchyThenAccurateValues()
 			throws Exception {
@@ -564,7 +539,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		Metadata value = zeSchema.metadata("value");
 		Metadata agregated = zeSchema.metadata("agregated");
 
-		assertThat(getNetworkLinks()).containsOnly(
+		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_parent", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_value", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_agregated", 1));
@@ -599,8 +574,8 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 		);
 
-		clearAggregatedMetadatas();
-		assertThat(reindexReturningQtyOfQueries()).isEqualTo(6);
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
+		assertThat(nbQueries).isEqualTo(8);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(
@@ -639,7 +614,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		Metadata value = zeSchema.metadata("value");
 		Metadata agregated = zeSchema.metadata("agregated");
 
-		assertThat(getNetworkLinks()).containsOnly(
+		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_parent", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_value", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_agregated", 1));
@@ -670,8 +645,8 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 		);
 
-		clearAggregatedMetadatas();
-		assertThat(reindexReturningQtyOfQueries()).isEqualTo(6);
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
+		assertThat(nbQueries).isEqualTo(8);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(
@@ -687,21 +662,19 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		);
 	}
 
-	private int reindexReturningQtyOfQueries() {
+	public static int clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(SchemaShortcuts... schemas) {
 
-		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(),
-				ON_SCHEMA_TYPES(zeSchema.typeCode(), anotherSchema.typeCode()));
+		String[] schemaTypes = new String[schemas.length];
+		for (int i = 0; i < schemas.length; i++) {
+			schemaTypes[i] = SchemaUtils.getSchemaTypeCode(schemas[i].code());
+		}
 
-		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
-		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
-
-		return queryCounter.newQueryCalls();
+		return clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(schemaTypes);
 	}
 
-	public static void clearAggregatedMetadatas() {
+	public static int clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(String... schemaTypes) {
 		ModelLayerFactory modelLayerFactory = ConstellioTest.getInstance().getModelLayerFactory();
 
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
@@ -720,6 +693,13 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				throw new RuntimeException(e);
 			}
 		}
+
+		QueryCounter queryCounter = new QueryCounter(modelLayerFactory.getDataLayerFactory(), ON_SCHEMA_TYPES(schemaTypes));
+
+		ReindexingServices reindexingServices = new ReindexingServices(modelLayerFactory);
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+
+		return queryCounter.newQueryCalls();
 	}
 
 }

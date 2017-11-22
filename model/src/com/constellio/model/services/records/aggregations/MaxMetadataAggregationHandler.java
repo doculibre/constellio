@@ -10,6 +10,16 @@ public class MaxMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 	@Override
 	public Object calculate(InMemoryAggregatedValuesParams params) {
-		return 0.0;
+		Double max = null;
+
+		for (Object value : params.getValues()) {
+			if (value instanceof Number
+					&& (max == null || max.doubleValue() < ((Number) value).doubleValue())) {
+				max = ((Number) value).doubleValue();
+			}
+		}
+
+		return max;
+
 	}
 }

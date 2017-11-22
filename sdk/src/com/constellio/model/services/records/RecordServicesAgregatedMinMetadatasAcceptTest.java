@@ -1,11 +1,8 @@
 
 package com.constellio.model.services.records;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static com.constellio.sdk.tests.QueryCounter.ACCEPT_ALL;
-import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -16,17 +13,13 @@ import java.util.List;
 import org.assertj.core.groups.Tuple;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -103,35 +96,11 @@ public class RecordServicesAgregatedMinMetadatasAcceptTest extends ConstellioTes
 		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(0.2);
 		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(0.05);
 
-		int queries = clearAllAggregatedValuesThenReindexReturningQtyOfQueries();
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 		assertThat(record("merge1").get(anotherSchema_minValue)).isEqualTo(0.05);
 		assertThat(record("merge2").get(anotherSchema_minValue)).isEqualTo(0.2);
 		assertThat(record("merge3").get(thirdSchema_minValue)).isEqualTo(0.05);
-		//assertThat(queries).isEqualTo(42);
-
-	}
-
-	private int clearAllAggregatedValuesThenReindexReturningQtyOfQueries() {
-
-		BigVaultServerTransaction transaction = new BigVaultServerTransaction(NOW()).setUpdatedDocuments(asList(
-				solrInputDocumentRemovingMetadatas("merge1", anotherSchema.metadata("minValue")),
-				solrInputDocumentRemovingMetadatas("merge2", anotherSchema.metadata("minValue"))
-		));
-		try {
-			getDataLayerFactory().newRecordDao().getBigVaultServer().addAll(transaction);
-		} catch (BigVaultException e) {
-			throw new RuntimeException(e);
-		}
-
-		assertThat(record("merge1").get(anotherSchema.metadata("minValue"))).isNull();
-		assertThat(record("merge2").get(anotherSchema.metadata("minValue"))).isNull();
-
-		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), ACCEPT_ALL);
-
-		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
-		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
-
-		return queryCounter.newQueryCalls();
+		assertThat(nbQueries).isEqualTo(10);
 	}
 
 	private List<Tuple> getNetworkLinks() {

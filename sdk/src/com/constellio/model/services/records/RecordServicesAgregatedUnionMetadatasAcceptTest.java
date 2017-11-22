@@ -3,30 +3,23 @@ package com.constellio.model.services.records;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
+import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
 import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.assertj.core.groups.Tuple;
 import org.junit.Test;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -67,7 +60,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 			}
 		}));
 
-		assertThat(getNetworkLinks()).containsOnly(
+		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),
@@ -116,16 +109,15 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				solrInputDocumentRemovingMetadatas("merge2", anotherSchema.metadata("stringValuesUnion")),
 				solrInputDocumentRemovingMetadatas("merge3", anotherSchema.metadata("stringValuesUnion"))
 		)));
-		int queries = reindexReturningQtyOfQueries();
+		int queries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value5");
 		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).containsOnly("value4");
 		assertThat(record("merge3").getList(thirdSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value4", "value5");
-		assertThat(queries).isEqualTo(42);
+		assertThat(queries).isEqualTo(10);
 
 	}
-
 
 	@Test
 	public void givenRecordAndTheirUnionsCreatedInSameTransactionThenOk()
@@ -154,7 +146,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		Metadata anotherSchema_stringValuesUnion = anotherSchema.metadata("stringValuesUnion");
 		Metadata thirdSchema_stringValuesUnion = thirdSchema.metadata("stringValuesUnion");
 
-		assertThat(getNetworkLinks()).containsOnly(
+		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),
@@ -180,37 +172,4 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 
 	}
 
-	private int reindexReturningQtyOfQueries() {
-
-		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(),
-				ON_SCHEMA_TYPES(zeSchema.typeCode(), anotherSchema.typeCode()));
-
-		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
-		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
-
-		return queryCounter.newQueryCalls();
-	}
-
-	private List<Tuple> getNetworkLinks() {
-
-		List<Tuple> tuples = new ArrayList();
-
-		for (MetadataNetworkLink link : schemas.getTypes().getMetadataNetwork().getLinks()) {
-
-			if (!link.getToMetadata().isGlobal()
-					&& !link.getFromMetadata().isGlobal()
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
-				Tuple tuple = new Tuple();
-				tuple.addData(link.getFromMetadata().getCode());
-				tuple.addData(link.getToMetadata().getCode());
-				tuple.addData(link.getLevel());
-				tuples.add(tuple);
-			}
-
-		}
-
-		return tuples;
-	}
 }

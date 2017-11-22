@@ -4,9 +4,9 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface AggregatedCalculator<T> extends Serializable {
-	public T calculate(SearchAggregatedValuesParams params);
+	T calculate(SearchAggregatedValuesParams params);
 
-	public T calculate(TransactionAggregatedValuesParams params);
+	T calculate(InMemoryAggregatedValuesParams params);
 
-	public List<String> getMetadataDependencies();
+	List<String> getMetadataDependencies();
 }

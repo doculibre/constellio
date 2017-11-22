@@ -185,7 +185,7 @@ public class RecordAutomaticMetadataServices {
 					record, metadata, aggregatedDataEntry, types, aggregatedRecords);
 			List<Object> values = new ArrayList<>();
 			//TODO!
-			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(values));
+			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(metadata, values));
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
 	}

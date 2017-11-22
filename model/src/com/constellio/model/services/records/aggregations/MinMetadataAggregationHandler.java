@@ -10,6 +10,16 @@ public class MinMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 	@Override
 	public Object calculate(InMemoryAggregatedValuesParams params) {
-		return 0.0;
+		Double min = null;
+
+		for (Object value : params.getValues()) {
+			if (value instanceof Number
+					&& (min == null || min.doubleValue() > ((Number) value).doubleValue())) {
+				min = ((Number) value).doubleValue();
+			}
+		}
+
+		return min;
+
 	}
 }

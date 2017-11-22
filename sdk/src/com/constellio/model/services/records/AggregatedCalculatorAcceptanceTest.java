@@ -1,11 +1,15 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,8 +21,8 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -72,6 +76,12 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
 				.isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
+
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE);
+
+		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
+				.isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
+		assertThat(nbQueries).isEqualTo(4);
 	}
 
 	@Test
@@ -103,6 +113,12 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		assertThat(fetchBac13FromSolr().get(Schemas.MARKED_FOR_REINDEXING)).isEqualTo(Boolean.TRUE);
 		waitForBatchProcess();
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(1D));
+
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE,
+				ContainerRecord.SCHEMA_TYPE);
+
+		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(1D));
+		assertThat(nbQueries).isEqualTo(8);
 	}
 
 	@Test
@@ -134,6 +150,12 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		assertThat(fetchBac13FromSolr().get(Schemas.MARKED_FOR_REINDEXING)).isEqualTo(Boolean.TRUE);
 		waitForBatchProcess();
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(3D));
+
+		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE,
+				ContainerRecord.SCHEMA_TYPE);
+
+		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(3D));
+		assertThat(nbQueries).isEqualTo(8);
 	}
 
 	public Record fetchBac13FromSolr() {
@@ -151,18 +173,21 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 			query.sortAsc(Schemas.TITLE);
 			List<Record> referenceRecords = searchServices.search(query);
 			StringBuilder stringBuilder = new StringBuilder();
-			String prefix = "";
+
+			List<String> titles = new ArrayList<>();
 			for (Record record : referenceRecords) {
-				stringBuilder.append(prefix);
-				stringBuilder.append(record.getTitle());
-				prefix = " - ";
+				titles.add(record.getTitle());
 			}
-			return stringBuilder.toString();
+			Collections.sort(titles);
+			return StringUtils.join(titles, " - ");
+
 		}
 
 		@Override
-		public String calculate(TransactionAggregatedValuesParams params) {
-			return "";
+		public String calculate(InMemoryAggregatedValuesParams params) {
+			List<String> titles = new ArrayList<>(params.<String>getValues());
+			Collections.sort(titles);
+			return StringUtils.join(titles, " - ");
 		}
 
 		@Override

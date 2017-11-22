@@ -25,6 +25,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Octets;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
@@ -408,9 +409,14 @@ public class ReindexingServices {
 				} else {
 					current++;
 
+					boolean aggregatedMetadataModified = false;
 					for (MetadataNetworkLink linkOfAggregatedMetadataToUpdate : allAggregationLinksFromCurrentSchemaType) {
-						updateAggregatedMetadata(record, linkOfAggregatedMetadataToUpdate.getFromMetadata(),
-								aggregatedValuesTempStorage);
+						aggregatedMetadataModified = updateAggregatedMetadata(record,
+								linkOfAggregatedMetadataToUpdate.getFromMetadata(), aggregatedValuesTempStorage);
+					}
+
+					if (aggregatedMetadataModified) {
+						recordServices.recalculate(record);
 					}
 
 					for (String refMetadataLocalCode : allAggregationLinksToCurrentSchemaType.keySet()) {
@@ -457,7 +463,7 @@ public class ReindexingServices {
 
 	}
 
-	private void updateAggregatedMetadata(Record record, Metadata aggregatingMetadata,
+	private boolean updateAggregatedMetadata(Record record, Metadata aggregatingMetadata,
 			ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
 
 		final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection());
@@ -478,9 +484,15 @@ public class ReindexingServices {
 
 		LOGGER.info("Updating aggregating metadata " + aggregatingMetadata.getLocalCode() + " of record "
 				+ record.getId() + " based on values " + values);
-		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(values);
+		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values);
 		Object aggregatedValue = handler.calculate(params);
-		((RecordImpl) record).updateAutomaticValue(aggregatingMetadata, aggregatedValue);
+		Object currentRecordValue = record.get(aggregatingMetadata);
+		if (!LangUtils.isEqual(aggregatedValue, currentRecordValue)) {
+			((RecordImpl) record).updateAutomaticValue(aggregatingMetadata, aggregatedValue);
+			return true;
+		} else {
+			return false;
+		}
 
 	}
 
