@@ -260,7 +260,7 @@ public class MetadataNetworkBuilder {
 		} else if (DataEntryType.CALCULATED == metadata.getDataEntry().getType()) {
 
 			CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-
+			boolean hasRefDependency = false;
 			List<Metadata> metadatas = new ArrayList<>();
 			for (Dependency aDependency : dataEntry.getCalculator().getDependencies()) {
 
@@ -273,6 +273,7 @@ public class MetadataNetworkBuilder {
 					}
 
 				} else if (aDependency instanceof ReferenceDependency) {
+					hasRefDependency = true;
 					try {
 						ReferenceDependency dependency = (ReferenceDependency) aDependency;
 						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
@@ -289,14 +290,14 @@ public class MetadataNetworkBuilder {
 				}
 			}
 
-			int level = builder.getDependencyLevelRequiredFor(metadata, metadatas, false, true);
+			int level = builder.getDependencyLevelRequiredFor(metadata, metadatas, false, hasRefDependency);
 			for (Dependency aDependency : dataEntry.getCalculator().getDependencies()) {
 
 				if (aDependency instanceof LocalDependency) {
 					LocalDependency dependency = (LocalDependency) aDependency;
 					try {
 						builder.addNetworkLink(metadata, schema.getMetadata(dependency.getLocalMetadataCode()), null, level,
-								AUTOMATIC_METADATA_INPUT, false, true);
+								AUTOMATIC_METADATA_INPUT, false, hasRefDependency);
 					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 						//Metadata may be created later
 					}
@@ -310,7 +311,7 @@ public class MetadataNetworkBuilder {
 								.getMetadata(dependency.getDependentMetadataCode());
 
 						builder.addNetworkLink(metadata, dependentMetadata, refMetadata, level, AUTOMATIC_METADATA_INPUT, false,
-								true);
+								hasRefDependency);
 
 					} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 						//Metadata may be created later
