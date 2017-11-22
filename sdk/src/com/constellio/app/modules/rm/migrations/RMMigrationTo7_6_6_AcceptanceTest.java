@@ -39,7 +39,7 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSystemIn7_6_5_thenMigrated()
 			throws Exception {
-
+		givenTimeIs(date(2017, 11, 16));
 		givenSystemIn7_6_5();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -48,7 +48,6 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		List<Record> auths = searchServices
 				.search(new LogicalSearchQuery(from(rm.authorizationDetails.schemaType()).returnAll()));
 
-		givenTimeIs(date(2017, 11, 16));
 		assertThatRecords(auths).extractingMetadatas(IDENTIFIER, rm.authorizationDetails.targetSchemaType(),
 				rm.authorizationDetails.lastTokenRecalculate()).containsOnly(
 				tuple("00000000409", "folder", date(2017, 11, 16)),

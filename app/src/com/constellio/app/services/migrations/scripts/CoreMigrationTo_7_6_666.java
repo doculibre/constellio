@@ -8,7 +8,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.List;
 
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -67,7 +67,7 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 							Record targetRecord = recordServices.getDocumentById(auth.getTarget());
 							auth.setTargetSchemaType(targetRecord.getTypeCode());
 							if (!principalTaxonomy.getSchemaTypes().contains(targetRecord.getTypeCode())) {
-								auth.setLastTokenRecalculate(LocalDate.now());
+								auth.setLastTokenRecalculate(TimeProvider.getLocalDate());
 							}
 							tx.add(auth);
 						} catch (Exception e) {
