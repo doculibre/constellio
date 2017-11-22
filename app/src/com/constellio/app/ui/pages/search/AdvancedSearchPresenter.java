@@ -109,6 +109,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			searchID = parts[1];
 			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
+			updateUIContext(search);
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();
