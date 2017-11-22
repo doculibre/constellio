@@ -375,8 +375,6 @@ public class ReindexingServices {
 				}
 				removeMetadataValuesOn(metadatasMarkedForDeletion, record);
 
-				System.out.println("Reindexing " + record.getId());
-
 				if (recordsProvider.dependencyLevel % 2 == 0) {
 					if (metadatas.isEmpty()) {
 						current++;

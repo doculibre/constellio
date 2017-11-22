@@ -873,10 +873,6 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		}
 		Collections.sort(entriesInfo);
 
-		for (String entry : entriesInfo) {
-			System.out.println(entry);
-		}
-
 		return entriesInfo;
 	}
 

@@ -272,6 +272,10 @@ public class LangUtils {
 		return new StringReplacer().replacingRegex(regex, replacement);
 	}
 
+	public static boolean isEmptyList(Object modifiedValue) {
+		return (modifiedValue instanceof List) && (((List) modifiedValue).isEmpty());
+	}
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
