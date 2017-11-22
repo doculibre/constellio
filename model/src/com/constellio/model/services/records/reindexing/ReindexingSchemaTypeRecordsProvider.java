@@ -184,8 +184,11 @@ public class ReindexingSchemaTypeRecordsProvider {
 		return iteration;
 	}
 
-	public boolean isAlreadyHandled(String id) {
+	public boolean isAlreadyHandledInCurrentOrPreviousBatch(String id) {
 		return ids.contains(id) || idsInCurrentBatch.contains(id);
 	}
 
+	public boolean isAlreadyHandledInPreviousBatch(String id) {
+		return ids.contains(id);
+	}
 }

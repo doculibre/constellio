@@ -302,7 +302,7 @@ public class ReindexingServices {
 
 						if (typeReindexed) {
 							reindexCollectionType(bulkTransactionHandler, types, logger,
-									recordsProvider.newSchemaTypeProvider(type, level), aggregatedValuesTempStorage);
+									recordsProvider.newSchemaTypeProvider(type, level), aggregatedValuesTempStorage, params);
 						}
 					}
 				}
@@ -347,7 +347,7 @@ public class ReindexingServices {
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,
 			ReindexingLogger logger, ReindexingSchemaTypeRecordsProvider recordsProvider,
-			ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
+			ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage, ReindexationParams params) {
 
 		MetadataSchemaType type = recordsProvider.type;
 		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
@@ -370,7 +370,12 @@ public class ReindexingServices {
 				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter);
 
 				Record record = recordsIterator.next();
+				if (params.getReindexationMode().isFullRecalculation()) {
+					record.set(Schemas.MARKED_FOR_REINDEXING, null);
+				}
 				removeMetadataValuesOn(metadatasMarkedForDeletion, record);
+
+				System.out.println("Reindexing " + record.getId());
 
 				if (recordsProvider.dependencyLevel % 2 == 0) {
 					if (metadatas.isEmpty()) {
@@ -380,7 +385,7 @@ public class ReindexingServices {
 
 					} else {
 						String parentId = getParentIdOfSameType(metadatas, record);
-						if (parentId == null || recordsProvider.isAlreadyHandled(parentId) || parentId
+						if (parentId == null || recordsProvider.isAlreadyHandledInPreviousBatch(parentId) || parentId
 								.equals(record.getId())) {
 							current++;
 							logger.updateProgression(current, counter);
@@ -427,7 +432,7 @@ public class ReindexingServices {
 						for (String referencedRecordId : referencedRecordIds) {
 
 							if (hasLinkWithinSameSchemaType(links)
-									&& recordsProvider.isAlreadyHandled(referencedRecordId)
+									&& recordsProvider.isAlreadyHandledInCurrentOrPreviousBatch(referencedRecordId)
 									&& !referencedRecordId.equals(record.getId())) {
 
 								LOGGER.info("Record " + referencedRecordId + " will be recalculated");
