@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -43,6 +45,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -55,10 +58,12 @@ public class SIPbutton extends WindowButton {
     private ConstellioHeader view;
     private AppLayerFactory factory;
     private String collection;
+    private SIPButtonPresenter presenter;
 
     public SIPbutton(String caption, String windowCaption, ConstellioHeader view) {
         super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
         this.view = view;
+        this.presenter = new SIPButtonPresenter(this, objectList);
         if (this.view != null) {
             this.factory = this.view.getConstellioFactories().getAppLayerFactory();
             this.collection = this.view.getCollection();
@@ -74,35 +79,25 @@ public class SIPbutton extends WindowButton {
         return new BagInfoSIPForm() {
             @Override
             protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
-                if (validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
-                    String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
-                    List<String> packageInfoLines = asList(
-                            $("BagInfoForm.note") + ":" + viewObject.getNote(),
-                            $("BagInfoForm.identificationOrganisme") + ":" + viewObject.getIdentificationOrganismeVerseurOuDonateur(),
-                            $("BagInfoForm.IDOrganisme") + ":" + viewObject.getIDOrganismeVerseurOuDonateur(),
-                            $("BagInfoForm.address") + ":" + viewObject.getAddress(),
-                            $("BagInfoForm.regionAdministrative") + ":" + viewObject.getRegionAdministrative(),
-                            $("BagInfoForm.entiteResponsable") + ":" + viewObject.getEntiteResponsable(),
-                            $("BagInfoForm.identificationEntiteResponsable") + ":" + viewObject.getIdentificationEntiteResponsable(),
-                            $("BagInfoForm.courrielResponsable") + ":" + viewObject.getCourrielResponsable(),
-                            $("BagInfoForm.telephoneResponsable") + ":" + viewObject.getTelephoneResponsable(),
-                            $("BagInfoForm.descriptionSommaire") + ":" + viewObject.getDescriptionSommaire(),
-                            $("BagInfoForm.categoryDocument") + ":" + viewObject.getCategoryDocument(),
-                            $("BagInfoForm.methodeTransfere") + ":" + viewObject.getMethodeTransfere(),
-                            $("BagInfoForm.restrictionAccessibilite") + ":" + viewObject.getRestrictionAccessibilite(),
-                            $("BagInfoForm.encoding") + ":" + viewObject.getEncoding());
-                    List<String> documentList = getDocumentIDListFromObjectList();
-                    List<String> folderList = getFolderIDListFromObjectList();
-                    SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), view.getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), view.getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-                    AsyncTaskBatchProcess asyncTaskBatchProcess = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, view.getCollection(), "SIPArchives"));
-                    showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-                    closeAllWindows();
-                    navigate().to().displaySIPProgression(asyncTaskBatchProcess.getId());
-                } else {
-                    showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
-                }
+                presenter.saveButtonClick(viewObject);
             }
         };
+    }
+
+    protected void showMessage(String value) {
+        this.view.getCurrentView().showMessage(value);
+    }
+
+    protected void closeAllWindows(){
+        this.view.getCurrentView().closeAllWindows();
+    }
+
+    public void showErrorMessage(String value) {
+        this.view.getCurrentView().showErrorMessage(value);
+    }
+
+    public Navigation navigate(){
+        return ConstellioUI.getCurrent().navigate();
     }
 
     public ConstellioHeader getView() {
@@ -116,46 +111,5 @@ public class SIPbutton extends WindowButton {
     public void setAllObject(RecordVO... objects) {
         objectList = new ArrayList<>();
         objectList.addAll(asList(objects));
-    }
-
-    private List<String> getDocumentIDListFromObjectList() {
-        List<String> documents = new ArrayList<>();
-        for (RecordVO recordVO : this.objectList) {
-            if (recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)) {
-                documents.add(recordVO.getId());
-            }
-        }
-        return documents;
-    }
-
-    private List<String> getFolderIDListFromObjectList() {
-        List<String> folders = new ArrayList<>();
-        for (RecordVO recordVO : this.objectList) {
-            if (recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-                folders.add(recordVO.getId());
-            }
-        }
-        return folders;
-    }
-
-    private boolean validateFolderHasDocument() {
-        SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
-        MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
-        for (String folderId : getFolderIDListFromObjectList()) {
-            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
-            if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean validateBagInfoLine(BagInfoVO object) {
-        for (MetadataVO field : object.getFormMetadatas()) {
-            if (!"".equals(object.get(field)) && object.get(field) != null) {
-                return true;
-            }
-        }
-        return false;
     }
 }
