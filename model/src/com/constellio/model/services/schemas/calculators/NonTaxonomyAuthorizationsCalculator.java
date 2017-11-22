@@ -36,19 +36,16 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 		List<String> returnedIds = new ArrayList<>();
 
-		if (parameters.getSchemaType().getCode().equals("folder") || parameters.getSchemaType().getCode().equals("document")) {
-
-			for (AuthorizationDetails auth : authorizations.getAuthorizationDetails()) {
-				if (auth.isActiveAuthorization()) {
-					returnedIds.add(auth.getId());
-				}
+		for (AuthorizationDetails auth : authorizations.getAuthorizationDetails()) {
+			if (auth.isActiveAuthorization()) {
+				returnedIds.add(auth.getId());
 			}
+		}
 
-			if (!detached) {
-				for (String auth : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
-					if (!allRemovedAuths.contains(auth)) {
-						returnedIds.add(auth);
-					}
+		if (!detached) {
+			for (String auth : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
+				if (!allRemovedAuths.contains(auth)) {
+					returnedIds.add(auth);
 				}
 			}
 		}

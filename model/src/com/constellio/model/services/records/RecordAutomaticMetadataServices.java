@@ -380,10 +380,13 @@ public class RecordAutomaticMetadataServices {
 		Set<String> usersInTransaction = new HashSet<>();
 		Set<String> groupsInTransaction = new HashSet<>();
 
-		//TODO Francis : temporaire
-		if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 
-			MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		//TODO Francis : temporaire
+		//if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+		if (type.hasSecurity()) {
+
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
 
@@ -433,10 +436,12 @@ public class RecordAutomaticMetadataServices {
 		Set<String> authsInTransaction = new HashSet<>();
 		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
 
-		//TODO Francis : temporaire
-		if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 
-			MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		//TODO Francis : temporaire
+		//if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
+		if (type.hasSecurity()) {
 
 			if (recordProvider.transaction != null) {
 				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
