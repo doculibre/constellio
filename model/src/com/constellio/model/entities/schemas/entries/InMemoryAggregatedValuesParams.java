@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.constellio.model.entities.schemas.Metadata;
 
-public class InMemoryAggregatedValuesParams {
+public abstract class InMemoryAggregatedValuesParams {
 	List<Object> values;
 
 	private Metadata aggregateMetadata;
@@ -17,6 +17,10 @@ public class InMemoryAggregatedValuesParams {
 	public <T> List<T> getValues() {
 		return (List) values;
 	}
+
+	public abstract List<AggregatedValuesEntry> getEntries();
+
+	public abstract int getReferenceCount();
 
 	public Metadata getMetadata() {
 		return aggregateMetadata;

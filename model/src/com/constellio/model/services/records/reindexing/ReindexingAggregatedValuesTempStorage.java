@@ -3,6 +3,7 @@ package com.constellio.model.services.records.reindexing;
 import java.util.List;
 
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 
 public interface ReindexingAggregatedValuesTempStorage {
 
@@ -12,4 +13,9 @@ public interface ReindexingAggregatedValuesTempStorage {
 
 	void clear();
 
+	List<AggregatedValuesEntry> getAllEntriesWithValues(String recordIdAggregatingValues);
+
+	void incrementReferenceCount(String recordIdAggregatingValues);
+
+	int getReferenceCount(String recordIdAggregatingValues);
 }

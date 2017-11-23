@@ -9,18 +9,20 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.utils.KeyIntMap;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 
 public class InMemoryReindexingAggregatedValuesTempStorage implements ReindexingAggregatedValuesTempStorage {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryReindexingAggregatedValuesTempStorage.class);
 
+	KeyIntMap<String> referenceCounts = new KeyIntMap<>();
+
 	Map<String, Map<String, Map<String, List<Object>>>> entries = new HashMap<>();
 
 	@Override
 	public void addOrReplace(String recordIdAggregatingValues, String recordId, Metadata inputMetadata, List<Object> values) {
-		//		LOGGER.info("addOrReplace(aggregatingId=" + recordIdAggregatingValues + ", recordId=" + recordId + ", inputMetadata="
-		//				+ inputMetadata.getCode() + ", values=" + values);
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = entries.get(recordIdAggregatingValues);
 		if (entriesOfAggregatingRecord == null) {
 			entriesOfAggregatingRecord = new HashMap<>();
@@ -35,8 +37,6 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 		}
 
 		entriesOfAggregatingRecordInputMetadata.put(recordId, values);
-//		LOGGER.info("addOrReplace(aggregatingId=" + recordIdAggregatingValues + ", recordId=" + recordId + ", inputMetadata="
-		//				+ inputMetadata.getCode() + ", values=" + entriesOfAggregatingRecordInputMetadata.g);
 	}
 
 	@Override
@@ -62,13 +62,45 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 			}
 		}
 
-		//		LOGGER.info("getAllValues(aggregatingId=" + recordIdAggregatingValues + ", inputMetadata=" + inputMetadata.getCode()
-		//				+ " =>" + returnedValues);
 		return returnedValues;
 	}
 
 	@Override
 	public void clear() {
 		entries.clear();
+	}
+
+	@Override
+	public List<AggregatedValuesEntry> getAllEntriesWithValues(String recordIdAggregatingValues) {
+
+		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = entries.get(recordIdAggregatingValues);
+
+		if (entriesOfAggregatingRecord == null) {
+			return Collections.emptyList();
+		} else {
+			List<AggregatedValuesEntry> returnedEntries = new ArrayList<>();
+			for (Map.Entry<String, Map<String, List<Object>>> entry : entriesOfAggregatingRecord.entrySet()) {
+
+				String metadata = entry.getKey();
+				for (Map.Entry<String, List<Object>> entry2 : entry.getValue().entrySet()) {
+					String recordId = entry2.getKey();
+					List<Object> values = entry2.getValue();
+					returnedEntries.add(new AggregatedValuesEntry(recordId, metadata, values));
+				}
+
+			}
+
+			return returnedEntries;
+		}
+	}
+
+	@Override
+	public void incrementReferenceCount(String recordIdAggregatingValues) {
+		referenceCounts.increment(recordIdAggregatingValues);
+	}
+
+	@Override
+	public int getReferenceCount(String recordIdAggregatingValues) {
+		return referenceCounts.get(recordIdAggregatingValues);
 	}
 }

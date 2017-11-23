@@ -48,6 +48,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -190,8 +191,19 @@ public class RecordAutomaticMetadataServices {
 			TransactionAggregatedValuesParams aggregatedValuesParams = new TransactionAggregatedValuesParams(
 					record, metadata, aggregatedDataEntry, types, aggregatedRecords);
 			List<Object> values = new ArrayList<>();
-			//TODO!
-			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(metadata, values));
+			//TODO Populate based on transaction values
+			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(metadata, values) {
+
+				@Override
+				public List<AggregatedValuesEntry> getEntries() {
+					return new ArrayList<>();
+				}
+
+				@Override
+				public int getReferenceCount() {
+					return 0;
+				}
+			});
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
 	}

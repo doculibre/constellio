@@ -39,6 +39,7 @@ import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -396,12 +397,14 @@ public class ReindexingServices {
 
 						}
 					}
+
 					for (String refMetadataLocalCode : allAggregationLinksToCurrentSchemaType.keySet()) {
 						List<MetadataNetworkLink> links = allAggregationLinksToCurrentSchemaType.get(refMetadataLocalCode);
 						Metadata refMetadata = types.getMetadata(refMetadataLocalCode);
 						List<String> referencedRecordIds = record.getValues(refMetadata);
 
 						for (String referencedRecordId : referencedRecordIds) {
+							aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
 							for (MetadataNetworkLink link : links) {
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
 										link.getToMetadata(), record.getValues(link.getToMetadata()));
@@ -466,8 +469,8 @@ public class ReindexingServices {
 
 	}
 
-	private boolean updateAggregatedMetadata(Record record, Metadata aggregatingMetadata,
-			ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
+	private boolean updateAggregatedMetadata(final Record record, Metadata aggregatingMetadata,
+			final ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
 
 		final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection());
 		MetadataAggregationHandler handler = MetadataAggregationHandlerFactory.getHandlerFor(aggregatingMetadata);
@@ -487,7 +490,18 @@ public class ReindexingServices {
 
 		LOGGER.info("Updating aggregating metadata " + aggregatingMetadata.getLocalCode() + " of record "
 				+ record.getId() + " based on values " + values);
-		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values);
+		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values) {
+
+			@Override
+			public List<AggregatedValuesEntry> getEntries() {
+				return aggregatedValuesTempStorage.getAllEntriesWithValues(record.getId());
+			}
+
+			@Override
+			public int getReferenceCount() {
+				return aggregatedValuesTempStorage.getReferenceCount(record.getId());
+			}
+		};
 		Object aggregatedValue = handler.calculate(params);
 		Object currentRecordValue = record.get(aggregatingMetadata);
 		if (!LangUtils.isEqual(aggregatedValue, currentRecordValue)) {

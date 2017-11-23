@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class KeyIntMap<K> extends HashMap<K, Integer> {
 
@@ -52,5 +51,11 @@ public class KeyIntMap<K> extends HashMap<K, Integer> {
 		});
 
 		return entries;
+	}
+
+	@Override
+	public Integer get(Object key) {
+		Integer mapValue = super.get(key);
+		return mapValue == null ? 0 : mapValue;
 	}
 }
