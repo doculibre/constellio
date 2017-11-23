@@ -368,6 +368,7 @@ public class RecordDeleteServices {
 			}
 
 			for (RecordDTO recordDTO : recordsDTO) {
+				ids.remove(recordDTO.getId());
 				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
 			}
 
@@ -530,7 +531,7 @@ public class RecordDeleteServices {
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 
-		if(!options.isCheckForValidationErrorEnable()) {
+		if (!options.isCheckForValidationErrorEnable()) {
 			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 		}
 

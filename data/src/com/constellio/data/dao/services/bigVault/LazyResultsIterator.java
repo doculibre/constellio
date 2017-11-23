@@ -26,12 +26,14 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 	private List<RecordDTO> currentBatch;
 	private long currentNumFound = -1;
 	protected String lastId = null;
+	private boolean ascendingSort;
 
-	public LazyResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength) {
+	public LazyResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength, boolean ascendingSort) {
 		this.recordDao = recordDao;
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);
 		this.intervalsLength = intervalsLength;
+		this.ascendingSort = ascendingSort;
 	}
 
 	@Override
@@ -79,11 +81,19 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 
 	void loadNextBatch() {
 		ModifiableSolrParams params = new ModifiableSolrParams(this.solrParams);
-		params.set("sort", "id asc");
+		if (ascendingSort) {
+			params.set("sort", "id asc");
+		} else {
+			params.set("sort", "id desc");
+		}
 		params.set("start", 0);
 		if (lastId != null) {
 			//params.add("start", "" + currentStart);
-			params.add("fq", "id:{" + lastId + " TO *}");
+			if (ascendingSort) {
+				params.add("fq", "id:{" + lastId + " TO *}");
+			} else {
+				params.add("fq", "id:{* TO " + lastId + "}");
+			}
 		}
 		//params.set("start", currentStart);
 		QueryResponseDTO responseDTO = recordDao.query(params);
@@ -95,8 +105,9 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 
 	public static class LazyRecordDTOResultsIterator extends LazyResultsIterator<RecordDTO> {
 
-		public LazyRecordDTOResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength) {
-			super(recordDao, solrParams, intervalsLength);
+		public LazyRecordDTOResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength,
+				boolean ascendingSort) {
+			super(recordDao, solrParams, intervalsLength, ascendingSort);
 		}
 
 		@Override

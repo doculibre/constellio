@@ -1,10 +1,12 @@
 package com.constellio.app.api.cmis.rm;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
+import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
@@ -26,6 +28,7 @@ import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.MutableProperties;
+import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
@@ -44,9 +47,11 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -89,6 +94,26 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	}
+
+	@Test
+	public void givenRecordAsAuthOnALeafRecordThenCanCallGetChildrenAndGetParentsOnNodeLeadingToIt()
+			throws Exception {
+
+		Record folder1Doc = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
+				from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(records.folder_A05))).get(0);
+
+		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
+				.on(folder1Doc).givingReadAccess(), users.adminIn(zeCollection));
+		waitForBatchProcess();
+
+		session = newCMISSessionAsUserInZeCollection(robin);
+		assertThatChildren(session.getRootFolder()).containsOnly("taxo_plan", "taxo_containers", "taxo_admUnits");
+		assertThatChildren("taxo_admUnits").containsOnly("unitId_10");
+		assertThatChildren("unitId_10").containsOnly("unitId_10a");
+		assertThatChildren("unitId_10a").containsOnly(records.folder_A05);
+		assertThatChildren(records.folder_A05).containsOnly(folder1Doc.getId());
+
 	}
 
 	@Test
@@ -407,4 +432,22 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		}
 		return assertThat(tuples);
 	}
+
+	private ListAssert<Object> assertThatChildren(String id) {
+		Folder folder = (Folder) session.getObject(id);
+		return assertThatChildren(folder);
+	}
+
+	private ListAssert<Object> assertThatChildren(Folder folder) {
+
+		List<CmisObject> children = new ArrayList<>();
+		for (CmisObject object : folder.getChildren()) {
+			List<ObjectParentData> bindingParents = session.getBinding().getNavigationService().getObjectParents(
+					session.getRepositoryInfo().getId(), object.getId(), null, false, NONE, null, true, null);
+			assertThat(bindingParents).extracting("object.id").contains(folder.getId());
+			children.add(object);
+		}
+		return assertThat(children).extracting("id");
+	}
+
 }

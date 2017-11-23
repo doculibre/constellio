@@ -27,6 +27,11 @@ public class DependencyUtilsRuntimeException extends RuntimeException {
 			this.cyclicDependencies = cyclicDependencies;
 		}
 
+		public CyclicDependency(List cyclicDependencies, String graph) {
+			super("There is a cyclic dependency : \n" + graph);
+			this.cyclicDependencies = cyclicDependencies;
+		}
+
 		private static String toMessage(List cyclicDependencies) {
 			StringBuilder sb = new StringBuilder("There is a cyclic dependency : ");
 			for (Object cyclicDependency : cyclicDependencies) {

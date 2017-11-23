@@ -29,4 +29,6 @@ public interface AuthorizationDetails extends Serializable {
 	boolean isActiveAuthorization();
 
 	String getTarget();
+
+	String getTargetSchemaType();
 }

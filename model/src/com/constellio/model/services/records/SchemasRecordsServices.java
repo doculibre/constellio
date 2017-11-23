@@ -395,4 +395,8 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
+	public List<SolrAuthorizationDetails> getAllAuthorizations() {
+		return wrapSolrAuthorizationDetailss(getModelLayerFactory().newSearchServices().cachedSearch(
+				new LogicalSearchQuery(from(authorizationDetails.schemaType()).returnAll())));
+	}
 }

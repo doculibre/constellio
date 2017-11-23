@@ -214,6 +214,8 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(0);
 
+
+
 	}
 
 	@Test

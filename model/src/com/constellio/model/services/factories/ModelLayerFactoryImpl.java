@@ -72,6 +72,7 @@ import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCa
 import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
@@ -285,7 +286,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServices(this);
+		return new TaxonomiesSearchServicesBasedOnHierarchyTokensImpl(this);
 	}
 
 	public RolesManager getRolesManager() {

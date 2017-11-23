@@ -79,6 +79,7 @@ import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -801,7 +802,9 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.update(zeRecord);
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(alreadyReindexedMetadata);
-		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
+		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
+				asList(aModificationImpact, anotherModificationImpact), new ArrayList<String>());
+		doReturn(response).when(recordServices).calculateImpactOfModification(
 				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		doReturn(defaultHandler).when(recordServices).addToBatchProcessModificationImpactHandler();
 
@@ -828,8 +831,10 @@ public class RecordServicesTest extends ConstellioTest {
 
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
-		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
-				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
+		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
+				asList(aModificationImpact, anotherModificationImpact), new ArrayList<String>());
+		doReturn(response).when(recordServices)
+				.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
@@ -866,8 +871,9 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = spy(new Transaction());
 		transaction.update(zeRecord);
 
-		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).getModificationImpacts(transaction,
-				false);
+		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
+				asList(aModificationImpact, anotherModificationImpact), new ArrayList<String>());
+		doReturn(response).when(recordServices).getModificationImpacts(transaction, false);
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).prepareRecords(any(Transaction.class));
@@ -935,12 +941,15 @@ public class RecordServicesTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction(zeRecord);
 
-		when(impactCalculator.findTransactionImpact(transaction, true)).thenReturn(zeModifications);
+		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
+				zeModifications, new ArrayList<String>());
+		when(impactCalculator.findTransactionImpact(transaction, true)).thenReturn(response);
 		doReturn(impactCalculator).when(recordServices).newModificationImpactCalculator(taxonomiesManager, metadataSchemaTypes,
 				searchServices);
 
 		assertThat(recordServices.calculateImpactOfModification(
-				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true)).isEqualTo(zeModifications);
+				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true).getImpacts())
+				.isEqualTo(zeModifications);
 
 	}
 

@@ -97,6 +97,7 @@ import com.constellio.model.services.records.populators.SortFieldsPopulator;
 import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -180,13 +181,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			LOGGER.info("Cyclic dependency detected, a validation error will be thrown", e);
 		}
 		prepareRecords(transaction);
-		List<ModificationImpact> impacts = getModificationImpacts(transaction, false);
+		ModificationImpactCalculatorResponse impacts = getModificationImpacts(transaction, false);
 
-		if (impacts.isEmpty()) {
+		transaction.addAllRecordsToReindex(impacts.getRecordsToReindex());
+		if (impacts.getImpacts().isEmpty()) {
 			saveContentsAndRecords(transaction, null, attempt);
 		} else {
 			Transaction newTransaction = new Transaction(transaction);
-			for (ModificationImpact impact : impacts) {
+			for (ModificationImpact impact : impacts.getImpacts()) {
 				LOGGER.debug("Handling modification impact. Reindexing " + impact.getMetadataToReindex() + " for records of "
 						+ impact.getLogicalSearchCondition().toString());
 				LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
@@ -223,11 +225,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		prepareRecords(transaction);
 		if (handler != null) {
-			List<ModificationImpact> impacts = getModificationImpacts(transaction, true);
+			ModificationImpactCalculatorResponse impacts = getModificationImpacts(transaction, true);
 
-			for (ModificationImpact modificationImpact : impacts) {
+			for (ModificationImpact modificationImpact : impacts.getImpacts()) {
 				handler.prepareToHandle(modificationImpact);
 			}
+			transaction.addAllRecordsToReindex(impacts.getRecordsToReindex());
 		}
 
 		saveContentsAndRecords(transaction, handler, attempt);
@@ -404,7 +407,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		Record record = new RecordImpl(recordDTO, allFields);
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 		return record;
 	}
 
@@ -443,7 +446,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDao.get(id), true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			return record;
 
@@ -457,7 +460,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDao.realGet(id), true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			return record;
 
@@ -473,7 +476,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Record record = new RecordImpl(recordDTO, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-							new RecordUpdateOptions());
+							new Transaction(new RecordUpdateOptions()));
 			insertInCache(record);
 			records.add(record);
 		}
@@ -589,7 +592,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						try {
 							for (Metadata metadata : step.getMetadatas()) {
 								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
-										reindexationOptionForThisRecord, types, transaction.getRecordUpdateOptions());
+										reindexationOptionForThisRecord, types, transaction);
 							}
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
@@ -647,8 +650,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 					}
 				}
 
-				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll() &&
-						schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
+				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll()
+						&& transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()
+						&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
 						&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
 						&& !transaction.getIdsToReindex().contains(record.getId())) {
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
@@ -706,7 +710,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 							newAutomaticMetadataServices().updateAutomaticMetadatas(
 									(RecordImpl) record, newRecordProvider(transaction),
 									TransactionRecordsReindexation.ALL(),
-									new RecordUpdateOptions());
+									transaction);
 						}
 					}, options);
 				}
@@ -772,7 +776,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	List<ModificationImpact> getModificationImpacts(Transaction transaction, boolean executedAfterTransaction) {
+	ModificationImpactCalculatorResponse getModificationImpacts(Transaction transaction, boolean executedAfterTransaction) {
 		SearchServices searchServices = modelFactory.newSearchServices();
 		TaxonomiesManager taxonomiesManager = modelFactory.getTaxonomiesManager();
 		MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
@@ -997,9 +1001,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {
-		return new RecordAutomaticMetadataServices(modelFactory.getMetadataSchemasManager(), modelFactory.getTaxonomiesManager(),
-				modelFactory.getSystemConfigurationsManager(), modelFactory.getModelLayerLogger(),
-				modelFactory.newSearchServices());
+		return new RecordAutomaticMetadataServices(modelFactory);
 	}
 
 	public RecordValidationServices newRecordValidationServices(RecordProvider recordProvider) {
@@ -1110,11 +1112,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return new RecordUtils();
 	}
 
-	public List<ModificationImpact> calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
+	public ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
+			TaxonomiesManager taxonomiesManager,
 			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction) {
 
 		if (transaction.getRecords().isEmpty()) {
-			return new ArrayList<>();
+			return new ModificationImpactCalculatorResponse(new ArrayList<ModificationImpact>(), new ArrayList<String>());
 		}
 
 		ModificationImpactCalculator calculator = newModificationImpactCalculator(taxonomiesManager, metadataSchemaTypes,
@@ -1269,20 +1272,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL(),
-				new RecordUpdateOptions());
+				new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
 	public void loadLazyTransientMetadatas(Record record) {
 		newAutomaticMetadataServices()
 				.loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
 	public void reloadEagerTransientMetadatas(Record record) {
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
-						new RecordUpdateOptions());
+						new Transaction(new RecordUpdateOptions()));
 	}
 }

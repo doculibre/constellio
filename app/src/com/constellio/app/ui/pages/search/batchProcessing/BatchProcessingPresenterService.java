@@ -85,6 +85,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -337,7 +338,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes );
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
 					}
 				};
 			}
@@ -434,9 +435,10 @@ public class BatchProcessingPresenterService {
 				}
 
 				List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
-				for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
-						recordServices)
-						.findTransactionImpact(transaction, true)) {
+				ModificationImpactCalculatorResponse response = new ModificationImpactCalculator(
+						schemas.getTypes(), taxonomies, searchServices, recordServices).findTransactionImpact(transaction, true);
+				transaction.addAllRecordsToReindex(response.getRecordsToReindex());
+				for (ModificationImpact impact : response.getImpacts()) {
 					impacts.add(
 							new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
 				}
@@ -495,9 +497,11 @@ public class BatchProcessingPresenterService {
 			}
 
 			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
-			for (ModificationImpact impact : new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
-					recordServices)
-					.findTransactionImpact(transaction, true)) {
+			ModificationImpactCalculatorResponse modificationImpactCalculatorResponse =
+					new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
+							recordServices).findTransactionImpact(transaction, true);
+			transaction.addAllRecordsToReindex(modificationImpactCalculatorResponse.getRecordsToReindex());
+			for (ModificationImpact impact : modificationImpactCalculatorResponse.getImpacts()) {
 				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
 			}
 

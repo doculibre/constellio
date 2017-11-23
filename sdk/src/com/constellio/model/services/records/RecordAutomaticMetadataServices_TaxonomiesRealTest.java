@@ -135,9 +135,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		document = new TestRecord(documentSchema, "document");
 		document.set(documentSchema.parent(), subFolderWithTaxonomy);
 
-		services = new RecordAutomaticMetadataServices(schemaManager, getModelLayerFactory().getTaxonomiesManager(),
-				getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getModelLayerLogger(),
-				getModelLayerFactory().newSearchServices());
+		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		records.mockRecordProviderToReturnRecordsById(recordProvider);
 		records.mockRecordProviderToReturnRecordById(recordProvider, rootFolderWithTaxonomy);
@@ -158,7 +156,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
 
 		services.calculateValueInRecord((RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
-				recordProvider, schemas.getTypes(), options);
+				recordProvider, schemas.getTypes(), new Transaction(options));
 
 		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
 	}

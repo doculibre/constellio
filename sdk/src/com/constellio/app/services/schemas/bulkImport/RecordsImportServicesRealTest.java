@@ -76,6 +76,8 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -2890,6 +2892,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Test
 	public void givenMultipleAlreadyImportedRecordsWhenImportingRecordsOfAnotherTypeThen()
 			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {

@@ -1,19 +1,29 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
+import static com.constellio.model.entities.schemas.entries.AggregationType.VALUES_UNION;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
-import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
@@ -70,6 +80,26 @@ public class DataEntryBuilder {
 		return metadata;
 	}
 
+	public MetadataBuilder asUnion(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder... valueMetadatas) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+		}
+
+		List<String> valueMetadatasCodes = new ArrayList<>();
+		for (MetadataBuilder valueMetadata : valueMetadatas) {
+			valueMetadatasCodes.add(valueMetadata.getCode());
+		}
+
+		metadata.dataEntry = new AggregatedDataEntry(valueMetadatasCodes, referenceToAgregatingSchemaType.getCode(),
+				VALUES_UNION);
+		return metadata;
+	}
+
 	public MetadataBuilder asSum(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
 		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.SUM);
 	}
@@ -82,29 +112,33 @@ public class DataEntryBuilder {
 		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.MAX);
 	}
 
-	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number, AggregationType aggregationType) {
+	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder inputMetadata,
+			AggregationType aggregationType) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}
 
 		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
-					referenceToAgregatingSchemaType.getCode(), REFERENCE);
+					referenceToAgregatingSchemaType.getCode());
 		}
 
-		if (number.getType() != NUMBER || number.isMultivalue()) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode(), NUMBER);
+		if (inputMetadata.getType() != NUMBER && inputMetadata.getType() != DATE && inputMetadata.getType() != DATE_TIME) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata.getCode(),
+					NUMBER, DATE, DATE_TIME);
 		}
 
 		if (metadata.getType() == null) {
-			metadata.setType(number.getType());
+			metadata.setType(inputMetadata.getType());
 		}
 
-		metadata.dataEntry = new AggregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(), aggregationType);
+		metadata.dataEntry = new AggregatedDataEntry(
+				asList(inputMetadata.getCode()), referenceToAgregatingSchemaType.getCode(), aggregationType);
 		return metadata;
 	}
 
-	public MetadataBuilder asCalculatedAggregation(MetadataBuilder referenceToAgregatingSchemaType, Class<? extends AggregatedCalculator<?>> calculatorClass) {
+	public MetadataBuilder asCalculatedAggregation(MetadataBuilder referenceToAgregatingSchemaType,
+			Class<? extends AggregatedCalculator<?>> calculatorClass) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}
@@ -114,7 +148,8 @@ public class DataEntryBuilder {
 					referenceToAgregatingSchemaType.getCode(), REFERENCE);
 		}
 
-		metadata.dataEntry = new AggregatedDataEntry(null, referenceToAgregatingSchemaType.getCode(), CALCULATED, calculatorClass);
+		metadata.dataEntry = new AggregatedDataEntry(null, referenceToAgregatingSchemaType.getCode(), CALCULATED,
+				calculatorClass);
 		return metadata;
 	}
 
@@ -136,7 +171,7 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asCalculated(MetadataValueCalculator<?> calculator) {
-		List<Class<?>> interfaces = Arrays.asList(calculator.getClass().getInterfaces());
+		List<Class<?>> interfaces = asList(calculator.getClass().getInterfaces());
 		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {
 			metadata.dataEntry = new CalculatedDataEntry(calculator);
 			return metadata;
@@ -149,10 +184,10 @@ public class DataEntryBuilder {
 		List<Class<?>> interfaces = new ArrayList<>();
 
 		Class<?> aClass = calculatorClass;
-		interfaces.addAll(Arrays.asList(calculatorClass.getInterfaces()));
+		interfaces.addAll(asList(calculatorClass.getInterfaces()));
 		while (aClass.getSuperclass() != null) {
 			aClass = aClass.getSuperclass();
-			interfaces.addAll(Arrays.asList(aClass.getInterfaces()));
+			interfaces.addAll(asList(aClass.getInterfaces()));
 		}
 
 		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {

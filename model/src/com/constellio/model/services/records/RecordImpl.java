@@ -752,12 +752,16 @@ public class RecordImpl implements Record {
 					Object initialValue = recordDTO.getFields().get(entry.getKey());
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
-					if (LangUtils.areNullableEqual(currentValue, modifiedValue)) {
+					if (LangUtils.areNullableEqual(currentValue, modifiedValue)
+							|| (currentValue == null && isEmptyList(modifiedValue))
+							|| (modifiedValue == null && isEmptyList(currentValue))) {
 						//Both transactions made the same change on that field
 						removedKeys.add(entry.getKey());
 					} else {
 
-						if (!LangUtils.areNullableEqual(currentValue, initialValue)) {
+						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
+								|| (currentValue == null && isEmptyList(initialValue))
+								|| (initialValue == null && isEmptyList(currentValue)))) {
 							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
