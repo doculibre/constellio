@@ -58,6 +58,7 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -385,14 +386,15 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 
-		//TODO Francis : temporaire
-		//if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
 		if (type.hasSecurity()) {
 
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
 
-			if (recordProvider.transaction != null) {
+			RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+			if (recordProvider.transaction != null
+					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
+					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
 				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
 					if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
 						User user = User.wrapNullable(transactionRecord, types, roles);
@@ -441,9 +443,8 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 
-		//TODO Francis : temporaire
-		//if ("folder".equals(calculatedRecord.getTypeCode()) || "document".equals(calculatedRecord.getTypeCode())) {
-		if (type.hasSecurity()) {
+		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
+				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
 			if (recordProvider.transaction != null) {
 				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
