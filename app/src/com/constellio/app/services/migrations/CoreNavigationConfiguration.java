@@ -84,7 +84,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
-	public static final String EXCLUDED_ICON = "images/icons/config/excluded.png";
+	public static final String EXCLUDED_ICON = "images/icons/config/search-suggestions-exlusions.png";
 	public static final String EXCLUDED = "excluded";
 
 	public static final String ADMIN_MODULE = "adminModule";
