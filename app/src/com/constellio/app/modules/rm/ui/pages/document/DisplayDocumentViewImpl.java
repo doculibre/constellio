@@ -361,7 +361,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setEvents(RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider, false)) {
 			@Override
 			protected TableColumnsManager newColumnsManager() {
 				return new EventVOTableColumnsManager();

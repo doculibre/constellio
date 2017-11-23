@@ -751,7 +751,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void selectEventsTab() {
 		if (!(eventsComponent instanceof Table)) {
 			RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"),
-					new RecordVOLazyContainer(eventsDataProvider)) {
+					new RecordVOLazyContainer(eventsDataProvider, false)) {
 				@Override
 				protected TableColumnsManager newColumnsManager() {
 					return new EventVOTableColumnsManager();
