@@ -233,8 +233,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		return null;
 	}
 
-
-
 	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 
@@ -252,7 +250,13 @@ public class RecordsCacheImpl implements RecordsCache {
 				cachedResults = new ArrayList<>();
 
 				for (String recordId : recordIds) {
-					cachedResults.add(get(recordId));
+					Record record = get(recordId);
+					//A record has been invalidated during the call
+					if (record == null) {
+						return null;
+					}
+
+					cachedResults.add(record);
 				}
 				cachedResults = Collections.unmodifiableList(cachedResults);
 			}
@@ -759,11 +763,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		void set(Record record) {
 			//Object logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
-//			if (logicallyDeletedStatus == null
-//					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
-//					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
-				this.record = record.getCopyOfOriginalRecord();
-//			} else {
+			//			if (logicallyDeletedStatus == null
+			//					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
+			//					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
+			this.record = record.getCopyOfOriginalRecord();
+			//			} else {
 			//				this.record = null;
 			//			}
 		}
