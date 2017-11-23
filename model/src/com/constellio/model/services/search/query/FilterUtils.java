@@ -160,9 +160,12 @@ public class FilterUtils {
 	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
 			MetadataSchemaType selectedType, boolean includeInvisible) {
 
-		String selectedTypeSmallCode = selectedType.getSmallCode();
-		if (selectedTypeSmallCode == null) {
-			selectedTypeSmallCode = selectedType.getCode();
+		String selectedTypeSmallCode = null;
+		if (selectedType != null) {
+			selectedTypeSmallCode = selectedType.getSmallCode();
+			if (selectedTypeSmallCode == null) {
+				selectedTypeSmallCode = selectedType.getCode();
+			}
 		}
 
 		String tokenPrefix;
