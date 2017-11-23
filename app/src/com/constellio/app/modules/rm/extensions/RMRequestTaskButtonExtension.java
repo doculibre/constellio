@@ -321,7 +321,11 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return $("DisplayFolderView.confirmReturnMessage");
+				if(view instanceof DisplayContainerViewImpl) {
+					return $("DisplayFolderView.confirmReturnContainerMessage");
+				} else {
+					return $("DisplayFolderView.confirmReturnMessage");
+				}
 			}
 
 			@Override
