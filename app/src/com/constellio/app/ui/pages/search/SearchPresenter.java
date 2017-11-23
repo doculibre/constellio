@@ -699,7 +699,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 	}
 
-	public void addExclusion(String exclusionString, String collection) {
+	public void deleteSuggestionButtonClicked(String exclusionString, String collection) {
 		CorrectorExclusion correctorExclusion = new CorrectorExclusion();
 		correctorExclusion.setCollection(collection);
 		correctorExclusion.setExclusion(exclusionString);
@@ -710,7 +710,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<CorrectorExclusion> allExclusion = correctorExcluderManager.getAllExclusion(collection);
 
 		List<String> allExclusionFormCollection = new ArrayList<String>();
-
 
 		for (String corrected : correctedList) {
 			boolean found  = false;

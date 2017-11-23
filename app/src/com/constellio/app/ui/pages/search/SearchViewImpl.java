@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.services.corrector.CorrectorExclusion;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -288,8 +287,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			final DeleteButton excludeButton = new DeleteButton() {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					String exclusion = (String) dialog.getData();
-					presenter.addExclusion(exclusion, getCollection());
+					presenter.deleteSuggestionButtonClicked(suggestion, getCollection());
 					updateUI();
 				}
 			};

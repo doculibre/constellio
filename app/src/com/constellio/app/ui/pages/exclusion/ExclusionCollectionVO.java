@@ -19,4 +19,5 @@ public class ExclusionCollectionVO {
     public void setExclusion(String exclusion) {
         this.exclusion = exclusion;
     }
+
 }

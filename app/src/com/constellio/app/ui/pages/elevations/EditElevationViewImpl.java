@@ -68,43 +68,43 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                DisplayButton displayButton = new DisplayButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create($("EditElevationViewImpl.d.confirmation.dialog.title"),
-                                $("EditElevationViewImpl.d.confirmation"), $("OK"), $("cancel"), null);
-
-                        confirmDialog.getOkButton().addClickListener(new ClickListener() {
+                        DisplayButton displayButton = new DisplayButton() {
                             @Override
-                            public void buttonClick(ClickEvent event) {
-                                Integer index = (Integer) itemId;
+                            protected void buttonClick(ClickEvent event) {
+                                ConfirmDialog confirmDialog = ConfirmDialog.getFactory().create($("EditElevationViewImpl.d.confirmation.dialog.title"),
+                                        $("EditElevationViewImpl.d.confirmation"), $("OK"), $("cancel"), null);
 
-                                Object containedObject = containerMapperWithElevationObject.get(index);
-                                if(containedObject instanceof Elevations.QueryElevation.DocElevation){
-                                    Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
-                                    editElevationPresenter.deleteDocElevation(docElevation);
-                                } else if (containedObject instanceof String) {
-                                    String containedObjectString = (String) containedObject;
-                                    String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
-                                    if(informationValue.equals(SPACE_4 + $("EditElevationViewImpl.exclud"))) {
-                                        editElevationPresenter.deleteAllExclution(containedObjectString);
-                                    }
-                                    else if (informationValue.equals(SPACE_4 + $("EditElevationViewImpl.raise"))) {
-                                        editElevationPresenter.deleteAllElevation(containedObjectString);
-                                    } else {
-                                        editElevationPresenter.deleteQuery(containedObjectString);
-                                    }
-                                }
-                                navigateTo().editElevation();
-                            }
-                        });
+                                confirmDialog.getOkButton().addClickListener(new ClickListener() {
+                                    @Override
+                                    public void buttonClick(ClickEvent event) {
+                                        Integer index = (Integer) itemId;
 
-                        confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
-                            @Override
-                            public void onClose(ConfirmDialog dialog) {
+                                        Object containedObject = containerMapperWithElevationObject.get(index);
+                                        if(containedObject instanceof Elevations.QueryElevation.DocElevation){
+                                            Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
+                                            editElevationPresenter.deleteDocElevation(docElevation);
+                                        } else if (containedObject instanceof String) {
+                                            String containedObjectString = (String) containedObject;
+                                            String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
+                                            if(informationValue.equals(SPACE_4 + $("EditElevationViewImpl.exclud"))) {
+                                                editElevationPresenter.deleteAllExclution(containedObjectString);
+                                            }
+                                            else if (informationValue.equals(SPACE_4 + $("EditElevationViewImpl.raise"))) {
+                                                editElevationPresenter.deleteAllElevation(containedObjectString);
+                                            } else {
+                                                editElevationPresenter.deleteQuery(containedObjectString);
+                                            }
+                                        }
+                                        navigateTo().editElevation();
+                                    }
+                                });
+
+                                confirmDialog.show(UI.getCurrent(), new ConfirmDialog.Listener() {
+                                    @Override
+                                    public void onClose(ConfirmDialog dialog) {
+                                    }
+                                }, true);
                             }
-                        }, true);
-                    }
                 };
                 displayButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
 

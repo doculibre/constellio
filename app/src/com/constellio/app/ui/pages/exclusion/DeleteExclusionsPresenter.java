@@ -3,16 +3,9 @@ package com.constellio.app.ui.pages.exclusion;
 import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.corrector.CorrectorExclusion;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.collection.CollectionGroupView;
-import com.constellio.app.ui.pages.elevations.EditElevationView;
 import com.constellio.model.entities.records.wrappers.User;
-import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class DeleteExclusionsPresenter extends BasePresenter<DeleteExclusionsView>{
@@ -22,7 +15,6 @@ public class DeleteExclusionsPresenter extends BasePresenter<DeleteExclusionsVie
     public DeleteExclusionsPresenter(DeleteExclusionsView view) {
         super(view);
         correctorExcluderManager = appLayerFactory.getCorrectorExcluderManager();
-
     }
 
     @Override
@@ -30,15 +22,9 @@ public class DeleteExclusionsPresenter extends BasePresenter<DeleteExclusionsVie
         return true;
     }
 
-    public HashMap<String, List<ExclusionCollectionVO>> getExcluded() {
-        List<String> collectionList = correctorExcluderManager.getCollectionListExceptSystem();
-
-        HashMap<String, List<ExclusionCollectionVO>> collectionCorrectorExclusion = new HashMap<>();
-
-
-        for(String collection : collectionList) {
+    public List<ExclusionCollectionVO> getExcluded() {
             List<CorrectorExclusion> exclusionList = correctorExcluderManager.getAllExclusion(collection);
-            List<ExclusionCollectionVO> correctorExcluderManagerList = new ArrayList<>();
+            List<ExclusionCollectionVO> exclusionCollectionVOList = new ArrayList();
 
             for(CorrectorExclusion exclusion : exclusionList) {
                 ExclusionCollectionVO exclusionCollectionVO = new ExclusionCollectionVO();
@@ -46,15 +32,16 @@ public class DeleteExclusionsPresenter extends BasePresenter<DeleteExclusionsVie
                 exclusionCollectionVO.setCollection(exclusion.getCollection());
                 exclusionCollectionVO.setExclusion(exclusion.getExclusion());
 
-                correctorExcluderManagerList.add(exclusionCollectionVO);
+                exclusionCollectionVOList.add(exclusionCollectionVO);
             }
 
-            collectionCorrectorExclusion.put(collection, correctorExcluderManagerList);
+        return exclusionCollectionVOList;
+    }
 
-            ExclusionCollectionVO exclusionCollectionVO = new ExclusionCollectionVO();
-            exclusionCollectionVO.setCollection(collection);
-        }
-
-        return collectionCorrectorExclusion;
+    public void deleteExclusion(ExclusionCollectionVO exclusionCollectionVO) {
+        CorrectorExclusion correctorExclusion = new CorrectorExclusion();
+        correctorExclusion.setExclusion(exclusionCollectionVO.getExclusion())
+                .setCollection(exclusionCollectionVO.getCollection());
+        correctorExcluderManager.deleteException(correctorExclusion);
     }
 }
