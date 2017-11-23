@@ -113,7 +113,7 @@ public class RecordImpl implements Record {
 			this.followers = new ArrayList<>();
 		}
 		this.recordDTO = recordDTO;
-		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
 	}
 
 	public boolean isFullyLoaded() {
