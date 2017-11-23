@@ -17,12 +17,18 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRecordView> {
 
+    private Map<String, RecordVODataProvider> provider;
+
     public ListTemporaryRecordPresenter(ListTemporaryRecordView view) {
         super(view);
+        provider = new HashMap<>();
     }
 
     @Override
@@ -30,19 +36,30 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
         return user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally();
     }
 
+    public void deleteButtonClick(String index, String schema) {
+        RecordVO currentTemporaryRecord = getDataProviderFromType(schema).getRecordVO(Integer.parseInt(index));
+    }
+
+    public boolean isVisible(String index, String schema) {
+        return true;
+    }
+
     public RecordVODataProvider getDataProviderFromType(final String schema) {
-        final MetadataSchemaType temporaryRecordSchemaType = types().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
-        MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(schema),
-                RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-        return new RecordVODataProvider(
-                schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-            @Override
-            protected LogicalSearchQuery getQuery() {
-                User user = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection( view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
-                OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
-                LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ? FromCondition.where(returnAll()) : FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
-                return new LogicalSearchQuery().setCondition(condition).sortDesc(Schemas.CREATED_ON);
-            }
-        };
+        if(!provider.containsKey(schema)) {
+            final MetadataSchemaType temporaryRecordSchemaType = types().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+            MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(schema),
+                    RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+            provider.put(schema, new RecordVODataProvider(
+                    schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+                @Override
+                protected LogicalSearchQuery getQuery() {
+                    User user = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection( view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
+                    OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
+                    LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ? FromCondition.where(returnAll()) : FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
+                    return new LogicalSearchQuery().setCondition(condition).sortDesc(Schemas.CREATED_ON);
+                }
+            });
+        }
+        return provider.get(schema);
     }
 }

@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.components.content.DownloadContentVersion
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -27,6 +28,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +41,11 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 
     private ListTemporaryRecordPresenter presenter;
 
-    private Map<String, String> tabs = new HashMap<>();
+    private Map<String, String> tabsSchemasAndLabel = new HashMap<>();
+
+    private TabSheet tabSheet;
+    
+    private Map<TabSheet.Tab, String> tabs;
 
     public ListTemporaryRecordViewImpl() {presenter = new ListTemporaryRecordPresenter(this); }
 
@@ -55,11 +61,11 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
         initTabWithDefaultValues();
-        TabSheet tabSheet = new TabSheet();
-        for(Map.Entry<String, String> currentTabs : tabs.entrySet()) {
+        tabSheet = new TabSheet();
+        for(Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
             RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
             if(provider.size() > 0 ) {
-                tabSheet.addTab(buildTable(provider), currentTabs.getValue());
+                tabs.tabSheet.addTab(buildTable(provider), currentTabs.getValue());
             }
         }
         if(tabSheet.getComponentCount() > 0) {
@@ -71,7 +77,26 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
     }
 
     private BaseTable buildTable(RecordVODataProvider provider) {
-        RecordVOTable importTable = new RecordVOTable(provider) {
+        Container container = new RecordVOLazyContainer(provider);
+        ButtonsContainer buttonsContainer = new ButtonsContainer(container);
+        buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
+            @Override
+            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+                return new DeleteButton() {
+                    @Override
+                    protected void confirmButtonClick(ConfirmDialog dialog) {
+                        presenter.deleteButtonClick(itemId + "", tabSheet.getSelectedTab().get.toString());
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        return presenter.isVisible(itemId + "", "");
+                    }
+                };
+            }
+        });
+
+        RecordVOTable importTable = new RecordVOTable("", buttonsContainer) {
             @Override
             protected Component buildMetadataComponent(final MetadataValueVO metadataValue, final RecordVO recordVO) {
                 final Component defaultComponent = super.buildMetadataComponent(metadataValue, recordVO);
@@ -108,8 +133,6 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         };
         importTable.setWidth("98%");
         importTable.setCellStyleGenerator(newImportStyleGenerator());
-        importTable.setContainerDataSource(buildContainer(importTable, provider));
-
         return importTable;
     }
 
@@ -154,7 +177,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
     private void initTabWithDefaultValues(){
         MetadataSchemasManager manager = getConstellioFactories().getModelLayerFactory().getMetadataSchemasManager();
         for(MetadataSchema schema : manager.getSchemaTypes(getCollection()).getSchemaType(TemporaryRecord.SCHEMA_TYPE).getCustomSchemas()) {
-            tabs.put(schema.getCode(), schema.getLabel(getLanguage()));
+            tabsSchemasAndLabel.put(schema.getCode(), schema.getLabel(getLanguage()));
         }
     }
 }
