@@ -102,6 +102,8 @@ public class MetadataSchemaXMLReader3 {
 		schemaTypeBuilder.setReadOnlyLocked(getBooleanFlagValueWithFalseAsDefaultValue(element, "readOnlyLocked"));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValueWithFalseAsDefaultValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
+		schemaTypeBuilder.setSmallCode(element.getAttributeValue("smallCode"));
+
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);
 		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);

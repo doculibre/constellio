@@ -154,7 +154,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
+		recordServices = getModelLayerFactory().newCachelessRecordServices();
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
 		zeSchema = schemas.new ZeSchemaMetadatas();
@@ -747,6 +747,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void givenModificationImpactWhenUpdatingRecordThenHandledInSameTransaction()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAMetadataCopiedInAnotherSchema());
+		recordServices = spy(recordServices);
 
 		Record zeSchemaRecord = zeSchemaRecordWithCopiedMeta("a");
 		recordServices.add(zeSchemaRecord);
@@ -777,9 +778,8 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void givenModificationImpactWhenExecutingTransactionThenHandledInSameTransaction()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAMetadataCopiedInAnotherSchema());
-
+		recordServices = spy(recordServices);
 		ArgumentCaptor<Transaction> savedTransaction = ArgumentCaptor.forClass(Transaction.class);
-
 		Record zeSchemaRecord = zeSchemaRecordWithCopiedMeta("a");
 		recordServices.add(zeSchemaRecord);
 
@@ -824,6 +824,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void givenUpdatingMultipleRecordsInTransactionThenHandleThemInCorrectOrderReducingChancesOfModificationImpact()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAMetadataCopiedInAnotherSchema());
+		recordServices = spy(recordServices);
 
 		ArgumentCaptor<Transaction> savedTransaction = ArgumentCaptor.forClass(Transaction.class);
 
@@ -986,6 +987,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void whenExecutingWithMoreThan1000RecordsAndMergeOptimisticLockingResolutionThenOk()
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
+		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
 				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
 
@@ -1032,6 +1034,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void whenExecutingASyncWithMoreThan1000RecordsAndMergeOptimisticLockingResolutionThenOk()
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
+		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
 				.executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
 

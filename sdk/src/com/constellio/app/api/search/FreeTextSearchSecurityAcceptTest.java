@@ -2,6 +2,8 @@ package com.constellio.app.api.search;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,10 +23,14 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -77,6 +83,14 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 				withCollection(anotherCollection)
 		);
 
+		for (String collection : asList(zeCollection, anotherCollection)) {
+			RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
+			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+			cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+		}
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 
@@ -93,7 +107,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(anotherCollectionSetup.withSecurityFlag(true)
 				.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
 
-//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 		//			@Override
 		//			public void alter(MetadataSchemaTypesBuilder types) {
 		//				types.getSchemaType(zeCollectionSetup.)

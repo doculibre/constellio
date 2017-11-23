@@ -8,8 +8,10 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.FolderTokensOfHierarchyCalculator;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -39,6 +41,11 @@ public class RMMigrationTo7_6_666 extends MigrationHelper implements MigrationSc
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
+			typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).setSmallCode("f");
+			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setSmallCode("d");
+			typesBuilder.getSchemaType(Task.SCHEMA_TYPE).setSmallCode("t");
+			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSmallCode("c");
+
 			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
 					.getType() == MetadataValueType.REFERENCE) {
 
@@ -56,14 +63,15 @@ public class RMMigrationTo7_6_666 extends MigrationHelper implements MigrationSc
 				MetadataBuilder tokensHierarchy = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(TOKENS_OF_HIERARCHY)
 						.defineDataEntry().asCalculated(FolderTokensOfHierarchyCalculator.class);
 
-				typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.SUB_FOLDERS_TOKENS)
-						.setType(STRING).setMultivalue(true)
-						.defineDataEntry().asUnion(folderParent, tokensHierarchy);
+				if (!typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).hasMetadata(Folder.SUB_FOLDERS_TOKENS)) {
+					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.SUB_FOLDERS_TOKENS)
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(folderParent, tokensHierarchy);
 
-				typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.DOCUMENTS_TOKENS)
-						.setType(STRING).setMultivalue(true)
-						.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
-
+					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.DOCUMENTS_TOKENS)
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
+				}
 			}
 		}
 	}

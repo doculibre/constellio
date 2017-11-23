@@ -75,7 +75,7 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	Users users = new Users();
 	User alice;
@@ -714,8 +714,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20))
-				.has(solrQueryCounts(3, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
 				.has(numFoundAndListSize(1))
@@ -881,8 +881,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120, defaultOptions)
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(2, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20, defaultOptions)
 				.has(numFoundAndListSize(2))
@@ -1112,8 +1112,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20))
 				.has(itemsWithChildren(records.folder_A20))
-				.has(solrQueryCounts(3, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.folder_A20)
 				.has(numFoundAndListSize(1))
@@ -1506,8 +1506,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
 				.has(linkable(folderNearEnd.getId()))
 				.has(unlinkable(subFolderNearEnd.getParentFolder()))
-				.has(solrQueryCounts(3, 1, 2))
-				.has(secondSolrQueryCounts(2, 1, 2));
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(2, 2, 2));
 
 		assertThat(queryCount.get()).isEqualTo(6);
 	}

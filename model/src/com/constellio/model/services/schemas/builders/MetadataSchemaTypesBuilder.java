@@ -498,4 +498,5 @@ public class MetadataSchemaTypesBuilder {
 	public void setVersion(int version) {
 		this.version = version;
 	}
+
 }

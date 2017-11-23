@@ -54,6 +54,7 @@ public class RecordImpl implements Record {
 
 	protected final Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private String schemaCode;
+	private String schemaTypeCode;
 	private final String collection;
 	private final String id;
 	private long version;
@@ -76,6 +77,7 @@ public class RecordImpl implements Record {
 
 		this.id = id;
 		this.schemaCode = schemaCode;
+		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
 		this.followers = new ArrayList<String>();
@@ -111,6 +113,7 @@ public class RecordImpl implements Record {
 			this.followers = new ArrayList<>();
 		}
 		this.recordDTO = recordDTO;
+		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 	}
 
 	public boolean isFullyLoaded() {
@@ -489,7 +492,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getTypeCode() {
-		return SchemaUtils.getSchemaTypeCode(schemaCode);
+		return schemaTypeCode;
 	}
 
 	public RecordDTO getRecordDTO() {

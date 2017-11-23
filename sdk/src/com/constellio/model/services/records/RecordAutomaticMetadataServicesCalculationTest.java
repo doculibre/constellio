@@ -90,6 +90,8 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 
 	@Mock ModelLayerFactory modelLayerFactory;
 
+	TransactionExecutionContext context = new TransactionExecutionContext();
+
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp()
@@ -125,38 +127,42 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		Map<Dependency, Object> valuesMap = new HashMap<>();
 		RecordImpl zeRecord = new TestRecord("zeSchema", "zeCollection", "zeId");
 
-		services.addValuesFromSpecialDependencies(zeRecord, recordProvider, valuesMap, SpecialDependencies.IDENTIFIER);
+		services.addValuesFromSpecialDependencies(context, zeRecord, recordProvider, valuesMap, SpecialDependencies.IDENTIFIER);
 
 		assertThat(valuesMap).containsEntry(SpecialDependencies.IDENTIFIER, "zeId").hasSize(1);
 	}
 
 	@Test
 	public void givenDependencyModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
-		doNothing().when(services).calculateValueInRecord(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-				any(MetadataSchemaTypes.class), any(Transaction.class));
+		doNothing().when(services)
+				.calculateValueInRecord(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+						any(MetadataSchemaTypes.class), any(Transaction.class));
 		doReturn(true).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 				any(MetadataSchemaTypes.class), any(Metadata.class));
 
-		services.setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider, reindexedMetadata,
+		services.setCalculatedValuesInRecords(context, record, zeSchema.calculatedDaysBetween(), recordProvider,
+				reindexedMetadata,
 				schemas.getTypes(), zeTransaction);
 
 		verify(services)
-				.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+				.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 						zeTransaction);
 	}
 
 	@Test
 	public void givenDependencyNotModifiedWhenSettingCalculatedValuesInRecordThenValueCalculated() {
-		doNothing().when(services).calculateValueInRecord(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
-				any(MetadataSchemaTypes.class), any(Transaction.class));
+		doNothing().when(services)
+				.calculateValueInRecord(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+						any(MetadataSchemaTypes.class), any(Transaction.class));
 		doReturn(false).when(services).calculatorDependencyModified(any(RecordImpl.class), any(MetadataValueCalculator.class),
 				any(MetadataSchemaTypes.class), any(Metadata.class));
 
-		services.setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider, reindexedMetadata,
+		services.setCalculatedValuesInRecords(context, record, zeSchema.calculatedDaysBetween(), recordProvider,
+				reindexedMetadata,
 				schemas.getTypes(), zeTransaction);
 
 		verify(services, never())
-				.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+				.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 						zeTransaction);
 	}
 
@@ -179,24 +185,26 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	@Test
 	public void whenUpdatingAutomaticValuesInRecordsThenSetValueForAllMetadatas()
 			throws Exception {
-		doNothing().when(services).setCalculatedValuesInRecords(any(RecordImpl.class), any(Metadata.class),
-				any(RecordProvider.class), eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
+		doNothing().when(services)
+				.setCalculatedValuesInRecords(any(TransactionExecutionContext.class), any(RecordImpl.class), any(Metadata.class),
+						any(RecordProvider.class), eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
 
 		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
-		verify(services).setCalculatedValuesInRecords(record, zeSchema.calculatedDaysBetween(), recordProvider,
-				reindexedMetadata, schemas.getTypes(), zeTransaction);
+		Metadata calculatedDaysBetween = zeSchema.calculatedDaysBetween();
+		verify(services).setCalculatedValuesInRecords(any(TransactionExecutionContext.class), eq(record),
+				eq(calculatedDaysBetween), eq(recordProvider), eq(reindexedMetadata), eq(schemas.getTypes()), eq(zeTransaction));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void givenRequiredDependencyUndefinedWhenCalculateValuesInRecordThenUseDefaultValue() {
 		doReturn(false).when(services)
-				.addValuesFromDependencies(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+				.addValuesFromDependencies(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
 						any(Transaction.class));
 
-		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 				zeTransaction);
 
 		verify(record).updateAutomaticValue(zeSchema.calculatedDaysBetween(), -1.0);
@@ -206,12 +214,12 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 	@Test
 	public void givenRequiredDependencyDefinedWhenCalculateValuesInRecordThenCalculateValue() {
 		doReturn(true).when(services)
-				.addValuesFromDependencies(any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
+				.addValuesFromDependencies(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
 						any(Transaction.class));
 		doReturn(calculator).when(services).getCalculatorFrom(any(Metadata.class));
 
-		services.calculateValueInRecord(record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
+		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 				zeTransaction);
 
 		verify(record).updateAutomaticValue(eq(zeSchema.calculatedDaysBetween()), anyObject());
@@ -225,7 +233,8 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(true).when(services).addValueForReferenceDependency(any(RecordImpl.class), any(RecordProvider.class),
 				any(Map.class), any(ReferenceDependency.class), any(RecordUpdateOptions.class));
 		Map aMap = mock(Map.class);
-		services.addValuesFromDependencies(record, mock(Metadata.class), recordProvider, calculator, aMap, schemas.getTypes(),
+		services.addValuesFromDependencies(context, record, mock(Metadata.class), recordProvider, calculator, aMap,
+				schemas.getTypes(),
 				zeTransaction);
 
 		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(aLocalDependency));

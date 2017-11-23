@@ -145,6 +145,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (schemaType.isReadOnlyLocked()) {
 			schemaTypeElement.setAttribute("readOnlyLocked", writeBoolean(schemaType.isReadOnlyLocked()));
 		}
+
+		if (schemaType.getSmallCode() != null) {
+			schemaTypeElement.setAttribute("smallCode", schemaType.getSmallCode());
+		}
+
 		schemaTypeElement.setAttribute("inTransactionLog", writeBoolean(schemaType.isInTransactionLog()));
 		writeDefaultSchema(schemaType, schemaTypeElement, collectionSchema);
 		writeCustomSchemas(schemaType, schemaTypeElement, collectionSchema);
