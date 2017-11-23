@@ -44,7 +44,9 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
     private Map<String, String> tabsSchemasAndLabel = new HashMap<>();
 
     private TabSheet tabSheet;
-    
+
+    private String currentSchema;
+
     private Map<TabSheet.Tab, String> tabs;
 
     public ListTemporaryRecordViewImpl() {presenter = new ListTemporaryRecordPresenter(this); }
@@ -62,13 +64,23 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         mainLayout.setSpacing(true);
         initTabWithDefaultValues();
         tabSheet = new TabSheet();
+        tabs = new HashMap<>();
         for(Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
             RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
             if(provider.size() > 0 ) {
-                tabs.tabSheet.addTab(buildTable(provider), currentTabs.getValue());
+                tabs.put(tabSheet.addTab(buildTable(provider), currentTabs.getValue()), currentTabs.getKey());
+                if(currentSchema == null) {
+                    currentSchema = currentTabs.getKey();
+                }
             }
         }
         if(tabSheet.getComponentCount() > 0) {
+            tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+                @Override
+                public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+                    TabSheet.Tab tab = (TabSheet.Tab) event.getSource();
+                }
+            });
             mainLayout.addComponent(tabSheet);
         } else {
             mainLayout.addComponent(new TitlePanel($("ListTemporaryRecordViewImpl.noTemporaryReportAvailable")));
@@ -85,12 +97,12 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
                 return new DeleteButton() {
                     @Override
                     protected void confirmButtonClick(ConfirmDialog dialog) {
-                        presenter.deleteButtonClick(itemId + "", tabSheet.getSelectedTab().get.toString());
+                        presenter.deleteButtonClick(itemId + "", currentSchema);
                     }
 
                     @Override
                     public boolean isVisible() {
-                        return presenter.isVisible(itemId + "", "");
+                        return presenter.isVisible(itemId + "", currentSchema);
                     }
                 };
             }

@@ -13,6 +13,8 @@ import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
@@ -25,10 +27,12 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRecordView> {
 
     private Map<String, RecordVODataProvider> provider;
+    private User user;
 
     public ListTemporaryRecordPresenter(ListTemporaryRecordView view) {
         super(view);
         provider = new HashMap<>();
+        user = modelLayerFactory.newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
     }
 
     @Override
@@ -38,10 +42,23 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 
     public void deleteButtonClick(String index, String schema) {
         RecordVO currentTemporaryRecord = getDataProviderFromType(schema).getRecordVO(Integer.parseInt(index));
+        RecordServices recordServices = recordServices();
+        if(canDeleteArchive(currentTemporaryRecord, user)) {
+            recordServices.logicallyDelete(currentTemporaryRecord.getRecord(), user, new RecordLogicalDeleteOptions().setSkipValidations(true));
+            recordServices.physicallyDelete(currentTemporaryRecord.getRecord(), user);
+            view.navigate().to().listTemporaryRecord();
+        }
+    }
+
+    private boolean canDeleteArchive(RecordVO recordVO, User user){
+        MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(recordVO.getRecord());
+        boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices().hasRestaurationPermissionOnHierarchy(user, recordVO.getRecord());
+        return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() ||  recordVO.get(Schemas.CREATED_BY.getCode()).equals(view.getSessionContext().getCurrentUser().getId()));
     }
 
     public boolean isVisible(String index, String schema) {
-        return true;
+        RecordVO currentTemporaryRecord = getDataProviderFromType(schema).getRecordVO(Integer.parseInt(index));
+        return canDeleteArchive(currentTemporaryRecord, user);
     }
 
     public RecordVODataProvider getDataProviderFromType(final String schema) {
