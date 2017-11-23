@@ -54,6 +54,9 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 				.getPrincipalIdsWithAnyAuthorization(authorizationsRoles);
 
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
+		if (typeSmallCode == null) {
+			typeSmallCode = parameters.getSchemaType().getCode();
+		}
 		for (Entry<String, List<String>> entry : principalsTokens.getMapEntries()) {
 			for (String access : entry.getValue()) {
 				if (Role.READ.equals(access)) {
