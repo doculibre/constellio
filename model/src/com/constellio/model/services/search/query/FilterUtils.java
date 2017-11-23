@@ -160,18 +160,26 @@ public class FilterUtils {
 	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
 			MetadataSchemaType selectedType, boolean includeInvisible) {
 
+		String selectedTypeSmallCode = null;
+		if (selectedType != null) {
+			selectedTypeSmallCode = selectedType.getSmallCode();
+			if (selectedTypeSmallCode == null) {
+				selectedTypeSmallCode = selectedType.getCode();
+			}
+		}
+
 		String tokenPrefix;
 		if (Role.READ.equals(access)) {
 			if (selectedType == null) {
 				tokenPrefix = "r";
 			} else {
-				tokenPrefix = "r" + selectedType.getSmallCode();
+				tokenPrefix = "r" + selectedTypeSmallCode;
 			}
 		} else {
 			if (selectedType == null) {
 				tokenPrefix = "w";
 			} else {
-				tokenPrefix = "w" + selectedType.getSmallCode();
+				tokenPrefix = "w" + selectedTypeSmallCode;
 			}
 		}
 

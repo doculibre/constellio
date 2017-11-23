@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -91,35 +92,39 @@ public class RecordAutomaticMetadataServices {
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
 			TransactionRecordsReindexation reindexation, Transaction transaction) {
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
+			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
 	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getEagerTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
+			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
 	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getLazyTransientMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types, transaction);
+			updateAutomaticMetadata(context, record, recordProvider, automaticMetadata, reindexation, types, transaction);
 		}
 
 	}
 
-	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
+	void updateAutomaticMetadata(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
+			Metadata metadata,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 		if (metadata.isMarkedForDeletion()) {
 			record.updateAutomaticValue(metadata, null);
@@ -128,7 +133,7 @@ public class RecordAutomaticMetadataServices {
 			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation, transaction.getRecordUpdateOptions());
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types,
+			setCalculatedValuesInRecords(context, record, metadata, recordProvider, reindexation, types,
 					transaction);
 
 		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
@@ -248,11 +253,13 @@ public class RecordAutomaticMetadataServices {
 		return calculatorDependencyModified;
 	}
 
-	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
+	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record, Metadata metadataWithCalculatedDataEntry,
+			RecordProvider recordProvider,
 			MetadataSchemaTypes types, Transaction transaction) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
-		boolean requiredValuesDefined = addValuesFromDependencies(record, metadataWithCalculatedDataEntry, recordProvider,
+		boolean requiredValuesDefined = addValuesFromDependencies(context, record, metadataWithCalculatedDataEntry,
+				recordProvider,
 				calculator, values, types, transaction);
 
 		Object calculatedValue;
@@ -274,7 +281,8 @@ public class RecordAutomaticMetadataServices {
 		return calculatedDataEntry.getCalculator();
 	}
 
-	boolean addValuesFromDependencies(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
+	boolean addValuesFromDependencies(TransactionExecutionContext context, RecordImpl record, Metadata metadata,
+			RecordProvider recordProvider,
 			MetadataValueCalculator<?> calculator,
 			Map<Dependency, Object> values, MetadataSchemaTypes types, Transaction transaction) {
 		for (Dependency dependency : calculator.getDependencies()) {
@@ -299,7 +307,7 @@ public class RecordAutomaticMetadataServices {
 				values.put(dependency, configValue);
 
 			} else if (dependency instanceof SpecialDependency<?>) {
-				addValuesFromSpecialDependencies(record, recordProvider, values, dependency);
+				addValuesFromSpecialDependencies(context, record, recordProvider, values, dependency);
 			}
 		}
 		return true;
@@ -343,16 +351,16 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	void addValuesFromSpecialDependencies(RecordImpl record, RecordProvider recordProvider,
+	void addValuesFromSpecialDependencies(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
 			Map<Dependency, Object> values, Dependency dependency) {
 		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
 
 		} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
-			values.put(dependency, newPrincipalsAuthorizations(record, recordProvider));
+			values.put(dependency, newPrincipalsAuthorizations(context, record, recordProvider));
 
 		} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
-			values.put(dependency, toAuthorizationsTargettingRecord(record, recordProvider));
+			values.put(dependency, toAuthorizationsTargettingRecord(context, record, recordProvider));
 
 		} else if (SpecialDependencies.IDENTIFIER.equals(dependency)) {
 			values.put(dependency, record.getId());
@@ -376,69 +384,87 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(RecordImpl calculatedRecord, RecordProvider recordProvider) {
+	static int compteur;
 
-		List<Group> groups = new ArrayList<>();
-		List<User> users = new ArrayList<>();
-		Set<String> usersInTransaction = new HashSet<>();
-		Set<String> groupsInTransaction = new HashSet<>();
+	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
+			RecordImpl calculatedRecord, RecordProvider recordProvider) {
 
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 
 		if (type.hasSecurity()) {
 
-			RolesManager rolesManager = modelLayerFactory.getRolesManager();
-			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
+			if (allPrincipalsAuthsDependencyValue == null) {
 
-			RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
-			if (recordProvider.transaction != null
-					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
-					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
-				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
-					if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-						User user = User.wrapNullable(transactionRecord, types, roles);
-						usersInTransaction.add(user.getId());
-						users.add(user);
+				List<Group> groups = new ArrayList<>();
+				List<User> users = new ArrayList<>();
+				Set<String> usersInTransaction = new HashSet<>();
+				Set<String> groupsInTransaction = new HashSet<>();
+
+				RolesManager rolesManager = modelLayerFactory.getRolesManager();
+				Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+
+				RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+				if (recordProvider.transaction != null
+						//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+						&& recordsCache.isConfigured(User.SCHEMA_TYPE)
+						&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+						if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+							User user = User.wrapNullable(transactionRecord, types, roles);
+							usersInTransaction.add(user.getId());
+							users.add(user);
+						}
+
+						if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+							Group group = Group.wrapNullable(transactionRecord, types);
+							groupsInTransaction.add(group.getId());
+							groups.add(group);
+						}
 					}
 
-					if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-						Group group = Group.wrapNullable(transactionRecord, types);
-						groupsInTransaction.add(group.getId());
-						groups.add(group);
+				}
+				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+					for (Record record : searchServices
+							.cachedSearch(query(from(types.getSchemaType(Group.SCHEMA_TYPE)).returnAll()))) {
+						if (record != null) {
+							if (!groupsInTransaction.contains(record.getId())) {
+								groups.add(Group.wrapNullable(record, types));
+							}
+						} else {
+							LOGGER.warn("Null record returned while getting all groups");
+						}
+					}
+
+					for (Record record : searchServices
+							.cachedSearch(query(from(types.getSchemaType(User.SCHEMA_TYPE)).returnAll()))) {
+						if (record != null) {
+							if (!usersInTransaction.contains(record.getId())) {
+								users.add(User.wrapNullable(record, types, roles));
+							}
+						} else {
+							LOGGER.warn("Null record returned while getting all users");
+						}
 					}
 				}
+				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users);
+				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
 			}
+			return allPrincipalsAuthsDependencyValue;
 
-			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(Group.SCHEMA_TYPE)).returnAll()))) {
-				if (record != null) {
-					if (!groupsInTransaction.contains(record.getId())) {
-						groups.add(Group.wrapNullable(record, types));
-					}
-				} else {
-					LOGGER.warn("Null record returned while getting all groups");
-				}
-			}
-
-			for (Record record : searchServices.cachedSearch(query(from(types.getSchemaType(User.SCHEMA_TYPE)).returnAll()))) {
-				if (record != null) {
-					if (!usersInTransaction.contains(record.getId())) {
-						users.add(User.wrapNullable(record, types, roles));
-					}
-				} else {
-					LOGGER.warn("Null record returned while getting all users");
-				}
-			}
-
+		} else {
+			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>());
 		}
-		return new AllPrincipalsAuthsDependencyValue(groups, users);
+
 	}
 
-	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(RecordImpl calculatedRecord,
+	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(TransactionExecutionContext context,
+			RecordImpl calculatedRecord,
 			RecordProvider recordProvider) {
 
 		Set<String> authsInTransaction = new HashSet<>();
-		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
 
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
@@ -446,34 +472,43 @@ public class RecordAutomaticMetadataServices {
 		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
 				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
-			if (recordProvider.transaction != null) {
-				for (Record transactionRecord : recordProvider.transaction.getRecords()) {
-					if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
-						authsInTransaction.add(authorizationDetail.getId());
-						if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
-								&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-							authorizationDetails.add(authorizationDetail);
+			List<SolrAuthorizationDetails> authorizationDetails = context.getAllAuthorizationDetails();
+			if (authorizationDetails == null) {
+				authorizationDetails = new ArrayList<>();
+				if (recordProvider.transaction != null) {
+					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+						if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+							SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
+							authsInTransaction.add(authorizationDetail.getId());
+							if (LangUtils.isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+								authorizationDetails.add(authorizationDetail);
+							}
 						}
 					}
 				}
+
+				for (Record record : searchServices
+						.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
+					if (record != null) {
+						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+						if (!authsInTransaction.contains(authorizationDetail.getId())
+								&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+							authorizationDetails.add(authorizationDetail);
+						}
+					} else {
+						LOGGER.warn("Null record returned while getting all authorizations");
+					}
+				}
+				context.setAllAuthorizationDetails(authorizationDetails);
 			}
 
-			for (Record record : searchServices
-					.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
-				if (record != null) {
-					SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
-					if (calculatedRecord.getId().equals(authorizationDetail.getTarget())
-							&& !authsInTransaction.contains(authorizationDetail.getId())
-							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-						authorizationDetails.add(authorizationDetail);
-					}
-				} else {
-					LOGGER.warn("Null record returned while getting all authorizations");
+			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
+				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
+					returnedAuthorizationDetails.add(authorizationDetail);
 				}
 			}
 		}
-		return new AllAuthorizationsTargettingRecordDependencyValue(authorizationDetails);
+		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails);
 	}
 
 	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
@@ -751,7 +786,8 @@ public class RecordAutomaticMetadataServices {
 		return nextMetadata;
 	}
 
-	void setCalculatedValuesInRecords(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
+	void setCalculatedValuesInRecords(TransactionExecutionContext context, RecordImpl record,
+			Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
@@ -762,7 +798,7 @@ public class RecordAutomaticMetadataServices {
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
 				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
 				|| lazyTransientMetadataToLoad) {
-			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types, transaction);
+			calculateValueInRecord(context, record, metadataWithCalculatedDataEntry, recordProvider, types, transaction);
 		}
 	}
 

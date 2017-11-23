@@ -82,6 +82,12 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		assertThat(calculatorOf(types.getSchema(AdministrativeUnit.DEFAULT_SCHEMA).get(TOKENS)))
 				.isEqualTo(TokensCalculator2.class);
 
+		assertThat(types.getSchemaType(Folder.SCHEMA_TYPE).getSmallCode()).isEqualTo("f");
+		assertThat(types.getSchemaType(Document.SCHEMA_TYPE).getSmallCode()).isEqualTo("d");
+		assertThat(types.getSchemaType(Task.SCHEMA_TYPE).getSmallCode()).isEqualTo("t");
+		assertThat(types.getSchemaType(ContainerRecord.SCHEMA_TYPE).getSmallCode()).isEqualTo("c");
+		assertThat(types.getSchemaType(Facet.SCHEMA_TYPE).getSmallCode()).isNull();
+
 	}
 
 	private Class<?> calculatorOf(Metadata metadata) {

@@ -1,53 +1,29 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.CoreRoles;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.dao.managers.config.ConfigManagerException;
-import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS_OF_HIERARCHY;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.model.calculators.FolderTokensOfHierarchyCalculator;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
@@ -62,6 +38,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
+		new SchemaAlterationFor7_6_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
@@ -120,6 +97,51 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 			throw new RuntimeException(e);
 		} finally {
 			IOUtils.closeQuietly(templateInputStream);
+		}
+	}
+
+	class SchemaAlterationFor7_6_6 extends MetadataSchemasAlterationHelper {
+
+		protected SchemaAlterationFor7_6_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+
+			typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).setSmallCode("f");
+			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setSmallCode("d");
+			typesBuilder.getSchemaType(Task.SCHEMA_TYPE).setSmallCode("t");
+			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSmallCode("c");
+
+			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
+					.getType() == MetadataValueType.REFERENCE) {
+
+				typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
+						.defineDataEntry().asCalculated(TokensCalculator4.class);
+
+				typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
+						.defineDataEntry().asCalculated(TokensCalculator4.class);
+
+				MetadataBuilder folderParent = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.PARENT_FOLDER);
+				MetadataBuilder documentFolder = typesBuilder.getSchema(Document.DEFAULT_SCHEMA).get(Document.FOLDER);
+				MetadataBuilder documentTokensHierarchy = typesBuilder.getSchema(Document.DEFAULT_SCHEMA)
+						.get(TOKENS_OF_HIERARCHY);
+
+				MetadataBuilder tokensHierarchy = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(TOKENS_OF_HIERARCHY)
+						.defineDataEntry().asCalculated(FolderTokensOfHierarchyCalculator.class);
+
+				if (!typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).hasMetadata(Folder.SUB_FOLDERS_TOKENS)) {
+					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.SUB_FOLDERS_TOKENS)
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(folderParent, tokensHierarchy);
+
+					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.DOCUMENTS_TOKENS)
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
+				}
+			}
 		}
 	}
 }

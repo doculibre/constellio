@@ -15,32 +15,41 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
-public class CoreMigrationTo_7_6_666 implements MigrationScript {
+public class CoreMigrationTo_7_6_6 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_6_666.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_6_6.class);
 
 	@Override
 	public String getVersion() {
-		return "7.6.666";
+		return "7.6.6";
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			final AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new CoreSchemaAlterationFor_7_6_666(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+		new CoreSchemaAlterationFor_7_6_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.add(displayManager.getSchema(collection, User.DEFAULT_SCHEMA)
+				.withNewDisplayMetadataQueued(User.DEFAULT_PAGE_LENGTH));
+		displayManager.execute(transaction);
+
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 
 		final SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
@@ -81,12 +90,11 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 				}
 			}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
 		}
-
 	}
 
-	class CoreSchemaAlterationFor_7_6_666 extends MetadataSchemasAlterationHelper {
+	class CoreSchemaAlterationFor_7_6_6 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_7_6_666(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected CoreSchemaAlterationFor_7_6_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
 				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -94,18 +102,10 @@ public class CoreMigrationTo_7_6_666 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);
-			authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(STRING);
-			authorizationSchema.createUndeletable(SolrAuthorizationDetails.LAST_TOKEN_RECALCULATE).setType(DATE);
-
-			//			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
-			//				MetadataBuilder tokens = typeBuilder.getDefaultSchema().get(Schemas.TOKENS);
-			//				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(typeBuilder.getCode())
-			//						&& ((CalculatedDataEntry) tokens.getDataEntry()).getCalculator().getClass()
-			//						.equals(TokensCalculator2.class)) {
-			//					tokens.defineDataEntry().asCalculated(TokensCalculator4.class);
-			//				}
-			//
-			//			}
+			if (!authorizationSchema.hasMetadata(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE)) {
+				authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(STRING);
+				authorizationSchema.createUndeletable(SolrAuthorizationDetails.LAST_TOKEN_RECALCULATE).setType(DATE);
+			}
 
 		}
 	}

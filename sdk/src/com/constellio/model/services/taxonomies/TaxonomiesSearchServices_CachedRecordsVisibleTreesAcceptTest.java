@@ -57,7 +57,7 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	String subFolderId;
 
@@ -923,8 +923,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
-				.has(solrQueryCounts(3, 1, 2))
-				.has(secondSolrQueryCounts(2, 1, 2));
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(2, 2, 2));
 
 		assertThat(queryCount.get()).isEqualTo(5);
 	}

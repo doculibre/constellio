@@ -69,7 +69,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null);
 
-		MetadataSchemaType schemaType = new MetadataSchemaType("second", "zeCollection", asMap(Language.French, "titre"),
+		MetadataSchemaType schemaType = new MetadataSchemaType("second", null, "zeCollection", asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(), schema, true, true, true, false);
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
