@@ -154,8 +154,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 				.getMetadata(taxonomy1FirstSchema.code() + "_taxo1FirstSchemaMetaWithTaxoDependency");
 
 		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
-
-		services.calculateValueInRecord((RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
+		TransactionExecutionContext context = new TransactionExecutionContext();
+		services.calculateValueInRecord(context, (RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
 				recordProvider, schemas.getTypes(), new Transaction(options));
 
 		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");

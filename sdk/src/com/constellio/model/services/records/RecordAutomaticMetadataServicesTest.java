@@ -60,7 +60,6 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	Transaction zeTransaction = new Transaction();
 	RecordUpdateOptions options = zeTransaction.getRecordUpdateOptions();
 
-
 	@Mock ModelLayerLogger modelLayerLogger;
 
 	RecordAutomaticMetadataServices services;
@@ -158,8 +157,10 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		Metadata secondMetadata = mock(Metadata.class);
 		List<Metadata> sortedAutomaticMetadatas = asList(firstMetadata, secondMetadata);
 
-		doNothing().when(services).updateAutomaticMetadata(any(RecordImpl.class), any(RecordProvider.class), any(Metadata.class),
-				eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
+		doNothing().when(services)
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), any(RecordImpl.class), any(RecordProvider.class),
+						any(Metadata.class),
+						eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
 
 		MetadataSchemaTypes types = mock(MetadataSchemaTypes.class);
 		MetadataSchema schema = mock(MetadataSchema.class);
@@ -172,21 +173,25 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 		InOrder inOrder = Mockito.inOrder(services);
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, firstMetadata, reindexedMetadata, types, zeTransaction);
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
+						eq(firstMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
 		inOrder.verify(services)
-				.updateAutomaticMetadata(record, recordProvider, secondMetadata, reindexedMetadata, types, zeTransaction);
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
+						eq(secondMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
 
 	}
 
 	@Test
 	public void givenCopiedMetadataWhenUpdateAutomaticMetadataThenSetCopiedValuesInRecords()
 			throws Exception {
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
 		doNothing().when(services).setCopiedValuesInRecords(
 				eq(record), eq(metadata), eq(recordProvider), eq(reindexedMetadata), any(RecordUpdateOptions.class));
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), zeTransaction);
+		services.updateAutomaticMetadata(context, record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(),
+				zeTransaction);
 
 		verify(services).setCopiedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, options);
 
@@ -195,15 +200,17 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	@Test
 	public void givenCalculatedMetadataWhenUpdateAutomaticMetadataThenSetCopiedValuesInRecords()
 			throws Exception {
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CalculatedDataEntry(mock(MetadataValueCalculator.class)));
-		doNothing().when(services).setCalculatedValuesInRecords(eq(record), eq(metadata), eq(recordProvider), eq(
+		doNothing().when(services).setCalculatedValuesInRecords(eq(context), eq(record), eq(metadata), eq(recordProvider), eq(
 				reindexedMetadata), any(MetadataSchemaTypes.class), eq(zeTransaction));
 
-		services.updateAutomaticMetadata(record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(), zeTransaction);
+		services.updateAutomaticMetadata(context, record, recordProvider, metadata, reindexedMetadata, schemas.getTypes(),
+				zeTransaction);
 
 		verify(services)
-				.setCalculatedValuesInRecords(record, metadata, recordProvider, reindexedMetadata, schemas.getTypes(),
+				.setCalculatedValuesInRecords(context, record, metadata, recordProvider, reindexedMetadata, schemas.getTypes(),
 						zeTransaction);
 
 	}

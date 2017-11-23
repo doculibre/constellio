@@ -507,6 +507,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	void prepareRecords(final Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
+		TransactionExecutionContext context = new TransactionExecutionContext();
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices(recordProvider);
@@ -591,8 +592,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 						try {
 							for (Metadata metadata : step.getMetadatas()) {
-								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
-										reindexationOptionForThisRecord, types, transaction);
+								automaticMetadataServices
+										.updateAutomaticMetadata(context, (RecordImpl) record, recordProvider, metadata,
+												reindexationOptionForThisRecord, types, transaction);
 							}
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
