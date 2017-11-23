@@ -90,7 +90,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 
     private BaseTable buildTable(RecordVODataProvider provider) {
         Container container = new RecordVOLazyContainer(provider);
-        ButtonsContainer buttonsContainer = new ButtonsContainer(container);
+        ButtonsContainer buttonsContainer = new ButtonsContainer(container, "buttons");
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -145,6 +145,8 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         };
         importTable.setWidth("98%");
         importTable.setCellStyleGenerator(newImportStyleGenerator());
+        importTable.setColumnHeader("buttons", "");
+        importTable.setColumnWidth("buttons", 50);
         return importTable;
     }
 
