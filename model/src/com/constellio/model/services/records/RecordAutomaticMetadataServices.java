@@ -256,10 +256,12 @@ public class RecordAutomaticMetadataServices {
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
+			MetadataSchemaType schemaType = types.getSchemaType(record.getTypeCode());
+			boolean typeInPrincipalTaxonomy = taxonomiesManager.isTypeInPrincipalTaxonomy(schemaType);
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
 			calculatedValue = calculator.calculate(
 					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							types.getSchemaType(record.getTypeCode()), record.getCollection()));
+							schemaType, record.getCollection(), typeInPrincipalTaxonomy));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
