@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.data.Item;
@@ -13,7 +14,6 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.converter.Converter;
-import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
@@ -54,7 +54,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		setNullSelectionAllowed(true);
 		setItemCaptionMode(ItemCaptionMode.PROPERTY);
 		setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
-		autocompleteContainer = new AutocompleteContainer(prefixSize);
+		autocompleteContainer = new AutocompleteContainer();
 		setContainerDataSource(autocompleteContainer);
 		setPageLength(suggestionsProvider.getBufferSize());
 
@@ -65,10 +65,79 @@ public class BaseAutocompleteField<T> extends ComboBox {
 				T newValue = (T) event.getProperty().getValue();
 				if (newValue != null && !autocompleteContainer.contains(newValue)) {
 					autocompleteContainer.addContainerFilter(null);
-					autocompleteContainer.addSuggestion(newValue);
+					addSuggestion(newValue, 0);
 				}
 			}
 		});
+	}
+
+	@Override
+	public void changeVariables(Object source, Map<String, Object> variables) {
+		String newFilter;
+		String filterstring = null;
+	    if ((newFilter = (String) variables.get("filter")) != null) {
+	        // this is a filter request
+	        filterstring = newFilter;
+	        if (filterstring != null) {
+	            filterstring = filterstring.toLowerCase(getLocale());
+	        }
+	        updateItems(filterstring);
+	    }
+		super.changeVariables(source, variables);
+	}
+
+	private int subStringSize = prefixSize;
+	private String querySubString;
+	
+	private void updateItems(String newFilterString) {
+		if (newFilterString == null) {
+			removeAllItems();
+		} else if (newFilterString != null && !(newFilterString.equals(querySubString))) {
+			// check to make sure the substring isn't null and its not equal to the last one
+			removeAllItems();
+			// set the sub string
+			querySubString = newFilterString;
+			// check the size on the sub string
+			if (querySubString.length() >= subStringSize) {
+				// get the results
+				querySuggestionsProvider(newFilterString);
+			} // end if the substring langth is long enough
+		}// end if newFilterString doesnt equal null and newFilterString doesnt equal last value
+	}
+
+	protected void querySuggestionsProvider(String text) {
+		// Query the database here with the code you want
+		// Store it how ever you want this example uses a list to demonstrate how to get the data to display
+		List<T> dataList = suggestionsProvider.suggest(text);
+
+		// add the results to the container
+//		int i = 0;
+		Iterator<T> iterDataList = dataList.iterator();
+		while (iterDataList.hasNext()) {
+			T suggestion = iterDataList.next();
+			addSuggestion(suggestion);
+//			i++;
+		}// end while iter has next
+
+	}// end queryDataBase method
+
+	protected void addSuggestion(T suggestion) {
+		addSuggestion(suggestion, -1);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void addSuggestion(T suggestion, int index) {
+		if (autocompleteContainer.containsId(suggestion)) {
+			autocompleteContainer.removeItem(suggestion);
+		}
+		String suggestionCaption = getCaption(suggestion);
+		Item item;
+		if (index >= 0) {
+			item = autocompleteContainer.addItemAt(index, suggestion);
+		} else {
+			item = autocompleteContainer.addItem(suggestion);
+		}
+		item.getItemProperty(CAPTION_PROPERTY_ID).setValue(suggestionCaption);
 	}
 
 	@Override
@@ -122,6 +191,10 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		}
 		return caption;
 	}
+	
+	protected void suggestionRequested(String text) {
+		
+	}
 
 	public interface AutocompleteSuggestionsProvider<T> extends Serializable {
 
@@ -133,11 +206,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 
 	private class AutocompleteContainer extends IndexedContainer {
 
-		private final int subStringSize;
-		private String querySubString;
-
-		public AutocompleteContainer(int prefixSize) {
-			this.subStringSize = prefixSize;
+		public AutocompleteContainer() {
 			addContainerProperty(CAPTION_PROPERTY_ID, String.class, null);
 		}
 
@@ -162,57 +231,11 @@ public class BaseAutocompleteField<T> extends ComboBox {
 
 		public void addContainerFilter(Filter filter)
 				throws UnsupportedFilterException {
-			// Check to see if the filter is equal to null
-			if (filter == null) {
-				// remove the items
-				removeAllItems();
-				querySubString = null;
-			} else {
-				// remove the items
-				removeAllItems();
-				// check to see what type of filter we have
-				if (filter instanceof SimpleStringFilter) {
-					// get the query subString from the filter
-					String newFilterString = ((SimpleStringFilter) filter).getFilterString();
-					// check to make sure the substring isn't null and its not equal to the last one
-					if (newFilterString != null && !(newFilterString.equals(querySubString))) {
-						// set the sub string
-						querySubString = newFilterString;
-						// check the size on the sub string
-						if (querySubString.length() >= subStringSize) {
-							// get the results
-							querySuggestionsProvider(newFilterString);
-							// add the filter
-							super.addContainerFilter(filter);
-						} // end if the substring langth is long enough
-					}// end if newFilterString doesnt equal null and newFilterString doesnt equal last value
-				} // end if and instance of Simple Filter
-			} // end else
-		} // end addCoontainerFilter method
+			if (filter != null) {
+				super.addContainerFilter(filter);
+			}
+		} 
 
-		private void querySuggestionsProvider(String text) {
-			// Query the database here with the code you want
-			// Store it how ever you want this example uses a list to demonstrate how to get the data to display
-			List<T> dataList = suggestionsProvider.suggest(text);
-
-			// add the results to the container
-//			int i = 0;
-			Iterator<T> iterDataList = dataList.iterator();
-			while (iterDataList.hasNext()) {
-				T suggestion = iterDataList.next();
-				addSuggestion(suggestion);
-//				i++;
-			}// end while iter has next
-
-		}// end queryDataBase method
-
-		@SuppressWarnings("unchecked")
-		private void addSuggestion(T suggestion) {
-			String suggestionCaption = getCaption(suggestion);
-			Item item = addItem(suggestion);
-			item.getItemProperty(CAPTION_PROPERTY_ID).setValue(suggestionCaption);
-		}
-
-	} // end CustomLazyContainer class
+	} 
 
 }
