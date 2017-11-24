@@ -42,6 +42,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
@@ -286,6 +287,14 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
+						if(StringUtils.isBlank(titleField.getValue())) {
+							showErrorMessage($("CartView.decommissioningListIsMissingTitle"));
+							return;
+						}
+						if(decomTypeField.getValue() == null) {
+							showErrorMessage($("CartView.decommissioningListIsMissingType"));
+							return;
+						}
 						presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
 						getWindow().close();
 					}
