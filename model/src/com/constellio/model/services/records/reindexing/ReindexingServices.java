@@ -8,12 +8,16 @@ import static com.constellio.model.services.records.RecordUtils.removeMetadataVa
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +48,7 @@ import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesPar
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
 import com.constellio.model.services.records.RecordImpl;
@@ -251,7 +256,8 @@ public class ReindexingServices {
 		}
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
-		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = new InMemoryReindexingAggregatedValuesTempStorage();
+		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
+
 		int level = 0;
 		while (isReindexingLevel(level, types)) {
 
@@ -314,12 +320,32 @@ public class ReindexingServices {
 			modelLayerFactory.getDataLayerFactory().newRecordDao().removeOldLocks();
 			level++;
 		}
+		aggregatedValuesTempStorage.clear();
+	}
+
+	@NotNull
+	private ReindexingAggregatedValuesTempStorage newReindexingAggregatedValuesTempStorage() {
+		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
+
+		if (new ConstellioEIMConfigs(modelLayerFactory).getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
+			File aggregatedValuesTempStorageFile = new File(new FoldersLocator().getWorkFolder(), "reindexing");
+			try {
+				FileUtils.deleteDirectory(aggregatedValuesTempStorageFile);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			aggregatedValuesTempStorageFile.mkdirs();
+			aggregatedValuesTempStorage = new FileSystemReindexingAggregatedValuesTempStorage(aggregatedValuesTempStorageFile);
+		} else {
+			aggregatedValuesTempStorage = new InMemoryReindexingAggregatedValuesTempStorage();
+		}
+		return aggregatedValuesTempStorage;
 	}
 
 	private boolean isReindexingOfTypeRequired(int level, MetadataSchemaTypes types, String typeCode) {
 		MetadataSchemaType type = types.getSchemaType(typeCode);
 
-		if (Event.SCHEMA_TYPE.equals(type.getCode()) && !modelLayerFactory.getConfiguration().isReindexingEvents()) {
+		if (Event.SCHEMA_TYPE.equals(type.getCode())) {
 			return false;
 		}
 
@@ -407,7 +433,7 @@ public class ReindexingServices {
 							aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
 							for (MetadataNetworkLink link : links) {
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
-										link.getToMetadata(), record.getValues(link.getToMetadata()));
+										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
 							}
 
 						}
@@ -443,7 +469,7 @@ public class ReindexingServices {
 							}
 							for (MetadataNetworkLink link : links) {
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
-										link.getToMetadata(), record.getValues(link.getToMetadata()));
+										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
 							}
 
 						}
@@ -485,7 +511,7 @@ public class ReindexingServices {
 		List<Metadata> metadatasUsedToCalculate = handler.getMetadatasUsedToCalculate(calculateParams);
 		List<Object> values = new ArrayList<>();
 		for (Metadata metadata : metadatasUsedToCalculate) {
-			values.addAll(aggregatedValuesTempStorage.getAllValues(record.getId(), metadata));
+			values.addAll(aggregatedValuesTempStorage.getAllValues(record.getId(), metadata.getLocalCode()));
 		}
 
 		LOGGER.info("Updating aggregating metadata " + aggregatingMetadata.getLocalCode() + " of record "

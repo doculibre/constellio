@@ -104,6 +104,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
 
+	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -189,6 +191,9 @@ public class ConstellioEIMConfigs {
 		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
 				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
+		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
+				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -200,6 +205,10 @@ public class ConstellioEIMConfigs {
 
 	public ConstellioEIMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public ConstellioEIMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
 	}
 
 	public MetadataPopulatePriority getMetadataPopulatePriority() {
@@ -354,4 +363,7 @@ public class ConstellioEIMConfigs {
 	}
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
+	public MemoryConsumptionLevel getMemoryConsumptionLevel() {
+		return manager.getValue(MEMORY_CONSUMPTION_LEVEL);
+	}
 }
