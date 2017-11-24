@@ -103,60 +103,17 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.permanentRecordByMetadataCacheName = collection + ".recordsByMetadata.permanent";
 		this.volatileRecordByMetadataCacheName = collection + ".recordsByMetadata.volatile";
 
-		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = new CacheConfiguration<>(
-				permanentQueryResultsCacheName);
-		permanentQueryResultsCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		permanentQueryResultsCacheCfg.setReadFromBackup(true);
-		permanentQueryResultsCacheCfg.setBackups(0);
-		permanentQueryResultsCacheCfg.setIndexedTypes(String.class, QueryResultsHolder.class);
+		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = newPermanentCacheCfg(permanentQueryResultsCacheName, QueryResultsHolder.class);
+		CacheConfiguration<String, Object> volatileQueryResultsCacheCfg = newVolatileCacheCfg(volatileQueryResultsCacheName, QueryResultsHolder.class);
 
-		CacheConfiguration<String, Object> volatileQueryResultsCacheCfg = new CacheConfiguration<>(volatileQueryResultsCacheName);
-		volatileQueryResultsCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		volatileQueryResultsCacheCfg.setOnheapCacheEnabled(true);
-		volatileQueryResultsCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
-		volatileQueryResultsCacheCfg.setIndexedTypes(String.class, QueryResultsHolder.class);
+		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = newPermanentCacheCfg(permanentByIdRecordHoldersCacheName, RecordHolder.class);
+		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = newVolatileCacheCfg(volatileByIdRecordHoldersCacheName, RecordHolder.class);
 
-		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = new CacheConfiguration<>(
-				permanentByIdRecordHoldersCacheName);
-		permanentByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		permanentByIdRecordHoldersCacheCfg.setReadFromBackup(true);
-		permanentByIdRecordHoldersCacheCfg.setBackups(0);
-		permanentByIdRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
+		CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = newPermanentCacheCfg(permanentRecordHoldersCacheName, RecordHolder.class);
+		CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = newVolatileCacheCfg(volatileRecordHoldersCacheName, RecordHolder.class);
 
-		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = new CacheConfiguration<>(
-				volatileByIdRecordHoldersCacheName);
-		volatileByIdRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		volatileByIdRecordHoldersCacheCfg.setOnheapCacheEnabled(true);
-		volatileByIdRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
-		volatileByIdRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
-
-		CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = new CacheConfiguration<>(
-				permanentRecordHoldersCacheName);
-		permanentRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		permanentRecordHoldersCacheCfg.setReadFromBackup(true);
-		permanentRecordHoldersCacheCfg.setBackups(0);
-		permanentRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
-
-		CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = new CacheConfiguration<>(
-				volatileRecordHoldersCacheName);
-		volatileRecordHoldersCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		volatileRecordHoldersCacheCfg.setOnheapCacheEnabled(true);
-		volatileRecordHoldersCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
-		volatileRecordHoldersCacheCfg.setIndexedTypes(String.class, RecordHolder.class);
-
-		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = new CacheConfiguration<>(
-				permanentRecordByMetadataCacheName);
-		permanentRecordByMetadataCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		permanentRecordByMetadataCacheCfg.setReadFromBackup(true);
-		permanentRecordByMetadataCacheCfg.setBackups(0);
-		permanentRecordByMetadataCacheCfg.setIndexedTypes(String.class, RecordByMetadata.class);
-
-		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = new CacheConfiguration<>(
-				volatileRecordByMetadataCacheName);
-		volatileRecordByMetadataCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
-		volatileRecordByMetadataCacheCfg.setOnheapCacheEnabled(true);
-		volatileRecordByMetadataCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
-		volatileRecordByMetadataCacheCfg.setIndexedTypes(String.class, RecordByMetadata.class);
+		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = newPermanentCacheCfg(permanentRecordByMetadataCacheName, RecordByMetadata.class);
+		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = newVolatileCacheCfg(volatileRecordByMetadataCacheName, RecordByMetadata.class);
 
 		this.permanentQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentQueryResultsCacheCfg);
 		this.volatileQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileQueryResultsCacheCfg);
@@ -170,6 +127,27 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				.getCache(permanentRecordByMetadataCacheCfg);
 		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
 				.getCache(volatileRecordByMetadataCacheCfg);
+	}
+	
+
+	private CacheConfiguration<String, Object> newPermanentCacheCfg(String name, Class<?> indexedType) {
+		CacheConfiguration<String, Object> permanentCacheCfg = new CacheConfiguration<>(name);
+		permanentCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		permanentCacheCfg.setMemoryPolicyName("permanent");
+		permanentCacheCfg.setReadFromBackup(true);
+		permanentCacheCfg.setBackups(0);
+		permanentCacheCfg.setIndexedTypes(String.class, indexedType);
+		return permanentCacheCfg;
+	}
+	
+	private CacheConfiguration<String, Object> newVolatileCacheCfg(String name, Class<?> indexedType) {
+		CacheConfiguration<String, Object> volatileCacheCfg = new CacheConfiguration<>(name);
+		volatileCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		volatileCacheCfg.setMemoryPolicyName("volatile");
+		volatileCacheCfg.setOnheapCacheEnabled(true);
+		volatileCacheCfg.setEvictionPolicy(new LruEvictionPolicy<String, Object>(30000));
+		volatileCacheCfg.setIndexedTypes(String.class, indexedType);
+		return volatileCacheCfg;
 	}
 
 	private boolean isVolatile(String schemaTypeCode) {
