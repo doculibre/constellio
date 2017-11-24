@@ -8,10 +8,10 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.entities.enums.SearchPageLength;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -196,6 +196,11 @@ public class User extends RecordWrapper {
 
 	public User setUserGroups(List<String> groups) {
 		set(GROUPS, groups);
+		return this;
+	}
+
+	public User addUserGroups(String... groups) {
+		add(GROUPS, groups);
 		return this;
 	}
 
