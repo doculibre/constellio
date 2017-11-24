@@ -26,6 +26,7 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 	private static final String TYPE = "valueCaption";
 	private static final String DISPLAY_TYPE = "inputCaption";
 	private static final String REQUIRED = "requiredCaption";
+	private static final String CODE = "localCode";
 
 	public MetadataVOLazyContainer(MetadataVODataProvider dataProvider, int batchSize) {
 		super(new SchemaVOLazyQueryDefinition(dataProvider, batchSize), new SchemaVOLazyQueryFactory(dataProvider));
@@ -39,6 +40,8 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 			super(true, batchSize, null);
 			this.dataProvider = dataProvider;
 
+			super.addProperty(CODE, String.class, null, true, true);
+			super.addProperty(LABEL, String.class, null, true, true);
 			super.addProperty(LABEL, String.class, null, true, true);
 			super.addProperty(TYPE, String.class, null, true, false);
 			super.addProperty(DISPLAY_TYPE, String.class, null, true, false);
@@ -78,6 +81,8 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 					List<MetadataVO> schemaVOs = dataProvider.listMetadataVO(startIndex, count);
 					for (MetadataVO schemaVO : schemaVOs) {
 						Item item = new BeanItem<>(schemaVO);
+						item.addItemProperty("localCode", new ObjectProperty<>(
+								StringUtils.defaultIfBlank(schemaVO.getCode(), "")));
 						item.addItemProperty("caption", new ObjectProperty<>(
 								StringUtils.defaultIfBlank(schemaVO.getLabel(), "")));
 						item.addItemProperty("valueCaption", new ObjectProperty<>(StringUtils.defaultIfBlank(
