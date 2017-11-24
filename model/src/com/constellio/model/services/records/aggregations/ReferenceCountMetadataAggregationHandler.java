@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.ArrayList;
+import static java.util.Arrays.asList;
+
 import java.util.List;
 
 import com.constellio.model.entities.schemas.Metadata;
@@ -16,12 +17,12 @@ public class ReferenceCountMetadataAggregationHandler implements MetadataAggrega
 
 	@Override
 	public Object calculate(InMemoryAggregatedValuesParams params) {
-		return 0.0;
+		return (double) params.getReferenceCount();
 	}
 
 	@Override
 	public List<Metadata> getMetadatasUsedToCalculate(GetMetadatasUsedToCalculateParams params) {
-		return new ArrayList<>();
+		return asList(params.getReferenceMetadata());
 	}
 
 }

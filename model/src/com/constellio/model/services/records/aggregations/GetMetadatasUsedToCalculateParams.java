@@ -18,6 +18,10 @@ public abstract class GetMetadatasUsedToCalculateParams {
 		return aggregatedMetadata;
 	}
 
+	public Metadata getReferenceMetadata() {
+		return getMetadata(getAggregatedDataEntry().getReferenceMetadata());
+	}
+
 	public Metadata getFirstInputMetadata() {
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) aggregatedMetadata.getDataEntry();
 		return getMetadata(aggregatedDataEntry.getFirstInputMetadata());

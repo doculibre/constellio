@@ -275,4 +275,15 @@ public abstract class XmlGenerator {
     }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
+
+    protected List<Element> fillEmptyTags(List<Element> originalElements) {
+        List<Element> filledElements = new ArrayList<>();
+        for (Element element : originalElements) {
+            if(element.getText().isEmpty()) {
+                element.setText("This will not appear on the final report");
+            }
+            filledElements.add(element);
+        }
+        return filledElements;
+    }
 }

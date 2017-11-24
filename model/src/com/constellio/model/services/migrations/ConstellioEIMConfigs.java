@@ -96,6 +96,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
+	public static final SystemConfiguration AUTOCOMPLETE_SIZE;
+
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
 	public static final SystemConfiguration LAST_BACKUP_DAY, KEEP_EVENTS_FOR_X_MONTH;
@@ -103,6 +105,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT;
 
 	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
+
+	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -146,6 +150,9 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
+		
+		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
+				.scriptedBy(AutocompleteSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -189,6 +196,9 @@ public class ConstellioEIMConfigs {
 		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
 				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
+		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
+				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -200,6 +210,10 @@ public class ConstellioEIMConfigs {
 
 	public ConstellioEIMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public ConstellioEIMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
 	}
 
 	public MetadataPopulatePriority getMetadataPopulatePriority() {
@@ -309,6 +323,24 @@ public class ConstellioEIMConfigs {
 
 	}
 
+	public static class AutocompleteSizeValidationScript extends AbstractSystemConfigurationScript<Integer> {
+
+		@Override
+		public void validate(Integer newValue, ValidationErrors errors) {
+			int max = 100;
+			if (newValue < 0 || newValue > 100) {
+				errors.add(LazyTreeBufferSizeValidationScript.class, "invalidAutocompleteSize", max(max));
+			}
+		}
+
+		private Map<String, Object> max(int max) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("maxValue", max);
+			return parameters;
+		}
+
+	}
+
 	public boolean getIcapScanActivated() {
 		return manager.getValue(ICAP_SCAN_ACTIVATED);
 	}
@@ -341,6 +373,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
 	}
 
+	public int getAutocompleteSize() {
+		return manager.getValue(AUTOCOMPLETE_SIZE);
+	}
+
 	public boolean isIncludeContentsInSavestate() {
 		return manager.getValue(INCLUDE_CONTENTS_IN_SAVESTATE);
 	}
@@ -354,4 +390,7 @@ public class ConstellioEIMConfigs {
 	}
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
+	public MemoryConsumptionLevel getMemoryConsumptionLevel() {
+		return manager.getValue(MEMORY_CONSUMPTION_LEVEL);
+	}
 }

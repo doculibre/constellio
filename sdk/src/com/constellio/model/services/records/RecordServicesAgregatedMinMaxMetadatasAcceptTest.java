@@ -42,7 +42,7 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 	RecordServicesAgregatedMetadatasAcceptTestRecords records = new RecordServicesAgregatedMetadatasAcceptTestRecords();
 
 	@Test
-	public void givenMinOfMultiValueNumberMetadatasThenAllNumbersAreCopiedWithoutDuplicates()
+	public void givenMinOfMultiValueNumberMetadatasThenThenCalculatedAccurately()
 			throws Exception {
 
 		givenBackgroundThreadsEnabled();

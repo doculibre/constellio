@@ -128,6 +128,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 			Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
 			table.setSizeFull();
 			table.setPageLength(Math.min(12, dataProvider.size()));
+			table.setColumnHeader("localCode", $("AddEditSchemaMetadataView.code"));
 			table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
 			table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
 			table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));

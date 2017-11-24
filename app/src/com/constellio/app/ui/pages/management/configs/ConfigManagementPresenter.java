@@ -16,7 +16,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class ConfigManagementPresenter extends BasePresenter<ConfigManagementView> {
-	
+
 	private SystemConfigurationGroupdataProvider dataProvider;
 
 	public ConfigManagementPresenter(ConfigManagementView view) {
@@ -25,9 +25,17 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 		view.setDataProvider(dataProvider);
 	}
 
+	public void forParams(String parameters) {
+
+		if (parameters != null && parameters.contains("dev")) {
+			dataProvider.showHiddenConfigs();
+		}
+
+	}
+
 	void saveButtonClicked() {
 		ValidationErrors errors = new ValidationErrors();
-		
+
 		List<String> groupCodes = dataProvider.getCodesList();
 		for (String groupCode : groupCodes) {
 			validateGroup(groupCode, errors);
@@ -52,16 +60,17 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			}
 			view.navigate().to().adminModule();
 		}
-		
+
 	}
-	
+
 	void validateGroup(String groupCode, ValidationErrors errors) {
 		SystemConfigurationGroupVO systemConfigurationGroup = dataProvider.getSystemConfigurationGroup(groupCode);
 		if (!systemConfigurationGroup.isUpdated()) {
 			return;
 		}
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode);
+		List<SystemConfiguration> previousConfigs = systemConfigurationsManager
+				.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode, dataProvider.isShowHidden());
 		for (int i = 0; i < previousConfigs.size(); i++) {
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
@@ -81,12 +90,14 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			return false;
 		}
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode);
+		List<SystemConfiguration> previousConfigs = systemConfigurationsManager
+				.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode, dataProvider.isShowHidden());
 		for (int i = 0; i < previousConfigs.size(); i++) {
 			SystemConfiguration systemConfiguration = previousConfigs.get(i);
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
-				reindexingRequired = reindexingRequired || systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue());
+				reindexingRequired = reindexingRequired || systemConfigurationsManager
+						.setValue(systemConfiguration, systemConfigurationVO.getValue());
 				systemConfigurationVO.afterSetValue();
 				systemConfigurationGroup.valueSave(i);
 			}
@@ -114,4 +125,5 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION);
 	}
+
 }
