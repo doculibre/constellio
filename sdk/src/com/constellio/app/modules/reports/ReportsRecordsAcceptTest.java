@@ -63,7 +63,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         ss = getModelLayerFactory().newSearchServices();
         recordServices = getModelLayerFactory().newRecordServices();
-        reportXmlGenerator = new ReportXMLGenerator(zeCollection, getAppLayerFactory(), records.getAlice().getUsername());
+        reportXmlGenerator = new ReportXMLGenerator(zeCollection, getAppLayerFactory(), records.getAlice().getUsername(), false);
         contentManager = getModelLayerFactory().getContentManager();
     }
 
