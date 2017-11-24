@@ -468,7 +468,6 @@ public abstract class Decommissioner {
 					recordServices.logicallyDelete(record, user);
 				}
 			}
-			contentManager.deleteUnreferencedContents();
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
 			throw new RecordServicesWrapperRuntimeException(e);
