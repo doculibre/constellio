@@ -7,6 +7,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
@@ -31,8 +32,6 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
 	private static class RecordAutocompleteSuggestionsProvider implements AutocompleteSuggestionsProvider<String> {
 
-		private static final int BUFFER_SIZE = 15;
-
 		private RecordTextInputDataProvider suggestionsProvider;
 
 		private RecordAutocompleteSuggestionsProvider(String schemaTypeCode, boolean writeAccess,
@@ -45,12 +44,14 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
 		@Override
 		public List<String> suggest(String text) {
-			return suggestionsProvider.getData(text, 0, BUFFER_SIZE);
+			return suggestionsProvider.getData(text, 0, getBufferSize());
 		}
 
 		@Override
 		public int getBufferSize() {
-			return BUFFER_SIZE;
+			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+			return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 		}
 
 	}

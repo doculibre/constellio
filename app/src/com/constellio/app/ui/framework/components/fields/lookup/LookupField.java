@@ -18,6 +18,7 @@ import org.vaadin.addons.lazyquerycontainer.Query;
 import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -117,12 +118,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
-		final int autoCompleteBuffer = 15;
-
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
 				if (itemConverter != null) {
 					Collections.sort(values, new Comparator<T>() {
 						@Override
@@ -136,9 +135,12 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				return values;
 			}
 
+
 			@Override
 			public int getBufferSize() {
-				return autoCompleteBuffer;
+				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
