@@ -357,18 +357,26 @@ public class BigVaultServer implements Cloneable {
 		extensions.afterCommmit(null, end - start);
 	}
 
+	private static int skipped = 0;
+
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
-		String transactionId = UUIDV1Generator.newRandomId();
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
 				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
 			}
 		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		verifyOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
-		transaction.setTransactionId(transactionId);
+		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+			String transactionId = UUIDV1Generator.newRandomId();
+			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
+			transaction.setTransactionId(transactionId);
+		} else {
+			if (transaction.getUpdatedDocuments().size() == 1) {
+				System.out.println("Optimistic locking skipped : " + ++skipped);
+			}
+		}
 		TransactionResponseDTO response = processChanges(transaction);
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
@@ -378,7 +386,7 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	void verifyOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
+	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
 			throws IOException, SolrServerException {
 		try {
 			if (!updatedDocuments.isEmpty()) {
@@ -450,18 +458,20 @@ public class BigVaultServer implements Cloneable {
 			throws SolrServerException, IOException {
 
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		List<SolrInputDocument> newDocumentsWithoutIndexes = withoutIndexes(transaction.getNewDocuments());
-		List<SolrInputDocument> updatedDocumentsWithoutIndexes = withoutIndexes(transaction.getUpdatedDocuments());
 
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
-		deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(updatedDocumentsWithoutIndexes,
-				new ArrayList<String>());
+		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
+			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments(),
+					new ArrayList<String>());
+			req.add(docsWithoutVersions);
+		} else {
+			req.add(transaction.getUpdatedDocuments());
+		}
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
-		req.add(docsWithoutVersions);
-		req.add(newDocumentsWithoutIndexes);
+		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
 		UpdateResponse updateResponse = req.process(server);

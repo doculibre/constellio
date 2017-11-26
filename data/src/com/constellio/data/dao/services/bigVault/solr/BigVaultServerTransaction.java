@@ -46,6 +46,10 @@ public class BigVaultServerTransaction {
 		this.recordsFlushing = recordsFlushing;
 	}
 
+	public int addUpdateSize() {
+		return newDocuments.size() + updatedDocuments.size();
+	}
+
 	public RecordsFlushing getRecordsFlushing() {
 		return recordsFlushing;
 	}
