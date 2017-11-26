@@ -242,36 +242,43 @@ public class BigVaultServer implements Cloneable {
 
 	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
-		try {
-			return addAndCommit(transaction);
+		if (!transaction.getUpdatedDocuments().isEmpty() || !transaction.getNewDocuments().isEmpty()
+				|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
+			try {
+				return addAndCommit(transaction);
 
-		} catch (RemoteSolrException | RouteException solrServerException) {
-			int code = getExceptionCode(solrServerException);
-			return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
+			} catch (RemoteSolrException | RouteException solrServerException) {
+				int code = getExceptionCode(solrServerException);
+				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
 
-		} catch (SolrServerException | IOException e) {
-			if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
-				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
-				int code = getExceptionCode(remoteSolrException);
-				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException, code);
-			}
+			} catch (SolrServerException | IOException e) {
+				if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
+					RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
+					int code = getExceptionCode(remoteSolrException);
+					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException,
+							code);
+				}
 
-			StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
+				StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
 
-			for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
+				for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
+				for (SolrInputDocument document : transaction.getNewDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
 				stringBuilder.append("\n");
-			}
-			for (SolrInputDocument document : transaction.getNewDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
-				stringBuilder.append("\n");
-			}
-			stringBuilder.append("\n");
-			stringBuilder.append("</transaction>");
-			LOGGER.error(stringBuilder.toString());
+				stringBuilder.append("</transaction>");
+				LOGGER.error(stringBuilder.toString());
 
-			throw new BigVaultException.CouldNotExecuteQuery("" + maxFailAttempt + " errors occured while add/updating records",
-					e);
+				throw new BigVaultException.CouldNotExecuteQuery(
+						"" + maxFailAttempt + " errors occured while add/updating records",
+						e);
+			}
+		} else {
+			return new TransactionResponseDTO(0, new HashMap<String, Long>());
 		}
 	}
 
