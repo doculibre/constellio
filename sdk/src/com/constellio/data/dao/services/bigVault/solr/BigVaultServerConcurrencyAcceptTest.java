@@ -27,7 +27,6 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -49,7 +48,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenDisabledAfterTestValidations();
-//		DataLayerFactory daosFactory = getDataLayerFactory();
+		//		DataLayerFactory daosFactory = getDataLayerFactory();
 		setupSolrServers();
 		//vaultServer = daosFactory.getRecordsVaultServer();
 		//anotherVaultServer = new BigVaultServer(vaultServer.getNestedSolrServer(), BigVaultLogger.disabled());
@@ -117,14 +116,14 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 	private void setupSolrServers() {
 
-//		DataLayerSystemExtensions extensions = new DataLayerSystemExtensions();
+		//		DataLayerSystemExtensions extensions = new DataLayerSystemExtensions();
 		DataLayerFactory daosFactory = (DataLayerFactory) getDataLayerFactory();
 		BigVaultServer recordsVaultServer = daosFactory.getRecordsVaultServer();
-		
+
 		vaultServer = recordsVaultServer.clone();
 		anotherVaultServer = recordsVaultServer.clone();
 		aThirdVaultServer = recordsVaultServer.clone();
-	} 
+	}
 
 	@Test
 	public void testDeathStarInvulnerability()
@@ -132,13 +131,17 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
 		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
+		vaultServer.getNestedSolrServer().add(addDocument(sasquatch, "A"));
 		vaultServer.softCommit();
 
 		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
 
 		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
 				getVersionOfDocumentOnServer(dakota, vaultServer));
-		vaultServer.verifyOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
+		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(sasquatch, "B",
+				getVersionOfDocumentOnServer(sasquatch, vaultServer));
+		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1,
+				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
 
 		aThirdVaultServer.softCommit();
 		SolrInputDocument secondServerUpdatedDocument = updateDocument(dakota, "C",
@@ -147,22 +150,24 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 				getVersionOfDocumentOnServer(edouard, anotherVaultServer));
 		try {
 			anotherVaultServer
-					.verifyOptimisticLocking(-1, transaction2, asList(secondServerUpdatedDocument2, secondServerUpdatedDocument));
+					.verifyTransactionOptimisticLocking(-1, transaction2,
+							asList(secondServerUpdatedDocument2, secondServerUpdatedDocument));
 			fail("Should throw an exception, since the first client has not finished the transaction");
 		} catch (Exception e) {
 			//OK
 		}
 		vaultServer.processChanges(new BigVaultServerTransaction(transaction1, RecordsFlushing.LATER(), emptyList,
-				asList(firstServerUpdatedDocument), emptyList, emptyList));
+				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
 		vaultServer.softCommit();
 
 		assertThat(getValueOf(dakota)).isEqualTo("B");
 
 		firstServerUpdatedDocument = updateDocument(dakota, "D",
 				getVersionOfDocumentOnServer(dakota, vaultServer));
-		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(edouard, "D",
+		firstServerUpdatedDocument2 = updateDocument(edouard, "D",
 				getVersionOfDocumentOnServer(edouard, vaultServer));
-		vaultServer.verifyOptimisticLocking(-1, transaction3, asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
+		vaultServer.verifyTransactionOptimisticLocking(-1, transaction3,
+				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
 		vaultServer.processChanges(new BigVaultServerTransaction(transaction3, RecordsFlushing.LATER(), emptyList,
 				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
 		vaultServer.softCommit();
@@ -188,7 +193,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
 				getVersionOfDocumentOnServer(dakota, vaultServer));
-		vaultServer.verifyOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
+		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
 		vaultServer.softCommit();
 		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
 
