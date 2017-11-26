@@ -131,13 +131,17 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
 		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
+		vaultServer.getNestedSolrServer().add(addDocument(sasquatch, "A"));
 		vaultServer.softCommit();
 
 		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
 
 		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
 				getVersionOfDocumentOnServer(dakota, vaultServer));
-		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
+		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(sasquatch, "B",
+				getVersionOfDocumentOnServer(sasquatch, vaultServer));
+		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1,
+				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
 
 		aThirdVaultServer.softCommit();
 		SolrInputDocument secondServerUpdatedDocument = updateDocument(dakota, "C",
@@ -153,14 +157,14 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 			//OK
 		}
 		vaultServer.processChanges(new BigVaultServerTransaction(transaction1, RecordsFlushing.LATER(), emptyList,
-				asList(firstServerUpdatedDocument), emptyList, emptyList));
+				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
 		vaultServer.softCommit();
 
 		assertThat(getValueOf(dakota)).isEqualTo("B");
 
 		firstServerUpdatedDocument = updateDocument(dakota, "D",
 				getVersionOfDocumentOnServer(dakota, vaultServer));
-		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(edouard, "D",
+		firstServerUpdatedDocument2 = updateDocument(edouard, "D",
 				getVersionOfDocumentOnServer(edouard, vaultServer));
 		vaultServer.verifyTransactionOptimisticLocking(-1, transaction3,
 				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
