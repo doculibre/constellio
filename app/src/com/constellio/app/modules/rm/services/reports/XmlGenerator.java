@@ -283,6 +283,8 @@ public abstract class XmlGenerator {
             for(char currentChar: chars) {
                 if(Verifier.isXMLCharacter(currentChar)) {
                     stringBuilder.append(currentChar);
+                } else {
+                    stringBuilder.append(" ");
                 }
             }
             return stringBuilder.toString();
