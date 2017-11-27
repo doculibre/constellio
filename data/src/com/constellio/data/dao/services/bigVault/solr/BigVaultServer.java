@@ -242,36 +242,43 @@ public class BigVaultServer implements Cloneable {
 
 	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
-		try {
-			return addAndCommit(transaction);
+		if (!transaction.getUpdatedDocuments().isEmpty() || !transaction.getNewDocuments().isEmpty()
+				|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
+			try {
+				return addAndCommit(transaction);
 
-		} catch (RemoteSolrException | RouteException solrServerException) {
-			int code = getExceptionCode(solrServerException);
-			return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
+			} catch (RemoteSolrException | RouteException solrServerException) {
+				int code = getExceptionCode(solrServerException);
+				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
 
-		} catch (SolrServerException | IOException e) {
-			if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
-				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
-				int code = getExceptionCode(remoteSolrException);
-				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException, code);
-			}
+			} catch (SolrServerException | IOException e) {
+				if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
+					RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
+					int code = getExceptionCode(remoteSolrException);
+					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException,
+							code);
+				}
 
-			StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
+				StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
 
-			for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
+				for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
+				for (SolrInputDocument document : transaction.getNewDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
 				stringBuilder.append("\n");
-			}
-			for (SolrInputDocument document : transaction.getNewDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
-				stringBuilder.append("\n");
-			}
-			stringBuilder.append("\n");
-			stringBuilder.append("</transaction>");
-			LOGGER.error(stringBuilder.toString());
+				stringBuilder.append("</transaction>");
+				LOGGER.error(stringBuilder.toString());
 
-			throw new BigVaultException.CouldNotExecuteQuery("" + maxFailAttempt + " errors occured while add/updating records",
-					e);
+				throw new BigVaultException.CouldNotExecuteQuery(
+						"" + maxFailAttempt + " errors occured while add/updating records",
+						e);
+			}
+		} else {
+			return new TransactionResponseDTO(0, new HashMap<String, Long>());
 		}
 	}
 
@@ -357,18 +364,26 @@ public class BigVaultServer implements Cloneable {
 		extensions.afterCommmit(null, end - start);
 	}
 
+	private static int skipped = 0;
+
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
-		String transactionId = UUIDV1Generator.newRandomId();
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
 				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
 			}
 		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		verifyOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
-		transaction.setTransactionId(transactionId);
+		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+			String transactionId = UUIDV1Generator.newRandomId();
+			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
+			transaction.setTransactionId(transactionId);
+		} else {
+			if (transaction.getUpdatedDocuments().size() == 1) {
+				System.out.println("Optimistic locking skipped : " + ++skipped);
+			}
+		}
 		TransactionResponseDTO response = processChanges(transaction);
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
@@ -378,7 +393,7 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	void verifyOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
+	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
 			throws IOException, SolrServerException {
 		try {
 			if (!updatedDocuments.isEmpty()) {
@@ -450,18 +465,20 @@ public class BigVaultServer implements Cloneable {
 			throws SolrServerException, IOException {
 
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		List<SolrInputDocument> newDocumentsWithoutIndexes = withoutIndexes(transaction.getNewDocuments());
-		List<SolrInputDocument> updatedDocumentsWithoutIndexes = withoutIndexes(transaction.getUpdatedDocuments());
 
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
-		deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(updatedDocumentsWithoutIndexes,
-				new ArrayList<String>());
+		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
+			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments(),
+					new ArrayList<String>());
+			req.add(docsWithoutVersions);
+		} else {
+			req.add(transaction.getUpdatedDocuments());
+		}
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
-		req.add(docsWithoutVersions);
-		req.add(newDocumentsWithoutIndexes);
+		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
 		UpdateResponse updateResponse = req.process(server);

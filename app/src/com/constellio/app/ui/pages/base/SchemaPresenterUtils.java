@@ -102,7 +102,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setToReindexAll();
-		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 		createTransaction.addUpdate(record);
 		//		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
 		//				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {

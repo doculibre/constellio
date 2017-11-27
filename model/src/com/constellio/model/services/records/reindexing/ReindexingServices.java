@@ -514,8 +514,6 @@ public class ReindexingServices {
 			values.addAll(aggregatedValuesTempStorage.getAllValues(record.getId(), metadata.getLocalCode()));
 		}
 
-		LOGGER.info("Updating aggregating metadata " + aggregatingMetadata.getLocalCode() + " of record "
-				+ record.getId() + " based on values " + values);
 		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values) {
 
 			@Override
