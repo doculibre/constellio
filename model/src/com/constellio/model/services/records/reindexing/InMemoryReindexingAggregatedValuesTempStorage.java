@@ -10,19 +10,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.KeyIntMap;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 
 public class InMemoryReindexingAggregatedValuesTempStorage implements ReindexingAggregatedValuesTempStorage {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryReindexingAggregatedValuesTempStorage.class);
 
-	KeyIntMap<String> referenceCounts = new KeyIntMap<>();
+	private KeyIntMap<String> referenceCounts = new KeyIntMap<>();
 
-	Map<String, Map<String, Map<String, List<Object>>>> entries = new HashMap<>();
+	private Map<String, Map<String, Map<String, List<Object>>>> entries = new HashMap<>();
 
 	@Override
-	public void addOrReplace(String recordIdAggregatingValues, String recordId, Metadata inputMetadata, List<Object> values) {
+	public void addOrReplace(String recordIdAggregatingValues, String recordId, String inputMetadataLocalCode,
+			List<Object> values) {
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = entries.get(recordIdAggregatingValues);
 		if (entriesOfAggregatingRecord == null) {
 			entriesOfAggregatingRecord = new HashMap<>();
@@ -30,17 +30,17 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 		}
 
 		Map<String, List<Object>> entriesOfAggregatingRecordInputMetadata = entriesOfAggregatingRecord
-				.get(inputMetadata.getLocalCode());
+				.get(inputMetadataLocalCode);
 		if (entriesOfAggregatingRecordInputMetadata == null) {
 			entriesOfAggregatingRecordInputMetadata = new HashMap<>();
-			entriesOfAggregatingRecord.put(inputMetadata.getLocalCode(), entriesOfAggregatingRecordInputMetadata);
+			entriesOfAggregatingRecord.put(inputMetadataLocalCode, entriesOfAggregatingRecordInputMetadata);
 		}
 
 		entriesOfAggregatingRecordInputMetadata.put(recordId, values);
 	}
 
 	@Override
-	public List<Object> getAllValues(String recordIdAggregatingValues, Metadata inputMetadata) {
+	public List<Object> getAllValues(String recordIdAggregatingValues, String inputMetadataLocalCode) {
 
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = entries.get(recordIdAggregatingValues);
 
@@ -50,7 +50,7 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 
 		} else {
 			Map<String, List<Object>> entriesOfAggregatingRecordInputMetadata = entriesOfAggregatingRecord
-					.get(inputMetadata.getLocalCode());
+					.get(inputMetadataLocalCode);
 			if (entriesOfAggregatingRecordInputMetadata == null) {
 				returnedValues = Collections.emptyList();
 
@@ -68,6 +68,7 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 	@Override
 	public void clear() {
 		entries.clear();
+		referenceCounts.clear();
 	}
 
 	@Override

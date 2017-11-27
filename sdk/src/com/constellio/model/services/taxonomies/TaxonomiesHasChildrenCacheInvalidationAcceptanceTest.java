@@ -23,6 +23,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -742,6 +743,67 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 	}
 
 	@Test
+	public void whenAUserReceiveOrLoseGroupThenInvalidated()
+			throws Exception {
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		User robinUser = userServices.getUserInCollection(robin, zeCollection);
+
+		recordServices.update(robinUser.addUserGroups(userServices.getGroupInCollection(legends, zeCollection).getId()));
+		assertThatInvalidatedEntriesSinceLastCheck().containsOnly(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false",
+				"categoryId_Z robin visible false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false",
+				"unitId_30 robin visible false"
+		);
+
+		recordServices.update(robinUser.setUserGroups(new ArrayList<String>()));
+		assertThatInvalidatedEntriesSinceLastCheck().containsOnly(
+				"categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false",
+				"categoryId_X robin visible false",
+				"categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false",
+				"categoryId_Z robin visible false",
+				"unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false",
+				"unitId_10 robin visible false",
+				"unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false",
+				"unitId_30 robin visible false"
+		);
+
+	}
+
+	@Test
+	public void whenAGroupReceiveANewParentThenAllInvalidated()
+			throws Exception {
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Group legendsGroup = userServices.getGroupInCollection(legends, zeCollection);
+		Group heroesGroup = userServices.getGroupInCollection(heroes, zeCollection);
+
+		recordServices.update(legendsGroup.setParent(heroesGroup.getId()));
+		assertThatCacheIsEntirelyInvalidated();
+
+		recordServices.update(legendsGroup.setParent(null));
+		assertThatCacheIsEntirelyInvalidated();
+
+	}
+
+	@Test
 	public void givenDetachedFolderReceiveNewAuthorizationsThenInvalidated()
 			throws Exception {
 
@@ -846,6 +908,12 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 	}
 
 	private List<String> previousEntries = new ArrayList<>();
+
+	private void assertThatCacheIsEntirelyInvalidated() {
+		List<String> entriesNow = getCacheEntries();
+		previousEntries = getCacheEntries();
+		assertThat(entriesNow).isEmpty();
+	}
 
 	private ListAssert<String> assertThatInvalidatedEntriesSinceLastCheck() {
 		List<String> entriesNow = getCacheEntries();

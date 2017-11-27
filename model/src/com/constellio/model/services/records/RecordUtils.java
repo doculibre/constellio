@@ -20,6 +20,7 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -577,8 +578,17 @@ public class RecordUtils {
 
 				if (record.isModified(userSchema.getMetadata(User.COLLECTION_READ_ACCESS))
 						|| record.isModified(userSchema.getMetadata(User.COLLECTION_WRITE_ACCESS))
-						|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))) {
+						|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.GROUPS))) {
 					cache.invalidateUser(record.<String>get(userSchema.getMetadata(User.USERNAME)));
+				}
+			}
+
+			if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema groupSchema = types.getSchema(Group.DEFAULT_SCHEMA);
+
+				if (record.isModified(groupSchema.getMetadata(Group.PARENT))) {
+					cache.invalidateAll();
 				}
 			}
 

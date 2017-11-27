@@ -53,6 +53,7 @@ import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
@@ -133,6 +134,7 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock ConstellioEIMConfigs constellioEIMConfigs;
+	@Mock SystemConfigurationsManager systemConfigurationsManager;
 
 	@Before
 	public void setUp()
@@ -171,6 +173,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentConverter).when(contentManager).newParsedContentConverter();
 
 		when(constellioEIMConfigs.getDefaultParsingBehavior()).thenReturn(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
+		when(modelLayerFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
 	}
 
 	@Test

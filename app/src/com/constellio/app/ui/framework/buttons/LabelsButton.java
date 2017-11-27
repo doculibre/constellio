@@ -207,7 +207,7 @@ public class LabelsButton extends WindowButton {
                 Object ob = formatField.getValue();
                 if (ob instanceof PrintableLabel) {
                     PrintableLabel selected = (PrintableLabel) formatField.getValue();
-                    ReportXMLGenerator reportXmlGenerator = new ReportXMLGenerator(collection, appLayerFactory, user);
+                    ReportXMLGenerator reportXmlGenerator = new ReportXMLGenerator(collection, appLayerFactory, user, false);
                     try {
                         if ((Integer) startPositionField.getValue() > size) {
                             throw new Exception($("ButtonLabel.error.posisbiggerthansize"));

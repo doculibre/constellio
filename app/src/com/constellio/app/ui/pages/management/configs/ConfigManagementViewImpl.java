@@ -4,9 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.vaadin.data.validator.AbstractStringValidator;
-import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
@@ -25,8 +22,21 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigManagementView {
@@ -35,14 +45,21 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 	ConfigManagementPresenter presenter;
 	private TabSheet tabsheet;
-	
+
 	SystemConfigurationGroupdataProvider dataProvider;
 
 	public ConfigManagementViewImpl() {
 		super();
 		this.presenter = new ConfigManagementPresenter(this);
 	}
-	
+
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
+	}
+
 	@Override
 	public void setDataProvider(SystemConfigurationGroupdataProvider dataProvider) {
 		this.dataProvider = dataProvider;
@@ -59,13 +76,13 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 		for (String groupCode : dataProvider.getCodesList()) {
 			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
-			if(!configs.isEmpty()){
+			if (!configs.isEmpty()) {
 				VerticalLayout groupLayout = new VerticalLayout();
 				groupLayout.addStyleName("config-group");
 				groupLayout.setSizeFull();
 				groupLayout.setSpacing(true);
 				groupLayout.setId(groupCode);
-				
+
 				for (int i = 0; i < configs.size(); i++) {
 					SystemConfigurationVO currentConfigurationVO = configs.get(i);
 					String fieldCaption = presenter.getLabel(groupCode, currentConfigurationVO.getCode());
@@ -105,9 +122,9 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					} else if (field instanceof ComboBox) {
 						onEnterHandler.installOn((ComboBox) field);
 					}
-					
+
 					field.setCaption(fieldCaption);
-					if(field instanceof AbstractComponent) {
+					if (field instanceof AbstractComponent) {
 						((AbstractComponent) field).setCaptionAsHtml(true);
 					}
 					groupLayout.addComponent(field);
@@ -199,5 +216,5 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 			}
 		};
 	}
-	
+
 }

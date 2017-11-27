@@ -1,5 +1,7 @@
 package com.constellio.model.services.migrations;
 
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,6 +108,12 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
 
+	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
+
+	public static final SystemConfiguration CONTENT_PARSING_SCHEDULE;
+	public static final SystemConfiguration VIEWER_CONTENTS_CONVERSION_SCHEDULE;
+	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -148,7 +156,7 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
-		
+
 		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
 				.scriptedBy(AutocompleteSizeValidationScript.class));
 
@@ -194,6 +202,17 @@ public class ConstellioEIMConfigs {
 		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
 				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
+		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
+				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
+
+		add(CONTENT_PARSING_SCHEDULE = advanced.createString("contentParsingSchedule").withDefaultValue("18-06")
+				.scriptedBy(TimeScheduleConfigurationValidator.class));
+
+		add(VIEWER_CONTENTS_CONVERSION_SCHEDULE = advanced.createString("viewerConversionSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class));
+		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
+				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class));
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -205,6 +224,10 @@ public class ConstellioEIMConfigs {
 
 	public ConstellioEIMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public ConstellioEIMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
 	}
 
 	public MetadataPopulatePriority getMetadataPopulatePriority() {
@@ -381,4 +404,19 @@ public class ConstellioEIMConfigs {
 	}
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
+	public MemoryConsumptionLevel getMemoryConsumptionLevel() {
+		return manager.getValue(MEMORY_CONSUMPTION_LEVEL);
+	}
+
+	public boolean isInContentParsingSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(CONTENT_PARSING_SCHEDULE));
+	}
+
+	public boolean isInUnreferencedContentsDeleteSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(UNREFERENCED_CONTENTS_DELETE_SCHEDULE));
+	}
+
+	public boolean isInViewerContentsConversionSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
+	}
 }

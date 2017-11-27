@@ -18,19 +18,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -48,7 +56,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
+@RunWith(Parameterized.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends ConstellioTest {
+
+	String testCase;
+	static String givenOptimizedForMemoryUsage = "givenOptimizedForMemoryUsage";
+	static String givenOptimizedForPerformance = "givenOptimizedForPerformance";
 
 	TestsSchemasSetup schemas = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
@@ -57,6 +71,15 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 	RecordServices recordServices;
 	RecordServicesAgregatedMetadatasAcceptTestRecords records = new RecordServicesAgregatedMetadatasAcceptTestRecords();
 	SearchServices searchServices;
+
+	public RecordServicesAgregatedMetadatasMechanicAcceptTest(String testCase) {
+		this.testCase = testCase;
+	}
+
+	@Parameterized.Parameters(name = "{0}")
+	public static Collection<Object[]> testCases() {
+		return Arrays.asList(new Object[][] { { givenOptimizedForMemoryUsage }, { givenOptimizedForPerformance } });
+	}
 
 	public void setUpWithAgregatedSumMetadatas()
 			throws Exception {
@@ -95,6 +118,12 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		}));
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
+
+		if (testCase.equals(givenOptimizedForMemoryUsage)) {
+			givenConfig(ConstellioEIMConfigs.MEMORY_CONSUMPTION_LEVEL, MemoryConsumptionLevel.LESS_MEMORY_CONSUMPTION);
+		} else {
+			givenConfig(ConstellioEIMConfigs.MEMORY_CONSUMPTION_LEVEL, MemoryConsumptionLevel.BETTER_PERFORMANCE);
+		}
 
 	}
 
