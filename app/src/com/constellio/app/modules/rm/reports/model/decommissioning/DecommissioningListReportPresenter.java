@@ -75,13 +75,12 @@ public class DecommissioningListReportPresenter {
         }
 
         List<DecommissioningListReportModel_Folder> foldersModel = new ArrayList<>();
-        int currentFolder = 0;
         for (Folder folder : folders) {
             Category category = rm.getCategory(folder.getCategory());
             RetentionRule retentionRule = rm.getRetentionRule(folder.getRetentionRule());
             String categoryCodeTitle = category.getCode() + " - " + category.getTitle();
             String retentionRuleCodeTitle = retentionRule.getCode() + " - " + retentionRule.getTitle();
-            String containerRecordId = decommissioningList.getFolderDetails().get(currentFolder).getContainerRecordId();
+            String containerRecordId = decommissioningList.getFolderDetail(folder.getId()).getContainerRecordId();
             String containerRecordTitle = "";
             if(containerRecordId != null){
                 ContainerRecord containerRecord = rm.getContainerRecord(containerRecordId);
@@ -109,7 +108,6 @@ public class DecommissioningListReportPresenter {
                 folderModel.setMainCopyRule(folder.getMainCopyRule().toString());
             }
             foldersModel.add(folderModel);
-            currentFolder++;
         }
 
         String decommissioningListType = $(
