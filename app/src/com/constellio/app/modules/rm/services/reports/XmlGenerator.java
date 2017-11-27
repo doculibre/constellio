@@ -24,6 +24,7 @@ import com.jgoodies.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
+import org.jdom2.Verifier;
 import org.jsoup.Jsoup;
 
 import java.text.DateFormat;
@@ -271,7 +272,23 @@ public abstract class XmlGenerator {
     abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
     String formatData(String data, Metadata metadata) {
-        return defaultFormatData(data, metadata, getFactory(), getCollection());
+        String formattedData = defaultFormatData(data, metadata, getFactory(), getCollection());
+        return formatToXml(formattedData);
+    }
+
+    private String formatToXml(String stringToFormat) {
+        if(stringToFormat != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            char[] chars = stringToFormat.toCharArray();
+            for(char currentChar: chars) {
+                if(Verifier.isXMLCharacter(currentChar)) {
+                    stringBuilder.append(currentChar);
+                }
+            }
+            return stringBuilder.toString();
+        } else {
+            return null;
+        }
     }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
