@@ -205,13 +205,14 @@ public class ConstellioEIMConfigs {
 		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
 				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
 
-		add(CONTENT_PARSING_SCHEDULE = advanced.createString("contentParsingSchedule").withDefaultValue("18-06")
-				.scriptedBy(TimeScheduleConfigurationValidator.class));
+		add(CONTENT_PARSING_SCHEDULE = advanced.createString("contentParsingSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		add(VIEWER_CONTENTS_CONVERSION_SCHEDULE = advanced.createString("viewerConversionSchedule")
-				.scriptedBy(TimeScheduleConfigurationValidator.class));
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
 		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
-				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class));
+				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
