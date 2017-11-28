@@ -26,11 +26,11 @@ public class DataLayerLogger {
 
 	private boolean logFL = true;
 
-	private int printAllQueriesLongerThanMS = 100;
+	private int printAllQueriesLongerThanMS = 10000;
 
-	private int slowQueryDuration = 1000;
+	private int slowQueryDuration = 20000;
 
-	private int verySlowQueryDuration = 2000;
+	private int verySlowQueryDuration = 30000;
 
 	public boolean logAllTransactions = false;
 

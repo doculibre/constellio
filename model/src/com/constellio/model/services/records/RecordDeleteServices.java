@@ -8,6 +8,7 @@ import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.
 import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.lang.Boolean.TRUE;
 
@@ -690,19 +691,42 @@ public class RecordDeleteServices {
 
 		for (Record aHierarchyRecord : recordsHierarchy) {
 
+			//List<String> regroupedSchemaType
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 
 				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
 						.onlyReferencesToType(aHierarchyRecord.getTypeCode());
+
 				if (!referencesMetadata.isEmpty()) {
+					List<String> schemaTypesWithParentRelationShip = new ArrayList<>();
 					List<Metadata> parentReferences = schemaType.getDefaultSchema().getMetadatas()
 							.onlyParentReferenceToSchemaType(aHierarchyRecord.getTypeCode());
 
-					LogicalSearchCondition condition = from(schemaType).where(ALL_REFERENCES)
+					LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection()).where(ALL_REFERENCES)
 							.isEqualTo(aHierarchyRecord.getId());
 
 					if (!parentReferences.isEmpty()) {
+						schemaTypesWithParentRelationShip.add(schemaType.getCode());
 						condition = condition.andWhereAll((List) parentReferences).isNotEqual(aHierarchyRecord.getId());
+
+						Iterator<String> iterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(condition));
+
+						while (iterator.hasNext()) {
+							String referencingRecord = iterator.next();
+							if (!recordsHierarchyIds.contains(referencingRecord)) {
+								references.add(referencingRecord);
+							}
+						}
+					}
+
+					condition = fromAllSchemasIn(record.getCollection()).where(ALL_REFERENCES)
+							.isEqualTo(aHierarchyRecord.getId());
+
+					if (!schemaTypesWithParentRelationShip.isEmpty()) {
+						for (String schemaTypeWithParentRelationShip : schemaTypesWithParentRelationShip) {
+							condition = condition.andWhere(Schemas.SCHEMA)
+									.isNot(startingWithText(schemaTypeWithParentRelationShip + "_"));
+						}
 					}
 
 					Iterator<String> iterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(condition));
@@ -713,6 +737,7 @@ public class RecordDeleteServices {
 							references.add(referencingRecord);
 						}
 					}
+
 				}
 			}
 		}

@@ -922,6 +922,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
 
 			Iterator<List<Record>> iterator;
@@ -934,11 +935,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 				for (int i = 0; i < ctx.options.getStartRow(); i++) {
 					visibleRecords.add(null);
 				}
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
 						continueInfos.lastReturnRecordIndex).inBatches();
 
 			} else {
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
+				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
 			}
 
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());

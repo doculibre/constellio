@@ -2,8 +2,6 @@ package com.constellio.app.modules.rm.extensions;
 
 import java.util.Arrays;
 
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,9 +24,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
+import com.constellio.model.services.search.SearchServices;
 
 public class RMDocumentExtension extends RecordExtension {
 
@@ -163,15 +159,15 @@ public class RMDocumentExtension extends RecordExtension {
 			String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
 
 			SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-			TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-			ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
-					.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
-					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-			));
+			//			TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+			//			ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
+			//					.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
+			//					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+			//					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+			//			));
 
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
-					|| taskVerification == ExtensionBooleanResult.FALSE) {
+					/*|| taskVerification == ExtensionBooleanResult.FALSE*/) {
 				return ExtensionBooleanResult.FALSE;
 			}
 		}
