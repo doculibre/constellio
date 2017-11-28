@@ -335,14 +335,14 @@ public class BigVaultServer implements Cloneable {
 
 	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
-		try {
-			softCommit();
-		} catch (IOException | SolrServerException solrServerException) {
-			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
-			sleepBeforeRetrying(solrServerException);
-			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
-					solrServerException);
-		}
+//		try {
+		//			softCommit();
+		//		} catch (IOException | SolrServerException solrServerException) {
+		//			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
+		//			sleepBeforeRetrying(solrServerException);
+		//			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
+		//					solrServerException);
+		//		}
 		throw new BigVaultException.OptimisticLocking(optimisticLockingException);
 	}
 
