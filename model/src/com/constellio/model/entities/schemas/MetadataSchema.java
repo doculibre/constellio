@@ -100,10 +100,10 @@ public class MetadataSchema implements Serializable {
 
 	public boolean hasMetadataWithCode(String metadataCode) {
 		try {
-			String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
 
 			return indexByLocalCode.get(localCode) != null;
-		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType e) {
+		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType | MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema e) {
 			return false;
 		}
 	}

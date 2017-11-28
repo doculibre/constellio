@@ -123,6 +123,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
             List<ModifiableStructure> metadataValue;
@@ -162,6 +165,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         EnumWithSmallCode metadataValue = recordElement.get(metadata);
         String code, title;
@@ -185,6 +191,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
         MetadataSchema recordSchemaType = metadataSchemasManager.getSchemaTypeOf(recordElement).getDefaultSchema();
@@ -192,26 +201,33 @@ public abstract class XmlGenerator {
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (listOfRecordReferencedByMetadata.isEmpty()) {
-            listOfMetadataTags = asList(
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title"));
+            if(recordSchemaType.hasMetadataWithCode(metadata.getCode())) {
+                listOfMetadataTags = asList(
+                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title"));
+
+            } else {
+                listOfMetadataTags = Collections.emptyList();
+            }
 
         } else {
             for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-                listOfMetadataTags.addAll(asList(
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
-                ));
+                if(recordSchemaType.hasMetadataWithCode(metadata.getCode())) {
+                    listOfMetadataTags.addAll(asList(
+                            new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                            new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
+                    ));
 
-                if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
-                    Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
-                    String parentMetadataId = recordReferenced.get(parentMetadata);
-                    if (parentMetadataId != null) {
-                        Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                        listOfMetadataTags.addAll(asList(
-                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
-                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
-                        ));
+                    if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
+                        Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+                        String parentMetadataId = recordReferenced.get(parentMetadata);
+                        if (parentMetadataId != null) {
+                            Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+                            listOfMetadataTags.addAll(asList(
+                                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
+                                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
+                            ));
+                        }
                     }
                 }
             }
@@ -276,14 +292,12 @@ public abstract class XmlGenerator {
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
 
-    protected List<Element> fillEmptyTags(List<Element> originalElements) {
-        List<Element> filledElements = new ArrayList<>();
-        for (Element element : originalElements) {
-            if(element.getText().isEmpty()) {
-                element.setText("This will not appear on the final report");
-            }
-            filledElements.add(element);
+    private static boolean hasMetadata (Record record, Metadata metadata) {
+        try {
+            record.get(metadata);
+            return true;
+        } catch(MetadataSchemasRuntimeException.NoSuchMetadata e) {
+            return false;
         }
-        return filledElements;
     }
 }
