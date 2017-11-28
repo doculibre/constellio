@@ -64,7 +64,12 @@ public class BatchProcessTestFeature {
 		}
 
 		if (!acceptErrors) {
-			assertThat(errorsCount).isZero();
+
+			if (errorsCount != 0) {
+				ConstellioTest.getInstance().setFailMessage("Some batch processes have errors");
+			}
+
+			//assertThat(errorsCount).isZero();
 			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
 				//				assertThat(batchProcess.getErrors()).isZero()
 				//						.describedAs("Errors during batch process '" + batchProcess.getId() + "'");
