@@ -1112,6 +1112,52 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		assertThat(hasRecord(record3.getId())).isFalse();
 	}
 
+	@Test
+	public void whenAddingLaterThenAddedOnNextUpdateRequiringLockTransation()
+			throws Exception {
+		RecordDTO banana = new RecordDTO("banana", -1, null, asStringObjectMap("field_t_fr", "banana"));
+		RecordDTO apple = new RecordDTO("apple", -1, null, asStringObjectMap("field_t_fr", "apple"));
+		RecordDTO melon = new RecordDTO("melon", -1, null, asStringObjectMap("field_t_fr", "melon"));
+		RecordDTO orange = new RecordDTO("orange", -1, null, asStringObjectMap("field_t_fr", "orange"));
+		RecordDTO kiwi = new RecordDTO("kiwi", -1, null, asStringObjectMap("field_t_fr", "kiwi"));
+		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(banana, apple)));
+		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(melon)));
+
+		recordDao.getBigVaultServer().getNestedSolrServer().commit(true, true, true);
+
+		assertThat(hasRecord("banana")).isFalse();
+		assertThat(hasRecord("apple")).isFalse();
+		assertThat(hasRecord("melon")).isFalse();
+		assertThat(hasRecord("orange")).isFalse();
+		assertThat(hasRecord("kiwi")).isFalse();
+
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withNewRecords(asList(orange)));
+
+		assertThat(hasRecord("banana")).isFalse();
+		assertThat(hasRecord("apple")).isFalse();
+		assertThat(hasRecord("melon")).isFalse();
+		assertThat(hasRecord("orange")).isTrue();
+		assertThat(hasRecord("kiwi")).isFalse();
+
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(
+				new RecordDeltaDTO(recordDao.get("orange"), asStringObjectMap("field_t_fr", "orangina")))));
+
+		assertThat(hasRecord("banana")).isFalse();
+		assertThat(hasRecord("apple")).isFalse();
+		assertThat(hasRecord("melon")).isFalse();
+		assertThat(hasRecord("orange")).isTrue();
+		assertThat(hasRecord("kiwi")).isFalse();
+
+		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withNewRecords(asList(kiwi)).withModifiedRecords(asList(
+				new RecordDeltaDTO(recordDao.get("orange"), asStringObjectMap("field_t_fr", "good old orange")))));
+
+		assertThat(hasRecord("banana")).isTrue();
+		assertThat(hasRecord("apple")).isTrue();
+		assertThat(hasRecord("melon")).isTrue();
+		assertThat(hasRecord("orange")).isTrue();
+		assertThat(hasRecord("kiwi")).isTrue();
+	}
+
 	private String getFieldValue(String id, String field) {
 		try {
 			return (String) recordDao.get(id).getFields().get(field);

@@ -403,7 +403,7 @@ public class BigVaultServer implements Cloneable {
 			}
 		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+		if (transaction.isRequiringLock()) {
 			String transactionId = UUIDV1Generator.newRandomId();
 			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
 			transaction.setTransactionId(transactionId);
@@ -486,7 +486,7 @@ public class BigVaultServer implements Cloneable {
 
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
-		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
+		if (transaction.isRequiringLock()) {
 			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
 			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments());
 			req.add(docsWithoutVersions);
@@ -500,8 +500,8 @@ public class BigVaultServer implements Cloneable {
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
 
-		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0
-				&& !postponedTransactions.isEmpty()) {
+		//Only added when a lock is required, because optimistic locking is handled before execution
+		if (transaction.isRequiringLock() && !postponedTransactions.isEmpty()) {
 			synchronized (postponedTransactions) {
 
 				for (BigVaultServerTransaction postponedTransaction : postponedTransactions) {
