@@ -66,6 +66,7 @@ public class BigVaultServer implements Cloneable {
 
 	private final AtomicFileSystem fileSystem;
 	private final List<BigVaultServerListener> listeners;
+	private final List<BigVaultServerTransaction> postponedTransactions = new ArrayList<>();
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
 			, DataLayerSystemExtensions extensions) {
@@ -348,12 +349,41 @@ public class BigVaultServer implements Cloneable {
 	TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
+		if (transaction.getRecordsFlushing() == RecordsFlushing.ADD_LATER()) {
+			synchronized (postponedTransactions) {
+				postponedTransactions.add(transaction);
+			}
+			return null;
+		}
+
 		TransactionResponseDTO response = add(transaction);
 		if (transaction.getRecordsFlushing() == RecordsFlushing.NOW) {
 			softCommit();
 		}
 		bigVaultLogger.log(transaction.getNewDocuments(), transaction.getUpdatedDocuments());
 		return response;
+	}
+
+	public void flush()
+			throws IOException, SolrServerException {
+		if (!postponedTransactions.isEmpty()) {
+
+			BigVaultUpdateRequest req = new BigVaultUpdateRequest();
+			req.setCommitWithin(-1);
+
+			synchronized (postponedTransactions) {
+
+				for (BigVaultServerTransaction postponedTransaction : postponedTransactions) {
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getNewDocuments()));
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getUpdatedDocuments()));
+				}
+				postponedTransactions.clear();
+			}
+
+			req.process(server);
+
+		}
+		softCommit();
 	}
 
 	public void softCommit()
@@ -363,8 +393,6 @@ public class BigVaultServer implements Cloneable {
 		long end = new Date().getTime();
 		extensions.afterCommmit(null, end - start);
 	}
-
-	private static int skipped = 0;
 
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
@@ -379,10 +407,6 @@ public class BigVaultServer implements Cloneable {
 			String transactionId = UUIDV1Generator.newRandomId();
 			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
 			transaction.setTransactionId(transactionId);
-		} else {
-			if (transaction.getUpdatedDocuments().size() == 1) {
-				System.out.println("Optimistic locking skipped : " + ++skipped);
-			}
 		}
 		TransactionResponseDTO response = processChanges(transaction);
 		for (BigVaultServerListener listener : this.listeners) {
@@ -442,15 +466,9 @@ public class BigVaultServer implements Cloneable {
 		return optimisticLockingValidationDocuments;
 	}
 
-	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments,
-			List<String> deletedById) {
+	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments) {
 		List<SolrInputDocument> withoutVersions = new ArrayList<>();
 		for (SolrInputDocument document : updatedDocuments) {
-
-			if (document.getFieldValue("type_s") == null) {
-				String lockId = "lock__" + document.getFieldValue("id");
-				deletedById.add(lockId);
-			}
 
 			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
 			solrInputDocument.putAll(document);
@@ -470,9 +488,9 @@ public class BigVaultServer implements Cloneable {
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
 		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0) {
 			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments(),
-					new ArrayList<String>());
+			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments());
 			req.add(docsWithoutVersions);
+
 		} else {
 			req.add(transaction.getUpdatedDocuments());
 		}
@@ -481,6 +499,19 @@ public class BigVaultServer implements Cloneable {
 		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
+
+		if (transaction.addUpdateSize() > 1 && transaction.getUpdatedDocuments().size() > 0
+				&& !postponedTransactions.isEmpty()) {
+			synchronized (postponedTransactions) {
+
+				for (BigVaultServerTransaction postponedTransaction : postponedTransactions) {
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getNewDocuments()));
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getUpdatedDocuments()));
+				}
+				postponedTransactions.clear();
+			}
+		}
+
 		UpdateResponse updateResponse = req.process(server);
 
 		return SolrUtils.createTransactionResponseDTO(updateResponse);
