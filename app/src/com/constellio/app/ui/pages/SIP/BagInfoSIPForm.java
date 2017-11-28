@@ -1,11 +1,16 @@
 package com.constellio.app.ui.pages.SIP;
 
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.ui.entities.BagInfoVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.BagInfoToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -13,19 +18,25 @@ import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import org.apache.calcite.rel.metadata.MetadataFactory;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.app.ui.framework.components.RecordForm.STYLE_FIELD;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class BagInfoSIPForm extends BaseViewImpl {
     private BagInfoSIPPresenter presenter;
 
-    @PropertyId("deleteFile")
+    private BagInfoRecordForm recordForm;
+
+
     private CheckBox deleteCheckBox;
 
-    @PropertyId("limitSize")
     private CheckBox limitSizeCheckbox;
 
     @PropertyId("note")
@@ -83,6 +94,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         List<BagInfoVO> bagInfoVOList = presenter.getAllBagInfo();
+        VerticalLayout layout = new VerticalLayout();
         ComboBox cb = new ComboBox($("SIPButton.predefinedBagInfo"));
         for (BagInfoVO bagInfoVO : bagInfoVOList) {
             cb.addItem(bagInfoVO);
@@ -101,116 +113,113 @@ public class BagInfoSIPForm extends BaseViewImpl {
         }
 
         limitSizeCheckbox = new CheckBox($("SIPButton.limitSize"));
-        limitSizeCheckbox.setId("limitSize");
 
         deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
-        deleteCheckBox.setId("deleteFile");
 
-        archiveTitleTextField = new TextField($("BagInfoForm.archiveTitle"));
-        archiveTitleTextField.setId("archiveTitle");
-        archiveTitleTextField.setNullRepresentation("");
-
-        identificationOrganismeTextField = new TextField($("BagInfoForm.identificationOrganisme"));
-        identificationOrganismeTextField.setId("identificationOrganismeVerseurOuDonateur");
-        identificationOrganismeTextField.setNullRepresentation("");
-
-        IDOrganismeTextField = new TextField($("BagInfoForm.IDOrganisme"));
-        IDOrganismeTextField.setId("IDOrganismeVerseurOuDonateur");
-        IDOrganismeTextField.setNullRepresentation("");
-
-        adresseTextField = new TextField($("BagInfoForm.address"));
-        adresseTextField.setId("address");
-        adresseTextField.setNullRepresentation("");
-
-        regionAdministrativeTextField = new TextField($("BagInfoForm.regionAdministrative"));
-        regionAdministrativeTextField.setId("regionAdministrative");
-        regionAdministrativeTextField.setNullRepresentation("");
-
-        entiteResponsableTextField = new TextField($("BagInfoForm.entiteResponsable"));
-        entiteResponsableTextField.setId("entiteResponsable");
-        entiteResponsableTextField.setNullRepresentation("");
-
-        identificationEntiteResponsableTextField = new TextField($("BagInfoForm.identificationEntiteResponsable"));
-        identificationEntiteResponsableTextField.setId("identificationEntiteResponsable");
-        identificationEntiteResponsableTextField.setNullRepresentation("");
-
-        courrielResponsableTextField = new TextField($("BagInfoForm.courrielResponsable"));
-        courrielResponsableTextField.setId("courrielResponsable");
-        courrielResponsableTextField.setNullRepresentation("");
-
-        telephoneResponsableTextField = new TextField($("BagInfoForm.telephoneResponsable"));
-        telephoneResponsableTextField.setId("telephoneResponsable");
-        telephoneResponsableTextField.setNullRepresentation("");
-
-        categoryDocumentTextField = new TextField($("BagInfoForm.categoryDocument"));
-        categoryDocumentTextField.setId("categoryDocument");
-        categoryDocumentTextField.setNullRepresentation("");
-
-        methodeTransfereTextField = new TextField($("BagInfoForm.methodeTransfere"));
-        methodeTransfereTextField.setId("methodeTransfere");
-        methodeTransfereTextField.setNullRepresentation("");
-
-        restrictionAccessibiliteTextField = new TextField($("BagInfoForm.restrictionAccessibilite"));
-        restrictionAccessibiliteTextField.setId("restrictionAccessibilite");
-        restrictionAccessibiliteTextField.setNullRepresentation("");
-
-        noteTextArea = new TextArea($("BagInfoForm.note"));
-        noteTextArea.setId("note");
-        noteTextArea.setNullRepresentation("");
-
-        descriptionSommaire = new TextArea($("BagInfoForm.descriptionSommaire"));
-        descriptionSommaire.setId("descriptionSommaire");
-        descriptionSommaire.setNullRepresentation("");
-
-        return new BaseForm<BagInfoVO>(presenter.newRecord(), this,
-                limitSizeCheckbox,
-                deleteCheckBox,
-                cb,
-                archiveTitleTextField,
-                identificationOrganismeTextField,
-                IDOrganismeTextField,
-                adresseTextField,
-                regionAdministrativeTextField,
-                entiteResponsableTextField,
-                identificationEntiteResponsableTextField,
-                courrielResponsableTextField,
-                telephoneResponsableTextField,
-                categoryDocumentTextField,
-                methodeTransfereTextField,
-                restrictionAccessibiliteTextField,
-                noteTextArea,
-                descriptionSommaire) {
+        MetadataFieldFactory factory = new MetadataFieldFactory(){
             @Override
-            protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
-                BagInfoSIPForm.this.saveButtonClick(viewObject);
-            }
-
-            @Override
-            protected void cancelButtonClick(BagInfoVO viewObject) {
-                navigateTo().previousView();
+            public Field<?> build(MetadataVO metadata) {
+                if(metadata.getLocalCode().equals("title")) {
+                    return null;
+                }
+                return super.build(metadata);
             }
         };
 
+        recordForm =  new BagInfoRecordForm(presenter.newRecord(), factory) {
+
+            @Override
+            protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
+                BagInfoSIPForm.this.saveButtonClick((BagInfoVO) viewObject);
+            }
+
+            @Override
+            protected void cancelButtonClick(RecordVO viewObject) {
+                navigateTo().previousView();
+            }
+        };
+        deleteCheckBox.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                ((BagInfoVO)recordForm.getViewObject()).setDeleteFile((boolean) event.getProperty().getValue());
+            }
+        });
+
+        limitSizeCheckbox.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                ((BagInfoVO)recordForm.getViewObject()).setLimitSize((boolean) event.getProperty().getValue());
+            }
+        });
+
+        limitSizeCheckbox.addStyleName(STYLE_FIELD);
+        deleteCheckBox.addStyleName(STYLE_FIELD);
+        cb.setWidth("100%");
+        layout.addComponents(limitSizeCheckbox, deleteCheckBox, cb, new Hr(), recordForm);
+        return layout;
     }
 
     private void updateValue(BagInfoVO viewObject) {
-        identificationOrganismeTextField.setValue(viewObject.getIDOrganismeVerseurOuDonateur());
-        IDOrganismeTextField.setValue(viewObject.getIdentificationOrganismeVerseurOuDonateur());
-        adresseTextField.setValue(viewObject.getAddress());
-        archiveTitleTextField.setValue(viewObject.getArchiveTitle());
-        regionAdministrativeTextField.setValue(viewObject.getRegionAdministrative());
-        entiteResponsableTextField.setValue(viewObject.getEntiteResponsable());
-        identificationEntiteResponsableTextField.setValue(viewObject.getIdentificationEntiteResponsable());
-        courrielResponsableTextField.setValue(viewObject.getCourrielResponsable());
-        telephoneResponsableTextField.setValue(viewObject.getTelephoneResponsable());
-        categoryDocumentTextField.setValue(viewObject.getCategoryDocument());
-        methodeTransfereTextField.setValue(viewObject.getMethodeTransfere());
-        restrictionAccessibiliteTextField.setValue(viewObject.getRestrictionAccessibilite());
-        noteTextArea.setValue(viewObject.getNote());
-        descriptionSommaire.setValue(viewObject.getDescriptionSommaire());
+        if(viewObject.getId().isEmpty()) {
+            for(Field field : recordForm.getFields()) {
+                field.setValue("");
+            }
+        } else {
+            for(MetadataVO metadataVO : viewObject.getFormMetadatas()) {
+                Field field = recordForm.getField(metadataVO.getCode());
+                if(field != null) {
+                    field.setValue(viewObject.<String>get(metadataVO));
+                }
+            }
+        }
+
     }
 
     protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
 
+    }
+
+    static class BagInfoRecordForm extends RecordForm{
+        public BagInfoRecordForm(BagInfoVO viewObject, MetadataFieldFactory metadataFactory, FieldAndPropertyId... fields) {
+            super(viewObject, metadataFactory);
+        }
+
+        @Override
+        protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
+
+        }
+
+        @Override
+        protected void cancelButtonClick(RecordVO viewObject) {
+
+        }
+
+        private static List<FieldAndPropertyId> buildFields(BagInfoVO recordVO, RecordFieldFactory formFieldFactory, FieldAndPropertyId... fields) {
+            List<FieldAndPropertyId> fieldsAndPropertyIds = buildInitialFields(fields);
+            for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
+                Field<?> field = formFieldFactory.build(recordVO, metadataVO);
+                if (field != null) {
+                    field.addStyleName(STYLE_FIELD);
+                    field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
+                    fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
+                }
+            }
+            return fieldsAndPropertyIds;
+        }
+
+        @Override
+        protected String getTabCaption(Field<?> field, Object propertyId) {
+            return null;
+        }
+
+        private static List<FieldAndPropertyId> buildInitialFields(FieldAndPropertyId... fields) {
+            return new ArrayList<>(asList(fields));
+        }
+    }
+
+    private class Hr extends Label {
+        Hr() {
+            super("<hr/>", Label.CONTENT_XHTML);
+        }
     }
 }

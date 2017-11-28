@@ -2,8 +2,10 @@ package com.constellio.app.ui.pages.SIP;
 
 import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.ui.entities.BagInfoVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.BagInfoToVOBuilder;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.Record;
@@ -16,6 +18,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
 
@@ -23,12 +26,14 @@ public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
     SchemaPresenterUtils presenterUtils;
     BagInfoToVOBuilder builder;
     private List<BagInfoVO> bagInfoVOS;
+    private MetadataToVOBuilder metadataBuilder;
 
     public BagInfoSIPPresenter(BagInfoSIPForm view) {
         super(view);
         searchServices = searchServices();
         builder = new BagInfoToVOBuilder();
         presenterUtils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+        metadataBuilder = new MetadataToVOBuilder();
     }
 
     protected List<BagInfoVO> getAllBagInfo() {
@@ -46,6 +51,10 @@ public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
     }
     protected BagInfoVO newRecord() {
         return builder.build(presenterUtils.newRecord(), RecordVO.VIEW_MODE.FORM, view.getSessionContext());
+    }
+
+    private MetadataVO getMetadataVoFromCode(String code) {
+        return presenterService().getMetadataVO(code, view.getSessionContext());
     }
 
     @Override

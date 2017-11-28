@@ -91,7 +91,7 @@ public class SIPButtonPresenter {
             AsyncTaskBatchProcess asyncTaskBatchProcess = this.button.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, this.button.getView().getCollection(), "SIPArchives"));
             this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
             this.button.closeAllWindows();
-            this.button.navigate().to().listTemporaryRecord();
+            this.button.navigate().to().batchProcesses();
         } else {
             this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }
