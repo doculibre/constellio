@@ -1,14 +1,12 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.getLanguage;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -29,10 +27,13 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -47,7 +48,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
 public class BorrowingServices {
@@ -275,7 +276,8 @@ public class BorrowingServices {
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
 				borrowerEntered.getId());
-		recordServices.update(containerRecord.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+		recordServices
+				.update(containerRecord.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
@@ -484,11 +486,20 @@ public class BorrowingServices {
 	}
 
 	private boolean isInDecommissioningList(Folder folder) {
-		boolean isInDecommissioningList =
-				searchServices.getResultsCount(LogicalSearchQueryOperators.from(rm.decommissioningList.schemaType())
-						.where(rm.decommissioningList.folders()).isEqualTo(folder.getId())
-						.andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
-		return isInDecommissioningList;
+		List<DecommissioningList> allDecommissioningLists = rm.wrapDecommissioningLists(searchServices.cachedSearch(
+				new LogicalSearchQuery(from(rm.decommissioningList.schemaType()).returnAll())));
+
+		for (DecommissioningList decommissioningList : allDecommissioningLists) {
+			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() != null) {
+				return true;
+			}
+		}
+
+		//		boolean isInDecommissioningList =
+		//				searchServices.getResultsCount(from(rm.decommissioningList.schemaType())
+		//						.where(rm.decommissioningList.folders()).isEqualTo(folder.getId())
+		//						.andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
+		return false;
 	}
 
 	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,
@@ -540,9 +551,11 @@ public class BorrowingServices {
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
-			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getLabels();
-			for(Map.Entry<Language, String> label:labels.entrySet()) {
-				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue().toLowerCase());
+			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)
+					.getLabels();
+			for (Map.Entry<Language, String> label : labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue()
+						.toLowerCase());
 			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);

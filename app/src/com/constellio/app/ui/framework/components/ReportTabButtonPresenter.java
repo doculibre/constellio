@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -169,7 +170,7 @@ class ReportTabButtonPresenter  {
         RecordToVOBuilder builder = new RecordToVOBuilder();
         SearchServices searchServices = view.getFactory().getModelLayerFactory().newSearchServices();
         MetadataSchemaType printableSchemaType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager()
-                .getSchemaTypes(view.getCollection()).getSchemaType(PrintableReport.SCHEMA_TYPE);
+                .getSchemaTypes(view.getCollection()).getSchemaType(Printable.SCHEMA_TYPE);
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view.getFactory());
         List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(
         		LogicalSearchQueryOperators.from(printableSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));

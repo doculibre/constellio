@@ -235,6 +235,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Report(create(reportSchema()), getTypes());
 	}
 
+	public MetadataSchemaType reportSchemaType() {
+		return getTypes().getSchemaType(Report.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema reportSchema() {
 		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
 	}

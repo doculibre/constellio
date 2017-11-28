@@ -527,6 +527,7 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
+							transaction.setRecordFlushing(RecordsFlushing.LATER());
 							recordServices.execute(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);

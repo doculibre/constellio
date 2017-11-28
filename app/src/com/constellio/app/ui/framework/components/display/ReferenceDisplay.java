@@ -2,9 +2,6 @@ package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
 
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.schemas.Schemas;
-import com.vaadin.ui.Notification;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
 
@@ -19,11 +16,13 @@ import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuH
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.RecordVOToCaptionConverter;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -32,8 +31,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReferenceDisplay extends Button {
 
@@ -141,7 +138,8 @@ public class ReferenceDisplay extends Button {
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
-			isRecordInTrash = Boolean.TRUE.equals(recordServices.getDocumentById(recordVO.getId()).get(Schemas.LOGICALLY_DELETED_STATUS));
+			//isRecordInTrash = Boolean.TRUE.equals(recordServices.getDocumentById(recordVO.getId()).get(Schemas.LOGICALLY_DELETED_STATUS));
+			isRecordInTrash = Boolean.TRUE.equals(recordVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()));
 		} else if (recordId != null) {
 			try {
 				Record record = recordServices.getDocumentById(recordId);
