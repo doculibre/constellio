@@ -30,6 +30,5 @@ public class SIPProgressionViewPresenter extends BasePresenter<SIPProgressionVie
 
     protected void setTask(String id) {
         progressInfo = ((SIPBuildAsyncTask) getTask(id).getTask()).getProgressInfo();
-        view.setProgressInfo(getProgressInfo());
     }
 }

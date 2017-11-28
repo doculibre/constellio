@@ -67,6 +67,9 @@ public class BagInfoSIPForm extends BaseViewImpl {
     @PropertyId("restrictionAccessibilite")
     private TextField restrictionAccessibiliteTextField;
 
+    @PropertyId("archiveTitle")
+    private TextField archiveTitleTextField;
+
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
         presenter = new BagInfoSIPPresenter(this);
@@ -102,6 +105,10 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
         deleteCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
         deleteCheckBox.setId("deleteFile");
+
+        archiveTitleTextField = new TextField($("BagInfoForm.archiveTitle"));
+        archiveTitleTextField.setId("archiveTitle");
+        archiveTitleTextField.setNullRepresentation("");
 
         identificationOrganismeTextField = new TextField($("BagInfoForm.identificationOrganisme"));
         identificationOrganismeTextField.setId("identificationOrganismeVerseurOuDonateur");
@@ -159,6 +166,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
                 limitSizeCheckbox,
                 deleteCheckBox,
                 cb,
+                archiveTitleTextField,
                 identificationOrganismeTextField,
                 IDOrganismeTextField,
                 adresseTextField,
@@ -189,6 +197,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
         identificationOrganismeTextField.setValue(viewObject.getIDOrganismeVerseurOuDonateur());
         IDOrganismeTextField.setValue(viewObject.getIdentificationOrganismeVerseurOuDonateur());
         adresseTextField.setValue(viewObject.getAddress());
+        archiveTitleTextField.setValue(viewObject.getArchiveTitle());
         regionAdministrativeTextField.setValue(viewObject.getRegionAdministrative());
         entiteResponsableTextField.setValue(viewObject.getEntiteResponsable());
         identificationEntiteResponsableTextField.setValue(viewObject.getIdentificationEntiteResponsable());

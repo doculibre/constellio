@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -78,7 +79,7 @@ public class SIPButtonPresenter {
 
     protected void saveButtonClick(BagInfoVO viewObject) {
         if (validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
-            String nomSipDossier = "sip-" + new LocalDateTime().toString("Y-M-d") + ".zip";
+            String nomSipDossier = viewObject.getArchiveTitle() + ".zip";
             List<String> packageInfoLines = new ArrayList<>();
             for(MetadataVO metadatavo : viewObject.getFormMetadatas()) {
                 Object value = viewObject.get(metadatavo);
@@ -90,7 +91,7 @@ public class SIPButtonPresenter {
             AsyncTaskBatchProcess asyncTaskBatchProcess = this.button.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, this.button.getView().getCollection(), "SIPArchives"));
             this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
             this.button.closeAllWindows();
-            this.button.navigate().to().displaySIPProgression(asyncTaskBatchProcess.getId());
+            this.button.navigate().to().listTemporaryRecord();
         } else {
             this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }

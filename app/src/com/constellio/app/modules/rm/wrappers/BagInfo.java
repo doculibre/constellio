@@ -15,6 +15,8 @@ public class BagInfo extends RecordWrapper {
 
     public final static String ADRESSE = "address";
 
+    public final static String ARCHIVE_TITLE = "archiveTitle";
+
     public final static String REGION_ADMINISTRATIVE = "regionAdministrative";
 
     public final static String ENTITE_RESPONSABLE = "entiteResponsable";

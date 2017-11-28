@@ -36,6 +36,7 @@ public class RMMigrationTo7_6_6 extends MigrationHelper implements MigrationScri
             MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
             MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
 
+            defaultBagInfoSchema.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);
             defaultBagInfoSchema.create(BagInfo.NOTE).setType(MetadataValueType.TEXT);
             defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
             defaultBagInfoSchema.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);

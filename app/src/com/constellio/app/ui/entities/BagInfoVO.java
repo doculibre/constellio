@@ -102,6 +102,14 @@ public class BagInfoVO extends RecordVO {
         set(NUMERO_TELEPHONE_RESPONSABLE, telephoneResponsable);
     }
 
+    public String getArchiveTitle() {
+        return get(ARCHIVE_TITLE);
+    }
+
+    public void setArchiveTitle(String title) {
+        set(ARCHIVE_TITLE, title);
+    }
+
     public String getDescriptionSommaire() {
         return get(DESCRIPTION_SOMMAIRE);
     }
