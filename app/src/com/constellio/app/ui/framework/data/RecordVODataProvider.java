@@ -18,14 +18,12 @@ import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider extends AbstractDataProvider {
@@ -96,8 +94,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	public RecordVO getRecordVO(int index) {
 		Record record = cache.get(index);
 		if (record == null) {
-			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-			List<Record> recordList = searchServices.search(query, batchSize);
+			List<Record> recordList = doSearch();
 			if (!recordList.isEmpty()) {
 				record = recordList.get(index);
 				cache.put(index, record);
@@ -109,17 +106,28 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public int size() {
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 		if (size == null) {
-			size = searchServices.search(query, batchSize).size();
+			size = doSearch().size();
 		}
 		return size;
+	}
+	
+	private List<Record> doSearch() {
+		List<Record> recordList;
+		if (isSearchCache()) {
+			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			recordList = searchServices.cachedSearch(query);
+		} else {
+			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
+			recordList = searchServices.search(query, batchSize);
+		}
+		return recordList;
 	}
 
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
-		List<Record> recordList = searchServices.search(query, batchSize);
+		List<Record> recordList = doSearch();
 		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
@@ -158,9 +166,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public int getQTime() {
-
 		int qtime = queryCache.getTotalQTime();
 		queryCache.resetTotalQTime();
 		return qtime;
 	}
+	
+	protected boolean isSearchCache() {
+		return false;
+	}
+	
 }
