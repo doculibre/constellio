@@ -141,9 +141,6 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
                         //Create the metadata tags.
                         List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
                         //add them to the childrens.
-//                        if(this.xmlGeneratorParameters.isForTest()) {
-//                            metadataTags = fillEmptyTags(metadataTags);
-//                        }
                         XMLMetadatasOfSingularElement.addContent(metadataTags);
                     }
 
@@ -154,7 +151,6 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
         }catch (Exception e) {
             //error in validation
-            e.printStackTrace();
         }
        return "";
     }
@@ -228,36 +224,51 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
+        StringBuilder codeBuilder = new StringBuilder();
+        StringBuilder titleBuilder = new StringBuilder();
+        StringBuilder codeParentBuilder = new StringBuilder();
+        StringBuilder titleParentBuilder = new StringBuilder();
         for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-            List<Element> elementToAdd = new ArrayList<>(asList(
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(recordReferenced.<String>get(Schemas.CODE)),
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(recordReferenced.<String>get(Schemas.TITLE))
-            ));
-            if(!metadata.getCode().contains("_default_")) {
-                elementToAdd.addAll(asList(
-                        new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + "_code").setText(recordReferenced.<String>get(Schemas.CODE)),
-                        new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + "_title").setText(recordReferenced.<String>get(Schemas.TITLE))
-                ));
+            if(titleBuilder.length() > 0) {
+                titleBuilder.append(", ");
             }
-            listOfMetadataTags.addAll(elementToAdd);
+            titleBuilder.append(recordReferenced.get(Schemas.TITLE));
+
+            if(codeBuilder.length() > 0) {
+                codeBuilder.append(", ");
+            }
+            codeBuilder.append(recordReferenced.get(Schemas.CODE));
+
             if(AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
                 Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
                 String parentMetadataId = recordReferenced.get(parentMetadata);
                 if(parentMetadataId != null) {
                     Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                    List<Element> elementToAddParebt = new ArrayList<>(asList(
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
-                            new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
-                    ));
-                    if(!metadata.getCode().contains("_default_")) {
-                        elementToAdd.addAll(asList(
-                                new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + PARENT_SUFFIX + "_code").setText(parentRecord.<String>get(Schemas.CODE)),
-                                new Element(REFERENCE_PREFIX + getTypeSingular() + "_" + metadata.getLocalCode() + PARENT_SUFFIX + "_title").setText(parentRecord.<String>get(Schemas.TITLE))
-                        ));
+                    if(titleParentBuilder.length() > 0) {
+                        titleParentBuilder.append(", ");
                     }
-                    listOfMetadataTags.addAll(elementToAddParebt);
+                    titleParentBuilder.append(parentRecord.get(Schemas.TITLE));
+
+                    if(codeParentBuilder.length() > 0) {
+                        codeParentBuilder.append(", ");
+                    }
+                    codeParentBuilder.append(parentRecord.get(Schemas.CODE));
                 }
             }
+        }
+
+
+        listOfMetadataTags.addAll(asList(
+                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(codeBuilder.toString()),
+                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(titleBuilder.toString())
+        ));
+
+        if(codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
+            listOfMetadataTags.addAll(asList(
+                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(codeParentBuilder.toString()),
+                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(titleParentBuilder.toString())
+                    )
+            );
         }
         return listOfMetadataTags;
     }

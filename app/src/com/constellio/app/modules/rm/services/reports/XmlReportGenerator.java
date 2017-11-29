@@ -100,6 +100,17 @@ public class XmlReportGenerator extends XmlGenerator{
         metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
         String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+        if(metadata.isMultivalue()) {
+            StringBuilder valueBuilder = new StringBuilder();
+            List<Object> objects = recordElement.getList(metadata);
+            for(Object ob : objects) {
+                if(valueBuilder.length() > 0) {
+                    valueBuilder.append(", ");
+                }
+                valueBuilder.append(ob.toString());
+            }
+            data = valueBuilder.toString();
+        }
         if(metadata.getLocalCode().toLowerCase().contains("path")) {
             data = this.getPath(recordElement);
         }
@@ -112,6 +123,17 @@ public class XmlReportGenerator extends XmlGenerator{
         MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
         LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
+    }
+
+    private List<Element> fillEmptyTags(List<Element> originalElements) {
+        List<Element> filledElements = new ArrayList<>();
+        for (Element element : originalElements) {
+            if(element.getText().isEmpty()) {
+                element.setText("This will not appear on the final report");
+            }
+            filledElements.add(element);
+        }
+        return filledElements;
     }
 
     public String getPath(Record recordElement){
