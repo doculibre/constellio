@@ -490,7 +490,7 @@ public class BorrowingServices {
 				new LogicalSearchQuery(from(rm.decommissioningList.schemaType()).returnAll())));
 
 		for (DecommissioningList decommissioningList : allDecommissioningLists) {
-			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() != null) {
+			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() == null) {
 				return true;
 			}
 		}
