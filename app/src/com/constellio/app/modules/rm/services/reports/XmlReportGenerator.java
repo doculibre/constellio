@@ -104,10 +104,12 @@ public class XmlReportGenerator extends XmlGenerator{
             StringBuilder valueBuilder = new StringBuilder();
             List<Object> objects = recordElement.getList(metadata);
             for(Object ob : objects) {
-                if(valueBuilder.length() > 0) {
-                    valueBuilder.append(", ");
+                if(ob != null) {
+                    if(valueBuilder.length() > 0) {
+                        valueBuilder.append(", ");
+                    }
+                    valueBuilder.append(ob.toString());
                 }
-                valueBuilder.append(ob.toString());
             }
             data = valueBuilder.toString();
         }
@@ -134,43 +136,5 @@ public class XmlReportGenerator extends XmlGenerator{
             filledElements.add(element);
         }
         return filledElements;
-    }
-
-    public String getPath(Record recordElement){
-        StringBuilder builder = new StringBuilder();
-        String parentId = recordElement.getParentId();
-        if(parentId == null) {
-            if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-                parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();
-            } else if(recordElement.getTypeCode().equals(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)) {
-                parentId = getRMSchemasRecordsServices().wrapDocument(recordElement).getFolder();
-            }
-        }
-        if(parentId != null ) {
-            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
-        }
-        builder.append(recordElement.getTitle());
-        return builder.toString();
-    }
-
-    private String getParentPath(Record recordElement) {
-        StringBuilder builder = new StringBuilder();
-        String parentId = null;
-        if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-            Folder folder = getRMSchemasRecordsServices().wrapFolder(recordElement);
-            parentId = folder.getParentFolder();
-            if(parentId == null) {
-                parentId = folder.getCategory();
-            }
-        } else if(recordElement.getTypeCode().equals(Category.SCHEMA_TYPE)) {
-            Category category = getRMSchemasRecordsServices().wrapCategory(recordElement);
-            parentId = category.getParent();
-        }
-        if(parentId != null) {
-            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
-        }
-        builder.append(recordElement.getTitle());
-        builder.append(" > ");
-        return builder.toString();
     }
 }

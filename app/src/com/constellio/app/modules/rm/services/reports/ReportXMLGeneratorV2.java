@@ -216,7 +216,22 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
         }
 
         Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-        metadataXmlElement.setText(formatData(getToStringOrNull(recordElement.get(metadata)), metadata));
+        String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+        if(metadata.isMultivalue()) {
+            StringBuilder valueBuilder = new StringBuilder();
+            List<Object> objects = recordElement.getList(metadata);
+            for(Object ob : objects) {
+                if(valueBuilder.length() > 0) {
+                    valueBuilder.append(", ");
+                }
+                valueBuilder.append(ob.toString());
+            }
+            data = valueBuilder.toString();
+        }
+        if(metadata.getLocalCode().toLowerCase().contains("path")) {
+            data = this.getPath(recordElement);
+        }
+        metadataXmlElement.setText(data);
         return Collections.singletonList(metadataXmlElement);
     }
 
