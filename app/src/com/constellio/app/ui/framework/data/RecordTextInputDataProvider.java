@@ -197,7 +197,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
 
-		query.sortAsc(Schemas.CAPTION);
+		query.sortAsc(Schemas.CAPTION).sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 		if (sort != null) {
 			query.sortAsc(sort);
 		}
