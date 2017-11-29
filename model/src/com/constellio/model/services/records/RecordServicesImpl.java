@@ -1221,10 +1221,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 
-		//if (options.isSkipRefresh()) {
-		refreshUsingCache(record);
-		refreshUsingCache(user);
-		//}
+		if (!options.isSkipRefresh()) {
+			refreshUsingCache(record);
+			refreshUsingCache(user);
+		}
 
 		newRecordDeleteServices().logicallyDelete(record, user, options);
 
