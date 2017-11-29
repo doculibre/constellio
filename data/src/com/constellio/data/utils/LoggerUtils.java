@@ -82,7 +82,7 @@ public class LoggerUtils {
 		return log.toString();
 	}
 
-	public static String toParamsString(SolrParams params, String... excludedFields) {
+	public static String toParamsString(SolrParams params, boolean multiline, String... excludedFields) {
 		StringBuilder stringBuilder = new StringBuilder();
 		Iterator<String> itIterator = params.getParameterNamesIterator();
 		boolean first = true;
@@ -101,13 +101,17 @@ public class LoggerUtils {
 
 			if (!excluded) {
 				for (String value : params.getParams(key)) {
-					if (!first) {
+					if (!first && !multiline) {
 						stringBuilder.append("&");
 					}
 					stringBuilder.append(key);
 					stringBuilder.append("=");
 					stringBuilder.append(value);
 					first = false;
+
+					if (multiline) {
+						stringBuilder.append("\n");
+					}
 				}
 			}
 		}

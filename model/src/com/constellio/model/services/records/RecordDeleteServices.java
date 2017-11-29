@@ -228,7 +228,7 @@ public class RecordDeleteServices {
 		};
 
 		if (physicallyDeletable) {
-			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced, true);
 			physicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
 		}
 
@@ -467,7 +467,8 @@ public class RecordDeleteServices {
 					return !getRecordsInHierarchyWithDependency(record).isEmpty();
 				}
 			};
-			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced,
+					false);
 			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
 		}
 

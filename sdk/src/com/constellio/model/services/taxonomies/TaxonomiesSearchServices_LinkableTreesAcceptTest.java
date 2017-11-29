@@ -1485,15 +1485,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(3, 50, 25))
 				.has(secondSolrQueryCounts(2, 50, 0));
 
-		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
-				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
-						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
-						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(25)).has(listSize(20))
-				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(2, 50, 0))
-				.has(secondSolrQueryCounts(2, 50, 0));
-
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
@@ -3541,7 +3532,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call query");
 				firstCallAnswer = call();
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix(null);
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
@@ -3556,7 +3549,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call query");
 				secondCallAnswer = call();
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix(null);
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
