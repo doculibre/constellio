@@ -475,7 +475,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private WindowButton buildAddToCartButton() {
-		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "50%");
+		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
 		return new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
 			@Override
 			protected Component buildWindowContent() {
@@ -509,7 +509,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
@@ -523,7 +522,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
