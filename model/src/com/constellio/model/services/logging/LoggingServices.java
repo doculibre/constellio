@@ -2,13 +2,12 @@ package com.constellio.model.services.logging;
 
 import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
 
-import java.util.List;
-
 import org.joda.time.LocalDateTime;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -192,28 +191,16 @@ public class LoggingServices {
 	}
 
 	private void executeTransaction(Record record) {
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
-		transaction.add(record);
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			//TODO
-			throw new RuntimeException(e.getMessage());
-		}
-	}
-
-	private void executeTransaction(List<Record> records) {
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
-		for (Record record : records) {
+		if (Toggle.AUDIT_EVENTS.isEnabled()) {
+			Transaction transaction = new Transaction();
+			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
 			transaction.add(record);
-		}
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			//TODO
-			throw new RuntimeException(e.getMessage());
+			try {
+				modelLayerFactory.newRecordServices().execute(transaction);
+			} catch (RecordServicesException e) {
+				//TODO
+				throw new RuntimeException(e.getMessage());
+			}
 		}
 	}
 
