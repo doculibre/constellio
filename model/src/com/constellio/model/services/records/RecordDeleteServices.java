@@ -687,7 +687,7 @@ public class RecordDeleteServices {
 				LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
 						.where(ALL_REFERENCES).isEqualTo(aHierarchyRecord.getId());
 
-				if (!taxonomiesManager.isTypeInPrincipalTaxonomy(record.getCollection(), record.getTypeCode())) {
+				if (taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode()) == null) {
 					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(aHierarchyRecord.getId());
 				}
 
