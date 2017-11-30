@@ -125,6 +125,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_2;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
