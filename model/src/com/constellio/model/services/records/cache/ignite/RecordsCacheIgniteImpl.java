@@ -155,14 +155,18 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return cacheConfig.isVolatile();
 	}
 
-	private void putInPermanentCache(RecordHolder recordHolder) {
+	private void putInPermanentCache(RecordHolder recordHolder, Set<ConstellioIgniteCache> caches) {
 		permanentByIdRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
 		permanentRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
+		caches.add(permanentByIdRecordHoldersCache);
+		caches.add(permanentRecordHoldersCache);
 	}
 
-	private void putInVolatileCache(RecordHolder recordHolder) {
+	private void putInVolatileCache(RecordHolder recordHolder, Set<ConstellioIgniteCache> caches) {
 		volatileByIdRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
 		volatileRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
+		caches.add(volatileByIdRecordHoldersCache);
+		caches.add(volatileRecordHoldersCache);
 	}
 
 	private void putQueryResults(String schemaTypeCode, LogicalSearchQuerySignature signature, List<String> results) {
@@ -342,7 +346,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		}
 	}
 
-	private void putInRecordByMetadataCache(Record previousRecord, Record record) {
+	private void putInRecordByMetadataCache(Record previousRecord, Record record, Set<ConstellioIgniteCache> caches) {
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 		List<Metadata> cachedMetadatas = cachedMetadatasBySchemaType.get(schemaTypeCode);
 		if (cachedMetadatas != null) {
@@ -368,6 +372,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 						constellioIgniteCache = permanentRecordByMetadataCache;
 					}
 					constellioIgniteCache.put(recordByMetadata.getKey(), recordByMetadata);
+					caches.add(constellioIgniteCache);
 				}
 			}
 		}
@@ -486,9 +491,27 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
+			beginTransaction();
+			Set<ConstellioIgniteCache> caches = new HashSet<>();
 			for (Record record : records) {
-				insert(record);
+				insert(record, caches);
 			}
+			flush(caches);
+			commit();
+		}
+	}
+	
+	private void beginTransaction() {
+		recordsCacheManager.beginTransaction();
+	}
+	
+	private void commit() {
+		recordsCacheManager.commit();
+	}
+	
+	private void flush(Set<ConstellioIgniteCache> caches) {
+		for (ConstellioIgniteCache cache : caches) {
+			cache.flush();
 		}
 	}
 
@@ -627,6 +650,9 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				Record previousRecord = null;
 
 				synchronized (this) {
+					beginTransaction();
+					Set<ConstellioIgniteCache> caches = new HashSet<>();
+					
 					ConstellioIgniteCache byIdRecordHoldersCache;
 					if (isVolatile(schemaTypeCode)) {
 						byIdRecordHoldersCache = volatileByIdRecordHoldersCache;
@@ -637,20 +663,23 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					if (holder != null) {
 						previousRecord = holder.record;
 
-						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
+						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder, caches);
 						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
 								.getVersion())) {
 							clearQueryResults(schemaTypeCode);
 						}
 					} else {
-						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
+						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig, caches);
 						if (cacheConfig.isPermanent()) {
 							clearQueryResults(schemaTypeCode);
 						}
 					}
-					putInRecordByMetadataCache(previousRecord, recordCopy);
+					putInRecordByMetadataCache(previousRecord, recordCopy, caches);
 					long end = new Date().getTime();
 					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, end - start);
+
+					flush(caches);
+					commit();
 				}
 
 			}
@@ -663,7 +692,15 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord) {
+		beginTransaction();
+		Set<ConstellioIgniteCache> caches = new HashSet<>();
+		CacheInsertionStatus result = insert(insertedRecord, caches);
+		commit();
+		flush(caches);
+		return result;
+	}
 
+	private CacheInsertionStatus insert(Record insertedRecord, Set<ConstellioIgniteCache> caches) {
 		if (insertedRecord == null) {
 			return CacheInsertionStatus.REFUSED_NULL;
 		}
@@ -691,23 +728,24 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					} else {
 						byIdRecordHoldersCache = permanentByIdRecordHoldersCache;
 					}
+					
 					RecordHolder holder = byIdRecordHoldersCache.get(recordCopy.getId());
 					if (holder != null) {
 						previousRecord = holder.record;
 
-						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
+						insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder, caches);
 						if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
 								.getVersion())) {
 							clearQueryResults(schemaTypeCode);
 						}
 					} else {
-						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
+						holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig, caches);
 						if (cacheConfig.isPermanent()) {
 							clearQueryResults(schemaTypeCode);
 						}
 					}
 
-					putInRecordByMetadataCache(previousRecord, recordCopy);
+					putInRecordByMetadataCache(previousRecord, recordCopy, caches);
 					long end = new Date().getTime();
 					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, end - start);
 				}
@@ -719,7 +757,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		}
 	}
 
-	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig) {
+	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig, Set<ConstellioIgniteCache> caches) {
 		RecordHolder holder = new RecordHolder(record);
 		ConstellioIgniteCache byIdRecordHoldersCache;
 		if (cacheConfig.isVolatile()) {
@@ -729,15 +767,15 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		}
 		byIdRecordHoldersCache.put(record.getId(), holder);
 		if (cacheConfig.isVolatile()) {
-			putInVolatileCache(holder);
+			putInVolatileCache(holder, caches);
 		} else {
-			putInPermanentCache(holder);
+			putInPermanentCache(holder, caches);
 		}
 
 		return holder;
 	}
 
-	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder) {
+	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder, Set<ConstellioIgniteCache> caches) {
 		currentHolder.set(record);
 		ConstellioIgniteCache byIdRecordHoldersCache;
 		if (cacheConfig.isVolatile()) {
@@ -746,10 +784,11 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			byIdRecordHoldersCache = permanentByIdRecordHoldersCache;
 		}
 		byIdRecordHoldersCache.put(record.getId(), currentHolder);
+		caches.add(byIdRecordHoldersCache);
 		if (currentHolder.record == null && cacheConfig.isVolatile()) {
-			putInVolatileCache(currentHolder);
+			putInVolatileCache(currentHolder, caches);
 		} else if (cacheConfig.isPermanent()) {
-			putInPermanentCache(currentHolder);
+			putInPermanentCache(currentHolder, caches);
 		}
 	}
 

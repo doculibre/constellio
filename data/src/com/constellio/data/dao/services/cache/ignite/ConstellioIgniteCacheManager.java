@@ -1,6 +1,14 @@
 package com.constellio.data.dao.services.cache.ignite;
 
-import java.util.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
@@ -28,6 +36,8 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
 	private Ignite igniteClient;
 	private boolean initialized = false;
+	
+	private static ThreadLocal<Map<ConstellioIgniteCache, Map<String, Object>>> transaction = new ThreadLocal<>();
 
 	public ConstellioIgniteCacheManager(String cacheUrl, String constellioVersion) {
 		this.cacheUrl = cacheUrl;
@@ -132,8 +142,24 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		cacheConfiguration.setName(name);
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
-			IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
-			cache = new ConstellioIgniteCache(name, igniteCache, igniteClient);
+			final IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
+			cache = new ConstellioIgniteCache(name, igniteCache, igniteClient) {
+				@Override
+				public <T extends Serializable> void put(String key, T value) {
+					Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = transaction.get();
+					if (transactionMap != null) {
+						super.put(key, value, true);
+						Map<String, Object> transactionObjects = transactionMap.get(igniteCache);
+						if (transactionObjects == null) {
+							transactionObjects = new HashMap<>();
+							transactionMap.put(this, transactionObjects);
+						}
+						transactionObjects.put(key, value);
+					} else {
+						super.put(key, value);
+					}
+				}
+			};
 			caches.put(name, cache);
 		}
 		return cache;
@@ -174,6 +200,25 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 						return true;
 					}
 				});
+	}
+	
+	public void beginTransaction() {
+		transaction.set(new HashMap<ConstellioIgniteCache, Map<String,Object>>());
+	}
+	
+	public void commit() {
+		Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = transaction.get();
+		if (transactionMap != null) {
+			for (Iterator<ConstellioIgniteCache> it = transactionMap.keySet().iterator(); it.hasNext();) {
+				ConstellioIgniteCache cache = it.next();
+				Map<String, Object> transactionObjects = transactionMap.get(cache);
+				if (transactionObjects != null) {
+					cache.getIgniteCache().putAll(transactionObjects);
+				}
+				it.remove();
+			}
+		}
+		transaction.set(null);
 	}
 
 }
