@@ -74,14 +74,6 @@ public class XmlReportGenerator extends XmlGenerator{
         return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
     }
 
-
-    private RMSchemasRecordsServices getRMSchemasRecordsServices() {
-        if(rm == null) {
-            rm = new RMSchemasRecordsServices(getCollection(), getFactory())
-        }
-        return rm;
-    }
-
     @Override
     public List<Element> getSpecificDataToAddForCurrentElement(Record recordElement) {
         return new ArrayList<>();
@@ -121,18 +113,6 @@ public class XmlReportGenerator extends XmlGenerator{
         MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
         LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(ids);
         return searchServices.search(new LogicalSearchQuery(condition)).toArray(new Record[0]);
-    }
-
-    private List<Element> fillEmptyTags(List<Element> originalElements) {
-        List<Element> filledElements = new ArrayList<>();
-        String noDataText = $("PrintableReport.noData");
-        for (Element element : originalElements) {
-            if(element.getText().isEmpty()) {
-                element.setText(noDataText);
-            }
-            filledElements.add(element);
-        }
-        return filledElements;
     }
 
     public String getPath(Record recordElement){
