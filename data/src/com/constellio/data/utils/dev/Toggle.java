@@ -43,6 +43,8 @@ public class Toggle {
 
 	public static AvailableToggle AUDIT_EVENTS = newToggle(true);
 
+	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

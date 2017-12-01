@@ -161,7 +161,6 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
 
-
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 										   InstallableSystemModuleWithRecordMigrations {
 	public static final String ID = "rm";
@@ -442,10 +441,12 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(
-					from(rm.authorizationDetails.schemaType()).returnAll()), 10000);
-			while (authsIterator.hasNext()) {
-				authsIterator.next();
+			if (cache.getCacheObjectsCount(rm.authorizationDetails.schemaType().getCode()) == 0) {
+				Iterator<List<Record>> authsIterator = modelLayerFactory.newSearchServices().recordsBatchIterator(10000,
+						new LogicalSearchQuery(from(rm.authorizationDetails.schemaType()).returnAll()));
+				while (authsIterator.hasNext()) {
+					modelLayerFactory.getRecordsCaches().insert(collection, authsIterator.next());
+				}
 			}
 		}
 
