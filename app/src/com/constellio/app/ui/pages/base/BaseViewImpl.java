@@ -416,4 +416,22 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		table.addStyleName(TYPE_TABLE);
 		return table;
 	}
+
+	@Override
+	public void closeAllWindows() {
+		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+			window.close();
+		}
+	}
+
+	public class CustomCssLayout extends CssLayout {
+		@Override
+		public void addComponents(Component... components) {
+			for (Component component : components) {
+				if (component != null) {
+					super.addComponent(component);
+				}
+			}
+		}
+	}
 }

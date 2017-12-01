@@ -3,9 +3,12 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -60,6 +63,7 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
+	
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
@@ -77,6 +81,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton renameContentButton;
 	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
+	private ConfirmDialogButton deleteSelectedVersions;
+	
+	private boolean contentViewerInitiallyVisible;
+	private boolean waitForContentViewerToBecomeVisible;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
@@ -85,14 +93,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
 	private DisplayDocumentPresenter presenter;
+	
+	private boolean popup;
 
 	public DisplayDocumentViewImpl() {
-		presenter = new DisplayDocumentPresenter(this);
+		this(null, false);
+	}
+
+	public DisplayDocumentViewImpl(RecordVO recordVO, boolean popup) {
+		this.popup = popup;
+		presenter = new DisplayDocumentPresenter(this, recordVO, popup);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		}
 	}
 
 	@Override
@@ -117,6 +134,32 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	protected String getTitle() {
 		return null;
 	}
+	
+	private ContentViewer newContentViewer() {
+		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		if (popup) {
+			// FIXME CSS bug when displayed in window, hiding for now.
+			contentViewer.setVisible(false);
+		}
+		return contentViewer;
+	}
+
+	@Override
+	public void refreshContentViewer() {
+		ContentViewer newContentViewer = newContentViewer();
+		if (newContentViewer.isViewerComponentVisible()) {
+			mainLayout.replaceComponent(contentViewer, newContentViewer);
+			contentViewer = newContentViewer;
+			waitForContentViewerToBecomeVisible = false;
+		} else if (contentViewerInitiallyVisible && !newContentViewer.isViewerComponentVisible()) {
+			if (contentViewer.isVisible()) {
+				contentViewer.setVisible(false);
+			}
+			waitForContentViewerToBecomeVisible = true;
+		} else {
+			waitForContentViewerToBecomeVisible = false;
+		}
+	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -127,13 +170,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+		borrowedLabel.addStyleName("borrowed-document-message");
 
-		contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		contentViewer = newContentViewer();
+		contentViewerInitiallyVisible = contentViewer.isViewerComponentVisible();
 
 		tabSheet = new TabSheet();
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
 		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
+			@Override
+			protected boolean isSelectionColumn() {
+				return isDeleteColumn();
+			}
+
 			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
@@ -153,7 +203,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setSizeFull();
 
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
-		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
+		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
 		eventsComponent = new CustomComponent();
@@ -183,6 +233,39 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return mainLayout;
 	}
 
+	private Component buildVersionTab() {
+		final VerticalLayout tabLayout = new VerticalLayout();
+		deleteSelectedVersions = new ConfirmDialogButton($("delete.icon") + " " + $("DisplayDocumentView.deleteSelectedVersionsLabel")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
+				for(ContentVersionVO contentVersionVO: selectedContentVersions) {
+					presenter.deleteContentVersionButtonClicked(contentVersionVO);
+				}
+				versionTable.removeAllSelection();
+			}
+
+			@Override
+			public boolean isVisible() {
+				return presenter.isDeleteContentVersionPossible();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return versionTable.getContentVersions() != null && versionTable.getContentVersions().size() > 1 && !versionTable.getSelectedContentVersions().isEmpty();
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DisplayDocumentView.deleteSelectedVersionsConfirmation");
+			}
+		};
+		deleteDocumentButton.setEnabled(deleteDocumentButton.isEnabled());
+		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
+		tabLayout.addComponents(deleteSelectedVersions, versionTable);
+		return tabLayout;
+	}
+
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
@@ -201,6 +284,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected void onBackgroundViewMonitor() {
 		presenter.backgroundViewMonitor();
+		if (waitForContentViewerToBecomeVisible) {
+			refreshContentViewer();
+		}
 	}
 
 //	@Override
@@ -275,7 +361,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setEvents(RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider, false)) {
 			@Override
 			protected TableColumnsManager newColumnsManager() {
 				return new EventVOTableColumnsManager();
@@ -798,6 +884,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void refreshParent() {
 		// No parent
+	}
+
+	@Override
+	public Navigation navigate() {
+		Navigation navigation = super.navigate();
+		closeAllWindows();
+		return navigation;
 	}
 
 	private class StartWorkflowButton extends WindowButton {

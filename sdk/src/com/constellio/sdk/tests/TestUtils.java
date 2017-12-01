@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
@@ -48,6 +49,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -63,6 +65,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
@@ -456,6 +459,25 @@ public class TestUtils {
 			IOUtils.closeQuietly(fileWriter);
 		}
 
+	}
+
+	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, List<Metadata> metadatas) {
+
+		SolrInputDocument solrInputDocument = new SolrInputDocument();
+		solrInputDocument.setField("id", id);
+		for (Metadata metadata : metadatas) {
+
+			Map<String, Object> map = new HashMap<>();
+			map.put("set", null);
+
+			solrInputDocument.setField(metadata.getDataStoreCode(), map);
+		}
+
+		return solrInputDocument;
+	}
+
+	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, Metadata... metadatas) {
+		return solrInputDocumentRemovingMetadatas(id, asList(metadatas));
 	}
 
 	public static class MapBuilder<K, V> {
@@ -981,5 +1003,38 @@ public class TestUtils {
 
 	public static void assumeWindows() {
 		org.junit.Assume.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
+	}
+
+	public static List<String> asOrderedList(String... values) {
+
+		List<String> list = new ArrayList<>(asList(values));
+		Collections.sort(list);
+
+		return list;
+	}
+
+	public static List<Tuple> getNetworkLinksOf(String collection) {
+
+		List<Tuple> tuples = new ArrayList();
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection,
+				ConstellioTest.getInstance().getModelLayerFactory());
+		for (MetadataNetworkLink link : schemas.getTypes().getMetadataNetwork().getLinks()) {
+
+			if (!link.getToMetadata().isGlobal()
+					&& !link.getFromMetadata().isGlobal()
+					&& !link.getFromMetadata().getCode().startsWith("user_")
+					&& !link.getFromMetadata().getCode().startsWith("user_")
+					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
+				Tuple tuple = new Tuple();
+				tuple.addData(link.getFromMetadata().getCode());
+				tuple.addData(link.getToMetadata().getCode());
+				tuple.addData(link.getLevel());
+				tuples.add(tuple);
+			}
+
+		}
+
+		return tuples;
 	}
 }

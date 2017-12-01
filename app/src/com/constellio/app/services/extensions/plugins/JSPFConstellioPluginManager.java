@@ -121,6 +121,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 				installInvalidPlugin(pluginInfo.getCode());
 			}
 		}
+
 	}
 
 	//TODO in future version

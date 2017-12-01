@@ -6,12 +6,10 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class TasksMigrationTo7_5_0_1 implements MigrationScript {
@@ -49,13 +47,15 @@ public class TasksMigrationTo7_5_0_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING).addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING)
+					.addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
 					.setSystemReserved(true);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.NUMBER)
 					.setSystemReserved(true).setDefaultValue(0);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.ESCALATION_ASSIGNEE).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).addLabel(Language.French,"Personne assignée à l'escalade").addLabel(Language.English,"Escalation assignee");
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE))
+					.addLabel(Language.French,"Personne assignée à l'escalade").addLabel(Language.English,"Escalation assignee");
 		}
 	}
 }

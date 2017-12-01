@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +20,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -124,7 +123,7 @@ public class ConservationRulesReportPresenter {
 
 					conservationRulesReportModel_Rules.add(conservationRulesReportModel_Rule);
 				} catch (Exception e) {
-					LOGGER.info(e.getMessage());
+					LOGGER.error("Error while converting retention rule " + retentionRule.getCode(), e);
 				}
 			}
 		}
@@ -296,9 +295,17 @@ public class ConservationRulesReportPresenter {
 		}
 
 		List<String> codes = new ArrayList<>();
-		for (MediumType mediumType : rm.getMediumTypes(mediumTypeIds)) {
-			codes.add(mediumType.getCode());
+
+		for (String mediumTypeId : mediumTypeIds) {
+			try {
+				codes.add(rm.getMediumType(mediumTypeId).getCode());
+			} catch (Exception e) {
+				if (rm.getMediumTypeByCode(mediumTypeId) != null) {
+					codes.add(mediumTypeId);
+				}
+			}
 		}
+
 		return codes;
 	}
 

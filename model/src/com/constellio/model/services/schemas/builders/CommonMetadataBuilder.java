@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
@@ -20,12 +22,15 @@ import com.constellio.model.services.schemas.calculators.AllReferencesCalculator
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
+import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 
 public class CommonMetadataBuilder {
@@ -39,6 +44,7 @@ public class CommonMetadataBuilder {
 	public static final String DETACHED_AUTHORIZATIONS = "detachedauthorizations";
 	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 	public static final String TOKENS = "tokens";
+	public static final String TOKENS_OF_HIERARCHY = "tokensHierarchy";
 	public static final String DENY_TOKENS = "denyTokens";
 	public static final String SHARE_TOKENS = "shareTokens";
 	public static final String SHARE_DENY_TOKENS = "shareDenyTokens";
@@ -66,6 +72,7 @@ public class CommonMetadataBuilder {
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
+	public static final String NON_TAXONOMY_AUTHORIZATIONS = "nonTaxonomyAuthorizations";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -212,13 +219,33 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(TokensCalculator2.class);
+						.setMultivalue(true);
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
+
+				} else {
+					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator2.class);
+
+				}
+
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
 			}
 		});
+
+		metadata.put(TOKENS_OF_HIERARCHY, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS_OF_HIERARCHY).setType(STRING)
+						.setMultivalue(true).defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 		metadata.put(DENY_TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
@@ -474,6 +501,27 @@ public class CommonMetadataBuilder {
 			}
 		});
 
+		metadata.put(NON_TAXONOMY_AUTHORIZATIONS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				//TODO Francis : temporaire
+				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
+				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
+						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+
+					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
+							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
+
+				} else {
+					metadataBuilder.setType(STRING).setMultivalue(true);
+				}
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
 	}
 
 	public void addCommonMetadataToAllExistingSchemas(MetadataSchemaTypesBuilder types) {
@@ -498,9 +546,7 @@ public class CommonMetadataBuilder {
 
 	private void defineTokenMetadata(MetadataSchemaBuilder schema, String code) {
 		MetadataBuilder metadataBuilder = schema.createSystemReserved(code).setType(STRING).setMultivalue(true);
-		metadataBuilder = metadataBuilder.setLabels(schema.getLabels());
 		metadataBuilder.defineValidators().add(ManualTokenValidator.class);
-
 	}
 
 	private boolean isCollectionUserOrGroupSchema(MetadataSchemaBuilder schema) {

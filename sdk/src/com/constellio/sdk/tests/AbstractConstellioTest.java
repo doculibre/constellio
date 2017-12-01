@@ -528,6 +528,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		getCurrentTestSession().getFactoriesTestFeatures().configure(appLayerConfigurationAlteration);
 	}
 
+	protected boolean isLayersInitialized() {
+		return getCurrentTestSession().getFactoriesTestFeatures().isInitialized();
+	}
+
 	protected AppLayerFactory getAppLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(DEFAULT_NAME);
@@ -538,17 +542,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(name);
 	}
 
-	protected DataLayerFactory getDataLayerFactory() {
+	public DataLayerFactory getDataLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(DEFAULT_NAME);
 	}
 
-	protected DataLayerFactory getDataLayerFactory(String name) {
+	public DataLayerFactory getDataLayerFactory(String name) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(name);
 	}
 
-	protected IOServicesFactory getIOLayerFactory() {
+	public IOServicesFactory getIOLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newIOServicesFactory(DEFAULT_NAME);
 	}
@@ -563,12 +567,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(name);
 	}
 
-	protected ModelLayerFactory getModelLayerFactory() {
+	public ModelLayerFactory getModelLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(DEFAULT_NAME);
 	}
 
-	protected ModelLayerFactory getModelLayerFactory(String name) {
+	public ModelLayerFactory getModelLayerFactory(String name) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(name);
 	}
@@ -1489,6 +1493,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
 	}
 
+	protected void assumeLocalSolr() {
+		assumeNotSolrCloud();
+
+		String httpUrl = sdkProperties.get("dao.records.http.url").toLowerCase();
+		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
+	}
+
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);
@@ -1500,6 +1511,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
 			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		}
+	}
+
+	protected void reindex() {
+		ensureNotUnitTest();
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 	}
 
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {

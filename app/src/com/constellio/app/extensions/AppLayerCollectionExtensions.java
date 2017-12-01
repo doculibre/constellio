@@ -42,6 +42,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -53,6 +54,7 @@ import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -93,6 +95,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<SelectionPanelExtension> selectionPanelExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<RecordDisplayFactoryExtension> recordDisplayFactoryExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
 
@@ -251,9 +255,18 @@ public class AppLayerCollectionExtensions {
 	//	}
 
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam params) {
-		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			SearchResultDisplay result = extension.getCustomResultDisplayFor(params);
+			if (result != null) {
+				return result;
+			}
+		}
+		return null;
+	}
+
+	public Component getSimpleTableWindowComponent(GetSearchResultSimpleTableWindowComponentParam params) {
+		for (SearchPageExtension extension : searchPageExtensions) {
+			Component result = extension.getSimpleTableWindowComponent(params);
 			if (result != null) {
 				return result;
 			}
@@ -548,5 +561,19 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return null;
+	}
+
+	public Component getDisplayForReference(AllowedReferences allowedReferences, String id) {
+		for(RecordDisplayFactoryExtension extension: recordDisplayFactoryExtensions) {
+			Component component = extension.getDisplayForReference(allowedReferences, id);
+			if(component != null) {
+				return component;
+			}
+		}
+		return getDefaultDisplayForReference(id);
+	}
+
+	public Component getDefaultDisplayForReference(String id) {
+		return new ReferenceDisplay(id);
 	}
 }

@@ -2,6 +2,8 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -49,6 +51,7 @@ public class MetadataDisplayFactory implements Serializable {
 
 	private JodaDateTimeToStringConverter jodaDateTimeConverter = new JodaDateTimeToStringConverter();
 
+	@SuppressWarnings("unchecked")
 	public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
 		Component displayComponent;
 		MetadataVO metadataVO = metadataValue.getMetadata();
@@ -200,7 +203,9 @@ public class MetadataDisplayFactory implements Serializable {
 			case REFERENCE:
 				switch (metadataInputType) {
 				case LOOKUP:
-					displayComponent = new ReferenceDisplay(displayValue.toString());
+					AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+					String currentCollection = metadata.getCollection();
+					displayComponent = appLayerFactory.getExtensions().forCollection(currentCollection).getDisplayForReference(allowedReferences, displayValue.toString());
 					break;
 				default:
 					if (allowedReferences != null) {

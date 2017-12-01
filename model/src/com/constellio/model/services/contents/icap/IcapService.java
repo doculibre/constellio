@@ -14,7 +14,6 @@ import org.joda.time.DateTimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.ConstellioJob;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -28,11 +27,6 @@ public class IcapService {
 
 		private static Runnable action;
 
-		public IcapPreviewLengthReaderJob(DataLayerFactory dataLayerFactory) {
-			super(dataLayerFactory);
-		}
-
-		@Override
 		protected String name() {
 			return IcapPreviewLengthReaderJob.class.getSimpleName();
 		}
@@ -89,7 +83,7 @@ public class IcapService {
 		};
 
 		//
-		constellioJobManager.addJob(new IcapPreviewLengthReaderJob(modelLayerFactory.getDataLayerFactory()), true);
+		constellioJobManager.addJob(new IcapPreviewLengthReaderJob(), true);
 	}
 
 	void readPreviewLengthFromIcapServer() {

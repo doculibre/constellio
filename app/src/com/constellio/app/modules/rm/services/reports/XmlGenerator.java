@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorPar
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.AccentApostropheCleaner;
@@ -64,6 +65,7 @@ public abstract class XmlGenerator {
     private RecordServices recordServices;
 
     private MetadataSchemasManager metadataSchemasManager;
+    private RMSchemasRecordsServices rm;
 
     XmlGeneratorParameters xmlGeneratorParameters;
 
@@ -72,6 +74,16 @@ public abstract class XmlGenerator {
         this.collection = collection;
         this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
         this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
+        this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+    }
+
+
+    public RecordServices getRecordServices() {
+        return recordServices;
+    }
+
+    public RMSchemasRecordsServices getRMSchemasRecordsServices() {
+        return rm;
     }
 
     public AppLayerFactory getFactory() {
@@ -92,10 +104,10 @@ public abstract class XmlGenerator {
                 new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection").setAttribute("code", "collection_code"),
                 new Element("collection_title").setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName()).setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
         ));
-        if(metadataSchemaType.getCode().equals(Folder.SCHEMA_TYPE)) {
+        if (metadataSchemaType.getCode().equals(Folder.SCHEMA_TYPE)) {
             Metadata typeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(Folder.TYPE);
             String metadataTypeId = recordElement.get(typeMetadata);
-            if(metadataTypeId != null) {
+            if (metadataTypeId != null) {
                 FolderType currentFolderType = new RMSchemasRecordsServices(getCollection(), getFactory()).getFolderType(metadataTypeId);
                 elementsToAdd.addAll(asList(
                         new Element("ref_folder_type_title").setText(currentFolderType.getTitle()).setAttribute("label", metadataSchemaType.getFrenchLabel()).setAttribute("code", typeMetadata.getCode()),
@@ -112,23 +124,34 @@ public abstract class XmlGenerator {
 
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
         List<Element> listOfMetadataTags = new ArrayList<>();
-        if(metadata.getLocalCode().contains("CopyRule")) {
-            List<Object> metadataValue;
-            if(metadata.isMultivalue()) {
+        if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
+            List<ModifiableStructure> metadataValue;
+            if (metadata.isMultivalue()) {
                 metadataValue = recordElement.getList(metadata);
             } else {
-                metadataValue = Collections.singletonList(recordElement.get(metadata));
+                metadataValue = Collections.singletonList(recordElement.<ModifiableStructure>get(metadata));
             }
 
-            for(Object value : metadataValue) {
+            for (ModifiableStructure value : metadataValue) {
                 CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ? ((CopyRetentionRuleInRule) value).getCopyRetentionRule() : (CopyRetentionRule) value;
                 listOfMetadataTags.addAll(asList(
+                        new Element(escapeForXmlTag(getLabelOfMetadata(metadata))).setText(retentionRule.toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period").setText(retentionRule.getActiveRetentionPeriod().toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment").setText(retentionRule.getActiveRetentionComment()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period").setText(retentionRule.getSemiActiveRetentionPeriod().toString()),
                         new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period_comment").setText(retentionRule.getSemiActiveRetentionComment())
                 ));
             }
+        } else if (metadata.getLocalCode().equals("comments")) {
+            List<Comment> comments = recordElement.getList(metadata);
+            StringBuilder commentsText = new StringBuilder();
+            for (Comment comment : comments) {
+                commentsText.append(comment.getMessage()).append("\n");
+            }
+            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(commentsText.toString()));
+        } else {
+            Object metadataValue = recordElement.get(metadata);
+            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(defaultFormatData(metadataValue != null ? metadataValue.toString() : null, metadata, factory, collection)));
         }
         return listOfMetadataTags;
     }
@@ -141,15 +164,19 @@ public abstract class XmlGenerator {
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
         List<Element> listOfMetadataTags = new ArrayList<>();
         EnumWithSmallCode metadataValue = recordElement.get(metadata);
-        if (metadataValue != null) {
-            listOfMetadataTags.addAll(asList(
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(metadataValue.getCode()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
-                    new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText($(metadataValue)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
-                    )
-            );
+        String code, title;
+        if (metadataValue == null) {
+            code = null;
+            title = null;
         } else {
-            listOfMetadataTags = Collections.singletonList( new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordElement.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"));
+            code = metadataValue.getCode();
+            title = $(metadataValue);
         }
+        listOfMetadataTags.addAll(asList(
+                new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(code).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
+                new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(title).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
+                )
+        );
         return listOfMetadataTags;
     }
 
@@ -164,8 +191,11 @@ public abstract class XmlGenerator {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
-        if(listOfRecordReferencedByMetadata.isEmpty()) {
-            listOfMetadataTags = Collections.singletonList( new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code", namespace).setText(recordElement.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"));
+        if (listOfRecordReferencedByMetadata.isEmpty()) {
+            listOfMetadataTags = asList(
+                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
+                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title"));
+
         } else {
             for (Record recordReferenced : listOfRecordReferencedByMetadata) {
                 listOfMetadataTags.addAll(asList(
@@ -218,7 +248,7 @@ public abstract class XmlGenerator {
             } catch (ParseException e) {
                 return data;
             }
-        } else if(metadata.getType().equals(MetadataValueType.TEXT)) {
+        } else if (metadata.getType().equals(MetadataValueType.TEXT)) {
             finalData = Jsoup.parse(data).text();
         }
         return replaceBracketsInValueToString.replaceOn(finalData);
@@ -245,4 +275,15 @@ public abstract class XmlGenerator {
     }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
+
+    protected List<Element> fillEmptyTags(List<Element> originalElements) {
+        List<Element> filledElements = new ArrayList<>();
+        for (Element element : originalElements) {
+            if(element.getText().isEmpty()) {
+                element.setText("This will not appear on the final report");
+            }
+            filledElements.add(element);
+        }
+        return filledElements;
+    }
 }

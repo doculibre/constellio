@@ -73,6 +73,34 @@ public enum MetadataInputType {
 		return inputTypes;
 	}
 
+	public static MetadataInputType getDefaultInputTypeFor(MetadataValueType type, boolean multivalue) {
+		switch (type) {
+			case BOOLEAN:
+				break;
+			case STRUCTURE:
+				break;
+			case ENUM:
+				return DROPDOWN;
+			case TEXT:
+				return TEXTAREA;
+			case CONTENT:
+				return CONTENT;
+			case DATE:
+				break;
+			case DATE_TIME:
+				break;
+			case INTEGER:
+				break;
+			case REFERENCE:
+				return LOOKUP;
+			case STRING:
+				return FIELD;
+			case NUMBER:
+				break;
+		}
+		return null;
+	}
+
 	public static String getCaptionFor(MetadataInputType type) {
 		String caption = "";
 

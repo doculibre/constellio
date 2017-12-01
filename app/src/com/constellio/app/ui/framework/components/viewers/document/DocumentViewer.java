@@ -59,42 +59,33 @@ public class DocumentViewer extends CustomComponent {
 	
 	private ContentVersionVO contentVersionVO;
 	
+	private Resource contentResource;
+	
 	private File file;
 
 	public DocumentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
 		this.recordVO = recordVO;
 		this.metadataCode = metadataCode;
 		this.contentVersionVO = contentVersionVO;
+		init();
 	}
 	
 	public DocumentViewer(File file) {
 		this.file = file;
+		init();
 	}
-
-	@Override
-	public void attach() {
-		super.attach();
-		
+	
+	private void init() {
+		resolveContentResource();
+	}
+	
+	private void resolveContentResource() {
 		try {
-			int width = (int) getWidth();
-			int height = (int) getHeight();
-			
-			if (width <= 0 || height <= 0) {
-				width = DEFAULT_WIDTH;
-				height = DEFAULT_HEIGHT;
-			}
-			
-			int maxWidth = Page.getCurrent().getBrowserWindowWidth();
-			if (width > maxWidth) {
-				width = maxWidth;
-			}
-			
-			Resource contentResource;
 			if (recordVO != null) {
 				String version = contentVersionVO.getVersion();
 				String fileName = contentVersionVO.getFileName();
 				String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
-
+	
 				File documentViewerFile;
 				if (useCache) {
 					if (Arrays.asList(CONVERSION_EXTENSIONS).contains(extension)) {
@@ -136,6 +127,29 @@ public class DocumentViewer extends CustomComponent {
 			} else {
 				contentResource = null;
 			}
+		} catch (Throwable t) {
+			LOGGER.error(ExceptionUtils.getStackTrace(t));
+			setVisible(false);
+		}
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		
+		try {
+			int width = (int) getWidth();
+			int height = (int) getHeight();
+			
+			if (width <= 0 || height <= 0) {
+				width = DEFAULT_WIDTH;
+				height = DEFAULT_HEIGHT;
+			}
+			
+			int maxWidth = Page.getCurrent().getBrowserWindowWidth();
+			if (width > maxWidth) {
+				width = maxWidth;
+			}
 			
 			if (contentResource != null) {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
@@ -144,6 +158,8 @@ public class DocumentViewer extends CustomComponent {
 //				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
 				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
 				setCompositionRoot(new Label(iframeHTML, ContentMode.HTML));
+			} else {
+				setVisible(false);
 			}
 		} catch (Throwable t) {
 			LOGGER.error(ExceptionUtils.getStackTrace(t));
@@ -151,6 +167,11 @@ public class DocumentViewer extends CustomComponent {
 		}
 	}
 	
+	@Override
+	public boolean isVisible() {
+		return super.isVisible() && contentResource != null;
+	}
+
 	public static boolean isSupported(String fileName) {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		return Arrays.asList(SUPPORTED_EXTENSIONS).contains(extension);

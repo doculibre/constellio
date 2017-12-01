@@ -102,7 +102,7 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
             @Override
             public void buttonClick(ClickEvent event) {
                 MetadataVO metadataVO = (MetadataVO) metadata.getValue();
-                presenter.batchEditRequested(view.getSelectedRecordIds(), metadataVO.getCode(),
+                presenter.batchEditRequested(metadataVO.getCode(),
                         ((AbstractField) value).getConvertedValue(), view.getSchemaType());
                 getWindow().close();
                 view.showMessage($("BatchProcessing.endedNormally"));

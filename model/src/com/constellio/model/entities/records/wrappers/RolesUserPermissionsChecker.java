@@ -8,7 +8,6 @@ import static java.util.Arrays.asList;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,8 +72,8 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(userPermissionsOnRecord));
 
 			if (!result) {
-				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
-						.join(userPermissionsOnRecord, ", ") + " on record '" + record.getIdTitle() + "'");
+//				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
+				//						.join(userPermissionsOnRecord, ", ") + " on record '" + record.getIdTitle() + "'");
 			}
 
 			return result;

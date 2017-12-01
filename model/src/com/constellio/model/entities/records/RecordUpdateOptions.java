@@ -38,6 +38,10 @@ public class RecordUpdateOptions {
 
 	boolean allowSchemaTypeLockedRecordsModification = false;
 
+	private boolean overwriteModificationDateAndUser = true;
+
+	boolean updateAggregatedMetadatas = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -72,6 +76,18 @@ public class RecordUpdateOptions {
 		this.skippingRequiredValuesValidation = copy.skippingRequiredValuesValidation;
 		this.skippingReferenceToLogicallyDeletedValidation = copy.skippingReferenceToLogicallyDeletedValidation;
 		this.skipFindingRecordsToReindex = copy.skipFindingRecordsToReindex;
+		this.overwriteModificationDateAndUser = copy.overwriteModificationDateAndUser;
+
+		this.updateAggregatedMetadatas = copy.updateAggregatedMetadatas;
+	}
+
+	public boolean isUpdateAggregatedMetadatas() {
+		return updateAggregatedMetadatas;
+	}
+
+	public RecordUpdateOptions setUpdateAggregatedMetadatas(boolean updateAggregatedMetadatas) {
+		this.updateAggregatedMetadatas = updateAggregatedMetadatas;
+		return this;
 	}
 
 	public boolean isSkipFindingRecordsToReindex() {
@@ -241,6 +257,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setCatchBrokenReferenceErrors(boolean catchBrokenReferenceErrors) {
 		this.catchBrokenReferenceErrors = catchBrokenReferenceErrors;
+		return this;
+	}
+
+	public boolean isOverwriteModificationDateAndUser() {
+		return overwriteModificationDateAndUser;
+	}
+
+	public RecordUpdateOptions setOverwriteModificationDateAndUser(boolean overwriteModificationDateAndUser) {
+		this.overwriteModificationDateAndUser = overwriteModificationDateAndUser;
 		return this;
 	}
 }

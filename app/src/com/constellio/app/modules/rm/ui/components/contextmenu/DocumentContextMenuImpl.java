@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +41,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Notification.Type;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
@@ -131,6 +133,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 					openAgentURL(agentURL);
+					presenter.logOpenAgentUrl(recordVO);
 				}
 			});
 		}
@@ -144,6 +147,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
 					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 					Page.getCurrent().open(downloadedResource, null, false);
+					presenter.logDownload(recordVO);
 				}
 			});
 		}
@@ -291,7 +295,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	@Override
 	public Navigation navigate() {
-		return ConstellioUI.getCurrent().navigate();
+		Navigation navigation = ConstellioUI.getCurrent().navigate();
+		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+			window.close();
+		}
+		return navigation;
 	}
 
 	@Override

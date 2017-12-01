@@ -362,6 +362,11 @@ public class MetadataSchemaBuilder {
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
 	}
 
+	public String getTypeCode() {
+
+		return schemaTypeBuilder.getCode();
+	}
+
 	private static class SchemaRecordSteps {
 
 		List<Metadata> automaticMetadatas;

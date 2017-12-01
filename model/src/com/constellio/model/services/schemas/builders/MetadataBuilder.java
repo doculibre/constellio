@@ -1044,6 +1044,10 @@ public class MetadataBuilder {
 		return Collections.unmodifiableSet(customAttributes);
 	}
 
+	public boolean hasValidator(Class<?> validatorClass) {
+		return defineValidators().contains(validatorClass);
+	}
+
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
 
 		private final Factory<ModelLayerFactory> modelLayerFactoryFactory;

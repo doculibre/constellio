@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.search.savedSearch;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -9,12 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -32,6 +29,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 
 public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	public static final String STRING_VALUE = "string value";
@@ -88,7 +86,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		RecordVO recordVO = toVO(userSavedSearch1);
 		recordVO.setTitle("New Title");
 		recordVO.set(SavedSearch.PUBLIC, true);
-		presenter.searchModificationRequested(recordVO);
+		presenter.searchModificationRequested(recordVO.getId(), "New Title", true);
 
 		userSavedSearch1 = new SavedSearch(recordServices.getDocumentById(userSavedSearch1.getId()), setup.getTypes());
 

@@ -7,11 +7,14 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
+import com.constellio.app.ui.framework.data.event.UnsupportedEventTypeRuntimeException;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -19,6 +22,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class DefaultEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
+	
+	private static Logger LOGGER = LoggerFactory.getLogger(DefaultEventsDataProvider.class);
 
 	transient List<EventStatistics> events;
 
@@ -72,7 +77,12 @@ public abstract class DefaultEventsDataProvider extends AbstractDataProvider imp
 
 	protected String getEventCaption(int i) {
 		String eventType = getEventType(i);
-		return EventTypeUtils.getEventTypeCaption(eventType);
+		try {
+			return EventTypeUtils.getEventTypeCaption(eventType);
+		} catch (UnsupportedEventTypeRuntimeException e) {
+			LOGGER.error("Error while retrieving event type caption", e);
+			return eventType;
+		}
 	}
 
 	@Override

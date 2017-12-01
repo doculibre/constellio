@@ -75,7 +75,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
             @Override
             protected Component buildMetadataComponent(final MetadataValueVO metadataValue, final RecordVO recordVO) {
                 final Component defaultComponent = super.buildMetadataComponent(metadataValue, recordVO);
-                if(metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null) {
+                if(metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
                     final String value = metadataValue.getValue();
                     if(!value.isEmpty()) {
                         int maxLength = (value.length() < 40)? value.length():40;
@@ -124,7 +124,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
             public Object generateCell(Table source, final Object itemId, Object columnId) {
                 final RecordVO recordVO = records.getRecordVO((int) itemId);
                 ContentVersionVO content = recordVO.get(TemporaryRecord.CONTENT);
-                return new Label(FileLengthUtils.readableFileSize(content.getLength()));
+                return new Label(FileLengthUtils.readableFileSize((content != null ? content.getLength() : 0)));
             }
         });
         table.setColumnHeader(columnId, $("ListTemporaryRecordViewImpl.contentLength"));

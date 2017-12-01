@@ -11,7 +11,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 
+@IgniteTest
 public class IgniteLeaderElectionServiceImplAcceptanceTest extends ConstellioTest {
 	private DefaultLeaderElectionServiceImpl service;
 	private Ignite server;
@@ -19,6 +21,7 @@ public class IgniteLeaderElectionServiceImplAcceptanceTest extends ConstellioTes
 	@Before
 	public void setUp()
 			throws Exception {
+
 		service = new DefaultLeaderElectionServiceImpl(getDataLayerFactory());
 		server = Ignition.start(createConfiguration("server", false));
 	}

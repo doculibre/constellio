@@ -1,10 +1,14 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLanguage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -247,7 +251,7 @@ public class BorrowingServices {
 				previewReturnDate,
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
-		recordServices.update(folder);
+		recordServices.update(folder.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -271,7 +275,7 @@ public class BorrowingServices {
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
 				borrowerEntered.getId());
-		recordServices.update(containerRecord);
+		recordServices.update(containerRecord.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
@@ -536,7 +540,10 @@ public class BorrowingServices {
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
-			parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $(schemaType).toLowerCase());
+			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getLabels();
+			for(Map.Entry<Language, String> label:labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue().toLowerCase());
+			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);
 			transaction.add(emailToSend);

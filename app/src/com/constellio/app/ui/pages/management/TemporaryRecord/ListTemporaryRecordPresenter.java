@@ -27,13 +27,13 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return user.has(CorePermissions.ACCESS_TEMPORARY_RECORD).globally();
+        return user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally();
     }
 
     public RecordVODataProvider getDataProviderFromType(final String schema) {
         final MetadataSchemaType temporaryRecordSchemaType = types().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
         MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(temporaryRecordSchemaType.getSchema(schema),
-                RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+                RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
         return new RecordVODataProvider(
                 schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override

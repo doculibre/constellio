@@ -39,7 +39,6 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRun
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_NonAlphaNumeric;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -262,7 +261,6 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		verify(mockedPluginManager, times(1)).invalidateModule("id", INVALID_MIGRATION_SCRIPT, null);
 	}
 
-
 	@Test
 	public void whenPrepareInstallablePluginThenBehavesAsExpected() {
 
@@ -357,9 +355,7 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addValidJarInfoToConfig(ConstellioPluginInfo info) {
-		ConfigManager configManager = getModelLayerFactory().getDataLayerFactory()
-				.getConfigManager();
-		ConstellioPluginConfigurationManager pluginConfigManger = new ConstellioPluginConfigurationManager(configManager);
+		ConstellioPluginConfigurationManager pluginConfigManger = new ConstellioPluginConfigurationManager(getDataLayerFactory());
 		pluginConfigManger.installPlugin(info.getCode(), info.getTitle(), info.getVersion(), info.getRequiredConstellioVersion());
 		switch (info.getPluginStatus()) {
 		case ENABLED:

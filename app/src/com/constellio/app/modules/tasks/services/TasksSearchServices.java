@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.services;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -38,6 +39,7 @@ public class TasksSearchServices {
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -49,6 +51,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
@@ -57,6 +60,7 @@ public class TasksSearchServices {
 		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
 				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
+				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
@@ -92,6 +96,10 @@ public class TasksSearchServices {
 
 	public TaskStatus getClosedStatus() {
 		return tasksSchemas.getTaskStatusWithCode(CLOSED_CODE);
+	}
+
+	public TaskStatus getTerminatedStatus() {
+		return tasksSchemas.getTaskStatusWithCode(TERMINATED_STATUS);
 	}
 
 	public TaskStatus getFirstFinishedStatus() {

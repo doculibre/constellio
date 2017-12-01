@@ -71,6 +71,7 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapService;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.records.RecordServices;
@@ -148,6 +149,7 @@ public class ContentManager implements StatefulService {
 					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
 						deleteUnreferencedContents();
 					}
+
 					handleRecordsMarkedForParsing();
 				}
 			}
@@ -155,7 +157,8 @@ public class ContentManager implements StatefulService {
 		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+						&& new ConstellioEIMConfigs(modelLayerFactory).isInViewerContentsConversionSchedule()) {
 					convertPendingContentForPreview();
 				}
 			}
@@ -516,6 +519,7 @@ public class ContentManager implements StatefulService {
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
+						transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
 								convertRecordContents(record, conversionManager, tempFolder);
@@ -567,7 +571,9 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void handleRecordsMarkedForParsing() {
-		handleRecordsMarkedForParsing(RecordsFlushing.NOW());
+		if (new ConstellioEIMConfigs(modelLayerFactory).isInContentParsingSchedule()) {
+			handleRecordsMarkedForParsing(RecordsFlushing.NOW());
+		}
 	}
 
 	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
@@ -641,7 +647,10 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void deleteUnreferencedContents() {
-		deleteUnreferencedContents(RecordsFlushing.NOW());
+
+		if (new ConstellioEIMConfigs(modelLayerFactory).isInUnreferencedContentsDeleteSchedule()) {
+			deleteUnreferencedContents(RecordsFlushing.NOW());
+		}
 	}
 
 	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {

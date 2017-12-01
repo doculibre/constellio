@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,8 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -35,6 +38,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	DocumentAlteration createEmptyFileDocumentAlteration;
 	CollectionsListManager collectionsListManager;
 	@Mock OneXMLConfigPerCollectionManagerListener managerListener, otherManagerListener;
+	@Mock DataLayerExtensions dataLayerExtensions;
+	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 	List<String> languages = Arrays.asList("fr");
 	SerializationCheckCache cache;
 
@@ -42,8 +47,9 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	public void setUp()
 			throws Exception {
 
+		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
 		cache = new SerializationCheckCache("zeCache");
-		
+
 		configReader = new XMLConfigReader<String>() {
 			@Override
 			public String read(String collection, Document document) {
@@ -64,12 +70,13 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		IOServices ioServices = getIOLayerFactory().newIOServices();
 		HashingService hashingServices = getIOLayerFactory().newHashingService(BASE64);
 		ConstellioCache cache = new SerializationCheckCache("zeCache");
-		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache);
+		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache, dataLayerExtensions);
 
 		collectionsListManager = new CollectionsListManager(configManager);
 		collectionsListManager.initialize();
 
 		manager = newManager(managerListener);
+
 	}
 
 	@Test
@@ -193,7 +200,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	}
 
 	private OneXMLConfigPerCollectionManager<String> newManager(OneXMLConfigPerCollectionManagerListener listener) {
-		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener, cache);
+		return new OneXMLConfigPerCollectionManager(configManager, collectionsListManager, filePath, configReader, listener,
+				cache);
 	}
 
 	private void updateCollectionValue(String collection, final String newValue) {

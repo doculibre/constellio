@@ -1,27 +1,5 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,6 +40,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -124,18 +104,18 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	private void saveEmailToSend(EmailToSend emailToSend, Task task) {
+		if(!task.isModel()) {
+			prepareTaskParameters(emailToSend, task);
 
-		prepareTaskParameters(emailToSend, task);
-
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.LATER());
-		transaction.add(emailToSend);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
+			Transaction transaction = new Transaction();
+			transaction.setRecordFlushing(RecordsFlushing.LATER());
+			transaction.add(emailToSend);
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
 		}
-
 	}
 
 	private EmailToSend prepareEmailToSend(Task task, Set<String> followersIds, String templateId) {
@@ -166,6 +146,9 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
+		if(task.getDueDate() != null) {
+			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
+		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
 		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));

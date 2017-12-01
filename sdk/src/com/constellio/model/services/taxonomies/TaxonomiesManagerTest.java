@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.jdom2.Document;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +45,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock MetadataSchemasManager schemasManager;
 	@Mock ConfigManager configManager;
+	@Mock ConstellioEIMConfigs eimConfigs;
 	@Mock ConstellioCacheManager cacheManager;
 	@Mock SearchServices searchServices;
 	@Mock TaxonomiesWriter writer;
@@ -74,7 +76,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
 		taxonomiesManager = spy(
-				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches, cacheManager));
+				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches, cacheManager, eimConfigs));
 		doReturn(oneXMLConfigPerCollectionManager).when(taxonomiesManager).newOneXMLConfigPerCollectionManager();
 		taxonomiesManager.initialize();
 

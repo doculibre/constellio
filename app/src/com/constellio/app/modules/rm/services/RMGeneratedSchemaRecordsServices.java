@@ -2212,6 +2212,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedDocuments");
 		}
 
+		public Metadata linkedContainers() {
+			return metadata("linkedContainers");
+		}
+
 		public Metadata linkedFolders() {
 			return metadata("linkedFolders");
 		}

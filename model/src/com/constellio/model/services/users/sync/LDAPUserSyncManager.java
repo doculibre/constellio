@@ -136,7 +136,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		//
 		ldapConfigurationManager
-				.setNextUsersSyncFireTime(constellioJobManager.addJob(new LDAPUserSyncManagerJob(dataLayerFactory), true));
+				.setNextUsersSyncFireTime(constellioJobManager.addJob(new LDAPUserSyncManagerJob(), true));
 	}
 
 	public synchronized void synchronizeIfPossible() {
@@ -425,10 +425,6 @@ public class LDAPUserSyncManager implements StatefulService {
 		private static Set<String> cronExpressions;
 
 		private static Date startTime;
-
-		public LDAPUserSyncManagerJob(DataLayerFactory dataLayerFactory) {
-			super(dataLayerFactory);
-		}
 
 		@Override
 		protected String name() {

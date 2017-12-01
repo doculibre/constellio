@@ -64,10 +64,14 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				.build(schema(SavedSearch.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
-	public void searchModificationRequested(RecordVO recordVO) {
-		SavedSearch savedSearch = new SavedSearch(getRecord(recordVO.getId()), types());
-		savedSearch.setTitle(recordVO.getTitle());
-		savedSearch.setPublic((boolean) recordVO.get(SavedSearch.PUBLIC));
+	public void searchModificationRequested(String id, String newTitle, Boolean publicSearch) {
+		SavedSearch savedSearch = new SavedSearch(getRecord(id), types());
+		if (newTitle != null) {
+			savedSearch.setTitle(newTitle);
+		}
+		if (publicSearch != null) {
+			savedSearch.setPublic(publicSearch);
+		}
 		if (savedSearch.isPublic()) {
 			savedSearch.setUser(null);
 		}

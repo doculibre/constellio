@@ -1,6 +1,7 @@
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -14,7 +15,10 @@ import org.junit.Test;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
@@ -22,8 +26,8 @@ import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -90,6 +94,12 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(schemas);
 
+		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+
 		userSchema = schemas.getUserSchema();
 		Transaction transaction = new Transaction();
 		bob = wrapUser(addUserRecord(transaction, "bob", null));
@@ -105,8 +115,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxo1(), schemasManager);
 
 		records = schemas.givenTaxonomyRecords(recordServices);
-
-		MetadataSchemaTypesBuilder types = schemasManager.modify("zeCollection");
 
 		services = getModelLayerFactory().newTaxonomiesSearchService();
 

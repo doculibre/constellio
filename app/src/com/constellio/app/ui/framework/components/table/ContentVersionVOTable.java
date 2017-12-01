@@ -13,19 +13,20 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.vaadin.data.Item;
+import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Table;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContentVersionVOTable extends Table {
+
+	private static final String CHECK_BOX = "checkBox";
 
 	private static final String FILE_NAME = "fileName";
 
@@ -53,6 +54,8 @@ public class ContentVersionVOTable extends Table {
 
 	private boolean isShowingSystemFileName = false;
 
+	private HashSet<ContentVersionVO> selectedContentVersions;
+
 	public ContentVersionVOTable(AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
 		this(new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
 	}
@@ -60,7 +63,11 @@ public class ContentVersionVOTable extends Table {
 	public ContentVersionVOTable(List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
 		this.appLayerFactory = appLayerFactory;
 		this.isShowingSystemFileName = isShowingSystemFileName;
+		this.selectedContentVersions = new HashSet<>();
 
+		if (isSelectionColumn()) {
+			addContainerProperty(CHECK_BOX, CheckBox.class, null);
+		}
 		addContainerProperty(FILE_NAME, DownloadContentVersionLink.class, null);
 		addContainerProperty(VERSION, String.class, null);
 		addContainerProperty(LENGTH, String.class, null);
@@ -72,6 +79,7 @@ public class ContentVersionVOTable extends Table {
 		}
 
 
+		setColumnHeader(CHECK_BOX, "");
 		setColumnHeader(FILE_NAME, $("ContentVersion.fileName"));
 		setColumnHeader(VERSION, $("ContentVersion.version"));
 		setColumnHeader(LENGTH, $("ContentVersion.length"));
@@ -95,6 +103,7 @@ public class ContentVersionVOTable extends Table {
 					DeleteButton deleteButton = new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
+							selectedContentVersions.remove(contentVersionVO);
 							deleteButtonClick(contentVersionVO);
 						}
 					};
@@ -110,6 +119,10 @@ public class ContentVersionVOTable extends Table {
 	}
 
 	protected boolean isDeleteColumn() {
+		return false;
+	}
+
+	protected boolean isSelectionColumn() {
 		return false;
 	}
 
@@ -130,7 +143,7 @@ public class ContentVersionVOTable extends Table {
 		this.contentVersionVOs = contentVersions;
 		removeAllItems();
 		Locale locale = getLocale();
-		for (ContentVersionVO contentVersion : contentVersions) {
+		for (final ContentVersionVO contentVersion : contentVersions) {
 			String fileName = contentVersion.getFileName();
 			String comment = contentVersion.getComment();
 			String version = contentVersion.getVersion();
@@ -151,8 +164,30 @@ public class ContentVersionVOTable extends Table {
 				systemFileName = "Unsupported";
 			}
 
-			Object itemId = addItem();
+			final Object itemId = addItem();
 			Item item = getItem(itemId);
+			final CheckBox checkBox = new CheckBox() {
+				@Override
+				public boolean isVisible() {
+					return isDeletePossible(contentVersion);
+				}
+			};
+			checkBox.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					if(Boolean.TRUE.equals(event.getProperty().getValue())) {
+						selectedContentVersions.add(contentVersion);
+					} else {
+						selectedContentVersions.remove(contentVersion);
+					}
+				}
+			});
+			checkBox.setValue(selectedContentVersions.contains(contentVersion));
+
+			if(isSelectionColumn()) {
+				item.getItemProperty(CHECK_BOX).setValue(checkBox);
+			}
+
 			item.getItemProperty(FILE_NAME).setValue(new DownloadContentVersionLink(contentVersion, fileName));
 			item.getItemProperty(VERSION).setValue(version);
 			item.getItemProperty(LENGTH).setValue(lengthCaption);
@@ -163,5 +198,13 @@ public class ContentVersionVOTable extends Table {
 				item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
 			}
 		}
+	}
+
+	public void removeAllSelection() {
+		selectedContentVersions.clear();
+	}
+
+	public HashSet<ContentVersionVO> getSelectedContentVersions() {
+		return selectedContentVersions;
 	}
 }

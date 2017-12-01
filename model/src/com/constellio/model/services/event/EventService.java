@@ -3,49 +3,6 @@ package com.constellio.model.services.event;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.stream.XMLOutputFactory;
-
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.dto.records.TransactionDTO;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.search.SearchServices;
-import org.jetbrains.annotations.NotNull;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.jetbrains.annotations.NotNull;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,7 +10,33 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class EventService implements Runnable {
 	ModelLayerFactory modelayerFactory;
@@ -279,25 +262,25 @@ public class EventService implements Runnable {
 	}
 
     public void deleteArchivedEvents() {
-        RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
-
-
-        TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
-        ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
-        String code  = "createdOn_dt";
-
-        String between = code + ":{* TO " + CriteriaUtils.toSolrStringValue(getDeletetionDateCutOff(), null) + "}";
-
-        modifiableSolrParams.set("q", between);
-        modifiableSolrParams.add("fq", "schema_s:event_* ");
-
-        transaction = transaction.withDeletedByQueries(modifiableSolrParams);
-        try {
-            recordDao.execute(transaction);
-        } catch (RecordDaoException.OptimisticLocking optimisticLocking) {
-            throw new RuntimeException("Error while deleting archived eventRecord", optimisticLocking);
-        }
-    }
+//        RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
+		//
+		//
+		//        TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
+		//        ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+		//        String code  = "createdOn_dt";
+		//
+		//        String between = code + ":{* TO " + CriteriaUtils.toSolrStringValue(getDeletetionDateCutOff(), null) + "}";
+		//
+		//        modifiableSolrParams.set("q", between);
+		//        modifiableSolrParams.add("fq", "schema_s:event_* ");
+		//
+		//        transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+		//        try {
+		//            recordDao.execute(transaction);
+		//        } catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+		//            throw new RuntimeException("Error while deleting archived eventRecord", optimisticLocking);
+		//        }
+	}
 
 	@Override
 	public void run() {

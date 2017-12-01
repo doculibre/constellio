@@ -4,26 +4,30 @@ import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTempla
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.utils.ReportGeneratorUtils;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
+import com.vaadin.event.FieldEvents;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -33,87 +37,128 @@ public class ReportTabButton extends WindowButton {
     private TabSheet tabSheet;
     private BaseView view;
     private List<RecordVO> recordVOList;
-    MetadataSchemaCounter occurence;
     private List<PrintableReport> printableReportList;
-    private ComboBox reportComboBox, customElementSelected;
+    private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
-    private String selectedSchemaType;
-    private boolean noExcelButton = false, noPDFButton = false;
+    private MetadataSchemaVO selectedSchemaType;
+    private boolean noExcelButton = false, noPDFButton = false, removePrintableTab = false, removeExcelTab = false;
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
+    private TabSheet.Tab excelTab, pdfTab;
+    private NewReportPresenter viewPresenter;
+    private List<PrintableReportTemplate> printableReportTemplateList;
+    private ReportTabButtonPresenter buttonPresenter;
+    private SessionContext sessionContext;
 
     public ReportTabButton(String caption, String windowCaption, BaseView view) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false, null, view.getSessionContext());
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, noPDFButton, null, view.getSessionContext());
         this.view = view;
     }
 
     public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton) {
-        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false);
+        this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton, false, null, view.getSessionContext());
         this.view = view;
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton) {
-        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false);
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, SessionContext sessionContext) {
+        this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false, null, sessionContext);
     }
 
-    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton) {
+    public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection, boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter, SessionContext sessionContext) {
 
         super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
+        this.viewPresenter = presenter;
         this.factory = appLayerFactory;
         this.collection = collection;
         this.noExcelButton = noExcelButton;
         this.noPDFButton = noPDFButton;
-        recordVOList = new ArrayList<>();
+        this.sessionContext = sessionContext;
+        this.buttonPresenter = new ReportTabButtonPresenter(this);
     }
-
     public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
-        if (recordVOS.length > 0) {
-            recordVOList.addAll(asList(recordVOS));
-        }
+        buttonPresenter.setRecordVoList(recordVOS);
         return this;
     }
 
     public ReportTabButton addRecordToVoList(RecordVO recordVO) {
-        recordVOList.add(recordVO);
+        buttonPresenter.addRecordToVoList(recordVO);
         return this;
+    }
+
+    public String getCollection (){
+        return collection;
+    }
+
+    public AppLayerFactory getFactory (){
+        return this.factory;
+    }
+
+    public SessionContext getSessionContext() {
+        return this.sessionContext;
+    }
+
+    @Override
+    public void afterOpenModal() {
+        if(buttonPresenter.isNeedToRemovePDFTab()) {
+            pdfTab.setVisible(false);
+        }
+
+        if(buttonPresenter.isNeedToRemoveExcelTab()) {
+            excelTab.setVisible(false);
+        }
+
+        if(this.removeExcelTab && this.removePrintableTab) {
+            UI.getCurrent().removeWindow(super.getWindow());
+            String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
+            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+            notification.setHtmlContentAllowed(true);
+            notification.show(Page.getCurrent());
+        }
     }
 
     @Override
     protected Component buildWindowContent() {
         mainLayout = new VerticalLayout();
-
         tabSheet = new TabSheet();
         if (!this.noExcelButton) {
-            tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
+            excelTab = tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
         if (!this.noPDFButton) {
-            tabSheet.addTab(createPDFTab(), $("ReportTabButton.PDFReport"));
+            pdfTab = tabSheet.addTab( createPDFTab(), $("ReportTabButton.PDFReport"));
         }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
 
-    private Component createExcelTab() {
+    private VerticalLayout createExcelTab() {
         VerticalLayout verticalLayout = new VerticalLayout();
         try {
-            AdvancedSearchPresenter presenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-            presenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-            verticalLayout.addComponent(new ReportSelector(presenter));
+            NewReportPresenter newReportPresenter;
+            if(viewPresenter == null) {
+                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+                newReportPresenter = Advancedpresenter;
+            } else {
+                newReportPresenter = this.viewPresenter;
+            }
+            if(newReportPresenter.getSupportedReports().isEmpty()) {
+                buttonPresenter.setNeedToRemoveExcelTab(true);
+            }
+            verticalLayout.addComponent(new ReportSelector(newReportPresenter));
         } catch (UnsupportedReportException unsupportedReport) {
             view.showErrorMessage($("ReportTabButton.noExcelReport"));
         }
         return verticalLayout;
     }
 
-    private Component createPDFTab() {
+    private VerticalLayout createPDFTab() {
         PDFTabLayout = new VerticalLayout();
-        occurence = getAllMetadataSchemas();
         PDFTabLayout.addComponent(createDefaultSelectComboBox());
         PDFTabLayout.addComponent(createCustomSelectComboBox());
         PDFTabLayout.addComponent(createReportSelectorComboBox());
@@ -122,42 +167,23 @@ public class ReportTabButton extends WindowButton {
         return PDFTabLayout;
     }
 
-    private MetadataSchemaCounter getAllMetadataSchemas() {
-        MetadataSchemaCounter metadataSchemaCounter = new MetadataSchemaCounter();
-        List<MetadataSchemaVO> allSchemaList = getSchemaFromRecordVO();
-        for (MetadataSchemaVO metadataSchemaVO : allSchemaList) {
-            metadataSchemaCounter.addOrIncrementDefaultSchema(PrintableReportListPossibleType.getValueFromSchemaType(metadataSchemaVO.getTypeCode()));
-            metadataSchemaCounter.addOrIncrementCustomSchema(metadataSchemaVO);
-        }
-        return metadataSchemaCounter;
-    }
-
-    private List<MetadataSchemaVO> getSchemaFromRecordVO() {
-        List<MetadataSchemaVO> metadataSchemaVOList = new ArrayList<>();
-        for (RecordVO recordVO : recordVOList) {
-            metadataSchemaVOList.add(recordVO.getSchema());
-        }
-        return metadataSchemaVOList;
-    }
-
     private Component createDefaultSelectComboBox() {
-        if (occurence.getNumberOfDefaultSchemaOccurence() == 1) {
-            Iterator<PrintableReportListPossibleType> setIterator = occurence.getAllDefaultMetadataSchemaOccurence().keySet().iterator();
-            if (setIterator.hasNext()) {
-                selectedReporType = setIterator.next();
-            }
+        defaultElementSelected = new ComboBox();
+        List<PrintableReportListPossibleType> values = buttonPresenter.getAllGeneralSchema();
+        if (values.size() == 1) {
+            selectedReporType = values.get(0);
             return new HorizontalLayout();
         }
 
-        final ComboBox defaultElementSelected = new ComboBox();
-        for (PrintableReportListPossibleType printableReportListPossibleType : occurence.getAllDefaultMetadataSchemaOccurence().keySet()) {
+        for (PrintableReportListPossibleType printableReportListPossibleType : values) {
             defaultElementSelected.addItem(printableReportListPossibleType);
             defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
             if (defaultElementSelected.getValue() == null) {
                 defaultElementSelected.setValue(printableReportListPossibleType);
+                selectedReporType = printableReportListPossibleType;
             }
         }
-//        defaultElementSelected.setNullSelectionAllowed(false);
+
         defaultElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -169,42 +195,19 @@ public class ReportTabButton extends WindowButton {
         defaultElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                selectedReporType = ((PrintableReportListPossibleType) event.getProperty().getValue());
-                if (fillSchemaCombobox(customElementSelected) == null) {
-                    customElementSelected.setVisible(false);
-                    customElementSelected.setEnabled(false);
-                    Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-                    do {
-                        selectedSchemaType = setIterator.next().getCode();
-                    } while (setIterator.hasNext() && !selectedSchemaType.contains(selectedReporType.getSchemaType()));
-
-                } else {
-                    customElementSelected.setVisible(true);
-                    customElementSelected.setEnabled(true);
-                    selectedSchemaType = null;
-                    reportComboBox.setValue(null);
-
-                }
-                if (selectedSchemaType != null && selectedReporType != null) {
-                    reportComboBox = fillTemplateComboBox(reportComboBox);
-                }
+                selectedReporType = (PrintableReportListPossibleType) defaultElementSelected.getValue();
+                updateCustomSchemaValues();
             }
         });
+        defaultElementSelected.setNullSelectionAllowed(false);
         defaultElementSelected.setCaption($("ReportTabButton.selectDefaultReportType"));
         defaultElementSelected.setWidth("100%");
         return defaultElementSelected;
     }
 
     private Component createCustomSelectComboBox() {
-        if (occurence.getNumberOfCustomSchemaOccurence() == 1) {
-            Iterator<MetadataSchemaVO> setIterator = occurence.getAllCustomMetadataSchemaOccurence().keySet().iterator();
-            selectedSchemaType = setIterator.next().getCode();
-            return new HorizontalLayout();
-        }
-
         customElementSelected = new ComboBox();
-        this.fillSchemaCombobox(customElementSelected);
-//        customElementSelected.setNullSelectionAllowed(false);
+
         customElementSelected.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -216,27 +219,22 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                if (event.getProperty() != null && event.getProperty().getValue() != null) {
-                    selectedSchemaType = ((MetadataSchemaVO) event.getProperty().getValue()).getCode();
-                    if (selectedSchemaType != null && selectedReporType != null) {
-                        reportComboBox = fillTemplateComboBox(reportComboBox);
-                    }
-                }
+                selectedSchemaType = (MetadataSchemaVO) customElementSelected.getValue();
+                updateAvailableReportForCurrentCustomSchema();
             }
         });
         customElementSelected.setCaption($("ReportTabButton.selectCustomReportSchema"));
         customElementSelected.setWidth("100%");
+        customElementSelected.setNullSelectionAllowed(false);
+        updateCustomSchemaValues();
         return customElementSelected;
     }
 
     private Component createReportSelectorComboBox() {
         reportComboBox = new ComboBox();
-        if (selectedSchemaType != null && selectedReporType != null) {
-            reportComboBox = fillTemplateComboBox(reportComboBox);
-        }
+
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");
-//        reportComboBox.setNullSelectionAllowed(false);
         reportComboBox.addValidator(new Validator() {
             @Override
             public void validate(Object value) throws InvalidValueException {
@@ -245,16 +243,9 @@ public class ReportTabButton extends WindowButton {
                 }
             }
         });
+        updateAvailableReportForCurrentCustomSchema();
+        reportComboBox.setNullSelectionAllowed(false);
         return reportComboBox;
-    }
-
-    private Component createNumberOfCopiesField() {
-        numberOfCopies = new TextField();
-        numberOfCopies.setConverter(Integer.class);
-        numberOfCopies.setValue("1");
-        numberOfCopies.setCaption($("ReportTabButton.inputNumberOfCopies"));
-        numberOfCopies.setWidth("100%");
-        return numberOfCopies;
     }
 
     private Button createButtonLayout() {
@@ -263,156 +254,62 @@ public class ReportTabButton extends WindowButton {
         button.addClickListener(new ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
-                if (selectedSchemaType.contains("_")) {
-                    selectedSchemaType = selectedSchemaType.split("_")[0];
-//                    MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-//                    metadataSchemasManager.getSchemaTypes(collection).getSchema(selectedSchemaType);
-                }
-                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchemaType, (PrintableReportTemplate) reportComboBox.getValue(), 1, getIdsFromRecordVO()));
+                RecordVO recordVO = (RecordVO) reportComboBox.getValue();
+
+                PrintableReportTemplate template = new PrintableReportTemplate(recordVO.getId(), recordVO.getTitle(), buttonPresenter.getReportContent(recordVO));
+                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchemaType.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchemaType)));
             }
         });
         return button;
     }
 
-    private List<String> getIdsFromRecordVO() {
-        List<String> ids = new ArrayList<>();
-        for (RecordVO recordVO : recordVOList) {
-            ids.add(recordVO.getId());
+
+    private void updateCustomSchemaValues(){
+        if(customElementSelected != null) {
+            customElementSelected.removeAllItems();
+            customElementSelected.setVisible(true);
+            List<MetadataSchemaVO> allCustomSchemaForCurrentGeneralSchema = buttonPresenter.getAllCustomSchema(selectedReporType);
+            if(allCustomSchemaForCurrentGeneralSchema.size() == 1) {
+                customElementSelected.setVisible(false);
+                selectedSchemaType = allCustomSchemaForCurrentGeneralSchema.get(0);
+            }
+            for(MetadataSchemaVO metadataSchemaVO : allCustomSchemaForCurrentGeneralSchema) {
+                customElementSelected.addItem(metadataSchemaVO);
+                customElementSelected.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
+            }
+            if(!allCustomSchemaForCurrentGeneralSchema.isEmpty()) {
+                customElementSelected.setValue(allCustomSchemaForCurrentGeneralSchema.get(0));
+            }
         }
-        return ids;
     }
 
-    private ComboBox fillTemplateComboBox(ComboBox comboBox) {
-        comboBox.removeAllItems();
-        List<PrintableReportTemplate> printableReportTemplateList = ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, selectedSchemaType, selectedReporType);
-        if (printableReportTemplateList.isEmpty()) {
-            showNoDefinedReportTemplateForConditionError();
-        } else {
-            if (printableReportTemplateList.size() == 1) {
-                PrintableReportTemplate onlyTemplate = printableReportTemplateList.get(0);
-                comboBox.addItem(onlyTemplate);
-                comboBox.setItemCaption(onlyTemplate, onlyTemplate.getTitle());
-                comboBox.setValue(onlyTemplate);
-                comboBox.setEnabled(false);
+    private void updateAvailableReportForCurrentCustomSchema(){
+        if(reportComboBox != null && selectedSchemaType != null)  {
+            reportComboBox.removeAllItems();
+            List<RecordVO> currentAvailableReport =  buttonPresenter.getAllAvailableReport(selectedSchemaType);
+            reportComboBox.setEnabled(true);
+            if(currentAvailableReport.isEmpty()) {
+                //TODO SHOW ERROR
+            } else if( currentAvailableReport.size() == 1) {
+                reportComboBox.addItem(currentAvailableReport.get(0));
+                reportComboBox.setItemCaption(currentAvailableReport.get(0), currentAvailableReport.get(0).getTitle());
+                reportComboBox.setValue(currentAvailableReport.get(0));
+                reportComboBox.setEnabled(false);
             } else {
-                for (PrintableReportTemplate printableReport : printableReportTemplateList) {
-                    comboBox.addItem(printableReport);
-                    comboBox.setItemCaption(printableReport, printableReport.getTitle());
-                    if (comboBox.getValue() == null) {
-                        comboBox.setValue(printableReport);
-                    }
+                for(RecordVO recordVO : currentAvailableReport) {
+                    reportComboBox.addItem(recordVO);
+                    reportComboBox.setItemCaption(recordVO, recordVO.getTitle());
                 }
+
+                reportComboBox.setValue(currentAvailableReport.get(0));
             }
         }
-        return comboBox;
     }
 
-    private ComboBox fillSchemaCombobox(ComboBox comboBox) {
-        comboBox.removeAllItems();
-        int compteur = 0;
-        for (MetadataSchemaVO metadataSchemaVO : occurence.getAllCustomMetadataSchemaOccurence().keySet()) {
-            //check if the schema of the record isn't the default one, if yes
-            if (selectedReporType == null || (metadataSchemaVO.getTypeCode().equals(selectedReporType.getSchemaType()) && !metadataSchemaVO.getTypeCode().contains("_default"))) {
-                comboBox.addItem(metadataSchemaVO);
-                comboBox.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
-                if (compteur == 0) {
-                    comboBox.setValue(metadataSchemaVO);
-                }
-                compteur++;
-            }
-        }
-        if (compteur == 1) {
-            return null;
-        }
-        return comboBox;
-    }
 
-    private void showNoDefinedReportTemplateForConditionError() {
-        String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
-        //TODO remove tab
-        if (view == null) {
-            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
-            notification.setHtmlContentAllowed(true);
-            notification.show(Page.getCurrent());
-        }
-        tabSheet.setSelectedTab(0);
-        if (view != null) {
-            view.showErrorMessage(errorMessage);
-        }
 
-    }
 
-    private class MetadataSchemaCounter {
-        Map<PrintableReportListPossibleType, Integer> defaultMetadataOccurence;
-        Map<MetadataSchemaVO, Integer> customMetadataOccurence;
 
-        public MetadataSchemaCounter() {
-            defaultMetadataOccurence = new HashMap<>();
-            customMetadataOccurence = new HashMap<>();
-        }
 
-        void addDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            defaultMetadataOccurence.put(metadataSchemaVO, 1);
-        }
 
-        void addCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            customMetadataOccurence.put(metadataSchemaVO, 1);
-        }
-
-        void incrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            this.defaultMetadataOccurence.put(metadataSchemaVO, getDefaultMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        void incrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            this.customMetadataOccurence.put(metadataSchemaVO, getCustomMetadataSchemaOccurence(metadataSchemaVO) + 1);
-        }
-
-        int getDefaultMetadataSchemaOccurence(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        int getCustomMetadataSchemaOccurence(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.get(metadataSchemaVO);
-        }
-
-        Map<PrintableReportListPossibleType, Integer> getAllDefaultMetadataSchemaOccurence() {
-            return this.defaultMetadataOccurence;
-        }
-
-        Map<MetadataSchemaVO, Integer> getAllCustomMetadataSchemaOccurence() {
-            return this.customMetadataOccurence;
-        }
-
-        void addOrIncrementDefaultSchema(PrintableReportListPossibleType metadataSchemaVO) {
-            if (this.doesDefaultMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementDefaultSchema(metadataSchemaVO);
-            } else {
-                this.addDefaultSchema(metadataSchemaVO);
-            }
-        }
-
-        void addOrIncrementCustomSchema(MetadataSchemaVO metadataSchemaVO) {
-            if (this.doesCustomMetadataSchemaContains(metadataSchemaVO)) {
-                this.incrementCustomSchema(metadataSchemaVO);
-            } else {
-                this.addCustomSchema(metadataSchemaVO);
-            }
-        }
-
-        boolean doesDefaultMetadataSchemaContains(PrintableReportListPossibleType metadataSchemaVO) {
-            return this.defaultMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        boolean doesCustomMetadataSchemaContains(MetadataSchemaVO metadataSchemaVO) {
-            return this.customMetadataOccurence.keySet().contains(metadataSchemaVO);
-        }
-
-        int getNumberOfCustomSchemaOccurence() {
-            return this.customMetadataOccurence.size();
-        }
-
-        int getNumberOfDefaultSchemaOccurence() {
-            return this.defaultMetadataOccurence.size();
-        }
-    }
 }

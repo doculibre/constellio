@@ -57,6 +57,11 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
 		this.userServices = modelLayerFactory.newUserServices();
+
+		if (modelLayerFactory == null || modelLayerFactory.getDataLayerFactory() == null
+				|| modelLayerFactory.getDataLayerFactory().getLeaderElectionService() == null) {
+			throw new IllegalArgumentException("modelLayerFactory parameter is invalid");
+		}
 	}
 
 	@Override
@@ -64,6 +69,15 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		while (!isStopRequested()) {
 			try {
 				process();
+			} catch (NullPointerException t) {
+				t.printStackTrace();
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				LOGGER.error("Error while batch processing", t);
+
 			} catch (Throwable t) {
 				LOGGER.error("Error while batch processing", t);
 			}

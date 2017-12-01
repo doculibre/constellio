@@ -7,9 +7,9 @@ import java.util.List;
 import org.joda.time.LocalDate;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 
 public class AuthorizationModificationRequest {
 
@@ -126,6 +126,16 @@ public class AuthorizationModificationRequest {
 		}
 		return new AuthorizationModificationRequest(authorization.getDetail().getId(), authorization.getDetail().getCollection(),
 				record);
+	}
+
+	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId, RecordWrapper recordWrapper) {
+		if (authorizationId == null) {
+			throw new IllegalArgumentException("Authorization id required");
+		}
+		if (recordWrapper == null) {
+			throw new IllegalArgumentException("Record required");
+		}
+		return new AuthorizationModificationRequest(authorizationId, recordWrapper.getCollection(), recordWrapper.getId());
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId, Record record) {

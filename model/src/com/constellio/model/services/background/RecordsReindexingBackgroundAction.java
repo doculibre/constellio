@@ -45,7 +45,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				if (!records.isEmpty()) {
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
-							.setOptimisticLockingResolution(EXCEPTION));
+							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true));
 					executeTransaction(transaction);
 				}
 			}

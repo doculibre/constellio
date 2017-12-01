@@ -21,6 +21,7 @@ public class UpgradeAppRecoveryConfigManager {
 
 	public UpgradeAppRecoveryConfigManager(ConfigManager configManager) {
 		this.configManager = configManager;
+		this.configManager.keepInCache(UPDATE_RECOVERY_CONFIG_PATH);
 		configManager.createPropertiesDocumentIfInexistent(UPDATE_RECOVERY_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
@@ -29,7 +30,8 @@ public class UpgradeAppRecoveryConfigManager {
 		});
 	}
 
-	public void onVersionUploadedCorrectly(final ConstellioVersionInfo currentInstalledVersion, final ConstellioVersionInfo uploadedVersion) {
+	public void onVersionUploadedCorrectly(final ConstellioVersionInfo currentInstalledVersion,
+			final ConstellioVersionInfo uploadedVersion) {
 		configManager.updateProperties(UPDATE_RECOVERY_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
@@ -48,7 +50,8 @@ public class UpgradeAppRecoveryConfigManager {
 			@Override
 			public void alter(Map<String, String> properties) {
 				properties.put(LAST_VALID_VERSION_PROPERTY, notNull(properties.get(LAST_UPLOADED_VERSION)));
-				properties.put(LAST_VALID_VERSION_DIRECTORY_PATH_PROPERTY, notNull(properties.get(LAST_UPLOADED_VERSION_DIRECTORY_PATH)));
+				properties.put(LAST_VALID_VERSION_DIRECTORY_PATH_PROPERTY,
+						notNull(properties.get(LAST_UPLOADED_VERSION_DIRECTORY_PATH)));
 				properties.put(LAST_VERSION_CAUSING_EXCEPTION_DIRECTORY_PATH_PROPERTY, "");
 				properties.put(UPGRADE_EXCEPTION_PROPERTY, "");
 			}
@@ -59,10 +62,11 @@ public class UpgradeAppRecoveryConfigManager {
 		configManager.updateProperties(UPDATE_RECOVERY_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.put(LAST_VERSION_CAUSING_EXCEPTION_DIRECTORY_PATH_PROPERTY, notNull(properties.get(LAST_UPLOADED_VERSION_DIRECTORY_PATH)));
-				if(t == null){
+				properties.put(LAST_VERSION_CAUSING_EXCEPTION_DIRECTORY_PATH_PROPERTY,
+						notNull(properties.get(LAST_UPLOADED_VERSION_DIRECTORY_PATH)));
+				if (t == null) {
 					properties.put(UPGRADE_EXCEPTION_PROPERTY, "");
-				}else{
+				} else {
 					properties.put(UPGRADE_EXCEPTION_PROPERTY, ExceptionUtils.getStackTrace(t));
 				}
 			}

@@ -1,5 +1,14 @@
 package com.constellio.app.ui;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
+import java.io.File;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -9,9 +18,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.tools.AuthorizationReportBuilder;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -23,12 +34,6 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 @UiTest
 @MainTest
@@ -80,6 +85,8 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			}
 		});
 
+		System.out.println(new AuthorizationReportBuilder().build(getAppLayerFactory()));
+
 	}
 
 	@Test
@@ -89,6 +96,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		setup();
+
+		MetadataNetwork network = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getMetadataNetwork();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();

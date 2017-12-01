@@ -12,6 +12,8 @@ import java.util.Map;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.services.records.RecordUtils;
+import com.jgoodies.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -60,12 +62,26 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private String parentId;
 	private String workflowId;
 	private TaskToVOBuilder voBuilder = new TaskToVOBuilder();
+	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
+	private TaskDecisionField field;
+	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	List<String> finishedOrClosedStatuses;
+
+	boolean inclusideDecision = false;
+	boolean exclusiveDecision = false;
 
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
 		initTransientObjects();
+		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
+		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection,appLayerFactory);
+	}
+
+	private List<String> getFinishedOrClosedStatuses() {
+		return new RecordUtils().toWrappedRecordIdsList(tasksSchemasRecordsServices.getFinishedOrClosedStatuses());
 	}
 
 	@Override
@@ -75,7 +91,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasWriteAccess().on(restrictedRecord);
+		boolean isTerminatedOrClosed = finishedOrClosedStatuses.contains(tasksSchemasRecordsServices.wrapTask(restrictedRecord).getStatus());
+		return user.hasWriteAccess().on(restrictedRecord) && !isTerminatedOrClosed;
 	}
 
 	@Override
@@ -119,13 +136,35 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
+
+
 	public void saveButtonClicked(RecordVO recordVO) {
 		if (recordVO == null) {
 			return;
 		}
+		Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
 
 		try {
-			Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+
+			if(isEditMode() && finishedOrClosedStatuses.contains(task.getStatus())) {
+				if (inclusideDecision) {
+					List<String> decisionList = listAddRemoveWorkflowInclusiveDecision.getValue();
+					if(decisionList == null && decisionList.size() <= 0) {
+						view.showErrorMessage($("AddEditTaskPresenter.error.decision"));
+						return ;
+					}
+				}
+
+				if(exclusiveDecision && finishedOrClosedStatuses.contains(task.getStatus())) {
+					String decision = field.getFieldValue();
+
+					if(decision == null && Strings.isBlank(decision)) {
+						view.showErrorMessage($("AddEditTaskPresenter.error.decision"));
+						return;
+					}
+				}
+			}
+
 			if (completeMode && tasksSchemas.isRequestTask(task)) {
 				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
@@ -213,7 +252,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustDecisionField() {
-		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
+		field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
 
 		if (field != null) {
 			try {
@@ -228,13 +267,18 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				}
 
 
-				if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
+				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
 					field.setVisible(false);
 					return;
+				} else {
+					exclusiveDecision = true;
+					field.setVisible(true);
+
+					if(completeMode) {
+						field.setRequired(true);
+					}
 				}
 
-				field.setRequired(true);
-				field.setVisible(true);
 				for (String code : task.getNextTasksDecisionsCodes()) {
 					field.addItem(code);
 				}
@@ -246,7 +290,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustInclusiveDecisionField() {
-		ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
+		listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
 
 		if(listAddRemoveWorkflowInclusiveDecision != null) {
 
@@ -261,13 +305,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					isInclusiveDecision = true;
 				}
 
-			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
+			if (!task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
 					listAddRemoveWorkflowInclusiveDecision.setVisible(false);
 					return;
+			} else {
+					listAddRemoveWorkflowInclusiveDecision.setVisible(true);
+					inclusideDecision = true;
+					if(completeMode) {
+						listAddRemoveWorkflowInclusiveDecision.setRequired(true);
+					}
 			}
-
-			listAddRemoveWorkflowInclusiveDecision.setRequired(true);
-			listAddRemoveWorkflowInclusiveDecision.setVisible(true);
 
 			for (String code : task.getNextTasksDecisionsCodes()) {
 				listAddRemoveWorkflowInclusiveDecision.addItem(code);

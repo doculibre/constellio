@@ -5,6 +5,13 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.LocalDate.now;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.model.services.records.RecordServicesException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -245,6 +252,27 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 
+	}
+
+	@Test
+	public void givenDocumentInNonCompletedAndNotDeletedTaskThenCannotDelete() throws RecordServicesException {
+		Document document = rm.newDocument().setFolder(records.getFolder_A03()).setTitle("ze title");
+		recordServices.add(document);
+
+		Task task = rm.newRMTask().setLinkedDocuments(asList(document.getId())).setTitle("Task");
+		recordServices.add(task);
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+
+		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
+		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 	}
 
 	@Test

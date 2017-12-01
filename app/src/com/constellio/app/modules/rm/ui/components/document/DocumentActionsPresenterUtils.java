@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -67,6 +69,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
 	private transient ModelLayerCollectionExtensions extensions;
+	private transient LoggingServices loggingServices;
 
 	public DocumentActionsPresenterUtils(T actionsComponent) {
 		this.actionsComponent = actionsComponent;
@@ -75,6 +78,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		SessionContext sessionContext = actionsComponent.getSessionContext();
 		presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(presenterUtils.modelLayerFactory());
+		loggingServices = new LoggingServices(getModelLayerFactory());
 
 		initTransientObjects();
 	}
@@ -154,6 +158,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.isDeleteBlocked(currentDocument(), getCurrentUser());
 	}
 
+	protected boolean isDeleteDocumentPossibleExtensively() {
+		return isDeleteDocumentPossible() && presenterUtils.recordServices().isLogicallyDeletable(currentDocument(), getCurrentUser());
+	}
+
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
@@ -193,7 +201,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked() {
-		if (isDeleteDocumentPossible()) {
+		if (isDeleteDocumentPossibleExtensively()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
@@ -214,6 +222,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} else {
 				actionsComponent.navigate().to().recordsManagement();
 			}
+		} else {
+			actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
 		}
 	}
 
@@ -273,12 +283,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
-			actionsComponent.navigateTo().listObjectAccessAuthorizations(documentVO.getId());
+			actionsComponent.navigate().to().listObjectAccessAuthorizations(documentVO.getId());
 		}
 	}
 
 	public void shareDocumentButtonClicked() {
-		actionsComponent.navigateTo().shareContent(documentVO.getId());
+		actionsComponent.navigate().to().shareContent(documentVO.getId());
 	}
 
 	public void updateWindowClosed() {
@@ -421,6 +431,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 				updateActionsComponent();
 				String newMajorVersion = content.getCurrentVersion().getVersion();
+				loggingServices.finalizeDocument(record, getCurrentUser());
 				actionsComponent.showMessage($("DocumentActionsComponent.finalizedVersion", newMajorVersion));
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
@@ -446,6 +457,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), sessionContext);
 				if (agentURL != null) {
 					actionsComponent.openAgentURL(agentURL);
+					loggingServices.openDocument(record, currentUser);
 				}
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
@@ -705,4 +717,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return new Document(record, presenterUtils.types()).isPublished();
 	}
 
+	public void logDownload(RecordVO recordVO) {
+		loggingServices.downloadDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
+
+	public void logOpenDocument(RecordVO recordVO) {
+		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
 }

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.menuBar;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +39,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Notification.Type;
 
 public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
@@ -118,6 +120,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				public void menuSelected(MenuItem selectedItem) {
 					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 					openAgentURL(agentURL);
+					presenter.logOpenDocument(recordVO);
 				}
 			});
 		}
@@ -131,6 +134,7 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
 					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 					Page.getCurrent().open(downloadedResource, null, false);
+					presenter.logDownload(recordVO);
 				}
 			});
 		}
@@ -278,7 +282,11 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 
 	@Override
 	public Navigation navigate() {
-		return ConstellioUI.getCurrent().navigate();
+		Navigation navigation = ConstellioUI.getCurrent().navigate();
+		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+			window.close();
+		}
+		return navigation;
 	}
 
 	@Override

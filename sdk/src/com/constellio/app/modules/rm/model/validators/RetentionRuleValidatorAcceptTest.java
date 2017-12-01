@@ -44,6 +44,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
@@ -108,23 +109,25 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		);
 		when(retentionRule.getDocumentTypesDetails()).thenReturn(retentionRuleDocumentTypes);
 		when(retentionRule.getWrappedRecord()).thenReturn(retentionRuleWrappedRecord);
-		
+
 		when(retentionRuleWrappedRecord.getSchemaCode()).thenReturn(RetentionRule.DEFAULT_SCHEMA);
 		when(copyOfRetentionRuleWrappedRecord.getSchemaCode()).thenReturn(RetentionRule.DEFAULT_SCHEMA);
-		
+
 		when(retentionRuleWrappedRecord.isSaved()).thenReturn(false);
 		when(retentionRuleWrappedRecord.getCopyOfOriginalRecord()).thenReturn(copyOfRetentionRuleWrappedRecord);
-		
+
 		when(configProvider.get(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED)).thenReturn(true);
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(false);
-		
+
 		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(0L);
-		
+
 		when(types.getSchemaType(Folder.SCHEMA_TYPE)).thenReturn(foldersSchemaType);
 		when(types.getSchemaType(Document.SCHEMA_TYPE)).thenReturn(documentsSchemaType);
-		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
-		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.DOCUMENT_COPY_RETENTION_RULES)).thenReturn(documentCopyRetentionRuleMetadata);
-		
+		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.COPY_RETENTION_RULES))
+				.thenReturn(copyRetentionRuleMetadata);
+		when(types.getMetadata(RetentionRule.DEFAULT_SCHEMA + "_" + RetentionRule.DOCUMENT_COPY_RETENTION_RULES))
+				.thenReturn(documentCopyRetentionRuleMetadata);
+
 		when(foldersSchemaType.getMetadata(Folder.MAIN_COPY_RULE)).thenReturn(folderMainCopyRuleRuleMetadata);
 		when(foldersSchemaType.getMetadata(Document.MAIN_COPY_RULE)).thenReturn(documentMainCopyRuleRuleMetadata);
 
@@ -164,6 +167,9 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		docCopy2_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		docCopy2_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(4));
 		docCopy2_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		when(copyRetentionRuleMetadata.getType()).thenReturn(MetadataValueType.STRUCTURE);
+		when(documentCopyRetentionRuleMetadata.getType()).thenReturn(MetadataValueType.STRUCTURE);
 	}
 
 	@Test
@@ -865,43 +871,6 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		when(retentionRule.getDocumentTypesDetails()).thenReturn(new ArrayList<RetentionRuleDocumentType>());
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(copy1_numericPrincipal);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(copy2_secondary);
-	}
-	
-	@Test
-	public void givenSavedRetentionRuleWithDeletedCopyRuleWhenFoldersLinkedThenValidationError() {
-		when(retentionRuleWrappedRecord.isSaved()).thenReturn(true);
-		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(1L);
-		
-		when(types.getMetadata(RetentionRule.SCHEMA_TYPE + "_" + RetentionRule.COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
-		when(types.getMetadata(RetentionRule.SCHEMA_TYPE + "_" + RetentionRule.DOCUMENT_COPY_RETENTION_RULES)).thenReturn(documentCopyRetentionRuleMetadata);
-		
-		List<Object> originalCopyRetentionRules = new ArrayList<>();
-		originalCopyRetentionRules.addAll(Arrays.asList(copy0_analogicPrincipal, copy1_numericPrincipal, copy2_secondary));
-		
-		List<Object> originalDocumentCopyRetentionRules = new ArrayList<>();
-		originalDocumentCopyRetentionRules.addAll(Arrays.asList(docCopy1_principal, docCopy2_principal));
-		
-		when(copyOfRetentionRuleWrappedRecord.getList(copyRetentionRuleMetadata)).thenReturn(originalCopyRetentionRules);
-		when(copyOfRetentionRuleWrappedRecord.getList(documentCopyRetentionRuleMetadata)).thenReturn(originalDocumentCopyRetentionRules);
-		
-		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy0_analogicPrincipal, copy2_secondary));
-		when(retentionRule.getDocumentCopyRetentionRules()).thenReturn(Arrays.asList(docCopy1_principal));
-		
-		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
-
-		verify(searchServices, times(2)).getResultsCount(any(LogicalSearchQuery.class));
-		
-		assertThat(errors.getValidationErrors().size()).isEqualTo(2);
-	}
-	
-	@Test
-	public void givenSavedRetentionRuleWhenNoDeletedCopyRuleThenNoSearch() {
-		when(retentionRuleWrappedRecord.isSaved()).thenReturn(true);
-		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(1L);
-		
-		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
-		
-		verify(searchServices, never()).getResultsCount(any(LogicalSearchQuery.class));
 	}
 
 	private Condition<? super ValidationErrors> copyRetentionRuleFieldRequiredError(String index, String field) {

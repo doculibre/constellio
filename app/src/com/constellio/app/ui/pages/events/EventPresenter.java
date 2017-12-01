@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -38,6 +39,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -245,11 +248,21 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	}
 
 	public void recordLinkClicked(RecordVO eventVO) {
+		Map<String, Object> params = new HashMap<>();
 
 		if(EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory))
 		{
+			Record linkedRecord = recordServices().getDocumentById(eventVO.getId());
+			if(Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+				String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+						.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+				params.put("schemaType", schemaTypeLabel);
+				final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
+				view.showErrorMessage(errorMessage);
+				return;
+			}
 			try {
-			view.navigate().to(RMViews.class).displayDocument(eventVO.getId());
+				view.navigate().to(RMViews.class).displayDocument(eventVO.getId());
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				return;
 			}
@@ -260,6 +273,16 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			try {
 				Record linkedRecord = recordServices().getDocumentById(eventId);
 				String linkedRecordId = linkedRecord.getId();
+
+				if(Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+					String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+							.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+					params.put("schemaType", schemaTypeLabel);
+					final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
+					view.showErrorMessage(errorMessage);
+					return;
+				}
+
 				if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
 					view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
 				} else if (getEventType().contains("folder")) {

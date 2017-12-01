@@ -109,6 +109,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			searchID = parts[1];
 			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
+			updateUIContext(search);
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();
@@ -177,15 +178,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchExpression;
 	}
 
-	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value, String schemaType) {
+	public void batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(selectedRecordIds);
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
+		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
+		BatchProcess process = manager.addBatchProcessInStandby(query, action, username, "userBatchProcess");
 		manager.markAsPending(process);
 	}
 

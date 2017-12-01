@@ -1,12 +1,39 @@
 package com.constellio.model.services.schemas.xml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataNetwork;
+import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
@@ -15,16 +42,6 @@ import com.constellio.model.services.records.extractions.MetadataPopulatorPersis
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 public class MetadataSchemaXMLWriter3 {
 
@@ -128,6 +145,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (schemaType.isReadOnlyLocked()) {
 			schemaTypeElement.setAttribute("readOnlyLocked", writeBoolean(schemaType.isReadOnlyLocked()));
 		}
+
+		if (schemaType.getSmallCode() != null) {
+			schemaTypeElement.setAttribute("smallCode", schemaType.getSmallCode());
+		}
+
 		schemaTypeElement.setAttribute("inTransactionLog", writeBoolean(schemaType.isInTransactionLog()));
 		writeDefaultSchema(schemaType, schemaTypeElement, collectionSchema);
 		writeCustomSchemas(schemaType, schemaTypeElement, collectionSchema);
@@ -622,10 +644,12 @@ public class MetadataSchemaXMLWriter3 {
 			AggregatedDataEntry agregatedDataEntry = (AggregatedDataEntry) dataEntryValue;
 			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().getCode());
 			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
-			if (agregatedDataEntry.getInputMetadata() != null) {
-				dataEntry.setAttribute("inputMetadata", agregatedDataEntry.getInputMetadata());
+
+			if (agregatedDataEntry.getInputMetadatas() != null && !agregatedDataEntry.getInputMetadatas().isEmpty()) {
+				String inputMetadatasStr = StringUtils.join(agregatedDataEntry.getInputMetadatas(), ",");
+				dataEntry.setAttribute("inputMetadata", inputMetadatasStr);
 			}
-			if(agregatedDataEntry.getAggregatedCalculator() != null) {
+			if (agregatedDataEntry.getAggregatedCalculator() != null) {
 				dataEntry.setAttribute("aggregatedCalculator", agregatedDataEntry.getAggregatedCalculator().getName());
 			}
 		}

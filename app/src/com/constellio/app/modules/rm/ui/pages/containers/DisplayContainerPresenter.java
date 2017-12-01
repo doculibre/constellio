@@ -145,10 +145,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		try {
 			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 			recordServices().logicallyDelete(container.getWrappedRecord(), getCurrentUser());
+			view.navigate().to(CoreViews.class).home();
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
-		view.navigate().to(CoreViews.class).home();
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
@@ -313,6 +313,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			recordServices().update(containerRecord);
 		} catch (RecordServicesException e) {
 			view.showErrorMessage("Could not update report creation time");
+			e.printStackTrace();
 		}
 	}
 

@@ -58,6 +58,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				searchID = parts[1];
 				SavedSearch search = getSavedSearch(searchID);
 				setSavedSearch(search);
+				updateUIContext(search);
 			} else {
 				searchID = null;
 				resultsViewMode = SearchResultsViewMode.DETAILED;

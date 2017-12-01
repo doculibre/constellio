@@ -1,7 +1,6 @@
 package com.constellio.data.dao.services.bigVault;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.LazyIterator;
 
@@ -103,15 +101,4 @@ public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T>
 		currentNumFound = responseDTO.getNumFound();
 	}
 
-	public static class LazyRecordDTOResultsIterator extends LazyResultsIterator<RecordDTO> {
-
-		public LazyRecordDTOResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength) {
-			super(recordDao, solrParams, intervalsLength);
-		}
-
-		@Override
-		public RecordDTO convert(RecordDTO recordDTO) {
-			return recordDTO;
-		}
-	}
 }

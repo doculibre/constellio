@@ -564,6 +564,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			isShowUnique = presenter.isShowUniqueComboBox();
 		}
 
+		if(!isShowUnique) {
+			uniqueField.setCaption(uniqueField.getCaption() + " " + $("AddEditMetadataView.containNonUniqueValueAlready"));
+		}
+
 		if(!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
 			uniqueField.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
 			uniqueField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING);

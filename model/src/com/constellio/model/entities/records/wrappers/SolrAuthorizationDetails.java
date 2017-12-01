@@ -1,13 +1,13 @@
 package com.constellio.model.entities.records.wrappers;
 
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
-
-import org.joda.time.LocalDate;
-
-import java.util.List;
 
 /**
  * Created by Constellio on 2016-12-21.
@@ -20,6 +20,8 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String START_DATE = "startDate";
 	public static final String END_DATE = "endDate";
 	public static final String TARGET = "target";
+	public static final String TARGET_SCHEMA_TYPE = "targetSchemaType";
+	public static final String LAST_TOKEN_RECALCULATE = "lastTokenRecalculate";
 	public static final String SYNCED = "synced";
 
 	public SolrAuthorizationDetails(Record record,
@@ -61,6 +63,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return this;
 	}
 
+	public LocalDate getLastTokenRecalculate() {
+		return get(LAST_TOKEN_RECALCULATE);
+	}
+
+	public SolrAuthorizationDetails setLastTokenRecalculate(LocalDate lastTokenRecalculate) {
+		set(LAST_TOKEN_RECALCULATE, lastTokenRecalculate);
+		return this;
+	}
+
 	@Override
 	public LocalDate getEndDate() {
 		return get(END_DATE);
@@ -68,6 +79,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 
 	public SolrAuthorizationDetails setEndDate(LocalDate endDate) {
 		set(END_DATE, endDate);
+		return this;
+	}
+
+	public String getTargetSchemaType() {
+		return get(TARGET_SCHEMA_TYPE);
+	}
+
+	public SolrAuthorizationDetails setTargetSchemaType(String targetSchemaType) {
+		set(TARGET_SCHEMA_TYPE, targetSchemaType);
 		return this;
 	}
 
@@ -103,20 +123,43 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 
 	@Override
 	public boolean isActiveAuthorization() {
-		LocalDate now = TimeProvider.getLocalDate();
+		return isActiveAuthorizationAtDate(TimeProvider.getLocalDate());
+	}
+
+	private boolean isActiveAuthorizationAtDate(LocalDate date) {
 		LocalDate startDate = getStartDate();
 		LocalDate endDate = getEndDate();
 		if (startDate != null && endDate == null) {
-			return !startDate.isAfter(now);
+			return !startDate.isAfter(date);
 
 		} else if (startDate == null && endDate != null) {
-			return !endDate.isBefore(now);
+			return !endDate.isBefore(date);
 
 		} else if (startDate != null && endDate != null) {
-			return !startDate.isAfter(now) && !endDate.isBefore(now);
+			return !startDate.isAfter(date) && !endDate.isBefore(date);
 
 		} else {
 			return true;
+		}
+	}
+
+	public boolean hasModifiedStatusSinceLastTokenRecalculate() {
+		if (getStartDate() != null || getEndDate() != null) {
+
+			if (getLastTokenRecalculate() == null) {
+				return true;
+
+			} else {
+
+				boolean wasActiveDuringLastRecalculate = isActiveAuthorizationAtDate(getLastTokenRecalculate());
+				boolean isCurrentlyActive = isActiveAuthorization();
+
+				return wasActiveDuringLastRecalculate != isCurrentlyActive;
+
+			}
+
+		} else {
+			return false;
 		}
 	}
 }

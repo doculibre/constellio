@@ -5,26 +5,22 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
-import org.joda.time.LocalTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
-
 
 	AtomicInteger counter = new AtomicInteger();
 	AtomicInteger counter2 = new AtomicInteger();
@@ -42,7 +38,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	@After
 	public void tearDown() {
-		if(backgroundThreadsManager != null) {
+		if (backgroundThreadsManager != null) {
 			backgroundThreadsManager.close();
 		}
 	}
@@ -92,24 +88,24 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
+	public void whenConfiguringAThreadToExecuteTwoActionOf2SecondsEvery3SecondsThenWait2SecondsBetweenRuns()
 			throws Exception {
 
-		Runnable threadAction = spy(new TestSleepingRunnable(50, counter));
-		Runnable threadAction2 = spy(new TestCountRunnable(50, counter2));
+		Runnable threadAction = spy(new TestSleepingRunnable(2000, counter));
+		Runnable threadAction2 = spy(new TestSleepingRunnable(2000, counter2));
 
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration
 				.repeatingAction("action1", threadAction).executedEvery(
-				Duration.standardSeconds(1)));
+						Duration.standardSeconds(1)));
 
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration
 				.repeatingAction("action2", threadAction2).executedEvery(
-				Duration.standardSeconds(2)));
+						Duration.standardSeconds(2)));
 
 		Thread.sleep(5000);
 
-		assertThat(counter.get()).isBetween(4, 6);
-		assertThat(counter2.get()).isBetween(3, 4);
+		assertThat(counter.get()).isBetween(2, 3);
+		assertThat(counter2.get()).isBetween(2, 3);
 		backgroundThreadsManager.close();
 
 		Thread.sleep(2000);
@@ -232,7 +228,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 			System.out.println("Run!");
 			int currentNumber = 0;
 
-			for(int i = 0; i < to; i++) {
+			for (int i = 0; i < to; i++) {
 				currentNumber++;
 			}
 

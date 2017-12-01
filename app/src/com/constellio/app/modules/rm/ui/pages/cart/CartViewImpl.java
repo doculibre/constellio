@@ -11,7 +11,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
@@ -43,12 +42,11 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -139,7 +137,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				getConstellioFactories().getAppLayerFactory(),
 				getSessionContext().getCurrentCollection()
 		);
-		labelsButton.setElementsWithIds(presenter.getRecordsIds(schemaType), schemaType, getSessionContext());
+		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;
@@ -247,62 +245,70 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), getConstellioFactories().getAppLayerFactory(), getCollection(), true);
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext());
 		List<RecordVO> allRecords = new ArrayList<>();
-		allRecords.addAll(presenter.getCartFoldersVO());
-		allRecords.addAll(presenter.getCartDocumentVO());
+		allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
+		allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
 		reportGeneratorButton.setRecordVoList(allRecords.toArray(new RecordVO[0]));
 		return reportGeneratorButton;
 	}
 
-		private Button buildDecommissionButton() {
-			WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
+	private Button buildDecommissionButton() {
+		WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
 
-				@Override
-				public void buttonClick(ClickEvent event) {
-					if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
-						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
-					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
-						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
-					} else if (presenter.isAnyFolderBorrowed()) {
-						showErrorMessage($("CartView.aFolderIsBorrowed"));
-					} else if (presenter.isAnyFolderInDecommissioningList()) {
-						showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
-					} else {
-						super.buttonClick(event);
-					}
+			@Override
+			public void buttonClick(ClickEvent event) {
+				if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
+					showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
+				} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
+					showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+				} else if (presenter.isAnyFolderBorrowed()) {
+					showErrorMessage($("CartView.aFolderIsBorrowed"));
+				} else if (presenter.isAnyFolderInDecommissioningList()) {
+					showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
+				} else {
+					super.buttonClick(event);
 				}
+			}
 
-				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout layout = new VerticalLayout();
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
 
-					final BaseTextField titleField = new BaseTextField($("title"));
-					layout.addComponent(titleField);
+				final BaseTextField titleField = new BaseTextField($("title"));
+				layout.addComponent(titleField);
 
-					final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
-					decomTypeField.removeAllItems();
-					decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
-					decomTypeField.setCaption($("CartView.decommissioningTypeField"));
-					layout.addComponent(decomTypeField);
+				final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
+				decomTypeField.removeAllItems();
+				decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
+				decomTypeField.setCaption($("CartView.decommissioningTypeField"));
+				layout.addComponent(decomTypeField);
 
-					BaseButton saveButton = new BaseButton($("save")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
-							getWindow().close();
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						if(StringUtils.isBlank(titleField.getValue())) {
+							showErrorMessage($("CartView.decommissioningListIsMissingTitle"));
+							return;
 						}
-					};
-					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-					layout.addComponent(saveButton);
-					layout.setSpacing(true);
-					return layout;
-				}
-			};
-			windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
-			windowButton.setVisible(!presenter.getCartFolders().isEmpty());
-			return windowButton;
-		}
+						if(decomTypeField.getValue() == null) {
+							showErrorMessage($("CartView.decommissioningListIsMissingType"));
+							return;
+						}
+						presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				layout.addComponent(saveButton);
+				layout.setSpacing(true);
+				return layout;
+			}
+		};
+		windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
+		windowButton.setVisible(!presenter.getCartFolders().isEmpty());
+		return windowButton;
+	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -448,10 +454,27 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchDeleteButton() {
-		Button button = new DeleteButton(false) {
+		Button button = new DeleteWithJustificationButton(false) {
 			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deletionRequested();
+			protected void deletionConfirmed(String reason) {
+				presenter.deletionRequested(reason);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				List<String> cartFolderIds = presenter.getCartFolderIds();
+				List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+				StringBuilder stringBuilder = new StringBuilder();
+				String prefix = "";
+				if(cartFolderIds != null && !cartFolderIds.isEmpty()) {
+					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+					prefix = " " + $("CartView.andAll") + " ";
+				}
+				if(cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+				}
+				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 			}
 		};
 		button.setEnabled(presenter.canDelete());
@@ -497,7 +520,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Button buildCreateSIPArchivesButton(){
 		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
-		siPbutton.setAllObject(presenter.getCartFoldersVO().toArray(new FolderVO[0]));
+		siPbutton.setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
 		return siPbutton;
 	}
 
@@ -525,7 +548,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 		@Override
 		public List<String> getSelectedRecordIds() {
-			return presenter.getRecordsIds(schemaType);
+			return presenter.getNotDeletedRecordsIds(schemaType);
 		}
 
 		@Override

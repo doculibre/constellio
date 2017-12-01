@@ -54,6 +54,7 @@ public class RecordImpl implements Record {
 
 	protected final Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private String schemaCode;
+	private String schemaTypeCode;
 	private final String collection;
 	private final String id;
 	private long version;
@@ -76,6 +77,7 @@ public class RecordImpl implements Record {
 
 		this.id = id;
 		this.schemaCode = schemaCode;
+		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
 		this.followers = new ArrayList<String>();
@@ -111,6 +113,7 @@ public class RecordImpl implements Record {
 			this.followers = new ArrayList<>();
 		}
 		this.recordDTO = recordDTO;
+		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
 	}
 
 	public boolean isFullyLoaded() {
@@ -489,7 +492,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getTypeCode() {
-		return SchemaUtils.getSchemaTypeCode(schemaCode);
+		return schemaTypeCode;
 	}
 
 	public RecordDTO getRecordDTO() {
@@ -752,12 +755,16 @@ public class RecordImpl implements Record {
 					Object initialValue = recordDTO.getFields().get(entry.getKey());
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
-					if (LangUtils.areNullableEqual(currentValue, modifiedValue)) {
+					if (LangUtils.areNullableEqual(currentValue, modifiedValue)
+							|| (currentValue == null && isEmptyList(modifiedValue))
+							|| (modifiedValue == null && isEmptyList(currentValue))) {
 						//Both transactions made the same change on that field
 						removedKeys.add(entry.getKey());
 					} else {
 
-						if (!LangUtils.areNullableEqual(currentValue, initialValue)) {
+						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
+								|| (currentValue == null && isEmptyList(initialValue))
+								|| (initialValue == null && isEmptyList(currentValue)))) {
 							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}

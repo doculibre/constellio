@@ -1,38 +1,43 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.SearchConfigurationsManager;
-import com.constellio.model.services.users.CredentialUserPermissionChecker;
-import com.google.common.base.Strings;
-import com.vaadin.ui.*;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.users.CredentialUserPermissionChecker;
+import com.google.common.base.Strings;
 import com.vaadin.shared.ui.label.ContentMode;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 
 public class SearchResultDisplay extends VerticalLayout {
 	public static final String RECORD_STYLE = "search-result-record";
@@ -58,12 +63,13 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	String query;
 
-	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+			AppLayerFactory appLayerFactory, String query) {
 		this.appLayerFactory = appLayerFactory;
-		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(), getAppLayerFactory().getModelLayerFactory());
+		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
+				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
-
 
 		this.sessionContext = getCurrent().getSessionContext();
 		init(searchResultVO, componentFactory);
@@ -81,7 +87,6 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-
 		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
 		title.addStyleName(TITLE_STYLE);
 		title.setWidthUndefined();
@@ -92,16 +97,19 @@ public class SearchResultDisplay extends VerticalLayout {
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
 
-
 		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
 		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
 
-		if(!Strings.isNullOrEmpty(query) && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-
+		if (!Strings.isNullOrEmpty(query)
+				&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
+				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
+						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
+		{
 			exclude = new LinkButton($(EXCLUSION)) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if(event.getButton().getCaption().equals($(EXCLUSION))) {
+					if (event.getButton().getCaption().equals($(EXCLUSION))) {
 						event.getButton().setCaption($(UNEXCLUSION));
 						raise.setCaption($(ELEVATION));
 						searchConfigurationsManager.setElevated(query, recordFromRecordVO, true);
@@ -113,14 +121,14 @@ public class SearchResultDisplay extends VerticalLayout {
 			};
 
 			String elevatedText = ($(ELEVATION));
-			if(isElevated) {
+			if (isElevated) {
 				elevatedText = $(UNELEVATION);
 			}
 
 			raise = new LinkButton(elevatedText) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if(event.getButton().getCaption().equals($(ELEVATION))){
+					if (event.getButton().getCaption().equals($(ELEVATION))) {
 						event.getButton().setCaption($(UNELEVATION));
 						exclude.setCaption($(EXCLUSION));
 						searchConfigurationsManager.setElevated(query, recordFromRecordVO, false);
@@ -133,9 +141,9 @@ public class SearchResultDisplay extends VerticalLayout {
 
 			horizontalLayout.addComponent(exclude, 1);
 			horizontalLayout.addComponent(raise, 2);
-			horizontalLayout.setComponentAlignment(exclude,Alignment.TOP_LEFT);
+			horizontalLayout.setComponentAlignment(exclude, Alignment.TOP_LEFT);
 			horizontalLayout.setComponentAlignment(raise, Alignment.TOP_LEFT);
-			horizontalLayout.setExpandRatio(exclude,1);
+			horizontalLayout.setExpandRatio(exclude, 1);
 			horizontalLayout.setExpandRatio(raise, 1);
 			horizontalLayout.setSpacing(true);
 		}
@@ -170,17 +178,17 @@ public class SearchResultDisplay extends VerticalLayout {
 		SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> highlightedDateStoreCodes = new ArrayList<>();
-		for(Metadata metadata: schema.getMetadatas()) {
-			if(displayManager.getMetadata(currentCollection, metadata.getCode()).isHighlight()) {
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (displayManager.getMetadata(currentCollection, metadata.getCode()).isHighlight()) {
 				highlightedDateStoreCodes.add(metadata.getDataStoreCode());
-				for(String language: collectionLanguages) {
+				for (String language : collectionLanguages) {
 					highlightedDateStoreCodes.add(metadata.getAnalyzedField(language).getDataStoreCode());
 				}
 			}
 		}
 		List<String> parts = new ArrayList<>(highlights.size());
-		for(Map.Entry<String, List<String>> entry : highlights.entrySet()) {
-			if(highlightedDateStoreCodes.contains(entry.getKey())) {
+		for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
+			if (highlightedDateStoreCodes.contains(entry.getKey())) {
 				parts.add(StringUtils.join(entry.getValue(), SEPARATOR));
 			}
 		}

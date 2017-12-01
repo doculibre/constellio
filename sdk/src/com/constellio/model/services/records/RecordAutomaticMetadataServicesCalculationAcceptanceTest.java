@@ -56,9 +56,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 
 		record = new TestRecord(zeSchema);
 
-		services = new RecordAutomaticMetadataServices(getModelLayerFactory().getMetadataSchemasManager(),
-				getModelLayerFactory().getTaxonomiesManager(), getModelLayerFactory().getSystemConfigurationsManager(),
-				getModelLayerFactory().getModelLayerLogger(), getModelLayerFactory().newSearchServices());
+		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		recordProvider = recordServices.newRecordProvider(null, new Transaction());
@@ -76,7 +74,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(2.0);
 	}
@@ -88,7 +86,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithJan1DateValue));
 		record.set(zeSchema.dateTimeMetadata(), asList(jan1, jan2));
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(1.0);
 	}
@@ -100,7 +98,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithoutDateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(-1.0);
 	}
@@ -112,7 +110,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), null);
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(-1.0);
 	}
@@ -125,7 +123,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();
 
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.get()).isEqualTo(1);
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(2.0);
@@ -141,7 +139,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		add();
 
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan2DateValue);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.get()).isEqualTo(2);
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(1.0);
@@ -156,7 +154,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		add();
 
 		record.set(zeSchema.dateTimeMetadata(), jan2);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.get()).isEqualTo(2);
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(1.0);
@@ -171,7 +169,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		add();
 
 		record.set(zeSchema.secondReferenceToAnotherSchema(), null);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.get()).isEqualTo(1);
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(-1.0);
@@ -188,7 +186,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		add();
 
 		record.set(zeSchema.dateTimeMetadata(), null);
-		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, options);
+		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, new Transaction(options));
 
 		assertThat(DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.get()).isEqualTo(1);
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(-1.0);

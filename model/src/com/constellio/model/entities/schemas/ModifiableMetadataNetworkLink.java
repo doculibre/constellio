@@ -12,14 +12,37 @@ public class ModifiableMetadataNetworkLink {
 	 */
 	Metadata toMetadata;
 
+	/**
+	 * Metadata used by 'fromMetadata'
+	 */
+	Metadata refMetadata;
+
 	int level;
+
+	MetadataNetworkLinkType linkType;
 
 	//	int toNetworkLevel;
 
-	public ModifiableMetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, int level) {
+	boolean mustBeOdd;
+	boolean mustBeEven;
+
+	public ModifiableMetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, Metadata refMetadata,
+			MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
 		this.fromMetadata = fromMetadata;
 		this.toMetadata = toMetadata;
-		this.level = level;
+		this.refMetadata = refMetadata;
+		this.linkType = linkType;
+		this.mustBeOdd = mustBeOdd;
+		this.mustBeEven = mustBeEven;
+		this.level = 0;
+	}
+
+	public boolean isMustBeOdd() {
+		return mustBeOdd;
+	}
+
+	public boolean isMustBeEven() {
+		return mustBeEven;
 	}
 
 	public Metadata getFromMetadata() {
@@ -40,12 +63,30 @@ public class ModifiableMetadataNetworkLink {
 		return this;
 	}
 
+	public Metadata getRefMetadata() {
+		return refMetadata;
+	}
+
+	public ModifiableMetadataNetworkLink setRefMetadata(Metadata refMetadata) {
+		this.refMetadata = refMetadata;
+		return this;
+	}
+
 	public int getLevel() {
 		return level;
 	}
 
 	public ModifiableMetadataNetworkLink setLevel(int level) {
 		this.level = level;
+		return this;
+	}
+
+	public MetadataNetworkLinkType getLinkType() {
+		return linkType;
+	}
+
+	public ModifiableMetadataNetworkLink setLinkType(MetadataNetworkLinkType linkType) {
+		this.linkType = linkType;
 		return this;
 	}
 

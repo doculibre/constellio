@@ -25,6 +25,8 @@ import org.springframework.util.CollectionUtils;
 
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
@@ -253,23 +255,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public List<Capsule> getCapsuleForCurrentSearch() {
 		List<Capsule> correspondingCapsules = new ArrayList<>();
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
-				appLayerFactory.getModelLayerFactory());
-		if (StringUtils.isNotEmpty(getUserSearchExpression())) {
-			String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
-			String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
-			String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
-			MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
-			//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-			//TODO Check for a more efficient way to fix this.
-			LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
-			List<Capsule> allCapsules = schemasRecordsServices
-					.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
+					appLayerFactory.getModelLayerFactory());
+			if (StringUtils.isNotEmpty(getUserSearchExpression())) {
+				String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
+				String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
+				String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
+				MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+						.getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
+				//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
+				//TODO Check for a more efficient way to fix this.
+				LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
 
-			for (Capsule capsule : allCapsules) {
-				if (CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
-					correspondingCapsules.add(capsule);
+				List<Capsule> allCapsules = schemasRecordsServices
+						.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
+
+				for (Capsule capsule : allCapsules) {
+					if (CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
+						correspondingCapsules.add(capsule);
+					}
 				}
 			}
 		}
@@ -559,9 +564,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) && (!isTextOrString
-						|| isTextOrString && metadata.isSearchable() || Schemas.PATH.getLocalCode()
-						.equals(metadata.getLocalCode()))) {
+				if (config.isVisibleInAdvancedSearch() &&
+						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}

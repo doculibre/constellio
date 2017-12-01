@@ -105,7 +105,7 @@ public class CartEmailService {
 			for (String currentDocumentId : documentsIds) {
 				try {
 					Document document = rm.getDocument(currentDocumentId);
-					if (document.getContent() != null) {
+					if (document.getContent() != null && !document.isLogicallyDeletedStatus()) {
 						MessageAttachment contentFile = createAttachment(document.getContent());
 						returnList.add(contentFile);
 					}

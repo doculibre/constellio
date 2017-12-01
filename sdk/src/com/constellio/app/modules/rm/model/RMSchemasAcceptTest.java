@@ -23,4 +23,5 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 				"statusId_s", "description_s", "description_t", "mimetype_s", "migrationDataVersion_d"
 		);
 	}
+
 }

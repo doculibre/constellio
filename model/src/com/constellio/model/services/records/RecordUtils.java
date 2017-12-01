@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -15,8 +17,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -37,6 +43,14 @@ public class RecordUtils {
 
 	public RecordUtils() {
 		schemaUtils = newSchemaUtils();
+	}
+
+	public static void removeMetadataValuesOn(List<Metadata> metadatas, Record record) {
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
+				record.set(metadata, null);
+			}
+		}
 	}
 
 	public static long estimateRecordSize(Record record) {
@@ -559,21 +573,45 @@ public class RecordUtils {
 				}
 			}
 
+			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema userSchema = types.getSchema(User.DEFAULT_SCHEMA);
+
+				if (record.isModified(userSchema.getMetadata(User.COLLECTION_READ_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.COLLECTION_WRITE_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))
+						|| record.isModified(userSchema.getMetadata(User.GROUPS))) {
+					cache.invalidateUser(record.<String>get(userSchema.getMetadata(User.USERNAME)));
+				}
+			}
+
+			if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema groupSchema = types.getSchema(Group.DEFAULT_SCHEMA);
+
+				if (record.isModified(groupSchema.getMetadata(Group.PARENT))) {
+					cache.invalidateAll();
+				}
+			}
+
 		}
-		for (String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
+		for (
+				String idWithPossibleNewChildren : idsWithPossibleNewChildren)
+
+		{
 			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
 		}
-		for (String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
+		for (
+				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren)
+
+		{
 			cache.invalidateWithChildren(idWithPossibleNewChildren);
 		}
+
 	}
 
 	public static Set<String> getHierarchyIdsTo(Record record, ModelLayerFactory modelLayerFactory) {
 		List<String> ids = getHierarchyIdsTo(record.getId(),
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection()),
 				new RecordProvider(modelLayerFactory.newRecordServices()));
-
-
 
 		return new HashSet<>(ids);
 	}
@@ -599,5 +637,48 @@ public class RecordUtils {
 
 		}
 		return ids;
+	}
+
+	public static <T> List<T> getNewAndRemovedValues(Record record, Metadata metadata) {
+
+		List<T> values = new ArrayList<>();
+
+		if (record.isSaved()) {
+
+			if (record.isModified(metadata)) {
+				Record originalRecord = record.getCopyOfOriginalRecord();
+				if (metadata.isMultivalue()) {
+					List<T> previousValues = originalRecord.getList(metadata);
+					List<T> newValues = record.getList(metadata);
+
+					ListComparisonResults<T> comparisonResults = LangUtils.compare(previousValues, newValues);
+					values.addAll(previousValues);
+					values.addAll(newValues);
+
+				} else {
+					T previousValue = originalRecord.get(metadata);
+					T newValue = record.get(metadata);
+					if (previousValue != null) {
+						values.add(previousValue);
+					}
+					if (newValue != null) {
+						values.add(newValue);
+					}
+				}
+			}
+		} else {
+			if (metadata.isMultivalue()) {
+				values.addAll(record.<T>getList(metadata));
+
+			} else {
+				T newValue = record.get(metadata);
+				if (newValue != null) {
+					values.add(newValue);
+				}
+			}
+		}
+
+		return values;
+
 	}
 }

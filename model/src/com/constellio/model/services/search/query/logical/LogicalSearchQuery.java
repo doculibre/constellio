@@ -25,6 +25,7 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.security.SecurityTokenManager;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
@@ -137,6 +138,12 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
+	public LogicalSearchQuery filteredWith(UserFilter userFilter) {
+		userFilters = asList(userFilter);
+		return this;
+	}
+
+	@Override
 	public LogicalSearchQuery filteredWithUser(User user) {
 		return filteredWithUser(user, Role.READ);
 	}
@@ -149,7 +156,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		if (accessOrPermission == null) {
 			throw new IllegalArgumentException("access/permission required");
 		}
-		userFilters = asList(new UserFilter(user, accessOrPermission));
+		userFilters = asList((UserFilter) new DefaultUserFilter(user, accessOrPermission));
 		return this;
 	}
 
@@ -164,7 +171,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		userFilters = new ArrayList<>();
 		for (String accessOrPermission : accessOrPermissions) {
-			userFilters.add(new UserFilter(user, accessOrPermission));
+			userFilters.add(new DefaultUserFilter(user, accessOrPermission));
 		}
 
 		return this;
@@ -486,11 +493,15 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public static class UserFilter {
+	public interface UserFilter {
+		String buildFQ(SecurityTokenManager securityTokenManager);
+	}
+
+	public static class DefaultUserFilter implements UserFilter {
 		private final User user;
 		private final String access;
 
-		public UserFilter(User user, String access) {
+		public DefaultUserFilter(User user, String access) {
 			this.user = user;
 			this.access = access;
 		}
@@ -501,6 +512,25 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		public String getAccess() {
 			return access;
+		}
+
+		public String buildFQ(SecurityTokenManager securityTokenManager) {
+			String filter;
+			switch (access) {
+			case Role.READ:
+				filter = FilterUtils.userReadFilter(user, securityTokenManager);
+				break;
+			case Role.WRITE:
+				filter = FilterUtils.userWriteFilter(user, securityTokenManager);
+				break;
+			case Role.DELETE:
+				filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
+				break;
+			default:
+				filter = FilterUtils.permissionFilter(user, access);
+			}
+
+			return filter;
 		}
 	}
 

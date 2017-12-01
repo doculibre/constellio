@@ -18,11 +18,13 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -101,13 +103,18 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     @Override
     public void addAvailableActions(AvailableActionsParam param) {
+        UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+        boolean hasAccessToSIP = userServices.getUserInCollection(param.getUser().getUsername(), collection)
+                .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
         addMoveButton(param);
         addDuplicateButton(param);
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
-        addSIPbutton(param);
+        if(hasAccessToSIP) {
+            addSIPbutton(param);
+        }
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -208,8 +215,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
+                appLayerFactory, collection, true, param.getView().getSessionContext());
         tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
@@ -218,7 +226,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
+        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
         SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
         setStyles(tabButton);
         tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
@@ -385,7 +393,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
                             if(isCheckInPossible(param, id)) {
                                 RecordVO documentVo = recordToVOBuilder.build(appLayerFactory.getModelLayerFactory().newRecordServices()
-                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, getSessionContext());
+                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, param.getView().getSessionContext());
                                 records.put(documentVo, documentVo.getMetadata(Document.CONTENT));
                             }
                         }
@@ -399,7 +407,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                                 super.close();
                                 if(!this.isCancel()) {
                                     if (numberOfRecords != param.getIds().size()) {
-                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn",
+                                                numberOfRecords, param.getIds().size()));
                                     } else {
                                         RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
                                     }
@@ -458,10 +467,6 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         ((VerticalLayout) param.getComponent()).addComponent(button);
     }
 
-    protected SessionContext getSessionContext() {
-        return ConstellioUI.getCurrentSessionContext();
-    }
-
     private DecommissioningService decommissioningService(AvailableActionsParam param) {
         return new DecommissioningService(param.getUser().getCollection(), appLayerFactory);
     }
@@ -516,8 +521,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             recordServices.add(newFolder);
                             break;
                         case Document.SCHEMA_TYPE:
-                            Document newDocument = rmSchemas.newDocument();
-                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            Document oldDocument = rmSchemas.wrapDocument(record);
+                            Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
+                            for (Metadata metadata: oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
                             if (newDocument.getContent() != null) {
@@ -844,12 +850,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return defaultAdministrativeUnit;
     }
 
-    private List<RecordVO> getRecordVOFromIds(List<String> ids) {
+    private List<RecordVO> getRecordVOFromIds(List<String> ids, AvailableActionsParam param) {
         List<RecordVO> recordVOS = new ArrayList<>();
         RecordServices recordServices = recordServices();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         for(String id : ids) {
-            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, param.getView().getSessionContext()));
         }
         return recordVOS;
     }

@@ -1,7 +1,7 @@
 package com.constellio.app.api.cmis.accept;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
@@ -45,13 +45,17 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -125,6 +129,12 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			}
 		});
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
+
+		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
 		userServices.addUserToCollection(users.alice(), zeCollection);
 		userServices.addUserToCollection(users.bob(), zeCollection);
@@ -214,41 +224,6 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			assertThat(e.getMessage())
 					.isEqualTo("L'utilisateur bob n'a pas de droit en lecture sur l'enregistrement folder1_doc1 - folder1_doc1");
 		}
-
-	}
-
-	@Test
-	public void givenRecordAsAuthOnALeafRecordThenCanCallGetChildrenAndGetParentsOnNodeLeadingToIt()
-			throws Exception {
-
-		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
-				.on(zeCollectionRecords.folder1_doc1).givingReadAccess(), users.adminIn(zeCollection));
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
-		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
-		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
-		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
-		assertThatChildren("zetaxo1_category1").containsOnly("folder1", "folder2");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
-		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2", "zetaxo2_unit1_1");
-		assertThatChildren("zetaxo2_station2").containsOnly("folder1", "zetaxo2_station2_1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		session = newCMISSessionAsUserInZeCollection(robin);
-		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
-		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
-		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
-		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
-		assertThatChildren("zetaxo1_category1").containsOnly("folder1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
-
-		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
-		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2");
-		assertThatChildren("zetaxo2_station2").containsOnly("folder1");
-		assertThatChildren("folder1").containsOnly("folder1_doc1");
 
 	}
 
@@ -674,15 +649,20 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenMovingFolderInFolderWithoutParentWriteAuthorizationThenGoodErrorMessage()
-			throws RecordServicesException {
+			throws Exception {
 
 		session = newCMISSessionAsUserInZeCollection(admin);
 		Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
 		oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
+
 		Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
 		movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
+
 		Folder newParent = cmisFolder(zeCollectionRecords.folder1);
 		newParent.addAcl(asList(ace(bobGratton, R), ace(charles, R)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
 
 		Record record = zeCollectionRecords.folder2_2;
 		String newParentID = zeCollectionRecords.folder1.getId();

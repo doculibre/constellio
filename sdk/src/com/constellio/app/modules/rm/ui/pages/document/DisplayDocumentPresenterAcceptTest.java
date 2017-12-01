@@ -88,7 +88,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		when(displayDocumentView.navigateTo()).thenReturn(navigator);
 		when(displayDocumentView.getUIContext()).thenReturn(uiContext);
 
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
 	}
 
 	@Test
@@ -235,21 +235,21 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
 	}
 
 	private void connectAsSasquatch() {
 		sessionContext = FakeSessionContext.sasquatchInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
 	}
 
 	private void connectAsAlice() {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
 	}
 
 	@Test
@@ -351,7 +351,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
 	}
 
 	//

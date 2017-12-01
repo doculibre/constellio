@@ -33,6 +33,7 @@ public class MetadataSchemaTypeBuilder {
 	private static final String UNDERSCORE = "_";
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
 	private String code;
+	private String smallCode;
 	private String collection;
 	private Map<Language, String> labels;
 	private boolean security = true;
@@ -78,6 +79,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.readOnlyLocked = schemaType.isReadOnlyLocked();
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
+		builder.smallCode = schemaType.getSmallCode();
 		builder.collection = schemaType.getCollection();
 		builder.setLabels(schemaType.getLabels());
 		builder.undeletable = schemaType.isUndeletable();
@@ -119,6 +121,10 @@ public class MetadataSchemaTypeBuilder {
 	public MetadataSchemaTypeBuilder addLabel(Language language, String label) {
 		this.labels.put(language, label);
 		return this;
+	}
+
+	public MetadataBuilder createMetadata(String localCode) {
+		return getDefaultSchema().create(localCode);
 	}
 
 	public MetadataSchemaBuilder getDefaultSchema() {
@@ -211,7 +217,8 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, collection, labels, schemas, defaultSchema, undeletable, security, inTransactionLog,
+		return new MetadataSchemaType(code, smallCode, collection, labels, schemas, defaultSchema, undeletable, security,
+				inTransactionLog,
 				readOnlyLocked);
 	}
 
@@ -283,6 +290,11 @@ public class MetadataSchemaTypeBuilder {
 
 	public MetadataSchemaTypeBuilder setSecurity(boolean security) {
 		this.security = security;
+		return this;
+	}
+
+	public MetadataSchemaTypeBuilder setSmallCode(String smallCode) {
+		this.smallCode = smallCode;
 		return this;
 	}
 

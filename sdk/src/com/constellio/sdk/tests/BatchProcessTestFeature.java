@@ -36,6 +36,7 @@ public class BatchProcessTestFeature {
 			batchProcessesManager.waitUntilAllFinished();
 		}
 		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
+		batchProcesses.addAll(batchProcessesManager.getFinishedBatchProcesses());
 
 		//		batchProcessesManager.waitUntilAllFinished();
 

@@ -53,7 +53,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
-
+		configManager.keepInCache(BATCH_PROCESS_LIST_PATH);
 	}
 
 	@Override
@@ -123,20 +123,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
-		String collection = logicalQuery.getCondition().getCollection();
-		String id = newBatchProcessId();
-
-		ModifiableSolrParams params = searchServices.addSolrModifiableParams(logicalQuery);
-		String solrQuery = SolrUtils.toSingleQueryString(params);
-
-		LocalDateTime requestDateTime = getCurrentTime();
-
-		long recordsCount = searchServices.getResultsCount(logicalQuery);
-		updateBatchProcesses(
-				newAddBatchProcessDocumentAlteration(id, solrQuery, collection, requestDateTime, (int) recordsCount, action, null,
-						title));
-
-		return (RecordBatchProcess) newBatchProcessListReader(getProcessListXMLDocument()).read(id);
+		return  addBatchProcessInStandby(logicalQuery, action, null, title);
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
@@ -155,6 +142,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		String collection = logicalQuery.getCondition().getCollection();
 		String id = newBatchProcessId();
 
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ModifiableSolrParams params = searchServices.addSolrModifiableParams(logicalQuery);
 		String solrQuery = SolrUtils.toSingleQueryString(params);
 
@@ -240,7 +228,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				List<String> records = getRecords(batchProcess);
 				LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER)
 						.isIn(records);
-				ModifiableSolrParams params = searchServices.addSolrModifiableParams(new LogicalSearchQuery(condition));
+				ModifiableSolrParams params = modelLayerFactory.newSearchServices().addSolrModifiableParams(new LogicalSearchQuery(condition));
 				String query = SolrUtils.toSingleQueryString(params);
 				batchProcess = recordBatchProcess.withQuery(query);
 			}
@@ -307,6 +295,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	XMLConfiguration getProcessListXMLConfiguration() {
+
 		XMLConfiguration config = configManager.getXML(BATCH_PROCESS_LIST_PATH);
 		if (config == null) {
 			saveEmptyProcessListXMLDocument();
@@ -483,6 +472,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			RecordsReindexingBackgroundAction recordsReindexingBackgroundAction = modelLayerFactory
 					.getModelLayerBackgroundThreadsManager().getRecordsReindexingBackgroundAction();
 
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			if (recordsReindexingBackgroundAction != null && ReindexingServices.getReindexingInfos() == null) {
 				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())) {
 					recordsReindexingBackgroundAction.run();
@@ -511,7 +501,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		});
 	}
 
-	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement, final int errorsIncrement) {
+	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement,
+			final int errorsIncrement) {
 		configManager.updateXML(BATCH_PROCESS_LIST_PATH, new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {

@@ -34,16 +34,10 @@ public abstract class ConstellioJob implements Job {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-	DataLayerFactory dataLayerFactory;
-
-	public ConstellioJob(DataLayerFactory dataLayerFactory) {
-		this.dataLayerFactory = dataLayerFactory;
-	}
-
 	@Override
 	public final void execute(JobExecutionContext context)
 			throws JobExecutionException {
-		if (dataLayerFactory.getLeaderElectionService().isCurrentNodeLeader()) {
+		if (DataLayerFactory.getLastCreatedInstance().getLeaderElectionService().isCurrentNodeLeader()) {
 			final JobKey jobKey = context.getJobDetail().getKey();
 
 			try {

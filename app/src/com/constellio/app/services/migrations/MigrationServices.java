@@ -45,7 +45,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 public class MigrationServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MigrationServices.class);
-	private static final String VERSION_PROPERTIES_FILE = "/version.properties";
+	public static final String VERSION_PROPERTIES_FILE = "/version.properties";
 
 	ConfigManager configManager;
 	ConstellioEIM constellioEIM;
@@ -225,7 +225,7 @@ public class MigrationServices {
 						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 
 					if (firstMigration) {
-						ensureSchemasHaveCommonMetadata(collection);
+						ensureSchemasHaveCommonMetadata(collection,0);
 						firstMigration = false;
 					}
 
@@ -310,14 +310,18 @@ public class MigrationServices {
 
 	}
 
-	private void ensureSchemasHaveCommonMetadata(String collection) {
+	private void ensureSchemasHaveCommonMetadata(String collection, int attempt) {
 		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(collection);
 		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
 		try {
 			manager.saveUpdateSchemaTypes(types);
 		} catch (OptimisticLocking e) {
-			ensureSchemasHaveCommonMetadata(collection);
+			if (attempt == 10) {
+				throw new RuntimeException(e);
+			} else {
+				ensureSchemasHaveCommonMetadata(collection, attempt + 1);
+			}
 		}
 	}
 

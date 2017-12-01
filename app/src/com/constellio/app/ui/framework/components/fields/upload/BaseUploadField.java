@@ -43,10 +43,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	private boolean isViewOnly;
 
-	private boolean haveDeleteButton;
-
-	public BaseUploadField()
-	{
+	public BaseUploadField() {
 		this(true, false);
 	}
 
@@ -56,8 +53,6 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		this.isViewOnly = isViewOnly;
 
 		setSizeFull();
-
-		this.haveDeleteButton = haveDeleteButton;
 
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
@@ -138,12 +133,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer());
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 
-		if (haveDeleteButton)
-		{
-				fileUploadsContainer.addButton(new ContainerButton() {
+		if (haveDeleteButton){
+			fileUploadsContainer.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-
 					DeleteButton deleteButton = new DeleteButton() {
 						@SuppressWarnings("unchecked")
 						@Override

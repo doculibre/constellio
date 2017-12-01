@@ -2,7 +2,8 @@ package com.constellio.model.services.background;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.*;
+import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardSeconds;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -11,7 +12,6 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.event.EventService;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.joda.time.Duration;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
@@ -19,6 +19,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	BackgroundThreadsManager backgroundThreadsManager;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
+	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	EventService eventService;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
@@ -47,10 +48,16 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 				temporaryRecordsDeletionBackgroundAction)
 				.executedEvery(standardHours(12)).handlingExceptionWith(CONTINUE));
 
-		//Will be enabled in version 7.6
-//		eventService = new EventService(modelLayerFactory);
-//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
-//		).executedEvery(Duration.standardHours(3)).handlingExceptionWith(CONTINUE));
+		authorizationWithTimeRangeTokenUpdateBackgroundAction = new AuthorizationWithTimeRangeTokenUpdateBackgroundAction(
+				modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("authorizationWithTimeRangeTokenUpdateBackgroundAction",
+				authorizationWithTimeRangeTokenUpdateBackgroundAction)
+				.executedEvery(standardHours(6)).handlingExceptionWith(CONTINUE));
+
+		//Disabled for the moment
+		//		eventService = new EventService(modelLayerFactory);
+		//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService
+		//		).executedEvery(Duration.standardHours(3)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override
@@ -68,5 +75,9 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public void configureBackgroundThreadConfiguration(BackgroundThreadConfiguration configuration) {
 		backgroundThreadsManager.configure(configuration);
+	}
+
+	public AuthorizationWithTimeRangeTokenUpdateBackgroundAction getAuthorizationWithTimeRangeTokenUpdateBackgroundAction() {
+		return authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	}
 }

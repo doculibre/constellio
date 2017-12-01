@@ -48,6 +48,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -66,6 +67,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public static final String TASKS_RECENTLY_COMPLETED = "recentlyCompletedTasks";
 	public static final String WORKFLOWS_STARTED = "startedWorkflows";
 
+	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
 	private transient TasksSearchServices tasksSearchServices;
 	private transient TaskPresenterServices taskPresenterServices;
 	private transient BetaWorkflowServices workflowServices;
@@ -74,6 +76,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
 		initTransientObjects();
+		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -106,6 +109,10 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getSelectedTab());
 			appCollectionExtentions.updateComponent(params);
 		}
+	}
+
+	private List<String> getFinishedOrClosedStatuses() {
+		return new RecordUtils().toWrappedRecordIdsList(tasksSchemasRecordsServices.getFinishedOrClosedStatuses());
 	}
 
 	public void addTaskButtonClicked() {
@@ -170,7 +177,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
-		return taskPresenterServices.isEditTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+		Record record = toRecord(recordVO);
+		Task  task = tasksSchemasRecordsServices.wrapTask(record);
+		String closed = task.getStatus();
+		boolean isNotEditable = !getFinishedOrClosedStatuses().contains(closed);
+		return isNotEditable && taskPresenterServices.isEditTaskButtonVisible(record, getCurrentUser());
 	}
 
 	@Override
