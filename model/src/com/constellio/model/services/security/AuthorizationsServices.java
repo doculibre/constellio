@@ -649,10 +649,7 @@ public class AuthorizationsServices {
 		List<String> authIds;
 		if (User.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 
-			Metadata allUserAuthorizations = schemasManager.getSchemaTypes(record.getCollection()).getSchema(User.DEFAULT_SCHEMA)
-					.getMetadata(User.ALL_USER_AUTHORIZATIONS);
-
-			authIds = record.getList(allUserAuthorizations);
+			authIds = schemas(record.getCollection()).wrapUser(record).getAllUserAuthorizations();
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			authIds = record.getList(Schemas.ALL_AUTHORIZATIONS);
