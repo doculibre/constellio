@@ -359,22 +359,22 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
-//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
-//
-//		for (String id : hierarchyIds) {
-//			if (newAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
-//			}
-//			if (removedAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
-//			}
-//			//Temporary fix, there will be a better one in the next release
-//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
-//			}
-//		}
-//	}
+	//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+	//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+	//
+	//		for (String id : hierarchyIds) {
+	//			if (newAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+	//			}
+	//			if (removedAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+	//			}
+	//			//Temporary fix, there will be a better one in the next release
+	//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+	//			}
+	//		}
+	//	}
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
@@ -744,7 +744,7 @@ public class AuthorizationsServices {
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,
-			boolean includeRecords, MetadataSchemasManager schemasManager) {
+			boolean includeRecords, List<Record> recordsHierarchy, MetadataSchemasManager schemasManager) {
 		if (user == User.GOD) {
 			return true;
 		}
@@ -755,33 +755,33 @@ public class AuthorizationsServices {
 		int numberOfRecordsWithUser = 0;
 
 		LogicalSearchCondition condition;
-		if (!includeRecords) {
-			for (String schemaType : principalTaxonomy.getSchemaTypes()) {
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				condition = from(schemasManager.getSchemaTypes(user.getCollection()).getSchemaType(schemaType))
-						.where(Schemas.PATH).isStartingWithText(paths.get(0)).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
-						.isFalseOrNull();
-				query.setCondition(condition);
-				numberOfRecords += searchServices.searchRecordIds(query).size();
-				query.filteredWithUserDelete(user);
-				numberOfRecordsWithUser += searchServices.searchRecordIds(query).size();
-			}
-			return numberOfRecords == numberOfRecordsWithUser;
-		} else {
-			return hasPermissionOnHierarchy(user, principalTaxonomyConcept, false);
-		}
+		//		if (!includeRecords) {
+		//			for (String schemaType : principalTaxonomy.getSchemaTypes()) {
+		//				LogicalSearchQuery query = new LogicalSearchQuery();
+		//				condition = from(schemasManager.getSchemaTypes(user.getCollection()).getSchemaType(schemaType))
+		//						.where(Schemas.PATH).isStartingWithText(paths.get(0)).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
+		//						.isFalseOrNull();
+		//				query.setCondition(condition);
+		//				numberOfRecords += searchServices.searchRecordIds(query).size();
+		//				//query.filteredWithUserDelete(user);
+		//				numberOfRecordsWithUser += searchServices.searchRecordIds(query).size();
+		//			}
+		//			return numberOfRecords == numberOfRecordsWithUser;
+		//		} else {
+		return hasPermissionOnHierarchy(user, principalTaxonomyConcept, recordsHierarchy, false);
+		//		}
 	}
 
-	public boolean hasDeletePermissionOnHierarchy(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, false);
+	public boolean hasDeletePermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, false);
 	}
 
-	public boolean hasRestaurationPermissionOnHierarchy(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, true);
+	public boolean hasRestaurationPermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, true);
 	}
 
-	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, null);
+	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, null);
 	}
 
 	/**
@@ -995,7 +995,7 @@ public class AuthorizationsServices {
 		return user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 	}
 
-	private boolean hasPermissionOnHierarchy(User user, Record record, Boolean deleted) {
+	private boolean hasPermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy, Boolean deleted) {
 
 		if (user == User.GOD || user.hasCollectionDeleteAccess()) {
 			return true;
@@ -1006,23 +1006,44 @@ public class AuthorizationsServices {
 			return canDelete(user, record);
 		}
 
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition condition;
-		if (deleted == null) {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0));
+		for (Record aHierarchyRecord : recordsHierarchy) {
+			if (!user.hasDeleteAccess().on(aHierarchyRecord)) {
+				return false;
+			}
 
-		} else if (deleted) {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
-		} else {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+			if (deleted != null) {
+				Boolean logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+				if (deleted) {
+					if (!Boolean.TRUE.equals(logicallyDeletedStatus)) {
+						return false;
+					}
+
+				} else {
+					if (Boolean.TRUE.equals(logicallyDeletedStatus)) {
+						return false;
+					}
+				}
+			}
 		}
-		query.setCondition(condition);
-		int numberOfRecords = searchServices.searchRecordIds(query).size();
-		query.filteredWithUserDelete(user);
-		int numberOfRecordsWithUser = searchServices.searchRecordIds(query).size();
-		return (numberOfRecords == numberOfRecordsWithUser && numberOfRecords != 0);
+
+		return true;
+		//		LogicalSearchQuery query = new LogicalSearchQuery();
+		//		LogicalSearchCondition condition;
+		//		if (deleted == null) {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0));
+		//
+		//		} else if (deleted) {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
+		//					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+		//		} else {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
+		//					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		//		}
+		//		query.setCondition(condition);
+		//		int numberOfRecords = searchServices.searchRecordIds(query).size();
+		//		query.filteredWithUserDelete(user);
+		//		int numberOfRecordsWithUser = searchServices.searchRecordIds(query).size();
+		//		return (numberOfRecords == numberOfRecordsWithUser && numberOfRecords != 0);
 	}
 
 	private void validateRecordIsAPrincipalTaxonomyConcept(Record principalTaxonomyConcept, List<String> paths,

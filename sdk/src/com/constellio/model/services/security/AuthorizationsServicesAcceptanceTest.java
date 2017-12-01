@@ -1627,6 +1627,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	//Deprecated, remove services and this test
 	public void givenUserWithDeletePermissionOnPrincipalConceptButNotOnSomeRecordsThenCanOnlyDeleteConceptIfExcludingRecords()
 			throws Exception {
 

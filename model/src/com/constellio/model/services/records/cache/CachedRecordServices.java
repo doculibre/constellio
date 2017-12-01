@@ -268,18 +268,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record,
-			User user) {
-		return recordServices.isPrincipalConceptLogicallyDeletableExcludingContent(record, user);
-	}
-
-	@Override
-	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record,
-			User user) {
-		return recordServices.isPrincipalConceptLogicallyDeletableIncludingContent(record, user);
-	}
-
-	@Override
 	public void logicallyDelete(Record record,
 			User user) {
 		recordServices.logicallyDelete(record, user);

@@ -1235,11 +1235,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user);
+		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user,
+				newRecordDeleteServices().loadRecordsHierarchyOf(record));
 	}
 
 	public boolean isReferencedByOtherRecords(Record record) {
-		return newRecordDeleteServices().isReferencedByOtherRecords(record);
+		return newRecordDeleteServices().isReferencedByOtherRecords(record,
+				newRecordDeleteServices().loadRecordsHierarchyOf(record));
 	}
 
 	private void validateNotTooMuchRecords(Transaction transaction) {

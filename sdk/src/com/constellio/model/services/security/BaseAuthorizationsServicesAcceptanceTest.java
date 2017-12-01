@@ -53,6 +53,7 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -291,25 +292,38 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		public BooleanAssert assertHasDeletePermissionOnPrincipalConceptExcludingRecords(
 				String id) {
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, false, schemasManager));
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
+			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, false,
+					recordDeleteServices.loadRecordsHierarchyOf(record), schemasManager));
 		}
 
 		public BooleanAssert assertHasDeletePermissionOnPrincipalConceptIncludingRecords(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, true, schemasManager));
+			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, true,
+					recordDeleteServices.loadRecordsHierarchyOf(record), schemasManager));
+
 		}
 
 		public BooleanAssert assertHasRestorePermissionOnHierarchyOf(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasRestaurationPermissionOnHierarchy(getUser(), record));
+			return assertThat(services.hasRestaurationPermissionOnHierarchy(getUser(), record,
+					recordDeleteServices.loadRecordsHierarchyOf(record)));
 		}
 
 		public BooleanAssert assertHasDeletePermissionOnHierarchyOf(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnHierarchy(getUser(), record));
+			return assertThat(services.hasDeletePermissionOnHierarchy(getUser(), record,
+					recordDeleteServices.loadRecordsHierarchyOf(record)));
 		}
 
 		public ListAssert<String> assertThatRecordsWithReadAccess() {
