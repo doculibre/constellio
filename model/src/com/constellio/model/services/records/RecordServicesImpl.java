@@ -408,6 +408,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
+		recordsCaches.insert(record);
 		return record;
 	}
 
