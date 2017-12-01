@@ -14,6 +14,8 @@ public abstract class UserPermissionsChecker {
 
 	public abstract boolean on(Record record);
 
+	public abstract boolean specificallyOn(Record record);
+
 	public abstract boolean onSomething();
 
 	public boolean on(RecordWrapper recordWrapper) {
