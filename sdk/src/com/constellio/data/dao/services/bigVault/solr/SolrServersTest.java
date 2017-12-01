@@ -6,6 +6,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +17,6 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
-
-import java.io.IOException;
 
 public class SolrServersTest extends ConstellioTest {
 
@@ -60,11 +60,12 @@ public class SolrServersTest extends ConstellioTest {
 		when(solrServerFactory.newSolrServer(anOtherCore)).thenReturn(anotherCoreFirstSolrServerInstance).thenReturn(
 				anotherCoreSecondSolrServerInstance);
 
-		solrServers = new SolrServers(solrServerFactory, bigVaultLogger, extensions);
+		solrServers = new SolrServers(solrServerFactory, bigVaultLogger, extensions, new MemoryBigVaultServerCache());
 	}
 
 	@Test
-	public void whenClosingThenClearSolrFactory() throws IOException {
+	public void whenClosingThenClearSolrFactory()
+			throws IOException {
 		solrServers.getSolrServer(aCore);
 		solrServers.getSolrServer(anOtherCore);
 		verify(aCoreFirstSolrServerInstance, never()).close();

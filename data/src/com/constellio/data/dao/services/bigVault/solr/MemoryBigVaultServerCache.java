@@ -14,8 +14,8 @@ public class MemoryBigVaultServerCache implements BigVaultServerCache {
 	Set<String> lockedIds = new HashSet<>();
 
 	@Override
-	public void insertRecordVersion(Map<String, Long> versions) {
-		for (Map.Entry<String, Long> entry : versions.entrySet()) {
+	public void insertRecordVersion(Map<String, Long> newVersions) {
+		for (Map.Entry<String, Long> entry : newVersions.entrySet()) {
 			Long vaultVersion = versions.get(entry.getKey());
 			if (vaultVersion == null || entry.getValue() > vaultVersion) {
 				versions.put(entry.getKey(), entry.getValue());
@@ -51,5 +51,10 @@ public class MemoryBigVaultServerCache implements BigVaultServerCache {
 	public synchronized void unlockWithNewVersions(Map<String, Long> newVersions) {
 		lockedIds.removeAll(newVersions.keySet());
 		versions.putAll(newVersions);
+	}
+
+	@Override
+	public void unlock(Set<String> recordsToUnlock) {
+		lockedIds.removeAll(recordsToUnlock);
 	}
 }

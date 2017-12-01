@@ -1,15 +1,20 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.retrieveDocumentVersions;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -45,6 +50,7 @@ import com.constellio.data.dao.services.solr.DateUtils;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.TimeProvider;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -68,13 +74,22 @@ public class BigVaultServer implements Cloneable {
 	private final List<BigVaultServerListener> listeners;
 	private final List<BigVaultServerTransaction> postponedTransactions = new ArrayList<>();
 
+	private final BigVaultServerCache cache;
+
+	LinkedBlockingQueue<BigVaultServerTransaction> pendingTransactions = new LinkedBlockingQueue();
+	private BigVaultServerTransactionCombinator currentTransactionCombinator;
+	private KeyListMap<String, TransactionResponseListener> responseListeners = new KeyListMap<>();
+
+	private boolean stopRequested;
+	private boolean stopped;
+
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
-			, DataLayerSystemExtensions extensions) {
-		this(name, bigVaultLogger, solrServerFactory, extensions, new ArrayList<BigVaultServerListener>());
+			, DataLayerSystemExtensions extensions, BigVaultServerCache cache) {
+		this(name, bigVaultLogger, solrServerFactory, extensions, new ArrayList<BigVaultServerListener>(), cache);
 	}
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
-			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
+			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners, BigVaultServerCache cache) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
@@ -82,6 +97,64 @@ public class BigVaultServer implements Cloneable {
 		this.name = name;
 		this.extensions = extensions;
 		this.listeners = listeners;
+		this.cache = cache;
+		this.currentTransactionCombinator = new BigVaultServerTransactionCombinator(10000);
+
+		new Thread() {
+			@Override
+			public void run() {
+
+				while (!stopRequested) {
+
+					while (!pendingTransactions.isEmpty()) {
+						BigVaultServerTransaction transaction = pendingTransactions.peek();
+
+						try {
+							TransactionResponseDTO transactionResponseDTO = executeTransaction(transaction);
+							for (TransactionResponseListener listener : responseListeners.get(transaction.getTransactionId())) {
+								listener.onTransactionExecuted(transactionResponseDTO);
+							}
+						} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
+							LOGGER.error("", couldNotExecuteQuery);
+							for (TransactionResponseListener listener : responseListeners
+									.get(transaction.getTransactionId())) {
+								listener.onTransactionFailed();
+							}
+							//throw new RuntimeException(couldNotExecuteQuery);
+						}
+
+					}
+
+					BigVaultServerTransaction transaction = null;
+					synchronized (currentTransactionCombinator) {
+						if (currentTransactionCombinator.hasData()) {
+							transaction = currentTransactionCombinator.combineAndClean();
+						}
+					}
+
+					if (transaction != null) {
+						try {
+							TransactionResponseDTO transactionResponseDTO = executeTransaction(transaction);
+							for (TransactionResponseListener listener : responseListeners
+									.get(transaction.getTransactionId())) {
+								listener.onTransactionExecuted(transactionResponseDTO);
+							}
+						} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
+							LOGGER.error("", couldNotExecuteQuery);
+							//throw new RuntimeException(couldNotExecuteQuery);
+							for (TransactionResponseListener listener : responseListeners
+									.get(transaction.getTransactionId())) {
+								listener.onTransactionFailed();
+							}
+						}
+					}
+
+				}
+
+				stopped = true;
+			}
+		}.start();
+
 	}
 
 	public void registerListener(BigVaultServerListener listener) {
@@ -144,7 +217,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
-			return server.getById(id);
+			return insertVersionsInCache(server.getById(id));
 		} catch (SolrServerException | IOException e) {
 			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + id, e);
 		}
@@ -155,7 +228,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
-			return server.getById(ids);
+			return insertVersionsInCache(server.getById(ids));
 		} catch (SolrServerException | IOException e) {
 			throw new BigVaultException.CouldNotExecuteQuery("realtime get of " + ids, e);
 		}
@@ -166,7 +239,7 @@ public class BigVaultServer implements Cloneable {
 			throws BigVaultException.CouldNotExecuteQuery {
 
 		try {
-			return server.query(params);
+			return insertVersionsInCache(server.query(params));
 		} catch (IOException | SolrServerException e) {
 			LOGGER.error("Error while querying solr server", e);
 			if (e.getCause() instanceof RemoteSolrException) {
@@ -185,6 +258,24 @@ public class BigVaultServer implements Cloneable {
 
 			return handleQueryException(params, currentAttempt, solrServerException);
 		}
+	}
+
+	private SolrDocument insertVersionsInCache(SolrDocument document) {
+		Map<String, Long> versions = retrieveDocumentVersions(document);
+		cache.insertRecordVersion(versions);
+		return document;
+	}
+
+	private List<SolrDocument> insertVersionsInCache(List<SolrDocument> documents) {
+		Map<String, Long> versions = retrieveDocumentVersions(documents);
+		cache.insertRecordVersion(versions);
+		return documents;
+	}
+
+	private QueryResponse insertVersionsInCache(QueryResponse response) {
+		Map<String, Long> versions = retrieveDocumentVersions(response);
+		cache.insertRecordVersion(versions);
+		return response;
 	}
 
 	private QueryResponse handleQueryException(SolrParams params, int currentAttempt, Exception solrServerException)
@@ -223,41 +314,101 @@ public class BigVaultServer implements Cloneable {
 
 	public TransactionResponseDTO addAll(BigVaultServerTransaction transaction)
 			throws BigVaultException {
+		long start = new Date().getTime();
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
 				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
 			}
 		}
-		int currentAttempt = 0;
-		long start = new Date().getTime();
-		TransactionResponseDTO response = tryAddAll(transaction, currentAttempt);
+
+		BigVaultServerCacheValidationResponse response = cache.validateVersionsAndLock(getRecordsToLock(transaction));
+		if (!response.keysWithBadVersionAndTheirExpectedVersion.isEmpty()) {
+			Entry<String, Long> entry = response.keysWithBadVersionAndTheirExpectedVersion.entrySet().iterator().next();
+			throw new BigVaultException.OptimisticLocking(entry.getKey(), entry.getValue());
+		}
+
+		if (!response.lockedKeys.isEmpty()) {
+			String aLockedKey = response.lockedKeys.iterator().next();
+			throw new BigVaultException.OptimisticLocking(aLockedKey, 42L);
+		}
+
+		TransactionResponseListener listener;
+		synchronized (currentTransactionCombinator) {
+			if (!currentTransactionCombinator.canCombineWith(transaction)) {
+				try {
+					pendingTransactions.put(currentTransactionCombinator.combineAndClean());
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			currentTransactionCombinator.combineWith(transaction);
+			listener = new TransactionResponseListener();
+			responseListeners.add(currentTransactionCombinator.transactionId, listener);
+		}
+
+		TransactionResponseDTO transactionResponseDTO = listener.getResponseDTO();
+
+		if (transactionResponseDTO == null) {
+			throw new BigVaultException.CouldNotExecuteUpdate();
+		}
+
 		long end = new Date().getTime();
+
+		TransactionResponseDTO trimmed = transactionResponseDTO.trimFrom(transaction);
 		extensions.afterUpdate(transaction, end - start);
-		for (BigVaultServerListener listener : this.listeners) {
-			if (listener instanceof BigVaultServerAddEditListener) {
-				((BigVaultServerAddEditListener) listener).afterAdd(transaction, response);
+		for (BigVaultServerListener aListener : this.listeners) {
+			if (aListener instanceof BigVaultServerAddEditListener) {
+				((BigVaultServerAddEditListener) aListener).afterAdd(transaction, trimmed);
 			}
 		}
-		return response;
+
+		return trimmed;
 	}
 
-	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
-			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
+	private Map<String, Long> getRecordsToLock(BigVaultServerTransaction transaction) {
+		Map<String, Long> values = new HashMap<>();
+
+		for (SolrInputDocument document : transaction.getNewDocuments()) {
+			String id = (String) document.getFieldValue("id");
+			Long version = (Long) document.getFieldValue("_version_");
+			if (version != null) {
+				values.put(id, version);
+			}
+		}
+
+		for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
+			String id = (String) document.getFieldValue("id");
+			Long version = (Long) document.getFieldValue("_version_");
+			if (version != null) {
+				values.put(id, version);
+			}
+		}
+
+		return values;
+
+	}
+
+	private TransactionResponseDTO executeTransaction(BigVaultServerTransaction transaction)
+			throws BigVaultException.CouldNotExecuteQuery {
+
+		TransactionResponseDTO response = null;
 		if (!transaction.getUpdatedDocuments().isEmpty() || !transaction.getNewDocuments().isEmpty()
 				|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
 			try {
-				return addAndCommit(transaction);
-
+				response = addAndCommit(transaction);
+				cache.unlockWithNewVersions(response.getNewDocumentVersions());
 			} catch (RemoteSolrException | RouteException solrServerException) {
 				int code = getExceptionCode(solrServerException);
-				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
+				cache.unlock(getLockedIds(transaction));
+				handleRemoteSolrExceptionWhileAddingRecords(transaction, 1, solrServerException, code);
 
 			} catch (SolrServerException | IOException e) {
+				cache.unlock(getLockedIds(transaction));
 				if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
 					RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
 					int code = getExceptionCode(remoteSolrException);
-					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException,
-							code);
+
+					handleRemoteSolrExceptionWhileAddingRecords(transaction, 1, remoteSolrException, code);
 				}
 
 				StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
@@ -279,8 +430,25 @@ public class BigVaultServer implements Cloneable {
 						e);
 			}
 		} else {
-			return new TransactionResponseDTO(0, new HashMap<String, Long>());
+			response = new TransactionResponseDTO(0, new HashMap<String, Long>());
 		}
+
+		return response;
+
+	}
+
+	private Set<String> getLockedIds(BigVaultServerTransaction transaction) {
+		Set<String> ids = new HashSet<>();
+		for (SolrInputDocument solrInputDocument : transaction.getNewDocuments()) {
+			ids.add((String) solrInputDocument.getFieldValue("id"));
+		}
+
+		for (SolrInputDocument solrInputDocument : transaction.getUpdatedDocuments()) {
+			ids.add((String) solrInputDocument.getFieldValue("id"));
+		}
+
+		ids.addAll(transaction.getDeletedRecords());
+		return ids;
 	}
 
 	private int getExceptionCode(Throwable e) {
@@ -293,27 +461,17 @@ public class BigVaultServer implements Cloneable {
 		}
 	}
 
-	private TransactionResponseDTO handleRemoteSolrExceptionWhileAddingRecords(BigVaultServerTransaction transaction,
+	private void handleRemoteSolrExceptionWhileAddingRecords(BigVaultServerTransaction transaction,
 			int currentAttempt, Exception exception, int code)
-			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
-		if (code == HTTP_ERROR_409_CONFLICT) {
-			return handleOptimisticLockingException(exception);
-
-		} else if (code == HTTP_ERROR_400_BAD_REQUEST) {
+			throws BigVaultException.CouldNotExecuteQuery {
+		if (code == HTTP_ERROR_400_BAD_REQUEST) {
 			throw new BigVaultRuntimeException.BadRequest(transaction, exception);
-
-			//Solrcloud return an error 500 for updates with conflicts
-		} else if (code == HTTP_ERROR_500_INTERNAL && isRouteExceptionVersionConflict(exception)) {
-			return handleOptimisticLockingException(exception);
 
 		} else if (code == HTTP_ERROR_500_INTERNAL) {
 			throw new SolrInternalError(transaction, exception);
 
 		} else {
-			LOGGER.warn("Solr thrown an unexpected exception, while handling addAll. Retrying in {} milliseconds...",
-					waitedMillisecondsBetweenAttempts, exception);
-			sleepBeforeRetrying(exception);
-			return retryAddAll(transaction, currentAttempt + 1, exception);
+			throw new SolrInternalError(transaction, exception);
 		}
 	}
 
@@ -325,17 +483,17 @@ public class BigVaultServer implements Cloneable {
 
 	private TransactionResponseDTO retryAddAll(BigVaultServerTransaction transaction, int currentAttempt, Exception e)
 			throws CouldNotExecuteQuery, OptimisticLocking {
-		if (currentAttempt < maxFailAttempt) {
-			return tryAddAll(transaction, currentAttempt + 1);
-
-		} else {
-			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while add/updating records", e);
-		}
+		//		if (currentAttempt < maxFailAttempt) {
+		//			return tryAddAll(transaction, currentAttempt + 1);
+		//
+		//		} else {
+		throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while add/updating records", e);
+		//		}
 	}
 
 	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
-//		try {
+		//		try {
 		//			softCommit();
 		//		} catch (IOException | SolrServerException solrServerException) {
 		//			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
@@ -346,7 +504,7 @@ public class BigVaultServer implements Cloneable {
 		throw new BigVaultException.OptimisticLocking(optimisticLockingException);
 	}
 
-	TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
+	private TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
 		if (transaction.getRecordsFlushing() == RecordsFlushing.ADD_LATER()) {
@@ -394,7 +552,7 @@ public class BigVaultServer implements Cloneable {
 		extensions.afterCommmit(null, end - start);
 	}
 
-	TransactionResponseDTO add(BigVaultServerTransaction transaction)
+	private TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
 		for (BigVaultServerListener listener : this.listeners) {
@@ -417,7 +575,8 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
+	private void verifyTransactionOptimisticLocking(int commitWithin, String transactionId,
+			List<SolrInputDocument> updatedDocuments)
 			throws IOException, SolrServerException {
 		try {
 			if (!updatedDocuments.isEmpty()) {
@@ -479,7 +638,7 @@ public class BigVaultServer implements Cloneable {
 		return withoutVersions;
 	}
 
-	TransactionResponseDTO processChanges(BigVaultServerTransaction transaction)
+	private TransactionResponseDTO processChanges(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
@@ -527,7 +686,7 @@ public class BigVaultServer implements Cloneable {
 		return withoutIndexes;
 	}
 
-	void deleteLocksOfTransaction(String transactionId)
+	private void deleteLocksOfTransaction(String transactionId)
 			throws SolrServerException, IOException {
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		req.setDeleteQuery(Arrays.asList("transaction_s:" + transactionId));
@@ -550,7 +709,7 @@ public class BigVaultServer implements Cloneable {
 		}
 	}
 
-	List<String> toDeletedQueries(List<SolrParams> params) {
+	private List<String> toDeletedQueries(List<SolrParams> params) {
 		List<String> queries = new ArrayList<>();
 
 		for (SolrParams param : params) {
@@ -560,7 +719,7 @@ public class BigVaultServer implements Cloneable {
 		return queries;
 	}
 
-	String toDeleteQueries(SolrParams params) {
+	private String toDeleteQueries(SolrParams params) {
 
 		StringBuffer query = new StringBuffer();
 		query.append("((");
@@ -630,7 +789,7 @@ public class BigVaultServer implements Cloneable {
 
 	@Override
 	public BigVaultServer clone() {
-		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners);
+		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners, cache);
 	}
 
 	public void disableLogger() {
@@ -663,5 +822,31 @@ public class BigVaultServer implements Cloneable {
 
 	public void unregisterAllListeners() {
 		this.listeners.clear();
+	}
+
+	private static class TransactionResponseListener {
+
+		private TransactionResponseDTO responseDTO;
+
+		private boolean failed = false;
+
+		public void onTransactionExecuted(TransactionResponseDTO responseDTO) {
+			this.responseDTO = responseDTO;
+		}
+
+		public void onTransactionFailed() {
+			failed = true;
+		}
+
+		public TransactionResponseDTO getResponseDTO() {
+			while (!failed && this.responseDTO == null) {
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			return responseDTO;
+		}
 	}
 }

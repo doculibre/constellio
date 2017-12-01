@@ -25,7 +25,7 @@ public class BigVaultServerTransactionCombinator {
 	Map<String, SolrInputDocument> updatedDocumentsById = new HashMap<>();
 	Set<String> deletedRecords = new HashSet<>();
 	List<String> deletedQueries = new ArrayList<>();
-
+	String transactionId = UUID.randomUUID().toString();
 	int maximumTransactionSize;
 
 	public BigVaultServerTransactionCombinator(int maximumTransactionSize) {
@@ -95,12 +95,12 @@ public class BigVaultServerTransactionCombinator {
 	}
 
 	public BigVaultServerTransaction combineAndClean() {
-		String transactionId = UUID.randomUUID().toString();
+
 		BigVaultServerTransaction transaction = new BigVaultServerTransaction(transactionId,
 				RecordsFlushing.NOW(),
 				new ArrayList<>(mergeNewDocuments), new ArrayList<>(mergeUpdatedDocuments),
 				new ArrayList<String>(deletedRecords), new ArrayList<>(deletedQueries));
-
+		transactionId = UUID.randomUUID().toString();
 		this.mergeNewDocuments.clear();
 		this.mergeUpdatedDocuments.clear();
 		this.newDocumentsById.clear();

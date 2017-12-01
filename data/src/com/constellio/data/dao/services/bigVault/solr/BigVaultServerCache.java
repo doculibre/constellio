@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface BigVaultServerCache {
 
@@ -22,5 +23,7 @@ public interface BigVaultServerCache {
 	BigVaultServerCacheValidationResponse validateVersionsAndLock(Map<String, Long> recordsToLock);
 
 	void unlockWithNewVersions(Map<String, Long> newVersions);
+
+	void unlock(Set<String> recordsToUnlock);
 
 }

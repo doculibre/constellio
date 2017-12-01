@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -20,8 +21,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MultiMapSolrParams;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.servlet.SolrRequestParsers;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.servlet.SolrRequestParsers;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -217,7 +218,8 @@ public class SolrUtils {
 	}
 
 	public static TransactionResponseDTO createTransactionResponseDTO(UpdateResponse updateResponse) {
-		return new TransactionResponseDTO(SolrUtils.retrieveQTime(updateResponse), SolrUtils.retrieveNewDocumentVersions(updateResponse));
+		return new TransactionResponseDTO(SolrUtils.retrieveQTime(updateResponse),
+				SolrUtils.retrieveNewDocumentVersions(updateResponse));
 	}
 
 	public static int retrieveQTime(UpdateResponse updateResponse) {
@@ -228,6 +230,32 @@ public class SolrUtils {
 			return 0;
 		}
 
+	}
+
+	public static Map<String, Long> retrieveDocumentVersions(List<SolrDocument> documents) {
+		Map<String, Long> newVersions = new HashMap<>();
+
+		for (SolrDocument solrDocument : documents) {
+			String id = (String) solrDocument.getFieldValue("id");
+			long version = (Long) solrDocument.getFieldValue("_version_");
+			newVersions.put(id, version);
+		}
+
+		return newVersions;
+	}
+
+	public static Map<String, Long> retrieveDocumentVersions(SolrDocument solrDocument) {
+		Map<String, Long> newVersions = new HashMap<>();
+
+		String id = (String) solrDocument.getFieldValue("id");
+		long version = (Long) solrDocument.getFieldValue("_version_");
+		newVersions.put(id, version);
+
+		return newVersions;
+	}
+
+	public static Map<String, Long> retrieveDocumentVersions(QueryResponse queryResponse) {
+		return retrieveDocumentVersions(queryResponse.getResults());
 	}
 
 	public static Map<String, Long> retrieveNewDocumentVersions(UpdateResponse updateResponse) {

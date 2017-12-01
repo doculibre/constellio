@@ -31,6 +31,8 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerCache;
+import com.constellio.data.dao.services.bigVault.solr.MemoryBigVaultServerCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
@@ -92,6 +94,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
 	private static DataLayerFactory lastCreatedInstance;
+	private BigVaultServerCache bigVaultServerCache;
 
 	public static int countConstructor;
 
@@ -112,7 +115,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
-		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
+		this.bigVaultServerCache = new MemoryBigVaultServerCache();
+		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions, bigVaultServerCache);
 		this.dataLayerLogger = new DataLayerLogger();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));

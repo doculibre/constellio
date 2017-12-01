@@ -18,7 +18,6 @@ import junit.framework.Assert;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -124,94 +123,94 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		anotherVaultServer = recordsVaultServer.clone();
 		aThirdVaultServer = recordsVaultServer.clone();
 	}
-
-	@Test
-	public void testDeathStarInvulnerability()
-			throws Exception {
-
-		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
-		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
-		vaultServer.getNestedSolrServer().add(addDocument(sasquatch, "A"));
-		vaultServer.softCommit();
-
-		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
-
-		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
-				getVersionOfDocumentOnServer(dakota, vaultServer));
-		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(sasquatch, "B",
-				getVersionOfDocumentOnServer(sasquatch, vaultServer));
-		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1,
-				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
-
-		aThirdVaultServer.softCommit();
-		SolrInputDocument secondServerUpdatedDocument = updateDocument(dakota, "C",
-				getVersionOfDocumentOnServer(dakota, anotherVaultServer));
-		SolrInputDocument secondServerUpdatedDocument2 = updateDocument(edouard, "C",
-				getVersionOfDocumentOnServer(edouard, anotherVaultServer));
-		try {
-			anotherVaultServer
-					.verifyTransactionOptimisticLocking(-1, transaction2,
-							asList(secondServerUpdatedDocument2, secondServerUpdatedDocument));
-			fail("Should throw an exception, since the first client has not finished the transaction");
-		} catch (Exception e) {
-			//OK
-		}
-		vaultServer.processChanges(new BigVaultServerTransaction(transaction1, RecordsFlushing.LATER(), emptyList,
-				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
-		vaultServer.softCommit();
-
-		assertThat(getValueOf(dakota)).isEqualTo("B");
-
-		firstServerUpdatedDocument = updateDocument(dakota, "D",
-				getVersionOfDocumentOnServer(dakota, vaultServer));
-		firstServerUpdatedDocument2 = updateDocument(edouard, "D",
-				getVersionOfDocumentOnServer(edouard, vaultServer));
-		vaultServer.verifyTransactionOptimisticLocking(-1, transaction3,
-				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
-		vaultServer.processChanges(new BigVaultServerTransaction(transaction3, RecordsFlushing.LATER(), emptyList,
-				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
-		vaultServer.softCommit();
-		assertThat(getValueOf(dakota)).isEqualTo("D");
-		assertThat(getValueOf(edouard)).isEqualTo("D");
-	}
-
-	@Test
-	public void givenLockIsNotDeletedThenAutomaticallyDeletedAfterAGivenTime()
-			throws Exception {
-
-		int theDelayBeforeAutomaticRemoval = 66;
-		LocalDateTime lockOClock = new LocalDateTime();
-		LocalDateTime lockRemovalOClock = lockOClock.plusSeconds(66);
-		LocalDateTime oneSecondBeforeRemovalOClock = lockOClock.minusSeconds(1);
-
-		givenTimeIs(lockOClock);
-		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
-		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
-		vaultServer.softCommit();
-
-		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
-
-		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
-				getVersionOfDocumentOnServer(dakota, vaultServer));
-		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
-		vaultServer.softCommit();
-		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
-
-		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
-		vaultServer.softCommit();
-		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
-
-		givenTimeIs(oneSecondBeforeRemovalOClock);
-		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
-		vaultServer.softCommit();
-		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
-
-		givenTimeIs(lockRemovalOClock);
-		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
-		vaultServer.softCommit();
-		assertThat(containsLockFor(dakota, vaultServer)).isFalse();
-
-	}
+	//
+	//	@Test
+	//	public void testDeathStarInvulnerability()
+	//			throws Exception {
+	//
+	//		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
+	//		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
+	//		vaultServer.getNestedSolrServer().add(addDocument(sasquatch, "A"));
+	//		vaultServer.softCommit();
+	//
+	//		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
+	//
+	//		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
+	//				getVersionOfDocumentOnServer(dakota, vaultServer));
+	//		SolrInputDocument firstServerUpdatedDocument2 = updateDocument(sasquatch, "B",
+	//				getVersionOfDocumentOnServer(sasquatch, vaultServer));
+	//		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1,
+	//				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
+	//
+	//		aThirdVaultServer.softCommit();
+	//		SolrInputDocument secondServerUpdatedDocument = updateDocument(dakota, "C",
+	//				getVersionOfDocumentOnServer(dakota, anotherVaultServer));
+	//		SolrInputDocument secondServerUpdatedDocument2 = updateDocument(edouard, "C",
+	//				getVersionOfDocumentOnServer(edouard, anotherVaultServer));
+	//		try {
+	//			anotherVaultServer
+	//					.verifyTransactionOptimisticLocking(-1, transaction2,
+	//							asList(secondServerUpdatedDocument2, secondServerUpdatedDocument));
+	//			fail("Should throw an exception, since the first client has not finished the transaction");
+	//		} catch (Exception e) {
+	//			//OK
+	//		}
+	//		vaultServer.processChanges(new BigVaultServerTransaction(transaction1, RecordsFlushing.LATER(), emptyList,
+	//				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
+	//		vaultServer.softCommit();
+	//
+	//		assertThat(getValueOf(dakota)).isEqualTo("B");
+	//
+	//		firstServerUpdatedDocument = updateDocument(dakota, "D",
+	//				getVersionOfDocumentOnServer(dakota, vaultServer));
+	//		firstServerUpdatedDocument2 = updateDocument(edouard, "D",
+	//				getVersionOfDocumentOnServer(edouard, vaultServer));
+	//		vaultServer.verifyTransactionOptimisticLocking(-1, transaction3,
+	//				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2));
+	//		vaultServer.processChanges(new BigVaultServerTransaction(transaction3, RecordsFlushing.LATER(), emptyList,
+	//				asList(firstServerUpdatedDocument, firstServerUpdatedDocument2), emptyList, emptyList));
+	//		vaultServer.softCommit();
+	//		assertThat(getValueOf(dakota)).isEqualTo("D");
+	//		assertThat(getValueOf(edouard)).isEqualTo("D");
+	//	}
+	//
+	//	@Test
+	//	public void givenLockIsNotDeletedThenAutomaticallyDeletedAfterAGivenTime()
+	//			throws Exception {
+	//
+	//		int theDelayBeforeAutomaticRemoval = 66;
+	//		LocalDateTime lockOClock = new LocalDateTime();
+	//		LocalDateTime lockRemovalOClock = lockOClock.plusSeconds(66);
+	//		LocalDateTime oneSecondBeforeRemovalOClock = lockOClock.minusSeconds(1);
+	//
+	//		givenTimeIs(lockOClock);
+	//		vaultServer.getNestedSolrServer().add(addDocument(dakota, "A"));
+	//		vaultServer.getNestedSolrServer().add(addDocument(edouard, "A"));
+	//		vaultServer.softCommit();
+	//
+	//		//	assertThat(vaultServer.getNestedSolrServer()).isNotSameAs(anotherVaultServer.getNestedSolrServer());
+	//
+	//		SolrInputDocument firstServerUpdatedDocument = updateDocument(dakota, "B",
+	//				getVersionOfDocumentOnServer(dakota, vaultServer));
+	//		vaultServer.verifyTransactionOptimisticLocking(-1, transaction1, asList(firstServerUpdatedDocument));
+	//		vaultServer.softCommit();
+	//		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
+	//
+	//		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
+	//		vaultServer.softCommit();
+	//		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
+	//
+	//		givenTimeIs(oneSecondBeforeRemovalOClock);
+	//		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
+	//		vaultServer.softCommit();
+	//		assertThat(containsLockFor(dakota, vaultServer)).isTrue();
+	//
+	//		givenTimeIs(lockRemovalOClock);
+	//		vaultServer.removeLockWithAgeGreaterThan(theDelayBeforeAutomaticRemoval);
+	//		vaultServer.softCommit();
+	//		assertThat(containsLockFor(dakota, vaultServer)).isFalse();
+	//
+	//	}
 
 	private boolean containsLockFor(String id, BigVaultServer solrServer)
 			throws CouldNotExecuteQuery {

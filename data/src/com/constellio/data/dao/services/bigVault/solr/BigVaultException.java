@@ -31,6 +31,14 @@ public class BigVaultException extends Exception {
 
 	}
 
+	public static class CouldNotExecuteUpdate extends BigVaultException {
+
+		public CouldNotExecuteUpdate() {
+			super("Could not execute update");
+		}
+
+	}
+
 	public static class NoResult extends BigVaultException {
 
 		public NoResult(SolrParams params) {
@@ -68,6 +76,12 @@ public class BigVaultException extends Exception {
 
 		public OptimisticLocking(String id, Long version, Throwable t) {
 			super(getMessage(id, version), t);
+			this.id = id;
+			this.version = version;
+		}
+
+		public OptimisticLocking(String id, Long version) {
+			super(getMessage(id, version));
 			this.id = id;
 			this.version = version;
 		}
