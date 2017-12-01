@@ -1,5 +1,7 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -562,7 +565,12 @@ public class SearchServices {
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
+		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
+			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
+				recordsCaches.insert(entry.getKey(), entry.getValue());
+			}
 
+		}
 		Map<Record, Map<Record, Double>> moreLikeThisResult = getResultWithMoreLikeThis(
 				queryResponseDTO.getResultsWithMoreLikeThis());
 
