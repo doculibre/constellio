@@ -71,10 +71,6 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			permissions.addAll(roles.getRole(role).getOperationPermissions());
 		}
 
-		for (String userRoleCode : user.getAllRoles()) {
-			Role role = roles.getRole(userRoleCode);
-			permissions.addAll(role.getOperationPermissions());
-		}
 		return permissions;
 	}
 
