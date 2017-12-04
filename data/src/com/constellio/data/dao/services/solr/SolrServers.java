@@ -36,6 +36,11 @@ public class SolrServers {
 
 	public synchronized void close() {
 		solrServerFactory.clear();
+
+		for(BigVaultServer bigVaultServer : servers.values()) {
+			bigVaultServer.close();
+		}
+
 		servers.clear();
 	}
 

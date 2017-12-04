@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -44,7 +45,6 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.T
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerListener;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.solr.DateUtils;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
@@ -80,8 +80,8 @@ public class BigVaultServer implements Cloneable {
 	private BigVaultServerTransactionCombinator currentTransactionCombinator;
 	private KeyListMap<String, TransactionResponseListener> responseListeners = new KeyListMap<>();
 
-	private boolean stopRequested;
-	private boolean stopped;
+	private AtomicBoolean stopRequested = new AtomicBoolean();
+	private Thread bigVaultThread;
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
 			, DataLayerSystemExtensions extensions, BigVaultServerCache cache) {
@@ -100,27 +100,31 @@ public class BigVaultServer implements Cloneable {
 		this.cache = cache;
 		this.currentTransactionCombinator = new BigVaultServerTransactionCombinator(10000);
 
-		new Thread() {
+		bigVaultThread = new Thread() {
 			@Override
 			public void run() {
 
-				while (!stopRequested) {
+				while (!stopRequested.get()) {
 
 					while (!pendingTransactions.isEmpty()) {
-						BigVaultServerTransaction transaction = pendingTransactions.peek();
+						BigVaultServerTransaction transaction = pendingTransactions.poll();
 
-						try {
-							TransactionResponseDTO transactionResponseDTO = executeTransaction(transaction);
-							for (TransactionResponseListener listener : responseListeners.get(transaction.getTransactionId())) {
-								listener.onTransactionExecuted(transactionResponseDTO);
+						if (transaction != null) {
+							LOGGER.info("execute transaction " + transaction.getTransactionId());
+							try {
+								TransactionResponseDTO transactionResponseDTO = executeTransaction(transaction);
+								for (TransactionResponseListener listener : responseListeners
+										.get(transaction.getTransactionId())) {
+									listener.onTransactionExecuted(transactionResponseDTO);
+								}
+							} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
+								LOGGER.error("", couldNotExecuteQuery);
+								for (TransactionResponseListener listener : responseListeners
+										.get(transaction.getTransactionId())) {
+									listener.onTransactionFailed();
+								}
+								//throw new RuntimeException(couldNotExecuteQuery);
 							}
-						} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
-							LOGGER.error("", couldNotExecuteQuery);
-							for (TransactionResponseListener listener : responseListeners
-									.get(transaction.getTransactionId())) {
-								listener.onTransactionFailed();
-							}
-							//throw new RuntimeException(couldNotExecuteQuery);
 						}
 
 					}
@@ -148,12 +152,17 @@ public class BigVaultServer implements Cloneable {
 							}
 						}
 					}
-
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				}
 
-				stopped = true;
 			}
-		}.start();
+		};
+		bigVaultThread.setName("BigVaultThread");
+		bigVaultThread.start();
 
 	}
 
@@ -436,6 +445,20 @@ public class BigVaultServer implements Cloneable {
 		return response;
 
 	}
+	//
+	//	private Set<String> getLockedIds(BigVaultServerTransaction transaction) {
+	//		Set<String> ids = new HashSet<>();
+	//		for (SolrInputDocument solrInputDocument : transaction.getNewDocuments()) {
+	//			ids.add((String) solrInputDocument.getFieldValue("id"));
+	//		}
+	//
+	//		for (SolrInputDocument solrInputDocument : transaction.getUpdatedDocuments()) {
+	//			ids.add((String) solrInputDocument.getFieldValue("id"));
+	//		}
+	//
+	//		ids.addAll(transaction.getDeletedRecords());
+	//		return ids;
+	//	}
 
 	private Set<String> getLockedIds(BigVaultServerTransaction transaction) {
 		Set<String> ids = new HashSet<>();
@@ -561,11 +584,7 @@ public class BigVaultServer implements Cloneable {
 			}
 		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		if (transaction.isRequiringLock()) {
-			String transactionId = UUIDV1Generator.newRandomId();
-			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
-			transaction.setTransactionId(transactionId);
-		}
+		removingVersionsFromSolrInputdocument(transaction);
 		TransactionResponseDTO response = processChanges(transaction);
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
@@ -573,56 +592,6 @@ public class BigVaultServer implements Cloneable {
 			}
 		}
 		return response;
-	}
-
-	private void verifyTransactionOptimisticLocking(int commitWithin, String transactionId,
-			List<SolrInputDocument> updatedDocuments)
-			throws IOException, SolrServerException {
-		try {
-			if (!updatedDocuments.isEmpty()) {
-				List<SolrInputDocument> optimisticLockingValidations = copyAtomicUpdatesKeepingOnlyIdAndVersion(transactionId,
-						updatedDocuments);
-
-				if (!optimisticLockingValidations.isEmpty()) {
-					server.add(optimisticLockingValidations, commitWithin);
-				}
-			}
-		} catch (Exception e) {
-			deleteLocksOfTransaction(transactionId);
-			throw e;
-		}
-
-	}
-
-	private List<SolrInputDocument> copyAtomicUpdatesKeepingOnlyIdAndVersion(String transactionId,
-			List<SolrInputDocument> updatedDocuments) {
-		List<SolrInputDocument> optimisticLockingValidationDocuments = new ArrayList<>();
-		for (SolrInputDocument updatedDocument : updatedDocuments) {
-			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
-			Object version = updatedDocument.getFieldValue("_version_");
-			if (version != null) {
-				solrInputDocument.setField("id", updatedDocument.getFieldValue("id"));
-				solrInputDocument.setField("_version_", version);
-				solrInputDocument.setField("sys_s", newAtomicSet(""));
-				optimisticLockingValidationDocuments.add(solrInputDocument);
-
-				boolean onlyMarkingForReindexing =
-						updatedDocument.getFieldValue("markedForReindexing_s") != null &&
-								updatedDocument.getFieldNames().size() == 3;
-
-				if (updatedDocument.getFieldValue("type_s") == null && !onlyMarkingForReindexing) {
-					String lockId = "lock__" + updatedDocument.getFieldValue("id");
-					SolrInputDocument lockDocument = new SolrInputDocument();
-					lockDocument.setField("id", lockId);
-					lockDocument.setField("transaction_s", transactionId);
-					lockDocument.setField("_version_", -1);
-					lockDocument.setField("lockCreation_dt", TimeProvider.getLocalDateTime().toDate());
-					optimisticLockingValidationDocuments.add(lockDocument);
-				}
-			}
-		}
-
-		return optimisticLockingValidationDocuments;
 	}
 
 	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments) {
@@ -638,6 +607,17 @@ public class BigVaultServer implements Cloneable {
 		return withoutVersions;
 	}
 
+	private void removingVersionsFromSolrInputdocument(BigVaultServerTransaction tx) {
+		removingVersionsFromSolrInputdocument(tx.getNewDocuments());
+		removingVersionsFromSolrInputdocument(tx.getUpdatedDocuments());
+	}
+
+	private void removingVersionsFromSolrInputdocument(List<SolrInputDocument> updatedDocuments) {
+		for (SolrInputDocument document : updatedDocuments) {
+			document.removeField("_version_");
+		}
+	}
+
 	private TransactionResponseDTO processChanges(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
@@ -645,14 +625,7 @@ public class BigVaultServer implements Cloneable {
 
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
-		if (transaction.isRequiringLock()) {
-			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments());
-			req.add(docsWithoutVersions);
-
-		} else {
-			req.add(transaction.getUpdatedDocuments());
-		}
+		req.add(transaction.getUpdatedDocuments());
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
 		req.add(transaction.getNewDocuments());
@@ -822,6 +795,16 @@ public class BigVaultServer implements Cloneable {
 
 	public void unregisterAllListeners() {
 		this.listeners.clear();
+	}
+
+	public void close() {
+		stopRequested.set(true);
+		try {
+			bigVaultThread.join();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	private static class TransactionResponseListener {
