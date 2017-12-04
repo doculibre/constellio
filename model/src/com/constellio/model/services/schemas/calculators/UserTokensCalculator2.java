@@ -11,14 +11,11 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class UserTokensCalculator2 implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency
-			.toAStringList(User.ALL_USER_AUTHORIZATIONS);
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 
 	@Override
@@ -45,7 +42,7 @@ public class UserTokensCalculator2 implements MetadataValueCalculator<List<Strin
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(allAuthorizationsParam, manualTokensParam);
+		return Arrays.asList(manualTokensParam);
 	}
 
 }
