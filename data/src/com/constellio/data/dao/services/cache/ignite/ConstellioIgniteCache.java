@@ -32,8 +32,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.name = name;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
-//		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
-//		this.igniteStreamer.allowOverwrite(true);
+		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
+		this.igniteStreamer.allowOverwrite(true);
 //		this.igniteStreamer.autoFlushFrequency(1);
 	}
 
@@ -44,6 +44,10 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	
 	public IgniteCache<String, Object> getIgniteCache() {
 		return igniteCache;
+	}
+
+	public IgniteDataStreamer<String, Object> getIgniteStreamer() {
+		return igniteStreamer;
 	}
 
 	@SuppressWarnings("unchecked")

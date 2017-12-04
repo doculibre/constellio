@@ -22,6 +22,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.events.CacheEvent;
 import org.apache.ignite.events.EventType;
 import org.apache.ignite.lang.IgniteBiPredicate;
+import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
@@ -217,8 +218,11 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 				ConstellioIgniteCache cache = it.next();
 				Map<String, Object> transactionObjects = transactionMap.get(cache);
 				if (transactionObjects != null) {
-					cache.getIgniteCache().putAll(transactionObjects);
-				}
+//					cache.getIgniteCache().putAll(transactionObjects);
+					IgniteFuture<?> result = cache.getIgniteStreamer().addData(transactionObjects);
+					cache.getIgniteStreamer().flush();
+					result.get();
+				}	
 				it.remove();
 			}
 		}
