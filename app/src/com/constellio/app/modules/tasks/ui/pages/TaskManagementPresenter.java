@@ -244,7 +244,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private RecordVODataProvider getTasks(String tabId) {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(defaultSchema(), VIEW_MODE.TABLE, getMetadataForTab(tabId), view.getSessionContext());
+				.build(defaultSchema(), VIEW_MODE.TABLE, getMetadataForTab(tabId), view.getSessionContext(), true);
 
 		switch (tabId) {
 		case TASKS_ASSIGNED_TO_CURRENT_USER:
