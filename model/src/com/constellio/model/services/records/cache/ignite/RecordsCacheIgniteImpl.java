@@ -548,9 +548,18 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	@Override
-	public List<Record> getAllValues(String schemaType) {
-		//TODO Vincent
-		return null;
+	public List<Record> getAllValues(String schemaTypeCode) {
+		List<Record> allValuesAsRecords = new ArrayList<>();
+		if (!isVolatile(schemaTypeCode)) {
+			List<Object> allValues = permanentRecordHoldersCache.getAllValues();
+			for (Object cacheValue : allValues) {
+				RecordHolder recordHolder = (RecordHolder) cacheValue;
+				if (recordHolder.record != null) {
+					allValuesAsRecords.add(recordHolder.record.getCopyOfOriginalRecord());
+				}
+			}
+		}
+		return allValuesAsRecords;
 	}
 
 	private String getSchemaTypeCodeForStorageInCache(LogicalSearchQuery query, boolean onlyIds) {
