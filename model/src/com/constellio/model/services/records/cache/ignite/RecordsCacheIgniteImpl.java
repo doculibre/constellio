@@ -846,19 +846,16 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 		cachedMetadatasBySchemaType.put(schemaTypeCode, cacheConfig.getIndexes());
 
-		if (getCacheObjectsCount(cacheConfig.getSchemaType()) == 0) {
-			if (cacheConfig.isLoadedInitially() && getByIdRecordHoldersCount(schemaTypeCode) == 0) {
-				LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
-				MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-						.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
-				if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
-					for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
-							new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
-						List<Record> records = it.next();
-						//if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-						insert(records);
-						//}
-					}
+		if (cacheConfig.isLoadedInitially()) {
+			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
+			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 100000) {
+				for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
+						new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
+					List<Record> records = it.next();
+					LOGGER.info("inserting " + records.size() + " records of type " + schemaTypeCode);
+					insert(records);
 				}
 			}
 		}
