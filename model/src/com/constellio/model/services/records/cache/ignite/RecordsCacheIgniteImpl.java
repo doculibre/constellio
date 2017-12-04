@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -508,15 +507,15 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			commit();
 		}
 	}
-	
+
 	private void beginTransaction() {
 		recordsCacheManager.beginTransaction();
 	}
-	
+
 	private void commit() {
 		recordsCacheManager.commit();
 	}
-	
+
 	private void flush(Set<ConstellioIgniteCache> caches) {
 		for (ConstellioIgniteCache cache : caches) {
 			cache.flush();
@@ -660,7 +659,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				synchronized (this) {
 					beginTransaction();
 					Set<ConstellioIgniteCache> caches = new HashSet<>();
-					
+
 					ConstellioIgniteCache byIdRecordHoldersCache;
 					if (isVolatile(schemaTypeCode)) {
 						byIdRecordHoldersCache = volatileByIdRecordHoldersCache;
@@ -736,7 +735,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					} else {
 						byIdRecordHoldersCache = permanentByIdRecordHoldersCache;
 					}
-					
+
 					RecordHolder holder = byIdRecordHoldersCache.get(recordCopy.getId());
 					if (holder != null) {
 						previousRecord = holder.record;
@@ -783,7 +782,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return holder;
 	}
 
-	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder, Set<ConstellioIgniteCache> caches) {
+	private void insertRecordIntoAnAlreadyExistingHolder(Record record, CacheConfig cacheConfig, RecordHolder currentHolder,
+			Set<ConstellioIgniteCache> caches) {
 		currentHolder.set(record);
 		ConstellioIgniteCache byIdRecordHoldersCache;
 		if (cacheConfig.isVolatile()) {
@@ -875,9 +875,9 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
 							new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
 						List<Record> records = it.next();
-						if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-							insert(records);
-						}
+						//if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+						insert(records);
+						//}
 					}
 				}
 			}
