@@ -162,7 +162,8 @@ public class ClassificationPlanReportPresenter {
 
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
+		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		searchServices = modelLayerFactory.newSearchServices();
