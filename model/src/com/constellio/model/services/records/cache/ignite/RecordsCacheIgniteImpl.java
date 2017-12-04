@@ -560,6 +560,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		}
 	}
 
+	@Override
+	public List<Record> getAllValues(String schemaType) {
+		//TODO Vincent
+		return null;
+	}
+
 	private String getSchemaTypeCodeForStorageInCache(LogicalSearchQuery query, boolean onlyIds) {
 		String schemaTypeCodeForStorageInCache;
 		LogicalSearchCondition condition = query.getCondition();

@@ -93,6 +93,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
+	public List<Record> getAllValues(String schemaType) {
+		return nested.getAllValues(schemaType);
+	}
+
+	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		return nested.getQueryResults(query);
 	}

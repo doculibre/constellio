@@ -199,6 +199,11 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 	}
 
+	@Override
+	public List<Record> getAllValues(String schemaType) {
+		return null;
+	}
+
 	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
 		LogicalSearchCondition condition = query.getCondition();
 		DataStoreFilters filters = condition.getFilters();
