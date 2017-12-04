@@ -2337,6 +2337,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy()
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.unitId_10, records.unitId_30))
