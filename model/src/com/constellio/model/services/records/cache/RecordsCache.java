@@ -63,4 +63,8 @@ public interface RecordsCache {
 	long getCacheObjectsSize(String typeCode);
 
 	boolean isEmpty();
+
+	boolean isFullyLoaded(String schemaType);
+
+	void markAsFullyLoaded(String schemaType);
 }

@@ -659,9 +659,18 @@ public class SearchServices {
 		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 			RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
 			if (cache.isConfigured(schemaType)) {
-				return cache.getAllValues(schemaType.getCode());
-			}
+				if (cache.isFullyLoaded(schemaType.getCode())) {
+					return cache.getAllValues(schemaType.getCode());
 
+				} else {
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					cache.insert(records);
+					cache.markAsFullyLoaded(schemaType.getCode());
+					List<Record> loadedFromMethod = cache.getAllValues(schemaType.getCode());
+					System.out.println(records.size() == loadedFromMethod.size());
+					return loadedFromMethod;
+				}
+			}
 			throw new SearchServicesRuntimeException.GetAllValuesNotSupportedForSchemaType(schemaType.getCode());
 		} else {
 			return cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));

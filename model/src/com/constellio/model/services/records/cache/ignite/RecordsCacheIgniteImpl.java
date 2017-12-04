@@ -82,6 +82,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	AtomicBoolean enabled;
 
+	Set<String> fullyLoadedSchemaTypes = new HashSet<>();
+
 	public RecordsCacheIgniteImpl(String collection, ModelLayerFactory modelLayerFactory) {
 		this(collection, modelLayerFactory, new AtomicBoolean(true));
 	}
@@ -1147,5 +1149,17 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				return record;
 			}
 		}
+	}
+
+	@Override
+	public boolean isFullyLoaded(String schemaType) {
+		//TODO Vincent : distribuer!
+		return fullyLoadedSchemaTypes.contains(schemaType);
+	}
+
+	@Override
+	public void markAsFullyLoaded(String schemaType) {
+		//TODO Vincent : distribuer!
+		fullyLoadedSchemaTypes.add(schemaType);
 	}
 }

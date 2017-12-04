@@ -277,6 +277,16 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		return cache.isEmpty() && nested.isEmpty();
 	}
 
+	@Override
+	public boolean isFullyLoaded(String schemaType) {
+		return nested.isFullyLoaded(schemaType);
+	}
+
+	@Override
+	public void markAsFullyLoaded(String schemaType) {
+		nested.markAsFullyLoaded(schemaType);
+	}
+
 	public void disconnect() {
 		disconnected = true;
 		cache.clear();

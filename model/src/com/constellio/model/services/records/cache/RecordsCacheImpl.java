@@ -59,6 +59,8 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	AtomicBoolean enabled = new AtomicBoolean();
 
+	Set<String> fullyLoadedSchemaTypes = new HashSet<>();
+
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory, AtomicBoolean enabled) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
@@ -161,6 +163,16 @@ public class RecordsCacheImpl implements RecordsCache {
 		return true;
 	}
 
+	@Override
+	public boolean isFullyLoaded(String schemaType) {
+		return fullyLoadedSchemaTypes.contains(schemaType);
+	}
+
+	@Override
+	public void markAsFullyLoaded(String schemaType) {
+		fullyLoadedSchemaTypes.add(schemaType);
+	}
+
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
 			for (Record record : records) {
@@ -203,16 +215,18 @@ public class RecordsCacheImpl implements RecordsCache {
 	public List<Record> getAllValues(String schemaType) {
 		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
 
-		if (cacheConfig == null) {
-			return new ArrayList<>();
+		List<Record> records = new ArrayList<>();
 
-		} else if (cacheConfig.isPermanent()) {
-			return permanentCaches.get(schemaType).getAllValues();
-
-		} else {
-			return volatileCaches.get(schemaType).getAllValues();
-
+		for(RecordHolder holder : this.cacheById.values()) {
+			if (holder != null) {
+				Record record = holder.record;
+				if (record != null && record.isOfSchemaType(schemaType)) {
+					records.add(record.getCopyOfOriginalRecord());
+				}
+			}
 		}
+
+		return records;
 
 	}
 
@@ -410,6 +424,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
 			}
 		}
+		fullyLoadedSchemaTypes.remove(recordType);
 	}
 
 	public synchronized void invalidate(List<String> recordIds) {
@@ -493,6 +508,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		for (PermanentCache cache : permanentCaches.values()) {
 			cache.invalidateAll();
 		}
+
+		fullyLoadedSchemaTypes.clear();
 	}
 
 	@Override
@@ -543,7 +560,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		cachedTypes.remove(schemaType);
-
+		fullyLoadedSchemaTypes.remove(schemaType);
 	}
 
 	@Override
@@ -659,20 +676,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			return size;
 		}
 
-		public List<Record> getAllValues() {
-			List<Record> allValues = new ArrayList<>();
 
-			for (RecordHolder recordHolder : holders) {
-				if (recordHolder != null) {
-					Record record = recordHolder.getCopy();
-					if (record != null) {
-						allValues.add(record);
-					}
-				}
-			}
-
-			return allValues;
-		}
 	}
 
 	static class PermanentCache {
@@ -712,20 +716,6 @@ public class RecordsCacheImpl implements RecordsCache {
 			return size;
 		}
 
-		public List<Record> getAllValues() {
-			List<Record> allValues = new ArrayList<>();
-
-			for (RecordHolder recordHolder : holders) {
-				if (recordHolder != null) {
-					Record record = recordHolder.getCopy();
-					if (record != null) {
-						allValues.add(record);
-					}
-				}
-			}
-
-			return allValues;
-		}
 	}
 
 	static class RecordByMetadataCache {
