@@ -201,7 +201,19 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public List<Record> getAllValues(String schemaType) {
-		return null;
+		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
+
+		if (cacheConfig == null) {
+			return new ArrayList<>();
+
+		} else if (cacheConfig.isPermanent()) {
+			return permanentCaches.get(schemaType).getAllValues();
+
+		} else {
+			return volatileCaches.get(schemaType).getAllValues();
+
+		}
+
 	}
 
 	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
@@ -646,6 +658,21 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			return size;
 		}
+
+		public List<Record> getAllValues() {
+			List<Record> allValues = new ArrayList<>();
+
+			for (RecordHolder recordHolder : holders) {
+				if (recordHolder != null) {
+					Record record = recordHolder.getCopy();
+					if (record != null) {
+						allValues.add(record);
+					}
+				}
+			}
+
+			return allValues;
+		}
 	}
 
 	static class PermanentCache {
@@ -683,6 +710,21 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 
 			return size;
+		}
+
+		public List<Record> getAllValues() {
+			List<Record> allValues = new ArrayList<>();
+
+			for (RecordHolder recordHolder : holders) {
+				if (recordHolder != null) {
+					Record record = recordHolder.getCopy();
+					if (record != null) {
+						allValues.add(record);
+					}
+				}
+			}
+
+			return allValues;
 		}
 	}
 

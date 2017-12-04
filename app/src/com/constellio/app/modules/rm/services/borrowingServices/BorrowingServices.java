@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
 public class BorrowingServices {
@@ -486,8 +484,8 @@ public class BorrowingServices {
 	}
 
 	private boolean isInDecommissioningList(Folder folder) {
-		List<DecommissioningList> allDecommissioningLists = rm.wrapDecommissioningLists(searchServices.cachedSearch(
-				new LogicalSearchQuery(from(rm.decommissioningList.schemaType()).returnAll())));
+		List<DecommissioningList> allDecommissioningLists = rm.wrapDecommissioningLists(searchServices.getAllRecords(
+				rm.decommissioningList.schemaType()));
 
 		for (DecommissioningList decommissioningList : allDecommissioningLists) {
 			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() == null) {

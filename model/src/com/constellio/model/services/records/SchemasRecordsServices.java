@@ -396,13 +396,16 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public List<SolrAuthorizationDetails> getAllAuthorizations() {
-		return wrapSolrAuthorizationDetailss(getModelLayerFactory().newSearchServices().cachedSearch(
-				new LogicalSearchQuery(from(authorizationDetails.schemaType()).returnAll())));
+		return wrapSolrAuthorizationDetailss(
+				getModelLayerFactory().newSearchServices().getAllRecords(authorizationDetails.schemaType()));
 	}
 
 	public List<User> getAllUsers() {
-		return wrapUsers(getModelLayerFactory().newSearchServices().cachedSearch(
-				new LogicalSearchQuery(from(user.schemaType()).returnAll())));
+		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecords(user.schemaType()));
+	}
+
+	public List<Group> getAllGroups() {
+		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecords(group.schemaType()));
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.constellio.model.services.search;
 
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -649,6 +651,20 @@ public class SearchServices {
 
 		for (UserFilter userFilter : userFilters) {
 			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+		}
+	}
+
+	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
+
+		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+			RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+			if (cache.isConfigured(schemaType)) {
+				return cache.getAllValues(schemaType.getCode());
+			}
+
+			throw new SearchServicesRuntimeException.GetAllValuesNotSupportedForSchemaType(schemaType.getCode());
+		} else {
+			return cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 		}
 	}
 }

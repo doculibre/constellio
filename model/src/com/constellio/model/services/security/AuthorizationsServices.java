@@ -226,7 +226,7 @@ public class AuthorizationsServices {
 		}
 
 		return returnedUsers;
-//
+		//
 		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
 		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
 		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
@@ -940,8 +940,8 @@ public class AuthorizationsServices {
 		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType(User.SCHEMA_TYPE);
 		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
 
-		List<Record> allUsers = searchServices.cachedSearch(new LogicalSearchQuery(from(userSchemaType).returnAll()));
-		List<Record> allGroups = searchServices.cachedSearch(new LogicalSearchQuery(from(groupSchemaType).returnAll()));
+		List<Record> allUsers = searchServices.getAllRecords(userSchemaType);
+		List<Record> allGroups = searchServices.getAllRecords(groupSchemaType);
 
 		if (principals != null) {
 			for (Record user : allUsers) {
