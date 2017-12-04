@@ -14,13 +14,11 @@ import com.constellio.app.client.entities.UserResource;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.client.services.SecurityManagementDriver;
 import com.constellio.app.client.services.UserServicesClient;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -406,20 +404,4 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	// ---------
 
-	private UserCredential wrapUserCredential(Record userRecord) {
-		recordServices.refresh(userRecord);
-		User wrappedUser = wrapUser(userRecord);
-
-		UserCredentialStatus status;
-		if (wrappedUser.getStatus() == null) {
-			status = UserCredentialStatus.ACTIVE;
-		} else {
-			status = wrappedUser.getStatus();
-			//			status = (UserCredentialStatus) EnumWithSmallCodeUtils
-			//					.toEnumWithSmallCode(UserCredentialStatus.class, wrappedUser.getStatus());
-		}
-		return userServices.createUserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
-				wrappedUser.getEmail(), wrappedUser.getGroupsAuthorizations(), Arrays.asList(wrappedUser.getCollection()),
-				status, null, Arrays.asList(""), null);
-	}
 }

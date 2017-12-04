@@ -223,6 +223,22 @@ public class UserAuthorizationsUtils {
 		return roles;
 	}
 
+	public static Set<String> getRolesSpecificallyOnRecord(User user, Record record) {
+		Set<String> auths = getMatchingAuthorizationIncludingSpecifics(user, record, ROLE_AUTHS);
+
+		Set<String> roles = new HashSet<>();
+		for (String authId : auths) {
+			AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
+			for (String role : authorizationDetails.getRoles()) {
+				if (!isAccessRole(role) && record.getId().equals(authorizationDetails.getTarget())) {
+					roles.add(role);
+				}
+			}
+		}
+
+		return roles;
+	}
+
 	public static boolean hasMatchingAuthorizationIncludingSpecifics(User user, Record record,
 			AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);

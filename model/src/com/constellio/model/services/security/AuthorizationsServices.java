@@ -146,81 +146,111 @@ public class AuthorizationsServices {
 	}
 
 	public List<User> getUsersWithPermissionOnRecord(String permission, Record concept) {
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		List<User> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
-				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
-
-		List<User> users = new ArrayList<>();
-		for (Record record : foundRecords) {
-			users.add(new User(record, types, roles));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).on(concept)) {
+				returnedUsers.add(user);
+			}
 		}
-		return users;
+
+		return returnedUsers;
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
+		//				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
+		//
+		//		List<User> users = new ArrayList<>();
+		//		for (Record record : foundRecords) {
+		//			users.add(new User(record, types, roles));
+		//		}
+		//return users;
 	}
 
 	public List<String> getUserIdsWithPermissionOnRecord(String permission, Record concept) {
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		List<String> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).on(concept)) {
+				returnedUsers.add(user.getId());
+			}
+		}
+		return returnedUsers;
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
-				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
+		//				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
 	}
 
 	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
 
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		List<User> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isEqualTo(concept.getId())
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
-
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)));
-
-		List<User> users = new ArrayList<>();
-		for (Record record : foundRecords) {
-			users.add(new User(record, types, roles));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).specificallyOn(concept)) {
+				returnedUsers.add(user);
+			}
 		}
-		return users;
+
+		return returnedUsers;
+//
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isEqualTo(concept.getId())
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)));
+		//
+		//		List<User> users = new ArrayList<>();
+		//		for (Record record : foundRecords) {
+		//			users.add(new User(record, types, roles));
+		//		}
+		//		return users;
 
 	}
 
@@ -649,10 +679,7 @@ public class AuthorizationsServices {
 		List<String> authIds;
 		if (User.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 
-			Metadata allUserAuthorizations = schemasManager.getSchemaTypes(record.getCollection()).getSchema(User.DEFAULT_SCHEMA)
-					.getMetadata(User.ALL_USER_AUTHORIZATIONS);
-
-			authIds = record.getList(allUserAuthorizations);
+			authIds = schemas(record.getCollection()).wrapUser(record).getAllUserAuthorizations();
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			authIds = record.getList(Schemas.ALL_AUTHORIZATIONS);

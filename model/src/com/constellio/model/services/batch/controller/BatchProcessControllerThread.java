@@ -25,6 +25,7 @@ import com.constellio.model.services.batch.state.InMemoryBatchProcessProgression
 import com.constellio.model.services.batch.state.StoredBatchProcessPart;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriterRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -87,7 +88,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	void process()
 			throws Exception {
 
-		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
+		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
+				&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()) {
 			BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 			if (batchProcess != null) {
 				try {

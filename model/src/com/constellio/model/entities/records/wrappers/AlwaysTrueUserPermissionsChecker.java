@@ -18,6 +18,11 @@ public class AlwaysTrueUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	@Override
+	public boolean specificallyOn(Record record) {
+		return true;
+	}
+
+	@Override
 	public boolean onSomething() {
 		return true;
 	}

@@ -68,7 +68,7 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	Users users = new Users();
 	User alice;
@@ -2337,6 +2337,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy()
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.unitId_10, records.unitId_30))
