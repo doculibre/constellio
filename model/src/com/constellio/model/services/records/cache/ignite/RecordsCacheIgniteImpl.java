@@ -874,10 +874,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
 						new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
 					List<Record> records = it.next();
-					//if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
 					LOGGER.info("inserting " + records.size() + " records of type " + schemaTypeCode);
 					insert(records);
-					//}
 				}
 			}
 		}
