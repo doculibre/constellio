@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
+import com.constellio.app.modules.rm.services.reports.ReportXMLGeneratorV2;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -11,9 +12,11 @@ import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -43,6 +46,9 @@ public class GetXMLButton extends WindowButton {
 
     public static final String CANCEL_BUTTON = "base-form_cancel";
 
+    public static final String FOREGROUNDS[] = new String[]{"\u001B[30m", "\u001B[30m", "\u001B[30m"};
+    public static final String BACKGROUND = "\u001B[47m";
+
     private ModelLayerFactory model;
     private SearchServices ss;
     private RMSchemasRecordsServices rm;
@@ -50,9 +56,10 @@ public class GetXMLButton extends WindowButton {
     private List<String> ids;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private ReportXMLGenerator reportXmlGenerator;
+    private ReportXMLGeneratorV2 reportXmlGenerator;
     private BaseView view;
     private String currentSchema;
+    private RecordServices recordServices;
 
     public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
@@ -62,9 +69,10 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.reportXmlGenerator = new ReportXMLGenerator(collection, factory, view.getSessionContext().getCurrentUser().getUsername(), true);
+        this.reportXmlGenerator = new ReportXMLGeneratorV2(collection, factory);
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
+        this.recordServices = this.model.newRecordServices();
     }
 
     @Override
@@ -81,7 +89,9 @@ public class GetXMLButton extends WindowButton {
                     String filename = "Constellio-Test.xml";
                     List<String> ids = ((ListAddRemoveRecordLookupField) lookupField).getValue();
                     if(ids.size() > 0) {
-                        String xml = currentSchema.equals(Folder.SCHEMA_TYPE) ? reportXmlGenerator.convertFolderWithIdentifierToXML(ids, null) : reportXmlGenerator.convertContainerWithIdentifierToXML(ids, null);
+                        List<Record> records = recordServices.getRecordsById(collection, ids);
+                        reportXmlGenerator.setElements(records.toArray(new Record[0]));
+                        String xml = reportXmlGenerator.generateXML();
                         StreamResource source = createResource(xml, filename);
 
                         Link download = new Link($("ReportViewer.download", filename),
