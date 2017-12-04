@@ -3359,6 +3359,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call");
 				firstCallAnswer = call();
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3374,6 +3375,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call");
 				secondCallAnswer = call();
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
