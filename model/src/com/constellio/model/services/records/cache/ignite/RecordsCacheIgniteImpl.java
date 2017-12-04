@@ -550,13 +550,17 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	@Override
 	public List<Record> getAllValues(String schemaTypeCode) {
 		List<Record> allValuesAsRecords = new ArrayList<>();
-		if (!isVolatile(schemaTypeCode)) {
-			List<Object> allValues = permanentRecordHoldersCache.getAllValues();
-			for (Object cacheValue : allValues) {
-				RecordHolder recordHolder = (RecordHolder) cacheValue;
-				if (recordHolder.record != null) {
-					allValuesAsRecords.add(recordHolder.record.getCopyOfOriginalRecord());
-				}
+		String sql = "schemaTypeCode = ?";
+		SqlQuery<String, RecordHolder> sqlQuery = new SqlQuery<>(RecordHolder.class, sql);
+		sqlQuery.setArgs(schemaTypeCode);
+
+		ConstellioIgniteCache constellioIgniteCache = permanentRecordHoldersCache;
+		IgniteCache<String, Object> igniteCache = constellioIgniteCache.getIgniteCache();
+		List<Cache.Entry<String, RecordHolder>> igniteCacheQueryResults = igniteCache.query(sqlQuery).getAll();
+		for (Cache.Entry<String, RecordHolder> entry : igniteCacheQueryResults) {
+			RecordHolder recordHolder = entry.getValue();
+			if (recordHolder.record != null) {
+				allValuesAsRecords.add(recordHolder.record.getCopyOfOriginalRecord());
 			}
 		}
 		return allValuesAsRecords;
