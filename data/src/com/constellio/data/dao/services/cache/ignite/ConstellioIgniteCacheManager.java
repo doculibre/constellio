@@ -150,7 +150,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 					Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
 					if (transactionMap != null) {
 						super.put(key, value, true);
-						Map<String, Object> transactionObjects = transactionMap.get(igniteCache);
+						Map<String, Object> transactionObjects = transactionMap.get(this);
 						if (transactionObjects == null) {
 							transactionObjects = new TreeMap<>();
 							transactionMap.put(this, transactionObjects);

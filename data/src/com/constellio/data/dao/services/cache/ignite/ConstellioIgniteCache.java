@@ -2,10 +2,8 @@ package com.constellio.data.dao.services.cache.ignite;
 
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
