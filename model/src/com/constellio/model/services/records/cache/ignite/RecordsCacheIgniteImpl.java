@@ -486,12 +486,22 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
+			beginPutTransaction();
 			for (Record record : records) {
-				insert(record);
+				doInsert(record);
 			}
+			commitPutTransaction();
 		}
 	}
-
+	
+	private void beginPutTransaction() {
+		recordsCacheManager.beginPutTransaction();
+	}
+	
+	private void commitPutTransaction() {
+		recordsCacheManager.commitPutTransaction();
+	}
+	
 	@Override
 	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
 		String schemaTypeCodeForStorageInCache = getSchemaTypeCodeForStorageInCache(query, false);
@@ -627,6 +637,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 				Record previousRecord = null;
 
 				synchronized (this) {
+					beginPutTransaction();
+					
 					ConstellioIgniteCache byIdRecordHoldersCache;
 					if (isVolatile(schemaTypeCode)) {
 						byIdRecordHoldersCache = volatileByIdRecordHoldersCache;
@@ -651,6 +663,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					putInRecordByMetadataCache(previousRecord, recordCopy);
 					long end = new Date().getTime();
 					modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, end - start);
+
+					commitPutTransaction();
 				}
 
 			}
@@ -663,7 +677,13 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord) {
+		beginPutTransaction();
+		CacheInsertionStatus result = doInsert(insertedRecord);
+		commitPutTransaction();
+		return result;
+	}
 
+	private CacheInsertionStatus doInsert(Record insertedRecord) {
 		if (insertedRecord == null) {
 			return CacheInsertionStatus.REFUSED_NULL;
 		}
@@ -691,6 +711,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 					} else {
 						byIdRecordHoldersCache = permanentByIdRecordHoldersCache;
 					}
+					
 					RecordHolder holder = byIdRecordHoldersCache.get(recordCopy.getId());
 					if (holder != null) {
 						previousRecord = holder.record;
@@ -1080,16 +1101,17 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return 0;
 	}
 
-	private Record onlyIfNotSummary(Record record) {
-		if (record == null) {
-			return null;
-		} else {
-			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
-			if (config.getPersistedMetadatas().isEmpty()) {
-				return null;
-			} else {
-				return record;
-			}
-		}
-	}
+//	private Record onlyIfNotSummary(Record record) {
+//		if (record == null) {
+//			return null;
+//		} else {
+//			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
+//			if (config.getPersistedMetadatas().isEmpty()) {
+//				return null;
+//			} else {
+//				return record;
+//			}
+//		}
+//	}
+	
 }
