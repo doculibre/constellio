@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
+import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
 import org.apache.ignite.configuration.CacheConfiguration;
@@ -184,12 +185,35 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
 	private void addListener() {
 		IgniteBiPredicate<UUID, CacheEvent> localListener = new IgniteBiPredicate<UUID, CacheEvent>() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public boolean apply(UUID uuid, CacheEvent evt) {
 				String cacheName = evt.cacheName();
 				if (caches.containsKey(cacheName)) {
 					ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
-					cache.removeLocal((String) evt.key());
+					String key = evt.key();
+					Serializable value = (Serializable) evt.newValue();
+					if (evt.type() == EventType.EVT_CACHE_OBJECT_PUT) {
+						if (value instanceof BinaryObject) {
+							BinaryObject bo = (BinaryObject) value;
+							value = bo.deserialize();
+						} else if (value instanceof List) {
+							List<Serializable> valueAsList = (List<Serializable>) value;
+							List<Serializable> newList = new ArrayList<>();
+							for (Serializable serializable : valueAsList) {
+								if (serializable instanceof BinaryObject) {
+									BinaryObject bo = (BinaryObject) serializable;
+									newList.add((Serializable) bo.deserialize());
+								} else {
+									newList.add(serializable);
+								}
+							}
+							value = (Serializable) newList;
+						}
+						cache.put(key, value, true);
+					} else {
+						cache.removeLocal(key);
+					}
 				}
 				return true;
 			}

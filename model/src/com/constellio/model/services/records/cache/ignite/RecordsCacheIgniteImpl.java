@@ -1172,7 +1172,9 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 //				return record;
 //			}
 //		}
-//	}@Override
+//	}
+	
+	@Override
 	public boolean isFullyLoaded(String schemaType) {
 		//TODO Vincent : distribuer!
 		return fullyLoadedSchemaTypes.contains(schemaType);
@@ -1183,4 +1185,5 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		//TODO Vincent : distribuer!
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
+	
 }

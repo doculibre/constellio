@@ -36,7 +36,6 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.igniteClient = igniteClient;
 		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
 		this.igniteStreamer.allowOverwrite(true);
-//		this.igniteStreamer.autoFlushFrequency(1);
 	}
 
 	@Override
@@ -77,7 +76,6 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {	
 		value = value == null ? (T) NULL : value;
 		localCache.put(key, value);
-//		igniteStreamer.addData(key, value);
 		if (!locallyOnly) {
 			igniteCache.put(key, value);
 		}
@@ -110,10 +108,6 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	public void clearLocal() {
 		localCache.clear();
 		igniteCache.clear();
-	}
-	
-	public void flush() {
-//		igniteStreamer.flush();
 	}
 
 	@Override
