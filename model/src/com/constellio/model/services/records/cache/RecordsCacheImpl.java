@@ -5,13 +5,13 @@ import static com.constellio.model.services.records.cache.CacheInsertionStatus.R
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -217,7 +220,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		List<Record> records = new ArrayList<>();
 
-		for(RecordHolder holder : this.cacheById.values()) {
+		for (RecordHolder holder : this.cacheById.values()) {
 			if (holder != null) {
 				Record record = holder.record;
 				if (record != null && record.isOfSchemaType(schemaType)) {
@@ -484,10 +487,9 @@ public class RecordsCacheImpl implements RecordsCache {
 			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
-				for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll(), 1000); it.hasNext(); ) {
-					insert(it.next());
-				}
+			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000 || asList(User.SCHEMA_TYPE,
+					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType())) {
+				searchServices.getAllRecords(schemaType);
 			}
 		}
 
@@ -675,7 +677,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			return size;
 		}
-
 
 	}
 

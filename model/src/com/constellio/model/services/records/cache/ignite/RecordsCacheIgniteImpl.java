@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache.ignite;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -878,13 +881,9 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 100000) {
-				for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
-						new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
-					List<Record> records = it.next();
-					LOGGER.info("inserting " + records.size() + " records of type " + schemaTypeCode);
-					insert(records);
-				}
+			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 100000 || asList(User.SCHEMA_TYPE,
+					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(schemaTypeCode)) {
+				searchServices.getAllRecords(schemaType);
 			}
 		}
 

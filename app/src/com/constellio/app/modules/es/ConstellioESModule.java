@@ -5,12 +5,10 @@ import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -63,17 +61,14 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "es";
@@ -206,13 +201,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
-			Iterator<List<Record>> authsIterator = modelLayerFactory.newSearchServices().recordsBatchIterator(10000,
-					new LogicalSearchQuery(from(es.authorizationDetails.schemaType()).returnAll()));
-			while (authsIterator.hasNext()) {
-				List<Record> records = authsIterator.next();
-				LOGGER.info("inserting " + records.size() + " records of type " + SolrAuthorizationDetails.SCHEMA_TYPE);
-				modelLayerFactory.getRecordsCaches().insert(collection, records);
-			}
 		}
 
 		if (!recordsCache.isConfigured(Facet.SCHEMA_TYPE)) {

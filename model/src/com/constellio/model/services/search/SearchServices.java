@@ -33,6 +33,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -656,24 +657,71 @@ public class SearchServices {
 
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
+		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
 		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
-			RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+
 			if (cache.isConfigured(schemaType)) {
 				if (cache.isFullyLoaded(schemaType.getCode())) {
 					return cache.getAllValues(schemaType.getCode());
 
 				} else {
+
 					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
-					cache.insert(records);
+					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+
+						if (records.size() > 1000) {
+							loadUsingMultithreading(cache, records);
+
+						} else {
+							cache.insert(records);
+						}
+					}
 					cache.markAsFullyLoaded(schemaType.getCode());
-					List<Record> loadedFromMethod = cache.getAllValues(schemaType.getCode());
-					System.out.println(records.size() == loadedFromMethod.size());
-					return loadedFromMethod;
+
+					return records;
 				}
 			}
 			throw new SearchServicesRuntimeException.GetAllValuesNotSupportedForSchemaType(schemaType.getCode());
 		} else {
-			return cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+				cache.insert(records);
+			}
+			return records;
 		}
 	}
+
+	private void loadUsingMultithreading(final RecordsCache cache, List<Record> records) {
+		final Iterator<List<Record>> recordIterator = new BatchBuilderIterator<>(records.iterator(), 500);
+
+		ThreadList threadList = new ThreadList<>();
+		for (int i = 0; i < 5; i++) {
+			threadList.addAndStart(new Thread() {
+				@Override
+				public void run() {
+					boolean hasMoreRecords = true;
+
+					while (hasMoreRecords) {
+
+						List<Record> records;
+						synchronized (recordIterator) {
+							records = recordIterator.hasNext() ? recordIterator.next() : null;
+						}
+						if (records != null) {
+							cache.insert(records);
+						} else {
+							hasMoreRecords = false;
+						}
+
+					}
+				}
+			});
+		}
+		try {
+			threadList.joinAll();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }

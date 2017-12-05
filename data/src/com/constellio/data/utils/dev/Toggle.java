@@ -43,9 +43,9 @@ public class Toggle {
 
 	public static AvailableToggle AUDIT_EVENTS = newToggle(true);
 
-	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(true);
+	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(false);
 
-	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
+	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(false);
 
 	// ------------------------------------------------
 

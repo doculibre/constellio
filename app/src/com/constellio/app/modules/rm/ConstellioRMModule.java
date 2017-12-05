@@ -2,12 +2,10 @@ package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -147,12 +145,10 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -163,7 +159,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
@@ -449,13 +444,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-			Iterator<List<Record>> authsIterator = modelLayerFactory.newSearchServices().recordsBatchIterator(10000,
-					new LogicalSearchQuery(from(rm.authorizationDetails.schemaType()).returnAll()));
-			while (authsIterator.hasNext()) {
-				List<Record> records = authsIterator.next();
-				LOGGER.info("inserting " + records.size() + " records of type " + SolrAuthorizationDetails.SCHEMA_TYPE);
-				modelLayerFactory.getRecordsCaches().insert(collection, records);
-			}
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
