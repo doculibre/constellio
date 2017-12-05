@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.services.events;
 
+import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
+import static com.constellio.model.services.contents.ContentFactory.checkedOut;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -17,15 +30,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
-import static com.constellio.model.services.contents.ContentFactory.checkedOut;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;
@@ -307,9 +311,8 @@ public class RMEventsSearchServices {
 			ids = authenticationService.getConceptsForWhichUserHasPermission(CorePermissions.VIEW_EVENTS ,user);
 
 			List<LogicalSearchValueCondition> ofTheseAdministrativeUnits = new ArrayList<>();
-			ofTheseAdministrativeUnits.add(isNull());
-			for (Record concept : searchServices.search(
-					new LogicalSearchQuery(from(schemas.administrativeUnit.schemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
+			for (String id : ids) {
+				Record concept = modelLayerFactory.newRecordServices().getDocumentById(id);
 
 				List<String> paths = concept.get(Schemas.PATH);
 
@@ -318,7 +321,9 @@ public class RMEventsSearchServices {
 				}
 			}
 
-			return from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
+			return ofTheseAdministrativeUnits.isEmpty() ?
+					null :
+					from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
 		}
 	}
 
@@ -326,9 +331,9 @@ public class RMEventsSearchServices {
 		Metadata metadataRecordID = schemas.eventSchema().getMetadata(Event.RECORD_ID);
 		Metadata timestamp = Schemas.CREATED_ON;
 
-		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
-				.andWhere(metadataRecordID).isEqualTo(recordID);
-		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser);
+		return condition == null ? null : new LogicalSearchQuery(condition.andWhere(metadataRecordID).isEqualTo(recordID))
+				.sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery exceptEventTypes(LogicalSearchQuery query, List<String> eventTypesToExclude) {

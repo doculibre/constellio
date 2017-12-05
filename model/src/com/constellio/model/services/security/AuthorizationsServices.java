@@ -226,7 +226,7 @@ public class AuthorizationsServices {
 		}
 
 		return returnedUsers;
-//
+		//
 		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
 		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
 		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
@@ -271,13 +271,16 @@ public class AuthorizationsServices {
 		if (principalTaxonomy == null) {
 			return new ArrayList<>();
 		} else {
-			List<MetadataSchemaType> schemaTypes = types.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes());
+			List<String> returnedIds = new ArrayList<>();
+			for (MetadataSchemaType type : types.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes())) {
+				for (Record record : searchServices.cachedSearch(new LogicalSearchQuery(from(type).returnAll()))) {
+					if (user.has(permission).on(record)) {
+						returnedIds.add(record.getId());
+					}
+				}
 
-			LogicalSearchQuery query = new LogicalSearchQuery();
-			query.filteredWithUser(user, permission);
-			query.setCondition(from(schemaTypes).returnAll());
-
-			return searchServices.searchRecordIds(query);
+			}
+			return returnedIds;
 		}
 
 	}
