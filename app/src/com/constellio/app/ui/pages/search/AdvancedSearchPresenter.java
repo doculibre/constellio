@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.schemas.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +30,6 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -59,10 +57,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -85,6 +79,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private String searchID;
 	private SearchResultTable result;
 	private boolean batchProcessOnAllSearchResults;
+	private Boolean hasAnyReport;
 
 	private transient LogicalSearchCondition condition;
 
@@ -673,6 +668,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public void fireNoRecordSelected() {
 		view.fireNoRecordSelected();
+	}
+
+	public boolean hasAnyReportForSchemaType(String schemaTypeCode) {
+		if(this.hasAnyReport == null) {
+			MetadataSchemaTypes collectionsTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			MetadataSchema reportSchema = collectionsTypes.getSchema(Report.DEFAULT_SCHEMA);
+			MetadataSchema metadataReportSchema = collectionsTypes.getSchema(PrintableReport.SCHEMA_NAME);
+			this.hasAnyReport =  searchServices().getResultsCount(from(reportSchema).where(reportSchema.get(Report.SCHEMA_TYPE_CODE)).isEqualTo(schemaTypeCode)) > 0
+					|| searchServices().getResultsCount(from(metadataReportSchema).where(metadataReportSchema.get(PrintableReport.RECORD_TYPE)).isEqualTo(schemaTypeCode)) > 0;
+		}
+		return hasAnyReport;
 	}
 
 	public List<String> getListSearchableMetadataSchemaType(){

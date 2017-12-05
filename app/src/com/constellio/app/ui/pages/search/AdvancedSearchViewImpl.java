@@ -179,6 +179,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
         reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, !presenter.getListSearchableMetadataSchemaType().contains(schemaType), !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType)));
         reportButton.addStyleName(ValoTheme.BUTTON_LINK);
+        reportButton.setVisible(presenter.hasAnyReportForSchemaType(schemaType));
+        reportButton.setEnabled(presenter.hasAnyReportForSchemaType(schemaType));
         selectionActions.add(reportButton);
         addListenerToButton(results);
 
