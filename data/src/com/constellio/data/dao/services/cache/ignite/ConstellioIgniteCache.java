@@ -1,11 +1,11 @@
 package com.constellio.data.dao.services.cache.ignite;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
@@ -34,8 +34,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.name = name;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
-//		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
-//		this.igniteStreamer.allowOverwrite(true);
+		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
+		this.igniteStreamer.allowOverwrite(true);
 //		this.igniteStreamer.autoFlushFrequency(1);
 	}
 
@@ -46,6 +46,10 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	
 	public IgniteCache<String, Object> getIgniteCache() {
 		return igniteCache;
+	}
+
+	public IgniteDataStreamer<String, Object> getIgniteStreamer() {
+		return igniteStreamer;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -137,6 +141,11 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public int size() {
 		return localCache.size();
+	}
+
+	@Override
+	public List<Object> getAllValues() {
+		return new ArrayList<>(localCache.values());
 	}
 
 }

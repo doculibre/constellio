@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.cache;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public interface ConstellioCache {
@@ -21,5 +22,7 @@ public interface ConstellioCache {
 	Iterator<String> keySet();
 	
 	int size();
+	
+	List<Object> getAllValues();
 
 }
