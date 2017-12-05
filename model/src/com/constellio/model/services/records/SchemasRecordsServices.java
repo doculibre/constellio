@@ -8,12 +8,15 @@ import java.util.List;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
@@ -241,10 +244,6 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return users;
 	}
 
-	public Group getGroup(String id) {
-		return new Group(get(id), getTypes());
-	}
-
 	public Group newGroup() {
 		return new Group(create(groupSchema()), getTypes());
 	}
@@ -364,10 +363,6 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return users;
 	}
 
-	public User getUser(String id) {
-		return new User(get(id), getTypes(), getRoles());
-	}
-
 	public User newUser() {
 		return new User(create(userSchema()), getTypes(), getRoles());
 	}
@@ -406,6 +401,36 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public List<Group> getAllGroups() {
 		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecords(group.schemaType()));
+	}
+
+	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+		for (SolrAuthorizationDetails authorizationDetails : getAllAuthorizations()) {
+			if (authorizationDetails.getId().equals(id)) {
+				return authorizationDetails;
+			}
+		}
+
+		return null;
+	}
+
+	public User getUser(String id) {
+		for (User user : getAllUsers()) {
+			if (user.getId().equals(id)) {
+				return user;
+			}
+		}
+
+		return null;
+	}
+
+	public Group getGroup(String id) {
+		for (Group group : getAllGroups()) {
+			if (group.getId().equals(id)) {
+				return group;
+			}
+		}
+
+		return null;
 	}
 
 }
