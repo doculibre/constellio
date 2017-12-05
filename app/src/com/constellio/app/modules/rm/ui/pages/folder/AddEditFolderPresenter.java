@@ -1005,7 +1005,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					public int compare(Record o1, Record o2) {
 						String p1 = o1.get(Schemas.PRINCIPAL_PATH);
 						String p2 = o2.get(Schemas.PRINCIPAL_PATH);
-						return LangUtils.compareStrings(p1, p2);
+						return -1 * LangUtils.compareStrings(p1, p2);
 					}
 				});
 				for (Record anAdministrativeUnit : records) {
