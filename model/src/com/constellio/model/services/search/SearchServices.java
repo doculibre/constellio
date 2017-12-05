@@ -658,7 +658,7 @@ public class SearchServices {
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
-		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+		if (true || Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 
 			if (cache.isConfigured(schemaType)) {
 				if (cache.isFullyLoaded(schemaType.getCode())) {
