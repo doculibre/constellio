@@ -17,6 +17,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -288,7 +289,8 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
         MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
         for(String folderId : getFolderIDListFromObjectList()) {
-            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
+            Folder folder = rm.getFolder(folderId);
+            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(Schemas.PRINCIPAL_PATH).isStartingWithText(folder.<String>get(Schemas.PRINCIPAL_PATH));
             if(searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
                 return true;
             }
