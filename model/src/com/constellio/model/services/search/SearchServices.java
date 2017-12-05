@@ -23,6 +23,8 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -57,6 +59,8 @@ import com.constellio.model.services.search.query.logical.condition.SolrQueryBui
 import com.constellio.model.services.security.SecurityTokenManager;
 
 public class SearchServices {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
 
 	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
 			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
@@ -658,7 +662,7 @@ public class SearchServices {
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
-		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+		if (true || Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 
 			if (cache.isConfigured(schemaType)) {
 				if (cache.isFullyLoaded(schemaType.getCode())) {
@@ -680,8 +684,11 @@ public class SearchServices {
 
 					return records;
 				}
+			} else {
+				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
 			}
-			throw new SearchServicesRuntimeException.GetAllValuesNotSupportedForSchemaType(schemaType.getCode());
+
 		} else {
 			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
