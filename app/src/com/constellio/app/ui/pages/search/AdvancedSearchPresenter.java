@@ -81,6 +81,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	String searchExpression;
 	String schemaTypeCode;
 	private int pageNumber;
+	private List<String> listSearchableMetadataSchemaType;
 	private String searchID;
 	private SearchResultTable result;
 	private boolean batchProcessOnAllSearchResults;
@@ -673,4 +674,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void fireNoRecordSelected() {
 		view.fireNoRecordSelected();
 	}
+
+	public List<String> getListSearchableMetadataSchemaType(){
+		if(listSearchableMetadataSchemaType == null) {
+			listSearchableMetadataSchemaType = new ArrayList<>();
+			for(MetadataSchemaType schemaType : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
+				if(isMetadataSchemaTypesSearchable(schemaType)) {
+					listSearchableMetadataSchemaType.add(schemaType.getCode());
+				}
+			}
+		}
+		return listSearchableMetadataSchemaType;
+	}
+
+	private boolean isMetadataSchemaTypesSearchable(MetadataSchemaType types) {
+		return schemasDisplayManager().getType(collection, types.getCode()).isAdvancedSearch();
+	}
+
 }
