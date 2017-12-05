@@ -4,6 +4,7 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -24,13 +25,13 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
-public class CoreMigrationTo_7_6_6_1 implements MigrationScript {
+public class CoreMigrationTo_7_6_6_45 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_6_6_1.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_6_6_45.class);
 
 	@Override
 	public String getVersion() {
-		return "7.6.6";
+		return "7.6.6.45";
 	}
 
 	@Override
@@ -53,13 +54,15 @@ public class CoreMigrationTo_7_6_6_1 implements MigrationScript {
 
 				for (Record record : records) {
 					User user = schemas.wrapUser(record);
+					user.set("alluserauthorizations", new ArrayList<>());
+					user.set("groupsauthorizations", new ArrayList<>());
 					tx.add(user);
 				}
 
 				recordServices.execute(tx);
 
 			}
-		}.execute(from(schemas.authorizationDetails.schemaType()).where(schemas.user.groupsauthorizations()).isNotNull());
+		}.execute(from(schemas.user.schemaType()).where(schemas.user.groupsauthorizations()).isNotNull());
 	}
 
 	class CoreSchemaAlterationFor_7_6_6_1 extends MetadataSchemasAlterationHelper {
