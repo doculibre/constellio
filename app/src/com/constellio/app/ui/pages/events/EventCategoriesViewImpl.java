@@ -25,6 +25,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String BORROWED_DOCUMENTS_LINK_BUTTON = "borrowedDocumentsLinkButton";
 	public static final String FILING_SPACE_EVENTS_LINK_BUTTON = "filingSpaceEventsLinkButton";
 	public static final String BY_FOLDER_EVENTS_LINK_BUTTON = "byFolderEventsLinkButton";
+	public static final String BY_CONTAINER_EVENTS_LINK_BUTTON = "byContainerEventsLinkButton";
 	public static final String BY_USER_EVENTS_LINK_BUTTON = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK_BUTTON = "decommissioningEventsLinkButton";
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
@@ -94,6 +95,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button byFolderEventsLink = newByFolderEventsLink();
 		byFolderEventsLink.addStyleName(BY_FOLDER_EVENTS_LINK_BUTTON);
 		layout.addComponent(byFolderEventsLink);
+
+		Button byContainerEventsLink = newByContainerEventsLink();
+		byContainerEventsLink.addStyleName(BY_CONTAINER_EVENTS_LINK_BUTTON);
+		layout.addComponent(byContainerEventsLink);
 
 		Button byUserEventsLink = newByUserEventsLink();
 		byUserEventsLink.addStyleName(BY_USER_EVENTS_LINK_BUTTON);
@@ -167,6 +172,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newByFolderEventsLink() {
 		return createLink($("ListEventsView.eventsByFolder"), EventCategory.EVENTS_BY_FOLDER, "folder_time");
+	}
+
+	private Button newByContainerEventsLink() {
+		return createLink($("ListEventsView.eventsByContainer"), EventCategory.EVENTS_BY_CONTAINER, "container_time");
 	}
 
 	private Button newByUserEventsLink() {

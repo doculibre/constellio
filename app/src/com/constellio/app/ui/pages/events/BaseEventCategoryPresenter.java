@@ -91,6 +91,7 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		case EVENTS_BY_ADMINISTRATIVE_UNIT:
 		case EVENTS_BY_FOLDER:
 		case EVENTS_BY_USER:
+		case EVENTS_BY_CONTAINER:
 			return true;
 		default:
 			return false;
