@@ -144,6 +144,7 @@ public class DecommissioningService {
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
 			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds));
+			decommissioningList.setContainerDetailsFrom(getContainersOfFolders(recordIds));
 		}
 
 		try {
