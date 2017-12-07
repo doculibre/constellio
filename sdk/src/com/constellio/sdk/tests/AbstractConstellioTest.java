@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.ConstellioTest.getInstance;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
 import static java.util.Arrays.asList;
@@ -404,14 +405,25 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	public static File getResourcesDir() {
-		File resourcesDir = new File("sdk-resources");
 
-		if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
-			resourcesDir = new File("sdk" + File.separator + "sdk-resources");
-		}
+		File resourcesDir;
 
-		if (!resourcesDir.exists()) {
-			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+		if (getInstance().getClass().getResource(".").getFile().contains("constellio-plugins")) {
+
+			File pluginsSDK = new FoldersLocator().getPluginsSDKProject();
+			resourcesDir = new File(pluginsSDK, "sdk-resources");
+
+		} else {
+			resourcesDir = new File("sdk-resources");
+
+			System.out.println();
+			if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
+				resourcesDir = new File("sdk" + File.separator + "sdk-resources");
+			}
+
+			if (!resourcesDir.exists()) {
+				resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+			}
 		}
 
 		return resourcesDir;

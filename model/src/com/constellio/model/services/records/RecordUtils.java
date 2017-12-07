@@ -652,8 +652,8 @@ public class RecordUtils {
 					List<T> newValues = record.getList(metadata);
 
 					ListComparisonResults<T> comparisonResults = LangUtils.compare(previousValues, newValues);
-					values.addAll(previousValues);
-					values.addAll(newValues);
+					values.addAll(comparisonResults.getNewItems());
+					values.addAll(comparisonResults.getRemovedItems());
 
 				} else {
 					T previousValue = originalRecord.get(metadata);
