@@ -316,6 +316,10 @@ public class MetadataSchemaType implements Serializable {
 		return undeletable;
 	}
 
+	public String getDataStore() {
+		return "records";
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);

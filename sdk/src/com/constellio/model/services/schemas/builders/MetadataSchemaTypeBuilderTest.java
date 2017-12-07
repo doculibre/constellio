@@ -132,6 +132,23 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenDataStoreNotDefinedWhenBuildingThenRecords()
+			throws Exception {
+		build();
+
+		assertThat(schemaType.getDataStore()).isEqualTo("records");
+	}
+
+	@Test
+	public void givenDataStoreDefinedWhenBuildingThenRecords()
+			throws Exception {
+		schemaTypeBuilder.setData
+		build();
+
+		assertThat(schemaType.getDataStore()).isEqualTo("records");
+	}
+
+	@Test
 	public void givenUndeletableStatusNotDefinedWhenBuildingThenDeletable()
 			throws Exception {
 		build();

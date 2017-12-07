@@ -44,6 +44,7 @@ public class MetadataSchemaTypeBuilder {
 	private boolean readOnlyLocked;
 	private ClassProvider classProvider;
 	private Set<String> flags = new HashSet<>();
+	private String dataStore;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -304,6 +305,15 @@ public class MetadataSchemaTypeBuilder {
 
 	public MetadataSchemaTypeBuilder setReadOnlyLocked(boolean readOnlyLocked) {
 		this.readOnlyLocked = readOnlyLocked;
+		return this;
+	}
+
+	public String getDataStore() {
+		return dataStore;
+	}
+
+	public MetadataSchemaTypeBuilder setDataStore(String dataStore) {
+		this.dataStore = dataStore;
 		return this;
 	}
 
