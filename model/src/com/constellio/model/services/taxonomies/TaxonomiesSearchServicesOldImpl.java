@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -398,7 +399,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 		if (ctx.forSelectionOfSchemaType == null
 				|| ctx.forSelectionOfSchemaType.getAllReferencesToTaxonomySchemas(asList(ctx.taxonomy)).isEmpty()) {
-			condition = fromAllSchemasInCollectionOf(ctx.record)
+			condition = fromAllSchemasInCollectionOf(ctx.record, DataStore.RECORDS)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {

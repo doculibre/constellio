@@ -1612,6 +1612,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeCustomSchema.stringMetadata().getDefaultValue()).isEqualTo("value3");
 	}
 
+	@Test
+	public void givenDifferentDataStoreIsUsedToPersistRecordsThenSaved()
+			throws Exception {
+		defineSchemasManager().using(schemas.whichIsIsStoredInDataStore("events"));
+
+		assertThat(zeSchema.type().getDataStore()).isEqualTo("events");
+		assertThat(anotherSchema.type().getDataStore()).isEqualTo("records");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setDataStore(null);
+				types.getSchemaType(anotherSchema.typeCode()).setDataStore("events");
+			}
+		});
+
+		assertThat(zeSchema.type().getDataStore()).isEqualTo("records");
+		assertThat(anotherSchema.type().getDataStore()).isEqualTo("events");
+	}
+
 	private MetadataSchemaTypes createTwoSchemas()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = modifySchemaTypesAddingTwoNewTypes();

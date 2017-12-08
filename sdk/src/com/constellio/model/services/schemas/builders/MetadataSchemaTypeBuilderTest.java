@@ -140,12 +140,31 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDataStoreDefinedWhenBuildingThenRecords()
+	public void givenDataStoreDefinedToNullWhenBuildingThenRecords()
 			throws Exception {
-		schemaTypeBuilder.setData
+		schemaTypeBuilder.setDataStore(null);
 		build();
 
 		assertThat(schemaType.getDataStore()).isEqualTo("records");
+	}
+
+	@Test
+	public void givenDataStoreDefinedWhenBuildingThenRecords()
+			throws Exception {
+		schemaTypeBuilder.setDataStore("events");
+		build();
+
+		assertThat(schemaType.getDataStore()).isEqualTo("events");
+	}
+
+	@Test
+	public void givenDataStoreDefinedWhenModifyingThenHasCorrectValue()
+			throws Exception {
+		schemaTypeBuilder.setDataStore("events");
+
+		buildAndModify();
+
+		assertThat(schemaTypeBuilder.getDataStore()).isEqualTo("events");
 	}
 
 	@Test

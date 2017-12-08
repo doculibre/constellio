@@ -7,4 +7,6 @@ public interface DataStoreFilters {
 	List<String> getFilterQueries(boolean hasSecurityFilters);
 
 	String getCollection();
+
+	String getDataStore();
 }

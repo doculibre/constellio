@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -29,9 +30,9 @@ import com.constellio.model.services.security.SecurityTokenManager;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
-	
+
 	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
-	
+
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
 	//This condition will be inserted in Filter Query
@@ -494,6 +495,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery setName(String name) {
 		this.name = name;
 		return this;
+	}
+
+	public String getDataStore() {
+		if (condition == null || condition.getFilters() == null) {
+			return DataStore.RECORDS;
+		} else {
+			return condition.getFilters().getDataStore();
+		}
 	}
 
 	public interface UserFilter {

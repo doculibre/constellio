@@ -801,7 +801,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		RecordDTO entity = querySingleDocument("getById:" + id, params);
 		if (entity == null) {
-			throw new RecordDaoException.NoSuchRecordWithId(id);
+			throw new RecordDaoException.NoSuchRecordWithId(id, bigVaultServer.getName());
 		} else {
 			return entity;
 		}
@@ -818,7 +818,7 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 
 		if (solrDocument == null) {
-			throw new RecordDaoException.NoSuchRecordWithId(id);
+			throw new RecordDaoException.NoSuchRecordWithId(id, bigVaultServer.getName());
 		} else {
 			return toEntity(solrDocument);
 		}

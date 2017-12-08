@@ -58,6 +58,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
@@ -1947,6 +1949,77 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur d'ours brisé", "Pointeur d'ours brisé[]"));
 
+	}
+
+	@Test()
+	public void whenExecutingATransactionWithRecordsOfMultipleDataStoresThenRecordsInsertedIn()
+			throws Exception {
+		defineSchemasManager().using(schemas.whichIsIsStoredInDataStore("events"));
+
+		Transaction tx = new Transaction();
+		Record record1InEventsDataStore = tx.add(new TestRecord(zeSchema.instance(), "record1"));
+		Record record2InEventsDataStore = tx.add(new TestRecord(zeSchema.instance(), "record2"));
+		Record record1InRecordsDataStore = tx.add(new TestRecord(anotherSchema.instance(), "record3"));
+		Record record2InRecordsDataStore = tx.add(new TestRecord(anotherSchema.instance(), "record4"));
+
+		recordServices.execute(tx);
+
+		RecordServices recordServices = getModelLayerFactory().newCachelessRecordServices();
+
+		assertThat(recordServices.getById(DataStore.EVENTS, "record1")).isNotNull();
+		assertThat(recordServices.getById(DataStore.EVENTS, "record2")).isNotNull();
+		assertThat(recordServices.getById(DataStore.RECORDS, "record3")).isNotNull();
+		assertThat(recordServices.getById(DataStore.RECORDS, "record4")).isNotNull();
+
+		try {
+			assertThat(recordServices.getDocumentById("record1")).isNotNull();
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//OK
+		}
+
+		try {
+			assertThat(recordServices.getDocumentById("record2")).isNotNull();
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//OK
+		}
+		assertThat(recordServices.getDocumentById("record3")).isNotNull();
+		assertThat(recordServices.getDocumentById("record4")).isNotNull();
+
+		RecordDao recordsDataStore = getDataLayerFactory().newRecordDao();
+		RecordDao eventsDataStore = getDataLayerFactory().newEventsDao();
+
+		assertThat(eventsDataStore.get("record1")).isNotNull();
+		assertThat(eventsDataStore.get("record2")).isNotNull();
+		try {
+			eventsDataStore.get("record3");
+			fail("Exception expected");
+		} catch (RecordDaoException.NoSuchRecordWithId e) {
+			//OK
+		}
+		try {
+			eventsDataStore.get("record4");
+			fail("Exception expected");
+		} catch (RecordDaoException.NoSuchRecordWithId e) {
+			//OK
+		}
+
+		try {
+			recordsDataStore.get("record1");
+			fail("Exception expected");
+		} catch (RecordDaoException.NoSuchRecordWithId e) {
+			//OK
+		}
+		try {
+			recordsDataStore.get("record2");
+			fail("Exception expected");
+		} catch (RecordDaoException.NoSuchRecordWithId e) {
+			//OK
+		}
+
+		assertThat(recordsDataStore.get("record3")).isNotNull();
+		assertThat(recordsDataStore.get("record4")).isNotNull();
 	}
 
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {

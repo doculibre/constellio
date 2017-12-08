@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -387,7 +388,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 		if (ctx.forSelectionOfSchemaType == null
 				|| ctx.forSelectionOfSchemaType.getAllReferencesToTaxonomySchemas(asList(ctx.taxonomy)).isEmpty()) {
-			condition = fromAllSchemasInCollectionOf(ctx.record)
+			condition = fromAllSchemasInCollectionOf(ctx.record, DataStore.RECORDS)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {
