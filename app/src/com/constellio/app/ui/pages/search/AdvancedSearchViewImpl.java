@@ -348,8 +348,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 							}
 							if(sipButton != null) {sipButton.addAllObject(recordVOS);}
 						}
-					}
-		});
+					});
 		} else {
 			((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
 				@Override
