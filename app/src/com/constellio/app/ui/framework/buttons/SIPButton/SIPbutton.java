@@ -289,8 +289,7 @@ public class SIPbutton extends WindowButton implements Upload.SucceededListener,
         SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
         MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
         for(String folderId : getFolderIDListFromObjectList()) {
-            Folder folder = rm.getFolder(folderId);
-            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(Schemas.PRINCIPAL_PATH).isStartingWithText(folder.<String>get(Schemas.PRINCIPAL_PATH));
+            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(Schemas.PATH_PARTS).isContaining(Collections.singletonList(folderId));
             if(searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
                 return true;
             }

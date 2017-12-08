@@ -14,8 +14,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import org.apache.commons.collections.IteratorUtils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -178,13 +180,14 @@ public class SIPFilter {
                 whereClauseAny
         );
         List<Document> documentList = rm.wrapDocuments(searchService.search(new LogicalSearchQuery(condition).sortAsc(Schemas.IDENTIFIER).setStartRow(this.getStartIndex())));
-        for (Document document : documentList) {
-            if ((this.isDocumentTypeRequired() && document.getType() == null)
+        List<Document> finalDocumentList = new ArrayList<>();
+        for(Document document  : documentList) {
+            if (!((this.isDocumentTypeRequired() && document.getType() == null)
             || (this.getRubriqueCode() != null && !document.getFolderCategory().equals(this.getRubriqueCode().getId()))
-            || (this.getAdministrativeUnit() != null && !document.getFolderAdministrativeUnit().equals(this.getAdministrativeUnit().getId()))) {
-                documentList.remove(document);
+            || (this.getAdministrativeUnit() != null && !document.getFolderAdministrativeUnit().equals(this.getAdministrativeUnit().getId())))) {
+                finalDocumentList.add(document);
             }
         }
-        return documentList;
+        return finalDocumentList;
     }
 }
