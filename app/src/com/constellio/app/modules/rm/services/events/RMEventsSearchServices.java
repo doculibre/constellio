@@ -342,7 +342,4 @@ public class RMEventsSearchServices {
 		return query;
 	}
 
-	public LogicalSearchQuery andWhereRecordIdIsNotNull(LogicalSearchQuery query) {
-		return query.setCondition(query.getCondition().andWhere(schemas.event.recordIdentifier()).isNotNull());
-	}
 }

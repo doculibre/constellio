@@ -29,6 +29,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -1056,8 +1057,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		String id;
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
+
+		} else if (DataStore.EVENTS.equals(schema.getDataStore())) {
+			id = UUIDV1Generator.newRandomId();
+
 		} else if (!schema.isInTransactionLog()) {
 			id = uniqueIdGenerator.next() + "ZZ";
+
 		} else {
 			id = uniqueIdGenerator.next();
 		}

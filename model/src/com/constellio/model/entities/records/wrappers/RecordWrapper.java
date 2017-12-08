@@ -67,6 +67,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return value == null ? null : value.intValue();
 	}
 
+	public int getPrimitiveInteger(String localCode) {
+		Number value = get(localCode);
+		return value == null ? 0 : value.intValue();
+	}
+
 	public <T> T get(Metadata metadata) {
 		return wrappedRecord.get(metadata);
 	}

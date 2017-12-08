@@ -59,7 +59,8 @@ public class CoreMigrationTo_7_6_6_1 implements MigrationScript {
 				recordServices.execute(tx);
 
 			}
-		}.execute(from(schemas.authorizationDetails.schemaType()).where(schemas.user.groupsauthorizations()).isNotNull());
+		}.execute(from(schemas.authorizationDetails.schemaType())
+				.where(schemas.user.schema().get("groupsauthorizations")).isNotNull());
 	}
 
 	class CoreSchemaAlterationFor_7_6_6_1 extends MetadataSchemasAlterationHelper {
