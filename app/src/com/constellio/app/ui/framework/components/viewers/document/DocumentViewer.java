@@ -45,9 +45,9 @@ public class DocumentViewer extends CustomComponent {
 		}
 	}
 	
-	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(ConversionManager.SUPPORTED_EXTENSIONS, new String[]{ "pdf" });
+	public static String[] CONVERSION_EXTENSIONS = ArrayUtils.removeElements(ConversionManager.getSupportedExtensions(), new String[]{ "pdf" });
 	
-	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(ConversionManager.SUPPORTED_EXTENSIONS, "pdf");
+	public static String[] SUPPORTED_EXTENSIONS = ArrayUtils.add(ConversionManager.getSupportedExtensions(), "pdf");
 	
 	private static final int DEFAULT_WIDTH = 750;
 	

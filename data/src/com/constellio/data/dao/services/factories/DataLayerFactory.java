@@ -190,7 +190,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
 		lastCreatedInstance = this;
 	}
 

@@ -143,7 +143,7 @@ public class RMDocumentExtension extends RecordExtension {
 
 	private boolean isFilePreviewSupportedFor(String filename) {
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-		return Arrays.asList(ConversionManager.SUPPORTED_EXTENSIONS).contains(extension);
+		return Arrays.asList(ConversionManager.getSupportedExtensions()).contains(extension);
 	}
 
 	@Override

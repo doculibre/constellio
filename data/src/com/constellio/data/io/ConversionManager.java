@@ -1,6 +1,7 @@
 package com.constellio.data.io;
 
 import static java.io.File.createTempFile;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 import java.io.File;
@@ -18,7 +19,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -211,13 +215,19 @@ public class ConversionManager implements StatefulService {
 	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
+	private static DataLayerSystemExtensions extensions;
 	
-	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl) {
+	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl, DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
+		this.extensions = extensions;
 	}
-	
+
+	public static String[] getSupportedExtensions() {
+		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+	}
+
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
 		return openOfficeOrLibreOfficeInstalled;
 	}
@@ -355,13 +365,13 @@ public class ConversionManager implements StatefulService {
 	private DocumentFamily getDocumentFamily(File file) {
 		DocumentFamily documentFamily;
 		String extension = StringUtils.toLowerCase(FilenameUtils.getExtension(file.getName()));
-		if (Arrays.asList(TEXT_EXTENSIONS).contains(extension)) {
+		if (asList(TEXT_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.TEXT;
-		} else if (Arrays.asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
+		} else if (asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.SPREADSHEET;
-		} else if (Arrays.asList(PRESENTATION_EXTENSIONS).contains(extension)) {
+		} else if (asList(PRESENTATION_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.PRESENTATION;
-		} else if (Arrays.asList(DRAWING_EXTENSIONS).contains(extension)) {
+		} else if (asList(DRAWING_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.DRAWING;
 		} else {
 			documentFamily = null;

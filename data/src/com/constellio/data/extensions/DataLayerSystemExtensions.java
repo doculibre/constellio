@@ -2,18 +2,18 @@ package com.constellio.data.extensions;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
+import com.constellio.data.extensions.extensions.configManager.*;
 import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
-import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
-import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
-import com.constellio.data.extensions.extensions.configManager.ReadConfigParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataLayerSystemExtensions {
 
@@ -23,6 +23,7 @@ public class DataLayerSystemExtensions {
 	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
@@ -97,6 +98,14 @@ public class DataLayerSystemExtensions {
 				}
 			});
 		}
+	}
+
+	public String[] getSupportedExtensionExtensions() {
+		List<String> allExtension = new ArrayList<>();
+		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			allExtension.addAll(extensionExtension.getAdditionalSupportedExtension());
+		}
+		return allExtension.toArray(new String[0]);
 	}
 
 	public void onAddUpdateConfig(final String configPath) {
