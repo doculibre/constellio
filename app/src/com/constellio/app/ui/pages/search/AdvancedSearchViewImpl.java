@@ -374,8 +374,12 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 						public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
 							RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
 									.toArray(new RecordVO[0]);
-							reportButton.setRecordVoList(recordVOS);
-							sipButton.addAllObject(recordVOS);
+							if(reportButton != null) {
+								reportButton.setRecordVoList(recordVOS);
+							}
+							if(sipButton != null) {
+								sipButton.addAllObject(recordVOS);
+							}
 						}
 					});
 		} else {
@@ -384,8 +388,12 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
 					RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
 							.toArray(new RecordVO[0]);
-					reportButton.setRecordVoList(recordVOS);
-					sipButton.setAllObject(recordVOS);
+					if(reportButton != null) {
+						reportButton.setRecordVoList(recordVOS);
+					}
+					if(sipButton != null) {
+						sipButton.setAllObject(recordVOS);
+					}
 				}
 			});
 		}
