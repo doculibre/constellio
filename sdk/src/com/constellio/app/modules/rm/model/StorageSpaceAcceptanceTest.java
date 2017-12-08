@@ -1,11 +1,17 @@
 package com.constellio.app.modules.rm.model;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
@@ -191,6 +197,42 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(child1.setDescription("test"));
 		recordServices.update(child4.setDescription("test"));
+	}
+
+	@Test
+	public void whenSavingAContainerRecordWithCustomSchemaThenAggregatedMetadatasStillWork()
+			throws Exception {
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
+			}
+		});
+
+		ContainerRecordType zeContainerType = rm.newContainerRecordTypeWithId("zeContainerType");
+		zeContainerType.setTitle("zeContainerType");
+		zeContainerType.setCode("BOITE");
+		zeContainerType.setLinkedSchema(ContainerRecord.SCHEMA_TYPE + "_" + "ZeSchema");
+		recordServices.add(zeContainerType);
+
+
+		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(10L);
+		recordServices.add(parentStorageSpace1);
+
+		assertThat(parentStorageSpace1.getNumberOfContainers()).isEqualTo(0);
+
+		ContainerRecord zeContainer = rm.newContainerRecordWithId("zeContainer");
+		zeContainer.changeSchemaTo("ZeSchema");
+		zeContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeContainer.setDescription("Ze description");
+		zeContainer.setStorageSpace(parentStorageSpace1);
+		zeContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeContainer.setAdministrativeUnits(asList(records.unitId_10a));
+		zeContainer.setType("zeContainerType");
+		recordServices.add(zeContainer);
+
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace1.getId()).getNumberOfContainers()).isEqualTo(1);
 	}
 
 	@Test
