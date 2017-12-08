@@ -124,6 +124,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
             List<ModifiableStructure> metadataValue;
@@ -163,6 +166,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         EnumWithSmallCode metadataValue = recordElement.get(metadata);
         String code, title;
@@ -204,6 +210,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
         MetadataSchema recordSchemaType = metadataSchemasManager.getSchemaTypeOf(recordElement).getDefaultSchema();
@@ -377,4 +386,13 @@ public abstract class XmlGenerator {
     }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
+
+    private static boolean hasMetadata (Record record, Metadata metadata) {
+        try {
+            record.get(metadata);
+            return true;
+        } catch(MetadataSchemasRuntimeException.NoSuchMetadata e) {
+            return false;
+        }
+    }
 }
