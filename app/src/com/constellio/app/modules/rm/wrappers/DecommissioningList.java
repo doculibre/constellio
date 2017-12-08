@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -417,6 +418,19 @@ public class DecommissioningList extends RecordWrapper {
 		for (ContainerRecord container : containers) {
 			if(!(previousContainers != null && previousContainers.contains(container.getId()))) {
 				DecomListContainerDetail detail = new DecomListContainerDetail(container);
+				details.add(detail);
+			}
+		}
+		return setContainerDetails(details);
+	}
+
+	public DecommissioningList addContainerDetailsFromFolders(Folder... folders) {
+		List<String> previousContainers = getContainers();
+		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
+		for(Folder folder: folders) {
+			String containerId = folder.getContainer();
+			if(!(previousContainers != null && previousContainers.contains(containerId))) {
+				DecomListContainerDetail detail = new DecomListContainerDetail(containerId);
 				details.add(detail);
 			}
 		}
