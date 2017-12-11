@@ -1,5 +1,22 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.Verifier;
+import org.jsoup.Jsoup;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -15,24 +32,17 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.jgoodies.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jsoup.Jsoup;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public abstract class XmlGenerator {
     /**
@@ -232,12 +242,12 @@ public abstract class XmlGenerator {
                 if(titleBuilder.length() > 0) {
                     titleBuilder.append(", ");
                 }
-                titleBuilder.append(recordReferenced.get(Schemas.TITLE));
+                titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
 
                 if(codeBuilder.length() > 0) {
                     codeBuilder.append(", ");
                 }
-                codeBuilder.append(recordReferenced.get(Schemas.CODE));
+                codeBuilder.append((String) recordReferenced.get(Schemas.CODE));
 
 
                 if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
@@ -248,12 +258,12 @@ public abstract class XmlGenerator {
                         if(titleParentBuilder.length() > 0) {
                             titleParentBuilder.append(", ");
                         }
-                        titleParentBuilder.append(parentRecord.get(Schemas.TITLE));
+                        titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
 
                         if(codeParentBuilder.length() > 0) {
                             codeParentBuilder.append(", ");
                         }
-                        codeParentBuilder.append(parentRecord.get(Schemas.CODE));
+                        codeParentBuilder.append((String) parentRecord.get(Schemas.CODE));
 
                     }
                 }

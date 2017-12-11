@@ -1,8 +1,18 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -13,17 +23,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class XmlReportGenerator extends XmlGenerator{
 
@@ -140,6 +139,14 @@ public class XmlReportGenerator extends XmlGenerator{
             }
         });
         return allRecords.toArray(new Record[0]);
+    }
+    
+    private <T> List<List<T>> getChunkList(List<T> largeList , int chunkSize) {
+        List<List<T>> chunkList = new ArrayList<>();
+        for (int i = 0 ; i <  largeList.size() ; i += chunkSize) {
+            chunkList.add(largeList.subList(i , i + chunkSize >= largeList.size() ? largeList.size() : i + chunkSize));
+        }
+        return chunkList;
     }
 
     private List<Element> fillEmptyTags(List<Element> originalElements) {
