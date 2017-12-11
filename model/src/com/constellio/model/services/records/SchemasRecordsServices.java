@@ -219,6 +219,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new ExportAudit(create(getTypes().getSchema(ExportAudit.FULL_SCHEMA)), getTypes());
 	}
 
+	public BatchProcessReport newBatchProcessReport() {
+		return new BatchProcessReport(create(getTypes().getSchema(BatchProcessReport.FULL_SCHEMA)), getTypes());
+	}
+
 	//Groups
 
 	public MetadataSchema groupSchema() {
