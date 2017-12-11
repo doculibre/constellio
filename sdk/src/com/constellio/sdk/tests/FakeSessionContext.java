@@ -79,8 +79,15 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new FakeSessionContext(userVO, collection);
 	}
 
+
+
 	public static SessionContext dakotaInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
+	public static SessionContext dakotaInCollection(String id, String collection) {
+		UserVO userVO = newUserVO(id, collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
 		return new FakeSessionContext(userVO, collection);
 	}
 
@@ -92,6 +99,11 @@ public class FakeSessionContext extends BaseSessionContext {
 	public static SessionContext xavierInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "charles", "Charles-François", "Xavier",
 				"charlesfrancois.xavier@doculibre.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
+	public static SessionContext gandalfInCollection(String id, String collection) {
+		UserVO userVO = newUserVO(id, collection, "gandalf", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com");
 		return new FakeSessionContext(userVO, collection);
 	}
 
@@ -115,6 +127,10 @@ public class FakeSessionContext extends BaseSessionContext {
 	}
 
 	private static UserVO newUserVO(String collection, String username, String firstName, String lastName, String email) {
+		return newUserVO(username + "Id", collection, username, firstName, lastName, email);
+	}
+
+	private static UserVO newUserVO(String id,String collection, String username, String firstName, String lastName, String email) {
 		List<MetadataValueVO> metadataValueVOs = new ArrayList<>();
 		MetadataSchemaVO userSchema = userSchema(collection);
 		metadataValueVOs.add(new MetadataValueVO(userNameMetadata(userSchema), username));
@@ -122,7 +138,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		metadataValueVOs.add(new MetadataValueVO(lastNameMetadata(userSchema), lastName));
 		metadataValueVOs.add(new MetadataValueVO(emailMetadata(userSchema), email));
 
-		return new UserVO(username + "Id", metadataValueVOs, VIEW_MODE.DISPLAY);
+		return new UserVO(id, metadataValueVOs, VIEW_MODE.DISPLAY);
 	}
 
 	private static MetadataSchemaVO userSchema(String collection) {
