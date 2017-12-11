@@ -247,12 +247,12 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             if(titleBuilder.length() > 0) {
                 titleBuilder.append(", ");
             }
-            titleBuilder.append(recordReferenced.get(Schemas.TITLE));
+            titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
 
             if(codeBuilder.length() > 0) {
                 codeBuilder.append(", ");
             }
-            codeBuilder.append(recordReferenced.get(Schemas.CODE));
+            codeBuilder.append((String) recordReferenced.get(Schemas.CODE));
 
             if(AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
                 Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
@@ -262,12 +262,12 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
                     if(titleParentBuilder.length() > 0) {
                         titleParentBuilder.append(", ");
                     }
-                    titleParentBuilder.append(parentRecord.get(Schemas.TITLE));
+                    titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
 
                     if(codeParentBuilder.length() > 0) {
                         codeParentBuilder.append(", ");
                     }
-                    codeParentBuilder.append(parentRecord.get(Schemas.CODE));
+                    codeParentBuilder.append((String) parentRecord.get(Schemas.CODE));
                 }
             }
         }
