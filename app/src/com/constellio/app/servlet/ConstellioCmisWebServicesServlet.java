@@ -28,6 +28,16 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 				}
 				return scheme;
 			}
+
+			@Override
+			public int getServerPort() {
+				int port = request.getServerPort();
+				String scheme = request.getHeader("X-Forwarded-Proto");
+				if ("https".equalsIgnoreCase(scheme)) {
+					port = 443;
+				}
+				return port;
+			}
 		};
 		super.handleRequest(requestProxyWrapper, response);
 	}
