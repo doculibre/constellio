@@ -24,12 +24,23 @@ public class ConstellioCmisAtomPubServlet extends CmisAtomPubServlet {
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
 		HttpServletRequestWrapper requestProxyWrapper = new HttpServletRequestWrapper(request) {
+			@Override
 			public String getScheme() {
 				String scheme = request.getHeader("X-Forwarded-Proto");
 				if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
 					scheme = request.getScheme();
 				}
 				return scheme;
+			}
+
+			@Override
+			public int getServerPort() {
+				int port = request.getServerPort();
+				String scheme = request.getHeader("X-Forwarded-Proto");
+				if ("https".equalsIgnoreCase(scheme)) {
+					port = 443;
+				}
+				return port;
 			}
 		};
 		super.service(requestProxyWrapper, response);
