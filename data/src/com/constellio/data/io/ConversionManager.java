@@ -4,11 +4,7 @@ import static java.io.File.createTempFile;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -342,20 +339,54 @@ public class ConversionManager implements StatefulService {
 	private void convertToPDF(File input, File output) throws OfficeException {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
-			
-			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
-			DocumentFormat outputFormat = toPDFa(input);
-			if (outputFormat == null) {
-				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
+			String fileExtension = FilenameUtils.getExtension(input.getName());
+			if(Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
+				if(converter != null) {
+					FileInputStream inputStream = null;
+					FileOutputStream outputStream = null;
+					try {
+						//Source https://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
+						inputStream = new FileInputStream(converter.convert(input));
+						outputStream = new FileOutputStream(output);
+						byte[] buffer = new byte[1024];
+
+						int length;
+						/*copying the contents from input stream to
+						 * output stream using read and write methods
+						 */
+						while ((length = inputStream.read(buffer)) > 0){
+							outputStream.write(buffer, 0, length);
+						}
+					} catch (FileNotFoundException e ) {
+						throw new OfficeException(String.format("Could not found file %s", input.getName()));
+					} catch(IOException e) {
+						throw new RuntimeException(e);
+					} finally {
+						if(inputStream != null) {
+							ioServices.closeQuietly(inputStream);
+						}
+
+						if(outputStream != null) {
+							ioServices.closeQuietly(outputStream);
+						}
+					}
+				}
+			} else {
+				OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+				DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
+				DocumentFormat outputFormat = toPDFa(input);
+				if (outputFormat == null) {
+					outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
+				}
+
+				delegate
+						.convert(input)
+						.as(inputFormat)
+						.to(output)
+						.as(outputFormat)
+						.execute();
 			}
-			
-		    delegate
-		        .convert(input)
-		        .as(inputFormat)
-		        .to(output)
-		        .as(outputFormat)
-		        .execute();
 		}
 	}
 

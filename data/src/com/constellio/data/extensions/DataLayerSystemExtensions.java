@@ -108,6 +108,15 @@ public class DataLayerSystemExtensions {
 		return allExtension.toArray(new String[0]);
 	}
 
+	public ExtensionConverter getConverterForSupportedExtension(String extension) {
+		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			if(extensionExtension.getAdditionalSupportedExtension().contains(extension)) {
+				return extensionExtension.getConverter();
+			}
+		}
+		return null;
+	}
+
 	public void onAddUpdateConfig(final String configPath) {
 		for (ConfigManagerExtension extension : configManagerExtensions) {
 			extension.addUpdateConfig(new AddUpdateConfigParams() {
