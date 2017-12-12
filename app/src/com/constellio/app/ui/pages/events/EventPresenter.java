@@ -216,6 +216,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return metadataValue.getMetadata().getCode().contains(Event.DELTA);
 	}
 
+	public boolean isTypeMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.TYPE);
+	}
+
 	public boolean isTaskMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.TASK);
 	}
