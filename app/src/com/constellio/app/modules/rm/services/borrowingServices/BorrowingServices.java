@@ -509,7 +509,8 @@ public class BorrowingServices {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered);
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -535,7 +536,8 @@ public class BorrowingServices {
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
+					" (" + currentUser.getUsername() + ")");
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
