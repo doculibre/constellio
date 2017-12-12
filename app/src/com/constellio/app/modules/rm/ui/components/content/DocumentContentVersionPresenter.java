@@ -140,6 +140,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
 			
 			SessionContext sessionContext = window.getSessionContext();
+			documentVO = documentVOBuilder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, window.getSessionContext());
 			agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO, sessionContext);
 			window.closeWindow();
 			if (agentURL != null) {

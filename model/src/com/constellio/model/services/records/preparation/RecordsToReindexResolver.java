@@ -47,9 +47,17 @@ public class RecordsToReindexResolver {
 		}
 
 		for (Metadata metadata : metadatas) {
-			for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata)) {
-				if (link.getLevel() > 0) {
-					metadatasToReindex.add(link.getFromMetadata().getCode());
+			if(metadata.getInheritance() != null) {
+				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata.getInheritance())) {
+					if (link.getLevel() > 0) {
+						metadatasToReindex.add(link.getFromMetadata().getCode());
+					}
+				}
+			} else {
+				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata)) {
+					if (link.getLevel() > 0) {
+						metadatasToReindex.add(link.getFromMetadata().getCode());
+					}
 				}
 			}
 		}

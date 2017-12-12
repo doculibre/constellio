@@ -20,6 +20,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
+import org.joda.time.LocalTime;
 
 public class ConditionBuilder {
 	private MetadataSchemaType schemaType;
@@ -88,7 +89,12 @@ public class ConditionBuilder {
 		switch (criterion.getSearchOperator()) {
 		case EQUALS:
 			value = getValue(criterion, metadata, false);
-			return from(schemaType).where(metadata).isEqualTo(value);
+			if(metadata.getType() == MetadataValueType.DATE_TIME && value instanceof LocalDate && value != null) {
+				return from(schemaType).where(metadata).isValueInRange(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT),
+						((LocalDate) value).toLocalDateTime(new LocalTime(23, 59, 59, 999)));
+			} else {
+				return from(schemaType).where(metadata).isEqualTo(value);
+			}
 		case CONTAINS_TEXT:
 			String stringValue = (String) criterion.getValue();
 
