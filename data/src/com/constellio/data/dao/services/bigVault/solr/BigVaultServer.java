@@ -53,6 +53,7 @@ public class BigVaultServer implements Cloneable {
 	private static final int HTTP_ERROR_500_INTERNAL = 500;
 	private static final int HTTP_ERROR_409_CONFLICT = 409;
 	private static final int HTTP_ERROR_400_BAD_REQUEST = 400;
+	private static final int HTTP_ERROR_404_NOT_FOUND= 404;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultServer.class);
 	private final int maxFailAttempt = 10;
@@ -175,6 +176,9 @@ public class BigVaultServer implements Cloneable {
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
 					throw new BadRequest(params, e);
 				}
+				if (remoteSolrException.code() == HTTP_ERROR_404_NOT_FOUND && remoteSolrException.getMessage().contains("mlt")) {
+					throw new BigVaultRuntimeException.MLTComponentNotConfigured();
+				}
 			}
 
 			return handleQueryException(params, currentAttempt, e);
@@ -182,6 +186,10 @@ public class BigVaultServer implements Cloneable {
 		} catch (RemoteSolrException solrServerException) {
 			if (solrServerException.code() == HTTP_ERROR_400_BAD_REQUEST) {
 				throw new BadRequest(params, solrServerException);
+			}
+
+			if (solrServerException.code() == HTTP_ERROR_404_NOT_FOUND && solrServerException.getMessage().contains("mlt")) {
+				throw new BigVaultRuntimeException.MLTComponentNotConfigured();
 			}
 
 			return handleQueryException(params, currentAttempt, solrServerException);
@@ -194,6 +202,8 @@ public class BigVaultServer implements Cloneable {
 			LOGGER.warn("Solr thrown an unexpected exception, retrying the query '{}' in {} milliseconds...",
 					SolrUtils.toString(params), waitedMillisecondsBetweenAttempts, solrServerException);
 			sleepBeforeRetrying(solrServerException);
+
+
 			return tryQuery(params, currentAttempt + 1);
 		} else {
 			throw new BigVaultException.CouldNotExecuteQuery("query", params, solrServerException);
