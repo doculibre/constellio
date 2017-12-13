@@ -48,7 +48,7 @@ public class FormMetadataVO implements Serializable {
 			Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue, Set<String> customAttributes, SessionContext sessionContext) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
-			localCodeParsed = localCodeParsed.split("USR")[1];
+			localCodeParsed = localCodeParsed.split("USR", 2)[1];
 		}
 		this.code = code;
 		this.localcode = localCodeParsed;
