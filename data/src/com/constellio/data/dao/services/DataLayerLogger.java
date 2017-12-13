@@ -52,8 +52,9 @@ public class DataLayerLogger {
 
 			if (prefix != null) {
 				if (!toParamsString(params).contains("markedForReindexing_s")) {
-					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
-							+ ", documents=" + response.getResults().size()
+					long numFound = response.getResults() == null ? 0 : response.getResults().getNumFound();
+					long size = response.getResults() == null ? 0 : response.getResults().size();
+					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + numFound + ", documents=" + size
 							+ "\n" + toParamsString(params, "qt", "shards.qt", logFL ? "" : "fl") + "\n");
 				}
 			}

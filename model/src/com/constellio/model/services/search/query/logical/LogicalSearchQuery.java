@@ -34,7 +34,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	//This condition will be inserted in Filter Query
 	LogicalSearchCondition condition;
 	//This condition will be inserted in Query
-	private LogicalSearchCondition queryCondition;
 	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
 	List<UserFilter> userFilters;
@@ -55,7 +54,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private boolean highlighting = false;
 	private boolean spellcheck = false;
-	private boolean moreLikeThis = false;
+	private String moreLikeThisRecord = null;
 	private boolean preferAnalyzedFields = false;
 
 	private List<SearchBoost> fieldBoosts = new ArrayList<>();
@@ -82,7 +81,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		name = query.name;
 		condition = query.condition;
-		queryCondition = query.queryCondition;
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
 		userFilters = query.userFilters;
@@ -106,6 +104,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		fieldBoosts = new ArrayList<>(query.fieldBoosts);
 		queryBoosts = new ArrayList<>(query.queryBoosts);
+
+		moreLikeThisFields = query.moreLikeThisFields;
 	}
 
 	// The following methods are attribute accessors
@@ -443,8 +443,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
 	}
 
-	public void setMoreLikeThis(boolean moreLikeThis) {
-		this.moreLikeThis = moreLikeThis;
+	public String getMoreLikeThisRecordId() {
+		return moreLikeThisRecord;
+	}
+
+	public LogicalSearchQuery setMoreLikeThisRecordId(String recordId) {
+		this.moreLikeThisRecord = recordId;
+		return this;
 	}
 
 	public void addMoreLikeThisField(DataStoreField... fields) {
@@ -473,15 +478,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public boolean isMoreLikeThis() {
-		return moreLikeThis;
-	}
-
-	public void setQueryCondition(LogicalSearchCondition queryCondition) {
-		this.queryCondition = queryCondition;
-	}
-
-	public LogicalSearchCondition getQueryCondition() {
-		return queryCondition;
+		return moreLikeThisRecord != null;
 	}
 
 	public String getName() {

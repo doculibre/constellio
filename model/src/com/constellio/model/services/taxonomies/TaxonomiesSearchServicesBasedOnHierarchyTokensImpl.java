@@ -25,10 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.constellio.data.utils.LangUtils;
@@ -49,6 +47,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.FilterUtils;
@@ -273,8 +272,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		int realRecordsStart = 0;
 		SPEQueryResponse nonTaxonomyRecordsResponse = null;
 		if (ctx.isSelectingAConcept()) {
-			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(),
-					new HashMap<Record, Map<Record, Double>>());
+			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(), new ArrayList<MoreLikeThisRecord>());
 		} else {
 			int realRecordsRows;
 			if (ctx.options.getFastContinueInfos() == null) {

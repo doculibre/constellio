@@ -25,7 +25,7 @@ public class SPEQueryResponse {
 
 	private final List<Record> records;
 
-	private final Map<Record, Map<Record, Double>> recordsWithMoreLikeThis;
+	private final List<MoreLikeThisRecord> moreLikeThisRecords;
 
 	private final boolean correctlySpelt;
 	private final List<String> spellcheckerSuggestions;
@@ -40,10 +40,10 @@ public class SPEQueryResponse {
 		this.highlights = new HashMap<>();
 		this.correctlySpelt = true;
 		this.spellcheckerSuggestions = new ArrayList<>();
-		this.recordsWithMoreLikeThis = new HashMap<>();
+		this.moreLikeThisRecords = new ArrayList<>();
 	}
 
-	public SPEQueryResponse(List<Record> records, Map<Record, Map<Record, Double>> recordsWithMoreLikeThis) {
+	public SPEQueryResponse(List<Record> records, List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
@@ -53,7 +53,7 @@ public class SPEQueryResponse {
 		this.highlights = new HashMap<>();
 		this.correctlySpelt = true;
 		this.spellcheckerSuggestions = new ArrayList<>();
-		this.recordsWithMoreLikeThis = recordsWithMoreLikeThis;
+		this.moreLikeThisRecords = moreLikeThisRecords;
 	}
 
 	public SPEQueryResponse(List<Record> records, long numFound) {
@@ -66,14 +66,14 @@ public class SPEQueryResponse {
 		this.highlights = new HashMap<>();
 		this.correctlySpelt = true;
 		this.spellcheckerSuggestions = new ArrayList<>();
-		this.recordsWithMoreLikeThis = new HashMap<>();
+		this.moreLikeThisRecords = new ArrayList<>();
 	}
 
 	public SPEQueryResponse(
 			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
 			Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
-			List<String> spellcheckerSuggestions, Map<Record, Map<Record, Double>> recordsWithMoreLikeThis) {
+			List<String> spellcheckerSuggestions, List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.statisticsValues = statisticsValues;
 		this.queryFacetsValues = queryFacetsValues;
@@ -83,7 +83,7 @@ public class SPEQueryResponse {
 		this.highlights = highlights;
 		this.correctlySpelt = correctlySpelt;
 		this.spellcheckerSuggestions = spellcheckerSuggestions;
-		this.recordsWithMoreLikeThis = recordsWithMoreLikeThis;
+		this.moreLikeThisRecords = moreLikeThisRecords;
 	}
 
 	public List<FacetValue> getFieldFacetValues(String metadata) {
@@ -157,14 +157,12 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
 		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
-				correctlySpelt,
-				spellcheckerSuggestions, recordsWithMoreLikeThis);
+				correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
 		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
-				correctlySpelt,
-				spellcheckerSuggestions, recordsWithMoreLikeThis);
+				correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public Map<String, Map<String, List<String>>> getHighlights() {
@@ -187,7 +185,7 @@ public class SPEQueryResponse {
 		}
 	}
 
-	public Map<Record, Map<Record, Double>> getRecordsWithMoreLikeThis() {
-		return recordsWithMoreLikeThis;
+	public List<MoreLikeThisRecord> getMoreLikeThisRecords() {
+		return moreLikeThisRecords;
 	}
 }

@@ -9,39 +9,42 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class MoreLikeThisClustering{
-	public static interface StringConverter<T>{
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.MoreLikeThisRecord;
+
+public class MoreLikeThisClustering {
+	public static interface StringConverter<T> {
 		public String converToString(T obj);
 	}
-	
+
 	private Map<String, Double> facetValues = new TreeMap<>();
 
-	public <T> MoreLikeThisClustering(Map<T, Double> records, StringConverter<T> converter) {
-		
+	public MoreLikeThisClustering(List<MoreLikeThisRecord> records, StringConverter<Record> converter) {
+
 		double maxScore = 0;
 
-		for (Entry<T, Double> recordWithScore: records.entrySet()){
-			String facetValue = converter.converToString(recordWithScore.getKey());
+		for (MoreLikeThisRecord moreLikeThisRecord : records) {
+			String facetValue = converter.converToString(moreLikeThisRecord.getRecord());
 			if (facetValue == null)
 				continue;
 			Double score = facetValues.get(facetValue);
 			if (score == null)
 				score = 0d;
-			
-			score += recordWithScore.getValue();
-			if (score > maxScore){
+
+			score += moreLikeThisRecord.getScore();
+			if (score > maxScore) {
 				maxScore = score;
 			}
-			
+
 			facetValues.put(facetValue, score);
 		}
 
-		for (Entry<String, Double> aScore: facetValues.entrySet()){
-			aScore.setValue(aScore.getValue()/maxScore);
+		for (Entry<String, Double> aScore : facetValues.entrySet()) {
+			aScore.setValue(aScore.getValue() / maxScore);
 		}
 	}
-	
-	public Map<String, Double> getClusterScore(){
+
+	public Map<String, Double> getClusterScore() {
 		List<Entry<String, Double>> facetsValues = new ArrayList<>(facetValues.entrySet());
 		Collections.sort(facetsValues, new Comparator<Entry<String, Double>>() {
 
@@ -56,12 +59,12 @@ public class MoreLikeThisClustering{
 				return o1.getKey().compareTo(o2.getKey());
 			}
 		});
-		
+
 		Collections.reverse(facetsValues);
 		LinkedHashMap<String, Double> result = new LinkedHashMap<>();
-		for (Entry<String, Double> anEntry: facetsValues){
+		for (Entry<String, Double> anEntry : facetsValues) {
 			result.put(anEntry.getKey(), anEntry.getValue());
 		}
- 		return result;
+		return result;
 	}
 }
