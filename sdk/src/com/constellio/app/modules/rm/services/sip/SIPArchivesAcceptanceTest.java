@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.sip;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
@@ -77,9 +78,9 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
         searchServices = getModelLayerFactory().newSearchServices();
 
         SIPFilter filter = new SIPFilter(zeCollection, getAppLayerFactory()).withIncludeFolderIds(Collections.singletonList(records.getFolder_A01().getId()));
-        ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(), filter);
+        ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(), filter, new ProgressInfo());
         if (!metsObjectsProvider.list().isEmpty()) {
-            ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false, getAppLayerFactory().newApplicationService().getWarVersion());
+            ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false, getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo());
             constellioSIP.build(outFile);
         }
 

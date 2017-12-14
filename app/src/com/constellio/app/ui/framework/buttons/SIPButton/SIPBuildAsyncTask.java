@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
 import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
@@ -26,6 +27,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 public class SIPBuildAsyncTask implements AsyncTask {
 
@@ -37,6 +39,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
     private String username;
     private boolean deleteFiles;
     private String currentVersion;
+    private ProgressInfo progressInfo;
+    private UUID uuid;
 
     public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion) {
         this.bagInfoLines = bagInfoLines;
@@ -47,6 +51,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
         this.username = username;
         this.deleteFiles = deleteFiles;
         this.currentVersion = currentVersion;
+        this.uuid = UUID.randomUUID();
+        this.progressInfo = new ProgressInfo();
         validateParams();
     }
 
@@ -82,9 +88,10 @@ public class SIPBuildAsyncTask implements AsyncTask {
             outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
             outFile = new File(outFolder, this.sipFileName);
             SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds).withIncludeFolderIds(this.includeFolderIds);
-            ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter);
+            ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter, progressInfo);
+
             if (!metsObjectsProvider.list().isEmpty()) {
-                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion);
+                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion, progressInfo);
                 constellioSIP.build(outFile);
 
                 //Create SIParchive record
@@ -98,8 +105,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
                 Transaction transaction = new Transaction();
                 transaction.add(sipArchive);
                 modelLayerFactory.newRecordServices().execute(transaction);
-
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,9 +115,17 @@ public class SIPBuildAsyncTask implements AsyncTask {
         }
     }
 
+    public String getUUID() {
+        return uuid.toString();
+    }
+
     @Override
     public Object[] getInstanceParameters() {
         return new Object[]{sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles, currentVersion};
+    }
+
+    public ProgressInfo getProgressInfo() {
+        return progressInfo;
     }
 
     private void validateParams() throws ImpossibleRuntimeException {

@@ -6,6 +6,9 @@ import static com.constellio.model.services.schemas.builders.CommonMetadataBuild
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.constellio.app.modules.rm.wrappers.BagInfo;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
@@ -142,6 +145,25 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 				}
 			}
-		}
+            MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
+            MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
+
+            defaultBagInfoSchema.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.NOTE).setType(MetadataValueType.TEXT);
+            defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.ADRESSE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.REGION_ADMINISTRATIVE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.ENTITE_RESPONSABLE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_RESPONSABLE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.COURRIEL_RESPONSABLE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.NUMERO_TELEPHONE_RESPONSABLE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.DESCRIPTION_SOMMAIRE).setType(MetadataValueType.TEXT);
+            defaultBagInfoSchema.create(BagInfo.CATEGORIE_DOCUMENT).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.METHODE_TRANSFERE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.RESTRICTION_ACCESSIBILITE).setType(MetadataValueType.STRING);
+            defaultBagInfoSchema.create(BagInfo.ENCODAGE).setType(MetadataValueType.STRING);
+
+        }
 	}
 }
