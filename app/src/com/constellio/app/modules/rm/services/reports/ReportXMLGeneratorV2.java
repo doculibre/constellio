@@ -1,5 +1,21 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
@@ -12,22 +28,13 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 
 /**
@@ -150,6 +157,7 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             }
             return new XMLOutputter(Format.getPrettyFormat()).outputString(xmlDocument);
         }catch (Exception e) {
+        	e.printStackTrace();
             //error in validation
         }
        return "";
@@ -221,10 +229,12 @@ public class ReportXMLGeneratorV2 extends  XmlGenerator {
             StringBuilder valueBuilder = new StringBuilder();
             List<Object> objects = recordElement.getList(metadata);
             for(Object ob : objects) {
-                if(valueBuilder.length() > 0) {
-                    valueBuilder.append(", ");
-                }
-                valueBuilder.append(ob.toString());
+            	if (ob != null) {
+                    if(valueBuilder.length() > 0) {
+                        valueBuilder.append(", ");
+                    }
+                    valueBuilder.append(ob.toString());
+            	}
             }
             data = valueBuilder.toString();
         }

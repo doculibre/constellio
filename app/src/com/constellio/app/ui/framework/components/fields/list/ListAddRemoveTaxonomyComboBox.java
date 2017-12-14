@@ -15,6 +15,7 @@ public class ListAddRemoveTaxonomyComboBox extends ListAddRemoveField<RecordVO, 
 	public ListAddRemoveTaxonomyComboBox(String taxonomyCode, String schemaTypeCode) {
 		super();
 		this.taxonomyCode = taxonomyCode;
+		this.schemaTypeCode = schemaTypeCode;
 		setItemConverter(new StringToRecordVOConverter(VIEW_MODE.TABLE));
 	}
 
