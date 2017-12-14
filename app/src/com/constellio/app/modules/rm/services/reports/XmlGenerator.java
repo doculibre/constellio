@@ -219,19 +219,20 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
-        if(!hasMetadata(recordElement, metadata)) {
+        if (!hasMetadata(recordElement, metadata)) {
             return Collections.emptyList();
         }
         RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-        MetadataSchema recordSchemaType = metadataSchemasManager.getSchemaTypeOf(recordElement).getDefaultSchema();
+        MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (listOfRecordReferencedByMetadata.isEmpty()) {
+        	String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
             listOfMetadataTags = asList(
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title"));
+                    new Element(elementNamePrefix + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
+                    new Element(elementNamePrefix + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
 
         } else {
             StringBuilder titleBuilder = new StringBuilder();
@@ -269,14 +270,15 @@ public abstract class XmlGenerator {
                 }
             }
 
+            String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
             listOfMetadataTags.addAll(asList(
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(codeBuilder.toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(titleBuilder.toString()).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
+                    new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString()).setAttribute("label", elementNamePrefix + "_code"),
+                    new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString()).setAttribute("label", elementNamePrefix + "_title")
             ));
-            if(codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
+            if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
                 listOfMetadataTags.addAll(asList(
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(titleParentBuilder.toString())
+                        new Element(elementNamePrefix + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),
+                        new Element(elementNamePrefix + PARENT_SUFFIX + "_title", namespace).setText(titleParentBuilder.toString())
                 ));
             }
         }
