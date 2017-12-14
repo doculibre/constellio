@@ -79,13 +79,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					return displayButton(metadataValue);
 				} else if(presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
-				} else if(presenter.isTitleMetadata(metadataValue) && isRecordEvent) {
-					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
-					ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
-					referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
-					return referenceDisplay;
 				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
+					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
+					if(presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
+                        ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
+                        referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
+                        return referenceDisplay;
+                    } else {
+                        return super.buildMetadataComponent(metadataValue, recordVO);
+                    }
 				}
 			}
 
