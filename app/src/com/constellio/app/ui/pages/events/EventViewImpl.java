@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.events;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -78,6 +79,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					return displayButton(metadataValue);
 				} else if(presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
+				} else if(presenter.isTitleMetadata(metadataValue) && isRecordEvent) {
+					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
+					ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
+					referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
+					return referenceDisplay;
 				} else {
 					return super.buildMetadataComponent(metadataValue, recordVO);
 				}
@@ -137,6 +143,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						}
 					};
 				}
+			}
+
+			@Override
+			protected String getTitleColumnStyle(RecordVO recordVO) {
+				return null;
 			}
 		};
 		if (isRecordEvent) {
