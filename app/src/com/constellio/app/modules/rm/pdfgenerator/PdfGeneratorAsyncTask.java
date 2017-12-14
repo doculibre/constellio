@@ -11,7 +11,6 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
@@ -103,10 +102,11 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
         List<InputStream> inputStreamList = new ArrayList<>();
         FileOutputStream fileOutputStream = null;
         InputStream resultInputStream = null;
+        int number = 0;
 
         try {
 
-
+            number++;
              for(final String documentId : documentIdList) {
 
                 Record record = recordServices.getDocumentById(documentId);
@@ -131,10 +131,23 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
                      convertContentForPreview(content, conversionManager,tempFolder, modelLayerFactory);
                      in = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + ".PdfGenerator");
                  }
+                 inputStreamList.add(in);
+                 PDDocument pdDocument = PDDocument.load(in);
+                 pdDocument.getDocumentCatalog().setDocumentOutline(null);
 
 
+                 File file = ioServices.newTemporaryFile("PdTemporaryFile" + number);
+                 temporaryPdfFile.add(file);
 
-                inputStreamList.add(in);
+                 pdDocument.save(file);
+                 pdDocument.close();
+
+                 contentDao.moveFileToVault(file, hash + ".preview");
+
+                 InputStream inputStream2 = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + "signet" + ".PdfGenerator");
+
+
+                 inputStreamList.add(inputStream2);
                  if(withMetadata) {
 
                      XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
@@ -147,12 +160,9 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
                      documentIdAsString.add(documentId);
 
-                     //definir les Ids désiré
                      xmlGeneratorParameters.setElementWithIds(Document.SCHEMA_TYPE, documentIdAsString);
-                     //Ajouter les paramètre au XMlGenerator avec le appLayerFactory et la collection
 
 
-                     //definir les Ids désiré
                      JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
 
                      File jasperFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "OACIQMetadataReport.jasper");
@@ -167,7 +177,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
                      ut.addSource(generatedJasperFile);
                  }
 
-                 ut.addSource(in);
+                 ut.addSource(inputStream2);
             }
             File fileTemporaryFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
             fileOutputStream = new FileOutputStream(fileTemporaryFile);
@@ -183,6 +193,9 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
             recordServices.add(documentListPDF);
 
             contentDao.moveFileToVault(fileTemporaryFile, documentListPDF.getContent().getLastMajorContentVersion().getHash());
+
+            temporaryPdfFile.add(fileTemporaryFile);
+
 
             for(File file : temporaryPdfFile)  {
                 ioServices.deleteQuietly(file);
