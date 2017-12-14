@@ -40,7 +40,7 @@ public class ReportTabButton extends WindowButton {
     private List<PrintableReport> printableReportList;
     private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
-    private MetadataSchemaVO selectedSchemaType;
+    private MetadataSchemaVO selectedSchema;
     private boolean noExcelButton = false, noPDFButton = false, removePrintableTab = false, removeExcelTab = false;
     private AppLayerFactory factory;
     private String collection;
@@ -219,7 +219,7 @@ public class ReportTabButton extends WindowButton {
         customElementSelected.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                selectedSchemaType = (MetadataSchemaVO) customElementSelected.getValue();
+                selectedSchema = (MetadataSchemaVO) customElementSelected.getValue();
                 updateAvailableReportForCurrentCustomSchema();
             }
         });
@@ -257,7 +257,7 @@ public class ReportTabButton extends WindowButton {
                 RecordVO recordVO = (RecordVO) reportComboBox.getValue();
 
                 PrintableReportTemplate template = new PrintableReportTemplate(recordVO.getId(), recordVO.getTitle(), buttonPresenter.getReportContent(recordVO));
-                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchemaType.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchemaType)));
+                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchema)));
             }
         });
         return button;
@@ -271,7 +271,7 @@ public class ReportTabButton extends WindowButton {
             List<MetadataSchemaVO> allCustomSchemaForCurrentGeneralSchema = buttonPresenter.getAllCustomSchema(selectedReporType);
             if(allCustomSchemaForCurrentGeneralSchema.size() == 1) {
                 customElementSelected.setVisible(false);
-                selectedSchemaType = allCustomSchemaForCurrentGeneralSchema.get(0);
+                selectedSchema = allCustomSchemaForCurrentGeneralSchema.get(0);
             }
             for(MetadataSchemaVO metadataSchemaVO : allCustomSchemaForCurrentGeneralSchema) {
                 customElementSelected.addItem(metadataSchemaVO);
@@ -284,9 +284,9 @@ public class ReportTabButton extends WindowButton {
     }
 
     private void updateAvailableReportForCurrentCustomSchema(){
-        if(reportComboBox != null && selectedSchemaType != null)  {
+        if(reportComboBox != null && selectedSchema != null)  {
             reportComboBox.removeAllItems();
-            List<RecordVO> currentAvailableReport =  buttonPresenter.getAllAvailableReport(selectedSchemaType);
+            List<RecordVO> currentAvailableReport =  buttonPresenter.getAllAvailableReport(selectedSchema);
             reportComboBox.setEnabled(true);
             if(currentAvailableReport.isEmpty()) {
                 //TODO SHOW ERROR

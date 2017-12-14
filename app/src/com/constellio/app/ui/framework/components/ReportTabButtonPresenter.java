@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -50,8 +51,10 @@ class ReportTabButtonPresenter  {
 
     public List<String> getRecordVOIdFilteredList(MetadataSchemaVO schemaVO){
         List<String> ids = new ArrayList<>();
-        for(RecordVO recordVO : recordVOList) {
-            if(recordVO.getSchema().equals(schemaVO)) {
+        boolean defaultSchema = schemaVO.getCode().endsWith("_default");
+        for (RecordVO recordVO : recordVOList) {
+            if (recordVO.getSchema().equals(schemaVO) || 
+            		(defaultSchema && recordVO.getSchema().getTypeCode().equals(schemaVO.getTypeCode()))) {
                 ids.add(recordVO.getId());
             }
         }

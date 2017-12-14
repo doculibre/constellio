@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
@@ -75,7 +76,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
 	private ConverterWithCache<String, T> itemConverter;
-	private int treeBufferSize = 20;
+	private ConstellioEIMConfigs configs;
 
 	protected boolean isShowDeactivated = true;
 
@@ -106,11 +107,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public int getTreeBufferSize() {
-		return treeBufferSize;
-	}
-
-	public void setTreeBufferSize(int treeBufferSize) {
-		this.treeBufferSize = treeBufferSize;
+		if(configs == null) {
+			configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
+		}
+		return configs.getLazyTreeBufferSize();
 	}
 
 	@Override
@@ -360,7 +360,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					lookupTreeComponent = new TabSheet();
 				}
 				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
-					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, treeBufferSize);
+					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, getTreeBufferSize());
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 					lazyTree.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
