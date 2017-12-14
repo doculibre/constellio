@@ -37,6 +37,12 @@ public class BigVaultRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class MLTComponentNotConfigured extends BigVaultRuntimeException {
+		public MLTComponentNotConfigured() {
+			super("The MLT (More Like This) solr component is not configured in your records/conf/solrconfig.xml file. Please update the file.");
+		}
+	}
+
 	public static class SolrInternalError extends BigVaultRuntimeException {
 		public SolrInternalError(Exception e) {
 			super("Solr internal error", e);
