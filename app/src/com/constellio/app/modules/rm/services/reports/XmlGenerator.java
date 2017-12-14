@@ -1,5 +1,22 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.Verifier;
+import org.jsoup.Jsoup;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -15,24 +32,17 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.jgoodies.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jsoup.Jsoup;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public abstract class XmlGenerator {
     /**
@@ -123,6 +133,9 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
             List<ModifiableStructure> metadataValue;
@@ -162,10 +175,31 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
+        if(!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         List<Element> listOfMetadataTags = new ArrayList<>();
         EnumWithSmallCode metadataValue = recordElement.get(metadata);
         String code, title;
-        if (metadataValue == null) {
+
+        //TODO test;
+        if(metadata.isMultivalue()) {
+            StringBuilder codeBuilder = new StringBuilder();
+            StringBuilder titleBuilder = new StringBuilder();
+            for(EnumWithSmallCode enumWithSmallCode : recordElement.<EnumWithSmallCode>getList(metadata)) {
+                if(codeBuilder.length() > 0) {
+                    codeBuilder.append(", ");
+                }
+                codeBuilder.append(enumWithSmallCode.getCode());
+
+                if(titleBuilder.length() > 0) {
+                    titleBuilder.append(", ");
+                }
+                titleBuilder.append($(enumWithSmallCode));
+            }
+            code = codeBuilder.toString();
+            title = titleBuilder.toString();
+        } else if (metadataValue == null) {
             code = null;
             title = null;
         } else {
@@ -185,35 +219,67 @@ public abstract class XmlGenerator {
     }
 
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
+        if (!hasMetadata(recordElement, metadata)) {
+            return Collections.emptyList();
+        }
         RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-        MetadataSchema recordSchemaType = metadataSchemasManager.getSchemaTypeOf(recordElement).getDefaultSchema();
+        MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
         if (listOfRecordReferencedByMetadata.isEmpty()) {
+        	String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
             listOfMetadataTags = asList(
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                    new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title"));
+                    new Element(elementNamePrefix + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
+                    new Element(elementNamePrefix + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
 
         } else {
+            StringBuilder titleBuilder = new StringBuilder();
+            StringBuilder codeBuilder = new StringBuilder();
+            StringBuilder titleParentBuilder = new StringBuilder();
+            StringBuilder codeParentBuilder = new StringBuilder();
             for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-                listOfMetadataTags.addAll(asList(
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_code", namespace).setText(recordReferenced.<String>get(Schemas.CODE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code"),
-                        new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + "_title", namespace).setText(recordReferenced.<String>get(Schemas.TITLE)).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title")
-                ));
+                if(titleBuilder.length() > 0) {
+                    titleBuilder.append(", ");
+                }
+                titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
+
+                if(codeBuilder.length() > 0) {
+                    codeBuilder.append(", ");
+                }
+                codeBuilder.append((String) recordReferenced.get(Schemas.CODE));
+
 
                 if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
                     Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
                     String parentMetadataId = recordReferenced.get(parentMetadata);
                     if (parentMetadataId != null) {
                         Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                        listOfMetadataTags.addAll(asList(
-                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code", namespace).setText(parentRecord.<String>get(Schemas.CODE)),
-                                new Element(REFERENCE_PREFIX + recordSchemaType.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title", namespace).setText(parentRecord.<String>get(Schemas.TITLE))
-                        ));
+                        if(titleParentBuilder.length() > 0) {
+                            titleParentBuilder.append(", ");
+                        }
+                        titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
+
+                        if(codeParentBuilder.length() > 0) {
+                            codeParentBuilder.append(", ");
+                        }
+                        codeParentBuilder.append((String) parentRecord.get(Schemas.CODE));
+
                     }
                 }
+            }
+
+            String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
+            listOfMetadataTags.addAll(asList(
+                    new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString()).setAttribute("label", elementNamePrefix + "_code"),
+                    new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString()).setAttribute("label", elementNamePrefix + "_title")
+            ));
+            if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
+                listOfMetadataTags.addAll(asList(
+                        new Element(elementNamePrefix + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),
+                        new Element(elementNamePrefix + PARENT_SUFFIX + "_title", namespace).setText(titleParentBuilder.toString())
+                ));
             }
         }
         return listOfMetadataTags;
@@ -271,19 +337,73 @@ public abstract class XmlGenerator {
     abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
     String formatData(String data, Metadata metadata) {
-        return defaultFormatData(data, metadata, getFactory(), getCollection());
+        String formattedData = defaultFormatData(data, metadata, getFactory(), getCollection());
+        return formatToXml(formattedData);
+    }
+
+    private String formatToXml(String stringToFormat) {
+        if(stringToFormat != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            char[] chars = stringToFormat.toCharArray();
+            for(char currentChar: chars) {
+                if(Verifier.isXMLCharacter(currentChar)) {
+                    stringBuilder.append(currentChar);
+                } else {
+                    stringBuilder.append(" ");
+                }
+            }
+            return stringBuilder.toString();
+        } else {
+            return null;
+        }
+    }
+
+    public String getPath(Record recordElement){
+        StringBuilder builder = new StringBuilder();
+        String parentId = recordElement.getParentId();
+        if(parentId == null) {
+            if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+                parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();
+            } else if(recordElement.getTypeCode().equals(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)) {
+                parentId = getRMSchemasRecordsServices().wrapDocument(recordElement).getFolder();
+            }
+        }
+        if(parentId != null ) {
+            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+        }
+        builder.append(recordElement.getTitle());
+        return builder.toString();
+    }
+
+    private String getParentPath(Record recordElement) {
+        StringBuilder builder = new StringBuilder();
+        String parentId = null;
+        if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+            Folder folder = getRMSchemasRecordsServices().wrapFolder(recordElement);
+            parentId = folder.getParentFolder();
+            if(parentId == null) {
+                parentId = folder.getCategory();
+            }
+        } else if(recordElement.getTypeCode().equals(Category.SCHEMA_TYPE)) {
+            Category category = getRMSchemasRecordsServices().wrapCategory(recordElement);
+            parentId = category.getParent();
+        }
+        if(parentId != null) {
+            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+        }
+        builder.append(recordElement.getTitle());
+        builder.append(" > ");
+        return builder.toString();
     }
 
     public abstract XmlGeneratorParameters getXmlGeneratorParameters();
 
-    protected List<Element> fillEmptyTags(List<Element> originalElements) {
-        List<Element> filledElements = new ArrayList<>();
-        for (Element element : originalElements) {
-            if(element.getText().isEmpty()) {
-                element.setText("This will not appear on the final report");
-            }
-            filledElements.add(element);
+    private static boolean hasMetadata (Record record, Metadata metadata) {
+        try {
+            record.get(metadata);
+            return true;
+        } catch(MetadataSchemasRuntimeException.NoSuchMetadata e) {
+            return false;
         }
-        return filledElements;
     }
 }

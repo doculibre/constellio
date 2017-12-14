@@ -144,6 +144,7 @@ public class DecommissioningService {
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
 			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds));
+			decommissioningList.setContainerDetailsFrom(getContainersOfFolders(recordIds));
 		}
 
 		try {
@@ -320,10 +321,15 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendEmailForList(DecommissioningList list, User user, String templateID, List<String> parameters) {
+	public void sendEmailForList(DecommissioningList list, User user, List<String> usersToSendEmail, String templateID, List<String> parameters) {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
-			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
+			List<EmailAddress> toAddresses = new ArrayList<>();
+			if(usersToSendEmail == null || usersToSendEmail.isEmpty()) {
+				toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
+			} else {
+				toAddresses = getEmailReceivers(rm.getUsers(usersToSendEmail));
+			}
 			String subject = "";
 			if (RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
 				subject = $("DecommissionningServices.approvalRequestEmailTitle");
@@ -356,7 +362,7 @@ public class DecommissioningService {
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
 
-		sendEmailForList(list, null, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
+		sendEmailForList(list, null, users, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
 			list.addValidationRequest(user, TimeProvider.getLocalDate());
 		}
@@ -1255,7 +1261,8 @@ public class DecommissioningService {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered);
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -1281,7 +1288,8 @@ public class DecommissioningService {
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
+					" (" + currentUser.getUsername() + ")");
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record

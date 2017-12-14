@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -186,24 +187,25 @@ public class ConstellioAgentUtils {
 		return sb.toString();
 	}
 
-	public static String getAgentSmbURL(String smbPath) {
-		return getAgentSmbURL(smbPath, null);
+	public static String getAgentSmbURL(RecordVO recordVO, MetadataVO metadataVO) {
+		return getAgentSmbURL(recordVO, metadataVO, null);
 	}
 
-	public static String getAgentSmbURL(String smbPath, HttpServletRequest request) {
+	public static String getAgentSmbURL(RecordVO recordVO, MetadataVO metadataVO, HttpServletRequest request) {
 		String agentSmbURL;
 
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-		String passthroughPath;
-		if (isWindows(request)) {
-			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
-			passthroughPath = StringUtils.removeStart(passthroughPath, "smb:");
-		} else {
-			passthroughPath = smbPath;
-		}
-		passthroughPath = UnicodeUtils.unicodeEscape(passthroughPath);
+//		String passthroughPath;
+//		if (isWindows(request)) {
+//			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
+//			passthroughPath = StringUtils.removeStart(passthroughPath, "smb:");
+//		} else {
+//			passthroughPath = smbPath;
+//		}
+//		passthroughPath = UnicodeUtils.unicodeEscape(passthroughPath);
+		String passthroughPath = recordVO.getId() + "/" + metadataVO.getCode();
 
 		String agentBaseURL = getAgentBaseURL();
 		StringBuffer sb = new StringBuffer();

@@ -39,7 +39,7 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 
 	private FolderCategoryFieldImpl(String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess,
-				false), getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
+				false, true), getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess));
 		this.isShowDeactivated = false;
 	}
 

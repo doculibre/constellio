@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.services.records.RecordUtils;
 import com.jgoodies.common.base.Strings;
+import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -30,10 +32,6 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -175,6 +173,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
+					Field<?> field = getAssignerField();
+					if(field != null && field.getValue() != null) {
+						task.setAssigner((String) field.getValue());
+					}
 				}
 			}
 			addOrUpdate(task.getWrappedRecord());
@@ -188,6 +190,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
 		}
+	}
+
+	private Field getAssignerField() {
+		TaskForm form = view.getForm();
+		if(form instanceof TaskFormImpl) {
+			return ((TaskFormImpl) form).getField(Task.ASSIGNER);
+		}
+		return null;
 	}
 
 	public void initTaskVO(String parameters) {
@@ -243,6 +253,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustRelativeDueDate();
 		adjustAcceptedField();
 		adjustReasonField();
+		adjustAssignerField();
+	}
+
+	private void adjustAssignerField() {
+		Field assignerField = getAssignerField();
+		if(assignerField != null) {
+			assignerField.setValue(getCurrentUser().getId());
+		}
 	}
 
 	private void adjustProgressPercentageField() {

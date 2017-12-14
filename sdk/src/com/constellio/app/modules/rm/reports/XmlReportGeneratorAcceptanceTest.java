@@ -235,6 +235,29 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     }
 
     @Test
+    public void checkIfMultivalueMetadataReturnsMutlivalueSeparatedByComa() {
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
+            String xmlString = xmlReportGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
+            inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+            Document xmlDocument = saxBuilder.build(inputStream);
+
+            Element xmlRecordElement = xmlDocument.getRootElement().getChild(XmlGenerator.XML_EACH_RECORD_ELEMENTS).getChild("metadatas");
+            assertThat(xmlRecordElement.getChild("ref_folder_mediumTypes_code").getText()).contains(",");
+        }catch (Exception e) {
+            e.printStackTrace();
+            //fail();
+        } finally {
+            ioServices.closeQuietly(inputStream);
+        }
+    }
+
+    @Test
     public void checkIfTestXmlGeneratorAreReturningEveryTagsFilled(){
         InputStream inputStream = null;
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);

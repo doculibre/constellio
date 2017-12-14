@@ -79,7 +79,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         }
 
         System.out.println("Obtention de la liste des documents");
-        documents = rm.searchDocuments(filter.getSearchQuery());
+        documents = filter.getDocument();
         System.out.println("Liste de documents obtenue (" + documents.size() + ")");
     }
 

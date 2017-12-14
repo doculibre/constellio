@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
@@ -27,11 +28,11 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 		Component titleComponent;
 
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
-		boolean agentRegistered = getAppLayerFactory ().getPluginManager().isRegistered("agent");;
+		boolean agentRegistered = getAppLayerFactory ().getPluginManager().isRegistered("agent");
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (agentRegistered && rmConfigs.isAgentEnabled() && SchemaUtils.getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
-			String smbPath = recordVO.get(ConnectorSmbDocument.URL);
-			String agentURL = ConstellioAgentUtils.getAgentSmbURL(smbPath);
+			MetadataVO smbPathMetadata = recordVO.getMetadata(ConnectorSmbDocument.URL);
+			String agentURL = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 			if (agentURL != null) {
 				titleComponent = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
 			} else {

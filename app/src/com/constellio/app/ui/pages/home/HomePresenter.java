@@ -20,6 +20,10 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -189,15 +193,17 @@ public class HomePresenter extends BasePresenter<HomeView> {
 						smbMetadataCode = null;
 					}
 					if (smbMetadataCode != null) {
-						Metadata smbUrlMetadata = types().getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-						String smbPath = record.get(smbUrlMetadata);
 						SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory
 								.getSystemConfigurationsManager();
 						RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 						if (rmConfigs.isAgentEnabled()) {
-							String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
+							RecordVO recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+							MetadataVO smbPathMetadata = recordVO.getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
+							String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 							view.openURL(agentSmbPath);
 						} else {
+							Metadata smbUrlMetadata = types().getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
+							String smbPath = record.get(smbUrlMetadata);
 							String path = smbPath;
 							if (StringUtils.startsWith(path, "smb://")) {
 								path = "file://" + StringUtils.removeStart(path, "smb://");

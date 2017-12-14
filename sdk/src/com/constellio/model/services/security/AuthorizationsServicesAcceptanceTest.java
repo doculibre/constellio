@@ -832,8 +832,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf);
 		}
 
-		assertThatBatchProcessDuringTest().hasSize(2);
-
 	}
 
 	@Test
