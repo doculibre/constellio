@@ -20,6 +20,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public static boolean IS_FIRST_EXECUTED_TEST = true;
 
 	private ConstellioTestSession testSession;
+	private String failMessage;
 
 	@Override
 	public ConstellioTestSession getCurrentTestSession() {
@@ -137,5 +138,13 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	public void startABrowserAndWaitUntilICloseIt() {
 
+	}
+
+	public void setFailMessage(String failMessage) {
+		this.failMessage = failMessage;
+	}
+
+	public String getFailMessage() {
+		return failMessage;
 	}
 }

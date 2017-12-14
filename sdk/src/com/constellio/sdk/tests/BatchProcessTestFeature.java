@@ -1,7 +1,6 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -64,7 +63,10 @@ public class BatchProcessTestFeature {
 		}
 
 		if (!acceptErrors) {
-			assertThat(errorsCount).isZero();
+			//assertThat(errorsCount).isZero();
+			if (errorsCount > 0) {
+				ConstellioTest.getInstance().setFailMessage("A batch process have errors");
+			}
 			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
 				//				assertThat(batchProcess.getErrors()).isZero()
 				//						.describedAs("Errors during batch process '" + batchProcess.getId() + "'");
