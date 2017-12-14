@@ -332,20 +332,20 @@ public class ConversionManager implements StatefulService {
 	private void convertToPDF(File input, File output) throws OfficeException {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
-			
+
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
 			DocumentFormat outputFormat = toPDFa(input);
 			if (outputFormat == null) {
 				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
 			}
-			
-		    delegate
-		        .convert(input)
-		        .as(inputFormat)
-		        .to(output)
-		        .as(outputFormat)
-		        .execute();
+
+			delegate
+					.convert(input)
+					.as(inputFormat)
+					.to(output)
+					.as(outputFormat)
+					.execute();
 		}
 	}
 
@@ -424,6 +424,7 @@ public class ConversionManager implements StatefulService {
 		} else {
 			pdfaFormat = null;
 		}
+
 		return pdfaFormat;
 	}
 	

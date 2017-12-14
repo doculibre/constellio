@@ -58,7 +58,7 @@ public class ReportGeneratorUtils {
 			String title =
 					selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
 							+ ".pdf";
-			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile, title);
+			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile);
 			VerticalLayout newLayout = new VerticalLayout();
 			newLayout.addComponents(new LabelViewer(generatedJasperFile, title,
 					factory.getModelLayerFactory().getIOServicesFactory().newIOServices()));
