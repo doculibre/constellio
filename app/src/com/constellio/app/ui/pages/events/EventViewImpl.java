@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.events;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +29,7 @@ import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
 
@@ -79,8 +77,17 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
+				} else if(presenter.isTypeMetadata(metadataValue)) {
+					return newEventTypeLabel(metadataValue);
 				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
+					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
+					if(presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
+                        ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
+                        referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
+                        return referenceDisplay;
+                    } else {
+                        return super.buildMetadataComponent(metadataValue, recordVO);
+                    }
 				}
 			}
 
@@ -139,6 +146,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					};
 				}
 			}
+
+			@Override
+			protected String getTitleColumnStyle(RecordVO recordVO) {
+				return null;
+			}
 		};
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
@@ -155,6 +167,17 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		table.setWidth("100%");
 		table.addStyleName(EVENT_TABLE_STYLE);
 		return table;
+	}
+
+	private static Component newEventTypeLabel(MetadataValueVO metadataValue) {
+		final String type = (metadataValue.getValue() != null) ? metadataValue.getValue().toString() : "";
+		String eventTypeCaption = "";
+		try {
+			eventTypeCaption = EventTypeUtils.getEventTypeCaption(type);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new Label(eventTypeCaption);
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.events.EventCategory;
@@ -47,6 +48,7 @@ public class EventByIdSearchPanel extends Panel {
 		case EVENTS_BY_ADMINISTRATIVE_UNIT : return $("ListEventsView.byFilingSpace.textFieldCaption");
 		case EVENTS_BY_FOLDER: return $("ListEventsView.byFolder.textFieldCaption");
 		case EVENTS_BY_USER : return $("ListEventsView.byUser.textFieldCaption");
+		case EVENTS_BY_CONTAINER : return $("ListEventsView.byContainer.textFieldCaption");
 		default: return "";
 		}
 	}
@@ -56,6 +58,7 @@ public class EventByIdSearchPanel extends Panel {
 		case EVENTS_BY_USER: return User.SCHEMA_TYPE;
 		case EVENTS_BY_FOLDER: return Folder.SCHEMA_TYPE;
 		case EVENTS_BY_ADMINISTRATIVE_UNIT: return AdministrativeUnit.SCHEMA_TYPE;
+		case EVENTS_BY_CONTAINER: return ContainerRecord.SCHEMA_TYPE;
 		default : return null;
 		}
 	}

@@ -48,6 +48,10 @@ public class LocalDependency<T> implements Dependency {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.ENUM, false);
 	}
 
+	public static <T> LocalDependency<List<T>> toAnEnumList(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.ENUM, false);
+	}
+
 	public static LocalDependency<List<String>> toAStringList(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.STRING, false);
 	}
@@ -70,6 +74,10 @@ public class LocalDependency<T> implements Dependency {
 
 	public static LocalDependency<LocalDate> toADate(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.DATE, false);
+	}
+
+	public static LocalDependency<List<LocalDate>> toADateList(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, true, MetadataValueType.DATE, false);
 	}
 
 	public static LocalDependency<LocalDateTime> toADateTime(String metadataCode) {

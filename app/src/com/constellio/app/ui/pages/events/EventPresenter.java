@@ -150,6 +150,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
 							endDate,
 							id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
+		case EVENTS_BY_CONTAINER:
+			return rmSchemasEventsServices()
+					.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate,
+							endDate,
+							id);
 		case EVENTS_BY_USER:
 			if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
 				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUser(currentUser, id);
@@ -209,6 +214,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public boolean isDeltaMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.DELTA);
+	}
+
+	public boolean isTypeMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.TYPE);
 	}
 
 	public boolean isTaskMetadata(MetadataValueVO metadataValue) {
