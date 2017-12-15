@@ -80,9 +80,13 @@ public class PropertiesBuilder {
 			} else if (metadata.getType() == MetadataValueType.DATE_TIME || metadata.getType() == MetadataValueType.DATE) {
 				List<GregorianCalendar> calendarValues = new ArrayList<>();
 				for (Object dateObject : (List<Object>) value) {
-					calendarValues.add(toGregorianCalendar(dateObject));
+					if (dateObject != null) {
+						calendarValues.add(toGregorianCalendar(dateObject));
+					}
 				}
-				addPropertyListDateTime(propertyCode, calendarValues);
+				if (!calendarValues.isEmpty()) {
+					addPropertyListDateTime(propertyCode, calendarValues);
+				}
 			}
 		}
 	}
