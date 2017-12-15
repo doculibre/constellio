@@ -39,11 +39,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
@@ -129,6 +125,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@Rule public FailureDetectionTestWatcher failureDetectionTestWatcher = new FailureDetectionTestWatcher(this);
 
+	private String failMessage;
+
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
 	protected String zeCollection = "zeCollection";
@@ -162,6 +160,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
 		skipTestRule = new SkipTestsRule(sdkPropertiesLoader, isUnitTest(getClass().getSimpleName()));
 		ConsoleLogger.GLOBAL_PREFIX = getClass().getSimpleName();
+		failMessage = null;
 	}
 
 	@BeforeClass
@@ -1049,6 +1048,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void finished(Description description) {
 		if (!skipTestRule.wasSkipped()) {
 			safeAfterTest(false);
+			if (failMessage != null) {
+				Assert.fail(failMessage);
+			}
 		}
 	}
 
@@ -1568,5 +1570,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return new File(configFile, "conf").getAbsolutePath();
 		}
 		return null;
+	}
+
+	public String getFailMessage() {
+		return failMessage;
+	}
+
+	public void setFailMessage(String failMessage) {
+		this.failMessage = failMessage;
 	}
 }

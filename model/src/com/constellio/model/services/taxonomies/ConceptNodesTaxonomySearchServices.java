@@ -151,7 +151,9 @@ public class ConceptNodesTaxonomySearchServices {
 
 	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
 			MetadataSchemaTypes types) {
-		LogicalSearchCondition condition = fromTypesInCollectionOf(record).where(directChildOf(record).andWhere(visibleInTrees));
+		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
+		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
+				.where(directChildOf(record).andWhere(visibleInTrees));
 
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())

@@ -146,81 +146,111 @@ public class AuthorizationsServices {
 	}
 
 	public List<User> getUsersWithPermissionOnRecord(String permission, Record concept) {
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		List<User> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
-				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
-
-		List<User> users = new ArrayList<>();
-		for (Record record : foundRecords) {
-			users.add(new User(record, types, roles));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).on(concept)) {
+				returnedUsers.add(user);
+			}
 		}
-		return users;
+
+		return returnedUsers;
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
+		//				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
+		//
+		//		List<User> users = new ArrayList<>();
+		//		for (Record record : foundRecords) {
+		//			users.add(new User(record, types, roles));
+		//		}
+		//return users;
 	}
 
 	public List<String> getUserIdsWithPermissionOnRecord(String permission, Record concept) {
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		List<String> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).on(concept)) {
+				returnedUsers.add(user.getId());
+			}
+		}
+		return returnedUsers;
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
-				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isIn(concept.getList(ATTACHED_ANCESTORS))
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)
+		//				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
 	}
 
 	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
 
-		SchemasRecordsServices schemas = schemas(concept.getCollection());
-		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
-		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
-		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		List<User> returnedUsers = new ArrayList<>();
 
-		//TODO tester avec des end/starts
-		List<String> authsGivingRoleOnConcept = new ArrayList<>();
-		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-				.where(schemas.authorizationDetails.target()).isEqualTo(concept.getId())
-				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
-
-		//TODO tester avec des remove
-		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
-
-		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
-				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)));
-
-		List<User> users = new ArrayList<>();
-		for (Record record : foundRecords) {
-			users.add(new User(record, types, roles));
+		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+			if (user.has(permission).specificallyOn(concept)) {
+				returnedUsers.add(user);
+			}
 		}
-		return users;
+
+		return returnedUsers;
+		//
+		//		SchemasRecordsServices schemas = schemas(concept.getCollection());
+		//		Roles roles = rolesManager.getCollectionRoles(concept.getCollection(), modelLayerFactory);
+		//		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		//		List<String> rolesCodeGivingPermission = Role.toCodes(rolesGivingPermission);
+		//
+		//		//TODO tester avec des end/starts
+		//		List<String> authsGivingRoleOnConcept = new ArrayList<>();
+		//		authsGivingRoleOnConcept.addAll(searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
+		//				.where(schemas.authorizationDetails.target()).isEqualTo(concept.getId())
+		//				.andWhere(schemas.authorizationDetails.roles()).isIn(rolesCodeGivingPermission)));
+		//
+		//		//TODO tester avec des remove
+		//		//authsGivingRoleOnConcept.removeAll(concept.<String>getList(ALL_REMOVED_AUTHS));
+		//
+		//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		//
+		//		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery().setCondition(from(schemas.user.schemaType())
+		//				.where(schemas.user.alluserauthorizations()).isIn(authsGivingRoleOnConcept)));
+		//
+		//		List<User> users = new ArrayList<>();
+		//		for (Record record : foundRecords) {
+		//			users.add(new User(record, types, roles));
+		//		}
+		//		return users;
 
 	}
 
@@ -241,13 +271,16 @@ public class AuthorizationsServices {
 		if (principalTaxonomy == null) {
 			return new ArrayList<>();
 		} else {
-			List<MetadataSchemaType> schemaTypes = types.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes());
+			List<String> returnedIds = new ArrayList<>();
+			for (MetadataSchemaType type : types.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes())) {
+				for (Record record : searchServices.getAllRecords(type)) {
+					if (user.has(permission).on(record)) {
+						returnedIds.add(record.getId());
+					}
+				}
 
-			LogicalSearchQuery query = new LogicalSearchQuery();
-			query.filteredWithUser(user, permission);
-			query.setCondition(from(schemaTypes).returnAll());
-
-			return searchServices.searchRecordIds(query);
+			}
+			return returnedIds;
 		}
 
 	}
@@ -359,22 +392,22 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
-//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
-//
-//		for (String id : hierarchyIds) {
-//			if (newAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
-//			}
-//			if (removedAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
-//			}
-//			//Temporary fix, there will be a better one in the next release
-//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
-//			}
-//		}
-//	}
+	//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+	//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+	//
+	//		for (String id : hierarchyIds) {
+	//			if (newAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+	//			}
+	//			if (removedAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+	//			}
+	//			//Temporary fix, there will be a better one in the next release
+	//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+	//			}
+	//		}
+	//	}
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
@@ -649,10 +682,7 @@ public class AuthorizationsServices {
 		List<String> authIds;
 		if (User.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 
-			Metadata allUserAuthorizations = schemasManager.getSchemaTypes(record.getCollection()).getSchema(User.DEFAULT_SCHEMA)
-					.getMetadata(User.ALL_USER_AUTHORIZATIONS);
-
-			authIds = record.getList(allUserAuthorizations);
+			authIds = schemas(record.getCollection()).wrapUser(record).getAllUserAuthorizations();
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
 			authIds = record.getList(Schemas.ALL_AUTHORIZATIONS);
@@ -744,7 +774,7 @@ public class AuthorizationsServices {
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,
-			boolean includeRecords, MetadataSchemasManager schemasManager) {
+			boolean includeRecords, List<Record> recordsHierarchy, MetadataSchemasManager schemasManager) {
 		if (user == User.GOD) {
 			return true;
 		}
@@ -755,33 +785,33 @@ public class AuthorizationsServices {
 		int numberOfRecordsWithUser = 0;
 
 		LogicalSearchCondition condition;
-		if (!includeRecords) {
-			for (String schemaType : principalTaxonomy.getSchemaTypes()) {
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				condition = from(schemasManager.getSchemaTypes(user.getCollection()).getSchemaType(schemaType))
-						.where(Schemas.PATH).isStartingWithText(paths.get(0)).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
-						.isFalseOrNull();
-				query.setCondition(condition);
-				numberOfRecords += searchServices.searchRecordIds(query).size();
-				query.filteredWithUserDelete(user);
-				numberOfRecordsWithUser += searchServices.searchRecordIds(query).size();
-			}
-			return numberOfRecords == numberOfRecordsWithUser;
-		} else {
-			return hasPermissionOnHierarchy(user, principalTaxonomyConcept, false);
-		}
+		//		if (!includeRecords) {
+		//			for (String schemaType : principalTaxonomy.getSchemaTypes()) {
+		//				LogicalSearchQuery query = new LogicalSearchQuery();
+		//				condition = from(schemasManager.getSchemaTypes(user.getCollection()).getSchemaType(schemaType))
+		//						.where(Schemas.PATH).isStartingWithText(paths.get(0)).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
+		//						.isFalseOrNull();
+		//				query.setCondition(condition);
+		//				numberOfRecords += searchServices.searchRecordIds(query).size();
+		//				//query.filteredWithUserDelete(user);
+		//				numberOfRecordsWithUser += searchServices.searchRecordIds(query).size();
+		//			}
+		//			return numberOfRecords == numberOfRecordsWithUser;
+		//		} else {
+		return hasPermissionOnHierarchy(user, principalTaxonomyConcept, recordsHierarchy, false);
+		//		}
 	}
 
-	public boolean hasDeletePermissionOnHierarchy(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, false);
+	public boolean hasDeletePermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, false);
 	}
 
-	public boolean hasRestaurationPermissionOnHierarchy(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, true);
+	public boolean hasRestaurationPermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, true);
 	}
 
-	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record) {
-		return hasPermissionOnHierarchy(user, record, null);
+	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record, List<Record> recordsHierarchy) {
+		return hasPermissionOnHierarchy(user, record, recordsHierarchy, null);
 	}
 
 	/**
@@ -913,8 +943,8 @@ public class AuthorizationsServices {
 		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType(User.SCHEMA_TYPE);
 		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
 
-		List<Record> allUsers = searchServices.cachedSearch(new LogicalSearchQuery(from(userSchemaType).returnAll()));
-		List<Record> allGroups = searchServices.cachedSearch(new LogicalSearchQuery(from(groupSchemaType).returnAll()));
+		List<Record> allUsers = searchServices.getAllRecords(userSchemaType);
+		List<Record> allGroups = searchServices.getAllRecords(groupSchemaType);
 
 		if (principals != null) {
 			for (Record user : allUsers) {
@@ -995,7 +1025,7 @@ public class AuthorizationsServices {
 		return user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 	}
 
-	private boolean hasPermissionOnHierarchy(User user, Record record, Boolean deleted) {
+	private boolean hasPermissionOnHierarchy(User user, Record record, List<Record> recordsHierarchy, Boolean deleted) {
 
 		if (user == User.GOD || user.hasCollectionDeleteAccess()) {
 			return true;
@@ -1006,23 +1036,44 @@ public class AuthorizationsServices {
 			return canDelete(user, record);
 		}
 
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition condition;
-		if (deleted == null) {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0));
+		for (Record aHierarchyRecord : recordsHierarchy) {
+			if (!user.hasDeleteAccess().on(aHierarchyRecord)) {
+				return false;
+			}
 
-		} else if (deleted) {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
-		} else {
-			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+			if (deleted != null) {
+				Boolean logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+				if (deleted) {
+					if (!Boolean.TRUE.equals(logicallyDeletedStatus)) {
+						return false;
+					}
+
+				} else {
+					if (Boolean.TRUE.equals(logicallyDeletedStatus)) {
+						return false;
+					}
+				}
+			}
 		}
-		query.setCondition(condition);
-		int numberOfRecords = searchServices.searchRecordIds(query).size();
-		query.filteredWithUserDelete(user);
-		int numberOfRecordsWithUser = searchServices.searchRecordIds(query).size();
-		return (numberOfRecords == numberOfRecordsWithUser && numberOfRecords != 0);
+
+		return true;
+		//		LogicalSearchQuery query = new LogicalSearchQuery();
+		//		LogicalSearchCondition condition;
+		//		if (deleted == null) {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0));
+		//
+		//		} else if (deleted) {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
+		//					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+		//		} else {
+		//			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
+		//					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		//		}
+		//		query.setCondition(condition);
+		//		int numberOfRecords = searchServices.searchRecordIds(query).size();
+		//		query.filteredWithUserDelete(user);
+		//		int numberOfRecordsWithUser = searchServices.searchRecordIds(query).size();
+		//		return (numberOfRecords == numberOfRecordsWithUser && numberOfRecords != 0);
 	}
 
 	private void validateRecordIsAPrincipalTaxonomyConcept(Record principalTaxonomyConcept, List<String> paths,

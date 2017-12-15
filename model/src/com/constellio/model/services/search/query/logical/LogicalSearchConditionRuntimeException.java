@@ -1,5 +1,7 @@
 package com.constellio.model.services.search.query.logical;
 
+import java.util.List;
+
 import com.constellio.model.entities.schemas.DataStoreField;
 
 @SuppressWarnings("serial")
@@ -22,6 +24,14 @@ public class LogicalSearchConditionRuntimeException extends RuntimeException {
 		public UnsupportedConditionForMetadata(DataStoreField dataStoreField) {
 			super("Unsupported condition on field '" + dataStoreField.getDataStoreCode() + "' of type '" + dataStoreField
 					.getType().name() + "'");
+		}
+
+	}
+
+	public static class CannotSearchInMultipleDataStore extends LogicalSearchConditionRuntimeException {
+
+		public CannotSearchInMultipleDataStore(List<String> dataStores) {
+			super("Cannot search in multiple dataStores : " + dataStores);
 		}
 
 	}

@@ -31,6 +31,11 @@ public class MetadataAccessUserPermissionsChecker extends UserPermissionsChecker
 	}
 
 	@Override
+	public boolean specificallyOn(Record record) {
+		return true;
+	}
+
+	@Override
 	public boolean onSomething() {
 		throw new UnsupportedOperationException("onSomething() is not yet supported for this checker");
 	}

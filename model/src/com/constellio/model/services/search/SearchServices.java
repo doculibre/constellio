@@ -1,5 +1,8 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +23,8 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -27,11 +32,15 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.ThreadList;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -52,6 +61,8 @@ import com.constellio.model.services.security.SecurityTokenManager;
 
 public class SearchServices {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
+
 	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
 			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
 			"nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
@@ -65,7 +76,7 @@ public class SearchServices {
 			"aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
 			"ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi" };
 
-	RecordDao recordDao;
+	//RecordDao recordDao;
 	RecordServices recordServices;
 	SecurityTokenManager securityTokenManager;
 	CollectionsListManager collectionsListManager;
@@ -73,6 +84,7 @@ public class SearchServices {
 	MetadataSchemasManager metadataSchemasManager;
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
+	ModelLayerFactory modelLayerFactory;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
@@ -83,7 +95,6 @@ public class SearchServices {
 	}
 
 	private SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
-		this.recordDao = recordDao;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.securityTokenManager = modelLayerFactory.getSecurityTokenManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
@@ -91,6 +102,7 @@ public class SearchServices {
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.recordsCaches = recordsCaches;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
@@ -159,7 +171,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(recordDao, params, batchSize, true) {
+		return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, true) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -192,7 +204,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(recordDao, params, batchSize, false) {
+		return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, false) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -204,7 +216,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize) {
+		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -216,7 +228,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
+		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, skipping) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -302,7 +314,7 @@ public class SearchServices {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		long result = recordDao.query(query.getName(), params).getNumFound();
+		long result = dataStoreDao(query.getDataStore()).query(query.getName(), params).getNumFound();
 		query.setNumberOfRows(oldNumberOfRows);
 		return result;
 	}
@@ -325,7 +337,7 @@ public class SearchServices {
 
 	public Iterator<String> recordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return new LazyResultsIterator<String>(recordDao, params, 10000, true) {
+		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, true) {
 
 			@Override
 			public String convert(RecordDTO recordDTO) {
@@ -336,7 +348,7 @@ public class SearchServices {
 
 	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return new LazyResultsIterator<String>(recordDao, params, 10000, false) {
+		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, false) {
 
 			@Override
 			public String convert(RecordDTO recordDTO) {
@@ -383,8 +395,10 @@ public class SearchServices {
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language));
 
-		params.add(CommonParams.QT, "/spell");
-		params.add(ShardParams.SHARDS_QT, "/spell");
+		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
+			params.add(CommonParams.QT, "/spell");
+			params.add(ShardParams.SHARDS_QT, "/spell");
+		}
 
 		if (query.getFreeTextQuery() != null) {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
@@ -558,11 +572,16 @@ public class SearchServices {
 	}
 
 	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
-		QueryResponseDTO queryResponseDTO = recordDao.query(query.getName(), params);
+		QueryResponseDTO queryResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
+		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
+			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
+				recordsCaches.insert(entry.getKey(), entry.getValue());
+			}
 
+		}
 		Map<Record, Map<Record, Double>> moreLikeThisResult = getResultWithMoreLikeThis(
 				queryResponseDTO.getResultsWithMoreLikeThis());
 
@@ -641,6 +660,86 @@ public class SearchServices {
 
 		for (UserFilter userFilter : userFilters) {
 			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+		}
+	}
+
+	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
+
+		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+		if (true || Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+
+			if (cache.isConfigured(schemaType)) {
+				if (cache.isFullyLoaded(schemaType.getCode())) {
+					return cache.getAllValues(schemaType.getCode());
+
+				} else {
+
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+
+						if (records.size() > 1000) {
+							loadUsingMultithreading(cache, records);
+
+						} else {
+							cache.insert(records);
+						}
+					}
+					cache.markAsFullyLoaded(schemaType.getCode());
+
+					return records;
+				}
+			} else {
+				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
+			}
+
+		} else {
+			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+				cache.insert(records);
+			}
+			return records;
+		}
+	}
+
+	private void loadUsingMultithreading(final RecordsCache cache, List<Record> records) {
+		final Iterator<List<Record>> recordIterator = new BatchBuilderIterator<>(records.iterator(), 500);
+
+		ThreadList threadList = new ThreadList<>();
+		for (int i = 0; i < 5; i++) {
+			threadList.addAndStart(new Thread() {
+				@Override
+				public void run() {
+					boolean hasMoreRecords = true;
+
+					while (hasMoreRecords) {
+
+						List<Record> records;
+						synchronized (recordIterator) {
+							records = recordIterator.hasNext() ? recordIterator.next() : null;
+						}
+						if (records != null) {
+							cache.insert(records);
+						} else {
+							hasMoreRecords = false;
+						}
+
+					}
+				}
+			});
+		}
+		try {
+			threadList.joinAll();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private RecordDao dataStoreDao(String dataStore) {
+		if (dataStore == null || dataStore.equals(DataStore.RECORDS)) {
+			return modelLayerFactory.getDataLayerFactory().newRecordDao();
+		} else {
+			return modelLayerFactory.getDataLayerFactory().newEventsDao();
 		}
 	}
 }

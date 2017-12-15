@@ -1,13 +1,16 @@
 package com.constellio.data.dao.services.cache.ignite;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteDataStreamer;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
@@ -21,6 +24,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 	private IgniteCache<String, Object> igniteCache;
 	
+	private IgniteDataStreamer<String, Object> igniteStreamer;
+	
 	private Ignite igniteClient;
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
@@ -29,6 +34,9 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.name = name;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
+		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
+		this.igniteStreamer.allowOverwrite(true);
+//		this.igniteStreamer.autoFlushFrequency(1);
 	}
 
 	@Override
@@ -40,6 +48,10 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return igniteCache;
 	}
 
+	public IgniteDataStreamer<String, Object> getIgniteStreamer() {
+		return igniteStreamer;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
@@ -48,18 +60,27 @@ public class ConstellioIgniteCache implements ConstellioCache {
 			result = (T) igniteCache.get(key);
 			if (result != null) {
 				localCache.put(key, result);
+			} else {
+				localCache.put(key, NULL);
 			}
 		}
 		result = NULL.equals(result) ? null : result;
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
+		put(key, value, false);
+	}
+		
+	@SuppressWarnings("unchecked")
+	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {	
 		value = value == null ? (T) NULL : value;
 		localCache.put(key, value);
-		igniteCache.put(key, value);
+//		igniteStreamer.addData(key, value);
+		if (!locallyOnly) {
+			igniteCache.put(key, value);
+		}
 	}
 
 	@Override
@@ -90,6 +111,10 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		localCache.clear();
 		igniteCache.clear();
 	}
+	
+	public void flush() {
+//		igniteStreamer.flush();
+	}
 
 	@Override
 	public Iterator<String> keySet() {
@@ -116,6 +141,11 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public int size() {
 		return localCache.size();
+	}
+
+	@Override
+	public List<Object> getAllValues() {
+		return new ArrayList<>(localCache.values());
 	}
 
 }

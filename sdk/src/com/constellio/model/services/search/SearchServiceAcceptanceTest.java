@@ -1,5 +1,7 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.data.dao.services.records.DataStore.EVENTS;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -9,6 +11,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
@@ -2940,6 +2944,36 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		query.setFreeTextQuery("1034002");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
+
+	}
+
+	@Test
+	public void givenRecordsInAnotherDataStoreThenFoundDependingOnSearchedDataStore()
+			throws Exception {
+		defineSchemasManager().using(schema.whichIsIsStoredInDataStore("events"));
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).returnAll())).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.type()).returnAll())).isEqualTo(0);
+
+		long otherRecordsInRecordsDataStore = searchServices.getResultsCount(fromEveryTypesOfEveryCollection().returnAll());
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema.instance(), "record1"));
+		tx.add(new TestRecord(zeSchema.instance(), "record2"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record3"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record4"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record5"));
+
+		recordServices.execute(tx);
+
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.type()).returnAll())).isEqualTo(3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollection().returnAll()))
+				.isEqualTo(otherRecordsInRecordsDataStore + 3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollectionInDataStore(RECORDS).returnAll()))
+				.isEqualTo(otherRecordsInRecordsDataStore + 3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollectionInDataStore(EVENTS).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(zeSchema.instance()).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.instance()).returnAll())).isEqualTo(3);
 
 	}
 

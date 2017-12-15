@@ -62,6 +62,18 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 		return permissions;
 	}
 
+	private Set<String> getUserPermissionsSpecificallyOnRecord(Record record) {
+		Set<String> permissions = new HashSet<>();
+
+		Set<String> allRolesOnRecord = UserAuthorizationsUtils.getRolesSpecificallyOnRecord(user, record);
+
+		for (String role : allRolesOnRecord) {
+			permissions.addAll(roles.getRole(role).getOperationPermissions());
+		}
+
+		return permissions;
+	}
+
 	public boolean on(Record record) {
 		if (user.isSystemAdmin()) {
 			return true;
@@ -72,7 +84,7 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(userPermissionsOnRecord));
 
 			if (!result) {
-//				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
+				//				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
 				//						.join(userPermissionsOnRecord, ", ") + " on record '" + record.getIdTitle() + "'");
 			}
 
@@ -81,7 +93,7 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 			for (String permission : permissions) {
 				if (permission != null && !userPermissionsOnRecord.contains(permission)) {
-//					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission
+					//					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission
 					//							+ "' on record '" + record.getIdTitle() + "'");
 					return false;
 				}
@@ -90,6 +102,21 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			return true;
 		}
 
+	}
+
+	public boolean specificallyOn(Record record) {
+		Set<String> userPermissionsOnRecord = getUserPermissionsSpecificallyOnRecord(record);
+
+		if (anyRoles) {
+			return LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(userPermissionsOnRecord));
+		} else {
+			for (String permission : permissions) {
+				if (permission != null && !userPermissionsOnRecord.contains(permission)) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	@Override

@@ -148,7 +148,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		recordDao.flush();
 
-		verify(bigVaultServer).softCommit();
+		verify(bigVaultServer).flush();
 
 	}
 
@@ -156,7 +156,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 	public void givenIOExcepionWhenFlushingThenThrowException()
 			throws Exception {
 
-		doThrow(IOException.class).when(bigVaultServer).softCommit();
+		doThrow(IOException.class).when(bigVaultServer).flush();
 
 		recordDao.flush();
 
@@ -166,7 +166,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 	public void givenSolrServerExcepionWhenFlushingThenThrowException()
 			throws Exception {
 
-		doThrow(SolrServerException.class).when(bigVaultServer).softCommit();
+		doThrow(SolrServerException.class).when(bigVaultServer).flush();
 
 		recordDao.flush();
 

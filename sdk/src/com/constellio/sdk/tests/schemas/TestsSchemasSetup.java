@@ -891,6 +891,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup whichIsIsStoredInDataStore(String dataStore) {
+		zeSchemaTypeBuilder.setDataStore(dataStore);
+		return this;
+	}
+
 	public static class ZeSchemaMetadatasAdapter implements SchemaShortcuts {
 
 		ZeSchemaMetadatas zeSchemaMetadatas;

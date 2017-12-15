@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -38,7 +39,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
 		MetadataSchema schema = new MetadataSchema("aCode", "aCode", "zeCollection", labels, metadatas, false, true, validators,
-				null);
+				null, DataStore.RECORDS);
 
 		schema.getMetadatas().clear();
 	}
@@ -47,7 +48,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	public void whenClearingSchemasListInSchemaTypeThenExceptionThrown() {
 		List<MetadataSchema> schemas = Arrays.asList(schema1, schema2);
 		MetadataSchemaType schemaType = new MetadataSchemaType("aCode", null, "zeCollection", labels, schemas,
-				defaultSchema, false, true, true, false);
+				defaultSchema, false, true, true, false, "records");
 
 		schemaType.getSchemas().clear();
 	}

@@ -477,7 +477,7 @@ public class ContentManager implements StatefulService {
 
 			RecordDTO recordDTO = new RecordDTO(id, fields);
 			try {
-				recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)));
+				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {
 				throw new ImpossibleRuntimeException(e);
 			}
@@ -527,6 +527,7 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
+							transaction.setRecordFlushing(RecordsFlushing.LATER());
 							recordServices.execute(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);

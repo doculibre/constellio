@@ -90,7 +90,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		export(false);
 	}
 
-	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds, List<String> containerIds) {
+	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds,
+			List<String> containerIds) {
 		RecordExportOptions options = new RecordExportOptions();
 		HashSet<String> allFolders = new HashSet<>(folderIds);
 		ArrayList<String> allIds = new ArrayList<>(documentIds);
@@ -98,8 +99,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		options.setForSameSystem(isSameCollection);
 		options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
 
-		List<String> foldersInContainers = searchServices().searchRecordIds(LogicalSearchQueryOperators.from(asList(Folder.SCHEMA_TYPE), collection)
-				.where(schema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CONTAINER)).isIn(containerIds));
+		List<String> foldersInContainers = searchServices()
+				.searchRecordIds(LogicalSearchQueryOperators.from(asList(Folder.SCHEMA_TYPE), collection)
+						.where(schema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CONTAINER)).isIn(containerIds));
 		allFolders.addAll(foldersInContainers);
 		allIds.addAll(allFolders);
 

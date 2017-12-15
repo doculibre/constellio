@@ -74,6 +74,12 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return wrapTaskStatuss(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
 
+	public List<TaskStatus> cachedSearchTaskStatuss(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvTaskStatus.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapTaskStatuss(appLayerFactory.getModelLayerFactory().newSearchServices().cachedSearch(query));
+	}
+
 	public TaskStatus getTaskStatus(String id) {
 		return wrapTaskStatus(get(id));
 	}
@@ -551,7 +557,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	public List<TaskStatus> getFinishedOrClosedStatuses() {
 		List<TaskStatus> status = new ArrayList<>();
-		status.addAll(searchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
+		status.addAll(cachedSearchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
 		status.add(getTaskStatusWithCode(CLOSED_CODE));
 		return status;
 	}

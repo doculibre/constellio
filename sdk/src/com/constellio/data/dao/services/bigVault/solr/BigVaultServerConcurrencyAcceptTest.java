@@ -388,6 +388,13 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 							retry = false;
 						} catch (BigVaultException e) {
 							problems.addAndGet(1);
+							try {
+								vaultServer.flush();
+							} catch (IOException e1) {
+								throw new RuntimeException(e1);
+							} catch (SolrServerException e1) {
+								throw new RuntimeException(e1);
+							}
 							retry = true;
 						}
 					}
@@ -416,6 +423,13 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 							retry = false;
 						} catch (BigVaultException e) {
 							problems.addAndGet(1);
+							try {
+								vaultServer.flush();
+							} catch (IOException e1) {
+								throw new RuntimeException(e1);
+							} catch (SolrServerException e1) {
+								throw new RuntimeException(e1);
+							}
 							retry = true;
 						}
 					}
