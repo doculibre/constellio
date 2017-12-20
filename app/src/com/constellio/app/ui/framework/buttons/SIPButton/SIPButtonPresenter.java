@@ -65,12 +65,13 @@ public class SIPButtonPresenter {
                 return true;
             }
         }
-        return false;
+        return !getDocumentIDListFromObjectList().isEmpty();
     }
 
     protected boolean validateBagInfoLine(BagInfoVO object) {
         for (MetadataVO field : object.getFormMetadatas()) {
-            if (!"".equals(object.get(field)) && object.get(field) != null) {
+        	Object metadataValue = object.get(field);
+            if (!"".equals(metadataValue) && metadataValue != null) {
                 return true;
             }
         }
