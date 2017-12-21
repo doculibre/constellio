@@ -44,6 +44,7 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -793,4 +794,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			view.showErrorMessage($("ConstellioHeader.selection.cannotAddRecords"));
 		}
 	}
+
+	public void searchResultClicked(RecordVO searchResultVO) {
+	}
+	
 }
