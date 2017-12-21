@@ -1,6 +1,9 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -68,6 +71,16 @@ public class HttpSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
+	}
+
+	@Override
+	public SessionContext setCurrentSearchEventRecord(Record searchEvent) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Record getCurrentSearchEventRecord() {
+		throw new NotImplementedException();
 	}
 
 	@Override

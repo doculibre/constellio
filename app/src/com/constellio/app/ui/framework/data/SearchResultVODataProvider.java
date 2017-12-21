@@ -171,5 +171,5 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		return qtime;
 	}
 
-	protected abstract LogicalSearchQuery getQuery();
+	public abstract LogicalSearchQuery getQuery();
 }

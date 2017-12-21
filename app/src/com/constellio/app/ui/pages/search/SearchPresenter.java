@@ -17,7 +17,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +65,6 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -301,10 +300,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public SearchResultVODataProvider getSearchResults(final boolean facets) {
 		//Call #4
-		SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
+
+		final SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
@@ -321,10 +321,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 			}
 
+
+
 			boolean hasExtensionsBeenNotified = false;
 
 			@Override
 			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
+
+
+
 				if (!hasExtensionsBeenNotified) {
 					hasExtensionsBeenNotified = true;
 					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)),
@@ -334,6 +339,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 							.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 							.setSelectedFacets(facetSelections.getNestedMap())
 							.setTemporary(false);
+
 
 					search = prepareSavedSearch(search);
 
@@ -347,7 +353,96 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		};
+
+		if(facets) {
+			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices().addSolrModifiableParams(dataProvider.getQuery());
+
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+
+
+			ArrayList<String> paramList = new ArrayList<>();
+
+			for(String paramName : modifiableSolrParams.getParameterNames()) {
+				if(!paramName.equals("qf") && !paramName.equals("pf")
+						&& !paramName.equals("fl")) {
+					if(paramName.equals("q")) {
+						searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
+					} else {
+						String[] values = modifiableSolrParams.getParams(paramName);
+
+						if(values.length == 1) {
+							paramList.add(paramName + "=" + values[0]);
+						} else if(values.length > 1) {
+							StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+							for(String value : values) {
+								valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+							}
+							paramList.add(valuesAsOneStringBuilder.toString());
+						}
+
+					}
+				}
+			}
+			searchEvent.setParams(paramList);
+			SearchEvent oldSearchEvent = schemasRecordsServices.wrapSearchEvent(view.getSessionContext().getCurrentSearchEventRecord());
+
+			if(!areSearchEventEqual(oldSearchEvent, searchEvent)) {
+				view.getSessionContext().setCurrentSearchEventRecord(searchEvent.getWrappedRecord());
+
+				try {
+					recordServices.add(searchEvent);
+				} catch (RecordServicesException e) {
+					LOGGER.error("An error occurred when saving the statistic record", e);
+				}
+			}
+		}
+
 		return dataProvider;
+	}
+
+	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
+		if(searchEvenFromSessionContext == null && searchEvent != null
+				|| searchEvent == null && searchEvenFromSessionContext != null
+				|| searchEvent == null && searchEvenFromSessionContext == null) {
+			return false;
+		}
+
+		if(searchEvenFromSessionContext.getUsername() == null &&
+				searchEvent.getUsername() != null
+				|| searchEvenFromSessionContext.getUsername() != null &&
+				searchEvent.getUsername() == null ) {
+			return false;
+		}
+
+
+		boolean isUserEqual = searchEvent.getUsername() == null && searchEvenFromSessionContext.getUsername() == null
+				|| searchEvenFromSessionContext.getUsername()
+				.equals(searchEvent.getUsername());
+
+		boolean isQEqual = searchEvenFromSessionContext.getQuery() == null &&
+				searchEvent.getQuery() == null ||searchEvenFromSessionContext.getQuery()
+				.equals(searchEvent.getQuery());
+
+
+		if(!isQEqual || !isUserEqual) {
+			return false;
+		}
+
+		for(String param : searchEvenFromSessionContext.getParams()) {
+			if(!searchEvent.getParams().contains(param)) {
+				return false;
+			}
+		}
+
+		for(String param : searchEvent.getParams()) {
+			if(!searchEvenFromSessionContext.getParams().contains(param)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private List<MetadataSchemaVO> getSchemas() {
@@ -636,6 +731,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
 				.setTemporary(false);
+
+
 
 		try {
 			recordServices().add(prepareSavedSearch(search));

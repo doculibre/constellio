@@ -3,6 +3,8 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
+import java.util.List;
+
 public class SearchEvent extends RecordWrapper {
 
 	public static final String SCHEMA_TYPE = "searchEvent";
@@ -11,6 +13,8 @@ public class SearchEvent extends RecordWrapper {
 	public static final String QUERY = "query";
 	public static final String CLICK_COUNT = "clickCount";
 	public static final String PAGE_NAVIGATION_COUNT = "pageNavigationCount";
+	public static final String PARAMS = "params";
+	public static final String ORIGINAL_QUERY = "originalQuery";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -32,6 +36,15 @@ public class SearchEvent extends RecordWrapper {
 	public SearchEvent setQuery(String query) {
 		set(QUERY, query);
 		return this;
+	}
+
+	public SearchEvent setParams(List<String> listParams) {
+		set(PARAMS, listParams);
+		return this;
+	}
+
+	public List<String> getParams() {
+		return get(PARAMS);
 	}
 
 	public int getClickCount() {

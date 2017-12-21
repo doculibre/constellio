@@ -28,10 +28,12 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
@@ -119,7 +121,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
+	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets)  {
 		if (temporarySave) {
 			presenter.saveTemporarySearch(false);
 		}
@@ -241,6 +243,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
+		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				System.out.println("Jonathan Plamndon");
+			}
+		});
+
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
@@ -272,7 +281,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
-
 		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
 	}
 
