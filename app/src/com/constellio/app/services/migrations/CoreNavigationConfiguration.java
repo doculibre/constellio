@@ -84,7 +84,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
-
+	public static final String EXCLUDED_ICON = "images/icons/config/search-suggestions-exlusions.png";
+	public static final String EXCLUDED = "excluded";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -190,10 +191,10 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PLUGINS, PLUGINS_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().pluginManagement();
-			}
+				@Override
+				public void activate(Navigation navigate) {
+					navigate.to().pluginManagement();
+				}
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
@@ -367,6 +368,20 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
+
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(EXCLUDED, EXCLUDED_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().deleteExclusionsImpl();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(true);
+			}
+		});
+
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ROLES, ROLES_ICON) {
 			@Override
 			public void activate(Navigation navigate) {

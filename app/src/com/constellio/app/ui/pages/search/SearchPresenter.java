@@ -17,6 +17,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
+import com.constellio.app.services.corrector.CorrectorExclusion;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -117,6 +121,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	int selectedPageLength;
 	boolean allowDownloadZip = true;
 	int lastPageNumber;
+	private CorrectorExcluderManager correctorExcluderManager;
 
 	public int getSelectedPageLength() {
 		return selectedPageLength;
@@ -130,6 +135,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		super(view);
 		init(view.getConstellioFactories(), view.getSessionContext());
 		initSortParameters();
+		correctorExcluderManager = appLayerFactory.getCorrectorExcluderManager();
 	}
 
 	private void initSortParameters() {
@@ -184,7 +190,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		this.extraSolrParams = extraSolrParams;
 	}
 
-	public Map<String, String[]> getExtraSolrParams() {
+	public Map<String, String[]> getExtraSolrParams()	{
 		return extraSolrParams;
 	}
 
@@ -293,6 +299,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			return false;
 		}
 		suggestions = suggestionsResponse.getSpellCheckerSuggestions();
+
 		return !suggestions.isEmpty();
 	}
 
@@ -698,7 +705,36 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 	}
 
+	public void deleteSuggestionButtonClicked(String exclusionString, String collection) {
+		CorrectorExclusion correctorExclusion = new CorrectorExclusion();
+		correctorExclusion.setCollection(collection);
+		correctorExclusion.setExclusion(exclusionString);
+		correctorExcluderManager.addExclusion(correctorExclusion);
+	}
+
+	public List<String> getAllNonExcluded(String collection, List<String> correctedList) {
+		List<CorrectorExclusion> allExclusion = correctorExcluderManager.getAllExclusion(collection);
+
+		List<String> allExclusionFormCollection = new ArrayList<String>();
+
+		for (String corrected : correctedList) {
+			boolean found  = false;
+			for(CorrectorExclusion correctorExclusion : allExclusion) {
+				if(correctorExclusion.getCollection().equals(collection) &&
+						corrected.equals(correctorExclusion.getExclusion())) {
+					found = true;
+					break;
+					}
+				}
+				if(!found) {
+					allExclusionFormCollection.add(corrected);
+				}
+			}
+
+		return allExclusionFormCollection;
+	}
+
 	public void searchResultClicked(RecordVO searchResultVO) {
 	}
-	
+
 }
