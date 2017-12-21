@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -256,11 +257,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
-
-		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
+		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery()) {
+			@Override
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+		};
 	}
 
-	@SuppressWarnings("unchecked")
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);

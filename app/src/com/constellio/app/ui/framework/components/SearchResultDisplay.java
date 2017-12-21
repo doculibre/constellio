@@ -19,6 +19,7 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -33,6 +34,7 @@ import com.google.common.base.Strings;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -62,6 +64,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	Button raise;
 
 	String query;
+	
+	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 			AppLayerFactory appLayerFactory, String query) {
@@ -76,7 +80,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-		addComponents(newTitleComponent(searchResultVO),
+		titleComponent = newTitleComponent(searchResultVO);
+		addComponents(titleComponent,
 				newHighlightsLabel(searchResultVO),
 				newMetadataComponent(searchResultVO, componentFactory));
 		addStyleName(RECORD_STYLE);
@@ -225,4 +230,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected AppLayerFactory getAppLayerFactory() {
 		return appLayerFactory;
 	}
+	
+	public void addClickListener(ClickListener listener) {
+		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
+		if (referenceDisplay != null) {
+			referenceDisplay.addClickListener(listener);
+		}
+	}
+	
 }
