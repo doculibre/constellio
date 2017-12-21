@@ -106,8 +106,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT;
 
-	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
-
 	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
 
 	public static final SystemConfiguration CONTENT_PARSING_SCHEDULE;
@@ -175,9 +173,6 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
-		add(ADVANCED_SEARCH_CONFIGS = search.createBooleanFalseByDefault("elevationSynonym").whichIsHidden());
-
-		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
 		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));

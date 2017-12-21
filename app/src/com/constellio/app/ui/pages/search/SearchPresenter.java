@@ -85,6 +85,7 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
+import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -735,6 +736,28 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public void searchResultClicked(RecordVO searchResultVO) {
+	}
+
+	public void searchResultElevationClicked(RecordVO recordVO) {
+		String freeTextQuery = getSearchQuery().getFreeTextQuery();
+		Record record = recordVO.getRecord();
+		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
+		if (!searchConfigurationsManager.isElevated(freeTextQuery, record)) {
+			searchConfigurationsManager.setElevated(freeTextQuery, record, false);
+		} else {
+			searchConfigurationsManager.removeElevated(freeTextQuery, record.getId());
+		}
+		view.refreshSearchResultsAndFacets();
+	}
+
+	public void searchResultExclusionClicked(RecordVO recordVO) {
+		String freeTextQuery = getSearchQuery().getFreeTextQuery();
+		Record record = recordVO.getRecord();
+		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
+		if (!searchConfigurationsManager.isExcluded(freeTextQuery, record)) {
+			searchConfigurationsManager.setElevated(freeTextQuery, record, true);
+		}
+		view.refreshSearchResultsAndFacets();
 	}
 
 }

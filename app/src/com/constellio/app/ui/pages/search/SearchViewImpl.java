@@ -7,14 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -37,13 +38,26 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
@@ -267,6 +281,26 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						((SearchPresenter<?>) presenter).searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+			
+			@Override
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultElevationClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+			
+			@Override
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultExclusionClicked(searchResultVO.getRecordVO());
 					}
 				};
 			}
