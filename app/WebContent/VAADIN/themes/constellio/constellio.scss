@@ -526,7 +526,7 @@ $popup-view-z-index: 3;
     	}
     }
 
-    .lookup-autocomplete-field {
+    .autocomplete {
     	width:100%;
     	
         .v-filterselect-input {
@@ -1334,6 +1334,14 @@ $popup-view-z-index: 3;
 									.metadata-caption {
 										font-weight: bold;
 									}
+								}
+								
+								.search-result-elevation, .search-result-exclusion {
+									width: auto;
+								}
+								
+								.search-result-elevation:hover, .search-result-exclusion:hover {
+									text-decoration: none;
 								}
 
 								.v-table-row-odd {
