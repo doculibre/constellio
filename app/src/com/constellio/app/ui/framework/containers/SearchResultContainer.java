@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 
 public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> {
@@ -47,7 +48,8 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			@Override
 			public Component getValue() {
 				SearchResultVO searchResultVO = getSearchResultVO((int) itemId);
-				return displayFactory.build(searchResultVO, query);
+				ClickListener listener = getClickListener(searchResultVO);
+				return displayFactory.build(searchResultVO, query, listener);
 			}
 
 			@Override
@@ -61,6 +63,10 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 				return Component.class;
 			}
 		};
+	}
+	
+	protected ClickListener getClickListener(SearchResultVO searchResultVO) {
+		return null;
 	}
 
 	public RecordVO getRecordVO(int itemId) {
