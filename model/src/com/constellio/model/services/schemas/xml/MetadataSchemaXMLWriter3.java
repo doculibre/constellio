@@ -261,6 +261,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isTaxonomyRelationship()) {
 			metadataElement.setAttribute("taxonomyRelationship", writeBoolean(metadata.isTaxonomyRelationship()));
 		}
+		if (metadata.isRelationshipProvidingSecurity()) {
+			metadataElement.setAttribute("providingSecurity", writeBoolean(metadata.isRelationshipProvidingSecurity()));
+		}
 		if (metadata.isUniqueValue()) {
 			metadataElement.setAttribute("uniqueValue", writeBoolean(metadata.isUniqueValue()));
 		}

@@ -36,6 +36,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
@@ -707,6 +708,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				defaultSchema.withAReferenceMetadata(whichAllowsThirdSchemaType, whichIsTaxonomyRelationship));
 
 		assertThat(zeSchema.referenceMetadata().isTaxonomyRelationship()).isTrue();
+	}
+
+	@Test
+	public void whenSavingReferenceProvidingSecurityMetadataThenFlagConserved()
+			throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAReferenceMetadata(whichAllowsThirdSchemaType, whichIsProvidingSecurity));
+
+		assertThat(zeSchema.referenceMetadata().isRelationshipProvidingSecurity()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.referenceMetadata().getLocalCode())
+						.setRelationshipProvidingSecurity(false);
+			}
+		});
+
+		assertThat(zeSchema.referenceMetadata().isRelationshipProvidingSecurity()).isFalse();
+
 	}
 
 	@Test

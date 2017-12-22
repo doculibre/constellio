@@ -22,6 +22,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String TARGET = "target";
 	public static final String TARGET_SCHEMA_TYPE = "targetSchemaType";
 	public static final String LAST_TOKEN_RECALCULATE = "lastTokenRecalculate";
+	public static final String OVERRIDE_INHERITED = "overrideInherited";
 	public static final String SYNCED = "synced";
 
 	public SolrAuthorizationDetails(Record record,

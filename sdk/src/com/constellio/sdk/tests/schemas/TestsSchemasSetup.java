@@ -326,6 +326,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+	public static MetadataBuilderConfigurator whichIsProvidingSecurity = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setRelationshipProvidingSecurity(true);
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsChildOfRelationship = new MetadataBuilderConfigurator() {
 
 		@Override

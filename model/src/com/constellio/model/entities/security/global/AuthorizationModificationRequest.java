@@ -31,6 +31,8 @@ public class AuthorizationModificationRequest {
 
 	final User executedBy;
 
+	final Boolean newOverridingInheritedAuths = null;
+
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId) {
 		this.authorizationId = authorizationId;
 		this.collection = collection;
@@ -46,7 +48,7 @@ public class AuthorizationModificationRequest {
 
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId, LocalDate newStartDate,
 			LocalDate newEndDate, List<String> newPrincipalIds, List<String> newAccessAndRoles,
-			boolean removedOnRecord, User executedBy) {
+			boolean removedOnRecord, User executedBy, Boolean newOverridingInheritedAuths) {
 		this.authorizationId = authorizationId;
 		this.collection = collection;
 		this.recordId = recordId;
@@ -61,42 +63,47 @@ public class AuthorizationModificationRequest {
 
 	public AuthorizationModificationRequest withNewStartDate(LocalDate newStartDate) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest withNewEndDate(LocalDate newEndDate) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest withNewPrincipalIds(List<String> newPrincipalIds) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest withNewPrincipalIds(String... newPrincipalIds) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				asList(newPrincipalIds), newAccessAndRoles, removedOnRecord, executedBy);
+				asList(newPrincipalIds), newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest withNewAccessAndRoles(List<String> newAccessAndRoles) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest withNewAccessAndRoles(String... newAccessAndRoles) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, asList(newAccessAndRoles), removedOnRecord, executedBy);
+				newPrincipalIds, asList(newAccessAndRoles), removedOnRecord, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest removingItOnRecord() {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, true, executedBy);
+				newPrincipalIds, newAccessAndRoles, true, executedBy, newOverridingInheritedAuths);
 	}
 
 	public AuthorizationModificationRequest setExecutedBy(User executedBy) {
 		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
-				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy);
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newOverridingInheritedAuths);
+	}
+
+	public AuthorizationModificationRequest withNewOverridingInheritedAuths(boolean newValue) {
+		return new AuthorizationModificationRequest(authorizationId, collection, recordId, newStartDate, newEndDate,
+				newPrincipalIds, newAccessAndRoles, removedOnRecord, executedBy, newValue);
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorization(Authorization authorization) {
@@ -128,7 +135,8 @@ public class AuthorizationModificationRequest {
 				record);
 	}
 
-	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId, RecordWrapper recordWrapper) {
+	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId,
+			RecordWrapper recordWrapper) {
 		if (authorizationId == null) {
 			throw new IllegalArgumentException("Authorization id required");
 		}
@@ -197,4 +205,5 @@ public class AuthorizationModificationRequest {
 	public User getExecutedBy() {
 		return executedBy;
 	}
+
 }

@@ -374,6 +374,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setTaxonomyRelationship(readBooleanWithDefaultValue(taxonomyRelationshipStringValue, false));
 		}
 
+		String providingSecurityStringValue = metadataElement.getAttributeValue("providingSecurity");
+		if (inheriteGlobalMetadata && providingSecurityStringValue == null) {
+			metadataBuilder.setRelationshipProvidingSecurity(globalMetadataInCollectionSchema.isRelationshipProvidingSecurity());
+		} else {
+			metadataBuilder.setRelationshipProvidingSecurity(readBooleanWithDefaultValue(providingSecurityStringValue, false));
+		}
+
 		String multivalueStringValue = metadataElement.getAttributeValue("multivalue");
 		if (inheriteGlobalMetadata && multivalueStringValue == null) {
 			metadataBuilder.setMultivalue(globalMetadataInCollectionSchema.isMultivalue());

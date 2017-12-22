@@ -58,6 +58,10 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	public static final String FOLDER4_2_DOC1 = "folder4_2_doc1";
 	public static final String FOLDER5_DOC1 = "folder5_doc1";
 
+	public static final String FOLDER_TYPE1 = "folderType1";
+	public static final String FOLDER_TYPE2 = "folderType2";
+	public static final String FOLDER_TYPE3 = "folderType3";
+
 	DocumentFond documentFond = new DocumentFond();
 	Category category = new Category();
 	AdministrativeUnit administrativeUnit = new AdministrativeUnit();
@@ -402,6 +406,18 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		public Metadata linkToOtherFolder() {
 			return getMetadata(code() + "_linkToOtherFolder");
 		}
+
+		public Metadata firstReferenceMetadataProvidingSecurity() {
+			return getMetadata(code() + "_firstReference");
+		}
+
+		public Metadata secondReferenceMetadataProvidingSecurity() {
+			return getMetadata(code() + "_secondReference");
+		}
+
+		public Metadata thirdReferenceMetadataWhichDoesNotProvideSecurity() {
+			return getMetadata(code() + "_thirdReference");
+		}
 	}
 
 	public class DocumentSchema implements SchemaShortcuts {
@@ -612,6 +628,18 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
 		public final Record folder5_doc1() {
 			return getRecord(FOLDER5_DOC1);
+		}
+
+		public final Record folderType1() {
+			return getRecord(FOLDER_TYPE1);
+		}
+
+		public final Record folderType2() {
+			return getRecord(FOLDER_TYPE2);
+		}
+
+		public final Record folderType3() {
+			return getRecord(FOLDER_TYPE3);
 		}
 
 		List<Record> records = new ArrayList<>();
