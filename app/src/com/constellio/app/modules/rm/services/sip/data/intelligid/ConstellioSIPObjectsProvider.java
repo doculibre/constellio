@@ -76,19 +76,18 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         return filter.getStartIndex();
     }
 
-    @SuppressWarnings("unchecked")
     private void init() {
         if (filter.getAdministrativeUnit() != null) {
             administrativeUnitId = this.filter.getAdministrativeUnit().getId();
         }
-        if (filter.getRubriqueCode() != null) {
-            categoryId = filter.getRubriqueCode().getId();
+        if (filter.getCategory() != null) {
+            categoryId = filter.getCategory().getId();
         }
 
-        System.out.println("Obtention de la liste des documents");
+        System.out.println("Retrieving document list...");
         documents = filter.getDocument();
         this.progressInfo.setEnd(documents.size());
-        System.out.println("Liste de documents obtenue (" + documents.size() + ")");
+        System.out.println("Document list retrieved (" + documents.size() + ")");
     }
 
     @Override
@@ -250,7 +249,6 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
         return date != null ? new SimpleDateFormat("yyyyMMdd").format(date.toDate()) : null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public EADArchdesc getEADArchdesc(SIPObject sipObject) {
         EADArchdesc archdesc;

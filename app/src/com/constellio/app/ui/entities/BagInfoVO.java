@@ -8,7 +8,7 @@ public class BagInfoVO extends RecordVO {
 
     private boolean limitSize;
 
-    private boolean deleteFile;
+    private boolean deleteFiles;
 
     public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
         super(id, metadataValues, viewMode);
@@ -22,12 +22,12 @@ public class BagInfoVO extends RecordVO {
         this.limitSize = limitSize;
     }
 
-    public boolean isDeleteFile() {
-        return deleteFile;
+    public boolean isDeleteFiles() {
+        return deleteFiles;
     }
 
-    public void setDeleteFile(boolean deleteFile) {
-        this.deleteFile = deleteFile;
+    public void setDeleteFiles(boolean deleteFile) {
+        this.deleteFiles = deleteFile;
     }
 
     public String getNote() {

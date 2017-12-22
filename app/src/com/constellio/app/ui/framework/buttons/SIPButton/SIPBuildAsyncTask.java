@@ -56,7 +56,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
         validateParams();
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void execute(AsyncTaskExecutionParams params) throws ImpossibleRuntimeException {
         ValidationErrors errors = new ValidationErrors();
         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();

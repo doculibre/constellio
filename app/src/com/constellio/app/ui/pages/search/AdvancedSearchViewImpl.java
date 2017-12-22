@@ -24,7 +24,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -66,7 +66,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     private final ConstellioHeader header;
     private WindowButton batchProcessingButton;
     private ReportTabButton reportButton;
-    private SIPbutton sipButton;
+    private SIPButtonImpl sipButton;
 
     public AdvancedSearchViewImpl() {
         presenter = new AdvancedSearchPresenter(this);
@@ -195,7 +195,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
             boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
                     .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-            sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
             sipButton.addStyleName(ValoTheme.BUTTON_LINK);
             sipButton.setVisible(hasAccessToSIP);
             sipButton.setEnabled(hasAccessToSIP);

@@ -12837,15 +12837,15 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
-.constellio .lookup-autocomplete-field {
+.constellio .autocomplete {
 	width: 100%;
 }
 
-.constellio .lookup-autocomplete-field .v-filterselect-input {
+.constellio .autocomplete .v-filterselect-input {
 	padding-right: 0px;
 }
 
-.constellio .lookup-autocomplete-field .v-filterselect-button {
+.constellio .autocomplete .v-filterselect-button {
 	display: none;
 }
 

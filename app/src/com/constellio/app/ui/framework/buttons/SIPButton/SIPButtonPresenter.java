@@ -1,39 +1,50 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
-import com.constellio.app.modules.rm.wrappers.BagInfo;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SIPButtonPresenter {
-    private SIPbutton button;
-    private AppLayerFactory factory;
-    private String collection;
+	
+    private SIPButtonImpl button;
     private List<RecordVO> objectList;
 
-    public SIPButtonPresenter(SIPbutton button, List<RecordVO> objectList) {
+    public SIPButtonPresenter(SIPButtonImpl button, List<RecordVO> objectList) {
         this.button = button;
         this.objectList = objectList;
-        factory = button.getView().getConstellioFactories().getAppLayerFactory();
-        collection = button.getView().getCollection();
+
+        if (button.getView() != null) {
+        	SessionContext sessionContext = this.button.getView().getSessionContext();
+            AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+            ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+            String username = sessionContext.getCurrentUser().getUsername();
+            
+            String collection = button.getView().getCollection();
+            User user = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
+            if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
+                button.setVisible(false);
+            }
+        }
     }
 
     protected List<String> getDocumentIDListFromObjectList() {
@@ -57,8 +68,12 @@ public class SIPButtonPresenter {
     }
 
     protected boolean validateFolderHasDocument() {
-        SearchServices searchServices = factory.getModelLayerFactory().newSearchServices();
-        MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
+        AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+        SearchServices searchServices = modelLayerFactory.newSearchServices();
+        String collection = button.getView().getCollection();
+        
+        MetadataSchemaType documentSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
         for (String folderId : getFolderIDListFromObjectList()) {
             LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
             if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
@@ -80,7 +95,12 @@ public class SIPButtonPresenter {
 
     protected void saveButtonClick(BagInfoVO viewObject) {
         if (validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
-            String nomSipDossier = viewObject.getArchiveTitle() + ".zip";
+        	SessionContext sessionContext = this.button.getView().getSessionContext();
+            AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+            ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+            BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+            
+            String sipFolderName = viewObject.getArchiveTitle() + ".zip";
             List<String> packageInfoLines = new ArrayList<>();
             for(MetadataVO metadatavo : viewObject.getFormMetadatas()) {
                 Object value = viewObject.get(metadatavo);
@@ -88,8 +108,14 @@ public class SIPButtonPresenter {
             }
             List<String> documentList = getDocumentIDListFromObjectList();
             List<String> folderList = getFolderIDListFromObjectList();
-            SIPBuildAsyncTask task = new SIPBuildAsyncTask(nomSipDossier, packageInfoLines, documentList, folderList, viewObject.isLimitSize(), this.button.getView().getSessionContext().getCurrentUser().getUsername(), viewObject.isDeleteFile(), this.button.getView().getConstellioFactories().getAppLayerFactory().newApplicationService().getWarVersion());
-            AsyncTaskBatchProcess asyncTaskBatchProcess = this.button.getView().getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, this.button.getView().getCollection(), "SIPArchives"));
+            boolean limitSize = viewObject.isLimitSize();
+            boolean deleteFiles = viewObject.isDeleteFiles();
+            String warVersion = appLayerFactory.newApplicationService().getWarVersion();
+            String username = sessionContext.getCurrentUser().getUsername();
+            String collection = button.getView().getCollection();
+            
+            SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize, username, deleteFiles, warVersion);
+            AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives"));
             this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
             this.button.closeAllWindows();
             this.button.navigate().to().batchProcesses();

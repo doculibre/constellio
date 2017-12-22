@@ -15,38 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import au.edu.apsr.mtk.base.Agent;
-import au.edu.apsr.mtk.base.Div;
-import au.edu.apsr.mtk.base.DmdSec;
-import au.edu.apsr.mtk.base.FLocat;
-import au.edu.apsr.mtk.base.FileGrp;
-import au.edu.apsr.mtk.base.FileSec;
-import au.edu.apsr.mtk.base.Fptr;
-import au.edu.apsr.mtk.base.METS;
-import au.edu.apsr.mtk.base.METSException;
-import au.edu.apsr.mtk.base.METSWrapper;
-import au.edu.apsr.mtk.base.MdRef;
-import au.edu.apsr.mtk.base.MdWrap;
-import au.edu.apsr.mtk.base.MetsHdr;
-import au.edu.apsr.mtk.base.StructMap;
-
-import au.edu.apsr.mtk.base.*;
-import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.ead.EAD;
-import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
-import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileCountReachedException;
-import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileLengthReachedException;
-import com.constellio.app.modules.rm.services.sip.model.SIPCategory;
-import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
-import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
-import com.constellio.app.modules.rm.services.sip.model.SIPObject;
-import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
-import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -66,6 +34,7 @@ import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.ead.EAD;
 import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
@@ -77,8 +46,24 @@ import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+
+import au.edu.apsr.mtk.base.Agent;
+import au.edu.apsr.mtk.base.Div;
+import au.edu.apsr.mtk.base.DmdSec;
+import au.edu.apsr.mtk.base.FLocat;
+import au.edu.apsr.mtk.base.FileGrp;
+import au.edu.apsr.mtk.base.FileSec;
+import au.edu.apsr.mtk.base.Fptr;
+import au.edu.apsr.mtk.base.METS;
+import au.edu.apsr.mtk.base.METSException;
+import au.edu.apsr.mtk.base.METSWrapper;
+import au.edu.apsr.mtk.base.MdRef;
+import au.edu.apsr.mtk.base.MdWrap;
+import au.edu.apsr.mtk.base.MetsHdr;
+import au.edu.apsr.mtk.base.StructMap;
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
  * - agent ROLE="CREATOR" ORGANIZATION=""
