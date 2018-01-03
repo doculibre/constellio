@@ -359,9 +359,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		folder.setFormModifiedBy(currentUser);
-		if (folder.getFormModifiedOn() == null) {
-			folder.setFormModifiedOn(time);
-		}
+		folder.setFormModifiedOn(time);
 		addOrUpdate(folder.getWrappedRecord(),
 				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 
