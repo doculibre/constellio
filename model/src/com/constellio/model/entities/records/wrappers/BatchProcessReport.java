@@ -4,13 +4,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BatchProcessReport extends TemporaryRecord {
     public static final String SCHEMA = "batchProcessReport";
     public static final String FULL_SCHEMA = SCHEMA_TYPE + "_" + SCHEMA;
     public static final String ERRORS = "errors";
-    public static final String MESSAGES = "messages";
+    public static final String SKIPPED_RECORDS = "skippedRecords";
     public static final String LINKED_BATCH_PROCESS = "linkedBatchProcess";
 
     public BatchProcessReport(Record record, MetadataSchemaTypes types) {
@@ -24,14 +25,17 @@ public class BatchProcessReport extends TemporaryRecord {
     public BatchProcessReport appendErrors(List<String> newErrors) {
         String previousErrors = getErrors();
         StringBuilder errorFormatter = new StringBuilder();
+        String prefix = "";
         if(previousErrors != null) {
             errorFormatter.append(previousErrors);
+            prefix = "\n";
         }
 
         if(newErrors != null) {
             for(String error: newErrors) {
-                errorFormatter.append("\n");
+                errorFormatter.append(prefix);
                 errorFormatter.append(error);
+                prefix = "\n";
             }
         }
 
@@ -45,26 +49,30 @@ public class BatchProcessReport extends TemporaryRecord {
         return this;
     }
 
-    public List<String> getMessages() {
-        return get(MESSAGES);
+    public List<String> getSkippedRecords() {
+        return get(SKIPPED_RECORDS);
     }
 
-    public BatchProcessReport setMessages(List<String> stringList) {
-        set(MESSAGES, stringList);
+    public BatchProcessReport setSkippedRecords(List<String> stringList) {
+        set(SKIPPED_RECORDS, stringList);
         return this;
     }
 
-    public BatchProcessReport addMessages(List<String> stringList) {
-        List<String> previousMessages = getList(MESSAGES);
-        previousMessages.addAll(stringList);
-        set(MESSAGES, previousMessages);
+    public BatchProcessReport addSkippedRecords(List<String> stringList) {
+        List<String> previousSkippedRecords = getList(SKIPPED_RECORDS);
+        ArrayList<Object> currentSkippedRecords = new ArrayList<>();
+        currentSkippedRecords.addAll(previousSkippedRecords);
+        currentSkippedRecords.addAll(stringList);
+        set(SKIPPED_RECORDS, currentSkippedRecords);
         return this;
     }
 
-    public BatchProcessReport addMessage(String string) {
-        List<String> previousMessages = getList(MESSAGES);
-        previousMessages.add(string);
-        set(MESSAGES, previousMessages);
+    public BatchProcessReport addSkippedRecord(String string) {
+        List<String> previousSkippedRecords = getList(SKIPPED_RECORDS);
+        ArrayList<Object> currentSkippedRecords = new ArrayList<>();
+        currentSkippedRecords.addAll(previousSkippedRecords);
+        currentSkippedRecords.add(string);
+        set(SKIPPED_RECORDS, currentSkippedRecords);
         return this;
     }
 

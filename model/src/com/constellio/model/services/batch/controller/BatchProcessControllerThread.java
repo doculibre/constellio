@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -158,7 +159,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
-					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager);
+					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
 
 			for (BatchProcessTask task : tasks) {
 				newErrors = pool.invoke(task);
@@ -166,7 +167,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
-			updateBatchProcessReport(report, newErrors);
+			report.addSkippedRecords(newErrors);
+			updateBatchProcessReport(report);
 
 			if (batchIterator.hasNext()) {
 				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
@@ -209,7 +211,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
-					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager);
+					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
 
 			for (BatchProcessTask task : tasks) {
 				newErrors = pool.invoke(task);
@@ -217,7 +219,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
-			updateBatchProcessReport(report, newErrors);
+			report.addSkippedRecords(newErrors);
+			updateBatchProcessReport(report);
 			if (batchIterator.hasNext()) {
 				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
 			}
@@ -232,6 +235,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		String collection = batchProcess.getCollection();
 		if(collection != null) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			User user = userServices.getUserRecordInCollection(batchProcess.getUsername(), collection);
+			String userId = user != null? user.getId():null;
 			try {
 				MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection).getSchema(BatchProcessReport.FULL_SCHEMA);
 				Record reportRecord = searchServices.searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
@@ -241,19 +246,19 @@ public class BatchProcessControllerThread extends ConstellioThread {
 				} else {
 					report = schemas.newBatchProcessReport();
 					report.setLinkedBatchProcess(batchProcess.getId());
+					report.setCreatedBy(userId);
 				}
 			} catch (Exception e) {
 				report = schemas.newBatchProcessReport();
 				report.setLinkedBatchProcess(batchProcess.getId());
+				report.setCreatedBy(userId);
 			}
 		}
 		return report;
 	}
 
-	private void updateBatchProcessReport(BatchProcessReport report, List<String> newErrors) {
+	private void updateBatchProcessReport(BatchProcessReport report) {
 		try {
-			report.appendErrors(newErrors);
-
 			Transaction transaction = new Transaction();
 			transaction.addUpdate(report.getWrappedRecord());
 			transaction.setRecordFlushing(RecordsFlushing.LATER());

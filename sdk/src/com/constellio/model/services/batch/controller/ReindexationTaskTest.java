@@ -3,6 +3,7 @@ package com.constellio.model.services.batch.controller;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -52,6 +53,8 @@ public class ReindexationTaskTest extends ConstellioTest {
 
 	@Mock TaskList taskList;
 
+	@Mock BatchProcessReport report;
+
 	private BatchProcessTask reindexationTask;
 
 	@Before
@@ -74,7 +77,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 		when(metadataSchemaTypes.getCollection()).thenReturn(zeCollection);
 
 		reindexationTask = spy(new BatchProcessTask(taskList, batch, action, recordServices, metadataSchemaTypes,
-				searchServices, user));
+				searchServices, user, report));
 		doReturn(handler).when(reindexationTask).createSubTaskImpactHandler();
 	}
 

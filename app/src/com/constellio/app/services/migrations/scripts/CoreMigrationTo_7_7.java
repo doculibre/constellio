@@ -39,7 +39,7 @@ public class CoreMigrationTo_7_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder temporaryRecord = typesBuilder.getSchemaType(BatchProcessReport.SCHEMA_TYPE);
 			MetadataSchemaBuilder batchProcessReportSchema = temporaryRecord.createCustomSchema(BatchProcessReport.SCHEMA);
 			batchProcessReportSchema.createUndeletable(BatchProcessReport.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
-			batchProcessReportSchema.createUndeletable(BatchProcessReport.MESSAGES).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
+			batchProcessReportSchema.createUndeletable(BatchProcessReport.SKIPPED_RECORDS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
 			batchProcessReportSchema.createUndeletable(BatchProcessReport.LINKED_BATCH_PROCESS).setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
 		}
 	}

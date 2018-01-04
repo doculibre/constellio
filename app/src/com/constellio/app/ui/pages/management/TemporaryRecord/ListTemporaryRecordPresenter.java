@@ -7,10 +7,8 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.ExportAudit;
-import com.constellio.model.entities.records.wrappers.ImportAudit;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -38,10 +36,15 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
                 schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
             @Override
             protected LogicalSearchQuery getQuery() {
-                User user = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection( view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
-                OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
-                LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ? FromCondition.where(returnAll()) : FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
-                return new LogicalSearchQuery().setCondition(condition).sortDesc(Schemas.CREATED_ON);
+                //TODO Gabriel move condition to an extension
+                if(schema.equals(BatchProcessReport.FULL_SCHEMA)) {
+                    return LogicalSearchQuery.returningNoResults();
+                } else {
+                    User user = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices().getUserInCollection( view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
+                    OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
+                    LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ? FromCondition.where(returnAll()) : FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
+                    return new LogicalSearchQuery().setCondition(condition).sortDesc(Schemas.CREATED_ON);
+                }
             }
         };
     }
