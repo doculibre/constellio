@@ -109,7 +109,24 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 	}
 
 	private Table buildPublicSearchesTable() {
-		ButtonsContainer container = buildButtonsContainer(presenter.getPublicSearchesDataProvider());
+		final RecordVODataProvider dataProvider = presenter.getPublicSearchesDataProvider();
+		ButtonsContainer container = buildButtonsContainer(dataProvider);
+
+		if(presenter.hasUserAcessToDeletePublicSearches()) {
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new DeleteButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							Integer index = (Integer) itemId;
+							presenter.deleteButtonClicked(dataProvider.getRecordVO(index));
+						}
+					};
+				}
+			});
+		}
+
 		RecordVOTable table = new RecordVOTable($("SavedSearchView.publicSearches", container.size()), container);
 		table.setColumnHeader("buttons", "");
 		table.setWidth("100%");
