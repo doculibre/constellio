@@ -2499,7 +2499,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
-		//// RENDU ICI
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
@@ -2509,6 +2508,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		modify(modifyAuthorizationOnRecord(auth3, records.folder4_1()).removingItOnRecord());
 
+		verifyRecord(FOLDER4).usersWithWriteAccess().isEmpty();
 	}
 
 	@Test
@@ -2569,6 +2569,33 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+		}
+
+		detach(FOLDER4);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
 
 		recordServices.update(records.folder4()
@@ -2579,16 +2606,44 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		detach(FOLDER4_1);
-		//// RENDU ICI
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
 		}
 
-		assertThatAuthorizationsOn(FOLDER4).containsOnly(
-				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles)
 		);
-		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+		}
+
+		detach(FOLDER4_1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
 	}
 
 }
