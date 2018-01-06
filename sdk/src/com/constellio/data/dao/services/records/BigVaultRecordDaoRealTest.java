@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.asStringObjectMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -1110,6 +1111,32 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		assertThat(hasRecord(record1.getId())).isFalse();
 		assertThat(hasRecord(record2.getId())).isTrue();
 		assertThat(hasRecord(record3.getId())).isFalse();
+	}
+
+	@Test
+	public void whenAddingNewRecordsWithOneOfThemAlreadyExistingThenNothingChanged()
+			throws Exception {
+		add(new RecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")));
+		long versionAfterFirstTx = recordDao.get("record1").getVersion();
+
+		try {
+			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withNewRecords(asList(
+					new RecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")),
+					new RecordDTO("record2", -1, null, asMap("title_s", (Object) "Title 2")),
+					new RecordDTO("record3", -1, null, asMap("title_s", (Object) "Title 3"))
+			)));
+			fail("Exception expected");
+		} catch (RecordDaoException.OptimisticLocking e) {
+			//OK
+		}
+
+		assertThat(hasRecord("record1")).isTrue();
+		assertThat(hasRecord("record2")).isFalse();
+		assertThat(hasRecord("record3")).isFalse();
+
+		long versionAfterSecondTx = recordDao.get("record1").getVersion();
+		assertThat(versionAfterSecondTx).isEqualTo(versionAfterFirstTx);
+
 	}
 
 	private String getFieldValue(String id, String field) {
