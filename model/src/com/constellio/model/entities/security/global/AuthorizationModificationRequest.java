@@ -31,7 +31,7 @@ public class AuthorizationModificationRequest {
 
 	final User executedBy;
 
-	final Boolean newOverridingInheritedAuths = null;
+	final Boolean newOverridingInheritedAuths;
 
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId) {
 		this.authorizationId = authorizationId;
@@ -44,6 +44,7 @@ public class AuthorizationModificationRequest {
 		this.newAccessAndRoles = null;
 		this.removedOnRecord = false;
 		this.executedBy = null;
+		this.newOverridingInheritedAuths = null;
 	}
 
 	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId, LocalDate newStartDate,
@@ -58,6 +59,7 @@ public class AuthorizationModificationRequest {
 		this.newAccessAndRoles = newAccessAndRoles;
 		this.removedOnRecord = removedOnRecord;
 		this.executedBy = executedBy;
+		this.newOverridingInheritedAuths = newOverridingInheritedAuths;
 
 	}
 
@@ -206,4 +208,7 @@ public class AuthorizationModificationRequest {
 		return executedBy;
 	}
 
+	public Boolean getNewOverridingInheritedAuths() {
+		return newOverridingInheritedAuths;
+	}
 }

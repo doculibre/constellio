@@ -92,6 +92,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return this;
 	}
 
+	public boolean isOverrideInherited() {
+		return getBooleanWithDefaultValue(OVERRIDE_INHERITED, false);
+	}
+
+	public SolrAuthorizationDetails setOverrideInherited(boolean overrideInherited) {
+		set(OVERRIDE_INHERITED, overrideInherited ? true : null);
+		return this;
+	}
+
 	public String getTarget() {
 		return get(TARGET);
 	}

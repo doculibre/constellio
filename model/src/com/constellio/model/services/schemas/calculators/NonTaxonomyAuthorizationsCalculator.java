@@ -38,7 +38,13 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 		if (!parameters.isPrincipalTaxonomyConcept()) {
 
-			for (AuthorizationDetails auth : authorizations.getAuthorizationDetails()) {
+			for (AuthorizationDetails auth : authorizations.getAuthorizationDetailsOnRecord()) {
+				if (auth.isActiveAuthorization()) {
+					returnedIds.add(auth.getId());
+				}
+			}
+
+			for (AuthorizationDetails auth : authorizations.getAuthorizationDetailsOnMetadatasProvidingSecurity()) {
 				if (auth.isActiveAuthorization()) {
 					returnedIds.add(auth.getId());
 				}
@@ -46,7 +52,8 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 			if (!detached) {
 				for (String auth : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
-					if (!allRemovedAuths.contains(auth)) {
+					if (!allRemovedAuths.contains(auth)
+							&& !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()) {
 						returnedIds.add(auth);
 					}
 				}

@@ -2316,7 +2316,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess());
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 		recordServices.update(records.folder4()
@@ -2325,7 +2325,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota, chuck);
 		}
 
 		recordServices.update(records.folder4()
@@ -2334,7 +2334,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, edouard, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, edouard, dakota, chuck);
 		}
 
 		//givenARecordWithOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToNullThenRecoverInheritingAuthsAndLoseAuthsFromMetadata
@@ -2343,7 +2343,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), null));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 	}
@@ -2358,7 +2358,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess());
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 		recordServices.update(records.folder4()
@@ -2367,7 +2367,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, chuck);
 		}
 
 		recordServices.update(records.folder4()
@@ -2376,7 +2376,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, edouard, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, edouard, dakota, chuck);
 		}
 
 		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToAnotherValueNotOverridingThenRecoverInheritingAuthsAndReceiveNewAuths
@@ -2386,7 +2386,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE2));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, edouard);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, edouard, chuck);
 		}
 	}
 
@@ -2400,14 +2400,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess().andOverridingInheritedAuths());
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToAnotherValueOverridingThenLoseInheritingAuthsAndReceiveNewAuths
@@ -2416,7 +2416,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE3));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, edouard);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, edouard, chuck);
 		}
 
 		recordServices.update(records.folder4()
@@ -2424,14 +2424,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, chuck);
 		}
 
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), null));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 	}
 
@@ -2445,49 +2445,57 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 		//whenARecordProvidingSecurityReceiveANewNonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
 
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToOverrideInheritedAuthsThenRecordLoseInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(true));
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToNonOverrideInheritedAuthsThenRecordRecoverInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(false));
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewPrincipalIds(gandalf));
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, gandalf);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, gandalf, chuck);
 		}
 
 		//whenARecordProvidingSecurityReceiveANewOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndLoseInheritedAuths
 		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, gandalf, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, gandalf, dakota, chuck);
 		}
 
 		//whenARecordProvidingSecurityLoseANonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).removingItOnRecord());
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, chuck);
 		}
 
 		//whenARecordProvidingSecurityLoseTheLastOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndRegainInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth4, records.folderType1()).removingItOnRecord());
+		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
 	}
@@ -2503,12 +2511,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		modify(modifyAuthorizationOnRecord(auth3, records.folder4_1()).removingItOnRecord());
 
-		verifyRecord(FOLDER4).usersWithWriteAccess().isEmpty();
+		verifyRecord(FOLDER4).usersWithWriteAccess().contains(bob, charles, chuck);
+		verifyRecord(FOLDER4_1).usersWithWriteAccess().contains(bob, chuck);
 	}
 
 	@Test
@@ -2522,13 +2531,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		detach(FOLDER4);
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
@@ -2549,13 +2558,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		detach(FOLDER4);
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
@@ -2575,13 +2584,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		detach(FOLDER4);
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
@@ -2602,13 +2611,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		detach(FOLDER4_1);
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
 		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
@@ -2629,13 +2638,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		detach(FOLDER4_1);
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
 		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(

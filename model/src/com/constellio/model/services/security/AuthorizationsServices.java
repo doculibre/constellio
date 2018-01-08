@@ -308,7 +308,8 @@ public class AuthorizationsServices {
 		}
 
 		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd()).setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
+				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths())
+				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
 	}
 
@@ -359,22 +360,22 @@ public class AuthorizationsServices {
 		return authId;
 	}
 
-//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
-//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
-//
-//		for (String id : hierarchyIds) {
-//			if (newAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
-//			}
-//			if (removedAccess) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
-//			}
-//			//Temporary fix, there will be a better one in the next release
-//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
-//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
-//			}
-//		}
-//	}
+	//	private void refreshCaches(Record grantedOnRecord, boolean newAccess, boolean removedAccess) {
+	//		Set<String> hierarchyIds = RecordUtils.getHierarchyIdsTo(grantedOnRecord, modelLayerFactory);
+	//
+	//		for (String id : hierarchyIds) {
+	//			if (newAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithoutChildren(id);
+	//			}
+	//			if (removedAccess) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateWithChildren(id);
+	//			}
+	//			//Temporary fix, there will be a better one in the next release
+	//			if ("administrativeUnit".equals(grantedOnRecord.getTypeCode())) {
+	//				modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
+	//			}
+	//		}
+	//	}
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
@@ -858,6 +859,11 @@ public class AuthorizationsServices {
 			validateDates(startDate, endDate);
 			transaction.add((SolrAuthorizationDetails) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
 		}
+
+		if (request.getNewOverridingInheritedAuths() != null) {
+			transaction.add(((SolrAuthorizationDetails) authorizationDetails))
+					.setOverrideInherited(request.getNewOverridingInheritedAuths());
+		}
 	}
 
 	private List<Record> principalToRecords(AuthTransaction transaction, SchemasRecordsServices schemas,
@@ -1116,7 +1122,7 @@ public class AuthorizationsServices {
 	AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection, String id) {
 		AuthorizationDetails inherited = getDetails(collection, id);
 		SolrAuthorizationDetails detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
-				inherited.getStartDate(), inherited.getEndDate());
+				inherited.getStartDate(), inherited.getEndDate(), false);
 		detail.setTarget(record.getId());
 
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -1184,11 +1190,11 @@ public class AuthorizationsServices {
 	}
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
-			LocalDate startDate, LocalDate endDate) {
+			LocalDate startDate, LocalDate endDate, boolean overrideInherited) {
 		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
 				: schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
-		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate);
+		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited);
 	}
 
 }
