@@ -633,6 +633,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
@@ -678,6 +679,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponents(newCartLayout,tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
 		};

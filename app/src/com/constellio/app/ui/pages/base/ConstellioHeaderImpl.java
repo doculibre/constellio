@@ -562,6 +562,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
@@ -611,6 +612,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponents(newCartLayout, tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
 
