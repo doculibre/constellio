@@ -2,10 +2,13 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -15,14 +18,17 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.jsoup.Jsoup;
 
 public class SIPButtonPresenter {
 	
@@ -100,10 +106,17 @@ public class SIPButtonPresenter {
             ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
             BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
             
-            String sipFolderName = viewObject.getArchiveTitle() + ".zip";
+            String sipFolderName = (viewObject.getArchiveTitle() != null ? viewObject.getArchiveTitle() : "archive-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()))+ ".zip";
             List<String> packageInfoLines = new ArrayList<>();
             for(MetadataVO metadatavo : viewObject.getFormMetadatas()) {
                 Object value = viewObject.get(metadatavo);
+                if(metadatavo.getType().equals(MetadataValueType.REFERENCE)) {
+                    Record referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(viewObject.<String>get(metadatavo));
+                    value = referencedRecord.getTitle();
+                }
+                if(value != null) {
+                    value = formatData(value.toString());
+                }
                 packageInfoLines.add(metadatavo.getLabel(this.button.getView().getSessionContext().getCurrentLocale()) + ":" +(value != null ? value : ""));
             }
             List<String> documentList = getDocumentIDListFromObjectList();
@@ -122,5 +135,10 @@ public class SIPButtonPresenter {
         } else {
             this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
         }
+    }
+
+    private String formatData(String value) {
+        return value.replaceAll("(<(\\/?)p>|(&nbsp;))", "");
+
     }
 }
