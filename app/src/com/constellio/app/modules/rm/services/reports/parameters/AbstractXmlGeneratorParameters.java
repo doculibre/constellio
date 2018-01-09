@@ -5,7 +5,7 @@ import com.google.common.base.Strings;
 
 import java.util.List;
 
-public abstract class XmlGeneratorParameters {
+public abstract class AbstractXmlGeneratorParameters {
 
     private Record[] recordsElements;
 
@@ -14,11 +14,11 @@ public abstract class XmlGeneratorParameters {
 
     private boolean isForTest = false;
 
-    public XmlGeneratorParameters(Record... recordsElements) {
+    public AbstractXmlGeneratorParameters(Record... recordsElements) {
         this.setRecordsElements(recordsElements);
     }
 
-    public XmlGeneratorParameters setRecordsElements(Record... recordsElements) {
+    public AbstractXmlGeneratorParameters setRecordsElements(Record... recordsElements) {
         this.recordsElements = recordsElements;
         return this;
     }
@@ -45,12 +45,12 @@ public abstract class XmlGeneratorParameters {
         return recordsElements.length == 0 && ids.size() > 0 && !Strings.isNullOrEmpty(this.schemaCode);
     }
 
-    public XmlGeneratorParameters markAsTestXml() {
+    public AbstractXmlGeneratorParameters markAsTestXml() {
         isForTest = true;
         return this;
     }
 
-    public XmlGeneratorParameters markNotAsTestXml() {
+    public AbstractXmlGeneratorParameters markNotAsTestXml() {
         isForTest = false;
         return this;
     }

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.reports;
+package com.constellio.app.modules.rm.services.reports.printableReport;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import org.jdom2.Document;
@@ -26,9 +27,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class XmlReportGenerator extends XmlGenerator{
+public class printableReportXmlGenerator extends AbstractXmlGenerator {
 
-    public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
+    public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
         super(appLayerFactory, collection);
         this.xmlGeneratorParameters = xmlGeneratorParameters;
     }

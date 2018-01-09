@@ -20,7 +20,7 @@ import org.jsoup.Jsoup;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlGeneratorParameters;
+import com.constellio.app.modules.rm.services.reports.parameters.AbstractXmlGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -44,7 +44,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
-public abstract class XmlGenerator {
+public abstract class AbstractXmlGenerator {
     /**
      * First element of the XMl document, usually in plural form.
      */
@@ -77,9 +77,9 @@ public abstract class XmlGenerator {
     private MetadataSchemasManager metadataSchemasManager;
     private RMSchemasRecordsServices rm;
 
-    XmlGeneratorParameters xmlGeneratorParameters;
+    protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
 
-    public XmlGenerator(AppLayerFactory appLayerFactory, String collection) {
+    public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection) {
         this.factory = appLayerFactory;
         this.collection = collection;
         this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
@@ -104,11 +104,11 @@ public abstract class XmlGenerator {
         return this.collection;
     }
 
-    MetadataList getListOfMetadataForElement(Record element) {
+    protected MetadataList getListOfMetadataForElement(Record element) {
         return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
     }
 
-    List<Element> getAdditionalInformations(Record recordElement) {
+    protected List<Element> getAdditionalInformations(Record recordElement) {
         MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(recordElement);
         List<Element> elementsToAdd = new ArrayList<>(asList(
                 new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection").setAttribute("code", "collection_code"),
@@ -324,19 +324,19 @@ public abstract class XmlGenerator {
         return metadata.getCode().split("_")[2];
     }
 
-    String getToStringOrNull(Object ob) {
+    protected String getToStringOrNull(Object ob) {
         return ob == null ? null : ob.toString();
     }
 
-    String getToStringOrNullInString(Object ob) {
+    protected String getToStringOrNullInString(Object ob) {
         return ob == null ? "null" : ob.toString();
     }
 
     public abstract String generateXML();
 
-    abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
+    protected abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
-    String formatData(String data, Metadata metadata) {
+    protected String formatData(String data, Metadata metadata) {
         String formattedData = defaultFormatData(data, metadata, getFactory(), getCollection());
         return formatToXml(formattedData);
     }
@@ -396,7 +396,7 @@ public abstract class XmlGenerator {
         return builder.toString();
     }
 
-    public abstract XmlGeneratorParameters getXmlGeneratorParameters();
+    public abstract AbstractXmlGeneratorParameters getXmlGeneratorParameters();
 
     private static boolean hasMetadata (Record record, Metadata metadata) {
         try {

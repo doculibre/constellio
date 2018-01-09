@@ -1,11 +1,8 @@
 package com.constellio.app.modules.rm.services.reports.parameters;
 
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.model.entities.records.Record;
 
-import java.util.List;
-
-public class XmlReportGeneratorParameters extends XmlGeneratorParameters {
+public class XmlReportGeneratorParameters extends AbstractXmlGeneratorParameters {
     private int numberOfCopies;
 
     public XmlReportGeneratorParameters() { }
