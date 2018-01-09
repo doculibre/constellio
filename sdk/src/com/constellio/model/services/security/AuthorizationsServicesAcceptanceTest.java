@@ -1924,6 +1924,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
 				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Test
@@ -2655,4 +2660,103 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
 	}
 
+	@Test
+	public void givenARecordWithGrandParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		detach(FOLDER4_2_DOC1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_2_DOC1).containsOnly(
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithGrandParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		detach(FOLDER4_2_DOC1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_2_DOC1).containsOnly(
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingHasStartAndEndDateThenOnlyAppliedDuringInterval()
+			throws Exception {
+
+		givenTimeIs(date(2016, 4, 4));
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1)
+				.givingReadWriteAccess().during(date(2016, 4, 3), date(2016, 4, 6)));
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1)
+				.givingReadWriteAccess().during(date(2016, 4, 4), date(2016, 4, 5)));
+		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE2)
+				.givingReadWriteAccess().during(date(2016, 4, 5), date(2016, 4, 5)).andOverridingInheritedAuths());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 5));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, edouard, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 6));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 7));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+	}
 }

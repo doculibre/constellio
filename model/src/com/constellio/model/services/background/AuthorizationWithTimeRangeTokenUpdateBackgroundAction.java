@@ -3,12 +3,17 @@ package com.constellio.model.services.background;
 import static com.constellio.data.utils.TimeProvider.getLocalDate;
 import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
 import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -43,7 +48,21 @@ public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Ru
 						Transaction tx = new Transaction();
 						tx.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL()));
 						tx.add(auth.setLastTokenRecalculate(getLocalDate()));
-						tx.add(recordServices.getDocumentById(auth.getTarget()));
+
+						Record target = recordServices.getDocumentById(auth.getTarget());
+						MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(target);
+
+						if (schemaType.hasSecurity()) {
+							tx.add(target);
+
+						} else {
+							//TODO i18n
+							modelLayerFactory.getBatchProcessesManager().addPendingBatchProcess(
+									fromAllSchemasIn(collection).where(ALL_REFERENCES).isEqualTo(target),
+									ReindexMetadatasBatchProcessAction.allMetadatas(),
+									"Update tokens"
+							);
+						}
 
 						recordServices.execute(tx);
 					} catch (RecordServicesException e) {

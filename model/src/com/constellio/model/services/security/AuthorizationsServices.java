@@ -536,9 +536,39 @@ public class AuthorizationsServices {
 
 	private List<AuthorizationDetails> getInheritedAuths(Record record) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
-		return (List) schemas.searchSolrAuthorizationDetailss(
-				where(schemas.authorizationDetails.target()).isNotEqual(record.getId())
-						.andWhere(schemas.authorizationDetails.target()).isIn(record.getList(ATTACHED_ANCESTORS)));
+
+		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+
+		Set<String> recordsIdsWithPosibleAuths = new HashSet<>();
+		recordsIdsWithPosibleAuths.addAll(record.<String>getList(ATTACHED_ANCESTORS));
+		recordsIdsWithPosibleAuths.remove(record.getId());
+
+		for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS)) {
+			if (!ancestorId.equals(record.getId())) {
+
+				Record ancestor = recordServices.getDocumentById(ancestorId);
+				MetadataSchema schema = schemasManager.getSchemaOf(ancestor);
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.isRelationshipProvidingSecurity()) {
+						recordsIdsWithPosibleAuths.addAll(ancestor.<String>getValues(metadata));
+					}
+				}
+			}
+		}
+
+		for (SolrAuthorizationDetails authorizationDetail : schemas.getAllAuthorizations()) {
+			if (recordsIdsWithPosibleAuths.contains(authorizationDetail.getTarget())) {
+				authorizationDetails.add(authorizationDetail);
+			}
+		}
+
+		//		authorizationDetails.addAll(schemas.searchSolrAuthorizationDetailss(
+		//				where(schemas.authorizationDetails.target()).isNotEqual(record.getId())
+		//						.andWhere(schemas.authorizationDetails.target()).isIn(record.getList(ATTACHED_ANCESTORS))));
+		//
+		//		authorizationDetails.addAll()
+
+		return authorizationDetails;
 	}
 
 	private List<String> toIds(List<AuthorizationDetails> authorizationDetailses) {
@@ -561,8 +591,8 @@ public class AuthorizationsServices {
 		String authId = authorization.getDetail().getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-
-		if (!directlyTargetted && !inherited) {
+		boolean nonTaxonomyAuth = record.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS).contains(authId);
+		if (!directlyTargetted && !inherited && !nonTaxonomyAuth) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 

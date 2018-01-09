@@ -531,7 +531,8 @@ public class RecordAutomaticMetadataServices {
 
 				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
 					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
-					overridedByMetadataProvidingSecurity |= authorizationDetail.isOverrideInherited();
+					overridedByMetadataProvidingSecurity |=
+							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
 				}
 			}
 

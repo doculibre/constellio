@@ -50,4 +50,5 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 	public Object[] getInstanceParameters() {
 		return new Object[] { reindexedMetadataCodes };
 	}
+
 }
