@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -116,6 +117,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	int selectedPageLength;
 	boolean allowDownloadZip = true;
 	int lastPageNumber;
+	SearchEventServices searchEventServices;
 
 	public int getSelectedPageLength() {
 		return selectedPageLength;
@@ -129,6 +131,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		super(view);
 		init(view.getConstellioFactories(), view.getSessionContext());
 		initSortParameters();
+
+		searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 	}
 
 	private void initSortParameters() {
@@ -392,11 +396,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			if(!areSearchEventEqual(oldSearchEvent, searchEvent)) {
 				view.getSessionContext().setCurrentSearchEventRecord(searchEvent.getWrappedRecord());
 
-				try {
-					recordServices.add(searchEvent);
-				} catch (RecordServicesException e) {
-					LOGGER.error("An error occurred when saving the statistic record", e);
-				}
+				searchEventServices.save(searchEvent);
 			}
 		}
 
@@ -796,6 +796,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public void searchResultClicked(RecordVO searchResultVO) {
+		searchEventServices.incrementClickCounter(view.getSessionContext().getCurrentSearchEventRecord().getId());
+		searchEventServices.incrementPageNavigationCounter(view.getSessionContext().getCurrentSearchEventRecord().getId());
 	}
 	
 }

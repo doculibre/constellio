@@ -9,6 +9,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 import org.apache.calcite.schema.Statistic;
 
-public interface StatisticsViews extends BaseView, CollectionGroupView {
+public interface StatisticsView extends BaseView, CollectionGroupView {
 
 }
