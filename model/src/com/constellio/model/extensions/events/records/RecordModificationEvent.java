@@ -1,6 +1,9 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -10,9 +13,21 @@ public class RecordModificationEvent implements RecordEvent {
 
 	Record record;
 
+	Record originalRecord;
+
 	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
+		this.originalRecord = record.getCopyOfOriginalRecord();
+	}
+
+	public <T> T getPreviousValue(String metadataLocalCode) {
+		Metadata metadata = modifiedMetadatas.getMetadataWithLocalCode(metadataLocalCode);
+		if (metadata == null) {
+			throw new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent.UnModifiedMetadataRuntimeException(metadataLocalCode);
+		}
+
+		return originalRecord.get(metadata);
 	}
 
 	public Record getRecord() {
