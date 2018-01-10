@@ -20,6 +20,10 @@ public class JasperPdfGenerator {
 
     private String xmlGenerated;
 
+    /**
+     * Use a XMLGenerator to get the required value. Note that XML will be generated in the Constructor.
+     * @param xmlGenerator
+     */
     public JasperPdfGenerator(AbstractXmlGenerator xmlGenerator) {
         this(xmlGenerator.getCollection(), xmlGenerator.getFactory(), xmlGenerator.generateXML());
     }
@@ -33,7 +37,13 @@ public class JasperPdfGenerator {
         jasperReportsContext.setProperty("net.sf.jasperreports.default.font.name", "Arial");
     }
 
-    //FIXME Utiliser autre chose qu'un content.
+    /**
+     * Method that takes a JasperReport (.jasper) file and the xml generated in the constructor to create a report.
+     * @param jasperFile File jasper file
+     * @param format unused by the app.
+     * @return File with the report.
+     * @throws JRException
+     */
     public File createPDFFromXmlAndJasperFile(File jasperFile, String format) throws JRException {
         Map<String, Object> params = new HashMap<>();
         Document document;

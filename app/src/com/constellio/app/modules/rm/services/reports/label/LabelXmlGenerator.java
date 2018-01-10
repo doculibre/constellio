@@ -166,7 +166,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
      * Function that checks a string and replace if needed. Used to get valid XML tag.
      *
      * @param input String
-     * @return
+     * @return the xml tag filtered
      */
     public static String escapeForXmlTag(String input) {
         String inputWithoutaccent = AccentApostropheCleaner.removeAccents(input);

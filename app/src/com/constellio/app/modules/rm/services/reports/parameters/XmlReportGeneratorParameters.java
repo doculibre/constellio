@@ -12,6 +12,11 @@ public class XmlReportGeneratorParameters extends AbstractXmlGeneratorParameters
         this.numberOfCopies = numberOfCopies;
     }
 
+    /**
+     * Method used to set the number of copies needed of the report.
+     * @param numberOfCopies
+     * @return
+     */
     public XmlReportGeneratorParameters setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
         return this;

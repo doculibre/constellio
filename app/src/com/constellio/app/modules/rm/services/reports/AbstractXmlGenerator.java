@@ -56,21 +56,40 @@ public abstract class AbstractXmlGenerator {
      */
     public static final String XML_EACH_RECORD_ELEMENTS = "record";
 
+    /**
+     * Prefix for reference
+     */
     public static final String REFERENCE_PREFIX = "ref_";
 
+    /**
+     * Suffix for reference of parents
+     */
     public static final String PARENT_SUFFIX = "_parent";
+
+    /**
+     * XML Tag for multiple Metadata
+     */
+    public static final String XML_METADATA_TAGS = "metadatas";
+
+    /**
+     * XMl tag for single metadata
+     */
+    public static final String XML_METADATA_SINGLE_TAGS = "metadata";
 
     public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "").replacingRegex("[&$%]", "");
     public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
 
-
-    public static final String XML_METADATA_TAGS = "metadatas";
-
-    public static final String XML_METADATA_SINGLE_TAGS = "metadata";
-
+    /**
+     * Constellio's AppLayerFactory
+     */
     private AppLayerFactory factory;
 
+    /**
+     * Constellio's Collection
+     */
     private String collection;
+
+
 
     private RecordServices recordServices;
 
@@ -108,6 +127,12 @@ public abstract class AbstractXmlGenerator {
         return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
     }
 
+    /**
+     * Add additionnal needed information like collection code and title
+     * there should be an extension here to add information from plugins.
+     * @param recordElement record
+     * @return list of elements
+     */
     protected List<Element> getAdditionalInformations(Record recordElement) {
         MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(recordElement);
         List<Element> elementsToAdd = new ArrayList<>(asList(
@@ -132,6 +157,14 @@ public abstract class AbstractXmlGenerator {
         return elementsToAdd;
     }
 
+    /**
+     * Return the elements created from the value of metadata of type structure.
+     * @param metadata
+     * @param recordElement
+     * @param collection
+     * @param factory
+     * @return
+     */
     public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
         if(!hasMetadata(recordElement, metadata)) {
             return Collections.emptyList();
@@ -174,6 +207,14 @@ public abstract class AbstractXmlGenerator {
         return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
     }
 
+    /**
+     * Method that returns the value of metadata enum,
+     * use the i18n to get correct label for current user language.
+     * @param metadata
+     * @param recordElement
+     * @param namespace
+     * @return
+     */
     public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
         if(!hasMetadata(recordElement, metadata)) {
             return Collections.emptyList();
@@ -218,6 +259,16 @@ public abstract class AbstractXmlGenerator {
         return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, collection, factory, null);
     }
 
+    /**
+     * Method that will return the code and title of the referenced record element,
+     * If referenced record has parent, will return the code and title of the parent.
+     * @param metadata metadata
+     * @param recordElement record
+     * @param collection collection
+     * @param factory factory
+     * @param namespace use if need to add a namespace.
+     * @return list of element to add
+     */
     public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
         if (!hasMetadata(recordElement, metadata)) {
             return Collections.emptyList();
@@ -297,6 +348,17 @@ public abstract class AbstractXmlGenerator {
         return replaceInvalidXMLCharacter.replaceOn(inputWithoutPonctuation).toLowerCase();
     }
 
+    /**
+     * Format data to make sure it's conform.
+     * ex: Will format date for the defined pattern in constellio config.
+     *     Will also returns correct i18n value for boolean.
+     *     And will remove html tags from text.
+     * @param data
+     * @param metadata
+     * @param factory
+     * @param collection
+     * @return
+     */
     public static String defaultFormatData(String data, Metadata metadata, AppLayerFactory factory, String collection) {
         if (StringUtils.isEmpty(data)) {
             return data;
@@ -332,8 +394,19 @@ public abstract class AbstractXmlGenerator {
         return ob == null ? "null" : ob.toString();
     }
 
+    /**
+     * Method that returns a XML String.
+     * Should be override by children.
+     * @return
+     */
     public abstract String generateXML();
 
+    /**
+     * Method that returns a list of element to add from the record.
+     * Usually used for data that isn't from a metadata.
+     * @param recordElement record
+     * @return list of element to add.
+     */
     protected abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
     protected String formatData(String data, Metadata metadata) {
@@ -358,6 +431,12 @@ public abstract class AbstractXmlGenerator {
         }
     }
 
+    /**
+     * Method that format a path to make it better
+     * ex:  folder1 > folder2 > folder3 > document
+     * @param recordElement
+     * @return
+     */
     public String getPath(Record recordElement){
         StringBuilder builder = new StringBuilder();
         String parentId = recordElement.getParentId();
@@ -396,8 +475,18 @@ public abstract class AbstractXmlGenerator {
         return builder.toString();
     }
 
+    /**
+     * Method that returns the xml generator parameters
+     * @return AbstractXmlGeneratorParameters parameters
+     */
     public abstract AbstractXmlGeneratorParameters getXmlGeneratorParameters();
 
+    /**
+     * Method that returns whether or not a record has a particular metadata
+     * @param record record
+     * @param metadata metadata
+     * @return boolean
+     */
     private static boolean hasMetadata (Record record, Metadata metadata) {
         try {
             record.get(metadata);

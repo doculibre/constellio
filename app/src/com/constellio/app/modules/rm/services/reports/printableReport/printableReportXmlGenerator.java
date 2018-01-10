@@ -86,6 +86,12 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
         return (XmlReportGeneratorParameters) this.xmlGeneratorParameters;
     }
 
+    /**
+     * Method that create Element(s) for a particular metadata and record element
+     * @param metadata metadata
+     * @param recordElement record
+     * @return list of element to add
+     */
     public List<Element> createMetadataTagsFromMetadata(Metadata metadata, Record recordElement) {
         if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
             return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, getCollection(), getFactory());
@@ -123,6 +129,12 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
         return Collections.singletonList(metadataXmlElement);
     }
 
+    /**
+     * Method that return all the record of each given ids.
+     * @param schemaType
+     * @param ids
+     * @return
+     */
     private Record[] getRecordFromIds(String schemaType, final List<String> ids) {
         List<Record> allRecords = new ArrayList<>();
         SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
@@ -152,6 +164,11 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
         return chunkList;
     }
 
+    /**
+     * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+     * @param originalElements element to check if empty
+     * @return
+     */
     private List<Element> fillEmptyTags(List<Element> originalElements) {
         List<Element> filledElements = new ArrayList<>();
         for (Element element : originalElements) {
@@ -163,6 +180,12 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
         return filledElements;
     }
 
+    /**
+     * Method that format a path to make it pretty
+     * format:  folder01 > folder02 > document1
+     * @param recordElement
+     * @return
+     */
     public String getPath(Record recordElement) {
         StringBuilder builder = new StringBuilder();
         String parentId = recordElement.getParentId();
