@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.entities.schemas.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,14 +16,8 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -387,5 +382,28 @@ public class SchemaUtils {
 	private static String toLocalCode(String code) {
 		String[] parts = new SchemaUtils().underscoreSplitWithCache(code);
 		return parts[2];
+	}
+
+	public static List<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes) {
+		Set<String> schemaTypesInHierarchy = new HashSet<>();
+		schemaTypesInHierarchy.add(schemaTypeCode);
+
+		schemaTypesInHierarchy.addAll(getSchemaTypesInHierarchyOf(schemaTypeCode, allSchemaTypes, schemaTypesInHierarchy));
+
+		return new ArrayList<>(schemaTypesInHierarchy);
+	}
+
+	private static Set<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes, Set<String> schemaTypesInHierarchy) {
+		MetadataSchemaType schemaType = allSchemaTypes.getSchemaType(schemaTypeCode);
+		for(Metadata metadata: schemaType.getAllMetadatas()) {
+			if(metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship()) {
+				String referencedSchemaType = metadata.getReferencedSchemaType();
+				if(schemaTypesInHierarchy.add(referencedSchemaType)) {
+					schemaTypesInHierarchy.addAll(getSchemaTypesInHierarchyOf(referencedSchemaType, allSchemaTypes, schemaTypesInHierarchy));
+				}
+			}
+		}
+
+		return schemaTypesInHierarchy;
 	}
 }
