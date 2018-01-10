@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 
@@ -64,6 +65,26 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		getSaveStateFeature().saveStateAfterTestWithTitle("from_new_system");
 
 		newWebDriver();
+		waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	public void saveStateWithTestRecordsInOneCollection()
+			throws Exception {
+
+		givenTransactionLogIsEnabled();
+		givenBackgroundThreadsEnabled();
+		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		records.setup(getAppLayerFactory());
+
+		getSaveStateFeature().saveStateAfterTestWithTitle("collection");
+
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		modelLayerFactory.getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.INCLUDE_CONTENTS_IN_SAVESTATE, true);
+
+		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
 
 	}

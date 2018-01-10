@@ -58,6 +58,7 @@ import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtens
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -194,6 +195,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		List<RecordMigrationScript> scripts = new ArrayList<>();
 
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
+		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
 
 		return scripts;
 	}
