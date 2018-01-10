@@ -61,5 +61,6 @@ public interface SettingsXMLFileConstants {
 	String UNMODIFIABLE = "unmodifiable";
 	String ADVANCE_SEARCHABLE = "advanceSearchable";
 	String SEARCHABLE = "searchable";
+	String RELATIONSHIP_PROVIDING_SECURITY = "relationshipProvidingSecurity";
 
 }
