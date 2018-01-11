@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 
-;import java.io.IOException;
-
 public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 
 	@Override
@@ -19,7 +17,8 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 	}
 
 	@Override
-	public void handleRequest(final HttpServletRequest request, HttpServletResponse response) throws ServletException {
+	public void handleRequest(final HttpServletRequest request, HttpServletResponse response)
+			throws ServletException {
 		HttpServletRequestWrapper requestProxyWrapper = new HttpServletRequestWrapper(request) {
 			public String getScheme() {
 				String scheme = request.getHeader("X-Forwarded-Proto");
