@@ -170,7 +170,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		givenConfig(ConstellioEIMConfigs.VIEWER_CONTENTS_CONVERSION_SCHEDULE, null);
 		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, null);
-		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, null);
+		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, "00-24");
 		givenTimeIs(smashOClock);
 
 		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
