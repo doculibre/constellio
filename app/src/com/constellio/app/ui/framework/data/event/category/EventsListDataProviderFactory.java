@@ -44,6 +44,8 @@ public class EventsListDataProviderFactory {
 				return new ByAdministrativeUnitEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
 			case EVENTS_BY_FOLDER:
 				return new ByFolderEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
+			case EVENTS_BY_CONTAINER:
+				return new ByContainerEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
 			case EVENTS_BY_USER:
 				return new ByUserEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
 			case CONNECTED_USERS_EVENT:

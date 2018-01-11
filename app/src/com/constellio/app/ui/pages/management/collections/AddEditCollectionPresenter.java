@@ -137,8 +137,11 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 				throw new AddEditCollectionPresenterException_CodeCodeChangeForbidden();
 			}
 		} else {
-			if (collectionsListManager.getCollectionsExcludingSystem().contains(code)) {
-				throw new AddEditCollectionPresenterException_CodeUnAvailable();
+			List<String> collectionsExcludingSystem = collectionsListManager.getCollectionsExcludingSystem();
+			for(String existingCollection: collectionsExcludingSystem) {
+				if (existingCollection.toLowerCase().equals(code.toLowerCase())) {
+					throw new AddEditCollectionPresenterException_CodeUnAvailable();
+				}
 			}
 		}
 	}
@@ -164,10 +167,10 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
-		Set<String> retunrnValue = updateCollectionModules(entity, record, collectionCode, modules);
-		runScriptsFromConfigs(collectionName);
+		Set<String> returnValue = updateCollectionModules(entity, record, collectionCode, modules);
+		runScriptsFromConfigs(collectionCode);
 
-		return retunrnValue;
+		return returnValue;
 	}
 
 	public void runScriptsFromConfigs(String collection) {
@@ -181,7 +184,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 					SystemConfigurationScript systemConfigurationScript = scriptClass.newInstance();
 					systemConfigurationScript.onNewCollection(value,collection, modelLayerFactory);
 				} catch (Exception e) {
-					throw new RuntimeException("Instanciation exeption", e);
+					throw new RuntimeException("Instanciation exception", e);
 				}
 			}
 		}

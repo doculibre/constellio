@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.events;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
@@ -218,6 +219,19 @@ public class RMEventsSearchServices {
 				.andWhere(type).isEqualTo(eventType)
 				.andWhere(timestamp).isValueInRange(startDate, endDate)
 				.andWhere(recordId).isEqualTo(folder);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+	}
+
+	public LogicalSearchQuery newFindEventByDateRangeAndByContainerQuery(User currentUser, String eventType, LocalDateTime startDate,
+																	  LocalDateTime endDate, String id) {
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata recordId = schemas.eventSchema().getMetadata(Event.RECORD_ID);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType)
+				.andWhere(timestamp).isValueInRange(startDate, endDate)
+				.andWhere(recordId).isEqualTo(id);
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 

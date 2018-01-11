@@ -64,6 +64,11 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 			String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated) {
+		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, includeDeactivated, false);
+	}
+
+	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
+									   String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated, boolean onlyLinkables) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -71,6 +76,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.modelLayerFactory = constellioFactories.getModelLayerFactory();
 		this.security = determineIfSecurity();
 		this.includeDeactivated = includeDeactivated;
+		this.onlyLinkables = onlyLinkables;
 	}
 
 	public RecordTextInputDataProvider setConverterWithCache(

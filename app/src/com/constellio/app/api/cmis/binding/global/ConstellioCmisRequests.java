@@ -40,7 +40,7 @@ import com.constellio.app.api.cmis.requests.acl.GetAclRequest;
 import com.constellio.app.api.cmis.requests.discovery.QueryUnsupportedRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetChildrenRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetDescendantsUnsupportedRequest;
-import com.constellio.app.api.cmis.requests.navigation.GetFolderParentUnsupportedRequest;
+import com.constellio.app.api.cmis.requests.navigation.GetFolderParentRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetObjectByPathRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetObjectParentsRequest;
 import com.constellio.app.api.cmis.requests.object.AllowableActionsRequest;
@@ -175,10 +175,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	@Override
 	public ObjectData getFolderParent(String repositoryId, String folderId, String filter, ExtensionsData extension) {
 		GetObjectParentsRequest getObjectParentsRequest = new GetObjectParentsRequest(getConstellioCollectionRepository(
-				repositoryId),
-				appLayerFactory, getCallContext(), folderId, filter, null, null, this);
-		return new GetFolderParentUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
-				getObjectParentsRequest, getCallContext(), folderId, filter, this).processRequest();
+				repositoryId), appLayerFactory, getCallContext(), folderId, filter, null, null, this);
+		return new GetFolderParentRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
+				getObjectParentsRequest, getCallContext()).processRequest();
 	}
 
 	@Override

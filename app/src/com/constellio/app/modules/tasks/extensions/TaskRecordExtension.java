@@ -148,6 +148,8 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
 		if(task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
+		} else {
+			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "");
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));

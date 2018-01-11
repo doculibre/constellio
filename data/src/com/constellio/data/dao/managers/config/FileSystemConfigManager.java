@@ -500,8 +500,16 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	}
 
 	private Properties mapToProperties(Map<String, String> newProperties) {
-		TreeMap<String, String> newPropertiesSorted = new TreeMap<String, String>(newProperties);
+		TreeMap<String, String> newPropertiesSorted = new TreeMap<String, String>();
 		Properties properties = newProperties();
+		for (Map.Entry<String, String> entry : newProperties.entrySet()) {
+			if (entry.getValue() != null) {
+				newPropertiesSorted.put(entry.getKey(), entry.getValue());
+			} else {
+				properties.remove(entry.getKey());
+			}
+		}
+
 		properties.putAll(newPropertiesSorted);
 		return properties;
 	}
