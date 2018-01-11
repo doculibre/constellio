@@ -379,5 +379,10 @@ public class i18n {
 		throw new RuntimeException(
 				"Current locale" + loc + " does not correspond to any language" + StringUtils.join(languages, ","));
 	}
+	
+	public static boolean isRightToLeft() {
+		Language language = getLanguage();
+		return Language.Arabic.equals(language);
+	}
 
 }
