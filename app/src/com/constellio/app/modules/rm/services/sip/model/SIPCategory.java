@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.services.sip.model.SIPFicheMetadonnees.CATEGORY_TYPE;
+import static com.constellio.app.modules.rm.services.sip.model.SIPMetadataObject.CATEGORY_TYPE;
 
 public class SIPCategory implements SIPObject {
 	

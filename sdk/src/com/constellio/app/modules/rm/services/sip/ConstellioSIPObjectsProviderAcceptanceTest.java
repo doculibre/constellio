@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +70,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
         this.recordServices = getModelLayerFactory().newRecordServices();
         this.ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
         this.sipFilter = new SIPFilter(zeCollection, getAppLayerFactory()).withIncludeFolderIds(Collections.singletonList(records.getFolder_A01().getId()));
-        this.objectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(), sipFilter);
+        this.objectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(), sipFilter, new ProgressInfo());
         this.entityRetriever = new EntityRetriever(zeCollection, getAppLayerFactory());
     }
 

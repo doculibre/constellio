@@ -13,6 +13,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
@@ -109,4 +110,10 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	public DocumentForm getForm() {
 		return recordForm;
 	}
+
+	@Override
+	public void openAgentURL(String agentURL) {
+		Page.getCurrent().open(agentURL, null);
+	}
+	
 }

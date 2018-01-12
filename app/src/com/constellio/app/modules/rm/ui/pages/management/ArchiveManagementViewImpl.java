@@ -22,10 +22,12 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
     public static final String CONTAINERS = "containers-caption";
     public static final ThemeResource REPORTS_ICON = new ThemeResource("images/icons/config/report.png");
     public static final String REPORTS = "reports-caption";
+    public static final ThemeResource BAG_INFO_ICON = new ThemeResource("images/icons/config/baginfo.png");
+    public static final String BAG_INFO= "bag-in-caption";
 
     private final ArchiveManagementPresenter presenter;
 
-    private Button decommissioning, multipleContainers, newContainer, containers, reports, availableSpace;
+    private Button decommissioning, multipleContainers, newContainer, containers, reports, availableSpace, baginfo;
 
     public ArchiveManagementViewImpl() {
         presenter = new ArchiveManagementPresenter(this);
@@ -84,8 +86,17 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
         reports.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
         reports.addStyleName(REPORTS);
 
+        baginfo = new IconButton(BAG_INFO_ICON, $("ArchiveManagementView.baginfo"), false) {
+            @Override
+            protected void buttonClick(ClickEvent event) {
+                presenter.baginfoButtonClick();
+            }
+        };
+        baginfo.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+        baginfo.addStyleName(BAG_INFO);
+
         presenter.onViewAssembled();
-        CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports);
+        CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports, baginfo);
         layout.addStyleName("view-group");
 
         return layout;

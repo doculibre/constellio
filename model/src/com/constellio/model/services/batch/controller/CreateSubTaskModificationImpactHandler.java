@@ -3,6 +3,7 @@ package com.constellio.model.services.batch.controller;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
@@ -32,13 +33,21 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 
 	User user;
 
+	BatchProcessReport report;
+
 	public CreateSubTaskModificationImpactHandler(SearchServices searchServices, RecordServices recordServices,
 			MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user) {
+		this(searchServices, recordServices, metadataSchemaTypes, taskList, user, null);
+	}
+
+	public CreateSubTaskModificationImpactHandler(SearchServices searchServices, RecordServices recordServices,
+												  MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user, BatchProcessReport report) {
 		this.searchServices = searchServices;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
 		this.taskList = taskList;
 		this.user = user;
+		this.report = report;
 	}
 
 	@Override
@@ -67,7 +76,7 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 	void createSubTask(List<Record> subRecords, List<String> metadatas) {
 		BatchProcessAction action = new ReindexMetadatasBatchProcessAction(metadatas);
 		BatchProcessTask task = new BatchProcessTask(taskList, subRecords, action, recordServices,
-				metadataSchemaTypes, searchServices, user);
+				metadataSchemaTypes, searchServices, user, report);
 		taskList.addSubTask(task);
 	}
 

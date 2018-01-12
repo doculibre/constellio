@@ -1,8 +1,16 @@
 package com.constellio.app.ui.pages.batchprocess;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.Hours;
 import org.joda.time.LocalDateTime;
 
@@ -15,6 +23,8 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcessesView> {
 	
 	private int secondsSinceLastRefresh = 0;
@@ -24,6 +34,10 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 	private BatchProcessDataProvider userBatchProcessDataProvider = new BatchProcessDataProvider();
 	private BatchProcessDataProvider systemBatchProcessDataProvider = new BatchProcessDataProvider();
 
+	private Map<String, BatchProcessReport> batchProcessReports = new HashMap<>();
+
+	private RecordToVOBuilder recordToVOBuilder;
+
 	public ListBatchProcessesPresenter(ListBatchProcessesView view) {
 		super(view);
 		init();
@@ -31,7 +45,17 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 	
 	private void init() {
 		refreshDataProviders();
+		recordToVOBuilder = new RecordToVOBuilder();
 		view.setUserBatchProcesses(userBatchProcessDataProvider);
+		List<Record> records = searchServices().search(new LogicalSearchQuery().setCondition(from(types().getSchema(BatchProcessReport.FULL_SCHEMA)).returnAll()));
+
+		if(records != null) {
+			for(Record record: records) {
+				BatchProcessReport report = coreSchemas().wrapBatchProcessReport(record);
+				this.batchProcessReports.put(report.getLinkedBatchProcess(), report);
+			}
+		}
+
 
 		User currentUser = getCurrentUser();
 		if (areSystemBatchProcessesVisible(currentUser)) {
@@ -94,4 +118,20 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 		}
 	}
 
+	public BatchProcessReport getBatchProcessReport(String id) {
+		return batchProcessReports.get(id);
+	}
+
+	public RecordVO getBatchProcessReportVO(String id) {
+		BatchProcessReport report = batchProcessReports.get(id);
+		if(report != null) {
+			return recordToVOBuilder.build(report.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+		} else {
+			return null;
+		}
+	}
+
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
 }

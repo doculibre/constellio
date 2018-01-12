@@ -5,6 +5,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.*;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
+import static java.util.Arrays.asList;
+
 @SuppressWarnings("serial")
 public class BatchProcessTask extends RecursiveTask<List<String>> {
 
@@ -31,9 +34,10 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	private final SearchServices searchServices;
 	private final TaskList taskList;
 	private final User user;
+	private final BatchProcessReport report;
 
 	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action, RecordServices recordServices,
-							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user) {
+							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report) {
 		this.records = records;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
@@ -41,6 +45,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 		this.searchServices = searchServices;
 		this.taskList = taskList;
 		this.user = user;
+		this.report = report;
 
 		List<String> ids = new RecordUtils().toIdList(records);
 		Set<String> idsSet = new HashSet<>(ids);
@@ -68,6 +73,9 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices));
 
 		} catch (Throwable t) {
+			if(report != null) {
+				report.appendErrors(asList(t.getMessage()));
+			}
 			t.printStackTrace();
 			LOGGER.error("Error while executing batch process action", t);
 			addRecordsIdsToErrorList(batch, errors);
@@ -94,6 +102,9 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 				execute(newBatch, errors);
 
 			} catch (RecordServicesRuntimeException | RecordServicesException t) {
+				if(report != null) {
+					report.appendErrors(asList(t.getMessage()));
+				}
 				t.printStackTrace();
 				LOGGER.error("Error while executing transaction", t);
 				addRecordsIdsToErrorList(batch, errors);
@@ -103,7 +114,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	}
 
 	RecordModificationImpactHandler createSubTaskImpactHandler() {
-		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user);
+		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user, report);
 	}
 
 	private void addRecordsIdsToErrorList(List<Record> batch, List<String> errors) {

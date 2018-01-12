@@ -550,24 +550,29 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
+		List<String> selectedRecordIds = view.getSelectedRecordIds();
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			if (!batchProcessOnAllSearchResults) {
 				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
-			} else {
+			} else if(selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
 				return buildUnsecuredLogicalSearchQueryWithUnselectedIds();
+			} else {
+				return buildUnsecuredLogicalSearchQueryWithAllRecords();
 			}
 		} else {
 			if (!batchProcessOnAllSearchResults) {
 				return buildLogicalSearchQueryWithSelectedIds();
-			} else {
+			} else if(selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
 				return buildLogicalSearchQueryWithUnselectedIds();
+			} else {
+				return buildLogicalSearchQueryWithAllRecords();
 			}
 		}
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
@@ -578,8 +583,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
@@ -589,9 +594,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return query;
 	}
 
+	public LogicalSearchQuery buildLogicalSearchQueryWithAllRecords() {
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithSelectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
@@ -601,9 +617,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithUnselectedIds() {
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(condition.andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+		return query;
+	}
+
+	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithAllRecords() {
+		LogicalSearchQuery query = getSearchQuery();
+		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
