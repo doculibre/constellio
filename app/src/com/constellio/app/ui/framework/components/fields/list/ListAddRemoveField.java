@@ -352,6 +352,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addEditFieldLayout.addComponents(addEditField, addButton);
 
 		addEditFieldLayout.setExpandRatio(addEditField, 1);
+		addEditFieldLayout.setVisible(isAddEditFieldVisible());
 
 		if (delayedReadOnly != null) {
 			setReadOnly(delayedReadOnly);
@@ -366,6 +367,10 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setValue(newFieldValue);
 		}
 		return mainLayout;
+	}
+
+	protected boolean isAddEditFieldVisible() {
+		return true;
 	}
 	
 	protected void setMainLayoutWidth(VerticalLayout mainLayout) {

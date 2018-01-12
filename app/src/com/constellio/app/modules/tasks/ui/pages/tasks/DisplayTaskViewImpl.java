@@ -36,6 +36,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	private Component eventsComponent;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
+	private VerticalLayout recordDisplayLayout;
 
 	public DisplayTaskViewImpl() {
 		presenter = new DisplayTaskPresenter(this);
@@ -51,12 +52,15 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		RecordVO currentTask = presenter.getTask();
 		VerticalLayout verticalLayout = new VerticalLayout();
 
+		recordDisplayLayout = new VerticalLayout();
+		recordDisplayLayout.setSpacing(true);
 		recordDisplay = new RecordDisplay(currentTask, new TaskDisplayFactory());
+		recordDisplayLayout.addComponent(recordDisplay);
 		subTasks = new CustomComponent();
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
-		tabSheet.addTab(recordDisplay, $("DisplayTaskView.tabs.metadata"));
+		tabSheet.addTab(recordDisplayLayout, $("DisplayTaskView.tabs.metadata"));
 		tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
 
 		eventsComponent = new CustomComponent();
@@ -246,7 +250,14 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	public void selectMetadataTab() {
-		tabSheet.setSelectedTab(recordDisplay);
+		tabSheet.setSelectedTab(recordDisplayLayout);
+	}
+
+	public void addFieldToRecordDisplay(Component newComponent, boolean readOnly) {
+		if(newComponent != null) {
+			recordDisplayLayout.addComponent(newComponent);
+			newComponent.setReadOnly(readOnly);
+		}
 	}
 
 	@Override
@@ -279,5 +290,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	@Override
 	public void refreshSubTasksTable() {
 		// TODO: Reimplement
+	}
+
+	public RecordVO getCurrentTask() {
+		return presenter.getTask();
 	}
 }

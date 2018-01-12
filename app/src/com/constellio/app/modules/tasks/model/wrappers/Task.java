@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.model.wrappers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -155,7 +156,7 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public String getComments() {
+	public List<Comment> getComments() {
 		return get(COMMENTS);
 	}
 
