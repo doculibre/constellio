@@ -738,6 +738,19 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 		}
 	}
 
+	public BatchProcessReport wrapBatchProcessReport(Record record) {
+		return record == null ? null : new BatchProcessReport(record, getTypes());
+	}
+
+	public List<BatchProcessReport> wrapBatchProcessReports(List<Record> records) {
+		List<BatchProcessReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new BatchProcessReport(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
 	public User wrapUser(Record record) {
 		return record == null ? null : new User(record, getTypes(), null);
 	}
