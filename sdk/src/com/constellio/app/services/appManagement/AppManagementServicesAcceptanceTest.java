@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 	File commandFile;
 	File uploadWarFile;
 	File pluginsFolder;
+	File constellioProperties;
 
 	AppManagementService appManagementService;
 	FoldersLocator foldersLocator;
@@ -66,7 +68,9 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		uploadWarFile = new File(newTempFolder(), "upload.war");
 		wrapperConf = new File(newTempFolder(), "wrapper.conf");
 		pluginsFolder = newTempFolder();
+		constellioProperties = new File(newTempFolder(), "constellio.properties");
 		FileUtils.copyFile(getTestResourceFile("initial-wrapper.conf"), wrapperConf);
+		FileUtils.touch(constellioProperties);
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
 		getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
@@ -96,6 +100,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public File getPluginsJarsFolder() {
 				return pluginsFolder;
+			}
+
+			@Override
+			public File getConstellioProperties() {
+				return constellioProperties;
 			}
 		};
 
@@ -407,6 +416,29 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getName()).isEqualTo("webapp-" + version);
 
 	}
+
+	@Test
+	public void givenUploadedWarWithNovellSmbThenMovedJars()
+			throws Exception {
+
+		File currentAppFolder = foldersLocator.getConstellioWebappFolder();
+		File libFolder = foldersLocator.getLibFolder(currentAppFolder);
+		File jcifsDefaultLib = new File(libFolder, "jcifs_gcm-322.jar");
+		FileUtils.touch(jcifsDefaultLib);
+		File jcifsNovellLib = new File(libFolder, "jcifs_novell.jar.disabled");
+		FileUtils.touch(jcifsNovellLib);
+
+		FileUtils.write(constellioProperties, "\nsmb.novell=true", StandardCharsets.UTF_8);
+
+		uploadADummyUpdateJarWithVersion("5.0.5");
+		appManagementService.update(new ProgressInfo());
+
+		assertThat(new File(libFolder, "jcifs_gcm-322.jar")).doesNotExist();
+		assertThat(new File(libFolder, "jcifs_gcm-322.jar.disabled")).exists();
+		assertThat(new File(libFolder, "jcifs_novell.jar.disabled")).doesNotExist();
+		assertThat(new File(libFolder, "jcifs_novell.jar")).exists();
+	}
+
 
 	private InputStream getDummyInputStream() {
 		try {

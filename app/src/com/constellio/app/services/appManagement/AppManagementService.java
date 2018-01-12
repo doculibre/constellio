@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.constellio.data.utils.PropertyFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -159,6 +160,8 @@ public class AppManagementService {
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 			updatePluginsWithThoseInWar(tempFolder);
+
+			selectSmbLibrary();
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -637,6 +640,31 @@ public class AppManagementService {
 
 	public void pointToVersionDuringApplicationStartup(ConstellioVersionInfo constellioVersionInfo) {
 		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
+	}
+
+	private void selectSmbLibrary() {
+		Map<String, String> configs = PropertyFileUtils.loadKeyValues(foldersLocator.getConstellioProperties());
+		boolean smbNovell = false;
+		if ("true".equals(configs.get("smb.novell"))) {
+			smbNovell = true;
+		}
+
+		if (smbNovell) {
+			File currentAppFolder = foldersLocator.getConstellioWebappFolder();
+			File libFolder = foldersLocator.getLibFolder(currentAppFolder);
+			try {
+				File novellSmbLib = new File(libFolder, "jcifs_novell.jar.disabled");
+				if (novellSmbLib.exists()) {
+					FileUtils.moveFile(novellSmbLib, new File(libFolder, "jcifs_novell.jar"));
+				}
+				File defaultSmbLib = new File(libFolder, "jcifs_gcm-322.jar");
+				if (defaultSmbLib.exists()) {
+					FileUtils.moveFile(defaultSmbLib, new File(libFolder, "jcifs_gcm-322.jar.disabled"));
+				}
+			} catch (IOException ioe) {
+				LOGGER.error("Could not install Novell/SMB libraries in the lib folder.", ioe);
+			}
+		}
 	}
 
 	private class WebAppFileNameFilter implements FilenameFilter {
