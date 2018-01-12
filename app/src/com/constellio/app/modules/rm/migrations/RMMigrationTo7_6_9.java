@@ -55,6 +55,13 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
                 BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.RESTRICTION_ACCESSIBILITE,
                 BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.NOTE
         )));
+
+        manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.RESTRICTION_ACCESSIBILITE)
+                .withInputType(MetadataInputType.RICHTEXT));
+        manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.NOTE)
+                .withInputType(MetadataInputType.RICHTEXT));
+        manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.DESCRIPTION_SOMMAIRE)
+                .withInputType(MetadataInputType.RICHTEXT));
     }
 
     class SchemaAlterationFor7_6_9 extends MetadataSchemasAlterationHelper {
@@ -72,19 +79,35 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 //                            }},
 //                            ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled());
 
-            MetadataSchemaBuilder defaultSchemaBuilder = typesBuilder.getSchemaType(BagInfo.SCHEMA_TYPE).getDefaultSchema();
+            MetadataSchemaBuilder defaultSchemaBuilder;
+
+            if(typesBuilder.hasSchemaType(BagInfo.SCHEMA_TYPE)) {
+                defaultSchemaBuilder = typesBuilder.getSchemaType(BagInfo.SCHEMA_TYPE).getDefaultSchema();
+            } else {
+                MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
+                defaultSchemaBuilder = builder.getDefaultSchema();
+
+                defaultSchemaBuilder.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.NOTE).setType(MetadataValueType.TEXT);
+                defaultSchemaBuilder.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.ADRESSE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.REGION_ADMINISTRATIVE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.ENTITE_RESPONSABLE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.IDENTIFICATION_RESPONSABLE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.COURRIEL_RESPONSABLE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.NUMERO_TELEPHONE_RESPONSABLE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.DESCRIPTION_SOMMAIRE).setType(MetadataValueType.TEXT);
+                defaultSchemaBuilder.create(BagInfo.CATEGORIE_DOCUMENT).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.METHODE_TRANSFERE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.RESTRICTION_ACCESSIBILITE).setType(MetadataValueType.STRING);
+                defaultSchemaBuilder.create(BagInfo.ENCODAGE).setType(MetadataValueType.STRING);
+            }
+
             defaultSchemaBuilder.deleteMetadataWithoutValidation(BagInfo.RESTRICTION_ACCESSIBILITE);
             defaultSchemaBuilder.deleteMetadataWithoutValidation(BagInfo.REGION_ADMINISTRATIVE);
 
             defaultSchemaBuilder.create(BagInfo.RESTRICTION_ACCESSIBILITE).setType(MetadataValueType.TEXT);
-
-            SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-            displayManager.saveMetadata(displayManager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.RESTRICTION_ACCESSIBILITE)
-                    .withInputType(MetadataInputType.RICHTEXT));
-            displayManager.saveMetadata(displayManager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.NOTE)
-                    .withInputType(MetadataInputType.RICHTEXT));
-            displayManager.saveMetadata(displayManager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.DESCRIPTION_SOMMAIRE)
-                    .withInputType(MetadataInputType.RICHTEXT));
         }
     }
 }
