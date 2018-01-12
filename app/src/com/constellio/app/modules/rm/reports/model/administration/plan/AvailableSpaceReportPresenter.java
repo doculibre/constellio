@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -57,7 +58,8 @@ public class AvailableSpaceReportPresenter {
         model.setShowFullSpaces(showFullSpaces);
         List<Record> rootStorageSpaces = conceptNodesTaxonomySearchServices
                 .getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
-        searchOptions.setReturnedMetadatasFilter(searchOptions.getReturnedMetadatasFilter().withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
+        searchOptions.setReturnedMetadatasFilter(searchOptions.getReturnedMetadatasFilter()
+                .withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
 
         if (rootStorageSpaces != null) {
             for (Record rootRecord : rootStorageSpaces) {
@@ -72,7 +74,7 @@ public class AvailableSpaceReportPresenter {
                 }
 
                 LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
-                LogicalSearchQuery query = new LogicalSearchQuery(condition);
+                LogicalSearchQuery query = new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
                 List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
                 if (containerRecords != null) {
                     createContainerRecordRow(parent, containerRecords);
@@ -101,7 +103,7 @@ public class AvailableSpaceReportPresenter {
                 }
 
                 LogicalSearchCondition condition = from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace);
-                LogicalSearchQuery query = new LogicalSearchQuery(condition);
+                LogicalSearchQuery query = new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
                 List<ContainerRecord> containerRecords = rm.searchContainerRecords(query);
                 if (containerRecords != null) {
                     createContainerRecordRow(child, containerRecords);
