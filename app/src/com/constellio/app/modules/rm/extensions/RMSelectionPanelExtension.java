@@ -21,7 +21,7 @@ import javax.mail.internet.MimeMessage;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.services.users.UserServices;
@@ -227,7 +227,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addSIPbutton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
-        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
+        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
         setStyles(tabButton);
         tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));

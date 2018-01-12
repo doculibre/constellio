@@ -628,4 +628,30 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_CAPSULE, params));
 	}
 
+	public void listBagInfo(){
+		navigator.navigateTo(NavigatorConfigurationService.LIST_BAG_INFO);
+	}
+
+	public void addBagInfo() {
+		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_BAG_INFO);
+	}
+
+	public void editBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_BAG_INFO, params));
+	}
+
+	public void displayBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_BAG_INFO, params));
+	}
+
+	public void displaySIPProgression(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
+	}
+
 }

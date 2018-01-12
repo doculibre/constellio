@@ -1,23 +1,23 @@
 package com.constellio.app.modules.rm.services.sip.model;
 
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.services.factories.ConstellioFactories;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+public abstract class SIPMetadataObject {
 
-public abstract class SIPFicheMetadonnees {
-
-	public static final String FOLDER_TYPE = "DOSSIER";
+	public static final String FOLDER_TYPE = "FOLDER";
 	public static final String DOCUMENT_TYPE = "DOCUMENT";
-	public static final String CATEGORY_TYPE = "RUBRIQUE";
+	public static final String CATEGORY_TYPE = "CATEGORY";
 
-	private MetadataSchemasManager indexHelper = ConstellioFactories.getInstance().getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
-	
 	private Record record;
 	
 	private List<String> metadataIds = new ArrayList<String>();
@@ -28,7 +28,7 @@ public abstract class SIPFicheMetadonnees {
 
 	private List<Metadata> schemaMetadata;
 	
-	public SIPFicheMetadonnees(Record rmObject, List<Metadata> metadatasOfSchema) {
+	public SIPMetadataObject(Record rmObject, List<Metadata> metadatasOfSchema) {
 		this.record = rmObject;
 		this.schemaMetadata = metadatasOfSchema;
 		if (rmObject == null) {

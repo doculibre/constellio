@@ -1,176 +1,161 @@
 package com.constellio.app.ui.entities;
 
-public class BagInfoVO  {
+import java.util.List;
 
-    private String note;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.*;
 
-    private String identificationOrganismeVerseurOuDonateur;
+public class BagInfoVO extends RecordVO {
 
-    private String IDOrganismeVerseurOuDonateur;
+    private boolean limitSize;
 
-    private String address;
+    private boolean deleteFiles;
 
-    private String regionAdministrative;
+    public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
+        super(id, metadataValues, viewMode);
+    }
 
-    private String entiteResponsable;
+    public boolean isLimitSize() {
+        return limitSize;
+    }
 
-    private String identificationEntiteResponsable;
+    public void setLimitSize(boolean limitSize) {
+        this.limitSize = limitSize;
+    }
 
-    private String courrielResponsable;
+    public boolean isDeleteFiles() {
+        return deleteFiles;
+    }
 
-    private String telephoneResponsable;
-
-    private String descriptionSommaire;
-
-    private String categoryDocument;
-
-    private String methodeTransfere;
-
-    private String restrictionAccessibilite;
-
-    private String encodage;
-
-    public BagInfoVO() {
-        setNote("");
-        setIdentificationEntiteResponsable("");
-        setIdentificationOrganismeVerseurOuDonateur("");
-        setIDOrganismeVerseurOuDonateur("");
-        setAddress("");
-        setRegionAdministrative("");
-        setEntiteResponsable("");
-        setCourrielResponsable("");
-        setTelephoneResponsable("");
-        setDescriptionSommaire("");
-        setCategoryDocument("");
-        setMethodeTransfere("");
-        setRestrictionAccessibilite("");
-        setEncodage("");
-
+    public void setDeleteFiles(boolean deleteFile) {
+        this.deleteFiles = deleteFile;
     }
 
     public String getNote() {
-        return note;
+        return get(NOTE);
     }
 
-    public BagInfoVO setNote(String note) {
-        this.note = note;
-        return this;
+    public void setNote(String note) {
+        set(NOTE, note);
     }
 
     public String getIdentificationOrganismeVerseurOuDonateur() {
-        return identificationOrganismeVerseurOuDonateur;
+        return get(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR);
     }
 
-    public BagInfoVO setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
-        this.identificationOrganismeVerseurOuDonateur = identificationOrganismeVerseurOuDonateur;
-        return this;
+    public void setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
+        set(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR, identificationOrganismeVerseurOuDonateur);
     }
 
     public String getIDOrganismeVerseurOuDonateur() {
-        return IDOrganismeVerseurOuDonateur;
+        return get(ID_ORGANISME_VERSEUR_OU_DONATEUR);
     }
 
-    public BagInfoVO setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
-        this.IDOrganismeVerseurOuDonateur = IDOrganismeVerseurOuDonateur;
-        return this;
+    public void setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
+        set(ID_ORGANISME_VERSEUR_OU_DONATEUR, IDOrganismeVerseurOuDonateur);
     }
 
     public String getAddress() {
-        return address;
+        return get(ADRESSE);
     }
 
-    public BagInfoVO setAddress(String address) {
-        this.address = address;
-        return this;
+    public void setAddress(String address) {
+        set(ADRESSE, address);
     }
 
     public String getRegionAdministrative() {
-        return regionAdministrative;
+        return get(REGION_ADMINISTRATIVE);
     }
 
-    public BagInfoVO setRegionAdministrative(String regionAdministrative) {
-        this.regionAdministrative = regionAdministrative;
-        return this;
+    public void setRegionAdministrative(String regionAdministrative) {
+        set(REGION_ADMINISTRATIVE, regionAdministrative);
     }
 
     public String getEntiteResponsable() {
-        return entiteResponsable;
+        return get(ENTITE_RESPONSABLE);
     }
 
-    public BagInfoVO setEntiteResponsable(String entiteResponsable) {
-        this.entiteResponsable = entiteResponsable;
-        return this;
+    public void setEntiteResponsable(String entiteResponsable) {
+        set(ENTITE_RESPONSABLE, entiteResponsable);
     }
 
     public String getIdentificationEntiteResponsable() {
-        return identificationEntiteResponsable;
+        return get(IDENTIFICATION_RESPONSABLE);
     }
 
-    public BagInfoVO setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
-        this.identificationEntiteResponsable = identificationEntiteResponsable;
-        return this;
+    public void setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
+        set(IDENTIFICATION_RESPONSABLE, identificationEntiteResponsable);
     }
 
     public String getCourrielResponsable() {
-        return courrielResponsable;
+        return get(COURRIEL_RESPONSABLE);
     }
 
-    public BagInfoVO setCourrielResponsable(String courrielResponsable) {
-        this.courrielResponsable = courrielResponsable;
-        return this;
+    public void setCourrielResponsable(String courrielResponsable) {
+        set(COURRIEL_RESPONSABLE, courrielResponsable);
     }
 
     public String getTelephoneResponsable() {
-        return telephoneResponsable;
+        return get(NUMERO_TELEPHONE_RESPONSABLE);
     }
 
-    public BagInfoVO setTelephoneResponsable(String telephoneResponsable) {
-        this.telephoneResponsable = telephoneResponsable;
-        return this;
+    public void setTelephoneResponsable(String telephoneResponsable) {
+        set(NUMERO_TELEPHONE_RESPONSABLE, telephoneResponsable);
+    }
+
+    public String getArchiveTitle() {
+        return get(ARCHIVE_TITLE);
+    }
+
+    public void setArchiveTitle(String title) {
+        set(ARCHIVE_TITLE, title);
     }
 
     public String getDescriptionSommaire() {
-        return descriptionSommaire;
+        return get(DESCRIPTION_SOMMAIRE);
     }
 
-    public BagInfoVO setDescriptionSommaire(String descriptionSommaire) {
-        this.descriptionSommaire = descriptionSommaire;
-        return this;
+    public void setDescriptionSommaire(String descriptionSommaire) {
+        set(DESCRIPTION_SOMMAIRE, descriptionSommaire);
     }
 
     public String getCategoryDocument() {
-        return categoryDocument;
+        return get(CATEGORIE_DOCUMENT);
     }
 
-    public BagInfoVO setCategoryDocument(String categoryDocument) {
-        this.categoryDocument = categoryDocument;
-        return this;
+    public void setCategoryDocument(String categoryDocument) {
+        set(CATEGORIE_DOCUMENT, categoryDocument);
     }
 
     public String getMethodeTransfere() {
-        return methodeTransfere;
+        return get(METHODE_TRANSFERE);
     }
 
-    public BagInfoVO setMethodeTransfere(String methodeTransfere) {
-        this.methodeTransfere = methodeTransfere;
-        return this;
+    public void setMethodeTransfere(String methodeTransfere) {
+       set(METHODE_TRANSFERE, methodeTransfere);
     }
 
     public String getRestrictionAccessibilite() {
-        return restrictionAccessibilite;
+        return get(RESTRICTION_ACCESSIBILITE);
     }
 
-    public BagInfoVO setRestrictionAccessibilite(String restrictionAccessibilite) {
-        this.restrictionAccessibilite = restrictionAccessibilite;
-        return this;
+    public String getEncoding() {
+        return get(ENCODAGE);
     }
 
-    public String getEncodage() {
-        return encodage;
+    public void setEncoding(String encoding){
+        set(ENCODAGE, encoding);
     }
 
-    public BagInfoVO setEncodage(String encodage) {
-        this.encodage = encodage;
-        return this;
+    public void setRestrictionAccessibilite(String restrictionAccessibilite) {
+        set(RESTRICTION_ACCESSIBILITE, restrictionAccessibilite);
+    }
+
+    @Override
+    public <T> T get(String metadataCode) {
+        try{
+            return super.get(metadataCode);
+        } catch(RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e ){
+            return null;
+        }
     }
 }

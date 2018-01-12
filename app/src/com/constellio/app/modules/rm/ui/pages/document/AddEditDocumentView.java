@@ -11,4 +11,6 @@ public interface AddEditDocumentView extends BaseView, RecordsManagementViewGrou
 	
 	DocumentForm getForm();
 	
+	void openAgentURL(String agentURL); 
+	
 }

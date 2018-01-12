@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.services.sip.filter;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -12,23 +17,12 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
-import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
-import org.apache.commons.collections.IteratorUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAll;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
 
 public class SIPFilter {
     private int startIndex;
     private String file;
     private String bagInfo;
-    private String rubriqueCode;
+    private String categoryCode;
     private String administrativeUnit;
     private boolean documentTypeRequired;
     private List<String> includeFolderIds;
@@ -67,8 +61,8 @@ public class SIPFilter {
         return this;
     }
 
-    public SIPFilter withRubriqueCode(String rubriqueCode) {
-        this.rubriqueCode = rubriqueCode;
+    public SIPFilter withCategoryCode(String categoryCode) {
+        this.categoryCode = categoryCode;
         return this;
     }
 
@@ -119,8 +113,8 @@ public class SIPFilter {
         return bagInfo;
     }
 
-    public Category getRubriqueCode() {
-        return rm.getCategoryWithCode(rubriqueCode);
+    public Category getCategory() {
+        return rm.getCategoryWithCode(categoryCode);
     }
 
     public AdministrativeUnit getAdministrativeUnit() {
@@ -183,7 +177,7 @@ public class SIPFilter {
         List<Document> finalDocumentList = new ArrayList<>();
         for(Document document  : documentList) {
             if (!((this.isDocumentTypeRequired() && document.getType() == null)
-            || (this.getRubriqueCode() != null && !document.getFolderCategory().equals(this.getRubriqueCode().getId()))
+            || (this.getCategory() != null && !document.getFolderCategory().equals(this.getCategory().getId()))
             || (this.getAdministrativeUnit() != null && !document.getFolderAdministrativeUnit().equals(this.getAdministrativeUnit().getId())))) {
                 finalDocumentList.add(document);
             }
