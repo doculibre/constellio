@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.services.facades.IOServices;
 
 /**
@@ -275,7 +276,13 @@ public class ConversionManager implements StatefulService {
 			return executor.submit(new Callable<File>() {
 				@Override
 				public File call() {
-					return convertToPDF(inputStream, originalName, workingFolder);
+					File personalWorkingFolder = null;
+					if (workingFolder != null) {
+						personalWorkingFolder = new File(workingFolder, UUIDV1Generator.newRandomId());
+						personalWorkingFolder.mkdirs();
+					}
+					//Each process requires a different working folder
+					return convertToPDF(inputStream, originalName, personalWorkingFolder);
 				}
 			});
 		} else {
@@ -430,7 +437,6 @@ public class ConversionManager implements StatefulService {
 		}
 		return pdfaFormat;
 	}
-
 	public static boolean isSupportedExtension(String ext) {
 		for (String aSupportedExtension : SUPPORTED_EXTENSIONS) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {

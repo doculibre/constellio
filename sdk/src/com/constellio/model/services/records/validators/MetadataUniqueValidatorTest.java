@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -35,6 +36,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 
 	@Mock Metadata metadata;
 	@Mock MetadataSchemaTypes schemaTypes;
+	@Mock MetadataSchemaType schemaType;
 	@Mock MetadataSchema schema;
 	@Mock Record record;
 	@Mock SearchServices searchServices;
@@ -52,6 +54,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(schemaTypes.getSchema("type_default")).thenReturn(schema);
 		when(schema.getCode()).thenReturn("type_default");
 		when(metadata.getType()).thenReturn(MetadataValueType.STRING);
+		when(schemaTypes.getSchemaType("type")).thenReturn(schemaType);
 
 		validator = new MetadataUniqueValidator(metadatas, schemaTypes, searchServices);
 
@@ -106,7 +109,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 		assertThat(query.getValue().getCondition()).isEqualTo(
-				from(schema).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
+				from(schemaType).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
 	}
 
 	@Test
@@ -121,6 +124,6 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(NON_UNIQUE_METADATA);
 		assertThat(query.getValue().getCondition()).isEqualTo(
-				from(schema).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
+				from(schemaType).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
 	}
 }
