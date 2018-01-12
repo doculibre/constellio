@@ -105,8 +105,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : selectedItemIds) {
-			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
-			result.add(record.getId());
+//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			result.add((String) itemId);
 		}
 		return result;
 	}
@@ -114,8 +114,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getUnselectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : deselectedItemIds) {
-			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
-			result.add(record.getId());
+//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			result.add((String) itemId);
 		}
 		return result;
 	}
@@ -265,9 +265,9 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public boolean isSelected(Object itemId) {
 		boolean selectedItem;
 		if (allItemsSelected) {
-			selectedItem = !this.deselectedItemIds.contains(itemId);
+			selectedItem = !this.deselectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
 		} else {
-			selectedItem = this.selectedItemIds.contains(itemId);
+			selectedItem = this.selectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
 		}
 		return selectedItem;
 	}
@@ -279,12 +279,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 	private void setSelected(Object itemId, boolean selected, boolean fireSelectionChangeEvent) {
 		if (selected) {
-			this.selectedItemIds.add(itemId);
-			deselectedItemIds.remove(itemId);
+			this.selectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
+			deselectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
 			presenter.fireSomeRecordsSelected();
 		} else {
-			this.selectedItemIds.remove(itemId);
-			deselectedItemIds.add(itemId);
+			this.selectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
+			deselectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
 			if (selectedItemIds.isEmpty()) {
 				presenter.fireNoRecordSelected();
 			}
