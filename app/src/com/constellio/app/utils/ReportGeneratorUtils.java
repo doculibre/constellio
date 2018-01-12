@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -24,7 +23,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
+import com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.LabelViewer;
@@ -47,9 +46,9 @@ public class ReportGeneratorUtils {
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
 					numberOfCopies);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
-			XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(factory, collection,
+			printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(factory, collection,
 					xmlGeneratorParameters);
-			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
+			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager
 					.getContentInputStream(selectedTemplate.getJasperFile().getCurrentVersion().getHash(),
 							"ReportGeneratorButtonReport.GeneratorButtonForm#saveButtonClick");

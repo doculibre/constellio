@@ -1,10 +1,9 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.reports.XmlGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
+import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.ui.components.task.TaskFieldLookupImpl;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -29,7 +28,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -113,7 +111,7 @@ public class GetXmlButtonV2 extends WindowButton{
                     if(parent.isXmlForTest) {
                         xmlGeneratorParameters.markAsTestXml();
                     }
-                    XmlGenerator xmlGenerator = new XmlReportGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                    AbstractXmlGenerator xmlGenerator = new printableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                     String xml = xmlGenerator.generateXML();
                     String filename = "Constellio-Test.xml";
                     StreamResource source = createResource(xml, filename);

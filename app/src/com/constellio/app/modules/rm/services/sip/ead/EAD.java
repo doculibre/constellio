@@ -1,12 +1,11 @@
 package com.constellio.app.modules.rm.services.sip.ead;
 
-import com.constellio.app.modules.rm.services.reports.XmlGenerator;
+import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -212,14 +211,14 @@ public class EAD {
 		for(Metadata metadata : sipObject.getMetadataList()) {
 			if(metadata != null) {
 				if(metadata.getType().equals(MetadataValueType.REFERENCE)) {
-					metadataElement.addContent(XmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
+					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
 				} else if(metadata.getType().equals(MetadataValueType.ENUM)) {
-					metadataElement.addContent(XmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace));
+					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace));
 				} else {
 					Object metadataValue = sipObject.getRecord().get(metadata);
 					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
 					if(metadataValue != null) {
-						currentMetadataElement.setText(XmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata,factory, collection));
+						currentMetadataElement.setText(AbstractXmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata,factory, collection));
 					}
 					metadataElement.addContent(currentMetadataElement);
 				}
