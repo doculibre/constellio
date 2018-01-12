@@ -623,7 +623,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputType.setEnabled(false);
 		multivalueType.setEnabled(false);
 		enabledField.setEnabled(false);
-		autocomplete.setEnabled(false);
+//		autocomplete.setEnabled(false);
 		duplicableField.setEnabled(false);
 		inputMask.setEnabled(false);
 		defaultValueField.setEnabled(false);

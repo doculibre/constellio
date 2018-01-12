@@ -116,6 +116,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 							checkBox.setImmediate(true);
 							property = new ObjectProperty<CheckBox>(checkBox);
 							itemSelectProperties.put(itemId, property);
+						} else {
+							SelectionCheckBox checkBox = (SelectionCheckBox) property.getValue();
+							if (checkBox != null) {
+								checkBox.setInternalValue(isSelected(itemId));
+							}
 						}
 					} else {
 						property = super.getContainerProperty(itemId, propertyId);

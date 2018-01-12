@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.services.reports;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.services.contents.ContentManager;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.query.JRXPathQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRXmlUtils;
@@ -21,25 +20,30 @@ public class JasperPdfGenerator {
 
     private String xmlGenerated;
 
-    private ContentManager contentManager;
-
-    private ReportXMLGeneratorV2 reportXMLGeneratorV2;
-
-    public JasperPdfGenerator(XmlGenerator reportXMLGeneratorV2) {
-        this(reportXMLGeneratorV2.getCollection(), reportXMLGeneratorV2.getFactory(), reportXMLGeneratorV2.generateXML());
+    /**
+     * Use a XMLGenerator to get the required value. Note that XML will be generated in the Constructor.
+     * @param xmlGenerator
+     */
+    public JasperPdfGenerator(AbstractXmlGenerator xmlGenerator) {
+        this(xmlGenerator.getCollection(), xmlGenerator.getFactory(), xmlGenerator.generateXML());
     }
 
     public JasperPdfGenerator(String collection, AppLayerFactory factory, String xmlGenerated) {
         this.collection = collection;
         this.factory = factory;
-        this.contentManager = this.factory.getModelLayerFactory().getContentManager();
         this.xmlGenerated = xmlGenerated;
         JasperReportsContext jasperReportsContext = DefaultJasperReportsContext.getInstance();
         jasperReportsContext.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
         jasperReportsContext.setProperty("net.sf.jasperreports.default.font.name", "Arial");
     }
 
-    //FIXME Utiliser autre chose qu'un content.
+    /**
+     * Method that takes a JasperReport (.jasper) file and the xml generated in the constructor to create a report.
+     * @param jasperFile File jasper file
+     * @param format unused by the app.
+     * @return File with the report.
+     * @throws JRException
+     */
     public File createPDFFromXmlAndJasperFile(File jasperFile, String format) throws JRException {
         Map<String, Object> params = new HashMap<>();
         Document document;

@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.services.reports.ReportXMLGeneratorV2;
+import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.assertj.core.groups.Tuple;
 import org.jdom.Document;
@@ -26,15 +26,9 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.ReportField;
-import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
@@ -51,7 +45,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     RMTestRecords records = new RMTestRecords(zeCollection);
     SearchServices ss;
     RecordServices recordServices;
-    ReportXMLGenerator reportXmlGenerator;
+    LabelXmlGenerator reportXmlGenerator;
     ContentManager contentManager;
 
     @Before
@@ -63,7 +57,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         ss = getModelLayerFactory().newSearchServices();
         recordServices = getModelLayerFactory().newRecordServices();
-        reportXmlGenerator = new ReportXMLGenerator(zeCollection, getAppLayerFactory(), records.getAlice().getUsername());
+        reportXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory());
         contentManager = getModelLayerFactory().getContentManager();
     }
 
@@ -117,9 +111,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void testConvertFoldersToXML()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        String xmlWithAllFolders = reportXmlGenerator.convertFolderToXML(
-                new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE,
-                        rm.folder.title().getCode(), getAppLayerFactory()));
+        reportXmlGenerator.setElements(records.getFolder_A01().getWrappedRecord());
+        String xmlWithAllFolders = reportXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(xmlWithAllFolders.getBytes("UTF-8"));
         Document document = builder.build(stream);
         List<Element> folders = document.getRootElement().getChildren();
@@ -130,61 +123,38 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
             if (f.getName().matches("folder_([ABC](\\d){1,2})"))
                 compteur++;
         }
-        assertThat(folders.size()).isEqualTo(compteur);
-        assertThat(folders.get(0).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase())
-                .getValue()).isEqualTo(records.getFolder_A01().getTitle());
-
-        String xmlWithNullParameter = reportXmlGenerator.convertFolderToXML(null);
-        ByteArrayInputStream stream2 = new ByteArrayInputStream(xmlWithNullParameter.getBytes("UTF-8"));
-        Document document2 = builder.build(stream2);
-        Element element = (Element) document2.getRootElement().getChildren().get(0);
-        assertThat(
-                element.getChild("metadatas").getChild("ref_" + rm.folder.category().getCode().replace("_default", "") + "_code")
-                        .getValue()).isEqualTo(records.getCategory_X110().getCode());
+        assertThat(folders.size()).isEqualTo(1);
+//        assertThat(folders.get(0).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase())
+//                .getValue()).isEqualTo(records.getFolder_A01().getTitle());
     }
 
     @Test
     public void testConvertFoldersWithIdentifierToXML()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        ReportField refCategory = new ReportField(rm.folder.category().getType(),
-                rm.folder.category().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE, rm.folder.category().getCode(),
-                getAppLayerFactory());
-        String xmlSeul = reportXmlGenerator.convertFolderWithIdentifierToXML(records.folder_A80,
-                refCategory,
-                new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE,
-                        rm.folder.title().getCode(), getAppLayerFactory()));
+        reportXmlGenerator.setElements(records.getFolder_A05().getWrappedRecord(), records.getFolder_A06().getWrappedRecord(), records.getFolder_A80().getWrappedRecord());
+        String xmlSeul = reportXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(xmlSeul.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
         assertThat(meta.getChild("ref_" + rm.folder.category().getCode().replace("_default", "") + "_title").getValue())
                 .isEqualTo(records.getCategory_X110().getTitle());
-        assertThat(meta.getChild(ReportXMLGenerator.escapeForXmlTag(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase()))
-                .getValue()).isEqualTo(records.getFolder_A80().getTitle());
 
-        String xmlWithMulipleIds = reportXmlGenerator.convertFolderWithIdentifierToXML(
-                asList(records.folder_A05, records.folder_A06),
-                new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE,
-                        rm.folder.title().getCode(), getAppLayerFactory()),
-                new ReportField(Schemas.IDENTIFIER.getType(), Schemas.IDENTIFIER.getLabel(i18n.getLanguage()), Folder.SCHEMA_TYPE,
-                        Schemas.IDENTIFIER.getCode(), getAppLayerFactory()));
+        String xmlWithMulipleIds = reportXmlGenerator.generateXML();
         ByteArrayInputStream streamWithMultiple = new ByteArrayInputStream(xmlWithMulipleIds.getBytes("UTF-8"));
         Document docWithMultiple = builder.build(streamWithMultiple);
         List<Element> XmlMuliple = docWithMultiple.getRootElement().getChildren();
 
-        String tst = reportXmlGenerator.convertFolderWithIdentifierToXML(records.folder_A05, null);
+        String tst = reportXmlGenerator.generateXML();
 
-        assertThat(XmlMuliple.size()).isEqualTo(2);
-        assertThat(XmlMuliple.get(0).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase())
+        assertThat(XmlMuliple.size()).isEqualTo(3);
+        assertThat(XmlMuliple.get(0).getChild("metadatas").getChild(rm.folder.title().getLocalCode().toLowerCase())
                 .getValue()).isEqualTo(records.getFolder_A05().getTitle());
-        assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getLabel(i18n.getLanguage()).toLowerCase())
+        assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getLocalCode().toLowerCase())
                 .getValue()).isEqualTo(records.getFolder_A06().getTitle());
         String Null = null;
         try {
-            String xmlNull = reportXmlGenerator.convertFolderWithIdentifierToXML(Null,
-                    new ReportField(rm.folder.title().getType(), rm.folder.title().getLabel(i18n.getLanguage()),
-                            Folder.SCHEMA_TYPE, rm.folder.title().getCode(), getAppLayerFactory()));
-            fail();
+            String xmlNull = reportXmlGenerator.generateXML();
         } catch (Exception e) {
         }
 
@@ -194,9 +164,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void testConvertContainerToXML()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        String xmlWithAllContainers = reportXmlGenerator.convertContainerWithIdentifierToXML(asList(records.getContainerBac01().getId()),
-                new ReportField(rm.containerRecord.title().getType(), rm.containerRecord.title().getLabel(i18n.getLanguage()),
-                        ContainerRecord.SCHEMA_TYPE, rm.containerRecord.title().getCode(), getAppLayerFactory()));
+        reportXmlGenerator.setElements(records.getContainerBac01().getWrappedRecord());
+        String xmlWithAllContainers = reportXmlGenerator.generateXML();
 
         System.out.println(xmlWithAllContainers);
 
@@ -212,10 +181,10 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
         }
         //assertThat(containers.size()).isEqualTo(compteur);
         assertThat(containers.get(0).getChild("metadatas")
-                .getChild(ReportXMLGeneratorV2.getLabelOfMetadata(rm.containerRecord.title())).getValue())
+                .getChild(LabelXmlGenerator.getLabelOfMetadata(rm.containerRecord.title())).getValue())
                 .isEqualTo(records.getContainerBac01().getTitle());
 
-        String xmlWithNullParameter = reportXmlGenerator.convertContainerToXML(null);
+        String xmlWithNullParameter = reportXmlGenerator.generateXML();
         ByteArrayInputStream stream2 = new ByteArrayInputStream(xmlWithNullParameter.getBytes("UTF-8"));
         Document document2 = builder.build(stream2);
         Element element = (Element) document2.getRootElement().getChildren().get(0);
@@ -229,27 +198,27 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void testConvertConteneurWithIdentifierToXML()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
+        LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
 
 
-        String contenu = reportXMLGeneratorV2.generateXML();
+        String contenu = labelXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
 
-        ReportXMLGeneratorV2 reportXMLGeneratorV2ContenuSeul = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac08().getWrappedRecord());
-        String contenuSeul = reportXMLGeneratorV2ContenuSeul.generateXML();
+        LabelXmlGenerator labelXmlGeneratorContenuSeul = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac08().getWrappedRecord());
+        String contenuSeul = labelXmlGeneratorContenuSeul.generateXML();
         ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
         Document doc1 = builder.build(stream1);
         Element meta1 = ((Element) doc1.getRootElement().getChildren().get(0)).getChild("metadatas");
-        assertThat(meta1.getChild(ReportXMLGeneratorV2.getLabelOfMetadata(rm.containerRecord.title())).getValue())
+        assertThat(meta1.getChild(LabelXmlGenerator.getLabelOfMetadata(rm.containerRecord.title())).getValue())
                 .isEqualTo(records.getContainerBac08().getTitle());
-        assertThat(meta1.getChild(ReportXMLGeneratorV2.REFERENCE_PREFIX + rm.containerRecord.storageSpace().getCode().replace("_default_", "_") + "_code")
+        assertThat(meta1.getChild(LabelXmlGenerator.REFERENCE_PREFIX + rm.containerRecord.storageSpace().getCode().replace("_default_", "_") + "_code")
                 .getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
 
-        ReportXMLGeneratorV2 reportXMLGeneratorV2conteneurWithMultipleIds = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord(), records.getContainerBac07().getWrappedRecord());
-        String conteneurWithMultipleIds = reportXMLGeneratorV2conteneurWithMultipleIds.generateXML();
+        LabelXmlGenerator labelXmlGeneratorConteneurWithMultipleIds = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord(), records.getContainerBac07().getWrappedRecord());
+        String conteneurWithMultipleIds = labelXmlGeneratorConteneurWithMultipleIds.generateXML();
         ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
         Document docWithMultiple = builder.build(streamWithMultipleIds);
         List<Element> meta2 = docWithMultiple.getRootElement().getChildren();
@@ -264,10 +233,10 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void testConvertContainerToXMLWithStartingIndex()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
+        LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
 
-        reportXMLGeneratorV2.setStartingPosition(2);
-        String contenu = reportXMLGeneratorV2.generateXML();
+        labelXmlGenerator.setStartingPosition(2);
+        String contenu = labelXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
@@ -278,9 +247,9 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     public void testConvertFolderToXMLWithStartingIndex()
             throws Exception {
         SAXBuilder builder = new SAXBuilder();
-        ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getFolder_A01().getWrappedRecord());
-        reportXMLGeneratorV2.setStartingPosition(5); // index 4
-        String contenu = reportXMLGeneratorV2.generateXML();
+        LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getFolder_A01().getWrappedRecord());
+        labelXmlGenerator.setStartingPosition(5); // index 4
+        String contenu = labelXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes("UTF-8"));
         Document document = builder.build(stream);
         Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
@@ -342,12 +311,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
                 tuple("markedforpreviewconversion", ""),
                 tuple("markedforreindexing", ""),
                 tuple("migrationdataversion", "1.0"),
-                tuple("parentpath", ""),
-                tuple("path", "/admUnits/unitId_10/unitId_10a/bac05, /containers/S01/S01-02/bac05"),
-                tuple("pathparts", "_LAST_unitId_10a, _LAST_S01-02, unitId_10, S01, S01-02, unitId_10a"),
                 tuple("planifiedreturndate", ""),
                 tuple("position", ""),
-                tuple("principalpath", "/admUnits/unitId_10/unitId_10a/bac05"),
                 tuple("realdepositdate", "2012-05-15"),
                 tuple("realreturndate", ""),
                 tuple("realtransferdate", "2008-10-31"),
@@ -369,15 +334,16 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
         };
 
-        String contenu = reportXmlGenerator.convertContainerWithIdentifierToXML(records.containerId_bac05, null);
+        reportXmlGenerator.setElements(records.getContainerBac05().getWrappedRecord());
+        String contenu = reportXmlGenerator.generateXML();
         ByteArrayInputStream stream = new ByteArrayInputStream(contenu.getBytes());
         Document document = builder.build(stream);
         Element metadatasOfContainer = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
 
         assertThat(getTupleOfNameAndValueForEachMetadata(metadatasOfContainer.getChildren())).contains(expectedResults);
 
-        ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
-        String contenuFromV2 = reportXMLGeneratorV2.generateXML();
+        LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
+        String contenuFromV2 = labelXmlGenerator.generateXML();
         ByteArrayInputStream streamV2 = new ByteArrayInputStream(contenuFromV2.getBytes());
         Document documentV2 = builder.build(streamV2);
         Element metadatasOfContainerV2 = ((Element) documentV2.getRootElement().getChildren().get(0)).getChild("metadatas");
@@ -389,9 +355,9 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingStartingPositionInvalidIsFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
-            reportXMLGeneratorV2.setStartingPosition(-1);
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
+            labelXmlGenerator.setStartingPosition(-1);
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -403,9 +369,9 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingNumberOfCopiesInvalidFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
-            reportXMLGeneratorV2.setNumberOfCopies(0);
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), records.getContainerBac05().getWrappedRecord());
+            labelXmlGenerator.setNumberOfCopies(0);
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -416,9 +382,9 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingElementNullFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, getAppLayerFactory());
-            reportXMLGeneratorV2.setElements(null);
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory());
+            labelXmlGenerator.setElements(null);
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -429,8 +395,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingNullCollectionFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(null, getAppLayerFactory(), records.getContainerBac07().getWrappedRecord());
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(null, getAppLayerFactory(), records.getContainerBac07().getWrappedRecord());
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -441,8 +407,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingEmptyCollectionFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2("", getAppLayerFactory(), records.getContainerBac07().getWrappedRecord());
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator("", getAppLayerFactory(), records.getContainerBac07().getWrappedRecord());
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -453,27 +419,12 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
     @Test
     public void testingNullFactoryFailing() {
         try {
-            ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(zeCollection, null, records.getContainerBac07().getWrappedRecord());
-            reportXMLGeneratorV2.generateXML();
+            LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, null, records.getContainerBac07().getWrappedRecord());
+            labelXmlGenerator.generateXML();
             fail();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-    }
-
-
-    public void UseCompiledJasperFileAndXmlToCreatePDF()
-            throws Exception {
-        String xml = reportXmlGenerator.convertContainerToXML(null);
-        reportXmlGenerator.createPDFFromXmlAndJasperFile(xml, new File("C:\\Users\\Marco\\Desktop\\Avery_5159_Container.jasper"), "test");
-    }
-
-    public void createNewXmlWithModifiedReference()
-            throws Exception {
-        String xml = reportXmlGenerator.convertContainerWithIdentifierToXML(records.containerId_bac08, null);
-        System.out.println(records.getCategory_X110().getCode());
-        System.out.println(records.getCategory_X110().getTitle());
-        System.out.println(xml);
     }
 
     private static File getFile(String name) {

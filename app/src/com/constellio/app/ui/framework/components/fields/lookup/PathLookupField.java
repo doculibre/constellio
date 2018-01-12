@@ -1,9 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static java.util.Arrays.asList;
 
@@ -11,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -40,10 +39,10 @@ import javax.ws.rs.NotSupportedException;
 public class PathLookupField extends LookupField<String> {
 	private final TaxonomyCodeToCaptionConverter captionConverter;
 
-	public PathLookupField() {
+	public PathLookupField(String schemaType) {
 		super(new PathInputDataProvider(
-						ConstellioFactories.getInstance().getModelLayerFactory(), ConstellioUI.getCurrentSessionContext()),
-				getTreeDataProviders());
+						ConstellioFactories.getInstance().getModelLayerFactory(), ConstellioUI.getCurrentSessionContext(), schemaType),
+				getTreeDataProviders(schemaType));
 		setItemConverter(new RecordIdToCaptionConverter());
 		captionConverter = new TaxonomyCodeToCaptionConverter();
 	}
@@ -78,14 +77,14 @@ public class PathLookupField extends LookupField<String> {
 		};
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProviders() {
+	private static LookupTreeDataProvider<String>[] getTreeDataProviders(String schemaType) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 		List<PathLookupTreeDataProvider> dataProviders = new ArrayList<>();
 		for (String taxonomyCode : taxonomyCodesForUser) {
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode, collection));
+				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode, collection, schemaType));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
@@ -121,10 +120,12 @@ public class PathLookupField extends LookupField<String> {
 		private transient SPEQueryResponse response;
 		private transient ModelLayerFactory modelLayerFactory;
 		private transient SessionContext sessionContext;
+		private transient String schemaType;
 
-		public PathInputDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+		public PathInputDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType) {
 			this.modelLayerFactory = modelLayerFactory;
 			this.sessionContext = sessionContext;
+			this.schemaType = schemaType;
 		}
 
 		@Override
@@ -164,16 +165,19 @@ public class PathLookupField extends LookupField<String> {
 		private SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 			List<String> taxonomyCodesForUser = getTaxonomyCodesForUser();
 
-			LogicalSearchCondition condition = fromAllSchemasIn(sessionContext.getCurrentCollection())
+			List<String> schemaTypesToSearch = SchemaUtils.getSchemaTypesInHierarchyOf(schemaType,
+					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()));
+
+			LogicalSearchCondition condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection())
 					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
 			if(!taxonomyCodesForUser.isEmpty()) {
 				List<LogicalSearchCondition> conditionList = new ArrayList<>();
 				for(String taxonomyCode: taxonomyCodesForUser) {
-					conditionList.add(fromAllSchemasIn(sessionContext.getCurrentCollection())
+					conditionList.add(from(schemaTypesToSearch, sessionContext.getCurrentCollection())
 							.where(Schemas.PATH).isStartingWithText("/"+taxonomyCode+"/"));
 				}
-				LogicalSearchCondition taxonomyCondition = fromAllSchemasIn(sessionContext.getCurrentCollection()).whereAnyCondition(conditionList);
-				condition = fromAllSchemasIn(sessionContext.getCurrentCollection()).whereAllConditions(asList(condition, taxonomyCondition));
+				LogicalSearchCondition taxonomyCondition = from(schemaTypesToSearch, sessionContext.getCurrentCollection()).whereAnyCondition(conditionList);
+				condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection()).whereAllConditions(asList(condition, taxonomyCondition));
 			}
 
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
@@ -204,16 +208,18 @@ public class PathLookupField extends LookupField<String> {
 	}
 
 	public static class PathLookupTreeDataProvider extends RecordLazyTreeDataProvider implements LookupTreeDataProvider<String> {
+		String schemaType;
 
-		public PathLookupTreeDataProvider(String taxonomyCode, String collection) {
+		public PathLookupTreeDataProvider(String taxonomyCode, String collection, String schemaType) {
 			super(taxonomyCode, collection);
+			this.schemaType = schemaType;
 		}
 
 		@Override
 		public TextInputDataProvider<String> search() {
 			ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-			return new PathInputDataProvider(modelLayerFactory, sessionContext);
+			return new PathInputDataProvider(modelLayerFactory, sessionContext, schemaType);
 		}
 
 		@Override

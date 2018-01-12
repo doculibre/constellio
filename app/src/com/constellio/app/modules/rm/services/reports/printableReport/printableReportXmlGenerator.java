@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.reports;
+package com.constellio.app.modules.rm.services.reports.printableReport;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import org.jdom2.Document;
@@ -26,9 +27,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class XmlReportGenerator extends XmlGenerator{
+public class printableReportXmlGenerator extends AbstractXmlGenerator {
 
-    public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
+    public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
         super(appLayerFactory, collection);
         this.xmlGeneratorParameters = xmlGeneratorParameters;
     }
@@ -85,6 +86,12 @@ public class XmlReportGenerator extends XmlGenerator{
         return (XmlReportGeneratorParameters) this.xmlGeneratorParameters;
     }
 
+    /**
+     * Method that create Element(s) for a particular metadata and record element
+     * @param metadata metadata
+     * @param recordElement record
+     * @return list of element to add
+     */
     public List<Element> createMetadataTagsFromMetadata(Metadata metadata, Record recordElement) {
         if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
             return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, getCollection(), getFactory());
@@ -122,6 +129,12 @@ public class XmlReportGenerator extends XmlGenerator{
         return Collections.singletonList(metadataXmlElement);
     }
 
+    /**
+     * Method that return all the record of each given ids.
+     * @param schemaType
+     * @param ids
+     * @return
+     */
     private Record[] getRecordFromIds(String schemaType, final List<String> ids) {
         List<Record> allRecords = new ArrayList<>();
         SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
@@ -151,6 +164,11 @@ public class XmlReportGenerator extends XmlGenerator{
         return chunkList;
     }
 
+    /**
+     * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+     * @param originalElements element to check if empty
+     * @return
+     */
     private List<Element> fillEmptyTags(List<Element> originalElements) {
         List<Element> filledElements = new ArrayList<>();
         for (Element element : originalElements) {
@@ -162,6 +180,12 @@ public class XmlReportGenerator extends XmlGenerator{
         return filledElements;
     }
 
+    /**
+     * Method that format a path to make it pretty
+     * format:  folder01 > folder02 > document1
+     * @param recordElement
+     * @return
+     */
     public String getPath(Record recordElement) {
         StringBuilder builder = new StringBuilder();
         String parentId = recordElement.getParentId();

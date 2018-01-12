@@ -437,5 +437,13 @@ public class ConversionManager implements StatefulService {
 		}
 		return pdfaFormat;
 	}
+	public static boolean isSupportedExtension(String ext) {
+		for (String aSupportedExtension : SUPPORTED_EXTENSIONS) {
+			if (aSupportedExtension.equalsIgnoreCase(ext)) {
+				return true;
+			}
+		}
 
+		return false;
+	}
 }
