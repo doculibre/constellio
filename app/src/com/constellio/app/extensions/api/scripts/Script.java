@@ -88,4 +88,12 @@ public abstract class Script {
 		return new ESSchemasRecordsServices(collection, appLayerFactory);
 	}
 
+	public <T> T getParameterValue(ScriptParameter parameter) {
+		return parameterValues.get(parameter);
+	}
+
+	public boolean getBooleanParameterValueWithDefaultValue(ScriptParameter parameter, boolean defaultValue) {
+		Boolean value = parameterValues.get(parameter);
+		return  value == null ? defaultValue : value;
+	}
 }
