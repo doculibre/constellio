@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
-import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -36,6 +33,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -45,6 +43,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -261,6 +260,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
         final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
         SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
         table.setWidth("100%");
+        table.getTable().addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+			}
+		});
         return table;
     }
 

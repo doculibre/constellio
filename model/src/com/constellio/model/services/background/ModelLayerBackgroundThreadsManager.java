@@ -5,6 +5,8 @@ import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONT
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
 
+import org.joda.time.Duration;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
@@ -15,11 +17,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
+	public static Duration FLUSH_EVENTS_EVERY_DURATION = Duration.standardSeconds(15);
+
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
+
 	EventService eventService;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
@@ -53,6 +58,9 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("authorizationWithTimeRangeTokenUpdateBackgroundAction",
 				authorizationWithTimeRangeTokenUpdateBackgroundAction)
 				.executedEvery(standardHours(6)).handlingExceptionWith(CONTINUE));
+
+		backgroundThreadsManager.configure(repeatingAction("flushEvents", new FlushEventsBackgroundAction(modelLayerFactory))
+				.executedEvery(FLUSH_EVENTS_EVERY_DURATION).handlingExceptionWith(CONTINUE));
 
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);

@@ -5,7 +5,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -48,6 +47,21 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -102,6 +116,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(ImportAudit.SCHEMA, ImportAudit.class);
 		wrappers.put(ExportAudit.SCHEMA, ExportAudit.class);
 		wrappers.put(Capsule.DEFAULT_SCHEMA, Capsule.class);
+		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 
 		System.out.println(header());
 
@@ -307,35 +322,44 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 	}
 
 	private void appendGetByIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
-
+		String schemaTypeCall = schemaTypeCallerFor(schema);
 		stringBuilder.append("\n\tpublic " + wrapperName + " get" + wrapperName + "(String id) {");
-		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(get(id));");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(get(" + schemaTypeCall + ",id));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private void appendGetByIdsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
-
+		String schemaTypeCall = schemaTypeCallerFor(schema);
 		stringBuilder.append("\n\tpublic List<" + wrapperName + "> get" + wrapperName + "s(List<String> ids) {");
-		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "s(get(ids));");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "s(get(" + schemaTypeCall + ",ids));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
 
-		stringBuilder.append("\n\tpublic " + wrapperName + " wrap" + wrapperName + "(Record record) {");
-		stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
-		stringBuilder.append("\n\t}\n");
+		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
+			stringBuilder.append("\n\tpublic abstract " + wrapperName + " wrap" + wrapperName + "(Record record);");
+		} else {
+
+			stringBuilder.append("\n\tpublic " + wrapperName + " wrap" + wrapperName + "(Record record) {");
+			stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+			stringBuilder.append("\n\t}\n");
+		}
 	}
 
 	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
-		stringBuilder.append("\n\tpublic List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records) {");
-		stringBuilder.append("\n\t\tList<" + wrapperName + "> wrapped = new ArrayList<>();");
-		stringBuilder.append("\n\t\tfor (Record record : records) {");
-		stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
-		stringBuilder.append("\n\t\t}\n");
+		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
+			stringBuilder.append("\n\tpublic abstract List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records);");
+		} else {
+			stringBuilder.append("\n\tpublic List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records) {");
+			stringBuilder.append("\n\t\tList<" + wrapperName + "> wrapped = new ArrayList<>();");
+			stringBuilder.append("\n\t\tfor (Record record : records) {");
+			stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+			stringBuilder.append("\n\t\t}\n");
 
-		stringBuilder.append("\n\t\treturn wrapped;");
-		stringBuilder.append("\n\t}\n");
+			stringBuilder.append("\n\t\treturn wrapped;");
+			stringBuilder.append("\n\t}\n");
+		}
 	}
 
 	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {

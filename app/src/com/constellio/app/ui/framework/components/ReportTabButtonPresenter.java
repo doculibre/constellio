@@ -1,29 +1,27 @@
 package com.constellio.app.ui.framework.components;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.PrintableReportVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.data.Property;
-
-import java.util.*;
-
-import static java.util.Arrays.asList;
 
 class ReportTabButtonPresenter  {
     private List<RecordVO> recordVOList;
@@ -53,7 +51,7 @@ class ReportTabButtonPresenter  {
         List<String> ids = new ArrayList<>();
         boolean defaultSchema = schemaVO.getCode().endsWith("_default");
         for (RecordVO recordVO : recordVOList) {
-            if (recordVO.getSchema().equals(schemaVO) || 
+            if (recordVO.getSchema().equals(schemaVO) ||
             		(defaultSchema && recordVO.getSchema().getTypeCode().equals(schemaVO.getTypeCode()))) {
                 ids.add(recordVO.getId());
             }
@@ -174,9 +172,11 @@ class ReportTabButtonPresenter  {
         List<RecordVO> printableReportVOS = new ArrayList<>();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         SearchServices searchServices = view.getFactory().getModelLayerFactory().newSearchServices();
-        MetadataSchema reportSchema = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchema(PrintableReport.SCHEMA_NAME);
+        MetadataSchemaType printableSchemaType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(view.getCollection()).getSchemaType(Printable.SCHEMA_TYPE);
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view.getFactory());
-        List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(reportSchema).returnAll())));
+        List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(
+        		LogicalSearchQueryOperators.from(printableSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
         for(PrintableReport currentReport: allPrintableReport) {
             MetadataSchemaVO metadataSchemaVO = new MetadataSchemaToVOBuilder().build(currentReport.getSchema(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
             printableReportVOS.add(builder.build(currentReport.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, metadataSchemaVO, view.getSessionContext()));

@@ -64,6 +64,10 @@ public class BatchProcessTestFeature {
 
 		if (!acceptErrors) {
 
+			if (errorsCount != 0) {
+				ConstellioTest.getInstance().setFailMessage("Some batch processes have errors");
+			}
+
 			//assertThat(errorsCount).isZero();
 			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
 				//				assertThat(batchProcess.getErrors()).isZero()
@@ -78,6 +82,7 @@ public class BatchProcessTestFeature {
 		if (waitForBatchProcessAfterTest && factoriesTestFeatures.isInitialized()) {
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger()
 					.setPrintAllQueriesLongerThanMS(10000);
+			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(false);
 			waitForAllBatchProcesses(null, false);
 		}
 		//		if (started) {

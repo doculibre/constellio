@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -34,9 +32,11 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
@@ -116,7 +116,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		when(aBatchProcess.getQuery()).thenReturn("zeQuery");
-		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, false));
+		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, DataStore.RECORDS, false));
 		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
 		when(condition.getCollection()).thenReturn(zeCollection);
 
@@ -258,8 +258,10 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
-//		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
-		String urlQueryString = SolrUtils.toSingleQueryString(searchServices.addSolrModifiableParams(new LogicalSearchQuery().setCondition(condition)));//"?fq=%28*%3A*+-type_s%3Aindex%29&fq=collection_s%3AzeCollection&fq=zeQuery&qt=%2Fspell&shards.qt=%2Fspell&q=*%3A*&rows=100000&start=0";
+		//		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
+		String urlQueryString = SolrUtils.toSingleQueryString(searchServices.addSolrModifiableParams(new LogicalSearchQuery()
+				.setCondition(
+						condition)));//"?fq=%28*%3A*+-type_s%3Aindex%29&fq=collection_s%3AzeCollection&fq=zeQuery&qt=%2Fspell&shards.qt=%2Fspell&q=*%3A*&rows=100000&start=0";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)

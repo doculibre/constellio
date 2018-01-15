@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +34,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
@@ -213,6 +215,24 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
 				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
+	}
+
+	@Test
+	public void whenMarkingContentHashForCheckThenVeryFast()
+			throws Exception {
+		long before = new Date().getTime();
+
+		for (int i = 0; i < 10000; i++) {
+			contentManager.markForDeletionIfNotReferenced(UUIDV1Generator.newRandomId());
+			if (i % 1000 == 0) {
+				Record record = new TestRecord(zeSchema, UUIDV1Generator.newRandomId());
+				new RecordPreparation(record).isSaved();
+			}
+			System.out.println(i);
+		}
+
+		long after = new Date().getTime();
+		System.out.println((after - before));
 	}
 
 	@Test

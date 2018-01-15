@@ -2,14 +2,16 @@ package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import com.constellio.app.modules.rm.migrations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
@@ -47,7 +49,11 @@ import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.app.*;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
+import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
@@ -57,7 +63,6 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -77,7 +82,6 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -91,11 +95,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 										   InstallableSystemModuleWithRecordMigrations {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
+
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
@@ -373,14 +380,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.decommissioningList.schemaType()));
 
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-			Iterator<Record> authsIterator = modelLayerFactory.newSearchServices().recordsIterator(new LogicalSearchQuery(
-					from(rm.authorizationDetails.schemaType()).returnAll()), 10000);
-			while (authsIterator.hasNext()) {
-				authsIterator.next();
-			}
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

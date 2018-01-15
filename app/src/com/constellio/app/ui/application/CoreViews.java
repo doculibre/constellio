@@ -305,6 +305,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
 	}
 
+	public void statistics() {
+		navigator.navigateTo(NavigatorConfigurationService.STATISTICS);
+	}
+
 	public void listSchema(String params) {
 		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
 	}

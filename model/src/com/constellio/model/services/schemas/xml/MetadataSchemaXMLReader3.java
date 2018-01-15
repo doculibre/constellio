@@ -75,7 +75,7 @@ public class MetadataSchemaXMLReader3 {
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
 				.createWithVersion(collection, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
-			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
+			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
 		return typesBuilder;
 	}
@@ -89,7 +89,7 @@ public class MetadataSchemaXMLReader3 {
 		return languages;
 	}
 
-	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
+	private MetadataSchemaType parseSchemaType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
 		Map<Language, String> labels = readLabels(element);
@@ -103,6 +103,7 @@ public class MetadataSchemaXMLReader3 {
 		schemaTypeBuilder.setSecurity(getBooleanFlagValueWithFalseAsDefaultValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		schemaTypeBuilder.setSmallCode(element.getAttributeValue("smallCode"));
+		schemaTypeBuilder.setDataStore(element.getAttributeValue("dataStore"));
 
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);

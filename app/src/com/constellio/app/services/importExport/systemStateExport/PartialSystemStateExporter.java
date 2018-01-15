@@ -96,7 +96,9 @@ public class PartialSystemStateExporter {
 	}
 
 	private void exportSystemToFolder(File folder, PartialSystemStateExportParams params) {
-		secondTransactionLogManager.regroupAndMoveInVault();
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.regroupAndMoveInVault();
+		}
 		File tempFolderContentFolder = new File(folder, "content");
 		final File tlogsFolder = new File(tempFolderContentFolder, "tlogs");
 		tlogsFolder.mkdirs();
@@ -212,7 +214,9 @@ public class PartialSystemStateExporter {
 	}
 
 	public void exportSystemToFile(File file, PartialSystemStateExportParams params) {
-		secondTransactionLogManager.regroupAndMoveInVault();
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.regroupAndMoveInVault();
+		}
 		File tempFolder = ioServices.newTemporaryFolder(TEMP_FOLDER_RESOURCE_NAME);
 
 		try {

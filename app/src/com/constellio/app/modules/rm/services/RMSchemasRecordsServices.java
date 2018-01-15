@@ -43,6 +43,7 @@ import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -233,6 +234,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public Report newReport() {
 		return new Report(create(reportSchema()), getTypes());
+	}
+
+	public MetadataSchemaType reportSchemaType() {
+		return getTypes().getSchemaType(Report.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema reportSchema() {
@@ -1121,5 +1126,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public YearType getYearTypeWithCode(String code) {
 		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
+	}
+
+	public List<AdministrativeUnit> getAllAdministrativeUnits() {
+		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
 	}
 }

@@ -135,6 +135,10 @@ public class BaseSchemasRecordsServices {
 		return modelLayerFactory.newRecordServices().getDocumentById(id);
 	}
 
+	public Record get(MetadataSchemaType schemaType, String id) {
+		return modelLayerFactory.newRecordServices().getById(schemaType, id);
+	}
+
 	public Record getByLegacyId(MetadataSchemaType schemaType, String id) {
 		LogicalSearchCondition condition = from(schemaType).where(Schemas.LEGACY_ID).isEqualTo(id);
 		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
@@ -150,6 +154,16 @@ public class BaseSchemasRecordsServices {
 
 		for (String id : ids) {
 			records.add(get(id));
+		}
+
+		return records;
+	}
+
+	public List<Record> get(MetadataSchemaType metadataSchemaType, List<String> ids) {
+		List<Record> records = new ArrayList<>();
+
+		for (String id : ids) {
+			records.add(get(metadataSchemaType, id));
 		}
 
 		return records;

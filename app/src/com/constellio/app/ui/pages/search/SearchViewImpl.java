@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -27,18 +28,35 @@ import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
@@ -105,7 +123,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
+	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets)  {
 		if (temporarySave) {
 			presenter.saveTemporarySearch(false);
 		}
@@ -186,13 +204,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
 		Component capsuleComponent = null;
-		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-		if(!capsules.isEmpty()) {
-			capsuleComponent = buildCapsuleIU(capsules);
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
+			if (!capsules.isEmpty()) {
+				capsuleComponent = buildCapsuleIU(capsules);
+			}
 		}
 
 		VerticalLayout main = new VerticalLayout(suggestions, summary);
-		if(capsuleComponent != null){
+		if (capsuleComponent != null) {
 			main.addComponent(capsuleComponent);
 		}
 		main.addComponent(body);
@@ -225,6 +245,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
+		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				System.out.println("Jonathan Plamndon");
+			}
+		});
+
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
@@ -256,11 +283,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
-
-		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
+		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery()) {
+			@Override
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+		};
 	}
 
-	@SuppressWarnings("unchecked")
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);
@@ -535,10 +570,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private Component buildCapsuleIU(List<Capsule> capsules) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
-		for(Capsule capsule : capsules) {
+		for (Capsule capsule : capsules) {
 			Panel panel = new Panel();
 			panel.setSizeFull();
-			Label label = new Label(capsule.getHTML(),  ContentMode.HTML);
+			Label label = new Label(capsule.getHTML(), ContentMode.HTML);
 			panel.setContent(label);
 			panel.setWidth("100%");
 			panel.setCaption(capsule.getTitle());

@@ -22,6 +22,8 @@ public interface RecordsCache {
 
 	void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds);
 
+	List<Record> getAllValues(String schemaType);
+
 	List<Record> getQueryResults(LogicalSearchQuery query);
 
 	List<String> getQueryResultIds(LogicalSearchQuery query);
@@ -61,4 +63,8 @@ public interface RecordsCache {
 	long getCacheObjectsSize(String typeCode);
 
 	boolean isEmpty();
+
+	boolean isFullyLoaded(String schemaType);
+
+	void markAsFullyLoaded(String schemaType);
 }

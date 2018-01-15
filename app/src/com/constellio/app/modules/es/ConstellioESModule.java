@@ -4,9 +4,6 @@ import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCacheNotLoadedInitially;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 
 import java.util.ArrayList;
@@ -15,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -22,15 +22,34 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
-import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.*;
+import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExtension;
+import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
+import com.constellio.app.modules.es.extensions.ESSMBConnectorUrlCriterionExtension;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
+import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.*;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_5;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_6;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -49,10 +68,13 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "es";
 	public static final String NAME = "Constellio Enterprise Search (beta)";
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
 
 	@Override
 	public String getName() {
@@ -193,7 +215,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		if (!recordsCache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
 			recordsCache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
 		}
-		
+
 		extensions.recordExtensions.add(new ESRecordExtension(es));
 	}
 

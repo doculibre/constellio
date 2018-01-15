@@ -36,8 +36,8 @@ public class RecordServicesRuntimeException extends RuntimeException {
 
 	public static class NoSuchRecordWithId extends RecordServicesRuntimeException {
 
-		public NoSuchRecordWithId(String id, Exception e) {
-			super("No such record with id : " + id, e);
+		public NoSuchRecordWithId(String id, String dataStore, Exception e) {
+			super("No such record with id : '" + id + "' in datastore '" + dataStore + "'", e);
 		}
 	}
 

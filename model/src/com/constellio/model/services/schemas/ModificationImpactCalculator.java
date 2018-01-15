@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyIntMap;
@@ -96,7 +97,7 @@ public class ModificationImpactCalculator {
 				if (record.isModified(AUTHORIZATIONS)) {
 					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, AUTHORIZATIONS);
 
-					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record)
+					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
 							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
 
 					List<String> ids = searchServices.searchRecordIds(condition);
@@ -111,7 +112,7 @@ public class ModificationImpactCalculator {
 				if (record.isModified(allGroupAuthorizations)) {
 					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, allGroupAuthorizations);
 
-					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record)
+					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
 							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
 					List<String> ids = searchServices.searchRecordIds(condition);
 					transaction.addAllRecordsToReindex(ids);

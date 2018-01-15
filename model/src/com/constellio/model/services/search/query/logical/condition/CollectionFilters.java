@@ -14,8 +14,11 @@ public class CollectionFilters implements DataStoreFilters {
 
 	String collection;
 
-	public CollectionFilters(String collection, boolean exceptEvents) {
+	String dataStore;
+
+	public CollectionFilters(String collection, String dataStore, boolean exceptEvents) {
 		this.collection = collection;
+		this.dataStore = dataStore;
 		this.exceptEvents = exceptEvents;
 	}
 
@@ -35,6 +38,11 @@ public class CollectionFilters implements DataStoreFilters {
 
 	public String getCollection() {
 		return collection;
+	}
+
+	@Override
+	public String getDataStore() {
+		return dataStore;
 	}
 
 	@Override
