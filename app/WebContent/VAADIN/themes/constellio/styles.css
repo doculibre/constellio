@@ -14061,3 +14061,41 @@ div.v-layout.v-horizontal.v-widget {
 	width: 20px;
 	background: transparent;
 }
+
+.constellio .right-to-left .v-caption {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-caption .v-captiontext {
+	direction: ltr;
+}
+
+.constellio .right-to-left .v-tabsheet {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-tabsheet .v-tabsheet-tabs {
+	direction: rtl;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left {
+	float: right;
+	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-widget {
+	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
+	text-align: right;
+}
+
+.constellio .right-to-left .base-display .display-value {
+	text-align: right;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value, .constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: 0px;
+	margin-right: 0px;
+}

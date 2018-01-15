@@ -1837,6 +1837,74 @@ $popup-view-z-index: 3;
 	}
 
 
+	.right-to-left {
+		
+		.v-caption {
+			text-align: right;
+			
+			.v-captiontext {
+				direction: ltr;
+			}
+		}
+		
+		.v-tabsheet {
+			text-align: right;
+			
+			.v-tabsheet-tabs {
+				direction: rtl;
+			}
+		}
+		
+	
+		.v-widget {
+			//text-align: right;
+		}
+	
+		.i18n-horizontal-layout-right-to-left {
+			
+			float: right;
+			//direction: rtl;
+			text-align: right;
+	
+			.v-widget {
+				text-align: right;
+			}
+	
+			.v-slot {
+				text-align: right;
+			}
+			
+		}	
+	
+		.base-display {
+			.display-value {
+				text-align: right;
+			}
+		}
+		
+	}
+
+    .v-ui[width-range~="1101px-"] {
+
+		.right-to-left {
+		
+			.action-menu-wrapper {
+				.base-display {
+					.v-slot-display-value {
+						.display-value, .reference-display {
+							padding-right: 0px;
+							//padding-left: 300px;
+							margin-right: 0px;
+							//margin-left: 300px;
+						}
+					}
+				}
+			}
+		
+		}	
+		
+    }
+
 }
 
 /**

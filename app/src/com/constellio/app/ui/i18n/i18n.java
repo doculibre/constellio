@@ -382,7 +382,7 @@ public class i18n {
 	
 	public static boolean isRightToLeft() {
 		Language language = getLanguage();
-		return Language.Arabic.equals(language);
+		return Language.Arabic.equals(language) || true;
 	}
 
 }

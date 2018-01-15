@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -47,7 +48,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private BackButton backButton;
 
-	private HorizontalLayout titleBackButtonLayout;
+	private I18NHorizontalLayout titleBackButtonLayout;
 
 	private Component mainComponent;
 	private Component actionMenu;
@@ -112,7 +113,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 		breadcrumbTrail = buildBreadcrumbTrail();
 
-		titleBackButtonLayout = new HorizontalLayout();
+		titleBackButtonLayout = new I18NHorizontalLayout();
 		titleBackButtonLayout.setWidth("100%");
 
 		String title = getTitle();

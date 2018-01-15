@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
@@ -51,7 +52,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	protected VerticalLayout formLayout;
 
-	protected HorizontalLayout buttonsLayout;
+	protected I18NHorizontalLayout buttonsLayout;
 
 	protected Button saveButton;
 
@@ -143,7 +144,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			addToDefaultLayoutOrTabSheet(field);
 		}
 
-		buttonsLayout = new HorizontalLayout();
+		buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 
