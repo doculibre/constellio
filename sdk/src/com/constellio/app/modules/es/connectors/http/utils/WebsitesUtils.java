@@ -14,7 +14,7 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import com.constellio.sdk.tests.AbstractConstellioTest;
+import com.constellio.model.conf.FoldersLocator;
 
 public class WebsitesUtils {
 
@@ -36,7 +36,7 @@ public class WebsitesUtils {
 
 	public static Server startWebsiteInState1Ntlm() {
 		String name = "animalsStateV1";
-		
+
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
 		context.addFilter(NtlmAuthenticationFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
@@ -46,12 +46,12 @@ public class WebsitesUtils {
 		String ressourcePath = getFile(name).getAbsolutePath();
 		servletHolder.setInitParameter("resourceBase", ressourcePath);
 		context.addServlet(servletHolder, "/*");
-		
+
 		Server server = startWebsite(name, context);
 
 		return server;
 	}
-	
+
 	public static Server startWebsiteInState5() {
 		return startWebsite("animalsStateV5");
 	}
@@ -70,6 +70,7 @@ public class WebsitesUtils {
 		ResourceHandler resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(true);
 		resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+		System.out.println(file.getAbsolutePath());
 		resourceHandler.setResourceBase(file.getAbsolutePath());
 
 		HandlerList serverHandlers = new HandlerList();
@@ -89,7 +90,16 @@ public class WebsitesUtils {
 	}
 
 	private static File getFile(String name) {
-		File resourcesDir = AbstractConstellioTest.getResourcesDir();
+		File resourcesDir = new File("sdk-resources");
+
+		System.out.println();
+		if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
+			resourcesDir = new File("sdk" + File.separator + "sdk-resources");
+		}
+
+		if (!resourcesDir.exists()) {
+			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+		}
 		String pathInResourcesDir = WebsitesUtils.class.getName().replace(".", File.separator) + File.separator + name;
 		return new File(resourcesDir, pathInResourcesDir);
 	}
