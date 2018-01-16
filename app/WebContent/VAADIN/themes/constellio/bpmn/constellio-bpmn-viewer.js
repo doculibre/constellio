@@ -32,6 +32,30 @@ $(document).ready(function() {
 
             // load external diagram file via AJAX and import it
             $.get(bpmnDiagramURL, importXML, 'text');
+            
+            var eventBus = bpmnViewer.get('eventBus');
+
+	         // you may hook into any of the following events
+	         var bpmnEvents = [
+	           //'element.hover',
+	           //'element.out',
+	           'element.click',
+	           //'element.dblclick',
+	           //'element.mousedown',
+	           //'element.mouseup'
+	         ];
+	
+	         bpmnEvents.forEach(function(event) {
+	             eventBus.on(event, function(e) {
+	                 // e.element = the model element
+	                 // e.gfx = the graphical element
+	        	     $.post(selectionCallbackURL, {
+                         'bpmnResourceKey': bpmnResourceKey,
+                         'id':  e.element.id
+                     });
+	        	     // console.info(event + ":" + e.element.id);
+	           });
+	         });
 
         })(window.BpmnJS, window.jQuery);
     }, 500);
