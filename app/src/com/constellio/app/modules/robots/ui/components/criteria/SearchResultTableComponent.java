@@ -60,7 +60,22 @@ public class SearchResultTableComponent extends CustomComponent {
 
 	private void buildResultTable() {
 		verticalLayoutTable.removeAllComponents();
-		SearchResultDetailedTable newTable = new SearchResultDetailedTable(buildResultContainer(), false);
+		SearchResultDetailedTable newTable = new SearchResultDetailedTable(buildResultContainer(), false) {
+			@Override
+			protected void onPreviousPageButtonClicked() {
+				super.onPreviousPageButtonClicked();
+			}
+
+			@Override
+			protected void onNextPageButtonClicked() {
+				super.onNextPageButtonClicked();
+			}
+
+			@Override
+			protected void onSetPageButtonClicked(int page) {
+				super.onSetPageButtonClicked(page);
+			}
+		};
 		newTable.setWidth("100%");
 		verticalLayoutTable.addComponents(newTable, newTable.createControls());
 	}

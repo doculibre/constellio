@@ -11,7 +11,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
@@ -30,8 +29,9 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -123,7 +123,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets)  {
+	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
 			presenter.saveTemporarySearch(false);
 		}
@@ -229,7 +229,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip()) {
+			@Override
+			protected void onPreviousPageButtonClicked() {
+				super.onPreviousPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onNextPageButtonClicked() {
+				super.onNextPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onSetPageButtonClicked(int page) {
+				super.onSetPageButtonClicked(page);
+				presenter.searchNavigationButtonClicked();
+			}
+		};
 
 		int totalResults = container.size();
 		int totalAmountOfPages = srTable.getTotalAmountOfPages();
@@ -283,7 +301,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
-		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery()) {
+		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
+				presenter.getSearchQuery().getFreeTextQuery()) {
 			@Override
 			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
 				return new ClickListener() {
@@ -293,7 +312,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				};
 			}
+
 		};
+
+		container.addItemSetChangeListener(new ItemSetChangeListener() {
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				presenter.searchNavigationButtonClicked();
+			}
+		});
+
+		return container;
 	}
 
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {

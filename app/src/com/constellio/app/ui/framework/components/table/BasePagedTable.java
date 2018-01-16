@@ -30,10 +30,10 @@ import com.vaadin.ui.themes.ValoTheme;
 public class BasePagedTable<T extends Container> extends PagedTable {
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
-	
+
 	protected T container;
 	protected ComboBox itemsPerPageField;
-	
+
 	protected TablePropertyCache cellProperties = new TablePropertyCache();
 
 	public BasePagedTable(T container) {
@@ -97,7 +97,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 		final Button first = new Button("\uF100", new ClickListener() {
 			public void buttonClick(ClickEvent event) {
-				setCurrentPage(0);
+				onSetPageButtonClicked(0);
 			}
 		});
 		first.setStyleName(ValoTheme.BUTTON_LINK);
@@ -105,7 +105,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 		final Button previous = new Button("\uF104", new ClickListener() {
 			public void buttonClick(ClickEvent event) {
-				previousPage();
+				onPreviousPageButtonClicked();
 			}
 		});
 		previous.setStyleName(ValoTheme.BUTTON_LINK);
@@ -113,7 +113,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 		final Button next = new Button("\uF105", new ClickListener() {
 			public void buttonClick(ClickEvent event) {
-				nextPage();
+				onNextPageButtonClicked();
 			}
 		});
 		next.setStyleName(ValoTheme.BUTTON_LINK);
@@ -121,7 +121,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 		final Button last = new Button("\uF101", new ClickListener() {
 			public void buttonClick(ClickEvent event) {
-				setCurrentPage(getTotalAmountOfPages());
+				onSetPageButtonClicked(getTotalAmountOfPages());
 			}
 		});
 		last.setStyleName(ValoTheme.BUTTON_LINK);
@@ -159,12 +159,25 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		return controlBar;
 	}
 
+	protected void onPreviousPageButtonClicked() {
+		previousPage();
+	}
+
+	protected void onNextPageButtonClicked() {
+		nextPage();
+	}
+
+	protected void onSetPageButtonClicked(int page) {
+		setCurrentPage(page);
+	}
+
 	public ComboBox getItemsPerPageField() {
 		return itemsPerPageField;
 	}
 
 	@Override
-	public void paintContent(PaintTarget target) throws PaintException {
+	public void paintContent(PaintTarget target)
+			throws PaintException {
 		super.paintContent(new PaintTargetAdapter(target));
 	}
 
@@ -176,11 +189,11 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	public void setPageLength(int pageLength) {
 		super.setPageLength(pageLength);
 	}
-	
+
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		return null;
 	}
-	
+
 	@Override
 	public void containerItemSetChange(ItemSetChangeEvent event) {
 		super.containerItemSetChange(event);
@@ -209,132 +222,160 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 	@SuppressWarnings("deprecation")
 	private static class PaintTargetAdapter implements Serializable, PaintTarget {
-		
+
 		private PaintTarget adaptee;
-		
+
 		private PaintTargetAdapter(PaintTarget adaptee) {
 			this.adaptee = adaptee;
 		}
 
-		public void addSection(String sectionTagName, String sectionData) throws PaintException {
+		public void addSection(String sectionTagName, String sectionData)
+				throws PaintException {
 			adaptee.addSection(sectionTagName, sectionData);
 		}
 
-		public PaintStatus startPaintable(Component paintable, String tag) throws PaintException {
+		public PaintStatus startPaintable(Component paintable, String tag)
+				throws PaintException {
 			return adaptee.startPaintable(paintable, tag);
 		}
 
-		public void endPaintable(Component paintable) throws PaintException {
+		public void endPaintable(Component paintable)
+				throws PaintException {
 			adaptee.endPaintable(paintable);
 		}
 
-		public void startTag(String tagName) throws PaintException {
+		public void startTag(String tagName)
+				throws PaintException {
 			adaptee.startTag(tagName);
 		}
 
-		public void endTag(String tagName) throws PaintException {
+		public void endTag(String tagName)
+				throws PaintException {
 			adaptee.endTag(tagName);
 		}
-		
+
 		private boolean isIgnoredAttribute(String name) {
 			return "pagelength".equals(name);
 		}
 
-		public void addAttribute(String name, boolean value) throws PaintException {
+		public void addAttribute(String name, boolean value)
+				throws PaintException {
 			if (!isIgnoredAttribute(name)) {
 				adaptee.addAttribute(name, value);
 			}
 		}
 
-		public void addAttribute(String name, int value) throws PaintException {
+		public void addAttribute(String name, int value)
+				throws PaintException {
 			if (!isIgnoredAttribute(name)) {
 				adaptee.addAttribute(name, value);
 			}
 		}
 
-		public void addAttribute(String name, Resource value) throws PaintException {
+		public void addAttribute(String name, Resource value)
+				throws PaintException {
 			if (!isIgnoredAttribute(name)) {
 				adaptee.addAttribute(name, value);
 			}
 		}
 
-		public void addVariable(VariableOwner owner, String name, StreamVariable value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, StreamVariable value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addAttribute(String name, long value) throws PaintException {
+		public void addAttribute(String name, long value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addAttribute(String name, float value) throws PaintException {
+		public void addAttribute(String name, float value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addAttribute(String name, double value) throws PaintException {
+		public void addAttribute(String name, double value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addAttribute(String name, String value) throws PaintException {
+		public void addAttribute(String name, String value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addAttribute(String name, Map<?, ?> value) throws PaintException {
+		public void addAttribute(String name, Map<?, ?> value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addAttribute(String name, Component value) throws PaintException {
+		public void addAttribute(String name, Component value)
+				throws PaintException {
 			adaptee.addAttribute(name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, String value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, String value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, int value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, int value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, long value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, long value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, float value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, float value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, double value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, double value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, boolean value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, boolean value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, String[] value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, String[] value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addVariable(VariableOwner owner, String name, Component value) throws PaintException {
+		public void addVariable(VariableOwner owner, String name, Component value)
+				throws PaintException {
 			adaptee.addVariable(owner, name, value);
 		}
 
-		public void addUploadStreamVariable(VariableOwner owner, String name) throws PaintException {
+		public void addUploadStreamVariable(VariableOwner owner, String name)
+				throws PaintException {
 			adaptee.addUploadStreamVariable(owner, name);
 		}
 
-		public void addXMLSection(String sectionTagName, String sectionData, String namespace) throws PaintException {
+		public void addXMLSection(String sectionTagName, String sectionData, String namespace)
+				throws PaintException {
 			adaptee.addXMLSection(sectionTagName, sectionData, namespace);
 		}
 
-		public void addUIDL(String uidl) throws PaintException {
+		public void addUIDL(String uidl)
+				throws PaintException {
 			adaptee.addUIDL(uidl);
 		}
 
-		public void addText(String text) throws PaintException {
+		public void addText(String text)
+				throws PaintException {
 			adaptee.addText(text);
 		}
 
-		public void addCharacterData(String text) throws PaintException {
+		public void addCharacterData(String text)
+				throws PaintException {
 			adaptee.addCharacterData(text);
 		}
 
@@ -349,6 +390,6 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		public boolean isFullRepaint() {
 			return adaptee.isFullRepaint();
 		}
-		
-	}	
+
+	}
 }

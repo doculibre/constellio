@@ -388,10 +388,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 			searchEvent.setParams(paramList);
 			SearchEvent oldSearchEvent = schemasRecordsServices
-					.wrapSearchEvent(view.getSessionContext().getCurrentSearchEventRecord());
+					.wrapSearchEvent((Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT"));
 
 			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-				view.getSessionContext().setCurrentSearchEventRecord(searchEvent.getWrappedRecord());
+				view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
 				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 				searchEventServices.save(searchEvent);
 			}
@@ -790,8 +790,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void searchResultClicked(RecordVO searchResultVO) {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		searchEventServices.incrementClickCounter(view.getSessionContext().getCurrentSearchEventRecord().getId());
-		searchEventServices.incrementPageNavigationCounter(view.getSessionContext().getCurrentSearchEventRecord().getId());
+		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+
+		searchEventServices.incrementClickCounter(searchEvent.getId());
+	}
+
+	public void searchNavigationButtonClicked() {
+		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+
+		searchEventServices.incrementPageNavigationCounter(searchEvent.getId());
 	}
 
 }
