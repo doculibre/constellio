@@ -116,6 +116,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return size;
 	}
 
+	public int getBatchSize() {
+		return batchSize;
+	}
+
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
