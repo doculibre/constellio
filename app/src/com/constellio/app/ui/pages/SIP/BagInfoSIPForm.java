@@ -18,12 +18,8 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class BagInfoSIPForm extends BaseViewImpl {
 	
@@ -107,12 +103,20 @@ public class BagInfoSIPForm extends BaseViewImpl {
         deleteFilesCheckBox = new CheckBox($("SIPButton.deleteFilesLabel"));
 
         recordForm =  newForm(presenter.newRecord());
+        VerticalLayout deleteLayout = new VerticalLayout();
+        deleteLayout.setSpacing(true);
+        final Label deleteWarning = new Label($("SIPButton.deleteFilesWarning"));
+        deleteWarning.addStyleName(ValoTheme.LABEL_FAILURE);
+        deleteWarning.setVisible(false);
         deleteFilesCheckBox.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                ((BagInfoVO)recordForm.getViewObject()).setDeleteFiles((boolean) event.getProperty().getValue());
+                boolean isChecked = (boolean) event.getProperty().getValue();
+                ((BagInfoVO)recordForm.getViewObject()).setDeleteFiles(isChecked);
+                deleteWarning.setVisible(isChecked);
             }
         });
+        deleteLayout.addComponents(deleteFilesCheckBox, deleteWarning);
 
         limitSizeCheckbox.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
@@ -124,8 +128,9 @@ public class BagInfoSIPForm extends BaseViewImpl {
         limitSizeCheckbox.addStyleName(STYLE_FIELD);
         deleteFilesCheckBox.addStyleName(STYLE_FIELD);
         deleteFilesCheckBox.setVisible(showDeleteButton);
+        deleteLayout.setVisible(showDeleteButton);
         cb.setWidth("100%");
-        mainLayout.addComponents(limitSizeCheckbox, deleteFilesCheckBox, cb, new Hr(), recordForm);
+        mainLayout.addComponents(limitSizeCheckbox, deleteLayout, cb, new Hr(), recordForm);
         return mainLayout;
     }
 
