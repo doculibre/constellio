@@ -195,7 +195,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
             boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
                     .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true);
             sipButton.addStyleName(ValoTheme.BUTTON_LINK);
             sipButton.setVisible(hasAccessToSIP);
             sipButton.setEnabled(hasAccessToSIP);

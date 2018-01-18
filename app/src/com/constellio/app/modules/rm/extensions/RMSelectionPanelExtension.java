@@ -227,7 +227,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addSIPbutton(final AvailableActionsParam param) {
         List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
-        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
+        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView(), true);
         setStyles(tabButton);
         tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));

@@ -519,7 +519,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildCreateSIPArchivesButton(){
-		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true);
 		siPbutton.setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
 		return siPbutton;
 	}

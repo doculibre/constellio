@@ -35,6 +35,12 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     private CheckBox limitSizeCheckbox;
 
+    private boolean showDeleteButton;
+
+    public BagInfoSIPForm(boolean showDeleteButton) {
+        this.showDeleteButton = showDeleteButton;
+    }
+
     MetadataFieldFactory factory = new MetadataFieldFactory(){
         @Override
         public Field<?> build(MetadataVO metadata) {
@@ -117,6 +123,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
         limitSizeCheckbox.addStyleName(STYLE_FIELD);
         deleteFilesCheckBox.addStyleName(STYLE_FIELD);
+        deleteFilesCheckBox.setVisible(showDeleteButton);
         cb.setWidth("100%");
         mainLayout.addComponents(limitSizeCheckbox, deleteFilesCheckBox, cb, new Hr(), recordForm);
         return mainLayout;
