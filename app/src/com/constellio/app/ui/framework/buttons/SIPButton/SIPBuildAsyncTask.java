@@ -68,22 +68,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
         try {
             List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
             User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
-            if (ids.isEmpty()) {
-                errors.add(SIPGenerationValidationException.class, "Lists cannot be null");
-            } else {
-                if (deleteFiles) {
-                    RecordServices recordServices = modelLayerFactory.newRecordServices();
-                    for (String documentIds : ids) {
-                        try {
-                            Record record = recordServices.getDocumentById(documentIds);
-                            recordServices.logicallyDelete(record, currentUser);
-                            recordServices.physicallyDelete(record, currentUser, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-                        } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-                            //No need to delete it.
-                        }
-                    }
-                }
-            }
 
             RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
             outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
@@ -106,6 +90,23 @@ public class SIPBuildAsyncTask implements AsyncTask {
                 Transaction transaction = new Transaction();
                 transaction.add(sipArchive);
                 modelLayerFactory.newRecordServices().execute(transaction);
+            }
+
+            if (ids.isEmpty()) {
+                errors.add(SIPGenerationValidationException.class, "Lists cannot be null");
+            } else {
+                if (deleteFiles) {
+                    RecordServices recordServices = modelLayerFactory.newRecordServices();
+                    for (String documentIds : ids) {
+                        try {
+                            Record record = recordServices.getDocumentById(documentIds);
+                            recordServices.logicallyDelete(record, currentUser);
+                            recordServices.physicallyDelete(record, currentUser, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+                        } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+                            //No need to delete it.
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

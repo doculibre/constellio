@@ -59,6 +59,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	String recordId;
 
+	private Set<String> missingFolders = new HashSet<>();
+
 	public DecommissioningListPresenter(DecommissioningListView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
 		searchServices = modelLayerFactory.newSearchServices();
@@ -388,6 +390,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				try {
 					result.add(builder.build(folder));
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
 				}
 			}
@@ -406,6 +409,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 					addOtherMetadatasToFolderDetailVO(folderVO);
 					result.add(folderVO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
 				}
 			}
@@ -429,6 +433,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				try {
 					result.add(builder.build(folder));
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
 				}
 			}
@@ -448,6 +453,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				try {
 					result.add(builder.build(folder));
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
 				}
 			}
@@ -912,4 +918,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 		return folderVOList;
 	}
+
+    public Set<String> getMissingFolders() {
+        return missingFolders;
+    }
 }
