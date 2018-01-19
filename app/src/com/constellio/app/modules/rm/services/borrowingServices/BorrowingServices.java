@@ -85,6 +85,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					borrowFolder(folderId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -113,6 +114,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					borrowContainer(containerId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -148,6 +150,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					returnFolder(folderId, applicant, returnDate, false);
@@ -176,6 +179,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					returnContainer(containerId, applicant, returnDate, false);
@@ -211,6 +215,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					extendBorrowDateForFolder(folderId, returnDate, applicant, false);
@@ -226,6 +231,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					extendBorrowDateForContainer(containerId, returnDate, applicant, false);

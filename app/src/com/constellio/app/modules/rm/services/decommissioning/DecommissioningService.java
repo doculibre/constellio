@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -1191,6 +1192,7 @@ public class DecommissioningService {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				Folder folder = rm.getFolder(folderId);
 				if (isAccepted) {
@@ -1211,6 +1213,7 @@ public class DecommissioningService {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			for (String containerId : task.getLinkedContainers()) {
 				Transaction t = new Transaction();
+				t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
 				List<Folder> folders = rm.searchFolders(
 						LogicalSearchQueryOperators.from(rm.folder.schemaType()).where(rm.folder.container())
