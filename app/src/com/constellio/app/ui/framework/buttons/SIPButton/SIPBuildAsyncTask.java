@@ -103,7 +103,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
                             recordServices.logicallyDelete(record, currentUser);
                             recordServices.physicallyDelete(record, currentUser, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
                         } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-                            //No need to delete it.
+                            e.printStackTrace();
                         }
                     }
                 }
