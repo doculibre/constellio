@@ -153,7 +153,7 @@ public class RecordVOTable extends BaseTable {
 			try {
 				String extension = FileIconUtils.getExtension(recordVO);
 				if (extension != null && !isDecomList(recordVO)) {
-					style = "file-icon-" + extension;
+					style = "file-icon-" + extension.toLowerCase();
 				} else {
 					style = null;
 				}
