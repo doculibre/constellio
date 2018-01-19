@@ -103,6 +103,11 @@ public class ConnectorHttp extends Connector {
 		}
 		eventObserver.addUpdateEvents(documents);
 		es.getRecordServices().flush();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private List<ConnectorHttpDocument> getOnDemandDocuments() {
