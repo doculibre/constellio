@@ -9,7 +9,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -185,5 +187,10 @@ class ReportTabButtonPresenter  {
             this.removePrintableTab = true;
         }
         return printableReportVOS;
+    }
+
+    public String getLabelForSchemaType(String schemaType) {
+        SessionContext sessionContext = view.getSessionContext();
+        return view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchemaType(schemaType).getLabel(Language.withLocale(sessionContext.getCurrentLocale()));
     }
 }

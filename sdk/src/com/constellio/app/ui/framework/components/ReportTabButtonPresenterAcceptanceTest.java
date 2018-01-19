@@ -108,8 +108,8 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
         getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
         PrintableReport defaultFolderReport = rm.newPrintableReport();
         PrintableReport defaultDocumentReport = rm.newPrintableReport();
-        defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.DOCUMENT.getLabel()).set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA);
-        defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getLabel()).set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+        defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, "document").set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA);
+        defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, "dossier").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
         Transaction t = new Transaction();
         t.addAll(defaultFolderReport, defaultDocumentReport);
@@ -126,8 +126,8 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
     public void checkIfThereIsReportThatBothAreReturned() throws Exception {
         PrintableReport report1 = rm.newPrintableReport();
         PrintableReport report2 = rm.newPrintableReport();
-        report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.DOCUMENT.getLabel()).set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
-        report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getLabel()).set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+        report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, "document").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+        report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, "dossier").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
         Transaction t = new Transaction();
         t.addAll(report1, report2);

@@ -177,7 +177,7 @@ public class ReportTabButton extends WindowButton {
 
         for (PrintableReportListPossibleType printableReportListPossibleType : values) {
             defaultElementSelected.addItem(printableReportListPossibleType);
-            defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
+            defaultElementSelected.setItemCaption(printableReportListPossibleType, buttonPresenter.getLabelForSchemaType(printableReportListPossibleType.getSchemaType()));
             if (defaultElementSelected.getValue() == null) {
                 defaultElementSelected.setValue(printableReportListPossibleType);
                 selectedReporType = printableReportListPossibleType;
