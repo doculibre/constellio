@@ -591,8 +591,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildCreateSIPARchivesButton(){
-		SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), presenter.isProcessed());
-		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+		final SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), presenter.isProcessed()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
+
 		return button;
 	}
 

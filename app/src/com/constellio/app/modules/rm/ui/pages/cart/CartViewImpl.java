@@ -245,11 +245,18 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext());
-		List<RecordVO> allRecords = new ArrayList<>();
-		allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
-		allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
-		reportGeneratorButton.setRecordVoList(allRecords.toArray(new RecordVO[0]));
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
+				this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<RecordVO> allRecords = new ArrayList<>();
+				allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
+				allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
+				setRecordVoList(allRecords.toArray(new RecordVO[0]));
+				super.buttonClick(event);
+			}
+		};
+
 		return reportGeneratorButton;
 	}
 
@@ -519,8 +526,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildCreateSIPArchivesButton(){
-		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true);
-		siPbutton.setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
+		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
 		return siPbutton;
 	}
 

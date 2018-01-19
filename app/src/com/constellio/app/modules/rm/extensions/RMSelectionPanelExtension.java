@@ -215,10 +215,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
-                appLayerFactory, collection, true, param.getView().getSessionContext());
-        tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+                appLayerFactory, collection, true, param.getView().getSessionContext()) {
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+                List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
+                setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+                super.buttonClick(event);
+            }
+        };
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
@@ -226,10 +232,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
-        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView(), true);
+        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView(), true) {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
+                addAllObject(recordVOS.toArray(new RecordVO[0]));
+                super.buttonClick(event);
+            }
+        };
         setStyles(tabButton);
-        tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
