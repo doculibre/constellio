@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.Indexed;
@@ -78,7 +79,7 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 	}
 
 	private Property<?> newButtonsLayout(final Object itemId) {
-		HorizontalLayout horizontalLayout = new HorizontalLayout();
+		I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 		horizontalLayout.addStyleName("buttons-container");
 
 		for (ContainerButton containerButton : containerButtons) {

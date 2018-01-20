@@ -1,10 +1,14 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -66,6 +70,12 @@ public class TableColumnsManager implements Serializable {
 	public void manage(final Table table, final String tableId) {
 		table.setColumnCollapsingAllowed(true);
 		table.setColumnReorderingAllowed(true);
+		
+		Object[] visibleColumns = table.getVisibleColumns();
+		if (isRightToLeft()) {
+			ArrayUtils.reverse(visibleColumns);
+			table.setVisibleColumns(visibleColumns);
+		}
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();

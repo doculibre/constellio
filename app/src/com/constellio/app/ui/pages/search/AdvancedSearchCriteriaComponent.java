@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -21,6 +23,7 @@ import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
@@ -40,7 +43,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
@@ -71,7 +73,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		addGeneratedColumn(DELETE_BUTTON, new DeleteButtonGenerator());
 
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		setVisibleColumns(LEFT_PARENS_FIELD, METADATA_FIELD, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON);
+		Object[] visibleColumns = { LEFT_PARENS_FIELD, METADATA_FIELD, VALUE_FIELD, RIGHT_PARENS_FIELD, OPERATOR_FIELD, DELETE_BUTTON };
+		if (isRightToLeft()) {
+			ArrayUtils.reverse(visibleColumns);
+		}
+		setVisibleColumns(visibleColumns);
 		setColumnExpandRatio(VALUE_FIELD, 1);
 	}
 
@@ -220,7 +226,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			HorizontalLayout component = new HorizontalLayout(operator, value);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value);
 			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
 			component.setWidth("100%");
@@ -290,7 +296,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					}
 				}
 			});
-			HorizontalLayout component = new HorizontalLayout(operator, value, exact);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value, exact);
 			component.setComponentAlignment(exact, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
 			component.setWidth("100%");
@@ -312,7 +318,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			HorizontalLayout component = new HorizontalLayout(lookup);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(lookup);
 			component.setExpandRatio(lookup, 1);
 			component.setWidth("100%");
 			component.setSpacing(true);
@@ -411,7 +417,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					}
 				}
 			});
-			HorizontalLayout component = new HorizontalLayout(operator, value);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value);
 			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
 			component.setWidth("100%");
@@ -426,7 +432,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			Component endRelativeSearchComponent = buildRelativeSearchComboBox(criterion, true);
 			ComboBox operator = buildComparisonComboBox(criterion, relativeSearchComponent, endRelativeSearchComponent);
 
-			HorizontalLayout horizontalLayout = new HorizontalLayout();
+			I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 			horizontalLayout.setSpacing(true);
 			horizontalLayout.addComponents(operator, relativeSearchComponent);
 
@@ -464,17 +470,17 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 			final Label label = new Label($("and"));
 			label.setWidth("100px");
-			HorizontalLayout horizontalLayoutLabel = new HorizontalLayout();
+			I18NHorizontalLayout horizontalLayoutLabel = new I18NHorizontalLayout();
 			horizontalLayoutLabel.addComponent(label);
 			horizontalLayoutLabel.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
 
-			HorizontalLayout horizontalLayout = new HorizontalLayout();
+			I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 			horizontalLayout.setSpacing(true);
 			horizontalLayout.addComponents(horizontalLayoutLabel, endValue);
 
 			ComboBox operator = buildComparisonComboBox(criterion, value, horizontalLayout);
 
-			HorizontalLayout component = new HorizontalLayout(operator, value, horizontalLayout);
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value, horizontalLayout);
 			component.setSpacing(true);
 
 			return component;
@@ -638,12 +644,12 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 			final Label label = new Label($("and"));
 			label.setWidth("150px");
-			HorizontalLayout horizontalLayoutLabel = new HorizontalLayout();
+			I18NHorizontalLayout horizontalLayoutLabel = new I18NHorizontalLayout();
 			horizontalLayoutLabel.addComponent(label);
 			horizontalLayoutLabel.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
 			horizontalLayoutLabel.setVisible(isEndValue);
 
-			HorizontalLayout component = new HorizontalLayout(horizontalLayoutLabel, relativeSearchOperatorCombo, date, textValue,
+			I18NHorizontalLayout component = new I18NHorizontalLayout(horizontalLayoutLabel, relativeSearchOperatorCombo, date, textValue,
 					measuringTimeField);
 			component.setComponentAlignment(horizontalLayoutLabel, Alignment.MIDDLE_CENTER);
 			component.setSpacing(true);

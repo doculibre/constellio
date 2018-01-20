@@ -11,7 +11,6 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -21,6 +20,7 @@ import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -34,11 +34,24 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
@@ -180,7 +193,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
 
-		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
@@ -364,7 +377,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		toggle.addStyleName(ValoTheme.BUTTON_TINY);
 		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 
-		HorizontalLayout captionBar = new HorizontalLayout(deselect, title, toggle);
+		I18NHorizontalLayout captionBar = new I18NHorizontalLayout(deselect, title, toggle);
 		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
@@ -516,7 +529,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				};
 
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 				horizontalLayout.setSpacing(true);
 				horizontalLayout.addComponents(saveSearchButton, cancelButton);
 
