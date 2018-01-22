@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
@@ -640,5 +641,11 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
 				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
 		return acceptedSchemas.contains(task.getSchemaCode());
+	}
+
+	public boolean isRequestTask(TaskVO task) {
+		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
+				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
+		return acceptedSchemas.contains(task.getSchema().getCode());
 	}
 }

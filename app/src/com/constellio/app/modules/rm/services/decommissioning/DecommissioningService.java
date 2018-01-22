@@ -1238,8 +1238,7 @@ public class DecommissioningService {
 	}
 
 	public boolean isFolderReactivable(Folder folder, User currentUser) {
-		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType()
-				.potentiallyHasAnalogMedium()
+		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive()
 				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 

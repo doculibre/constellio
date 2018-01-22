@@ -7,10 +7,16 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
 
+import java.util.List;
+
 public abstract class TaskFormImpl extends RecordForm implements TaskForm {
 
 	public TaskFormImpl(RecordVO record, boolean isEditView) {
 		super(record, new TaskFieldFactory(isEditView));
+	}
+
+	public TaskFormImpl(RecordVO record, boolean isEditView, List<String> unavailablesTaskTypes) {
+		super(record, new TaskFieldFactory(isEditView, unavailablesTaskTypes));
 	}
 
 	@Override

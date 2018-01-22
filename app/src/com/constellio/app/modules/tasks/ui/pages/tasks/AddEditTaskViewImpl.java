@@ -68,7 +68,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	}
 
 	private TaskFormImpl newForm() {
-		recordForm = new TaskFormImpl(taskVO, presenter.isEditMode()) {
+		recordForm = new TaskFormImpl(taskVO, presenter.isEditMode(), presenter.getUnavailableTaskTypes()) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
