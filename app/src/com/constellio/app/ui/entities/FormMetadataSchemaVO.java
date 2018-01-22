@@ -23,6 +23,8 @@ public class FormMetadataSchemaVO implements Serializable {
 	/* Schema type properties */
 	Boolean advancedSearch = null;
 
+	Boolean simpleSearch = null;
+
 
 	public FormMetadataSchemaVO(SessionContext sessionContext) {
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
@@ -38,6 +40,11 @@ public class FormMetadataSchemaVO implements Serializable {
 	public FormMetadataSchemaVO(String code, String localCode,String collection, Map<String, String> labels, Boolean advancedSearch) {
 		this(code, localCode, collection, labels);
 		this.advancedSearch = advancedSearch;
+	}
+
+	public FormMetadataSchemaVO(String code, String localCode,String collection, Map<String, String> labels, Boolean advancedSearch, Boolean simpleSearch) {
+		this(code, localCode, collection, labels, advancedSearch);
+		this.simpleSearch = simpleSearch;
 	}
 
 	public String getCode() {
@@ -79,6 +86,10 @@ public class FormMetadataSchemaVO implements Serializable {
 	public Boolean getAdvancedSearch() { return advancedSearch; }
 
 	public void setAdvancedSearch(Boolean advancedSearch) {	this.advancedSearch = advancedSearch; }
+
+	public Boolean getSimpleSearch() { return simpleSearch; }
+
+	public void setSimpleSearch(Boolean simpleSearch) {	this.simpleSearch = simpleSearch; }
 
 	@Override
 	public int hashCode() {
