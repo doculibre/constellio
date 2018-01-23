@@ -19,25 +19,34 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
 public class ConvertConstellioLanguageTable implements ReportWriter {
 
     public static final String INFOS_SEPARATOR = "=";
     public static final String DEFAULT_FILE_CHARSET = "UTF-8";
     private static final WritableFont.FontName FONT = WritableFont.ARIAL;
     private static final int FONT_SIZE = 10;
+    private static final int ARABIC_CHARACTER_ASSIGNATION_LIMIT = 1791;
 
     private ReportModelImpl model;
     private WritableWorkbook workbook;
     private File[] filesAndFolders;
     private String minVersion;
 
+    private File arabicFile;
     private File outputFile;
     private FileOutputStream fileOutputStream;
     private Set<File> filesInPath;
 
     public static void main(String[] args) throws IOException {
-//        writeLanguageFile();
-        readLanguageFile();
+        writeLanguageFile();
+//        readLanguageFile();
     }
 
     private static void writeLanguageFile() throws IOException {
@@ -58,6 +67,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
     private void initSystemFiles(boolean deletePreviousInfos) throws IOException {
         FoldersLocator foldersLocator = new FoldersLocator();
         File i18nFolder = foldersLocator.getI18nFolder();
+        arabicFile = new File(i18nFolder, "i18n_ar.properties");
         File outputDirectory = new File(i18nFolder+ File.separator + "excelOutput");
         outputFile = new File(outputDirectory, "output."+getFileExtension());
 
@@ -68,7 +78,14 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
             }
 
             // get files to convert
-            filesAndFolders = i18nFolder.listFiles();
+            filesAndFolders = ArrayUtils.addAll(
+                    i18nFolder.listFiles(),
+                    new File(foldersLocator.getPluginsRepository(),"/plugin011/src/com/constellio/agent/i18n/"),
+                    new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/i18n/"),
+                    new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/migrations/1_0/"),
+                    new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_6_10/"),
+                    new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_5_2_7/")
+            );
 
             // creates output files
             outputDirectory.mkdir();
@@ -81,6 +98,8 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
     }
 
     private void convert(){
+
+        Map<String, String> arabicInfos = arabicInfos = getFileInfos(arabicFile.getParentFile(), arabicFile.getName());
 
         for (File file : filesInPath) {
 
@@ -105,6 +124,9 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
                     if (englishInfos.containsKey(property)) {
                         line.add(removeSpecialChars(englishInfos.get(property)));
                     }
+                    if (arabicInfos.containsKey(property)) {
+                        line.add(removeSpecialChars(arabicInfos.get(property)));
+                    }
 
                     model.addLine(line);
                 }
@@ -122,7 +144,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
             char currentChar = charArray[i];
 
-            if((int) currentChar > 255){
+            if((int) currentChar > ARABIC_CHARACTER_ASSIGNATION_LIMIT){
                 value = value.replace(currentChar,' ');
             }
         }
@@ -135,8 +157,9 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         for (File file : files) {
 
             String fileName = file.getName();
+            String filePath = file.getAbsolutePath();
 
-            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && fileName.compareTo(minVersion)>0) )) {
+            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && fileName.compareTo(minVersion)>0) || isInExclusions(filePath))) {
                 prepareConversion(file.listFiles());
             }
             else if(!file.isDirectory()){
@@ -328,6 +351,24 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         return matcher.find();
     }
 
+    private static boolean isAgentPropertyFile(String currentLine) {
+        Pattern pattern = Pattern.compile("^agent");
+        Matcher matcher = pattern.matcher(currentLine);
+
+        return matcher.find();
+    }
+
+    private static boolean isDemosPropertyFile(String currentLine) {
+        Pattern pattern = Pattern.compile("^demos");
+        Matcher matcher = pattern.matcher(currentLine);
+
+        return matcher.find();
+    }
+
+    private static boolean isInExclusions(String currentLine) {
+         return StringUtils.containsIgnoreCase(currentLine, "workflows") || StringUtils.containsIgnoreCase(currentLine, "agent") || StringUtils.containsIgnoreCase(currentLine, "demos");
+    }
+
     private boolean isVersionNumber(String currentLine) {
         Pattern pattern = Pattern.compile("^\\d+_\\d");
         Matcher matcher = pattern.matcher(currentLine);
@@ -373,7 +414,45 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
     // FILE READING
 
     private static void readLanguageFile() throws IOException {
+        ConvertConstellioLanguageTable convertConstellioLanguageTable = new ConvertConstellioLanguageTable("7_6_3", false);
+        Map<String, Map<String,String>> sheetPropertiesInArabicWithIcons = new HashMap<>();
 
+        FileInputStream inputStream = new FileInputStream(convertConstellioLanguageTable.getOutputFile());
+
+        org.apache.poi.ss.usermodel.Workbook workbook = new HSSFWorkbook(inputStream);
+
+        for(int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            Sheet currentSheet = workbook.getSheetAt(i);
+            Iterator<Row> iterator = currentSheet.iterator();
+            Map<String,String> propertiesWithValues = new HashMap<>(); // TODO note : unsorted and not sequential
+
+            while (iterator.hasNext()) {
+                Row nextRow = iterator.next();
+                Iterator<Cell> cellIterator = nextRow.cellIterator();
+
+                int columnNumber = 0;
+                String currentProperty = "";
+
+                while (cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    String cellValue = cell.getStringCellValue();
+
+                    if(columnNumber==0){
+                        currentProperty = cellValue;
+                    }
+                    else if(columnNumber==3){
+                        propertiesWithValues.put(currentProperty, cellValue);
+                    }
+
+                    columnNumber++;
+                }
+            }
+
+            sheetPropertiesInArabicWithIcons.put(currentSheet.getSheetName(), propertiesWithValues);
+        }
+
+        workbook.close();
+        inputStream.close();
     }
 
     public Excel2003ImportDataProvider getNewDataProvider(File file){
