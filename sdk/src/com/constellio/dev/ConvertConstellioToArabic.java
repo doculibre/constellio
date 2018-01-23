@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 public class ConvertConstellioToArabic {
 
     public static final String INFOS_SEPARATOR = "=";
-    public static final String ARABIC_FILE_CHARSET = "Cp1256"; // "Windows Arabic" encoding
     public static final String DEFAULT_FILE_CHARSET = "UTF-8";
 
     // TODO NOTE : these files are not submitted into this branch. Find them on branch "arabic-demo" here : https://github.com/doculibre/constellio-dev
@@ -31,7 +30,7 @@ public class ConvertConstellioToArabic {
 
         File file = new File(folder, fileName);
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), ARABIC_FILE_CHARSET))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), DEFAULT_FILE_CHARSET))) {
 
             String previousLine = "";
             String currentLine;
@@ -63,7 +62,7 @@ public class ConvertConstellioToArabic {
         File inputFile = new File(folder, inputFileName);
         File outputFile = new File(folder, outputFileName);
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), DEFAULT_FILE_CHARSET)); BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), ARABIC_FILE_CHARSET));) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), DEFAULT_FILE_CHARSET)); BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), DEFAULT_FILE_CHARSET));) {
 
             String previousLine = "";
             String currentLine;
