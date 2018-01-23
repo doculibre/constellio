@@ -161,7 +161,9 @@ public class AppManagementService {
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 			updatePluginsWithThoseInWar(tempFolder);
 
-			selectSmbLibrary();
+			currentStep = "Selecting SMB Library";
+			selectSmbLibrary(tempFolder);
+			LOGGER.info(currentStep);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -642,22 +644,19 @@ public class AppManagementService {
 		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
 	}
 
-	private void selectSmbLibrary() {
+	private void selectSmbLibrary(File newWebAppFolder) {
 		Map<String, String> configs = PropertyFileUtils.loadKeyValues(foldersLocator.getConstellioProperties());
-		boolean smbNovell = false;
 		if ("true".equals(configs.get("smb.novell"))) {
-			smbNovell = true;
-		}
-
-		if (smbNovell) {
-			File currentAppFolder = foldersLocator.getConstellioWebappFolder();
-			File libFolder = foldersLocator.getLibFolder(currentAppFolder);
+			LOGGER.info("Replacing SMB library for Novell");
+			File libFolder = foldersLocator.getLibFolder(newWebAppFolder);
 			try {
 				File novellSmbLib = new File(libFolder, "jcifs_novell.jar.disabled");
+				LOGGER.info("Enabling : " + novellSmbLib);
 				if (novellSmbLib.exists()) {
 					FileUtils.moveFile(novellSmbLib, new File(libFolder, "jcifs_novell.jar"));
 				}
 				File defaultSmbLib = new File(libFolder, "jcifs_gcm-322.jar");
+				LOGGER.info("Disabling : " + defaultSmbLib);
 				if (defaultSmbLib.exists()) {
 					FileUtils.moveFile(defaultSmbLib, new File(libFolder, "jcifs_gcm-322.jar.disabled"));
 				}

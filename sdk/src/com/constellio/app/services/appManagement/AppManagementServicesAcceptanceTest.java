@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -418,25 +419,22 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUploadedWarWithNovellSmbThenMovedJars()
+	public void givenUploadedWarWithNovellSmbThenJarMoved()
 			throws Exception {
-
 		File currentAppFolder = foldersLocator.getConstellioWebappFolder();
 		File libFolder = foldersLocator.getLibFolder(currentAppFolder);
-		File jcifsDefaultLib = new File(libFolder, "jcifs_gcm-322.jar");
-		FileUtils.touch(jcifsDefaultLib);
-		File jcifsNovellLib = new File(libFolder, "jcifs_novell.jar.disabled");
-		FileUtils.touch(jcifsNovellLib);
 
 		FileUtils.write(constellioProperties, "\nsmb.novell=true", StandardCharsets.UTF_8);
 
-		uploadADummyUpdateJarWithVersion("5.0.5");
+		uploadADummyUpdateJarWithVersion("5.7777777.5");
 		appManagementService.update(new ProgressInfo());
 
-		assertThat(new File(libFolder, "jcifs_gcm-322.jar")).doesNotExist();
-		assertThat(new File(libFolder, "jcifs_gcm-322.jar.disabled")).exists();
-		assertThat(new File(libFolder, "jcifs_novell.jar.disabled")).doesNotExist();
-		assertThat(new File(libFolder, "jcifs_novell.jar")).exists();
+		String newLibPath = StringUtils.replace(libFolder.toString(), "5.0.5", "5.7777777.5");
+
+		assertThat(new File(newLibPath, "jcifs_gcm-322.jar")).doesNotExist();
+		assertThat(new File(newLibPath, "jcifs_gcm-322.jar.disabled")).exists();
+		assertThat(new File(newLibPath, "jcifs_novell.jar.disabled")).doesNotExist();
+		assertThat(new File(newLibPath, "jcifs_novell.jar")).exists();
 	}
 
 
@@ -462,6 +460,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File coreApp = new File(lib, "core-app-" + version + ".jar");
 		File coreModel = new File(lib, "core-model-" + version + ".jar");
 		File coreData = new File(lib, "core-data-" + version + ".jar");
+
+		File jcifsDefaultLib = new File(lib, "jcifs_gcm-322.jar");
+		FileUtils.touch(jcifsDefaultLib);
+		File jcifsNovellLib = new File(lib, "jcifs_novell.jar.disabled");
+		FileUtils.touch(jcifsNovellLib);
 
 		FileUtils.write(coreApp, "The content of core app!");
 		FileUtils.write(coreModel, "The content of core model!");
