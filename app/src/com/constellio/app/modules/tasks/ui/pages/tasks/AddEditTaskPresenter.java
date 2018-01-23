@@ -6,14 +6,18 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
@@ -419,17 +423,19 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	boolean isReloadRequiredAfterTaskTypeChange() {
-		boolean reload;
+		boolean reload = false;
 		String currentSchemaCode = getSchemaCode();
-		String taskTypeRecordId = getTypeFieldValue();
-		if (StringUtils.isNotBlank(taskTypeRecordId)) {
-			String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
-			if (schemaCodeForTaskTypeRecordId != null) {
-				reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
-			} else
+		if(isTaskTypeFieldVisible()) {
+			String taskTypeRecordId = getTypeFieldValue();
+			if (StringUtils.isNotBlank(taskTypeRecordId)) {
+				String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
+				if (schemaCodeForTaskTypeRecordId != null) {
+					reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
+				} else
+					reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			} else {
 				reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
-		} else {
-			reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			}
 		}
 		return reload;
 	}
@@ -495,5 +501,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public Record getWorkflow(String workflowId) {
 		return recordServices().getDocumentById(workflowId);
+	}
+
+	public boolean isTaskTypeFieldVisible() {
+		return view.getForm().getCustomField(Task.TYPE) != null;
 	}
 }
