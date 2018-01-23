@@ -113,6 +113,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONTENT_PARSING_SCHEDULE;
 	public static final SystemConfiguration VIEWER_CONTENTS_CONVERSION_SCHEDULE;
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
+	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -213,6 +214,10 @@ public class ConstellioEIMConfigs {
 
 		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
 				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
+
+		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -419,5 +424,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isInViewerContentsConversionSchedule() {
 		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
+	}
+
+	public boolean isStatisticReportEnabled() {
+		return manager.getValue(ENABLE_STATISTIC_REPORT);
 	}
 }

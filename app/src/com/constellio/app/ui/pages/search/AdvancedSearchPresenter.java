@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.*;
@@ -286,7 +287,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public Boolean computeStatistics() {
-		return schemaTypeCode != null && schemaTypeCode.equals(Folder.SCHEMA_TYPE);
+		return schemaTypeCode != null && schemaTypeCode.equals(Folder.SCHEMA_TYPE) && isStatisticReportEnabled();
 	}
 
 	@Override
@@ -724,4 +725,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return schemasDisplayManager().getType(collection, types.getCode()).isAdvancedSearch();
 	}
 
+	public boolean isStatisticReportEnabled() {
+		return new ConstellioEIMConfigs(modelLayerFactory).isStatisticReportEnabled();
+	}
 }
