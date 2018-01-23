@@ -577,7 +577,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		if (folder.getCloseDate() == null) {
 			types.add(DecommissioningListType.FOLDERS_TO_CLOSE);
 
-		} else {
+		}
+		if(folder.getCloseDate() != null || folder.hasExpectedDates()){
 			if (folder.getArchivisticStatus() == ACTIVE) {
 				types.add(DecommissioningListType.FOLDERS_TO_TRANSFER);
 			}
