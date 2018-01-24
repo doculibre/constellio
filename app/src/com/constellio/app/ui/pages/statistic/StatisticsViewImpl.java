@@ -97,11 +97,11 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         excludedRequestField.setId("excludedRequest");
 
         statisticTypeField = new ComboBox($("StatisticsView.statisticType"));
+        statisticTypeField.setNullSelectionAllowed(false);
         statisticTypeField.setId("statisticType");
 
         CBItem item = new CBItem(null, $("StatisticsView.journalRequest"));
         statisticTypeField.addItem(item);
-        statisticTypeField.select(item);
 
         statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST, $("StatisticsView.famousRequest")));
         statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT, $("StatisticsView.famousRequestWithResult")));
@@ -171,6 +171,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                 return false;
             }
         };
+
+        statisticTypeField.select(item);
 
         return baseForm;
     }
