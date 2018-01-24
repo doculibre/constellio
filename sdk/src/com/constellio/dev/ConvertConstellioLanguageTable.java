@@ -30,6 +30,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
     public static final String INFOS_SEPARATOR = "=";
     public static final String DEFAULT_FILE_CHARSET = "UTF-8";
+    public static final String PRINCIPAL_LANG_FILE = "i18n.properties";
     private static final WritableFont.FontName FONT = WritableFont.ARIAL;
     private static final int FONT_SIZE = 10;
     private static final int ARABIC_CHARACTER_ASSIGNATION_LIMIT = 1791;
@@ -59,11 +60,32 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
     }
 
     public ConvertConstellioLanguageTable(String minVersion, boolean isWriteMode) throws IOException {
-        filesInPath = new TreeSet<>(Collections.<File>reverseOrder());
+        filesInPath = new TreeSet<>(
+                new Comparator<File>() {
+                    @Override
+                    public int compare(File o1, File o2) {
+
+                        // o2 gets compared before 01 for A-Z sorting (and not Z-A)
+                        int result = o2.getName().compareTo(o1.getName());
+
+                        // makes principal file first, independently of sort method
+                        if(o2.getName().equals(PRINCIPAL_LANG_FILE)){
+                           result = -1;
+                        }
+
+                        return result;
+                    }
+                }
+        );
         this.minVersion = minVersion;
         initSystemFiles(isWriteMode);
     }
 
+    /**
+     * Initialises files needed.
+     * @param deletePreviousInfos - true if previous conversion can be deleted before running
+     * @throws IOException
+     */
     private void initSystemFiles(boolean deletePreviousInfos) throws IOException {
         FoldersLocator foldersLocator = new FoldersLocator();
         File i18nFolder = foldersLocator.getI18nFolder();
