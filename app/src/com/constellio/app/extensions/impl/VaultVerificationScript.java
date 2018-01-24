@@ -38,7 +38,7 @@ public class VaultVerificationScript extends ScriptWithLogOutput {
 
     public VaultVerificationScript(AppLayerFactory appLayerFactory) {
 
-        super(appLayerFactory, "Voûte", "Trouver les fichiers manquants");
+        super(appLayerFactory, "Voûte", "Trouver les fichiers manquants", true);
 
         this.appLayerFactory = appLayerFactory;
         vaultDao = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getContentsDao();
