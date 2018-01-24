@@ -1,36 +1,34 @@
 package com.constellio.dev;
 
-import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003Sheet;
-import com.constellio.app.services.schemas.bulkImport.data.excel.ExcelImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.excel.ExcelSheet;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.model.conf.FoldersLocator;
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
 import jxl.write.*;
 import jxl.write.Number;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
 public class ConvertConstellioLanguageTable implements ReportWriter {
 
     public static final String INFOS_SEPARATOR = "=";
     public static final String DEFAULT_FILE_CHARSET = "UTF-8";
     public static final String PRINCIPAL_LANG_FILE = "i18n.properties";
+    public static final String PROPERTIES_FILE_EXTENSION = ".properties";
+    public static final String PROPERTIES_FILE_ARABIC_SIGNATURE = "_ar";
+    public static final String PROPERTIES_FILE_NO_TRADUCTION_VALUE = "noTraductionAvailable";
     private static final WritableFont.FontName FONT = WritableFont.ARIAL;
     private static final int FONT_SIZE = 10;
     private static final int ARABIC_CHARACTER_ASSIGNATION_LIMIT = 1791;
@@ -47,7 +45,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
     public static void main(String[] args) throws IOException {
         writeLanguageFile();
-//        readLanguageFile();
+        readLanguageFile();
     }
 
     private static void writeLanguageFile() throws IOException {
@@ -93,21 +91,21 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         File outputDirectory = new File(i18nFolder+ File.separator + "excelOutput");
         outputFile = new File(outputDirectory, "output."+getFileExtension());
 
+        // get files to convert
+        filesAndFolders = ArrayUtils.addAll(
+                i18nFolder.listFiles(),
+                new File(foldersLocator.getPluginsRepository(),"/plugin011/src/com/constellio/agent/i18n/"),
+                new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/i18n/"),
+                new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/migrations/1_0/"),
+                new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_6_10/"),
+                new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_5_2_7/")
+        );
+
         if(deletePreviousInfos){
             // deletes previous output so its not in input files
             if(outputDirectory.exists()){
                 FileUtils.deleteDirectory(outputDirectory);
             }
-
-            // get files to convert
-            filesAndFolders = ArrayUtils.addAll(
-                    i18nFolder.listFiles(),
-                    new File(foldersLocator.getPluginsRepository(),"/plugin011/src/com/constellio/agent/i18n/"),
-                    new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/i18n/"),
-                    new File(foldersLocator.getPluginsRepository(),"/plugin029/resources/demos/migrations/1_0/"),
-                    new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_6_10/"),
-                    new File(foldersLocator.getPluginsRepository(),"/plugin028/resources/workflows/migrations/7_5_2_7/")
-            );
 
             // creates output files
             outputDirectory.mkdir();
@@ -121,7 +119,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
     private void convert(){
 
-        Map<String, String> arabicInfos = arabicInfos = getFileInfos(arabicFile.getParentFile(), arabicFile.getName());
+        Map<String, String> arabicInfos = getFileInfos(arabicFile.getParentFile(), arabicFile.getName());
 
         for (File file : filesInPath) {
 
@@ -131,7 +129,8 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
                 initExcelModel();
 
                 Map<String, String> frenchInfos = getFileInfos(file.getParentFile(), fileName);
-                Map<String, String> englishInfos = getFileInfos(file.getParentFile(), fileName.replace(".properties", "_en.properties"));
+
+                Map<String, String> englishInfos = getFileInfos(file.getParentFile(), fileName.replace(PROPERTIES_FILE_EXTENSION, "_en.properties"));
 
                 for (Map.Entry<String, String> entry : frenchInfos.entrySet()) {
 
@@ -153,7 +152,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
                     model.addLine(line);
                 }
 
-                writeSheet(file.getName().replace(".properties", ""));
+                writeSheet(file.getName().replace(PROPERTIES_FILE_EXTENSION, ""));
             }
         }
     }
@@ -174,6 +173,11 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         return value.trim();
     }
 
+    /**
+     * Parses list of available system files and keeps only needed files (combo files with those not included in combo only).
+     * @param files
+     * @throws IOException
+     */
     private void prepareConversion(File[] files) throws IOException {
 
         for (File file : files) {
@@ -181,7 +185,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
             String fileName = file.getName();
             String filePath = file.getAbsolutePath();
 
-            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && fileName.compareTo(minVersion)>0) || isInExclusions(filePath))) {
+            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && fileName.compareTo(minVersion)>0) || isInInclusions(filePath))) {
                 prepareConversion(file.listFiles());
             }
             else if(!file.isDirectory()){
@@ -192,6 +196,12 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         }
     }
 
+    /**
+     * Get information read from a specific property file while preserving read order.
+     * @param folder root of file
+     * @param fileName to append to folder to create final file
+     * @return infos
+     */
     private static Map<String, String> getFileInfos(File folder, String fileName) {
 
         Map<String, String> infos = new LinkedHashMap<>();
@@ -225,6 +235,11 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         return infos;
     }
 
+    /**
+     * Get property name from read line. Uses specified pattern.
+     * @param currentLine - line read
+     * @return the property
+     */
     private static String getPropertyName(String currentLine) {
 
         String propertyName = null;
@@ -237,6 +252,11 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         return propertyName;
     }
 
+    /**
+     * Checks whether "\" multiline character in property files is used.
+     * @param currentLine
+     * @return true if multiline
+     */
     private static boolean isNotClosed(String currentLine) {
         java.util.regex.Pattern pattern = Pattern.compile("\\\\$");
         Matcher matcher = pattern.matcher(currentLine);
@@ -246,6 +266,9 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
     // EXCEL SETUP
 
+    /**
+     * Initialize Excel model (headers).
+     */
     private void initExcelModel(){
         model = new ReportModelImpl();
         model.addTitle("Property");
@@ -264,7 +287,6 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
     public void write(OutputStream output)
             throws IOException {
         WorkbookSettings wbSettings = new WorkbookSettings();
-//      wbSettings.setLocale(locale);
         workbook = Workbook.createWorkbook(output, wbSettings);
    }
 
@@ -387,7 +409,7 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
         return matcher.find();
     }
 
-    private static boolean isInExclusions(String currentLine) {
+    private static boolean isInInclusions(String currentLine) {
          return StringUtils.containsIgnoreCase(currentLine, "workflows") || StringUtils.containsIgnoreCase(currentLine, "agent") || StringUtils.containsIgnoreCase(currentLine, "demos");
     }
 
@@ -437,19 +459,144 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
 
     private static void readLanguageFile() throws IOException {
         ConvertConstellioLanguageTable convertConstellioLanguageTable = new ConvertConstellioLanguageTable("7_6_3", false);
-        Map<String, Map<String,String>> sheetPropertiesInArabicWithIcons = new HashMap<>();
+        convertConstellioLanguageTable.prepareConversion(convertConstellioLanguageTable.getFilesAndFolders());
 
-        FileInputStream inputStream = new FileInputStream(convertConstellioLanguageTable.getOutputFile());
+        Map<String, Map<String,String>> valuesInArabicWithoutIcons = convertConstellioLanguageTable.getExcelFileInfos(convertConstellioLanguageTable.getOutputFile(), 0, 3);
+        Map<String, Map<String,String>> valuesInFrenchWithoutIcons = convertConstellioLanguageTable.getExcelFileInfos(convertConstellioLanguageTable.getOutputFile(), 0, 1);
+        Map<String, Map<String,String>> valuesInArabicWithIcons = convertConstellioLanguageTable.addIconsFromFrenchPropertyFiles(valuesInArabicWithoutIcons, valuesInFrenchWithoutIcons);
+
+        convertConstellioLanguageTable.writeExcelInfosToPropertyFiles(valuesInArabicWithIcons);
+    }
+
+    private void writeExcelInfosToPropertyFiles(Map<String, Map<String, String>> valuesInArabicWithIcons) {
+        for (Map.Entry<String, Map<String,String>> sheetEntry : valuesInArabicWithIcons.entrySet()) {
+            String sheetName = sheetEntry.getKey();
+            File frenchFile = getFile(filesInPath, sheetName+PROPERTIES_FILE_EXTENSION);
+            File file = new File(frenchFile.getParentFile(), sheetName+PROPERTIES_FILE_ARABIC_SIGNATURE+PROPERTIES_FILE_EXTENSION);
+            writeInfosToPropertyFile(file, sheetEntry.getValue());
+        }
+    }
+
+    private Map<String,Map<String,String>> addIconsFromFrenchPropertyFiles(Map<String, Map<String, String>> valuesInArabicWithoutIcons, Map<String, Map<String, String>> valuesInFrenchWithoutIcons) {
+
+        Map<String, Map<String,String>> sheetsWithArabicValuesWithIcons = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Map<String,String>> sheetEntry : valuesInArabicWithoutIcons.entrySet()) {
+
+            String sheetName = sheetEntry.getKey();
+            File file = getFile(filesInPath, sheetName+PROPERTIES_FILE_EXTENSION);
+            Map<String,String> arabicInfos = valuesInArabicWithoutIcons.get(sheetName);
+            Map<String, String> frenchInfos = valuesInFrenchWithoutIcons.get(sheetName);
+            Map<String, String> frenchInfosWithIcons = getFileInfos(file.getParentFile(), file.getName());
+            Map<String, String> arabicInfosWithIcons = new LinkedHashMap<>();
+
+            // iterates through the most reliable property list
+            for (Map.Entry<String, String> propertyEntry : frenchInfosWithIcons.entrySet()) {
+
+                String property = propertyEntry.getKey();
+                String arabicValue = arabicInfos.get(property);
+                String frenchValue = frenchInfos.get(property);
+                String frenchValueWithIcons = frenchInfosWithIcons.get(property);
+
+                    if(frenchValueWithIcons.contains(frenchValue) && arabicInfos.containsKey(property)){ // only if french and arabic data in Excel is reliable (not humanly modified or icons are in middle of text parsed or no traduction available at all), we can retreive icon
+                        arabicInfosWithIcons.put(property, frenchValueWithIcons.replace(frenchValue, arabicValue));
+                    }
+                    else{
+                        arabicInfosWithIcons.put(property, PROPERTIES_FILE_NO_TRADUCTION_VALUE);
+                    }
+            }
+
+            // append to result
+            sheetsWithArabicValuesWithIcons.put(sheetName, arabicInfosWithIcons);
+        }
+
+        return sheetsWithArabicValuesWithIcons;
+    }
+
+    /**
+     * Writes multiple key-value pair to property file.
+     * @param outputFile
+     * @param infos - mapped values
+     */
+    private static void writeInfosToPropertyFile(File outputFile, Map<String, String> infos) {
+
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), DEFAULT_FILE_CHARSET));) {
+
+            for (Map.Entry<String, String> propertyEntry : infos.entrySet()) {
+
+                String property = propertyEntry.getKey();
+                String value = propertyEntry.getValue();
+
+                bw.write(property+INFOS_SEPARATOR+value);
+                bw.newLine();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Get file from group provided.
+     * @param files
+     * @param fileName
+     * @return targeted file
+     */
+    private File getFile(Set<File> files, String fileName) {
+
+        File targetedFile = null;
+
+        for(File file : files){
+            if(file.getName().equals(fileName)){
+                targetedFile = file;
+            }
+        }
+
+        return targetedFile;
+    }
+
+    /**
+     * Returns Excel content for a given file while preserving read order.
+     * @param file
+     * @throws IOException
+     */
+    private Map<String, Map<String, String>> getExcelFileInfos(File file, int columnIndexReadToKey, int columnIndexReadToValue) throws IOException {
+
+        Map<String, Map<String,String>> sheetKeyValuePairChosen = new LinkedHashMap<>();
+
+        FileInputStream inputStream = new FileInputStream(file);
 
         org.apache.poi.ss.usermodel.Workbook workbook = new HSSFWorkbook(inputStream);
 
         for(int i = 0; i < workbook.getNumberOfSheets(); i++) {
             Sheet currentSheet = workbook.getSheetAt(i);
-            Iterator<Row> iterator = currentSheet.iterator();
-            Map<String,String> propertiesWithValues = new HashMap<>(); // TODO note : unsorted and not sequential
+            sheetKeyValuePairChosen.put(currentSheet.getSheetName(), getExcelSheetInfos(currentSheet,columnIndexReadToKey,columnIndexReadToValue));
+        }
 
-            while (iterator.hasNext()) {
-                Row nextRow = iterator.next();
+        workbook.close();
+        inputStream.close();
+
+        return sheetKeyValuePairChosen;
+    }
+
+    /**
+     * Returns Excel sheet content.
+     * @param currentSheet - sheet object
+     * @param columnIndexReadToKey - column index mapped as key
+     * @param columnIndexReadToValue - column index mapped as value
+     * @return map with key and value chosen
+     */
+    private Map<String, String> getExcelSheetInfos(Sheet currentSheet, int columnIndexReadToKey, int columnIndexReadToValue) {
+
+        Iterator<Row> iterator = currentSheet.iterator();
+        Map<String,String> propertiesWithValues = new HashMap<>(); // TODO note : unsorted and not sequential
+
+        int lineNumber = 0;
+
+        while (iterator.hasNext()) {
+            Row nextRow = iterator.next();
+
+            if(lineNumber>0) { // first line is header of Excel sheet
                 Iterator<Cell> cellIterator = nextRow.cellIterator();
 
                 int columnNumber = 0;
@@ -459,10 +606,9 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
                     Cell cell = cellIterator.next();
                     String cellValue = cell.getStringCellValue();
 
-                    if(columnNumber==0){
+                    if (columnNumber == columnIndexReadToKey) {
                         currentProperty = cellValue;
-                    }
-                    else if(columnNumber==3){
+                    } else if (columnNumber == columnIndexReadToValue) {
                         propertiesWithValues.put(currentProperty, cellValue);
                     }
 
@@ -470,56 +616,9 @@ public class ConvertConstellioLanguageTable implements ReportWriter {
                 }
             }
 
-            sheetPropertiesInArabicWithIcons.put(currentSheet.getSheetName(), propertiesWithValues);
+            lineNumber++;
         }
 
-        workbook.close();
-        inputStream.close();
+        return propertiesWithValues;
     }
-
-    public Excel2003ImportDataProvider getNewDataProvider(File file){
-        return new Excel2003ImportDataProvider(file);
-    }
-
-    private class Excel2003ImportDataProvider {
-
-        private File excelFile;
-
-        private Workbook workbook;
-
-        public Excel2003ImportDataProvider(File excelFile) {
-            this.excelFile = excelFile;
-        }
-
-        public ExcelImportDataIterator newDataIterator(String sheet){
-            return new ExcelImportDataIterator(getExcelSheet(sheet));
-        }
-
-        public void initialize() {
-            this.workbook = loadWorkbook(excelFile);
-        }
-
-        public void close() {
-            workbook.close();
-        }
-
-        public Workbook loadWorkbook(File workbookFile) {
-            WorkbookSettings settings = new WorkbookSettings();
-            settings.setEncoding(DEFAULT_FILE_CHARSET);
-            try {
-                return Workbook.getWorkbook(workbookFile, settings);
-            } catch (BiffException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public jxl.Sheet[] getExcelSheets(){
-            return workbook.getSheets();
-        }
-
-        public ExcelSheet getExcelSheet(String sheet) {
-            return new Excel2003Sheet(workbook.getSheet(sheet));
-        }
-    }
-
 }
