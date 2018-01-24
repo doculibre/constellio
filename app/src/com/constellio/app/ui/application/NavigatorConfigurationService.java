@@ -38,7 +38,6 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuth
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
-import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoPresenter;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.capsule.addEdit.AddEditCapsuleViewImpl;
@@ -91,7 +90,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
-import com.constellio.app.ui.pages.statistique.StatisticsViewImpl;
+import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
