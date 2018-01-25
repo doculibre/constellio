@@ -3,7 +3,7 @@ package com.constellio.model.services.search.entities;
 import java.io.Serializable;
 
 public class SearchBoost implements Serializable {
-	
+
 	public static final String METADATA_TYPE = "metadata";
 	public static final String QUERY_TYPE = "query";
 
@@ -55,5 +55,13 @@ public class SearchBoost implements Serializable {
 
 	public void setValue(double value) {
 		this.value = value;
+	}
+
+	public static SearchBoost createRegexBoost(String solrQuery, String displayLabel, double value) {
+		return new SearchBoost(QUERY_TYPE, solrQuery, displayLabel, value);
+	}
+
+	public static SearchBoost createRegexBoost(String solrField, String solrValue, String displayLabel, double value) {
+		return new SearchBoost(QUERY_TYPE, solrField + ":" + solrValue, displayLabel, value);
 	}
 }

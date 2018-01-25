@@ -47,6 +47,8 @@ public class ImportedMetadata {
 
 	private ImportedDataEntry dataEntry;
 
+	private ImportedMetadataPopulateConfigs populateConfigs = null;
+
 	public String getCode() {
 		return code;
 	}
@@ -319,6 +321,21 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setReferencedType(String referencedType) {
 		this.referencedType = referencedType;
+		return this;
+	}
+
+	public ImportedMetadataPopulateConfigs getPopulateConfigs() {
+		return populateConfigs;
+	}
+
+	public ImportedMetadataPopulateConfigs newPopulateConfigs() {
+		populateConfigs = new ImportedMetadataPopulateConfigs();
+		return populateConfigs;
+	}
+
+	public ImportedMetadata setPopulateConfigs(
+			ImportedMetadataPopulateConfigs populateConfigs) {
+		this.populateConfigs = populateConfigs;
 		return this;
 	}
 
