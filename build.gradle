@@ -84,6 +84,9 @@ war {
         from("reportsRecource/") {
             into("resources/reports")
         }
+        from("libs/jcifs_novell.jar.disabled") {
+            into("lib")
+        }
     }
 
     if (findProject(":constellio-plugins") != null) {
