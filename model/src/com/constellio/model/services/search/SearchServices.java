@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +21,7 @@ import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
 
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
@@ -118,8 +118,8 @@ public class SearchServices {
 		return records;
 	}
 
-	public Map<Record, Map<Record, Double>> searchWithMoreLikeThis(LogicalSearchQuery query) {
-		return query(query).getRecordsWithMoreLikeThis();
+	public List<MoreLikeThisRecord> searchWithMoreLikeThis(LogicalSearchQuery query) {
+		return query(query).getMoreLikeThisRecords();
 	}
 
 	public List<Record> search(LogicalSearchQuery query) {
@@ -378,13 +378,17 @@ public class SearchServices {
 		for (String filterQuery : query.getFilterQueries()) {
 			params.add(CommonParams.FQ, filterQuery);
 		}
-		addUserFilter(params, query.getUserFilters());
 
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language));
 
-		params.add(CommonParams.QT, "/spell");
-		params.add(ShardParams.SHARDS_QT, "/spell");
+		if (query.isMoreLikeThis()) {
+			params.add(CommonParams.QT, "/mlt");
+		} else {
+			params.add(CommonParams.QT, "/spell");
+			params.add(ShardParams.SHARDS_QT, "/spell");
+
+		}
 
 		if (query.getFreeTextQuery() != null) {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
@@ -404,13 +408,35 @@ public class SearchServices {
 			}
 		}
 
-		String userCondition = "";
-		if (query.getQueryCondition() != null) {
-			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?"));
+		//		String userCondition = "";
+		//		if (query.getQueryCondition() != null) {
+		//			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?")) + " AND (";
+		//			if (query.getUserFilters() != null) {
+		//				if (!userCondition.endsWith("(")) {
+		//					userCondition += " OR ";
+		//				}
+		//				for (UserFilter userFilter : query.getUserFilters()) {
+		//					userCondition += userFilter.buildFQ(securityTokenManager);
+		//				}
+		//
+		//			}
+		//			if (userCondition.endsWith("(")) {
+		//				userCondition += "*:*";
+		//			}
+		//			userCondition += ")";
+		//		}
+
+		if (query.isMoreLikeThis()) {
+			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
+		} else {
+			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
-		params.add(CommonParams.Q, String.format("%s%s", StringUtils.defaultString(query.getFreeTextQuery(), "*:*")
-				, userCondition));
+		if (query.getUserFilters() != null) {
+			for (UserFilter userFilter : query.getUserFilters()) {
+				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+			}
+		}
 
 		params.add(CommonParams.ROWS, "" + query.getNumberOfRows());
 		params.add(CommonParams.START, "" + query.getStartRow());
@@ -563,8 +589,7 @@ public class SearchServices {
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
 
-		Map<Record, Map<Record, Double>> moreLikeThisResult = getResultWithMoreLikeThis(
-				queryResponseDTO.getResultsWithMoreLikeThis());
+		List<MoreLikeThisRecord> moreLikeThisResult = getResultWithMoreLikeThis(queryResponseDTO.getMoreLikeThisResults());
 
 		Map<String, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
 				queryResponseDTO.getFieldFacetValues());
@@ -584,17 +609,13 @@ public class SearchServices {
 		}
 	}
 
-	private Map<Record, Map<Record, Double>> getResultWithMoreLikeThis(
-			Map<RecordDTO, Map<RecordDTO, Double>> resultsWithMoreLikeThis) {
-		Map<Record, Map<Record, Double>> results = new LinkedHashMap<>();
-		for (Entry<RecordDTO, Map<RecordDTO, Double>> aDocWithMoreLikeThis : resultsWithMoreLikeThis.entrySet()) {
-			Map<Record, Double> similarRecords = new LinkedHashMap<>();
-			for (Entry<RecordDTO, Double> similarDocWithScore : aDocWithMoreLikeThis.getValue().entrySet()) {
-				similarRecords.put(recordServices.toRecord(similarDocWithScore.getKey(), true), similarDocWithScore.getValue());
-			}
-			results.put(recordServices.toRecord(aDocWithMoreLikeThis.getKey(), true), similarRecords);
+	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {
+		List<MoreLikeThisRecord> moreLikeThisRecords = new ArrayList<>();
+
+		for (MoreLikeThisDTO dto : moreLikeThisResults) {
+			moreLikeThisRecords.add(new MoreLikeThisRecord(recordServices.toRecord(dto.getRecord(), true), dto.getScore()));
 		}
-		return results;
+		return moreLikeThisRecords;
 	}
 
 	private Map<String, Integer> withRemoveExclusions(Map<String, Integer> queryFacetValues) {
@@ -634,13 +655,4 @@ public class SearchServices {
 		return result;
 	}
 
-	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
-		if (userFilters == null) {
-			return;
-		}
-
-		for (UserFilter userFilter : userFilters) {
-			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
-		}
-	}
 }

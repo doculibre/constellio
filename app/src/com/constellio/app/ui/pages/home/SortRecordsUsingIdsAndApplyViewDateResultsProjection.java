@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.home;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +10,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -44,6 +44,6 @@ public class SortRecordsUsingIdsAndApplyViewDateResultsProjection implements Res
 			}
 		});
 
-		return new SPEQueryResponse(records, new HashMap<Record, Map<Record, Double>>());
+		return new SPEQueryResponse(records, new ArrayList<MoreLikeThisRecord>());
 	}
 }

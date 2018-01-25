@@ -19,6 +19,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculat
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -143,28 +144,20 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(transaction);
 
-		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(documentCNewVersion);
-
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
-		query.setQueryCondition(condition);
-		query.setMoreLikeThis(true);
-		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		query.setMoreLikeThisRecordId(documentCNewVersion.getId()).addMoreLikeThisField(zeSchema.stringMetadata());
 
-		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
+		assertThat(searchServices.searchWithMoreLikeThis(query)).extracting("record.id", "identical").containsOnly(
+				tuple(documentA.getId(), false),
+				tuple(documentB.getId(), false),
+				tuple(documentC.getId(), false));
 
-		assertThat(resutls).hasSize(1);
-		Map<Record, Double> similarDocs = resutls.entrySet().iterator().next().getValue();
-
-		List<Record> docsInOrder = new ArrayList<>();
-		for (Entry<Record, Double> record : similarDocs.entrySet()) {
-			docsInOrder.add(record.getKey());
-		}
-
-		assertThat(docsInOrder).containsExactly(documentC, documentB, documentA);
 	}
 
-	public String createAContentWithWords(Random random, String[] words) {
+	private Random random = new Random();
+
+	public String stringWithRandom(String[] words) {
 
 		final int WORD_DOC_CNT = 10;
 		StringBuilder sb = new StringBuilder();
@@ -184,41 +177,27 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
 		String[] politicsWords = new String[] { "party", "democrat", "president", "election", "vote" };
 		String[] sportWords = new String[] { "hockey", "team", "game", "play", "league" };
-		String[][] topics = new String[][] { politicsWords, sportWords };
-		String[] topicNames = new String[] { "POLICTICS", "SPORT" };
 
-		final int TOPIC_DOC_CNT = 10;
-		Random random = new Random(77655467554l);
-		for (int topicIdx = 0; topicIdx < topicNames.length; topicIdx++) {
-			String topicName = topicNames[topicIdx];
-			String[] words = topics[topicIdx];
-			for (int i = 0; i < TOPIC_DOC_CNT; i++) {
-				transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
-						, createAContentWithWords(random, words)).set(zeSchema.anotherStringMetadata(), topicName));
-			}
+		for (int i = 0; i < 10; i++) {
+			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
+					, stringWithRandom(politicsWords)).set(zeSchema.anotherStringMetadata(), "POLITICS"));
 		}
 
-		int docTopicIdx = 1;
-		Record docToBeClassified;
-		transaction.addUpdate(docToBeClassified = newRecordOfZeSchema().set(
-				zeSchema.stringMetadata(), createAContentWithWords(random, topics[docTopicIdx])));
+		for (int i = 0; i < 10; i++) {
+			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
+					, stringWithRandom(sportWords)).set(zeSchema.anotherStringMetadata(), "SPORT"));
+		}
+
+		transaction.add(newRecordOfZeSchema("newSportDoc").set(zeSchema.stringMetadata(), stringWithRandom(sportWords)));
+		transaction.add(newRecordOfZeSchema("newPoliticsDoc").set(zeSchema.stringMetadata(), stringWithRandom(politicsWords)));
 		recordServices.execute(transaction);
 
 		//when
-		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(docToBeClassified);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
-		query.setQueryCondition(condition);
-		query.setMoreLikeThis(true);
-		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		query.setMoreLikeThisRecordId("newSportDoc").addMoreLikeThisField(zeSchema.stringMetadata());
 
-		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
-
-		assertThat(resutls).hasSize(1);
-		assertThat(resutls.entrySet().iterator().next().getValue()).isNotEmpty();
-		//then
-
-		MoreLikeThisClustering facet = new MoreLikeThisClustering(resutls.get(docToBeClassified),
+		MoreLikeThisClustering facet = new MoreLikeThisClustering(searchServices.searchWithMoreLikeThis(query),
 				new MoreLikeThisClustering.StringConverter<Record>() {
 
 					@Override
@@ -227,8 +206,21 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 					}
 				});
 
-		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey();
-		assertThat(suggestedTopic).isEqualTo(topicNames[docTopicIdx]);
+		assertThat(facet.getClusterScore().entrySet().iterator().next().getKey()).isEqualTo("SPORT");
+
+		query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
+		query.setMoreLikeThisRecordId("newPoliticsDoc").addMoreLikeThisField(zeSchema.stringMetadata());
+
+		facet = new MoreLikeThisClustering(searchServices.searchWithMoreLikeThis(query),
+				new MoreLikeThisClustering.StringConverter<Record>() {
+
+					@Override
+					public String converToString(Record record) {
+						return record.get(zeSchema.anotherStringMetadata());
+					}
+				});
+
+		assertThat(facet.getClusterScore().entrySet().iterator().next().getKey()).isEqualTo("POLITICS");
 	}
 
 	@Test

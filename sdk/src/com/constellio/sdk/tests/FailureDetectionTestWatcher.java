@@ -1,5 +1,7 @@
 package com.constellio.sdk.tests;
 
+import static org.junit.Assert.fail;
+
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -24,6 +26,10 @@ public class FailureDetectionTestWatcher extends TestWatcher {
 	protected void finished(Description description) {
 		if (!failed) {
 			listener.finished(description);
+			String failMessage = ConstellioTest.getInstance().getFailMessage();
+			if (failMessage != null) {
+				fail(failMessage);
+			}
 		}
 	}
 

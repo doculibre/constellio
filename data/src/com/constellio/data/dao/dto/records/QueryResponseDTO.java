@@ -7,7 +7,7 @@ public class QueryResponseDTO {
 
 	private List<RecordDTO> results;
 
-	private Map<RecordDTO, Map<RecordDTO, Double>> resultsWithMoreLikeThis;
+	private List<MoreLikeThisDTO> moreLikeThisResults;
 
 	private int qtime;
 
@@ -24,7 +24,7 @@ public class QueryResponseDTO {
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound, Map<String, List<FacetValue>> fieldFacetValues,
 			Map<String, Map<String, Object>> fieldsStatistics,
 			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
-			List<String> spellCheckerSuggestions, Map<RecordDTO, Map<RecordDTO, Double>> resultsWithMoreLikeThis) {
+			List<String> spellCheckerSuggestions, List<MoreLikeThisDTO> moreLikeThisResults) {
 		this.results = results;
 		this.qtime = qtime;
 		this.numFound = numFound;
@@ -34,15 +34,15 @@ public class QueryResponseDTO {
 		this.highlights = highlights;
 		this.correctlySpelt = correctlySpelt;
 		this.spellCheckerSuggestions = spellCheckerSuggestions;
-		this.resultsWithMoreLikeThis = resultsWithMoreLikeThis;
+		this.moreLikeThisResults = moreLikeThisResults;
 	}
 
 	public List<RecordDTO> getResults() {
 		return results;
 	}
 
-	public Map<RecordDTO, Map<RecordDTO, Double>> getResultsWithMoreLikeThis() {
-		return resultsWithMoreLikeThis;
+	public List<MoreLikeThisDTO> getMoreLikeThisResults() {
+		return moreLikeThisResults;
 	}
 
 	public long getQtime() {

@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.NamedList;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -44,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -880,10 +879,11 @@ public class BigVaultRecordDao implements RecordDao {
 
 		List<RecordDTO> documents = new ArrayList<RecordDTO>();
 		SolrDocumentList solrDocuments = response.getResults();
-		for (SolrDocument solrDocument : solrDocuments) {
-			documents.add(toEntity(solrDocument));
+		if (solrDocuments != null) {
+			for (SolrDocument solrDocument : solrDocuments) {
+				documents.add(toEntity(solrDocument));
+			}
 		}
-
 		Map<String, Map<String, List<String>>> highlights = response.getHighlighting();
 		Map<String, List<FacetValue>> fieldFacetValues = getFieldFacets(response);
 		Map<String, Map<String, Object>> fieldsStatistics = getFieldsStats(response);
@@ -898,7 +898,7 @@ public class BigVaultRecordDao implements RecordDao {
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
-		Map<RecordDTO, Map<RecordDTO, Double>> resultWithMoreLikeThis = new LinkedHashMap<>();
+		List<MoreLikeThisDTO> resultWithMoreLikeThis = new ArrayList<>();
 		if (params.get(MoreLikeThisParams.MLT) != null
 				&& Boolean.parseBoolean(params.get(MoreLikeThisParams.MLT))) {
 			try {
@@ -908,9 +908,10 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 
-		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues,
-				fieldsStatistics,
-				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
+		long numfound = response.getResults() == null ? 0 : response.getResults().getNumFound();
+
+		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues,
+				fieldsStatistics, facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
 	}
 
 	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {
@@ -932,31 +933,26 @@ public class BigVaultRecordDao implements RecordDao {
 		return fieldsStats;
 	}
 
-	private Map<RecordDTO, Map<RecordDTO, Double>> extractMoreLikeThis(QueryResponse response, String moreLikeThisFields)
+	private List<MoreLikeThisDTO> extractMoreLikeThis(QueryResponse response, String moreLikeThisFields)
 			throws SolrServerException, IOException {
-		Map<RecordDTO, Map<RecordDTO, Double>> moreLikeThisRes = new LinkedHashMap<>();
+		List<MoreLikeThisDTO> moreLikeThisResults = new ArrayList<>();
 
-		NamedList<?> moreLikeThis = (NamedList<?>) response.getResponse().get("moreLikeThis");
-		if (moreLikeThis != null) {
-			for (int i = 0; i < moreLikeThis.size(); i++) {
-				@SuppressWarnings("unchecked")
-				List<SolrDocument> results = (List<SolrDocument>) moreLikeThis.getVal(i);
-				SolrDocument aSolrDocument = response.getResults().get(i);
-				JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer.getNestedSolrServer(), aSolrDocument,
-						moreLikeThisFields, "id");
-				List<SolrDocument> sortedResults = sorter.sort(results);
-				Map<RecordDTO, Double> docMoreLikeThisRes = new LinkedHashMap<>();
-				for (SolrDocument aSimilarDoc : sortedResults) {
-					Double score = (Double) aSimilarDoc.get(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
-					aSimilarDoc.remove(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
-					RecordDTO entity = toEntity(aSimilarDoc);
-					docMoreLikeThisRes.put(entity, score);
-				}
-
-				moreLikeThisRes.put(toEntity(aSolrDocument), docMoreLikeThisRes);
+		if (moreLikeThisFields != null && response.getResponse().get("response") != null
+				&& response.getResponse().get("match") != null) {
+			List<SolrDocument> results = ((List<SolrDocument>) response.getResponse().get("response"));
+			SolrDocument aSolrDocument = ((List<SolrDocument>) response.getResponse().get("match")).get(0);
+			JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer.getNestedSolrServer(), aSolrDocument,
+					moreLikeThisFields, "id");
+			List<SolrDocument> sortedResults = sorter.sort(results);
+			for (SolrDocument aSimilarDoc : sortedResults) {
+				Double score = (Double) aSimilarDoc.get(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
+				aSimilarDoc.remove(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
+				RecordDTO entity = toEntity(aSimilarDoc);
+				moreLikeThisResults.add(new MoreLikeThisDTO(entity, score));
 			}
+
 		}
-		return moreLikeThisRes;
+		return moreLikeThisResults;
 	}
 
 	private List<String> spellcheckerSuggestions(SpellCheckResponse spellCheckResponse) {
