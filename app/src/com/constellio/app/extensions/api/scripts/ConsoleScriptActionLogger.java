@@ -1,5 +1,7 @@
 package com.constellio.app.extensions.api.scripts;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +12,11 @@ public class ConsoleScriptActionLogger implements ScriptActionLogger {
 	@Override
 	public void appendToFile(String message) {
 		LOGGER.info(message);
+	}
+
+	@Override
+	public File getTempFile() {
+		return null;
 	}
 
 	@Override
