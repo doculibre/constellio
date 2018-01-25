@@ -896,7 +896,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (!addView && !hasPermission) {
 			FolderOpeningDateField openingDateField = (FolderOpeningDateField) view.getForm()
 					.getCustomField(Folder.OPENING_DATE);
-			setFieldReadonly(openingDateField, true);
+			if(openingDateField != null) {
+				setFieldReadonly(openingDateField, true);
+			}
 		}
 	}
 

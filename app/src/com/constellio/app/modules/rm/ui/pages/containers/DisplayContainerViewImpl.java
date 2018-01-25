@@ -135,7 +135,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		RecordVOTable table = new RecordVOTable($("DisplayContainerView.foldersTableTitle"), container);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
-		table.setPageLength(provider.size());
 
 		return table;
 	}

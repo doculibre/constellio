@@ -45,7 +45,7 @@ public class DisplayPrintableReportPresenterAcceptanceTest extends ConstellioTes
     public void testGetRecordVO() throws Exception{
         Transaction transaction = new Transaction();
         String titleForFolder = "title for folder 1";
-        String reportTypeForFolder = PrintableReportListPossibleType.FOLDER.toString();
+        String reportTypeForFolder = PrintableReportListPossibleType.FOLDER.getSchemaType();
         String schemaForFolder = Folder.DEFAULT_SCHEMA;
 
         PrintableReport report = rm.newPrintableReport();

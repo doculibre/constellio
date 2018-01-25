@@ -100,7 +100,9 @@ public class SIPButtonPresenter {
     }
 
     protected void saveButtonClick(BagInfoVO viewObject) {
-        if (validateBagInfoLine(viewObject) && validateFolderHasDocument()) {
+        boolean formIsComplete = validateBagInfoLine(viewObject);
+        boolean folderHasDocument = validateFolderHasDocument();
+        if (formIsComplete && validateFolderHasDocument()) {
         	SessionContext sessionContext = this.button.getView().getSessionContext();
             AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
             ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -128,12 +130,14 @@ public class SIPButtonPresenter {
             String collection = button.getView().getCollection();
             
             SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize, username, deleteFiles, warVersion);
-            AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives"));
+            AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives").setUsername(username));
             this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
             this.button.closeAllWindows();
             this.button.navigate().to().batchProcesses();
-        } else {
+        } else if(folderHasDocument){
             this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+        } else {
+            this.button.showErrorMessage($("SIPButton.noDocumentToExport"));
         }
     }
 

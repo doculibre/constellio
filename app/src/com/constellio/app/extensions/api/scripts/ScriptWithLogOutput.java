@@ -9,8 +9,15 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public abstract class ScriptWithLogOutput extends Script {
 
+	private boolean saveOutputAsTemporaryRecord = false;
+
 	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name) {
+		this(appLayerFactory, category, name, false);
+	}
+
+	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name, boolean saveOutputAsTemporaryRecord) {
 		super(appLayerFactory, category, name);
+		this.saveOutputAsTemporaryRecord = saveOutputAsTemporaryRecord;
 	}
 
 	@Override
@@ -44,5 +51,9 @@ public abstract class ScriptWithLogOutput extends Script {
 
 	public ConditionnedActionExecutorInBatchBuilder onCondition(LogicalSearchCondition condition) {
 		return new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, condition);
+	}
+
+	public boolean isSaveOutputAsTemporaryRecord() {
+		return saveOutputAsTemporaryRecord;
 	}
 }

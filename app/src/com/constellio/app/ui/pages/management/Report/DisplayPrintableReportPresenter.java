@@ -40,12 +40,12 @@ public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<D
     }
 
     protected String getRecordTypeValue(RecordVO recordVO){
-        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(PrintableReportListPossibleType.valueOf(recordVO.<String>get(PrintableReport.RECORD_TYPE)).getSchemaType());
-        return metadataSchemaType.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
+        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(recordVO.<String>get(PrintableReport.RECORD_TYPE));
+        return metadataSchemaType.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
     }
 
     protected String getRecordSchemaValue(RecordVO recordVO) {
-        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(PrintableReportListPossibleType.valueOf(recordVO.<String>get(PrintableReport.RECORD_TYPE)).getSchemaType());
-        return metadataSchemaType.getSchema(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
-}
+        MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(recordVO.<String>get(PrintableReport.RECORD_TYPE));
+        return metadataSchemaType.getSchema(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+    }
 }
