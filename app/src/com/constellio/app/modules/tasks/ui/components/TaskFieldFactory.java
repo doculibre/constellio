@@ -8,6 +8,8 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
 
+import java.util.List;
+
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 
@@ -15,8 +17,15 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
 
+	private List<String> unavailablesTaskTypes;
+
 	public TaskFieldFactory(boolean isViewOnly) {
 		super(isViewOnly);
+	}
+
+	public TaskFieldFactory(boolean isViewOnly, List<String> unavailablesTaskTypes) {
+		super(isViewOnly);
+		this.unavailablesTaskTypes = unavailablesTaskTypes;
 	}
 
 	@Override
@@ -26,11 +35,11 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 		switch (metadata.getLocalCode()) {
 		case TYPE:
 			if (MetadataInputType.LOOKUP.equals(inputType)) {
-				field = new TaskTypeFieldLookupImpl();
+				field = new TaskTypeFieldLookupImpl(unavailablesTaskTypes);
 			} else if (MetadataInputType.RADIO_BUTTONS.equals(inputType)) {
-				field = new TaskTypeFieldOptionGroupImpl();
+				field = new TaskTypeFieldOptionGroupImpl(unavailablesTaskTypes);
 			} else {
-				field = new TaskTypeFieldComboBoxImpl();
+				field = new TaskTypeFieldComboBoxImpl(unavailablesTaskTypes);
 			}
 			break;
 		case TASK_FOLLOWERS:

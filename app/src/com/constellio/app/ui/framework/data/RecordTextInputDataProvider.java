@@ -156,6 +156,11 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	}
 
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
+		LogicalSearchQuery query = getQuery(user, text, startIndex, count);
+		return modelLayerFactory.newSearchServices().query(query);
+	}
+
+	public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
 		LogicalSearchCondition condition;
 
 		Metadata sort = null;
@@ -215,9 +220,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				query.filteredWithUser(user);
 			}
 		}
-
-		return modelLayerFactory.newSearchServices().query(query);
-
+		return query;
 	}
 
 	protected String getCurrentCollection() {
