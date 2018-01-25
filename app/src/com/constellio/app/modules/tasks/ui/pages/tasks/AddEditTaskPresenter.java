@@ -437,17 +437,19 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	boolean isReloadRequiredAfterTaskTypeChange() {
-		boolean reload;
+		boolean reload = false;
 		String currentSchemaCode = getSchemaCode();
-		String taskTypeRecordId = getTypeFieldValue();
-		if (StringUtils.isNotBlank(taskTypeRecordId)) {
-			String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
-			if (schemaCodeForTaskTypeRecordId != null) {
-				reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
-			} else
+		if(isTaskTypeFieldVisible()) {
+			String taskTypeRecordId = getTypeFieldValue();
+			if (StringUtils.isNotBlank(taskTypeRecordId)) {
+				String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
+				if (schemaCodeForTaskTypeRecordId != null) {
+					reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
+				} else
+					reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			} else {
 				reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
-		} else {
-			reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			}
 		}
 		return reload;
 	}
@@ -513,6 +515,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public Record getWorkflow(String workflowId) {
 		return recordServices().getDocumentById(workflowId);
+	}
+
+	public boolean isTaskTypeFieldVisible() {
+		return view.getForm().getCustomField(Task.TYPE) != null;
 	}
 
 	public List<String> getUnavailableTaskTypes() {
