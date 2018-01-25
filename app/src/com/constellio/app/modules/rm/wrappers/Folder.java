@@ -819,5 +819,8 @@ public class Folder extends RMObject {
 		return getList(DOCUMENTS_TOKENS);
 	}
 
+    public boolean hasExpectedDates() {
+		return !(getExpectedTransferDate() == null && getExpectedDepositDate() == null && getExpectedDestructionDate() == null);
+    }
 }
 
