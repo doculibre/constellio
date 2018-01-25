@@ -95,6 +95,10 @@ public class RecordDeleteServices {
 
 	private final ModelLayerFactory modelLayerFactory;
 
+	public RecordDeleteServices(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory.getDataLayerFactory().newRecordDao(), modelLayerFactory);
+	}
+
 	public RecordDeleteServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this.recordDao = recordDao;
 		this.searchServices = modelLayerFactory.newSearchServices();
