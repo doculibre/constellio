@@ -5,13 +5,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joda.time.LocalDate.now;
 
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.model.services.records.RecordServicesException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,6 +14,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -31,6 +27,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -228,6 +225,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
@@ -238,7 +236,9 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
+
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 
@@ -248,6 +248,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
@@ -255,7 +256,8 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDocumentInNonCompletedAndNotDeletedTaskThenCannotDelete() throws RecordServicesException {
+	public void givenDocumentInNonCompletedAndNotDeletedTaskThenCannotDelete()
+			throws RecordServicesException {
 		Document document = rm.newDocument().setFolder(records.getFolder_A03()).setTitle("ze title");
 		recordServices.add(document);
 

@@ -71,6 +71,26 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		return access;
 	}
 
+	@Override
+	public boolean specificallyOn(Record record) {
+		boolean access = true;
+
+		if (readAccess) {
+			access = hasReadAccessSpecificallyOn(record)
+					|| hasWriteAccessSpecificallyOn(record) || hasDeleteAccessSpecificallyOn(record);
+		}
+
+		if (writeAccess) {
+			access &= hasWriteAccessSpecificallyOn(record);
+		}
+
+		if (deleteAccess) {
+			access &= hasDeleteAccessSpecificallyOn(record);
+		}
+
+		return access;
+	}
+
 	private boolean hasDeleteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, DELETE)
 				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
@@ -89,6 +109,18 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 				|| UserAuthorizationsUtils.containsAUserToken(user, record)
 				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
 				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
+	}
+
+	private boolean hasDeleteAccessSpecificallyOn(Record record) {
+		return containsAnyUserGroupTokens(user, record, DELETE);
+	}
+
+	private boolean hasWriteAccessSpecificallyOn(Record record) {
+		return containsAnyUserGroupTokens(user, record, WRITE);
+	}
+
+	private boolean hasReadAccessSpecificallyOn(Record record) {
+		return containsAnyUserGroupTokens(user, record, READ);
 	}
 
 	@Override

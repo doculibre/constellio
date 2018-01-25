@@ -1,7 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
 import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,22 +15,15 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
-import com.google.common.base.Strings;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -97,56 +89,58 @@ public class SearchResultDisplay extends VerticalLayout {
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
 
-		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
-		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
+		//NE SCALE PAS : Il y a un getDocumentById
 
-		if (!Strings.isNullOrEmpty(query)
-				&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
-				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
-						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
-		{
-			exclude = new LinkButton($(EXCLUSION)) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					if (event.getButton().getCaption().equals($(EXCLUSION))) {
-						event.getButton().setCaption($(UNEXCLUSION));
-						raise.setCaption($(ELEVATION));
-						searchConfigurationsManager.setElevated(query, recordFromRecordVO, true);
-					} else {
-						event.getButton().setCaption($(EXCLUSION));
-						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
-					}
-				}
-			};
-
-			String elevatedText = ($(ELEVATION));
-			if (isElevated) {
-				elevatedText = $(UNELEVATION);
-			}
-
-			raise = new LinkButton(elevatedText) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					if (event.getButton().getCaption().equals($(ELEVATION))) {
-						event.getButton().setCaption($(UNELEVATION));
-						exclude.setCaption($(EXCLUSION));
-						searchConfigurationsManager.setElevated(query, recordFromRecordVO, false);
-					} else {
-						event.getButton().setCaption($(ELEVATION));
-						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
-					}
-				}
-			};
-
-			horizontalLayout.addComponent(exclude, 1);
-			horizontalLayout.addComponent(raise, 2);
-			horizontalLayout.setComponentAlignment(exclude, Alignment.TOP_LEFT);
-			horizontalLayout.setComponentAlignment(raise, Alignment.TOP_LEFT);
-			horizontalLayout.setExpandRatio(exclude, 1);
-			horizontalLayout.setExpandRatio(raise, 1);
-			horizontalLayout.setSpacing(true);
-		}
+		//		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
+		//		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
+		//
+		//		if (!Strings.isNullOrEmpty(query)
+		//				&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+		//				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
+		//				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
+		//						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
+		//		{
+		//			exclude = new LinkButton($(EXCLUSION)) {
+		//				@Override
+		//				protected void buttonClick(ClickEvent event) {
+		//					if (event.getButton().getCaption().equals($(EXCLUSION))) {
+		//						event.getButton().setCaption($(UNEXCLUSION));
+		//						raise.setCaption($(ELEVATION));
+		//						searchConfigurationsManager.setElevated(query, recordFromRecordVO, true);
+		//					} else {
+		//						event.getButton().setCaption($(EXCLUSION));
+		//						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
+		//					}
+		//				}
+		//			};
+		//
+		//			String elevatedText = ($(ELEVATION));
+		//			if (isElevated) {
+		//				elevatedText = $(UNELEVATION);
+		//			}
+		//
+		//			raise = new LinkButton(elevatedText) {
+		//				@Override
+		//				protected void buttonClick(ClickEvent event) {
+		//					if (event.getButton().getCaption().equals($(ELEVATION))) {
+		//						event.getButton().setCaption($(UNELEVATION));
+		//						exclude.setCaption($(EXCLUSION));
+		//						searchConfigurationsManager.setElevated(query, recordFromRecordVO, false);
+		//					} else {
+		//						event.getButton().setCaption($(ELEVATION));
+		//						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
+		//					}
+		//				}
+		//			};
+		//
+		//			horizontalLayout.addComponent(exclude, 1);
+		//			horizontalLayout.addComponent(raise, 2);
+		//			horizontalLayout.setComponentAlignment(exclude, Alignment.TOP_LEFT);
+		//			horizontalLayout.setComponentAlignment(raise, Alignment.TOP_LEFT);
+		//			horizontalLayout.setExpandRatio(exclude, 1);
+		//			horizontalLayout.setExpandRatio(raise, 1);
+		//			horizontalLayout.setSpacing(true);
+		//		}
 		return horizontalLayout;
 	}
 

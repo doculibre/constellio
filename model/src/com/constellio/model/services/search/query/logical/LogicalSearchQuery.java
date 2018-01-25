@@ -29,6 +29,9 @@ import com.constellio.model.services.security.SecurityTokenManager;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
+	
+	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
+	
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
 	//This condition will be inserted in Filter Query
@@ -65,7 +68,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private String name;
 
 	public LogicalSearchQuery() {
-		numberOfRows = 100000;
+		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
 		startRow = 0;
 		fieldFacetLimit = 0;
 	}

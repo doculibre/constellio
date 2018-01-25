@@ -796,13 +796,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 		List<Record> recordsToInsert = new ArrayList<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
-			Long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
-			if (version != null) {
+			if (transactionResponseDTO != null) {
+				Long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
+				if (version != null) {
 
-				MetadataSchema schema = types.getSchema(record.getSchemaCode());
+					MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
-				recordImpl.markAsSaved(version, schema);
-				recordsToInsert.add(record);
+					recordImpl.markAsSaved(version, schema);
+					recordsToInsert.add(record);
+				}
 			}
 		}
 		insertInCache(collection, recordsToInsert);
@@ -1054,32 +1056,32 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	@Override
 	public void refreshUsingCache(List<?> records) {
-		//		for (Object item : records) {
-		//			Record record;
-		//
-		//			if (item instanceof Record) {
-		//				record = (Record) item;
-		//			} else {
-		//				record = ((RecordWrapper) item).getWrappedRecord();
-		//			}
-		//
-		//			if (record != null && record.isSaved()) {
-		//
-		//				try {
-		//					Record recordFromCache = recordsCaches.getRecord(record.getId());
-		//
-		//					if (recordFromCache == null) {
-		//						recordFromCache = getDocumentById(record.getId());
-		//					}
-		//					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
-		//					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
-		//				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-		//					LOGGER.debug("Deleted record is disconnected");
-		//					((RecordImpl) record).markAsDisconnected();
-		//				}
-		//			}
-		//		}
-		refresh(records);
+		for (Object item : records) {
+			Record record;
+
+			if (item instanceof Record) {
+				record = (Record) item;
+			} else {
+				record = ((RecordWrapper) item).getWrappedRecord();
+			}
+
+			if (record != null && record.isSaved()) {
+
+				try {
+					Record recordFromCache = recordsCaches.getRecord(record.getId());
+
+					if (recordFromCache == null) {
+						recordFromCache = getDocumentById(record.getId());
+					}
+					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
+					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					LOGGER.debug("Deleted record is disconnected");
+					((RecordImpl) record).markAsDisconnected();
+				}
+			}
+		}
+		//refresh(records);
 	}
 
 	RecordProvider newRecordProvider(RecordProvider nestedProvider, Transaction transaction) {
@@ -1219,10 +1221,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 
-		//if (options.isSkipRefresh()) {
-		refreshUsingCache(record);
-		refreshUsingCache(user);
-		//}
+		if (!options.isSkipRefresh()) {
+			refreshUsingCache(record);
+			refreshUsingCache(user);
+		}
 
 		newRecordDeleteServices().logicallyDelete(record, user, options);
 
@@ -1233,11 +1235,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user);
+		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user,
+				newRecordDeleteServices().loadRecordsHierarchyOf(record));
 	}
 
 	public boolean isReferencedByOtherRecords(Record record) {
-		return newRecordDeleteServices().isReferencedByOtherRecords(record);
+		return newRecordDeleteServices().isReferencedByOtherRecords(record,
+				newRecordDeleteServices().loadRecordsHierarchyOf(record));
 	}
 
 	private void validateNotTooMuchRecords(Transaction transaction) {

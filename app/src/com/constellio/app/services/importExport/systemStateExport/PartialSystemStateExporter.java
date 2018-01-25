@@ -212,7 +212,9 @@ public class PartialSystemStateExporter {
 	}
 
 	public void exportSystemToFile(File file, PartialSystemStateExportParams params) {
-		secondTransactionLogManager.regroupAndMoveInVault();
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.regroupAndMoveInVault();
+		}
 		File tempFolder = ioServices.newTemporaryFolder(TEMP_FOLDER_RESOURCE_NAME);
 
 		try {

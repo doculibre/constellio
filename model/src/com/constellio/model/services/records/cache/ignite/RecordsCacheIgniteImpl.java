@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -103,17 +104,25 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.permanentRecordByMetadataCacheName = collection + ".recordsByMetadata.permanent";
 		this.volatileRecordByMetadataCacheName = collection + ".recordsByMetadata.volatile";
 
-		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = newPermanentCacheCfg(permanentQueryResultsCacheName, QueryResultsHolder.class);
-		CacheConfiguration<String, Object> volatileQueryResultsCacheCfg = newVolatileCacheCfg(volatileQueryResultsCacheName, QueryResultsHolder.class);
+		CacheConfiguration<String, Object> permanentQueryResultsCacheCfg = newPermanentCacheCfg(permanentQueryResultsCacheName,
+				QueryResultsHolder.class);
+		CacheConfiguration<String, Object> volatileQueryResultsCacheCfg = newVolatileCacheCfg(volatileQueryResultsCacheName,
+				QueryResultsHolder.class);
 
-		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = newPermanentCacheCfg(permanentByIdRecordHoldersCacheName, RecordHolder.class);
-		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = newVolatileCacheCfg(volatileByIdRecordHoldersCacheName, RecordHolder.class);
+		CacheConfiguration<String, Object> permanentByIdRecordHoldersCacheCfg = newPermanentCacheCfg(
+				permanentByIdRecordHoldersCacheName, RecordHolder.class);
+		CacheConfiguration<String, Object> volatileByIdRecordHoldersCacheCfg = newVolatileCacheCfg(
+				volatileByIdRecordHoldersCacheName, RecordHolder.class);
 
-		CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = newPermanentCacheCfg(permanentRecordHoldersCacheName, RecordHolder.class);
-		CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = newVolatileCacheCfg(volatileRecordHoldersCacheName, RecordHolder.class);
+		CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = newPermanentCacheCfg(permanentRecordHoldersCacheName,
+				RecordHolder.class);
+		CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = newVolatileCacheCfg(volatileRecordHoldersCacheName,
+				RecordHolder.class);
 
-		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = newPermanentCacheCfg(permanentRecordByMetadataCacheName, RecordByMetadata.class);
-		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = newVolatileCacheCfg(volatileRecordByMetadataCacheName, RecordByMetadata.class);
+		CacheConfiguration<String, Object> permanentRecordByMetadataCacheCfg = newPermanentCacheCfg(
+				permanentRecordByMetadataCacheName, RecordByMetadata.class);
+		CacheConfiguration<String, Object> volatileRecordByMetadataCacheCfg = newVolatileCacheCfg(
+				volatileRecordByMetadataCacheName, RecordByMetadata.class);
 
 		this.permanentQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentQueryResultsCacheCfg);
 		this.volatileQueryResultsCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileQueryResultsCacheCfg);
@@ -128,7 +137,6 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.volatileRecordByMetadataCache = (ConstellioIgniteCache) recordsCacheManager
 				.getCache(volatileRecordByMetadataCacheCfg);
 	}
-	
 
 	private CacheConfiguration<String, Object> newPermanentCacheCfg(String name, Class<?> indexedType) {
 		CacheConfiguration<String, Object> permanentCacheCfg = new CacheConfiguration<>(name);
@@ -139,7 +147,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		permanentCacheCfg.setIndexedTypes(String.class, indexedType);
 		return permanentCacheCfg;
 	}
-	
+
 	private CacheConfiguration<String, Object> newVolatileCacheCfg(String name, Class<?> indexedType) {
 		CacheConfiguration<String, Object> volatileCacheCfg = new CacheConfiguration<>(name);
 		volatileCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
@@ -460,7 +468,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record get(String id) {
-//		return onlyIfNotSummary(getSummary(id));
+		//		return onlyIfNotSummary(getSummary(id));
 		return getSummary(id);
 	}
 
@@ -819,13 +827,19 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 		cachedMetadatasBySchemaType.put(schemaTypeCode, cacheConfig.getIndexes());
 
-		if (cacheConfig.isLoadedInitially() && getByIdRecordHoldersCount(schemaTypeCode) == 0) {
-			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
-			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
-				for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll(), 1000); it.hasNext(); ) {
-					insert(it.next());
+		if (getCacheObjectsCount(cacheConfig.getSchemaType()) == 0) {
+			if (cacheConfig.isLoadedInitially() && getByIdRecordHoldersCount(schemaTypeCode) == 0) {
+				LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
+				MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+						.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+				if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
+					for (Iterator<List<Record>> it = searchServices.recordsBatchIterator(1000,
+							new LogicalSearchQuery(from(schemaType).returnAll())); it.hasNext(); ) {
+						List<Record> records = it.next();
+						if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+							insert(records);
+						}
+					}
 				}
 			}
 		}
@@ -851,7 +865,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
-//		return onlyIfNotSummary(getSummaryByMetadata(metadata, value));
+		//		return onlyIfNotSummary(getSummaryByMetadata(metadata, value));
 		return getSummaryByMetadata(metadata, value);
 	}
 

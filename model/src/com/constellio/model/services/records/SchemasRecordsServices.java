@@ -403,4 +403,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapSolrAuthorizationDetailss(getModelLayerFactory().newSearchServices().cachedSearch(
 				new LogicalSearchQuery(from(authorizationDetails.schemaType()).returnAll())));
 	}
+
+	public List<User> getAllUsers() {
+		return wrapUsers(getModelLayerFactory().newSearchServices().cachedSearch(
+				new LogicalSearchQuery(from(user.schemaType()).returnAll())));
+	}
+
 }

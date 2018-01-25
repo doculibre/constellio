@@ -846,7 +846,7 @@ public class BigVaultRecordDao implements RecordDao {
 	public QueryResponse nativeQuery(String queryName, SolrParams params) {
 		try {
 			QueryResponse response = bigVaultServer.query(queryName, params);
-			dataLayerLogger.logQueryResponse(params, response);
+			dataLayerLogger.logQueryResponse(queryName, params, response);
 			return response;
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
 			throw new BigVaultRuntimeException.CannotListDocuments(e);

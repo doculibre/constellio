@@ -681,4 +681,12 @@ public class RecordUtils {
 		return values;
 
 	}
+
+	public static Map<String, List<Record>> splitByCollection(List<Record> records) {
+		KeyListMap<String, Record> splittedByCollection = new KeyListMap<>();
+		for (Record record : records) {
+			splittedByCollection.add(record.getCollection(), record);
+		}
+		return splittedByCollection.getNestedMap();
+	}
 }

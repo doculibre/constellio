@@ -1,7 +1,6 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -83,6 +82,7 @@ public class BatchProcessTestFeature {
 		if (waitForBatchProcessAfterTest && factoriesTestFeatures.isInitialized()) {
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger()
 					.setPrintAllQueriesLongerThanMS(10000);
+			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(false);
 			waitForAllBatchProcesses(null, false);
 		}
 		//		if (started) {

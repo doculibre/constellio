@@ -48,6 +48,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 			result = (T) igniteCache.get(key);
 			if (result != null) {
 				localCache.put(key, result);
+			} else {
+				localCache.put(key, NULL);
 			}
 		}
 		result = NULL.equals(result) ? null : result;

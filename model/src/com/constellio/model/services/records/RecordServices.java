@@ -133,10 +133,6 @@ public interface RecordServices {
 
 	boolean isLogicallyThenPhysicallyDeletable(Record record, User user);
 
-	boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user);
-
-	boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record, User user);
-
 	void logicallyDelete(Record record, User user);
 
 	void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options);

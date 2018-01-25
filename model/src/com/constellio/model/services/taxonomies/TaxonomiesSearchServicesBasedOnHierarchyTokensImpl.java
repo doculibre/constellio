@@ -920,25 +920,41 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
-
-			Iterator<List<Record>> iterator;
 
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 			int lastIteratedRecordIndex = 0;
 			FastContinueInfos continueInfos = ctx.options.getFastContinueInfos();
-			if (continueInfos != null) {
-				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
-				for (int i = 0; i < ctx.options.getStartRow(); i++) {
-					visibleRecords.add(null);
+			Iterator<List<Record>> iterator;
+			if (!ctx.hasPermanentCache) {
+
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+							continueInfos.lastReturnRecordIndex).inBatches();
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+
+				} else {
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
 				}
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
-						continueInfos.lastReturnRecordIndex).inBatches();
 
 			} else {
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
-			}
 
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+							continueInfos.lastReturnRecordIndex).inBatches();
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+
+				} else {
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
+				}
+			}
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 
