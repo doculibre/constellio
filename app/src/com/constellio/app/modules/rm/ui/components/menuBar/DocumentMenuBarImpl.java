@@ -262,7 +262,8 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
+							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
 					button.setRecordVoList(presenter.getDocumentVO());
 					button.click();
 				}

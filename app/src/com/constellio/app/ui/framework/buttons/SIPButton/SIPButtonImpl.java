@@ -21,16 +21,18 @@ public class SIPButtonImpl extends WindowButton {
 
     private ConstellioHeader view;
     private SIPButtonPresenter presenter;
+    private boolean showDeleteButton;
 
-    public SIPButtonImpl(String caption, String windowCaption, ConstellioHeader view) {
+    public SIPButtonImpl(String caption, String windowCaption, ConstellioHeader view, boolean showDeleteButton) {
         super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
         this.view = view;
         this.presenter = new SIPButtonPresenter(this, objectList);
+        this.showDeleteButton = showDeleteButton;
     }
 
     @Override
     protected Component buildWindowContent() {
-        return new BagInfoSIPForm() {
+        return new BagInfoSIPForm(showDeleteButton) {
             @Override
             protected void saveButtonClick(BagInfoVO viewObject) throws ValidationException {
                 presenter.saveButtonClick(viewObject);
@@ -63,7 +65,7 @@ public class SIPButtonImpl extends WindowButton {
     }
 
     public void setAllObject(RecordVO... objects) {
-        objectList = new ArrayList<>();
+        objectList.clear();
         objectList.addAll(asList(objects));
     }
 }

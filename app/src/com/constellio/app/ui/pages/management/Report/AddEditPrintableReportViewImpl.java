@@ -190,16 +190,16 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 
         public ComboBox createComboBox(MetadataVO metadataVO) {
             typeCombobox = new BaseComboBox();
-            Object folderValue = PrintableReportListPossibleType.FOLDER;
-            Object documentValue = PrintableReportListPossibleType.DOCUMENT;
-            Object taskValue = PrintableReportListPossibleType.TASK;
+            String folderValue = PrintableReportListPossibleType.FOLDER.getSchemaType();
+            String documentValue = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
+            String taskValue = PrintableReportListPossibleType.TASK.getSchemaType();
             typeCombobox.addItems(folderValue, documentValue, taskValue);
-            typeCombobox.setItemCaption(folderValue, PrintableReportListPossibleType.FOLDER.getLabel());
-            typeCombobox.setItemCaption(documentValue, PrintableReportListPossibleType.DOCUMENT.getLabel());
-            typeCombobox.setItemCaption(taskValue, PrintableReportListPossibleType.TASK.getLabel());
+            typeCombobox.setItemCaption(folderValue, presenter.getLabelForSchemaType(folderValue));
+            typeCombobox.setItemCaption(documentValue, presenter.getLabelForSchemaType(documentValue));
+            typeCombobox.setItemCaption(taskValue, presenter.getLabelForSchemaType(taskValue));
             typeCombobox.setTextInputAllowed(false);
             typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
-            typeCombobox.setConverter(new PrintableReportListToStringConverter());
+//            typeCombobox.setConverter(new PrintableReportListToStringConverter());
             typeCombobox.setNullSelectionAllowed(false);
             typeCombobox.addValidator(new Validator() {
                 @Override
@@ -212,7 +212,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
             typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
                 @Override
                 public void valueChange(Property.ValueChangeEvent event) {
-                    presenter.setCurrentType((PrintableReportListPossibleType) event.getProperty().getValue());
+                    presenter.setCurrentType((String) event.getProperty().getValue());
                     schemaCombobox = fillComboBox(schemaCombobox);
                 }
             });

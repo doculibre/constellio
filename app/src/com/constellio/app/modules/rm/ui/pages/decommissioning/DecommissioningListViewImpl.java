@@ -47,6 +47,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public static final String REMOVE_FOLDERS_BUTTON = "removeFolders";
 	public static final String ADD_FOLDERS_BUTTON = "addFolders";
 
+	private Label missingFolderLabel;
+
 	private final DecommissioningListPresenter presenter;
 
 	private RecordVO decommissioningList;
@@ -150,7 +152,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		});
 
-		VerticalLayout layout = new VerticalLayout(display, validationComponent, packageableFolderComponent,
+		missingFolderLabel = new Label($("DecommissioningListView.missingFoldersWarning"));
+		missingFolderLabel.setVisible(!presenter.getMissingFolders().isEmpty());
+		missingFolderLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, validationComponent, packageableFolderComponent,
 				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
@@ -591,8 +598,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildCreateSIPARchivesButton(){
-		SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
-		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+		final SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), presenter.isProcessed()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
+
 		return button;
 	}
 
