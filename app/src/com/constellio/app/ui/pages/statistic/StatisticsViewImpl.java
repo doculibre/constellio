@@ -212,17 +212,15 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
     @NotNull
     private LazyQueryContainer getContainer(List<String> properties) {
-        RecordVODataProvider dataProvider = presenter.getStatisticsDataProvider();
-
         switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
             case StatisticsPresenter.FAMOUS_REQUEST:
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                return StatisticsLazyContainer.defaultInstance(dataProvider, properties);
+                return StatisticsLazyContainer.defaultInstance(presenter.getStatisticsFacetsDataProvider(), properties);
             default:
-                return SearchEventVOLazyContainer.defaultInstance(dataProvider, properties);
+                return SearchEventVOLazyContainer.defaultInstance(presenter.getStatisticsDataProvider(), properties);
         }
     }
 
