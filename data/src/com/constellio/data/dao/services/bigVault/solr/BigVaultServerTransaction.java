@@ -155,4 +155,9 @@ public class BigVaultServerTransaction {
 		this.testRollBackMode = testRollBackMode;
 		return this;
 	}
+
+	public boolean isRequiringLock() {
+		return updatedDocuments.size() > 1 || (updatedDocuments.size() == 1 && newDocuments.size() > 0);
+
+	}
 }

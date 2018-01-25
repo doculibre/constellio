@@ -329,7 +329,7 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void flush() {
 		try {
-			bigVaultServer.softCommit();
+			bigVaultServer.flush();
 		} catch (IOException | SolrServerException e) {
 			throw new RecordDaoRuntimeException_RecordsFlushingFailed(e);
 		}
