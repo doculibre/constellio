@@ -85,6 +85,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					borrowFolder(folderId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -113,6 +114,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					borrowContainer(containerId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -148,6 +150,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					returnFolder(folderId, applicant, returnDate, false);
@@ -176,6 +179,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					returnContainer(containerId, applicant, returnDate, false);
@@ -211,6 +215,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					extendBorrowDateForFolder(folderId, returnDate, applicant, false);
@@ -226,6 +231,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					extendBorrowDateForContainer(containerId, returnDate, applicant, false);
@@ -251,7 +257,7 @@ public class BorrowingServices {
 				previewReturnDate,
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
-		recordServices.update(folder.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -275,7 +281,7 @@ public class BorrowingServices {
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
 				borrowerEntered.getId());
-		recordServices.update(containerRecord.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+		recordServices.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
@@ -294,7 +300,7 @@ public class BorrowingServices {
 		boolean equals = Boolean.TRUE.equals(folder.getBorrowed());
 		boolean equals1 = folder.getBorrowUser().equals(currentUser.getId());
 		if (equals && equals1) {
-			recordServices.update(folder.setBorrowPreviewReturnDate(previewReturnDate));
+			recordServices.update(folder.setBorrowPreviewReturnDate(previewReturnDate).getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		}
 	}
 
@@ -305,7 +311,7 @@ public class BorrowingServices {
 		Record record = recordServices.getDocumentById(containerId);
 		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 		if (Boolean.TRUE.equals(containerRecord.getBorrowed()) && containerRecord.getBorrower().equals(currentUser.getId())) {
-			recordServices.update(containerRecord.setPlanifiedReturnDate(previewReturnDate));
+			recordServices.update(containerRecord.setPlanifiedReturnDate(previewReturnDate).getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		}
 	}
 
@@ -317,7 +323,7 @@ public class BorrowingServices {
 		validateCanReturnFolder(currentUser, folder);
 		BorrowingType borrowingType = folder.getBorrowType();
 		setReturnedMetadatasToFolder(folder);
-		recordServices.update(folder);
+		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -333,7 +339,7 @@ public class BorrowingServices {
 		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 		validateCanReturnContainer(currentUser, containerRecord);
 		setReturnedMetadatasToContainer(containerRecord);
-		recordServices.update(containerRecord);
+		recordServices.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		if (isCreateEvent) {
 			loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
