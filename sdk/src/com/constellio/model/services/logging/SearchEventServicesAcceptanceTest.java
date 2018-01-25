@@ -74,7 +74,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
         long timeStampBefore = new Date().getTime();
 
-        searchEventServices.save(schemas.newSearchEventWithId("search1").setUsername("bob").setQuery("banane"));
+        searchEventServices.save(schemas.newSearchEventWithId("search1").setUsername("bob").setQuery("banane").setNumFound(3000).setQTime(100));
         searchEventServices.save(schemas.newSearchEventWithId("search2").setUsername("bob").setQuery("banane"));
         searchEventServices.save(schemas.newSearchEventWithId("search3").setUsername("bob").setQuery("banane"));
 
@@ -101,6 +101,8 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
         assertThat(event1.getClickCount()).isEqualTo(5000);
         assertThat(event1.getPageNavigationCount()).isEqualTo(0);
+        assertThat(event1.getNumFound()).isEqualTo(3000);
+        assertThat(event1.getQTime()).isEqualTo(100);
         assertThat(event2.getClickCount()).isEqualTo(500);
         assertThat(event2.getPageNavigationCount()).isEqualTo(500);
         assertThat(event3.getClickCount()).isEqualTo(2500);

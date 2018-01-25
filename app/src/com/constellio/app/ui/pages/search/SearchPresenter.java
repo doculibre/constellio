@@ -359,7 +359,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
 					.addSolrModifiableParams(dataProvider.getQuery());
 
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
 

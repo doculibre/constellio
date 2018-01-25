@@ -7,7 +7,6 @@ import java.util.*;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.schemas.Schemas;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;

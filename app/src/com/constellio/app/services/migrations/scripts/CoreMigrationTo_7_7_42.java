@@ -48,6 +48,8 @@ public class CoreMigrationTo_7_7_42 implements MigrationScript {
 			searchEvent.createMetadata(SearchEvent.CLICK_COUNT).setType(NUMBER);
 			searchEvent.createMetadata(SearchEvent.PARAMS).setType(STRING).setMultivalue(true);
 			searchEvent.createMetadata(SearchEvent.ORIGINAL_QUERY).setType(STRING);
+			searchEvent.createMetadata(SearchEvent.NUM_FOUND).setType(NUMBER);
+			searchEvent.createMetadata(SearchEvent.Q_TIME).setType(NUMBER);
 		}
 	}
 }
