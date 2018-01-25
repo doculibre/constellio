@@ -123,7 +123,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
-		return  addBatchProcessInStandby(logicalQuery, action, null, title);
+		return addBatchProcessInStandby(logicalQuery, action, null, title);
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
@@ -228,7 +228,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				List<String> records = getRecords(batchProcess);
 				LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER)
 						.isIn(records);
-				ModifiableSolrParams params = modelLayerFactory.newSearchServices().addSolrModifiableParams(new LogicalSearchQuery(condition));
+				ModifiableSolrParams params = modelLayerFactory.newSearchServices()
+						.addSolrModifiableParams(new LogicalSearchQuery(condition));
 				String query = SolrUtils.toSingleQueryString(params);
 				batchProcess = recordBatchProcess.withQuery(query);
 			}

@@ -34,6 +34,9 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2_DOC1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE2;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER_TYPE3;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
@@ -1922,6 +1925,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
 				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Test
@@ -2303,4 +2311,453 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
+	@Test
+	public void whenARecordReceiveNonOverridingAuthFromMetadataProvidingSecurityThenAllApplied()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE2).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE3)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, edouard, dakota, chuck);
+		}
+
+		//givenARecordWithOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToNullThenRecoverInheritingAuthsAndLoseAuthsFromMetadata
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), null)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), null));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+	}
+
+	@Test
+	public void whenARecordReceiveOverridingAuthFromMetadataProvidingSecurityThenOnlySpecificAuthsAreApplied()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE2).givingReadWriteAccess().andOverridingInheritedAuths());
+		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE3)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, edouard, dakota, chuck);
+		}
+
+		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToAnotherValueNotOverridingThenRecoverInheritingAuthsAndReceiveNewAuths
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE3)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE1)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE2));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, edouard, chuck);
+		}
+	}
+
+	@Test
+	public void givenARecordWithMultipleOverridingAuthsFromMetadataProvidingSecurityThenRecoverInheritedAuthsWhenTheLastOneIsRemoved()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE2).givingReadWriteAccess().andOverridingInheritedAuths());
+		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE3).givingReadWriteAccess().andOverridingInheritedAuths());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenMetadataIsSetToAnotherValueOverridingThenLoseInheritingAuthsAndReceiveNewAuths
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE3));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, edouard, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), null));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+	}
+
+	@Test
+	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurizedRecords()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		//whenARecordProvidingSecurityReceiveANewNonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
+
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToOverrideInheritedAuthsThenRecordLoseInheritingAuths
+		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(true));
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToNonOverrideInheritedAuthsThenRecordRecoverInheritingAuths
+		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(false));
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewPrincipalIds(gandalf));
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, gandalf, chuck);
+		}
+
+		//whenARecordProvidingSecurityReceiveANewOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndLoseInheritedAuths
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, gandalf, dakota, chuck);
+		}
+
+		//whenARecordProvidingSecurityLoseANonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
+		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).removingItOnRecord());
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, chuck);
+		}
+
+		//whenARecordProvidingSecurityLoseTheLastOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndRegainInheritedAuths
+		modify(modifyAuthorizationOnRecord(auth4, records.folderType1()).removingItOnRecord());
+		reindex();//TODO Improve impact modification
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+	}
+
+	@Test
+	public void givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsRemovedOnChildThenNoMoreAppliedButDoesNotRecoverParentInheritedAuths()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		modify(modifyAuthorizationOnRecord(auth3, records.folder4_1()).removingItOnRecord());
+
+		verifyRecord(FOLDER4).usersWithWriteAccess().contains(bob, charles, chuck);
+		verifyRecord(FOLDER4_1).usersWithWriteAccess().contains(bob, chuck);
+	}
+
+	@Test
+	public void givenARecordReceivingNonOVerridingAuthsFromMetadataProvidingSecurityIsDetachedThenReceivedAuthsAreNotDuplicatedAndRecord()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		detach(FOLDER4);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenInheritedAndReceivedByMetadataAuthsAreNotDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		detach(FOLDER4);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenInheritedAndReceivedByMetadataAuthsAreNotDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		detach(FOLDER4);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4).containsOnly(
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		detach(FOLDER4_1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		detach(FOLDER4_1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithGrandParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		detach(FOLDER4_2_DOC1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_2_DOC1).containsOnly(
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordWithGrandParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		detach(FOLDER4_2_DOC1);
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		assertThatAuthorizationsOn(FOLDER4_2_DOC1).containsOnly(
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_2_DOC1).givingReadWrite().forPrincipals(charles)
+		);
+		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
+	}
+
+	@Test
+	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingHasStartAndEndDateThenOnlyAppliedDuringInterval()
+			throws Exception {
+
+		givenTimeIs(date(2016, 4, 4));
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1)
+				.givingReadWriteAccess().during(date(2016, 4, 3), date(2016, 4, 6)));
+		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1)
+				.givingReadWriteAccess().during(date(2016, 4, 4), date(2016, 4, 5)));
+		auth5 = add(authorizationForUser(edouard).on(FOLDER_TYPE2)
+				.givingReadWriteAccess().during(date(2016, 4, 5), date(2016, 4, 5)).andOverridingInheritedAuths());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		recordServices.update(records.folder4()
+				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1)
+				.set(setup.folderSchema.secondReferenceMetadataProvidingSecurity(), FOLDER_TYPE2)
+				.set(setup.folderSchema.thirdReferenceMetadataWhichDoesNotProvideSecurity(), FOLDER_TYPE3));
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 5));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, edouard, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 6));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+
+		givenTimeIs(date(2016, 4, 7));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+	}
 }

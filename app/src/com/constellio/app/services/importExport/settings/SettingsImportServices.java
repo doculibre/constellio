@@ -20,6 +20,25 @@ import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -34,6 +53,13 @@ import com.constellio.app.services.importExport.settings.model.ImportedDataEntry
 import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
@@ -51,6 +77,11 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -569,6 +600,10 @@ public class SettingsImportServices {
 
 		if (importedMetadata.getEssentialInSummary() != null) {
 			metadataBuilder.setEssentialInSummary(importedMetadata.getEssentialInSummary());
+		}
+
+		if (importedMetadata.getRelationshipProvidingSecurity() != null) {
+			metadataBuilder.setRelationshipProvidingSecurity(importedMetadata.getRelationshipProvidingSecurity());
 		}
 
 		metadataBuilder.setInputMask(importedMetadata.getInputMask());

@@ -476,10 +476,13 @@ public class RecordAutomaticMetadataServices {
 			RecordProvider recordProvider) {
 
 		Set<String> authsInTransaction = new HashSet<>();
+		boolean overridedByMetadataProvidingSecurity = false;
+		List<AuthorizationDetails> authsReceivedFromMetadatasProvidingSecurity = new ArrayList<>();
 		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
 
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
 
 		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
 				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
@@ -514,13 +517,28 @@ public class RecordAutomaticMetadataServices {
 				context.setAllAuthorizationDetails(authorizationDetails);
 			}
 
+			Set<String> referencesProvidingSecurity = new HashSet<>();
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.isRelationshipProvidingSecurity()) {
+					referencesProvidingSecurity.addAll(calculatedRecord.<String>getValues(metadata));
+				}
+			}
+
 			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
 				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
 					returnedAuthorizationDetails.add(authorizationDetail);
 				}
+
+				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
+					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
+					overridedByMetadataProvidingSecurity |=
+							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
+				}
 			}
+
 		}
-		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails);
+		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails,
+				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
 	}
 
 	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,

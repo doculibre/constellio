@@ -338,7 +338,8 @@ public class AuthorizationsServices {
 		}
 
 		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd()).setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
+				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths())
+				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
 	}
 
@@ -565,9 +566,39 @@ public class AuthorizationsServices {
 
 	private List<AuthorizationDetails> getInheritedAuths(Record record) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
-		return (List) schemas.searchSolrAuthorizationDetailss(
-				where(schemas.authorizationDetails.target()).isNotEqual(record.getId())
-						.andWhere(schemas.authorizationDetails.target()).isIn(record.getList(ATTACHED_ANCESTORS)));
+
+		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+
+		Set<String> recordsIdsWithPosibleAuths = new HashSet<>();
+		recordsIdsWithPosibleAuths.addAll(record.<String>getList(ATTACHED_ANCESTORS));
+		recordsIdsWithPosibleAuths.remove(record.getId());
+
+		for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS)) {
+			if (!ancestorId.equals(record.getId())) {
+
+				Record ancestor = recordServices.getDocumentById(ancestorId);
+				MetadataSchema schema = schemasManager.getSchemaOf(ancestor);
+				for (Metadata metadata : schema.getMetadatas()) {
+					if (metadata.isRelationshipProvidingSecurity()) {
+						recordsIdsWithPosibleAuths.addAll(ancestor.<String>getValues(metadata));
+					}
+				}
+			}
+		}
+
+		for (SolrAuthorizationDetails authorizationDetail : schemas.getAllAuthorizations()) {
+			if (recordsIdsWithPosibleAuths.contains(authorizationDetail.getTarget())) {
+				authorizationDetails.add(authorizationDetail);
+			}
+		}
+
+		//		authorizationDetails.addAll(schemas.searchSolrAuthorizationDetailss(
+		//				where(schemas.authorizationDetails.target()).isNotEqual(record.getId())
+		//						.andWhere(schemas.authorizationDetails.target()).isIn(record.getList(ATTACHED_ANCESTORS))));
+		//
+		//		authorizationDetails.addAll()
+
+		return authorizationDetails;
 	}
 
 	private List<String> toIds(List<AuthorizationDetails> authorizationDetailses) {
@@ -590,8 +621,8 @@ public class AuthorizationsServices {
 		String authId = authorization.getDetail().getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-
-		if (!directlyTargetted && !inherited) {
+		boolean nonTaxonomyAuth = record.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS).contains(authId);
+		if (!directlyTargetted && !inherited && !nonTaxonomyAuth) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 
@@ -885,6 +916,11 @@ public class AuthorizationsServices {
 			validateDates(startDate, endDate);
 			transaction.add((SolrAuthorizationDetails) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
 		}
+
+		if (request.getNewOverridingInheritedAuths() != null) {
+			transaction.add(((SolrAuthorizationDetails) authorizationDetails))
+					.setOverrideInherited(request.getNewOverridingInheritedAuths());
+		}
 	}
 
 	private List<Record> principalToRecords(AuthTransaction transaction, SchemasRecordsServices schemas,
@@ -1164,7 +1200,7 @@ public class AuthorizationsServices {
 	AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection, String id) {
 		AuthorizationDetails inherited = getDetails(collection, id);
 		SolrAuthorizationDetails detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
-				inherited.getStartDate(), inherited.getEndDate());
+				inherited.getStartDate(), inherited.getEndDate(), false);
 		detail.setTarget(record.getId());
 
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -1232,11 +1268,11 @@ public class AuthorizationsServices {
 	}
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
-			LocalDate startDate, LocalDate endDate) {
+			LocalDate startDate, LocalDate endDate, boolean overrideInherited) {
 		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
 				: schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
-		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate);
+		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited);
 	}
 
 }

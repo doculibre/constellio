@@ -17,7 +17,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 
 public class BigVaultServerTransactionCombinator {
 
-	public static final int DEFAULT_MAX_TRANSACTION_SIZE = 10000;
+	public static final int DEFAULT_MAX_TRANSACTION_SIZE = 5000;
 
 	List<SolrInputDocument> mergeNewDocuments = new LinkedList<>();
 	List<SolrInputDocument> mergeUpdatedDocuments = new LinkedList<>();
