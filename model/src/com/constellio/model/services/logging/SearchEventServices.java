@@ -2,11 +2,12 @@ package com.constellio.model.services.logging;
 
 import static java.util.Arrays.asList;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.schemas.Schemas;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -17,6 +18,8 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
 
 public class SearchEventServices {
 
@@ -85,5 +88,69 @@ public class SearchEventServices {
 		} catch (BigVaultException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+		params.set("rows", "0");
+		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+		params.add("fq", "collection_s:" + collection);
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+		params.set("rows", "0");
+		params.add("fq", "numFound_d:[1 TO *]");
+		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+		params.add("fq", "collection_s:" + collection);
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+		params.set("rows", "0");
+		params.add("fq", "numFound_d:0");
+		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+		params.add("fq", "collection_s:" + collection);
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+		params.set("rows", "0");
+		params.add("fq", "clickCount_d:[1 TO *]");
+		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+		params.add("fq", "collection_s:" + collection);
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+		params.set("rows", "0");
+		params.add("fq", "clickCount_d:0");
+		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+		params.add("fq", "collection_s:" + collection);
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 }
