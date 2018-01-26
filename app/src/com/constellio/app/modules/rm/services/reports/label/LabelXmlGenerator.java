@@ -281,16 +281,21 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
             }
         }
 
+        String inheritedMetadataCode = metadata.getCode();
+        if(metadata.inheritDefaultSchema()) {
+            inheritedMetadataCode = metadata.getInheritance().getCode();
+        }
+
 
         listOfMetadataTags.addAll(asList(
-                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_code").setText(codeBuilder.toString()),
-                new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + "_title").setText(titleBuilder.toString())
+                new Element(REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_") + "_code").setText(codeBuilder.toString()),
+                new Element(REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_") + "_title").setText(titleBuilder.toString())
         ));
 
         if(codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
             listOfMetadataTags.addAll(asList(
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(codeParentBuilder.toString()),
-                    new Element(REFERENCE_PREFIX + metadata.getCode().replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(titleParentBuilder.toString())
+                    new Element(REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_") + PARENT_SUFFIX + "_code").setText(codeParentBuilder.toString()),
+                    new Element(REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_") + PARENT_SUFFIX + "_title").setText(titleParentBuilder.toString())
                     )
             );
         }

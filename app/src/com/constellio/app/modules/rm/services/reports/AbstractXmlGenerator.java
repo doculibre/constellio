@@ -279,8 +279,13 @@ public abstract class AbstractXmlGenerator {
         List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
         List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
         List<Element> listOfMetadataTags = new ArrayList<>();
+        Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
+        String inheritedMetadataCode = metadataInSchema.getCode();
+        if(metadataInSchema.inheritDefaultSchema()) {
+            inheritedMetadataCode = metadataInSchema.getInheritance().getCode();
+        }
         if (listOfRecordReferencedByMetadata.isEmpty()) {
-        	String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
+        	String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
             listOfMetadataTags = asList(
                     new Element(elementNamePrefix + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
                     new Element(elementNamePrefix + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
@@ -321,7 +326,7 @@ public abstract class AbstractXmlGenerator {
                 }
             }
 
-            String elementNamePrefix = REFERENCE_PREFIX + recordSchema.getMetadata(metadata.getLocalCode()).getCode().replace("_default_", "_"); 
+            String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
             listOfMetadataTags.addAll(asList(
                     new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString()).setAttribute("label", elementNamePrefix + "_code"),
                     new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString()).setAttribute("label", elementNamePrefix + "_title")
