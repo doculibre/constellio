@@ -76,7 +76,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.logging.SearchEventServices;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -352,51 +351,57 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
 							.notifyNewUserSearch(param);
 				}
+
+				if (facets) {
+					logSearchEvent(this, response);
+				}
 			}
 		};
 
-		if (facets) {
-			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-					.addSolrModifiableParams(dataProvider.getQuery());
-
-			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
-
-			ArrayList<String> paramList = new ArrayList<>();
-
-			for (String paramName : modifiableSolrParams.getParameterNames()) {
-				if (!paramName.equals("qf") && !paramName.equals("pf")
-						&& !paramName.equals("fl")) {
-					if (paramName.equals("q")) {
-						searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
-					} else {
-						String[] values = modifiableSolrParams.getParams(paramName);
-
-						if (values.length == 1) {
-							paramList.add(paramName + "=" + values[0]);
-						} else if (values.length > 1) {
-							StringBuilder valuesAsOneStringBuilder = new StringBuilder();
-							for (String value : values) {
-								valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
-							}
-							paramList.add(valuesAsOneStringBuilder.toString());
-						}
-
-					}
-				}
-			}
-			searchEvent.setParams(paramList);
-			SearchEvent oldSearchEvent = schemasRecordsServices
-					.wrapSearchEvent((Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT"));
-
-			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-				view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
-				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-				searchEventServices.save(searchEvent);
-			}
-		}
-
 		return dataProvider;
+	}
+
+	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
+        ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
+                .addSolrModifiableParams(dataProvider.getQuery());
+
+        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+        SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+
+        ArrayList<String> paramList = new ArrayList<>();
+
+        for (String paramName : modifiableSolrParams.getParameterNames()) {
+            if (!paramName.equals("qf") && !paramName.equals("pf")
+                    && !paramName.equals("fl")) {
+                if (paramName.equals("q")) {
+                    searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
+                } else {
+                    String[] values = modifiableSolrParams.getParams(paramName);
+
+                    if (values.length == 1) {
+                        paramList.add(paramName + "=" + values[0]);
+                    } else if (values.length > 1) {
+                        StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+                        for (String value : values) {
+                            valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+                        }
+                        paramList.add(valuesAsOneStringBuilder.toString());
+                    }
+
+                }
+            }
+        }
+        searchEvent.setParams(paramList);
+        searchEvent.setQTime(response.getQtime());
+        searchEvent.setNumFound(response.getNumFound());
+        SearchEvent oldSearchEvent = schemasRecordsServices
+                .wrapSearchEvent((Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT"));
+
+        if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
+            view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
+            SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+            searchEventServices.save(searchEvent);
+        }
 	}
 
 	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
