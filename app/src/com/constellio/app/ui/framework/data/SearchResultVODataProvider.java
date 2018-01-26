@@ -26,15 +26,15 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
 
-	transient LogicalSearchQuery query;
+	protected transient LogicalSearchQuery query;
 	transient boolean serializeRecords;
-	transient Integer size = null;
+	protected transient Integer size = null;
 	//transient Map<Integer, SearchResultVO> cache;
 	protected transient ModelLayerFactory modelLayerFactory;
 	protected transient AppLayerFactory appLayerFactory;
-	SerializableSearchCache queryCache = new SerializableSearchCache();
+	protected SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
-	private int resultsPerPage;
+	protected int resultsPerPage;
 
 	RecordToVOBuilder voBuilder;
 

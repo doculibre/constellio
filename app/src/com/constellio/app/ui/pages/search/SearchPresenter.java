@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -351,10 +352,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
 							.notifyNewUserSearch(param);
 				}
+			}
 
-				if (facets) {
+			@Override
+			public int size() {
+				SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+				if (size == null) {
+					SPEQueryResponse response = searchServices.query(query, resultsPerPage);
 					logSearchEvent(this, response);
+					size = response.getRecords().size();
 				}
+				return size;
 			}
 		};
 
