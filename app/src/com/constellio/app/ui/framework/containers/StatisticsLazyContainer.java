@@ -3,9 +3,13 @@ package com.constellio.app.ui.framework.containers;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.SolrDataProvider;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.vaadin.addons.lazyquerycontainer.*;
 
 import java.io.Serializable;
@@ -38,11 +42,9 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
 
     public static class StatisticsLazyQueryFactory implements QueryFactory, Serializable {
         private final List<String> properties;
-        // TODO Replace with the correct data provider
-        private final RecordVODataProvider dataProvider;
+        private final SolrDataProvider dataProvider;
 
-        public StatisticsLazyQueryFactory(RecordVODataProvider dataProvider, // TODO Replace with the correct data provider
-                                          List<String> properties) {
+        public StatisticsLazyQueryFactory(SolrDataProvider dataProvider, List<String> properties) {
             this.dataProvider = dataProvider;
 
             if(properties == null || properties.isEmpty()) {
@@ -53,11 +55,24 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
 
         @Override
         public Query constructQuery(final QueryDefinition queryDefinition) {
+            final ArrayList<SimpleOrderedMap> buckets = new ArrayList<>();
+
+            QueryResponse queryResponse = dataProvider.getQueryResponse();
+            NamedList<Object> namedList = queryResponse.getResponse();
+
+            try {
+                SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
+                SimpleOrderedMap queryS = (SimpleOrderedMap) facets.get("query_s");
+                buckets.addAll((ArrayList<SimpleOrderedMap>) queryS.get("buckets"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return new Query() {
 
                 @Override
                 public int size() {
-                    return dataProvider.size();
+                    return buckets.size();
                 }
 
                 @Override
@@ -69,11 +84,14 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
                 public List<Item> loadItems(int startIndex, int count) {
                     List<Item> items = new ArrayList<Item>();
 
-                    // TODO Use the correct data provider
-                    List<RecordVO> recordVOsFromFirstDataProvider = dataProvider.listRecordVOs(startIndex, count);
-                    for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
-                        // TODO Replace with the correct implementation
-                        Item item = new StatisticsItem("query", "0", "0");
+                    for (int i = startIndex; i < count; i++) {
+                        SimpleOrderedMap bucket = buckets.get(i);
+
+                        String query = (String) bucket.get("val");
+                        String clickCount = String.valueOf(((Number)bucket.get("clickCount_d")).intValue());
+                        String frequency = String.valueOf(((Number)bucket.get("count")).intValue());
+
+                        Item item = new StatisticsItem(query, clickCount, frequency);
                         items.add(item);
                     }
 
@@ -160,7 +178,7 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
         }
     }
 
-    public static StatisticsLazyContainer defaultInstance(RecordVODataProvider dataProvider, List<String> properties) {
+    public static StatisticsLazyContainer defaultInstance(SolrDataProvider dataProvider, List<String> properties) {
         StatisticsLazyQueryDefinition qDef = new StatisticsLazyQueryDefinition(properties);
         StatisticsLazyQueryFactory qFact = new StatisticsLazyQueryFactory(dataProvider, properties);
 

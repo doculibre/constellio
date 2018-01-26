@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.SolrDataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
@@ -13,6 +14,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 
 import java.io.IOException;
@@ -61,6 +65,21 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
             @Override
             protected boolean isSearchCache() {
                 return true;
+            }
+        };
+    }
+
+    public SolrDataProvider getStatisticsFacetsDataProvider() {
+        final ModifiableSolrParams params = new ModifiableSolrParams();
+        params.set("q", "*:*"); //changer la recherche ici
+        params.set("rows", "0");
+        params.add("fq", "collection_s:" + collection);
+        params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+        return new SolrDataProvider() {
+            @Override
+            public QueryResponse getQueryResponse() {
+                return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
             }
         };
     }
