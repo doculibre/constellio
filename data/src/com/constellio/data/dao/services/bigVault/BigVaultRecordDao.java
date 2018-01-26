@@ -11,7 +11,6 @@ import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isSingleV
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -182,12 +181,6 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 
-		//		refreshRefCountIndexForRecordsWithNewAncestors(recordsAncestors, recordsInTransactionRefCounts,
-		//				recordsOutOfTransactionRefCounts, transaction);
-		//		newDocuments.addAll(incrementReferenceCountersInTransactionInSolr(recordsInTransactionRefCounts, getCollection(
-		//				transaction), recordsAncestors, transaction.getNewRecords()));
-		//		updatedDocuments
-		//				.addAll(incrementReferenceCountersOutOfTransactionInSolr(recordsOutOfTransactionRefCounts, recordsAncestors));
 	}
 
 	private SolrInputDocument newMarkedForReindexingInputDocument(String id) {
@@ -200,18 +193,6 @@ public class BigVaultRecordDao implements RecordDao {
 		return solrInputDocument;
 	}
 
-	private Object getCollection(TransactionDTO transaction) {
-		if (!transaction.getNewRecords().isEmpty()) {
-			return getCollection(transaction.getNewRecords().get(0));
-		} else if (!transaction.getModifiedRecords().isEmpty()) {
-			return getCollection(transaction.getModifiedRecords().get(0));
-		} else if (!transaction.getDeletedRecords().isEmpty()) {
-			return getCollection(transaction.getDeletedRecords().get(0));
-		} else {
-			return "";
-		}
-	}
-
 	private void prepareModifiedRecord(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
 			List<SolrInputDocument> updatedDocuments, List<String> deletedRecordsIds,
 			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
@@ -222,16 +203,9 @@ public class BigVaultRecordDao implements RecordDao {
 				solrInputDocument.removeField("_version_");
 			}
 			updatedDocuments.add(solrInputDocument);
-			//			deleteIndexForLogicallyDeletedRecord(deletedRecordsIds, modifiedRecord);
-			//			addActiveIndexesForRestoredRecord(newDocuments, modifiedRecord);
 			if (modifiedRecord.getModifiedFields().containsKey("path_ss")) {
 				recordsAncestors.set(modifiedRecord.getId(), getModifiedRecordAncestors(modifiedRecord));
 			}
-			//			if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
-			//				updatedDocuments.addAll(verifyIndexForNewReferences(modifiedRecord, transaction, recordsInTransactionRefCounts));
-			//			}
-			//			incrementReferenceCounterForNewReferences(modifiedRecord, transaction, recordsInTransactionRefCounts,
-			//					recordsOutOfTransactionRefCounts);
 		}
 	}
 
@@ -246,19 +220,12 @@ public class BigVaultRecordDao implements RecordDao {
 			solrInputDocument.removeField("_version_");
 		}
 		newDocuments.add(solrInputDocument);
-		//		if (isNotLogicallyDeleted(newRecord) && supportIndexes(newRecord)) {
-		//			String schema = (String) newRecord.getFields().get("schema_s");
-		//			if (schema == null || !schema.startsWith("event_")) {
-		//				newDocuments.add(buildActiveIndexSolrDocument(newRecord.getId(), collection));
-		//			}
-		//		}
 
 		if (hasNoVersion(newRecord) && supportIndexes(newRecord)) {
 			if (!recordsInTransactionRefCounts.containsKey(newRecord.getId())) {
 				recordsInTransactionRefCounts.put(newRecord.getId(), 0.0);
 			}
 			recordsAncestors.set(newRecord.getId(), getRecordAncestors(newRecord));
-			//			verifyIndexForAllReferences(newRecord, transaction, activeReferencesCheck);
 		}
 
 		incrementReferenceCounterForAllReferences(newRecord, transaction, recordsInTransactionRefCounts,
@@ -274,57 +241,13 @@ public class BigVaultRecordDao implements RecordDao {
 		return record.getVersion() == -1;
 	}
 
-	private boolean isNotLogicallyDeleted(RecordDTO record) {
-		return !Boolean.TRUE.equals(record.getFields().get("deleted_s"));
-	}
-
 	private void prepareDeletedRecord(TransactionDTO transaction, List<String> deletedRecordsIds,
 			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
 			RecordDTO recordDTO) {
 		deletedRecordsIds.add(recordDTO.getId());
 		decrementReferenceCounterForAllReferences(recordDTO, transaction, recordsInTransactionRefCounts,
 				recordsOutOfTransactionRefCounts);
-		//deletedRecordsIds.add(REF_COUNT_PREFIX + recordDTO.getId());
 	}
-
-	//	private void refreshRefCountIndexForRecordsWithNewAncestors(KeyListMap<String, String> recordsAncestors,
-	//			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
-	//			TransactionDTO transaction) {
-	//		for (Object recordId : recordsAncestors.getNestedMap().keySet()) {
-	//			if (referencedIdIsNewRecordInTransaction(recordId, transaction)) {
-	//				addReferenceToMapWithValue((String) recordId, recordsInTransactionRefCounts, 0.0);
-	//			} else {
-	//				addReferenceToMapWithValue((String) recordId, recordsOutOfTransactionRefCounts, 0.0);
-	//			}
-	//		}
-	//	}
-
-	//	private void addActiveIndexesForRestoredRecord(List<SolrInputDocument> newDocuments, RecordDeltaDTO modifiedRecord) {
-	//		if (recordIsRestored(modifiedRecord)) {
-	//			newDocuments
-	//					.add(buildActiveIndexSolrDocument(modifiedRecord.getId(),
-	//							modifiedRecord.getInitialFields().get(COLLECTION_FIELD)));
-	//		}
-	//	}
-
-	private boolean recordIsRestored(RecordDeltaDTO modifiedRecord) {
-		Map<String, Object> modifiedFields = modifiedRecord.getModifiedFields();
-		return modifiedRecord.getInitialFields().get(DELETED_FIELD) == Boolean.TRUE
-				&& modifiedFields.containsKey(DELETED_FIELD)
-				&& (modifiedFields.get(DELETED_FIELD) == null || modifiedFields.get(DELETED_FIELD) == Boolean.FALSE);
-	}
-
-	//	public List<String> getReferencedRecordsInHierarchy(String recordId) {
-	//		List<String> references = new ArrayList<>();
-	//		ModifiableSolrParams params = new ModifiableSolrParams();
-	//		params.set("q", ID_FIELD + ":" + REF_COUNT_PREFIX + recordId + " OR " + ANCESTORS_FIELD + ":" + recordId);
-	//		params.set("fq", "-" + REFCOUNT_FIELD + ":0");
-	//		List<RecordDTO> indexes = query(params).getResults();
-	//		for (RecordDTO index : indexes) {
-	//			references.add(index.getId().substring(REF_COUNT_PREFIX.length()));
-	//		}
-	//		return references;
-	//	}
 
 	@Override
 	public void flush() {
@@ -376,15 +299,6 @@ public class BigVaultRecordDao implements RecordDao {
 			List<RecordDTO> batchOfIds = batchsOfIdsIterator.next();
 
 			List<SolrInputDocument> inputDocuments = new ArrayList<>();
-			//			for (RecordDTO recordDTO : batchOfIds) {
-			//				List<String> ancestors = getRecordAncestors(recordDTO);
-			//
-			//				String schema = (String) recordDTO.getFields().get("schema_s");
-			//				if (schema == null || !schema.startsWith("event_")) {
-			//					inputDocuments.add(buildReferenceCounterSolrDocument(recordDTO.getId(), collection, 0.0, ancestors));
-			//				}
-			//
-			//			}
 
 			BigVaultServerTransaction batchTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
 					.setNewDocuments(inputDocuments);
@@ -459,97 +373,6 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	//	private List<SolrInputDocument> incrementReferenceCountersInTransactionInSolr(
-	//			Map<String, Double> recordsInTransactionRefCounts, Object collection, KeyListMap<String, String> recordsAncestors,
-	//			List<RecordDTO> fullyAddUpdatedRecord) {
-	//
-	//		Set<String> newRecordIds = new HashSet<>();
-	//		Set<String> eventsIds = new HashSet<>();
-	//		for (RecordDTO recordDTO : fullyAddUpdatedRecord) {
-	//			String schema = (String) recordDTO.getFields().get("schema_s");
-	//			if (schema == null || !schema.startsWith("event_")) {
-	//				if (recordDTO.getVersion() == -1) {
-	//					newRecordIds.add(recordDTO.getId());
-	//				}
-	//			} else {
-	//				eventsIds.add(recordDTO.getId());
-	//			}
-	//		}
-	//
-	//		List<SolrInputDocument> refCountSolrDocuments = new ArrayList<>();
-	//
-	//		Set<String> recordIds = new HashSet<>();
-	//		recordIds.addAll(recordsAncestors.getNestedMap().keySet());
-	//		recordIds.addAll(recordsInTransactionRefCounts.keySet());
-	//
-	//		for (String id : recordIds) {
-	//			Double value = recordsInTransactionRefCounts.get(id);
-	//			if (value == null) {
-	//				value = 0.0;
-	//			}
-	//
-	//			if (!eventsIds.contains(id)) {
-	//				if (newRecordIds.contains(id)) {
-	//					List<String> ancestors = recordsAncestors.get(id);
-	//					refCountSolrDocuments.add(buildReferenceCounterSolrDocument(id, collection, value, ancestors));
-	//				} else {
-	//					List<String> ancestors = recordsAncestors.contains(id) ? recordsAncestors.get(id) : null;
-	//					refCountSolrDocuments.add(updateReferenceCounterSolrDocument(id, value, ancestors));
-	//				}
-	//			}
-	//		}
-	//		return refCountSolrDocuments;
-	//	}
-
-	//	private List<SolrInputDocument> incrementReferenceCountersOutOfTransactionInSolr(
-	//			Map<String, Double> recordsOutOfTransactionRefCounts, KeyListMap<String, String> recordsAncestors) {
-	//		List<SolrInputDocument> refCountSolrDocuments = new ArrayList<>();
-	//		for (Map.Entry<String, Double> field : recordsOutOfTransactionRefCounts.entrySet()) {
-	//			String id = field.getKey().toString();
-	//			if (recordsAncestors.contains(id)) {
-	//				List<String> ancestors = recordsAncestors.get(id);
-	//				refCountSolrDocuments.add(updateReferenceCounterSolrDocument(id, field.getValue(), ancestors));
-	//			} else {
-	//				refCountSolrDocuments.add(updateReferenceCounterSolrDocument(id, field.getValue(), null));
-	//			}
-	//
-	//		}
-	//		return refCountSolrDocuments;
-	//	}
-
-	//	private void deleteIndexForLogicallyDeletedRecord(List<String> deletedRecordsIds, RecordDeltaDTO modifiedRecord) {
-	//		if (modifiedRecord.getModifiedFields().get(DELETED_FIELD) == Boolean.TRUE) {
-	//			deletedRecordsIds.add(ACTIVE_IDX_PREFIX + modifiedRecord.getId());
-	//		}
-	//	}
-
-	//	private void verifyIndexForAllReferences(RecordDTO newRecord, TransactionDTO transaction,
-	//			Map<Object, SolrInputDocument> activeReferencesCheck) {
-	//		Object collection = getCollection(newRecord);
-	//
-	//		for (Map.Entry<String, Object> field : newRecord.getFields().entrySet()) {
-	//			Object refId = field.getValue();
-	//
-	//			if (field.getKey().endsWith("Id_s") && field.getValue() != null && !activeReferencesCheck.containsKey(refId)
-	//					&& !referencedIdIsNewRecordInTransaction(refId, transaction)) {
-	//				activeReferencesCheck.put(refId, setVersion1ToDocument((String) field.getValue(), collection));
-	//			} else if (field.getKey().endsWith("Id_ss") && field.getValue() != null) {
-	//				verifyIndexForReferencesInMultivalueField(transaction, collection, field, activeReferencesCheck);
-	//			}
-	//		}
-	//	}
-	//
-	//	private void verifyIndexForReferencesInMultivalueField(TransactionDTO transaction,
-	//			Object collection, Entry<String, Object> field, Map<Object, SolrInputDocument> activeReferencesCheck) {
-	//		for (Object referenceId : (List) field.getValue()) {
-	//			if (referenceId != null
-	//					&& !activeReferencesCheck.containsKey(referenceId)
-	//					&& !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
-	//				activeReferencesCheck.put(referenceId, setVersion1ToDocument((String) referenceId, collection));
-	//			}
-	//		}
-	//	}
-
 	private void incrementReferenceCounterForAllReferences(RecordDTO newRecord, TransactionDTO transaction,
 			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts) {
 		for (Map.Entry<String, Object> field : newRecord.getFields().entrySet()) {
@@ -589,15 +412,6 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	private void addReferenceToRecordMapToIncrement(String referenceId, Map<String, Double> recordsOutOfTransactionRefCounts,
-			RecordDeltaDTO modifiedRecord) {
-
-		String principalPath = modifiedRecord.get(PRINCIPALPATH_FIELD);
-		if (referenceIsNotParentOrPrincipalConcept(referenceId, principalPath)) {
-			addReferenceToMapWithValue(referenceId, recordsOutOfTransactionRefCounts, 1.0);
-		}
-	}
-
 	private void addReferenceToMapWithValue(String referenceId, Map<String, Double> recordsRefCounts,
 			double value) {
 		if (recordsRefCounts.containsKey(referenceId)) {
@@ -624,20 +438,8 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	private void addReferenceToRecordMapToDecrement(String referenceId, Map<String, Double> recordsOutOfTransactionRefCounts,
-			RecordDeltaDTO newRecord) {
-		String principalPath = (String) newRecord.getInitialFields().get(PRINCIPALPATH_FIELD);
-		if (referenceId != null && referenceIsNotParentOrPrincipalConcept(referenceId, principalPath)) {
-			addReferenceToMapWithValue(referenceId, recordsOutOfTransactionRefCounts, -1.0);
-		}
-	}
-
 	private Object getCollection(RecordDTO newRecord) {
 		return newRecord.getFields().get(COLLECTION_FIELD);
-	}
-
-	private Object getCollection(RecordDeltaDTO newRecord) {
-		return newRecord.getInitialFields().get(COLLECTION_FIELD);
 	}
 
 	private void incrementReferenceCounterForReferencesInMultivalueField(RecordDTO newRecord, TransactionDTO transaction,
@@ -672,125 +474,6 @@ public class BigVaultRecordDao implements RecordDao {
 		return value != null && transaction.hasRecord((String) value);
 	}
 
-	//	private List<SolrInputDocument> verifyIndexForNewReferences(RecordDeltaDTO modifiedRecord, TransactionDTO transaction,
-	//			Map<String, Double> recordsInTransactionRefCounts) {
-	//		List<SolrInputDocument> referencedIndexes = new ArrayList<>();
-	//		Object collection = modifiedRecord.getInitialFields().get(COLLECTION_FIELD);
-	//		for (Map.Entry<String, Object> field : modifiedRecord.getModifiedFields().entrySet()) {
-	//			if (fieldIsNewReferenceInTransaction(transaction, field)) {
-	//				if (!recordsInTransactionRefCounts.containsKey(field.getValue())) {
-	//					referencedIndexes.add(setVersion1ToDocument((String) field.getValue(), collection));
-	//				}
-	//			} else if (field.getKey().endsWith("Id_ss") && field.getValue() != null) {
-	//				verifyIndexForNewReferencesInMultivalueField(modifiedRecord, referencedIndexes, field,
-	//						recordsInTransactionRefCounts, transaction);
-	//			}
-	//		}
-	//		return referencedIndexes;
-	//	}
-
-	//	private void incrementReferenceCounterForNewReferences(RecordDeltaDTO modifiedRecord, TransactionDTO transaction,
-	//			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts) {
-	//		for (Map.Entry<String, Object> field : modifiedRecord.getModifiedFields().entrySet()) {
-	//			if (fieldIsNonParentReference(field)) {
-	//				if (!referencedIdIsNewRecordInTransaction(field.getValue(), transaction)) {
-	//					addReferenceToRecordMapToIncrement((String) field.getValue(), recordsOutOfTransactionRefCounts,
-	//							modifiedRecord);
-	//					addReferenceToRecordMapToDecrement((String) modifiedRecord.getInitialFields().get(field.getKey()),
-	//							recordsOutOfTransactionRefCounts, modifiedRecord);
-	//				} else {
-	//					addReferenceToRecordMapToIncrement((String) field.getValue(), recordsInTransactionRefCounts, modifiedRecord);
-	//				}
-	//			} else if (field.getKey().endsWith("Id_ss")) {
-	//				incrementReferenceCounterForNewReferencesInMultivalueField(modifiedRecord, field, transaction,
-	//						recordsInTransactionRefCounts, recordsOutOfTransactionRefCounts);
-	//
-	//			}
-	//		}
-	//	}
-	//
-	//	private void incrementReferenceCounterForNewReferencesInMultivalueField(RecordDeltaDTO modifiedRecord,
-	//			Entry<String, Object> field, TransactionDTO transaction, Map<String, Double> recordsInTransactionRefCounts,
-	//			Map<String, Double> recordsOutOfTransactionRefCounts) {
-	//		List initialList = ensureList(modifiedRecord.getInitialFields().get(field.getKey()));
-	//		List currentList = ensureList(field.getValue());
-	//		List<String> newReferences;
-	//		if (initialList != null) {
-	//			newReferences = LangUtils.compare(initialList, currentList).getNewItems();
-	//		} else {
-	//			newReferences = currentList;
-	//		}
-	//		for (String referenceId : newReferences) {
-	//			if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
-	//				addReferenceToRecordMapToIncrement(referenceId, recordsOutOfTransactionRefCounts, modifiedRecord);
-	//			} else {
-	//				addReferenceToRecordMapToIncrement(referenceId, recordsInTransactionRefCounts, modifiedRecord);
-	//			}
-	//		}
-	//		if (modifiedRecord.getInitialFields().get(field.getKey()) != null) {
-	//			initialList = ensureList(modifiedRecord.getInitialFields().get(field.getKey()));
-	//			currentList = ensureList(field.getValue());
-	//			List<String> removedReferences = LangUtils.compare(initialList, currentList).getRemovedItems();
-	//			for (String referenceId : removedReferences) {
-	//				if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
-	//					addReferenceToRecordMapToDecrement(referenceId, recordsOutOfTransactionRefCounts, modifiedRecord);
-	//				} else {
-	//					addReferenceToRecordMapToDecrement(referenceId, recordsInTransactionRefCounts, modifiedRecord);
-	//				}
-	//			}
-	//		}
-	//	}
-
-	private boolean fieldIsNewReferenceInTransaction(TransactionDTO transaction, Entry<String, Object> field) {
-		return field.getKey().endsWith("Id_s") && field.getValue() != null && !referencedIdIsNewRecordInTransaction(
-				field.getValue(), transaction);
-	}
-
-	private void verifyIndexForNewReferencesInMultivalueField(RecordDeltaDTO modifiedRecord,
-			List<SolrInputDocument> referencedIndexes, Entry<String, Object> field,
-			Map<String, Double> recordsInTransactionRefCounts, TransactionDTO transaction) {
-		Object collection = modifiedRecord.getInitialFields().get(COLLECTION_FIELD);
-		Object initialValue = modifiedRecord.getInitialFields().get(field.getKey());
-		if (initialValue != null) {
-			Object currentValue = field.getValue();
-			List initialList = ensureList(initialValue);
-			List currentList = ensureList(currentValue);
-			List newReferences = LangUtils.compare(initialList, currentList).getNewItems();
-
-			//			for (Object referenceId : newReferences) {
-			//				if (!recordsInTransactionRefCounts.containsKey(referenceId)) {
-			//					if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
-			//						referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
-			//					}
-			//				}
-			//			}
-		} else {
-			//			for (Object referenceId : (List) field.getValue()) {
-			//				if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
-			//					referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
-			//				}
-			//			}
-		}
-	}
-
-	private List ensureList(Object object) {
-		List list;
-		if (object instanceof List) {
-			list = (List) object;
-		} else if (StringUtils.isNotBlank((String) object)) {
-			list = null;
-		} else {
-			list = Arrays.asList(object);
-		}
-		return list;
-	}
-
-	//	private SolrInputDocument setVersion1ToDocument(String referenceId, Object collection) {
-	//		SolrInputDocument referencedIndex = buildActiveIndexSolrDocument(referenceId, collection);
-	//		referencedIndex.setField(VERSION_FIELD, 1L);
-	//		return referencedIndex;
-	//	}
-
 	@Override
 	public RecordDTO get(String id)
 			throws RecordDaoException.NoSuchRecordWithId {
@@ -800,7 +483,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		RecordDTO entity = querySingleDocument("getById:" + id, params);
 		if (entity == null) {
-			throw new RecordDaoException.NoSuchRecordWithId(id);
+			throw new RecordDaoException.NoSuchRecordWithId(id, bigVaultServer.getName());
 		} else {
 			return entity;
 		}
@@ -817,7 +500,7 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 
 		if (solrDocument == null) {
-			throw new RecordDaoException.NoSuchRecordWithId(id);
+			throw new RecordDaoException.NoSuchRecordWithId(id, bigVaultServer.getName());
 		} else {
 			return toEntity(solrDocument);
 		}
@@ -1018,41 +701,6 @@ public class BigVaultRecordDao implements RecordDao {
 
 		return document;
 	}
-
-	//	protected SolrInputDocument buildActiveIndexSolrDocument(String recordId, Object collection) {
-	//		SolrInputDocument document = new ConstellioSolrInputDocument();
-	//		document.addField(ID_FIELD, ACTIVE_IDX_PREFIX + recordId);
-	//		document.addField(TYPE_FIELD, "index");
-	//		document.addField(COLLECTION_FIELD, collection == null ? null : collection);
-	//		return document;
-	//	}
-	//
-	//	protected SolrInputDocument buildReferenceCounterSolrDocument(String recordId, Object collection, Double value,
-	//			List<String> ancestors) {
-	//		SolrInputDocument document = new ConstellioSolrInputDocument();
-	//		String indexId = REF_COUNT_PREFIX + recordId;
-	//		document.addField(ID_FIELD, indexId);
-	//		document.addField(TYPE_FIELD, "index");
-	//		document.addField(REFCOUNT_FIELD, value);
-	//		document.addField(COLLECTION_FIELD, collection == null ? null : collection);
-	//		document.addField(ANCESTORS_FIELD, ancestors);
-	//		return document;
-	//	}
-	//
-	//	protected SolrInputDocument updateReferenceCounterSolrDocument(String recordId, Double value,
-	//			List<String> ancestors) {
-	//		SolrInputDocument document = new ConstellioSolrInputDocument();
-	//		document.addField(ID_FIELD, REF_COUNT_PREFIX + recordId);
-	//		document.addField(REFCOUNT_FIELD, LangUtils.newMapWithEntry("inc", value));
-	//
-	//		if (ancestors != null) {
-	//			if (ancestors.isEmpty()) {
-	//				ancestors.add("");
-	//			}
-	//			document.addField(ANCESTORS_FIELD, ancestors);
-	//		}
-	//		return document;
-	//	}
 
 	private LocalDateTime convertSolrDateToLocalDateTime(Date date) {
 		LocalDateTime localDateTime = new LocalDateTime(date).minusMillis(getOffset(date));
@@ -1329,21 +977,6 @@ public class BigVaultRecordDao implements RecordDao {
 		} else {
 			return false;
 		}
-
-		//
-		//		if (NULL_STRING.equals(fieldValue)) {
-		//			return true;
-		//		} else if (NULL_DATE_TIME.equals(fieldValue) || NULL_DATE.equals(fieldValue)) {
-		//			return true;
-		//		} else if (NULL_NUMBER.equals(fieldValue)) {
-		//			return true;
-		//		} else if (fieldValue instanceof List) {
-		//			List list = (List) fieldValue;
-		//			if (list.contains(NULL_STRING) || list.contains(NULL_DATE_TIME) || list.contains(NULL_NUMBER) || list
-		//					.contains(NULL_DATE)) {
-		//				return true;
-		//			}
-		//		}
 
 	}
 

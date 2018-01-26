@@ -73,7 +73,11 @@ public class LoggerUtils {
 		for (String modifiedField : recordDeltaDTO.getModifiedFields().keySet()) {
 			log.append(modifiedField);
 			log.append(":");
-			log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+			if (recordDeltaDTO.getInitialFields() != null) {
+				log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+			} else {
+				log.append("?");
+			}
 			log.append("=>");
 			log.append(recordDeltaDTO.getModifiedFields().get(modifiedField));
 			log.append("; ");

@@ -41,8 +41,8 @@ public class RecordProviderTest extends ConstellioTest {
 
 		when(recordServices.getDocumentById(firstRecordId)).thenReturn(firstRecord);
 		when(recordServices.getDocumentById(secondRecordId)).thenReturn(secondRecord);
-		when(recordServices.realtimeGet(firstRecordId)).thenReturn(firstRecord);
-		when(recordServices.realtimeGet(secondRecordId)).thenReturn(secondRecord);
+		when(recordServices.realtimeGetRecordById(firstRecordId)).thenReturn(firstRecord);
+		when(recordServices.realtimeGetRecordById(secondRecordId)).thenReturn(secondRecord);
 
 	}
 
@@ -65,7 +65,7 @@ public class RecordProviderTest extends ConstellioTest {
 
 		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(secondRecord);
 
-		verify(recordServices).realtimeGet(secondRecordId);
+		verify(recordServices).realtimeGetRecordById(secondRecordId);
 	}
 
 	@Test

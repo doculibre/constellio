@@ -32,6 +32,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.LazyResultsKeepingOrderIterator;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
@@ -75,7 +76,7 @@ public class SearchServices {
 			"aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
 			"ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi" };
 
-	RecordDao recordDao;
+	//RecordDao recordDao;
 	RecordServices recordServices;
 	SecurityTokenManager securityTokenManager;
 	CollectionsListManager collectionsListManager;
@@ -83,6 +84,7 @@ public class SearchServices {
 	MetadataSchemasManager metadataSchemasManager;
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
+	ModelLayerFactory modelLayerFactory;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
@@ -93,7 +95,6 @@ public class SearchServices {
 	}
 
 	private SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory, RecordsCaches recordsCaches) {
-		this.recordDao = recordDao;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.securityTokenManager = modelLayerFactory.getSecurityTokenManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
@@ -101,6 +102,7 @@ public class SearchServices {
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.recordsCaches = recordsCaches;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
@@ -169,7 +171,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(recordDao, params, batchSize, true) {
+		return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, true) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -202,7 +204,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(recordDao, params, batchSize, false) {
+		return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, false) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -214,7 +216,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize) {
+		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -226,7 +228,7 @@ public class SearchServices {
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
+		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, skipping) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
@@ -312,7 +314,7 @@ public class SearchServices {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		long result = recordDao.query(query.getName(), params).getNumFound();
+		long result = dataStoreDao(query.getDataStore()).query(query.getName(), params).getNumFound();
 		query.setNumberOfRows(oldNumberOfRows);
 		return result;
 	}
@@ -335,7 +337,7 @@ public class SearchServices {
 
 	public Iterator<String> recordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return new LazyResultsIterator<String>(recordDao, params, 10000, true) {
+		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, true) {
 
 			@Override
 			public String convert(RecordDTO recordDTO) {
@@ -346,7 +348,7 @@ public class SearchServices {
 
 	public Iterator<String> reverseRecordsIdsIterator(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return new LazyResultsIterator<String>(recordDao, params, 10000, false) {
+		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, false) {
 
 			@Override
 			public String convert(RecordDTO recordDTO) {
@@ -392,14 +394,16 @@ public class SearchServices {
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language));
 
-		if (query.isMoreLikeThis()) {
-			params.add(CommonParams.QT, "/mlt");
-		} else {
-			params.add(CommonParams.QT, "/spell");
-			params.add(ShardParams.SHARDS_QT, "/spell");
+		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
+			if (query.isMoreLikeThis()) {
+				params.add(CommonParams.QT, "/mlt");
+			} else {
+					params.add(CommonParams.QT, "/spell");
+					params.add(ShardParams.SHARDS_QT, "/spell");
 
+
+			}
 		}
-
 		if (query.getFreeTextQuery() != null) {
 			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
@@ -594,7 +598,7 @@ public class SearchServices {
 	}
 
 	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
-		QueryResponseDTO queryResponseDTO = recordDao.query(query.getName(), params);
+		QueryResponseDTO queryResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
@@ -752,4 +756,11 @@ public class SearchServices {
 		}
 	}
 
+	private RecordDao dataStoreDao(String dataStore) {
+		if (dataStore == null || dataStore.equals(DataStore.RECORDS)) {
+			return modelLayerFactory.getDataLayerFactory().newRecordDao();
+		} else {
+			return modelLayerFactory.getDataLayerFactory().newEventsDao();
+		}
+	}
 }

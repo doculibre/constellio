@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -59,7 +60,7 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 		//		defineSchemasManager().using(setup);
 		//		condition = from(zeSchema.type()).where(Schemas.TITLE).isEqualTo("Ze title");
 
-		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, false));
+		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, DataStore.RECORDS, false));
 		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
 		when(condition.getCollection()).thenReturn(zeCollection);
 

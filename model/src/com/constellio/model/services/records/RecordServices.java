@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -73,11 +74,19 @@ public interface RecordServices {
 
 	Record getRecordByMetadata(Metadata metadata, String value);
 
-	Record realtimeGet(String id);
+	Record realtimeGetById(MetadataSchemaType schemaType, String id);
+
+	Record realtimeGetById(String dataStore, String id);
+
+	Record realtimeGetRecordById(String id);
 
 	Record getDocumentById(String id);
 
 	Record getDocumentById(String id, User user);
+
+	Record getById(MetadataSchemaType schemaType, String id);
+
+	Record getById(String dataStore, String id);
 
 	List<Record> getRecordsById(String collection, List<String> ids);
 

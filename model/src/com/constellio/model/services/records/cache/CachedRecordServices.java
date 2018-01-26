@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+
 import java.util.List;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -10,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
@@ -39,20 +42,46 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getDocumentById(String id) {
-		Record record = recordsCaches.getRecord(id);
+		return getById(RECORDS, id);
+	}
+
+	@Override
+	public Record getById(String dataStore, String id) {
+		Record record = RECORDS.equals(dataStore) ? recordsCaches.getRecord(id) : null;
 		if (record == null) {
-			record = recordServices.getDocumentById(id);
-			//recordsCaches.insert(record);
+			record = recordServices.getById(dataStore, id);
+		}
+		return record;
+	}
+
+	public Record getById(MetadataSchemaType schemaType, String id) {
+		RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+		Record record = cache.get(id);
+		if (record == null) {
+			record = recordServices.getById(schemaType, id);
 		}
 		return record;
 	}
 
 	@Override
-	public Record realtimeGet(String id) {
+	public Record realtimeGetRecordById(String id) {
+		return realtimeGetById(RECORDS, id);
+	}
+
+	@Override
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
 		Record record = recordsCaches.getRecord(id);
 		if (record == null) {
-			record = recordServices.realtimeGet(id);
-			//recordsCaches.insert(record);
+			record = recordServices.realtimeGetById(schemaType, id);
+		}
+		return record;
+	}
+
+	@Override
+	public Record realtimeGetById(String dataStore, String id) {
+		Record record = recordsCaches.getRecord(id);
+		if (record == null) {
+			record = recordServices.realtimeGetById(dataStore, id);
 		}
 		return record;
 	}

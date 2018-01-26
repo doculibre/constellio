@@ -150,6 +150,10 @@ public class MetadataSchemaXMLWriter3 {
 			schemaTypeElement.setAttribute("smallCode", schemaType.getSmallCode());
 		}
 
+		if (schemaType.getDataStore() != null && !schemaType.getDataStore().equals("records")) {
+			schemaTypeElement.setAttribute("dataStore", schemaType.getDataStore());
+		}
+
 		schemaTypeElement.setAttribute("inTransactionLog", writeBoolean(schemaType.isInTransactionLog()));
 		writeDefaultSchema(schemaType, schemaTypeElement, collectionSchema);
 		writeCustomSchemas(schemaType, schemaTypeElement, collectionSchema);

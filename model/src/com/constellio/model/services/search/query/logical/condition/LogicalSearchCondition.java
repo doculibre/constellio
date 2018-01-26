@@ -127,7 +127,7 @@ public abstract class LogicalSearchCondition {
 	}
 
 	public boolean isCollectionSearch() {
-		return filters != null;
+		return filters != null && filters.getCollection() != null;
 	}
 
 	public String getCollection() {

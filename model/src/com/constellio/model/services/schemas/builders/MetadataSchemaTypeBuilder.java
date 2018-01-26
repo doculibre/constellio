@@ -44,6 +44,7 @@ public class MetadataSchemaTypeBuilder {
 	private boolean readOnlyLocked;
 	private ClassProvider classProvider;
 	private Set<String> flags = new HashSet<>();
+	private String dataStore;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -61,6 +62,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.collection = collection;
 		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
+		builder.dataStore = "records";
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
 
 		return builder;
@@ -87,6 +89,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.security = schemaType.hasSecurity();
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
+		builder.dataStore = schemaType.getDataStore();
 		for (MetadataSchema schema : schemaType.getSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
@@ -219,7 +222,7 @@ public class MetadataSchemaTypeBuilder {
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
 		return new MetadataSchemaType(code, smallCode, collection, labels, schemas, defaultSchema, undeletable, security,
 				inTransactionLog,
-				readOnlyLocked);
+				readOnlyLocked, dataStore);
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -304,6 +307,15 @@ public class MetadataSchemaTypeBuilder {
 
 	public MetadataSchemaTypeBuilder setReadOnlyLocked(boolean readOnlyLocked) {
 		this.readOnlyLocked = readOnlyLocked;
+		return this;
+	}
+
+	public String getDataStore() {
+		return dataStore;
+	}
+
+	public MetadataSchemaTypeBuilder setDataStore(String dataStore) {
+		this.dataStore = dataStore == null ? "records" : dataStore;
 		return this;
 	}
 
