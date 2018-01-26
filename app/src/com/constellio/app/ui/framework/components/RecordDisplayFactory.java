@@ -28,7 +28,7 @@ public class RecordDisplayFactory implements Serializable {
 		return new RecordDisplay(recordVO, componentFactory);
 	}
 
-	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener listener) {
+	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener clickListener, ClickListener elevationClickListener, ClickListener exclusionClickListener) {
 		SearchResultDisplay result;
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		GetCustomResultDisplayParam param = new GetCustomResultDisplayParam(searchResultVO, componentFactory, query);
@@ -41,8 +41,14 @@ public class RecordDisplayFactory implements Serializable {
 		} else {
 			result = searchResultDisplay;
 		}
-		if (listener != null) {
-			result.addClickListener(listener);
+		if (clickListener != null) {
+			result.addClickListener(clickListener);
+		}
+		if (elevationClickListener != null) {
+			result.addElevationClickListener(elevationClickListener);
+		}
+		if (exclusionClickListener != null) {
+			result.addExclusionClickListener(exclusionClickListener);
 		}
 		return result;
 	}

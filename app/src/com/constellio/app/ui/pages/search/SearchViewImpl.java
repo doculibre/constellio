@@ -7,12 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -37,6 +40,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -313,6 +317,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 
+			@Override
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultElevationClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+
+			@Override
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultExclusionClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
 		};
 
 		container.addItemSetChangeListener(new ItemSetChangeListener() {
@@ -325,30 +348,53 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return container;
 	}
 
+
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);
 			return;
 		}
 
-		Label caption = new Label($("SearchView.spellChecker"));
-		caption.addStyleName(ValoTheme.LABEL_BOLD);
-		suggestions.addComponent(caption);
+        Label caption = new Label($("SearchView.spellChecker"));
+        caption.addStyleName(ValoTheme.LABEL_BOLD);
+        suggestions.addComponent(caption);
 
-		List<String> foundSuggestions = presenter.getSuggestions();
+		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
-			Button activateSuggestion = new Button(suggestion);
-			activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
-			activateSuggestion.addStyleName(SUGGESTION_STYLE);
-			activateSuggestion.addClickListener(new ClickListener() {
+
+				Button activateSuggestion = new Button(suggestion);
+				activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
+				activateSuggestion.addStyleName(SUGGESTION_STYLE);
+				activateSuggestion.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.suggestionSelected(suggestion);
+					}
+				});
+			HorizontalLayout horizontalLayout = new HorizontalLayout();
+
+			final DeleteButton excludeButton = new DeleteButton() {
 				@Override
-				public void buttonClick(ClickEvent event) {
-					presenter.suggestionSelected(suggestion);
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deleteSuggestionButtonClicked(suggestion, getCollection());
+					updateUI();
 				}
-			});
-			suggestions.addComponent(activateSuggestion);
+			};
+			excludeButton.setData(suggestion);
+
+			excludeButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+
+			excludeButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
+			horizontalLayout.addComponent(activateSuggestion);
+			horizontalLayout.addComponent(excludeButton);
+			suggestions.addComponent(horizontalLayout);
 		}
-		suggestions.setVisible(true);
+		if(foundSuggestions.size() > 0) {
+			suggestions.setVisible(true);
+		}
+		else {
+			suggestions.setVisible(false);
+		}
 	}
 
 	private Component buildSortComponent() {
@@ -530,6 +576,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		selectDeselectAllButton.setVisible(presenter.isAllowDownloadZip());
+
 		return selectDeselectAllButton;
 	}
 

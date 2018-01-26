@@ -14,10 +14,13 @@ import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
 import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
+import com.constellio.app.ui.pages.elevations.EditElevationView;
 import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
+import com.constellio.app.ui.pages.exclusion.DeleteExclusionsImpl;
+import com.constellio.app.ui.pages.exclusion.DeleteExclusionsView;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
@@ -213,6 +216,10 @@ public class NavigatorConfigurationService implements Serializable {
 
 	public static final String EDIT_ELEVATION = "editElevation";
 	public static final String STATISTICS = "statistics";
+	public static final String DELETE_EXCLUSION = "correctorExclusion";
+
+
+
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -266,6 +273,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_SEARCH, TaxonomyManagementSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FORCED_REINDEX, ForcedReindexViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteExclusionsImpl.class));
 
 		// TODO Use generic system to configure
 		viewProviders.add(new ClassBasedViewProvider(ADMIN_MODULE, AdminViewImpl.class));
@@ -334,6 +342,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_BAG_INFO, ListBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_BAG_INFO, AddEditBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteExclusionsImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

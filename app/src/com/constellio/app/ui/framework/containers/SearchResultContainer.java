@@ -48,8 +48,10 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			@Override
 			public Component getValue() {
 				SearchResultVO searchResultVO = getSearchResultVO((int) itemId);
-				ClickListener listener = getClickListener(searchResultVO);
-				return displayFactory.build(searchResultVO, query, listener);
+				ClickListener clickListener = getClickListener(searchResultVO);
+				ClickListener elevationClickListener = getElevationClickListener(searchResultVO);
+				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO);
+				return displayFactory.build(searchResultVO, query, clickListener, elevationClickListener, exclusionClickListener);
 			}
 
 			@Override
@@ -66,6 +68,14 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	}
 	
 	protected ClickListener getClickListener(SearchResultVO searchResultVO) {
+		return null;
+	}
+	
+	protected ClickListener getElevationClickListener(SearchResultVO searchResultVO) {
+		return null;
+	}
+	
+	protected ClickListener getExclusionClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}
 

@@ -105,7 +105,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private Table selectionTable;
 	private SelectionTableAdapter selectionTableAdapter;
 	private VerticalLayout actionMenuLayout;
-
 	private int selectionCount;
 
 	private Boolean delayedSelectionButtonEnabled;

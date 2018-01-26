@@ -14,7 +14,6 @@ import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -45,10 +44,8 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
         verticalLayout.addComponent(layout);
 
-        if(Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally()
-			&& getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
-                .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true")) {
+        if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally()) {
             Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
             systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
             verticalLayout.addComponent(systemSectionTitle);
