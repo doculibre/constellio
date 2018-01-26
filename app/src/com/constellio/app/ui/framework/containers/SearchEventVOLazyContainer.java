@@ -22,8 +22,11 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String QUERY = "searchEvent_default_query";
     public static final String USER = "searchEvent_default_username";
     public static final String CREATION_DATE = "searchEvent_default_createdOn";
+    public static final String Q_TIME = "searchEvent_default_qTime";
+    public static final String NUM_FOUND = "searchEvent_default_numFound";
 
-    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, PAGE_NAVIGATION_COUNT, PARAMS));
+
+    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, NUM_FOUND, Q_TIME, PARAMS));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);

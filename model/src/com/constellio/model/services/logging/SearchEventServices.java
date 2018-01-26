@@ -6,6 +6,7 @@ import java.util.*;
 
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -89,67 +90,130 @@ public class SearchEventServices {
 		}
 	}
 
-	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to) {
+	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
-		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		computeDateParams(from, to, params);
+
+		computeExcludedRequest(excludedRequest, params);
+
+		String limit = "";
+		if (maxLines != null && maxLines > 0) {
+			limit = ", 'limit': "+maxLines;
+		}
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to) {
+	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "numFound_d:[1 TO *]");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
-		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		computeDateParams(from, to, params);
+
+		computeExcludedRequest(excludedRequest, params);
+
+		String limit = "";
+		if (maxLines != null && maxLines > 0) {
+			limit = ", 'limit': "+maxLines;
+		}
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to) {
+	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "numFound_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
-		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		computeDateParams(from, to, params);
+
+		computeExcludedRequest(excludedRequest, params);
+
+		String limit = "";
+		if (maxLines != null && maxLines > 0) {
+			limit = ", 'limit': "+maxLines;
+		}
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to) {
+	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:[1 TO *]");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
-		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		computeDateParams(from, to, params);
+
+		computeExcludedRequest(excludedRequest, params);
+
+		String limit = "";
+		if (maxLines != null && maxLines > 0) {
+			limit = ", 'limit': "+maxLines;
+		}
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to) {
+	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
-		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + SolrUtils.convertLocalDateToSolrDate(from) + " TO " +  SolrUtils.convertLocalDateToSolrDate(to) + "]");
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		computeDateParams(from, to, params);
+
+		computeExcludedRequest(excludedRequest, params);
+
+		String limit = "";
+		if (maxLines != null && maxLines > 0) {
+			limit = ", 'limit': "+maxLines;
+		}
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	private void computeDateParams(LocalDate from, LocalDate to, ModifiableSolrParams params) {
+		String sFrom = "*";
+		if (from != null) {
+			sFrom = SolrUtils.convertLocalDateToSolrDate(from);
+		}
+
+		String sTo = "*";
+		if (to != null) {
+			sTo = SolrUtils.convertLocalDateToSolrDate(to);
+		}
+
+		params.add("fq", Schemas.CREATED_ON.getDataStoreCode() + ":[" + sFrom + " TO " + sTo + "]");
+	}
+
+	private void computeExcludedRequest(String excludedRequest, ModifiableSolrParams params) {
+		if (StringUtils.isNotBlank(excludedRequest)) {
+			Scanner scanner = new Scanner(excludedRequest);
+			while(scanner.hasNextLine()) {
+				params.add("fq", "-query_s:" + scanner.nextLine());
+			}
+		}
 	}
 }

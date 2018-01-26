@@ -1,26 +1,20 @@
 package com.constellio.app.ui.pages.statistic;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
-import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.services.logging.SearchEventServices;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST;
 import static org.mockito.Mockito.when;
 
 public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
@@ -108,7 +103,7 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void givenFixedNumberOfEventAddedThenProvidedAtOnce() {
+    public void givenFixedNumberOfEventAddedThenSameNumberFound() {
         int nb = 10;
         final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb);
 
@@ -125,10 +120,35 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 
         SearchEvent excluded = searchEvents.remove(RandomUtils.nextInt(0, searchEvents.size()));
 
-        presenter.applyFilter(excluded.getQuery(), null, null, null, null);
+        presenter.applyFilter(excluded.getQuery(), null, null, null, null, null);
         List<RecordVO> recordVOS = presenter.getStatisticsDataProvider().listRecordVOs(0, nb);
 
         Assertions.assertThat(recordVOS).isNotNull().hasSize(searchEvents.size());
         Assertions.assertThat(fromRecodVOs(recordVOS)).containsAll(searchEvents).doesNotContain(excluded);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenUnknownStatisticTypeThenException() {
+        presenter.applyFilter(null, null, null, null, null, null);
+
+        presenter.getStatisticsFacetsDataProvider().getQueryResponse();
+    }
+
+    @Test
+    public void givenFixedNumberOfEventAddedThenSameFacetNumberFound() {
+        int nb = 10;
+        final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb);
+
+        presenter.applyFilter(null, FAMOUS_REQUEST, null, null, null, null);
+
+        QueryResponse queryResponse = presenter.getStatisticsFacetsDataProvider().getQueryResponse();
+
+        NamedList<Object> namedList = queryResponse.getResponse();
+
+        SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
+        SimpleOrderedMap queryS = (SimpleOrderedMap) facets.get("query_s");
+        ArrayList<SimpleOrderedMap> buckets = (ArrayList<SimpleOrderedMap>) queryS.get("buckets");
+
+        Assertions.assertThat(buckets).isNotNull().hasSize(searchEvents.size());
     }
 }
