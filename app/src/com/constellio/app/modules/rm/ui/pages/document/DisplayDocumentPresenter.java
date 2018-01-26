@@ -439,7 +439,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				LogicalSearchQuery query = rmEventsSearchServices
 						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
-				return rmEventsSearchServices.exceptEventTypes(query,
+				return query == null ? null : rmEventsSearchServices.exceptEventTypes(query,
 						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
 								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
 			}
