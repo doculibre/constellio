@@ -2,14 +2,15 @@ package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
@@ -149,7 +150,6 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -163,11 +163,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 										   InstallableSystemModuleWithRecordMigrations {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
+
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
@@ -451,13 +454,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-			if (cache.getCacheObjectsCount(rm.authorizationDetails.schemaType().getCode()) == 0) {
-				Iterator<List<Record>> authsIterator = modelLayerFactory.newSearchServices().recordsBatchIterator(10000,
-						new LogicalSearchQuery(from(rm.authorizationDetails.schemaType()).returnAll()));
-				while (authsIterator.hasNext()) {
-					modelLayerFactory.getRecordsCaches().insert(collection, authsIterator.next());
-				}
-			}
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

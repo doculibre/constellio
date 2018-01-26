@@ -112,7 +112,8 @@ public interface RecordServices {
 	List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
-	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
+	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
+			TaxonomiesManager taxonomiesManager,
 			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction);
 
 	RecordsCaches getRecordsCaches();

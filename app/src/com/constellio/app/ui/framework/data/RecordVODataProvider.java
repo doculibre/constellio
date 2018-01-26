@@ -111,10 +111,12 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		}
 		return size;
 	}
-	
+
 	private List<Record> doSearch() {
 		List<Record> recordList;
-		if (isSearchCache()) {
+		if (query == null) {
+			recordList = new ArrayList<>();
+		} else if (isSearchCache()) {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			recordList = searchServices.cachedSearch(query);
@@ -141,19 +143,21 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
-		clearSort(query);
-		cache.clear();
+		if (query != null) {
+			clearSort(query);
+			cache.clear();
 
-		for (int i = 0; i < propertyId.length; i++) {
-			Metadata metadata;
-			MetadataSchema schema = query.getSchemaCondition();
-			MetadataVO metadataVO = propertyId[i];
-			if (schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
-				metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
-				if (ascending[i]) {
-					query = query.sortAsc(metadata);
-				} else {
-					query = query.sortDesc(metadata);
+			for (int i = 0; i < propertyId.length; i++) {
+				Metadata metadata;
+				MetadataSchema schema = query.getSchemaCondition();
+				MetadataVO metadataVO = propertyId[i];
+				if (schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
+					metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
+					if (ascending[i]) {
+						query = query.sortAsc(metadata);
+					} else {
+						query = query.sortDesc(metadata);
+					}
 				}
 			}
 		}
@@ -174,9 +178,9 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		queryCache.resetTotalQTime();
 		return qtime;
 	}
-	
+
 	protected boolean isSearchCache() {
 		return false;
 	}
-	
+
 }

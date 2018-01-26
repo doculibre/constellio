@@ -34,4 +34,10 @@ public class SearchServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class GetAllValuesNotSupportedForSchemaType extends SearchServicesRuntimeException {
+
+		public GetAllValuesNotSupportedForSchemaType(String schemaType) {
+			super("getAllValues is not supported by schema type : " + schemaType);
+		}
+	}
 }

@@ -93,6 +93,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
+	public List<Record> getAllValues(String schemaType) {
+		return nested.getAllValues(schemaType);
+	}
+
+	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		return nested.getQueryResults(query);
 	}
@@ -270,6 +275,16 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public boolean isEmpty() {
 		return cache.isEmpty() && nested.isEmpty();
+	}
+
+	@Override
+	public boolean isFullyLoaded(String schemaType) {
+		return nested.isFullyLoaded(schemaType);
+	}
+
+	@Override
+	public void markAsFullyLoaded(String schemaType) {
+		nested.markAsFullyLoaded(schemaType);
 	}
 
 	public void disconnect() {

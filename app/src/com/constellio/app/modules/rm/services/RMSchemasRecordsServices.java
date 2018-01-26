@@ -1129,7 +1129,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
-		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().cachedSearch(
-				new LogicalSearchQuery(from(administrativeUnit.schemaType()).returnAll())));
+		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
 	}
 }

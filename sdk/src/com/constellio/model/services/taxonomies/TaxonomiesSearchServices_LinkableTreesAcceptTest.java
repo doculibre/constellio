@@ -68,7 +68,7 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	Users users = new Users();
 	User alice;

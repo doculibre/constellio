@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.builders;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.io.IOException;
@@ -16,7 +15,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.RolesManager;
 
 public class AuthorizationToVOBuilder implements Serializable {
@@ -61,8 +59,8 @@ public class AuthorizationToVOBuilder implements Serializable {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(authorization.getDetail().getCollection(), modelLayerFactory);
-		List<Record> allUsers = searchServices.cachedSearch(new LogicalSearchQuery(from(schemas.userSchemaType()).returnAll()));
-		List<Record> allGroups = searchServices.cachedSearch(new LogicalSearchQuery(from(schemas.groupSchemaType()).returnAll()));
+		List<Record> allUsers = searchServices.getAllRecords(schemas.userSchemaType());
+		List<Record> allGroups = searchServices.getAllRecords(schemas.groupSchemaType());
 
 		if (principals != null) {
 			for (Record user : allUsers) {

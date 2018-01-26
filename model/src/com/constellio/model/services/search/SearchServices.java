@@ -1,6 +1,7 @@
 package com.constellio.model.services.search;
 
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,8 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
@@ -32,9 +35,11 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -54,6 +59,8 @@ import com.constellio.model.services.search.query.logical.condition.SolrQueryBui
 import com.constellio.model.services.security.SecurityTokenManager;
 
 public class SearchServices {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
 
 	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
 			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
@@ -661,6 +668,88 @@ public class SearchServices {
 			}
 		}
 		return result;
+	}
+
+	private void addUserFilter(ModifiableSolrParams params, List<UserFilter> userFilters) {
+		if (userFilters == null) {
+			return;
+		}
+
+		for (UserFilter userFilter : userFilters) {
+			params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
+		}
+	}
+
+	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
+
+		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+
+			if (cache.isConfigured(schemaType)) {
+				if (cache.isFullyLoaded(schemaType.getCode())) {
+					return cache.getAllValues(schemaType.getCode());
+
+				} else {
+
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+
+						if (records.size() > 1000) {
+							loadUsingMultithreading(cache, records);
+
+						} else {
+							cache.insert(records);
+						}
+					}
+					cache.markAsFullyLoaded(schemaType.getCode());
+
+					return records;
+				}
+			} else {
+				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
+			}
+
+		} else {
+			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+				cache.insert(records);
+			}
+			return records;
+		}
+	}
+
+	private void loadUsingMultithreading(final RecordsCache cache, List<Record> records) {
+		final Iterator<List<Record>> recordIterator = new BatchBuilderIterator<>(records.iterator(), 500);
+
+		ThreadList threadList = new ThreadList<>();
+		for (int i = 0; i < 5; i++) {
+			threadList.addAndStart(new Thread() {
+				@Override
+				public void run() {
+					boolean hasMoreRecords = true;
+
+					while (hasMoreRecords) {
+
+						List<Record> records;
+						synchronized (recordIterator) {
+							records = recordIterator.hasNext() ? recordIterator.next() : null;
+						}
+						if (records != null) {
+							cache.insert(records);
+						} else {
+							hasMoreRecords = false;
+						}
+
+					}
+				}
+			});
+		}
+		try {
+			threadList.joinAll();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

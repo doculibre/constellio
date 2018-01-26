@@ -1,13 +1,16 @@
 package com.constellio.data.dao.services.cache.ignite;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteDataStreamer;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 
@@ -21,6 +24,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 	private IgniteCache<String, Object> igniteCache;
 	
+	private IgniteDataStreamer<String, Object> igniteStreamer;
+	
 	private Ignite igniteClient;
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
@@ -29,6 +34,8 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.name = name;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
+		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
+		this.igniteStreamer.allowOverwrite(true);
 	}
 
 	@Override
@@ -38,6 +45,10 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	
 	public IgniteCache<String, Object> getIgniteCache() {
 		return igniteCache;
+	}
+
+	public IgniteDataStreamer<String, Object> getIgniteStreamer() {
+		return igniteStreamer;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -56,12 +67,18 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
+		put(key, value, false);
+	}
+		
+	@SuppressWarnings("unchecked")
+	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {	
 		value = value == null ? (T) NULL : value;
 		localCache.put(key, value);
-		igniteCache.put(key, value);
+		if (!locallyOnly) {
+			igniteCache.put(key, value);
+		}
 	}
 
 	@Override
@@ -118,6 +135,11 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public int size() {
 		return localCache.size();
+	}
+
+	@Override
+	public List<Object> getAllValues() {
+		return new ArrayList<>(localCache.values());
 	}
 
 }

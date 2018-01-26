@@ -392,6 +392,7 @@ public class CollectionsManager implements StatefulService {
 		cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(core.facetSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(core.authorizationDetails.schemaType()));
 
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
