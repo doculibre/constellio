@@ -61,6 +61,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		table.setColumnHeader("type", $("ConnectorReportView.type"));
 		tableControls = table.createControls();
 		mainLayout.addComponents(statsDisplay, filterComponent, table, tableControls);
+
 		return mainLayout;
 	}
 
@@ -90,7 +91,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	}
 
 	private BasePagedTable buildTable(RecordVOWithDistinctSchemaTypesLazyContainer container) {
-		table = new BasePagedTable<>(container);
+		BasePagedTable table = new BasePagedTable<>(container);
 		table.addStyleName("connector-report-table");
 		table.setContainerDataSource(container);
 		table.setWidth("100%");

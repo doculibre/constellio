@@ -6,13 +6,29 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class AllAuthorizationsTargettingRecordDependencyValue {
 
-	private List<AuthorizationDetails> authorizationDetails;
+	private List<AuthorizationDetails> authorizationDetailsOnRecord;
 
-	public AllAuthorizationsTargettingRecordDependencyValue(List<AuthorizationDetails> authorizationDetails) {
-		this.authorizationDetails = authorizationDetails;
+	private List<AuthorizationDetails> authorizationDetailsOnMetadatasProvidingSecurity;
+
+	private boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;
+
+	public AllAuthorizationsTargettingRecordDependencyValue(List<AuthorizationDetails> authorizationDetailsOnRecord,
+			List<AuthorizationDetails> authorizationDetailsOnMetadatasProvidingSecurity,
+			boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity) {
+		this.authorizationDetailsOnRecord = authorizationDetailsOnRecord;
+		this.authorizationDetailsOnMetadatasProvidingSecurity = authorizationDetailsOnMetadatasProvidingSecurity;
+		this.inheritedAuthorizationsOverridenByMetadatasProvidingSecurity = inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;
 	}
 
-	public List<AuthorizationDetails> getAuthorizationDetails() {
-		return authorizationDetails;
+	public List<AuthorizationDetails> getAuthorizationDetailsOnRecord() {
+		return authorizationDetailsOnRecord;
+	}
+
+	public List<AuthorizationDetails> getAuthorizationDetailsOnMetadatasProvidingSecurity() {
+		return authorizationDetailsOnMetadatasProvidingSecurity;
+	}
+
+	public boolean isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity() {
+		return inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;
 	}
 }

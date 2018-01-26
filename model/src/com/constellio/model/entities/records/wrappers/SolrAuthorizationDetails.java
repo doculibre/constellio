@@ -22,6 +22,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String TARGET = "target";
 	public static final String TARGET_SCHEMA_TYPE = "targetSchemaType";
 	public static final String LAST_TOKEN_RECALCULATE = "lastTokenRecalculate";
+	public static final String OVERRIDE_INHERITED = "overrideInherited";
 	public static final String SYNCED = "synced";
 
 	public SolrAuthorizationDetails(Record record,
@@ -88,6 +89,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 
 	public SolrAuthorizationDetails setTargetSchemaType(String targetSchemaType) {
 		set(TARGET_SCHEMA_TYPE, targetSchemaType);
+		return this;
+	}
+
+	public boolean isOverrideInherited() {
+		return getBooleanWithDefaultValue(OVERRIDE_INHERITED, false);
+	}
+
+	public SolrAuthorizationDetails setOverrideInherited(boolean overrideInherited) {
+		set(OVERRIDE_INHERITED, overrideInherited ? true : null);
 		return this;
 	}
 

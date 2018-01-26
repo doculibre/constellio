@@ -106,14 +106,13 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT;
 
-	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
-
 	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
 
 	public static final SystemConfiguration CONTENT_PARSING_SCHEDULE;
 	public static final SystemConfiguration VIEWER_CONTENTS_CONVERSION_SCHEDULE;
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
+	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -176,9 +175,6 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
-		add(ADVANCED_SEARCH_CONFIGS = search.createBooleanFalseByDefault("elevationSynonym").whichIsHidden());
-
-		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
 		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));
@@ -214,6 +210,9 @@ public class ConstellioEIMConfigs {
 
 		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
 				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		add(BATCH_PROCESSES_SCHEDULE = advanced.createString("batchProcessesSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
 
@@ -424,6 +423,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isInViewerContentsConversionSchedule() {
 		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
+	}
+
+	public boolean isInBatchProcessesSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(BATCH_PROCESSES_SCHEDULE));
 	}
 
 	public boolean isStatisticReportEnabled() {

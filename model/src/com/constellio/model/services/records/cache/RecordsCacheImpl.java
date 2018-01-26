@@ -5,13 +5,13 @@ import static com.constellio.model.services.records.cache.CacheInsertionStatus.R
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -58,6 +61,8 @@ public class RecordsCacheImpl implements RecordsCache {
 	Set<String> doNotLog = new HashSet<>();
 
 	AtomicBoolean enabled = new AtomicBoolean();
+
+	Set<String> fullyLoadedSchemaTypes = new HashSet<>();
 
 	public RecordsCacheImpl(String collection, ModelLayerFactory modelLayerFactory, AtomicBoolean enabled) {
 		this.collection = collection;
@@ -161,6 +166,16 @@ public class RecordsCacheImpl implements RecordsCache {
 		return true;
 	}
 
+	@Override
+	public boolean isFullyLoaded(String schemaType) {
+		return fullyLoadedSchemaTypes.contains(schemaType);
+	}
+
+	@Override
+	public void markAsFullyLoaded(String schemaType) {
+		fullyLoadedSchemaTypes.add(schemaType);
+	}
+
 	public synchronized void insert(List<Record> records) {
 		if (records != null) {
 			for (Record record : records) {
@@ -197,6 +212,25 @@ public class RecordsCacheImpl implements RecordsCache {
 			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
 			cache.queryResults.put(signature.toStringSignature(), recordIds);
 		}
+	}
+
+	@Override
+	public List<Record> getAllValues(String schemaType) {
+		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
+
+		List<Record> records = new ArrayList<>();
+
+		for (RecordHolder holder : this.cacheById.values()) {
+			if (holder != null) {
+				Record record = holder.record;
+				if (record != null && record.isOfSchemaType(schemaType)) {
+					records.add(record.getCopyOfOriginalRecord());
+				}
+			}
+		}
+
+		return records;
+
 	}
 
 	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
@@ -393,6 +427,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
 			}
 		}
+		fullyLoadedSchemaTypes.remove(recordType);
 	}
 
 	public synchronized void invalidate(List<String> recordIds) {
@@ -452,10 +487,9 @@ public class RecordsCacheImpl implements RecordsCache {
 			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000) {
-				for (Iterator<Record> it = searchServices.recordsIterator(from(schemaType).returnAll(), 1000); it.hasNext(); ) {
-					insert(it.next());
-				}
+			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000 || asList(User.SCHEMA_TYPE,
+					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType())) {
+				searchServices.getAllRecords(schemaType);
 			}
 		}
 
@@ -476,6 +510,8 @@ public class RecordsCacheImpl implements RecordsCache {
 		for (PermanentCache cache : permanentCaches.values()) {
 			cache.invalidateAll();
 		}
+
+		fullyLoadedSchemaTypes.clear();
 	}
 
 	@Override
@@ -526,7 +562,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		}
 
 		cachedTypes.remove(schemaType);
-
+		fullyLoadedSchemaTypes.remove(schemaType);
 	}
 
 	@Override
@@ -641,6 +677,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			return size;
 		}
+
 	}
 
 	static class PermanentCache {
@@ -679,6 +716,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			return size;
 		}
+
 	}
 
 	static class RecordByMetadataCache {

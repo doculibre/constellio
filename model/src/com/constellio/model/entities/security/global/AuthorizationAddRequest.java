@@ -25,6 +25,7 @@ public class AuthorizationAddRequest {
 	private Authorization existingAuthorization;
 	private LocalDate start, end;
 	private User executedBy;
+	private boolean overridingInheritedAuths;
 
 	private AuthorizationAddRequest(String collection) {
 		this(collection, null);
@@ -133,6 +134,10 @@ public class AuthorizationAddRequest {
 		return new AuthorizationAddRequest(groups[0].getCollection()).forGroups(groups);
 	}
 
+	public static AuthorizationAddRequest authorizationForGroups(List<Group> groups) {
+		return new AuthorizationAddRequest(groups.get(0).getCollection()).forGroups(groups.toArray(new Group[0]));
+	}
+
 	public static AuthorizationAddRequest authorizationForUsers(User... users) {
 		return new AuthorizationAddRequest(users[0].getCollection()).forUsers(users);
 	}
@@ -184,5 +189,19 @@ public class AuthorizationAddRequest {
 	public AuthorizationAddRequest setExecutedBy(User executedBy) {
 		this.executedBy = executedBy;
 		return this;
+	}
+
+	public AuthorizationAddRequest andOverridingInheritedAuths() {
+		this.overridingInheritedAuths = true;
+		return this;
+	}
+
+	public AuthorizationAddRequest andOverridingInheritedAuths(boolean value) {
+		this.overridingInheritedAuths = value;
+		return this;
+	}
+
+	public boolean isOverridingInheritedAuths() {
+		return overridingInheritedAuths;
 	}
 }

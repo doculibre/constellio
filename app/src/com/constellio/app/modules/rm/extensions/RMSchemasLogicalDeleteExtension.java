@@ -125,27 +125,38 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		ExtensionBooleanResult documentVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.document.schemaType())
+		boolean hasCheckedOutDocument = searchServices.hasResults(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
-				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())
-		));
-		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
-				.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
-				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-		));
-		return documentVerification == taskVerification? documentVerification:ExtensionBooleanResult.FALSE;
+				.andWhere(PATH_PARTS).isEqualTo(event.getRecord()));
+
+		if (hasCheckedOutDocument) {
+			return ExtensionBooleanResult.FALSE;
+		}
+
+		if (!event.isThenPhysicallyDeleted()) {
+			if (searchServices.hasResults(from(rm.userTask.schemaType())
+					.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
+					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())) {
+				return ExtensionBooleanResult.FALSE;
+			}
+
+		}
+
+		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
 	private ExtensionBooleanResult isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		ExtensionBooleanResult taskVerification = ExtensionBooleanResult.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
-				.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
-				.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-		));
-		return taskVerification == ExtensionBooleanResult.FALSE? ExtensionBooleanResult.FALSE:ExtensionBooleanResult.NOT_APPLICABLE;
+		ExtensionBooleanResult taskVerification = ExtensionBooleanResult
+				.falseIf(searchServices.hasResults(from(rm.userTask.schemaType())
+						.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
+						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+				));
+		return taskVerification == ExtensionBooleanResult.FALSE ?
+				ExtensionBooleanResult.FALSE :
+				ExtensionBooleanResult.NOT_APPLICABLE;
 	}
-
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		return ExtensionBooleanResult.falseIf(event.isRecordReferenced());

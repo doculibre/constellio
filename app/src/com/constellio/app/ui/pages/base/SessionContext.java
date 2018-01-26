@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 
 import java.io.Serializable;
 import java.security.Principal;
@@ -55,5 +57,8 @@ public interface SessionContext extends Serializable {
 	void addSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
 	
 	void removeSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
-	
+
+	SessionContext setCurrentSearchEventRecord(Record searchEventId);
+
+	Record getCurrentSearchEventRecord();
 }

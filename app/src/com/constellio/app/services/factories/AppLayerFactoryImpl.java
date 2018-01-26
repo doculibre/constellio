@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +108,9 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
 
+	private final CorrectorExcluderManager correctorExcluderManager;
+
+
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 		super(modelLayerFactory, statefullServiceDecorator, instanceName);
@@ -157,6 +161,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				dataLayerFactory.getIOServicesFactory().newIOServices());
 
 		dataLayerFactory.getConfigManager().keepInCache(MigrationServices.VERSION_PROPERTIES_FILE);
+
+		correctorExcluderManager = add(new CorrectorExcluderManager(modelLayerFactory));
 	}
 
 	private void setDefaultLocale() {
@@ -172,6 +178,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		i18n.setLocale(locale);
 
 	}
+
 
 	public void registerSystemWideManager(String module, String id, StatefulService manager) {
 		String key = module + "-" + id;
@@ -410,6 +417,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public AppSchemasServices newSchemasServices() {
 		return new AppSchemasServices(this);
+	}
+
+
+	public CorrectorExcluderManager getCorrectorExcluderManager() {
+		return correctorExcluderManager;
 	}
 
 }

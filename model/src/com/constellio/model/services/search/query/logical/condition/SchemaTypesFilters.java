@@ -1,22 +1,27 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException.CannotSearchInMultipleDataStore;
 
 public class SchemaTypesFilters implements DataStoreFilters {
 	String collection;
 	List<MetadataSchemaType> schemaTypes;
 	List<String> schemaTypesCodes;
+	String dataStore;
 
 	boolean except;
 
-	public SchemaTypesFilters(List<String> schemaTypesCodes, String collection) {
+	public SchemaTypesFilters(List<String> schemaTypesCodes, String collection, String dataStore) {
 		this.collection = collection;
 		this.schemaTypesCodes = schemaTypesCodes;
+		this.dataStore = dataStore;
 	}
 
 	public SchemaTypesFilters(List<MetadataSchemaType> schemaTypes) {
@@ -26,7 +31,22 @@ public class SchemaTypesFilters implements DataStoreFilters {
 	public SchemaTypesFilters(List<MetadataSchemaType> schemaTypes, boolean except) {
 		this.collection = schemaTypes.get(0).getCollection();
 		this.schemaTypes = schemaTypes;
+		this.dataStore = dataStoreOf(schemaTypes);
 		this.except = except;
+	}
+
+	private static String dataStoreOf(List<MetadataSchemaType> schemaTypes) {
+		String dataStore = null;
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			if (dataStore == null) {
+				dataStore = schemaType.getDataStore();
+
+			} else if (!dataStore.equals(schemaType.getDataStore())) {
+				throw new CannotSearchInMultipleDataStore(asList(dataStore, schemaType.getDataStore()));
+			}
+		}
+		return dataStore;
+
 	}
 
 	@Override
@@ -43,6 +63,11 @@ public class SchemaTypesFilters implements DataStoreFilters {
 	@Override
 	public String getCollection() {
 		return collection;
+	}
+
+	@Override
+	public String getDataStore() {
+		return dataStore;
 	}
 
 	private List<String> buildFilterElements() {

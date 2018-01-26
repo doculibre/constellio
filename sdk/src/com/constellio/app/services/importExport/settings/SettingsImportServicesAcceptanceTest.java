@@ -3108,6 +3108,55 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
+
+	public void whenUpdatingRelationshipProvidingSecurityThenOK()
+			throws Exception {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("REFERENCE")
+				.setReferencedType(Category.SCHEMA_TYPE).setRelationshipProvidingSecurity(true);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("REFERENCE")
+				.setReferencedType(Category.SCHEMA_TYPE).setRelationshipProvidingSecurity(false);
+
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default").addMetadata(m1).addMetadata(m2);
+
+		folderType.setDefaultSchema(defaultSchema);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory()
+				.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isRelationshipProvidingSecurity()).isTrue();
+
+		Metadata folder_default_m2 = schemaType.getMetadata("folder_default_m2");
+		assertThat(folder_default_m2.isRelationshipProvidingSecurity()).isFalse();
+
+		// inverser et re-importer
+		m1.setRelationshipProvidingSecurity(false);
+		m2.setRelationshipProvidingSecurity(true);
+		importSettings();
+
+		schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isRelationshipProvidingSecurity()).isFalse();
+
+		folder_default_m2 = schemaType.getMetadata("folder_default_m2");
+		assertThat(folder_default_m2.isRelationshipProvidingSecurity()).isTrue();
+
+	}
+
+	@Test
 	public void testWriteAndReadImportSettings()
 			throws IOException {
 

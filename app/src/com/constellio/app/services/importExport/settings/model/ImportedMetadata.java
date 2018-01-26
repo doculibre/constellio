@@ -44,6 +44,7 @@ public class ImportedMetadata {
 	private Boolean sortable;
 	private Boolean unmodifiable;
 	private Boolean advanceSearchable;
+	private Boolean relationshipProvidingSecurity;
 
 	private ImportedDataEntry dataEntry;
 
@@ -168,6 +169,15 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
 		this.essentialInSummary = essentialInSummary;
+		return this;
+	}
+
+	public Boolean getRelationshipProvidingSecurity() {
+		return relationshipProvidingSecurity;
+	}
+
+	public ImportedMetadata setRelationshipProvidingSecurity(Boolean relationshipProvidingSecurity) {
+		this.relationshipProvidingSecurity = relationshipProvidingSecurity;
 		return this;
 	}
 

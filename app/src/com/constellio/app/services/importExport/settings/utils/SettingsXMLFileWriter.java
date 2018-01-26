@@ -241,6 +241,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
 		}
 
+		if (importedMetadata.getRelationshipProvidingSecurity() != null) {
+			metadataElem.setAttribute(RELATIONSHIP_PROVIDING_SECURITY, importedMetadata.getRelationshipProvidingSecurity() + "");
+		}
+
 		if (importedMetadata.getReferencedType() != null) {
 			metadataElem.setAttribute(REFERENCED_TYPE, importedMetadata.getReferencedType() + "");
 		}

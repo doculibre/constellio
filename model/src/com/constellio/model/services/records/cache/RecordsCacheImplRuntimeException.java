@@ -27,4 +27,5 @@ public class RecordsCacheImplRuntimeException extends RuntimeException {
 			super("Schema type '" + schemaType + "' is invalid");
 		}
 	}
+
 }

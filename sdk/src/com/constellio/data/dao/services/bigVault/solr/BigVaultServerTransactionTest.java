@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.combineAll;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,13 +17,11 @@ import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.Test;
 
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-
 public class BigVaultServerTransactionTest {
 
-	BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW);
-	BigVaultServerTransaction secondTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW);
-	BigVaultServerTransaction expectedTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW);
+	BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(NOW);
+	BigVaultServerTransaction secondTransaction = new BigVaultServerTransaction(NOW);
+	BigVaultServerTransaction expectedTransaction = new BigVaultServerTransaction(NOW);
 
 	//TODO String in decimal fields;
 	//TODO Test with multiple combine
@@ -541,7 +540,7 @@ public class BigVaultServerTransactionTest {
 		firstTransactionModifiedDoc18.setField("field1_s", atomicSet("value10"));
 		firstTransactionModifiedDoc18.setField("field2_ss", atomicSet(asList("value11", "value12")));
 
-		BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW)
+		BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(NOW)
 				.setNewDocuments(asList(firstTransactionAddedDoc1, firstTransactionAddedDoc2, firstTransactionAddedDoc9))
 				.setUpdatedDocuments(asList(firstTransactionModifiedDoc3, firstTransactionModifiedDoc18));
 
@@ -572,7 +571,7 @@ public class BigVaultServerTransactionTest {
 		secondTransactionModifiedDoc6.setField("field1_s", atomicSet("value25"));
 		secondTransactionModifiedDoc6.setField("field2_ss", atomicSet(asList("value26", "value27")));
 
-		BigVaultServerTransaction secondTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW)
+		BigVaultServerTransaction secondTransaction = new BigVaultServerTransaction(NOW)
 				.setNewDocuments(asList(secondTransactionAddedDoc4, secondTransactionAddedDoc5))
 				.setUpdatedDocuments(asList(
 						secondTransactionModifiedDoc1, secondTransactionModifiedDoc3, secondTransactionModifiedDoc6))
@@ -604,9 +603,63 @@ public class BigVaultServerTransactionTest {
 		validateThat(combineAll(firstTransaction, secondTransaction)).isEqualTo(expectedTransaction);
 	}
 
+	@Test
+	public void givenTransactionWithOnlyAddedRecordsThenDoesNotRequiresLocks()
+			throws Exception {
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(NOW())
+				.setNewDocuments(asList(newSolrInputDocument("1"), newSolrInputDocument("2")));
+
+		assertThat(tx.isRequiringLock()).isFalse();
+	}
+
+	@Test
+	public void givenTransactionWithOnlyOneUpdatedRecordsThenDoesNotRequiresLocks()
+			throws Exception {
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(NOW())
+				.setUpdatedDocuments(asList(newSolrInputDocument("1")));
+
+		assertThat(tx.isRequiringLock()).isFalse();
+	}
+
+	@Test
+	public void givenTransactionWithTwoUpdatedRecordsThenRequiresLocks()
+			throws Exception {
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(NOW())
+				.setUpdatedDocuments(asList(newSolrInputDocument("1", 42L), newSolrInputDocument("2", 24L)));
+
+		assertThat(tx.isRequiringLock()).isTrue();
+	}
+
+	@Test
+	public void givenTransactionWithUpdatedRecordsWithoutOptimisticLockingAndNewRecordsThenRequiresLocks()
+			throws Exception {
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(NOW())
+				.setUpdatedDocuments(asList(newSolrInputDocument("1"), newSolrInputDocument("2"), newSolrInputDocument("3")))
+				.setNewDocuments(asList(newSolrInputDocument("4"), newSolrInputDocument("5")));
+
+		assertThat(tx.isRequiringLock()).isFalse();
+	}
+
+	@Test
+	public void givenTransactionWithOneUpdatedRecordsRequiringOptimisticLockingAndNewRecordsThenRequiresLocks()
+			throws Exception {
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(NOW())
+				.setUpdatedDocuments(asList(newSolrInputDocument("1", 42L), newSolrInputDocument("2"), newSolrInputDocument("3")))
+				.setNewDocuments(asList(newSolrInputDocument("4"), newSolrInputDocument("5")));
+
+		assertThat(tx.isRequiringLock()).isTrue();
+	}
+
 	private SolrInputDocument newSolrInputDocument(String id) {
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.setField("id", id);
+		return doc;
+	}
+
+	private SolrInputDocument newSolrInputDocument(String id, long version) {
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", id);
+		doc.setField("_version_", version);
 		return doc;
 	}
 
