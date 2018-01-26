@@ -38,12 +38,10 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuth
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
-import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoPresenter;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.capsule.addEdit.AddEditCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsuleViewImpl;
-import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleView;
 import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionViewImpl;
 import com.constellio.app.ui.pages.management.collections.CollectionManagementViewImpl;
@@ -92,6 +90,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
+import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
@@ -213,6 +212,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
 
 	public static final String EDIT_ELEVATION = "editElevation";
+	public static final String STATISTICS = "statistics";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -328,6 +328,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_ELEVATION, EditElevationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(STATISTICS, StatisticsViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_BAG_INFO, DisplayBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_BAG_INFO, ListBagInfoViewImpl.class));

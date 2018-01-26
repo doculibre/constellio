@@ -165,6 +165,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				cancelButtonClick(viewObject);
 			}
 		});
+		cancelButton.setVisible(isCancelButtonVisible());
 
 		setCompositionRoot(formLayout);
 		if (tabSheet.iterator().hasNext()) {
@@ -173,7 +174,11 @@ public abstract class BaseForm<T> extends CustomComponent {
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
 	}
-	
+
+	protected boolean isCancelButtonVisible() {
+		return true;
+	}
+
 	protected String getSaveButtonCaption() {
 		return $("save");
 	}

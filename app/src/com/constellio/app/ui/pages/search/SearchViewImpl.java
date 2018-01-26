@@ -11,6 +11,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -29,9 +30,12 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
@@ -225,7 +229,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip()) {
+			@Override
+			protected void onPreviousPageButtonClicked() {
+				super.onPreviousPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onNextPageButtonClicked() {
+				super.onNextPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onSetPageButtonClicked(int page) {
+				super.onSetPageButtonClicked(page);
+				presenter.searchNavigationButtonClicked();
+			}
+		};
 
 		int totalResults = container.size();
 		int totalAmountOfPages = srTable.getTotalAmountOfPages();
@@ -240,6 +262,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
+
+		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				System.out.println("Jonathan Plamndon");
+			}
+		});
 
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
@@ -272,11 +301,30 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
+		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
+				presenter.getSearchQuery().getFreeTextQuery()) {
+			@Override
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
 
-		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
+		};
+
+		container.addItemSetChangeListener(new ItemSetChangeListener() {
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				presenter.searchNavigationButtonClicked();
+			}
+		});
+
+		return container;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);

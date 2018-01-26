@@ -15,8 +15,11 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FakeSessionContext extends BaseSessionContext {
 
@@ -29,6 +32,8 @@ public class FakeSessionContext extends BaseSessionContext {
 	boolean forcedSignOut;
 	List<String> selectedRecordIds;
 	Map<String, Long> selectedRecordSchemaTypeCodes;
+
+	Record searchEvent = null;
 
 	private static FakeSessionContext current;
 
@@ -227,6 +232,17 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return userPrincipal;
+	}
+
+	@Override
+	public SessionContext setCurrentSearchEventRecord(Record searchEventId) {
+		this.searchEvent = searchEvent;
+		return this;
+	}
+
+	@Override
+	public Record getCurrentSearchEventRecord() {
+		return searchEvent;
 	}
 
 	public void setUserPrincipal(Principal userPrincipal) {

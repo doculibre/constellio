@@ -17,6 +17,10 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -25,6 +29,7 @@ import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -55,6 +60,8 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	String query;
 
+	private Component titleComponent;
+
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 			AppLayerFactory appLayerFactory, String query) {
 		this.appLayerFactory = appLayerFactory;
@@ -68,7 +75,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-		addComponents(newTitleComponent(searchResultVO),
+		titleComponent = newTitleComponent(searchResultVO);
+		addComponents(titleComponent,
 				newHighlightsLabel(searchResultVO),
 				newMetadataComponent(searchResultVO, componentFactory));
 		addStyleName(RECORD_STYLE);
@@ -219,4 +227,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected AppLayerFactory getAppLayerFactory() {
 		return appLayerFactory;
 	}
+
+	public void addClickListener(ClickListener listener) {
+		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
+		if (referenceDisplay != null) {
+			referenceDisplay.addClickListener(listener);
+		}
+	}
+
 }

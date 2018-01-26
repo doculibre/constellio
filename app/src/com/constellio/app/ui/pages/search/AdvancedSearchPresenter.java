@@ -107,6 +107,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
 			updateUIContext(search);
+
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();
@@ -267,8 +268,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
 				&& isNotHidden(metadata)
 				// XXX: Not supported in the backend
-				&& metadata.getType() != MetadataValueType.ENUM
-				;
+				&& metadata.getType() != MetadataValueType.ENUM;
 	}
 
 	private boolean isNotHidden(Metadata metadata) {

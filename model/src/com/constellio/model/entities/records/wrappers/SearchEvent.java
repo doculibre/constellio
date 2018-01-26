@@ -3,6 +3,8 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
+import java.util.List;
+
 public class SearchEvent extends RecordWrapper {
 
 	public static final String SCHEMA_TYPE = "searchEvent";
@@ -11,6 +13,10 @@ public class SearchEvent extends RecordWrapper {
 	public static final String QUERY = "query";
 	public static final String CLICK_COUNT = "clickCount";
 	public static final String PAGE_NAVIGATION_COUNT = "pageNavigationCount";
+	public static final String PARAMS = "params";
+	public static final String ORIGINAL_QUERY = "originalQuery";
+	public static final String NUM_FOUND = "numFound";
+	public static final String Q_TIME = "qTime";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -34,6 +40,15 @@ public class SearchEvent extends RecordWrapper {
 		return this;
 	}
 
+	public SearchEvent setParams(List<String> listParams) {
+		set(PARAMS, listParams);
+		return this;
+	}
+
+	public List<String> getParams() {
+		return get(PARAMS);
+	}
+
 	public int getClickCount() {
 		return getPrimitiveInteger(CLICK_COUNT);
 	}
@@ -49,6 +64,25 @@ public class SearchEvent extends RecordWrapper {
 
 	public SearchEvent setPageNavigationCount(int pageNavigationCount) {
 		set(PAGE_NAVIGATION_COUNT, pageNavigationCount);
+		return this;
+	}
+
+	public long getNumFound() {
+		Number value = get(NUM_FOUND);
+		return value == null ? 0 : value.longValue();
+	}
+
+	public SearchEvent setNumFound(long numFound) {
+		set(NUM_FOUND, numFound);
+		return this;
+	}
+
+	public int getQTime() {
+		return getPrimitiveInteger(Q_TIME);
+	}
+
+	public SearchEvent setQTime(int qTime) {
+		set(Q_TIME, qTime);
 		return this;
 	}
 }

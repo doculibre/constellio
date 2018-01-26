@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.frameworks.validation.ValidationException;
 
 public interface SearchView extends BaseView {
 

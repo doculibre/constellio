@@ -2,6 +2,8 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.vaadin.server.VaadinSession;
 
 import java.security.Principal;
@@ -15,6 +17,7 @@ public class VaadinSessionContext extends BaseSessionContext {
 	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
 	public static final String SELECTED_RECORD_IDS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordIds";
 	public static final String SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordSchemaTypeCodes";
+	public static final String CURRENT_SEARCH_EVENT_ATTRIBUTE = VaadinSessionContext.class.getName() + "currentSeachEvent";
 
 	public VaadinSessionContext() {
 	}
@@ -99,5 +102,16 @@ public class VaadinSessionContext extends BaseSessionContext {
 			setAttribute(SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE, selectedRecordSchemaTypeCodes);
 		}
 		return selectedRecordSchemaTypeCodes;
+	}
+
+	@Override
+	public SessionContext setCurrentSearchEventRecord(Record searchEvent) {
+		setAttribute(CURRENT_SEARCH_EVENT_ATTRIBUTE, searchEvent);
+		return this;
+	}
+
+	@Override
+	public Record getCurrentSearchEventRecord() {
+		return (Record) getAttribute(CURRENT_SEARCH_EVENT_ATTRIBUTE);
 	}
 }
