@@ -4,11 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
-import com.constellio.model.entities.records.wrappers.ExportAudit;
-import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -37,10 +33,15 @@ public class CoreMigrationTo_7_7 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder temporaryRecord = typesBuilder.getSchemaType(BatchProcessReport.SCHEMA_TYPE);
-			MetadataSchemaBuilder batchProcessReportSchema = temporaryRecord.createCustomSchema(BatchProcessReport.SCHEMA);
-			batchProcessReportSchema.createUndeletable(BatchProcessReport.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
-			batchProcessReportSchema.createUndeletable(BatchProcessReport.SKIPPED_RECORDS).setType(MetadataValueType.STRING).setMultivalue(true).setSystemReserved(true);
-			batchProcessReportSchema.createUndeletable(BatchProcessReport.LINKED_BATCH_PROCESS).setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
+			if (!temporaryRecord.hasSchema(BatchProcessReport.SCHEMA)) {
+				MetadataSchemaBuilder batchProcessReportSchema = temporaryRecord.createCustomSchema(BatchProcessReport.SCHEMA);
+				batchProcessReportSchema.createUndeletable(BatchProcessReport.ERRORS).setType(MetadataValueType.TEXT)
+						.setSystemReserved(true);
+				batchProcessReportSchema.createUndeletable(BatchProcessReport.SKIPPED_RECORDS).setType(MetadataValueType.STRING)
+						.setMultivalue(true).setSystemReserved(true);
+				batchProcessReportSchema.createUndeletable(BatchProcessReport.LINKED_BATCH_PROCESS)
+						.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
+			}
 		}
 	}
 }
