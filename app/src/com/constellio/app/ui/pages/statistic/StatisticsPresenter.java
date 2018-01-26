@@ -2,27 +2,23 @@ package com.constellio.app.ui.pages.statistic;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SolrDataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
+import org.joda.time.LocalDate;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.*;
 
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.TABLE;
+import static com.constellio.model.entities.records.wrappers.SearchEvent.DEFAULT_SCHEMA;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsView> {
@@ -39,14 +35,15 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
 
     private String excludedRequest;
     private String statisticType;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Integer lines;
     private String filter;
 
     public StatisticsPresenter(StatisticsView view) {
-        super(view, SearchEvent.DEFAULT_SCHEMA);
+        super(view, DEFAULT_SCHEMA);
 
-        schemaVO =  new MetadataSchemaToVOBuilder().build(defaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+        schemaVO =  new MetadataSchemaToVOBuilder().build(defaultSchema(), TABLE, view.getSessionContext());
         rm = new RMSchemasRecordsServices(collection, appLayerFactory);
     }
 
@@ -70,16 +67,24 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
     }
 
     public SolrDataProvider getStatisticsFacetsDataProvider() {
-        final ModifiableSolrParams params = new ModifiableSolrParams();
-        params.set("q", "*:*"); //changer la recherche ici
-        params.set("rows", "0");
-        params.add("fq", "collection_s:" + collection);
-        params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s', 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
-
         return new SolrDataProvider() {
             @Override
             public QueryResponse getQueryResponse() {
-                return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+                SearchEventServices ses = new SearchEventServices(collection, modelLayerFactory);
+                switch (StringUtils.trimToEmpty(statisticType)) {
+                    case FAMOUS_REQUEST:
+                        return ses.getFamousRequests(collection, startDate, endDate, lines, excludedRequest);
+                    case FAMOUS_REQUEST_WITH_RESULT:
+                        return ses.getFamousRequestsWithResults(collection, startDate, endDate, lines, excludedRequest);
+                    case FAMOUS_REQUEST_WITHOUT_RESULT:
+                        return ses.getFamousRequestsWithoutResults(collection, startDate, endDate, lines, excludedRequest);
+                    case FAMOUS_REQUEST_WITH_CLICK:
+                        return ses.getFamousRequestsWithClicks(collection, startDate, endDate, lines, excludedRequest);
+                    case FAMOUS_REQUEST_WITHOUT_CLICK:
+                        return ses.getFamousRequestsWithoutClicks(collection, startDate, endDate, lines, excludedRequest);
+                    default:
+                        throw new IllegalArgumentException("Unknown statistic type: "+statisticType);
+                }
             }
         };
     }
@@ -87,14 +92,14 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
     private LogicalSearchQuery composeQuery() {
         LogicalSearchQuery query = new LogicalSearchQuery(from(rm.searchEvent.schemaType()).returnAll());
         if(startDate != null && endDate != null) {
-            query.setCondition(query.getCondition().andWhere(Schemas.CREATED_ON)
-                    .isValueInRange(LocalDateTime.fromDateFields(startDate), LocalDateTime.fromDateFields(endDate)));
+            query.setCondition(query.getCondition().andWhere(CREATED_ON)
+                    .isValueInRange(startDate, endDate));
         } else if(startDate != null) {
-            query.setCondition(query.getCondition().andWhere(Schemas.CREATED_ON)
-                    .isGreaterOrEqualThan(LocalDateTime.fromDateFields(startDate)));
+            query.setCondition(query.getCondition().andWhere(CREATED_ON)
+                    .isGreaterOrEqualThan(startDate));
         } else if(endDate != null) {
-            query.setCondition(query.getCondition().andWhere(Schemas.CREATED_ON)
-                    .isLessOrEqualThan(LocalDateTime.fromDateFields(endDate)));
+            query.setCondition(query.getCondition().andWhere(CREATED_ON)
+                    .isLessOrEqualThan(endDate));
         }
 
         if (StringUtils.isNotBlank(excludedRequest)) {
@@ -107,22 +112,28 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
         return query;
     }
 
-    public boolean applyFilter(String excludedRequest, String statisticType, Date startDate, Date endDate, String filter) {
-        boolean changed = !Objects.equals(this.excludedRequest, excludedRequest);
+    public void applyFilter(String excludedRequest, String statisticType, Date startDate, Date endDate, String lines, String filter) {
         this.excludedRequest = excludedRequest;
-
-        changed = changed || !Objects.equals(this.statisticType, statisticType);
         this.statisticType = statisticType;
 
-        changed = changed || !Objects.equals(this.startDate, startDate);
-        this.startDate = startDate;
+        if (startDate != null) {
+            this.startDate = LocalDate.fromDateFields(startDate);
+        } else {
+            this.startDate = null;
+        }
 
-        changed = changed || !Objects.equals(this.endDate, endDate);
-        this.endDate = endDate;
+        if (endDate != null) {
+            this.endDate = LocalDate.fromDateFields(endDate);
+        } else {
+            this.endDate =null;
+        }
 
-        changed = changed || !Objects.equals(this.filter, filter);
+        try {
+            this.lines = Integer.parseInt(lines);
+        } catch (NumberFormatException e) {
+            this.lines = null;
+        }
+
         this.filter = filter;
-
-        return changed;
     }
 }

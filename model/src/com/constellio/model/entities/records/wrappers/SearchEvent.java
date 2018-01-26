@@ -77,11 +77,12 @@ public class SearchEvent extends RecordWrapper {
 		return this;
 	}
 
-	public int getQTime() {
-		return getPrimitiveInteger(Q_TIME);
+	public long getQTime() {
+		Number value = get(NUM_FOUND);
+		return value == null ? 0 : value.longValue();
 	}
 
-	public SearchEvent setQTime(int qTime) {
+	public SearchEvent setQTime(long qTime) {
 		set(Q_TIME, qTime);
 		return this;
 	}
