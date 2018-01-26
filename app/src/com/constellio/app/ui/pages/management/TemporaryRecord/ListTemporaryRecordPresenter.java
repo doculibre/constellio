@@ -2,12 +2,6 @@ package com.constellio.app.ui.pages.management.TemporaryRecord;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 import static java.util.Arrays.asList;
 
 import java.util.HashMap;
@@ -24,12 +18,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.BatchProcessReport;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -64,12 +54,14 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		}
 	}
 
-    private boolean canDeleteArchive(RecordVO recordVO, User user){
-        Record record = recordVO.getRecord();MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
-		RecordDeleteServices deleteServices = new RecordDeleteServices(modelLayerFactory);
-        boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices().hasRestaurationPermissionOnHierarchy(user, record, deleteServices.loadRecordsHierarchyOf(record), asList(recordVO.getRecord()));
-        return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() ||  recordVO.get(Schemas.CREATED_BY.getCode()).equals(view.getSessionContext().getCurrentUser().getId()));
-    }
+	private boolean canDeleteArchive(RecordVO recordVO, User user) {
+		Record record = recordVO.getRecord();
+		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
+		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()
+				.hasRestaurationPermissionOnHierarchy(user, record, asList(recordVO.getRecord()));
+		return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() || recordVO
+				.get(Schemas.CREATED_BY.getCode()).equals(view.getSessionContext().getCurrentUser().getId()));
+	}
 
 	public boolean isVisible(String index, String schema) {
 		RecordVO currentTemporaryRecord = getDataProviderFromType(schema).getRecordVO(Integer.parseInt(index));
