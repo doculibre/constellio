@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -785,7 +786,27 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	public ComboBox buildContainerSelector() {
-		ComboBox container = new ComboBox();
+		ComboBox container = new ComboBox() {
+			private boolean inFilterMode = false;
+
+			@Override
+			public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+				if (inFilterMode) {
+					super.containerItemSetChange(event);
+				}
+			}
+
+			@Override
+			protected List<?> getOptionsWithFilter(boolean needNullSelectOption) {
+				try {
+					inFilterMode = true;
+					return super.getOptionsWithFilter(needNullSelectOption);
+				}
+				finally {
+					inFilterMode = false;
+				}
+			}
+		};
 		container.setContainerDataSource(containerVOs);
 		container.setItemCaptionPropertyId("caption");
 		container.setNullSelectionAllowed(false);
