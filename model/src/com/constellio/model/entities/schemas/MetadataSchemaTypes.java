@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 import java.io.Serializable;
@@ -132,6 +133,18 @@ public class MetadataSchemaTypes implements Serializable {
 
 	public List<Metadata> getHighlightedMetadatas() {
 		return searchableMetadatas;
+	}
+
+	public List<MetadataSchemaType> getRecordsDataStoreSchemaTypes() {
+		List<MetadataSchemaType> returnedSchemaTypes = new ArrayList<>();
+
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			if (RECORDS.equals(schemaType.getDataStore())) {
+				returnedSchemaTypes.add(schemaType);
+			}
+		}
+
+		return returnedSchemaTypes;
 	}
 
 	public List<MetadataSchemaType> getSchemaTypes() {

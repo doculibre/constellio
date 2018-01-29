@@ -47,6 +47,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.setups.Users;
 
 public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
@@ -88,6 +89,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
+		when(view.getUIContext()).thenReturn(new FakeUIContext());
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);

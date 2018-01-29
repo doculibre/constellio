@@ -17,11 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
-import com.constellio.app.services.corrector.CorrectorExcluderManager;
-import com.constellio.app.services.corrector.CorrectorExclusion;
-import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -40,6 +35,8 @@ import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParam
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
+import com.constellio.app.services.corrector.CorrectorExclusion;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -90,6 +87,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
@@ -194,7 +192,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		this.extraSolrParams = extraSolrParams;
 	}
 
-	public Map<String, String[]> getExtraSolrParams()	{
+	public Map<String, String[]> getExtraSolrParams() {
 		return extraSolrParams;
 	}
 
@@ -363,7 +361,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			@Override
 			public int size() {
-				SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+				SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache,
+						true);
 				if (size == null) {
 					SPEQueryResponse response = searchServices.query(query, resultsPerPage);
 					logSearchEvent(this, response);
@@ -377,46 +376,47 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
-        ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-                .addSolrModifiableParams(dataProvider.getQuery());
+		ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
+				.addSolrModifiableParams(dataProvider.getQuery());
 
-        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-        SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+		SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
 
-        ArrayList<String> paramList = new ArrayList<>();
+		ArrayList<String> paramList = new ArrayList<>();
 
-        for (String paramName : modifiableSolrParams.getParameterNames()) {
-            if (!paramName.equals("qf") && !paramName.equals("pf")
-                    && !paramName.equals("fl")) {
-                if (paramName.equals("q")) {
-                    searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
-                } else {
-                    String[] values = modifiableSolrParams.getParams(paramName);
+		for (String paramName : modifiableSolrParams.getParameterNames()) {
+			if (!paramName.equals("qf") && !paramName.equals("pf")
+					&& !paramName.equals("fl")) {
+				if (paramName.equals("q")) {
+					searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
+				} else {
+					String[] values = modifiableSolrParams.getParams(paramName);
 
-                    if (values.length == 1) {
-                        paramList.add(paramName + "=" + values[0]);
-                    } else if (values.length > 1) {
-                        StringBuilder valuesAsOneStringBuilder = new StringBuilder();
-                        for (String value : values) {
-                            valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
-                        }
-                        paramList.add(valuesAsOneStringBuilder.toString());
-                    }
+					if (values.length == 1) {
+						paramList.add(paramName + "=" + values[0]);
+					} else if (values.length > 1) {
+						StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+						for (String value : values) {
+							valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+						}
+						paramList.add(valuesAsOneStringBuilder.toString());
+					}
 
-                }
-            }
-        }
-        searchEvent.setParams(paramList);
-        searchEvent.setQTime(response.getQtime());
-        searchEvent.setNumFound(response.getNumFound());
-        SearchEvent oldSearchEvent = schemasRecordsServices
-                .wrapSearchEvent((Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT"));
+				}
+			}
+		}
+		searchEvent.setParams(paramList);
+		searchEvent.setQTime(response.getQtime());
+		searchEvent.setNumFound(response.getNumFound());
+		UIContext uiContext = view.getUIContext();
+		SearchEvent oldSearchEvent = schemasRecordsServices
+				.wrapSearchEvent((Record) uiContext.getAttribute("CURRENT_SEARCH_EVENT"));
 
-        if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-            view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
-            SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-            searchEventServices.save(searchEvent);
-        }
+		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
+			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			searchEventServices.save(searchEvent);
+		}
 	}
 
 	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
@@ -820,18 +820,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<String> allExclusionFormCollection = new ArrayList<String>();
 
 		for (String corrected : correctedList) {
-			boolean found  = false;
-			for(CorrectorExclusion correctorExclusion : allExclusion) {
-				if(correctorExclusion.getCollection().equals(collection) &&
+			boolean found = false;
+			for (CorrectorExclusion correctorExclusion : allExclusion) {
+				if (correctorExclusion.getCollection().equals(collection) &&
 						corrected.equals(correctorExclusion.getExclusion())) {
 					found = true;
 					break;
-					}
-				}
-				if(!found) {
-					allExclusionFormCollection.add(corrected);
 				}
 			}
+			if (!found) {
+				allExclusionFormCollection.add(corrected);
+			}
+		}
 
 		return allExclusionFormCollection;
 	}
@@ -849,6 +849,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		searchEventServices.incrementPageNavigationCounter(searchEvent.getId());
 	}
+
 	public void searchResultElevationClicked(RecordVO recordVO) {
 		String freeTextQuery = getSearchQuery().getFreeTextQuery();
 		Record record = recordVO.getRecord();
