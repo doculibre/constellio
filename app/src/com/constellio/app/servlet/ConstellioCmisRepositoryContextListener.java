@@ -20,6 +20,8 @@ public class ConstellioCmisRepositoryContextListener extends CmisRepositoryConte
 		}
 	}
 
+
+
 	private boolean isEnabled() {
 		return "true".equals(System.getProperty("cmisEnabled"));
 	}
