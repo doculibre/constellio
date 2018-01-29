@@ -271,6 +271,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustDecisionField() {
 		field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
+		TaskQuestionFieldImpl questionField = (TaskQuestionFieldImpl) view.getForm().getCustomField(Task.QUESTION);
 
 		if (field != null) {
 			try {
@@ -304,6 +305,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			} catch (NoSuchRecordWithId e) {
 				field.setVisible(false);
 			}
+		}
+
+		if(questionField != null) {
+			if(field != null) {
+				questionField.setVisible(field.isVisible());
+			}
+			questionField.setReadOnly(true);
 		}
 	}
 

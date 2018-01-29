@@ -48,6 +48,10 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 		case DECISION:
 			field = new TaskDecisionFieldImpl();
 			break;
+		case QUESTION:
+			field = new TaskQuestionFieldImpl();
+			field.setReadOnly(true);
+			break;
 		case BorrowRequest.ACCEPTED:
 			field = new TaskAcceptedFieldImpl();
 			break;
