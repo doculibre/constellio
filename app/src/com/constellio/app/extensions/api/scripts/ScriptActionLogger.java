@@ -1,8 +1,12 @@
 package com.constellio.app.extensions.api.scripts;
 
+import java.io.File;
+
 public interface ScriptActionLogger {
 
 	void appendToFile(String message);
+
+	File getTempFile();
 
 	void appendToFileWithoutLogging(String message);
 
