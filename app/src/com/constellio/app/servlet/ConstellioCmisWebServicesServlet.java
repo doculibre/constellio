@@ -8,12 +8,17 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
+
 public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 
 	@Override
 	public void init(ServletConfig config)
 			throws ServletException {
-		super.init(config);
+		if (isEnabled()) {
+			super.init(config);
+		}
 	}
 
 	@Override
@@ -39,5 +44,14 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 			}
 		};
 		super.handleRequest(requestProxyWrapper, response);
+	}
+
+	private boolean isEnabled() {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return true;
+		} else {
+			return "true".equals(System.getProperty("cmisEnabled"));
+		}
 	}
 }
