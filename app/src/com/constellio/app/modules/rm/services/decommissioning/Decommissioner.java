@@ -377,12 +377,14 @@ public abstract class Decommissioner {
 
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
-			if (containerIdUsed.contains(containerRecordId)) {
-				if (detailsToProcess.get(containerRecordId) == detail) {
-					processContainer(rm.getContainerRecord(containerRecordId), detail);
+			if(containerRecordId != null) {
+				if (containerIdUsed.contains(containerRecordId)) {
+					if (detailsToProcess.get(containerRecordId) == detail) {
+						processContainer(rm.getContainerRecord(containerRecordId), detail);
+					}
+				} else {
+					decommissioningList.removeContainerDetail(containerRecordId);
 				}
-			} else {
-				decommissioningList.removeContainerDetail(containerRecordId);
 			}
 		}
 

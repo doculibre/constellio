@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +140,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 				boolean sameVersion = isContentCheckedOut(recordVO) && majorVersion == null;
 				boolean newMajorVersion = Boolean.TRUE.equals(majorVersion);
 				boolean newMinorVersion = Boolean.FALSE.equals(majorVersion);
-				boolean checkingIn = isCurrentUserBorrower(recordVO) && newMajorVersion || newMinorVersion;
+				boolean checkingIn = isCurrentUserBorrower(recordVO);
 
 				if (contentUploaded) {
 					String fileName = newVersionVO.getFileName();
@@ -174,7 +175,13 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 						if (isContentCheckedOut(recordVO)) {
 							if (checkingIn) {
-								content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+								if(sameVersion) {
+									content.checkIn();
+									content.renameCurrentVersion(fileName);
+									content.setVersionModificationDatetime(LocalDateTime.now());
+								} else {
+									content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+								}
 							} else {
 								content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
 							}
