@@ -2114,6 +2114,14 @@ $popup-view-z-index: 3;
 	            padding-right: inherit;
 	            padding-left: 320px;
 	    	}
+	    	
+	    	.v-slot-search-result-facets {
+	    		float: left;
+	    		
+	    		.facet-box {
+	    			direction: ltr;
+	    		}
+	    	}
 		    
 		}	
     }
@@ -2149,6 +2157,15 @@ $popup-view-z-index: 3;
 	    	.v-slot-suggestions-summary-results {
 	            padding-right: inherit;
 	            padding-left: 320px;
+	    	}
+	    	
+	    	.v-slot-search-result-facets {
+	    		float: left;
+	    		
+	    		.facet-box {
+	    			direction: ltr;
+	    		}
+	    		
 	    	}
 		    
 		}

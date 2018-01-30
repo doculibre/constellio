@@ -21,6 +21,7 @@ import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -44,6 +45,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
@@ -377,7 +379,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		toggle.addStyleName(ValoTheme.BUTTON_TINY);
 		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 
-		I18NHorizontalLayout captionBar = new I18NHorizontalLayout(deselect, title, toggle);
+		HorizontalLayout captionBar = new HorizontalLayout(deselect, title, toggle);
 		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
@@ -388,7 +390,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
 
-		final Table table = new Table();
+		final Table table = new BaseTable("facet-" + facet.getId());
 		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		table.addContainerProperty("value", Component.class, null);
 		table.setWidth("100%");
@@ -396,6 +398,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<FacetValueVO> values = facet.getValues();
 		for (final FacetValueVO facetValue : values) {
 			final CheckBox checkBox = new CheckBox();
+			checkBox.addStyleName("facet-value");
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}

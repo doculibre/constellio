@@ -14190,6 +14190,14 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 320px;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .right-to-left .v-slot-search-result-facets .facet-box {
+	direction: ltr;
+}
+
 .constellio .v-ui[width-range~="801-1100px"] .right-to-left .header {
 	padding-right: inherit;
 	padding-left: 95px;
@@ -14213,6 +14221,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-suggestions-summary-results {
 	padding-right: inherit;
 	padding-left: 320px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-search-result-facets .facet-box {
+	direction: ltr;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .right-to-left .header .header-selection-button {

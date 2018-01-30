@@ -20,6 +20,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnCollapseEvent;
 import com.vaadin.ui.Table.ColumnCollapseListener;
 import com.vaadin.ui.Table.ColumnReorderEvent;
@@ -75,6 +76,11 @@ public class TableColumnsManager implements Serializable {
 		if (isRightToLeft()) {
 			ArrayUtils.reverse(visibleColumns);
 			table.setVisibleColumns(visibleColumns);
+			
+			for (Object propertyId : table.getContainerPropertyIds()) {
+				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
+				table.setColumnAlignment(propertyId, alignment);
+			}
 		}
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
@@ -155,6 +161,24 @@ public class TableColumnsManager implements Serializable {
 	
 	protected String toColumnId(Object propertyId) {
 		return propertyId.toString();
+	}
+	
+	private Align adjustAlignment(Align alignment) {
+		Align result;
+		if (isRightToLeft()) {
+			if (Align.LEFT.equals(alignment)) {
+				result = Align.RIGHT;
+			} else if (Align.RIGHT.equals(alignment)) {
+				result = Align.LEFT;
+			} else if (Align.CENTER.equals(alignment)) {
+				result = alignment;
+			} else {
+				result = Align.RIGHT;
+			}
+		} else {
+			result = alignment;
+		}
+		return result;
 	}
 
 }

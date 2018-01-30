@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.components.converters.CollectionCodeToLab
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -454,7 +455,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		selectionLayout.setWidth("100%");
 		selectionLayout.addStyleName("header-selection-panel-layout");
 
-		selectionTable = new Table();
+		selectionTable = new BaseTable("selection-table");
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
 		selectionTable.setColumnExpandRatio("recordId", 1);
@@ -511,7 +512,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			}
 		};
 		Component component = selectionTableAdapter.getComponent(0);
-		HorizontalLayout topButtonsLayout = new HorizontalLayout(component, clearSelectionButton);
+		I18NHorizontalLayout topButtonsLayout = new I18NHorizontalLayout(component, clearSelectionButton);
 		topButtonsLayout.setSpacing(true);
 		selectionTableAdapter.addComponent(topButtonsLayout, 0);
 		selectionTableAdapter.removeComponent(component);
