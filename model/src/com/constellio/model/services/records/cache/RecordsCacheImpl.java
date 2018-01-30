@@ -219,12 +219,13 @@ public class RecordsCacheImpl implements RecordsCache {
 		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
 
 		List<Record> records = new ArrayList<>();
-
-		for (RecordHolder holder : this.cacheById.values()) {
-			if (holder != null) {
-				Record record = holder.record;
-				if (record != null && record.isOfSchemaType(schemaType)) {
-					records.add(record.getCopyOfOriginalRecord());
+		synchronized (this) {
+			for (RecordHolder holder : this.cacheById.values()) {
+				if (holder != null) {
+					Record record = holder.record;
+					if (record != null && record.isOfSchemaType(schemaType)) {
+						records.add(record.getCopyOfOriginalRecord());
+					}
 				}
 			}
 		}
