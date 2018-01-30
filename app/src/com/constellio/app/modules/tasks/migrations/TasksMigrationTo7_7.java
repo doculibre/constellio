@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -23,9 +24,14 @@ public class TasksMigrationTo7_7 extends MigrationHelper implements MigrationScr
             throws Exception {
         new TasksMigrationTo7_7.SchemaAlterationFor7_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
         SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-        manager.saveSchema(manager.getSchema(collection, Task.DEFAULT_SCHEMA)
-                .withNewFormMetadataBefore(Task.DEFAULT_SCHEMA + "_" + Task.QUESTION, Task.DEFAULT_SCHEMA + "_" + Task.DECISION)
-                .withNewDisplayMetadataBefore(Task.DEFAULT_SCHEMA + "_" + Task.QUESTION, Task.DEFAULT_SCHEMA + "_" + Task.DECISION));
+        SchemaDisplayConfig taskSchema = manager.getSchema(collection, Task.DEFAULT_SCHEMA);
+        taskSchema = taskSchema.getFormMetadataCodes().contains(Task.DEFAULT_SCHEMA + "_" + Task.DECISION)?
+                taskSchema.withNewFormMetadataBefore(Task.DEFAULT_SCHEMA + "_" + Task.QUESTION, Task.DEFAULT_SCHEMA + "_" + Task.DECISION):
+                taskSchema;
+        taskSchema = taskSchema.getDisplayMetadataCodes().contains(Task.DEFAULT_SCHEMA + "_" + Task.DECISION)?
+                taskSchema.withNewDisplayMetadataBefore(Task.DEFAULT_SCHEMA + "_" + Task.QUESTION, Task.DEFAULT_SCHEMA + "_" + Task.DECISION):
+                taskSchema;
+        manager.saveSchema(taskSchema);
     }
 
     class SchemaAlterationFor7_7 extends MetadataSchemasAlterationHelper {
