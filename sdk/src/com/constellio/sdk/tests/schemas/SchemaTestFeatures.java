@@ -1,13 +1,18 @@
 package com.constellio.sdk.tests.schemas;
 
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -49,7 +54,7 @@ public class SchemaTestFeatures {
 			pluginManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getPluginManager();
 			modulesManager = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory().getModulesManager();
 		}
-		String collection = typesBuilder.getCollection();
+		final String collection = typesBuilder.getCollection();
 		if (collection == null) {
 			throw new RuntimeException("Collection cannot be null");
 		}
@@ -60,6 +65,35 @@ public class SchemaTestFeatures {
 			typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 			reset(manager);
 			when(manager.getSchemaTypes(collection)).thenReturn(types);
+			when(manager.getSchemaTypeOf(any(Record.class))).then(new Answer<Object>() {
+				@Override
+				public Object answer(InvocationOnMock invocation)
+						throws Throwable {
+
+					Record record = (Record) invocation.getArguments()[0];
+
+					if (record == null) {
+						return null;
+					}
+
+					return manager.getSchemaTypes(collection).getSchemaType(record.getTypeCode());
+				}
+			});
+
+			when(manager.getSchemaOf(any(Record.class))).then(new Answer<Object>() {
+				@Override
+				public Object answer(InvocationOnMock invocation)
+						throws Throwable {
+
+					Record record = (Record) invocation.getArguments()[0];
+
+					if (record == null) {
+						return null;
+					}
+					return manager.getSchemaTypes(collection).getSchema(record.getSchemaCode());
+				}
+			});
+
 			return types;
 		} else {
 			try {
