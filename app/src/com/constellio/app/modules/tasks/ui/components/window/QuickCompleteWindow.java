@@ -87,6 +87,16 @@ public class QuickCompleteWindow {
                 ((TaskDecisionField) decisionField).addItem(decision);
             }
 
+
+            if(recordVO.getSchema().getMetadata(Task.QUESTION) != null && task.get(Task.QUESTION) != null) {
+                String question = task.get(Task.QUESTION);
+                if(question != null) {
+                    Label questionField = new Label(question);
+                    questionField.addStyleName(ValoTheme.LABEL_BOLD);
+                    fieldLayout.addComponent(questionField);
+                }
+            }
+
             fieldLayout.addComponent(decisionField);
         }
         return decisionField;
