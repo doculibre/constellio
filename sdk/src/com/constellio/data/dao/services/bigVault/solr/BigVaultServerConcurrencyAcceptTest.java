@@ -58,12 +58,35 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsThenOK()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
 		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
 
 		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
 				inVersion("Frodon", 42L));
 
+		try {
+			updateWithCurrentVersionObtainedFromAQuery("Sam_Gamegie_ze_brave", "Gandalf");
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		getDataLayerFactory().newRecordDao().flush();
+
 		updateWithCurrentVersionObtainedFromAQuery("Sam_Gamegie_ze_brave", "Gandalf");
+	}
+
+	@Test
+	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsUsingRealTimeGetThenOK()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
+		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
+
+		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
+				inVersion("Frodon", 42L));
+
+		updateWithCurrentVersionObtainedFromARealtimeGet("Sam_Gamegie_ze_brave", "Gandalf");
 
 	}
 
@@ -93,6 +116,19 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		List<SolrInputDocument> inputDocuments = new ArrayList<>();
 		for (String id : ids) {
 			Long version = getVersionOf(id);
+			inputDocuments.add(updateDocument(id, "a", version));
+		}
+		try {
+			vaultServer.addAll(new BigVaultServerTransaction(NOW).setUpdatedDocuments(inputDocuments));
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void updateWithCurrentVersionObtainedFromARealtimeGet(String... ids) {
+		List<SolrInputDocument> inputDocuments = new ArrayList<>();
+		for (String id : ids) {
+			Long version = getRealVersionOf(id);
 			inputDocuments.add(updateDocument(id, "a", version));
 		}
 		try {
@@ -473,6 +509,16 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		params.set("q", "id:" + id);
 		try {
 			return (String) vaultServer.querySingleResult(params).getFieldValue("aField_s");
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	Long getRealVersionOf(String id) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "id:" + id);
+		try {
+			return (Long) vaultServer.realtimeGet(id).getFieldValue("_version_");
 		} catch (BigVaultException e) {
 			throw new RuntimeException(e);
 		}
