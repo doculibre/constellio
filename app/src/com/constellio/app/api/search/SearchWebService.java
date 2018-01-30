@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +60,7 @@ public class SearchWebService extends HttpServlet {
 
 		for(String param : strings) {
 			if(param.startsWith("collection_s")) {
-				collection = param.replace("collection_s:", "collection");
+				collection = param.replace("collection_s:", "");
 				break;
 			}
 		}
@@ -77,7 +78,7 @@ public class SearchWebService extends HttpServlet {
 			ArrayList<String> paramList = new ArrayList<>();
 			SearchEvent searchEvent = null;
 
-			if(Strings.isNullOrEmpty(collection)) {
+			if(!Strings.isNullOrEmpty(collection)) {
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
 				searchEvent = schemasRecordsServices.newSearchEvent();
 
@@ -107,11 +108,12 @@ public class SearchWebService extends HttpServlet {
 			queryResponse = getQueryResponse(solrParams, user);
 
 			if(schemasRecordsServices != null) {
-
-
 				searchEvent.setParams(paramList);
 				searchEvent.setQTime(queryResponse.getQTime());
 				searchEvent.setNumFound(queryResponse.getResults().getNumFound());
+
+				SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory());
+				searchEventServices.save(searchEvent);
 			}
 		}
 
@@ -162,4 +164,6 @@ public class SearchWebService extends HttpServlet {
 			throw new RuntimeException("Unable to convert Solr response into XML", e);
 		}
 	}
+
+
 }
