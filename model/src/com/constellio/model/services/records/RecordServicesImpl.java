@@ -1275,12 +1275,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableExcludingContent(record, user);
 	}
 
-	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record, User user) {
-		refreshUsingCache(record);
-		refreshUsingCache(user);
-		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableIncludingContent(record, user);
-	}
-
 	public void logicallyDelete(Record record, User user) {
 		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
 	}

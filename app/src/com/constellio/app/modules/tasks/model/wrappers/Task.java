@@ -56,6 +56,7 @@ public class Task extends RecordWrapper {
 	public static final String IS_MODEL = "isModel";
 	public static final String MODEL_TASK = "modelTask";
 	public static final String DECISION = "decision";
+	public static final String QUESTION = "question";
 
 	public static final String RELATIVE_DUE_DATE = "relativeDueDate";
 
@@ -389,5 +390,14 @@ public class Task extends RecordWrapper {
 				set(STARRED_BY_USERS, list);
 			}
 		}
+	}
+
+	public Task setQuestion(String question) {
+		set(QUESTION, question);
+		return this;
+	}
+
+	public String getQuestion() {
+		return get(QUESTION);
 	}
 }

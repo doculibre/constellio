@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
@@ -717,7 +718,7 @@ public class UserServices {
 
 	public boolean isSystemAdmin(User user) {
 		UserCredential userCredential = getUserCredential(user.getUsername());
-		if(userCredential != null && userCredential.isSystemAdmin()) {
+		if (userCredential != null && userCredential.isSystemAdmin()) {
 			return true;
 		}
 		return false;
@@ -930,9 +931,7 @@ public class UserServices {
 
 		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
 		if (userInGroup.size() != 0 ||
-				searchServices.hasResults(
-						from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-								.isEqualTo(group.getId()))) {
+				searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
 		}
@@ -969,9 +968,7 @@ public class UserServices {
 		UserCredential user = getUser(username);
 		for (String collection : user.getCollections()) {
 			String userId = this.getUserInCollection(user.getUsername(), collection).getId();
-			if (searchServices.hasResults(
-					from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-							.isEqualTo(userId))) {
+			if (searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(userId))) {
 				LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
 				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
 			}
@@ -1007,9 +1004,7 @@ public class UserServices {
 	public void physicallyRemoveUser(User user, String collection) {
 		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
 
-		if (searchServices.hasResults(
-				from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-						.isEqualTo(user.getId()))) {
+		if (searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(user.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveUser : " + user.getUsername());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(user.getUsername());
 		}

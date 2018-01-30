@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,7 +166,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
-				recordServices().physicallyDelete(record, user);
+				recordServices().physicallyDeleteNoMatterTheStatus(record, user, new RecordPhysicalDeleteOptions());
 			}
 		}
 	}

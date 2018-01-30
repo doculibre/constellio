@@ -42,9 +42,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InternetTest;
 
-@InternetTest
 public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	Server server;
@@ -1285,25 +1283,25 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	// ---------------------------------------------------------------
 
-	private static final String INDEX_DIGEST = "/Ok4oZZZGe0FeVpxNylB6tur1AY=";
-	private static final String SINGES_DIGEST = "Ngn1NIMLzej3eAGtQ6FwAlLQLxM=";
-	private static final String GIRAFE_DIGEST = "S5Mj9KzanPY19YZzxAOinp9kIvk=";
-	private static final String ELEPHANT_DIGEST = "Vy1aUfAbqgO2WY9zzbLKUVKJEXQ=";
-	private static final String SINGES_GORILLE_DIGEST = "TUnkhbiXTfUjJd8qMU9BTlhtXQA=";
-	private static final String SINGES_MACAQUE_DIGEST = "bkNYVzvgX3dxKuC5fOg5504ZsGY=";
+	private static final String INDEX_DIGEST = "4LzGtIzrofT/hg/zAdNk6/j/nu0=";
+	private static final String SINGES_DIGEST = "IzCp+N6dMvQYwncpnrs1I8CHrLI=";
+	private static final String GIRAFE_DIGEST = "nIKV/aqR9UyagkJ6Up8x9U0TmyI=";
+	private static final String ELEPHANT_DIGEST = "blmPbJZ/q3AZop1vZyGRlH9E8q0=";
+	private static final String SINGES_GORILLE_DIGEST = "sarDCy+pYUan0wQXdCNg6+mTxF4=";
+	private static final String SINGES_MACAQUE_DIGEST = "QaPeyDvwWrjOUg+VGHaRhcJlWxo=";
 
-	private static final String INDEX_DIGEST_V3 = "dOTKmIFwfAJynDrgwRQOtsIPWjo=";
-	private static final String INDEX_COPY_DIGEST_V3 = "6We6PJ/pwevIIzXKIELZtEYUX4Y=";
-	private static final String SINGES_DIGEST_V3 = "bYljEwL34ycnskhqnDYbY1GLMDg=";
-	private static final String SINGES_PDF_DIGEST_V3 = "nkKGz5voDPtR+h510qfkdyTY5mk=";
+	private static final String INDEX_DIGEST_V3 = "nAXXzobf+NXcRaR7v9lZtxvOi98=";
+	private static final String INDEX_COPY_DIGEST_V3 = "kU2TpATqzOn92/M9mzRSQgFlciU=";
+	private static final String SINGES_DIGEST_V3 = "oUMEgsH3SyjhuGkFxBO7LMLV4Dc=";
+	private static final String SINGES_PDF_DIGEST_V3 = "oRbylBVXZrtywP6iuF1vqGRPnXM=";
 	private static final String SINGES_TEXT_DIGEST_V3 = "qBpsYTysp2dnSNEh2cRhRJSh/3M=";
-	private static final String PARESSEUX_DIGEST_V3 = "NyjsogOzzRBBU/n30HSG6W6TkuE=";
-	private static final String ELEPHANT_DIGEST_V3 = "DX9eskZsdNQDUxHwWUsKWT92ujU=";
-	private static final String SINGES_GORILLE_AND_DK_DIGEST_V3 = "TUnkhbiXTfUjJd8qMU9BTlhtXQA=";
-	private static final String SINGES_MACAQUE_DIGEST_V3 = "bkNYVzvgX3dxKuC5fOg5504ZsGY=";
+	private static final String PARESSEUX_DIGEST_V3 = "psR2DVR15uhXRFYCpXyUMfQxjxQ=";
+	private static final String ELEPHANT_DIGEST_V3 = "6gezA9JGdk6ZUQXSwokz2sP0HhQ=";
+	private static final String SINGES_GORILLE_AND_DK_DIGEST_V3 = "sarDCy+pYUan0wQXdCNg6+mTxF4=";
+	private static final String SINGES_MACAQUE_DIGEST_V3 = "QaPeyDvwWrjOUg+VGHaRhcJlWxo=";
 
-	private static final String SINGES_GORILLE_DIGEST_V4 = "TUnkhbiXTfUjJd8qMU9BTlhtXQA=";
-	private static final String SINGES_DK_DIGEST_V4 = "66PqN2bX2oMrXoQxI0aXu3Q0c4U=";
+	private static final String SINGES_GORILLE_DIGEST_V4 = "sarDCy+pYUan0wQXdCNg6+mTxF4=";
+	private static final String SINGES_DK_DIGEST_V4 = "GstMbuBCbxrM6ltGb/QCyfI13so=";
 
 	private static final String SINGES_TEXT_DIGEST_V4 = "rV1iSsaGrJgCyrMM0GgfH5zMBHk=";
 	private static final String SINGES_TEXT_COPY_DIGEST_V4 = "qBpsYTysp2dnSNEh2cRhRJSh/3M=";

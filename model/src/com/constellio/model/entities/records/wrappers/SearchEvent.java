@@ -1,9 +1,9 @@
 package com.constellio.model.entities.records.wrappers;
 
+import java.util.List;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-
-import java.util.List;
 
 public class SearchEvent extends RecordWrapper {
 
@@ -78,7 +78,7 @@ public class SearchEvent extends RecordWrapper {
 	}
 
 	public long getQTime() {
-		Number value = get(NUM_FOUND);
+		Number value = get(Q_TIME);
 		return value == null ? 0 : value.longValue();
 	}
 

@@ -34,7 +34,8 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		CssLayout layout = new CssLayout();
+		VerticalLayout layout = new VerticalLayout();
+		CssLayout panel = new CssLayout();
 		layout.addStyleName("view-group");
 
 		for (String report : presenter.getSupportedReports()) {
@@ -43,12 +44,14 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				WindowButton windowButton = buildLookupButton(schemaType, report);
 
 				setReportButtonStyle(report, windowButton);
-				layout.addComponent(windowButton);
+				panel.addComponent(windowButton);
 			} else {
 				ReportButton button = new ReportButton(report, presenter);
-				layout.addComponent(button);
+//				setReportButtonStyle(report, button);
+				panel.addComponent(button);
 			}
 		}
+		layout.addComponent(panel);
 		return layout;
 	}
 

@@ -572,13 +572,6 @@ public class RecordDeleteServices {
 		}
 	}
 
-	boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record principalConcept, User user) {
-		List<Record> recordsHierarchy = loadRecordsHierarchyOf(principalConcept);
-		return authorizationsServices
-				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, true, recordsHierarchy,
-						metadataSchemasManager);
-	}
-
 	boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record principalConcept, User user) {
 		List<Record> recordsHierarchy = loadRecordsHierarchyOf(principalConcept);
 		return authorizationsServices
