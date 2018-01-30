@@ -5,13 +5,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.vaadin.annotations.PreserveOnRefresh;
+
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -401,8 +400,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	@Override
-	public <T> void setAttribute(String key, T value) {
+	public <T> T setAttribute(String key, T value) {
 		uiContext.put(key, value);
+		return null;
 	}
 
 	public View getCurrentView() {

@@ -756,7 +756,7 @@ public class SearchServices {
 		}
 	}
 
-	private RecordDao dataStoreDao(String dataStore) {
+	RecordDao dataStoreDao(String dataStore) {
 		if (dataStore == null || dataStore.equals(DataStore.RECORDS)) {
 			return modelLayerFactory.getDataLayerFactory().newRecordDao();
 		} else {

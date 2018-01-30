@@ -297,7 +297,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).extracting("code").containsOnly("document",
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).extracting("code").contains("document",
 				"ddvTaskType", "cart", "ddvStorageSpaceType", "ddvContainerRecordType", "savedSearch", "userDocument",
 				"ddvVariablePeriod", "storageSpace", "decommissioningList", "emailToSend", "event", "group",
 				"workflowInstance", "ddvMediumType", "filingSpace", "workflow", "ddvFolderType", "collection",

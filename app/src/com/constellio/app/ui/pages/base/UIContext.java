@@ -8,6 +8,6 @@ public interface UIContext extends Serializable {
 	
 	<T> T getAttribute(String key);
 	
-	<T> void setAttribute(String key, T value);
+	<T> T setAttribute(String key, T value);
 
 }

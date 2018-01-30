@@ -26,6 +26,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -45,6 +46,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
@@ -2337,6 +2339,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenFourLettersValues();
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).query("*");
 
+		searchServices = Mockito.spy(searchServices);
+		doReturn(recordDao).when(searchServices).dataStoreDao("records");
 		List<String> ids = findRecordIds(condition);
 
 		assertThat(ids).hasSize(4);
@@ -2351,6 +2355,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	public void whenGetResultsCountThenUseFlAndRowsParameters()
 			throws Exception {
 		givenFourLettersValues();
+		searchServices = Mockito.spy(searchServices);
+		doReturn(recordDao).when(searchServices).dataStoreDao("records");
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).query("*");
 
 		long count = searchServices.getResultsCount(condition);

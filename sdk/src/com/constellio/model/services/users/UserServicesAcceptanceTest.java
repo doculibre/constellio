@@ -988,6 +988,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			userServices.safePhysicalDeleteUserCredential(chuck.getUsername());
 			fail();
 		} catch (Exception e) {
+			e.printStackTrace();
 			assertThat(e)
 					.isInstanceOf(UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically.class);
 			e.printStackTrace();
