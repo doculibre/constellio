@@ -95,6 +95,8 @@ public class ContentManager implements StatefulService {
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
+	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
+
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManager.class);
@@ -171,7 +173,7 @@ public class ContentManager implements StatefulService {
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
