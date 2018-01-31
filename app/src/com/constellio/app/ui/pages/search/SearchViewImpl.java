@@ -348,29 +348,28 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return container;
 	}
 
-
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);
 			return;
 		}
 
-        Label caption = new Label($("SearchView.spellChecker"));
-        caption.addStyleName(ValoTheme.LABEL_BOLD);
-        suggestions.addComponent(caption);
+		Label caption = new Label($("SearchView.spellChecker"));
+		caption.addStyleName(ValoTheme.LABEL_BOLD);
+		suggestions.addComponent(caption);
 
 		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
 
-				Button activateSuggestion = new Button(suggestion);
-				activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
-				activateSuggestion.addStyleName(SUGGESTION_STYLE);
-				activateSuggestion.addClickListener(new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						presenter.suggestionSelected(suggestion);
-					}
-				});
+			Button activateSuggestion = new Button(suggestion);
+			activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
+			activateSuggestion.addStyleName(SUGGESTION_STYLE);
+			activateSuggestion.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.suggestionSelected(suggestion);
+				}
+			});
 			HorizontalLayout horizontalLayout = new HorizontalLayout();
 
 			final DeleteButton excludeButton = new DeleteButton() {
@@ -389,10 +388,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			horizontalLayout.addComponent(excludeButton);
 			suggestions.addComponent(horizontalLayout);
 		}
-		if(foundSuggestions.size() > 0) {
+		if (foundSuggestions.size() > 0) {
 			suggestions.setVisible(true);
-		}
-		else {
+		} else {
 			suggestions.setVisible(false);
 		}
 	}
