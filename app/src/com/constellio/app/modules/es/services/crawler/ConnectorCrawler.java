@@ -11,8 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -40,8 +38,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 public class ConnectorCrawler {
 
 	int timeWaitedWhenNoJobs = 10000;
-
-	private static Semaphore COLLECTIONS_CRAWLING_SEMAPHORE = new Semaphore(5);
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ConnectorCrawler.class);
 
@@ -305,29 +301,29 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			try {
-				if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
-					boolean hasCrawledSomething;
-					try {
-						hasCrawledSomething = crawlAllConnectors();
+			//			try {
+			//if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
+			boolean hasCrawledSomething;
+			//					try {
+			hasCrawledSomething = crawlAllConnectors();
 
-					} finally {
-						COLLECTIONS_CRAWLING_SEMAPHORE.release();
-					}
-					if (!hasCrawledSomething) {
-						waitSinceNoJobs();
-					}
-					if (crawledConnectors.isEmpty()) {
-						try {
-							Thread.sleep(200);
-						} catch (InterruptedException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			//					} finally {
+			//						COLLECTIONS_CRAWLING_SEMAPHORE.release();
+			//					}
+			if (!hasCrawledSomething) {
+				waitSinceNoJobs();
 			}
+			if (crawledConnectors.isEmpty()) {
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			//}
+			//			} catch (InterruptedException e) {
+			//				e.printStackTrace();
+			//			}
 		}
 	}
 
