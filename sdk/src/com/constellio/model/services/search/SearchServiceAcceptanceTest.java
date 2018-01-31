@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
@@ -2940,6 +2941,37 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		query.setFreeTextQuery("1034002");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
+
+	}
+
+	@Test
+	public void givenRegexBoostThenAffectScores()
+			throws Exception {
+		defineSchemasManager().using(schema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema("zeSchemaType_default").get(Schemas.LEGACY_ID).setSearchable(true);
+			}
+		}));
+
+		Transaction tx = new Transaction();
+		tx.add(newRecordOfZeSchema("r1").set(Schemas.TITLE, "Apple"));
+		tx.add(newRecordOfZeSchema("r2").set(Schemas.TITLE, "Banana"));
+		tx.add(newRecordOfZeSchema("r3").set(Schemas.TITLE, "Kiwi"));
+		tx.add(newRecordOfZeSchema("r4").set(Schemas.TITLE, "Orange"));
+		tx.add(newRecordOfZeSchema("r5").set(Schemas.TITLE, "Melon"));
+		recordServices.execute(tx);
+
+		SearchBoostManager searchBoostManager = getModelLayerFactory().getSearchBoostManager();
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "Kiwi", "My boost", 12.0));
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "*o*", "My boost", 5.0));
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "*O*", "My boost", 6.0));
+
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(zeSchema.instance()).returnAll())
+				.setFreeTextQuery("*");
+		query.setQueryBoosts(searchBoostManager.getAllSearchBoostsByQueryType(zeCollection));
+
+		assertThat(searchServices.search(query)).extracting("id").containsExactly("r3", "r4", "r5", "r1", "r2");
 
 	}
 
