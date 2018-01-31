@@ -277,10 +277,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				//TODO Check for a more efficient way to fix this.
 				LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
 
-				List<Capsule> allCapsules = schemasRecordsServices
-						.wrapCapsules(searchServices().search(new LogicalSearchQuery(condition)));
-
-				for (Capsule capsule : allCapsules) {
+				for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
 					if (CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
 						correspondingCapsules.add(capsule);
 					}

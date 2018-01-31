@@ -9,6 +9,7 @@ import java.util.List;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -438,4 +439,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return null;
 	}
 
+	public List<Capsule> getAllCapsules() {
+		return wrapCapsules(getModelLayerFactory().newSearchServices().getAllRecords(capsule.schemaType()));
+	}
 }
