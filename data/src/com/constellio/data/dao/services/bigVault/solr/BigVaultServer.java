@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -53,10 +54,10 @@ public class BigVaultServer implements Cloneable {
 	private static final int HTTP_ERROR_500_INTERNAL = 500;
 	private static final int HTTP_ERROR_409_CONFLICT = 409;
 	private static final int HTTP_ERROR_400_BAD_REQUEST = 400;
-	private static final int HTTP_ERROR_404_NOT_FOUND= 404;
+	private static final int HTTP_ERROR_404_NOT_FOUND = 404;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultServer.class);
-	private final int maxFailAttempt = 10;
+	public static int MAX_FAIL_ATTEMPT = 10;
 	private final int waitedMillisecondsBetweenAttempts = 500;
 	private BigVaultLogger bigVaultLogger;
 	private DataLayerSystemExtensions extensions;
@@ -68,6 +69,8 @@ public class BigVaultServer implements Cloneable {
 	private final AtomicFileSystem fileSystem;
 	private final List<BigVaultServerListener> listeners;
 	private final List<BigVaultServerTransaction> postponedTransactions = new ArrayList<>();
+	private long lastCommit;
+	private Semaphore commitSemaphore = new Semaphore(1);
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
 			, DataLayerSystemExtensions extensions) {
@@ -199,11 +202,10 @@ public class BigVaultServer implements Cloneable {
 
 	private QueryResponse handleQueryException(SolrParams params, int currentAttempt, Exception solrServerException)
 			throws BigVaultException.CouldNotExecuteQuery {
-		if (currentAttempt < maxFailAttempt) {
+		if (currentAttempt < MAX_FAIL_ATTEMPT) {
 			LOGGER.warn("Solr thrown an unexpected exception, retrying the query '{}' in {} milliseconds...",
 					SolrUtils.toString(params), waitedMillisecondsBetweenAttempts, solrServerException);
 			sleepBeforeRetrying(solrServerException);
-
 
 			return tryQuery(params, currentAttempt + 1);
 		} else {
@@ -287,7 +289,7 @@ public class BigVaultServer implements Cloneable {
 				LOGGER.error(stringBuilder.toString());
 
 				throw new BigVaultException.CouldNotExecuteQuery(
-						"" + maxFailAttempt + " errors occured while add/updating records",
+						"" + MAX_FAIL_ATTEMPT + " errors occured while add/updating records",
 						e);
 			}
 		} else {
@@ -337,17 +339,17 @@ public class BigVaultServer implements Cloneable {
 
 	private TransactionResponseDTO retryAddAll(BigVaultServerTransaction transaction, int currentAttempt, Exception e)
 			throws CouldNotExecuteQuery, OptimisticLocking {
-		if (currentAttempt < maxFailAttempt) {
+		if (currentAttempt < MAX_FAIL_ATTEMPT) {
 			return tryAddAll(transaction, currentAttempt + 1);
 
 		} else {
-			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while add/updating records", e);
+			throw new BigVaultRuntimeException("" + MAX_FAIL_ATTEMPT + " errors occured while add/updating records", e);
 		}
 	}
 
 	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
-//		try {
+		//		try {
 		//			softCommit();
 		//		} catch (IOException | SolrServerException solrServerException) {
 		//			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
@@ -400,10 +402,10 @@ public class BigVaultServer implements Cloneable {
 
 	public void softCommit()
 			throws IOException, SolrServerException {
-		long start = new Date().getTime();
-		trySoftCommit(0);
+		long methodEnteranceTimeStamp = new Date().getTime();
+		trySoftCommit(0, methodEnteranceTimeStamp);
 		long end = new Date().getTime();
-		extensions.afterCommmit(null, end - start);
+		extensions.afterCommmit(null, end - methodEnteranceTimeStamp);
 	}
 
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
@@ -546,20 +548,44 @@ public class BigVaultServer implements Cloneable {
 		req.process(server);
 	}
 
-	private void trySoftCommit(int currentAttempt)
+	private void trySoftCommit(int currentAttempt, long methodEnteranceTimeStamp)
 			throws IOException, SolrServerException {
+
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			return;
+		}
+
 		try {
-			server.commit(true, true, true);
-		} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
-			if (currentAttempt < maxFailAttempt) {
-				LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
-						waitedMillisecondsBetweenAttempts, solrServerException);
-				sleepBeforeRetrying(solrServerException);
-				trySoftCommit(currentAttempt);
-			} else {
-				throw solrServerException;
+			commitSemaphore.acquire();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			commitSemaphore.release();
+			return;
+		} else {
+
+			try {
+				long timeStampWhenStartingToCommit = new Date().getTime();
+				server.commit(true, true, true);
+				lastCommit = timeStampWhenStartingToCommit;
+				commitSemaphore.release();
+			} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
+				commitSemaphore.release();
+				if (currentAttempt < MAX_FAIL_ATTEMPT) {
+					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
+							waitedMillisecondsBetweenAttempts, solrServerException);
+					sleepBeforeRetrying(solrServerException);
+					trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
+				} else {
+					throw solrServerException;
+				}
 			}
 		}
+
 	}
 
 	List<String> toDeletedQueries(List<SolrParams> params) {

@@ -41,6 +41,7 @@ import com.constellio.app.modules.es.services.mapping.TargetParams;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ConnectorHttpAcceptanceTest extends ConstellioTest {
@@ -70,6 +71,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	private TestConnectorEventObserver eventObserver;
 
+	CommitCounter commitCounter;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -82,6 +85,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, "crawlerObserver"));
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver).withoutSleeps());
 		givenTimeIs(TIME1);
+		commitCounter = new CommitCounter(getDataLayerFactory());
 	}
 
 	@Test
@@ -553,6 +557,22 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		assertThat(es.getConnectorHttpDocumentByUrl(WEBSITE + "singes.html").getParsedContent()).contains("sympathique");
 		assertThat(es.getConnectorHttpDocumentByUrl(WEBSITE + "singes-wiki.pdf").getParsedContent()).contains("Simiiformes");
 		assertThat(es.getConnectorHttpDocumentByUrl(WEBSITE + "singes.txt").getParsedContent()).contains("Linux");
+	}
+
+	@Test
+	public void whenCrawlingThenNoCommitsInSolr()
+			throws Exception {
+
+		givenTestWebsiteInState1();
+		givenDataSet1Connector();
+		commitCounter.reset();
+		fullyFetchWebsite();
+		assertThat(commitCounter.newCommitsCall()).hasSize(0);
+
+		givenTestWebsiteInState2();
+		givenTimeIs(TWO_WEEKS_AFTER_TIME1);
+		fullyFetchWebsite();
+		assertThat(commitCounter.newCommitsCall()).hasSize(0);
 	}
 
 	@Test
@@ -1231,8 +1251,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		givenTimeIs(TIME1);
 		String schemaType = ConnectorHttpDocument.SCHEMA_TYPE;
 		ConnectorMappingService connectorMappingService = new ConnectorMappingService(es);
-		Metadata language = connectorMappingService.createTargetMetadata(
-				connectorInstance, schemaType, new TargetParams("language", "Language", STRING));
+		Metadata language = es.connectorHttpDocument.language();
 		Metadata encoding = connectorMappingService.createTargetMetadata(
 				connectorInstance, schemaType, new TargetParams("encoding", "Encoding", STRING));
 		Metadata lastModification = connectorMappingService.createTargetMetadata(
@@ -1243,7 +1262,6 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 		Map<String, List<String>> mapping = new HashMap<>();
 		mapping.put(encoding.getLocalCode(), asList("connectorHttpDocument:charset"));
-		mapping.put(language.getLocalCode(), asList("connectorHttpDocument:language"));
 		mapping.put(lastModification.getLocalCode(), asList("connectorHttpDocument:lastModification"));
 
 		connectorMappingService.setMapping(connectorInstance, schemaType, mapping);
@@ -1267,15 +1285,15 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		ConnectorHttpDocument singesWikiPdf = es.getConnectorHttpDocumentByUrl(WEBSITE + "singes-wiki.pdf");
 		ConnectorHttpDocument singesTxt = es.getConnectorHttpDocumentByUrl(WEBSITE + "singes.txt");
 
-		assertThat(singe.getList(language)).containsOnly("fr");
+		assertThat(singe.get(language)).isEqualTo("fr");
 		assertThat(singe.getList(encoding)).containsOnly("ISO-8859-1");
 		//assertThat(girafe.getList(lastModification)).containsOnly(TIME1);
 
-		assertThat(singesWikiPdf.getList(language)).containsOnly("fr");
+		assertThat(singesWikiPdf.get(language)).isEqualTo("fr");
 		assertThat(singesWikiPdf.getList(encoding)).containsOnly("ISO-8859-1");
 		//		assertThat(singesWikiPdf.getList(lastModification)).containsOnly(TIME1);
 
-		assertThat(singesTxt.getList(language)).containsOnly("fr");
+		assertThat(singesTxt.get(language)).isEqualTo("fr");
 		assertThat(singesTxt.getList(encoding)).containsOnly("ISO-8859-1");
 		//		assertThat(singesTxt.getList(lastModification)).containsOnly(TIME1);
 

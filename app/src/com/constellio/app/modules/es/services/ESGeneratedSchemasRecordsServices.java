@@ -92,6 +92,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("charset");
 		}
 
+		public Metadata language() {
+			return metadata("language");
+		}
+
+
 		public Metadata connector() {
 			return metadata("connector");
 		}
