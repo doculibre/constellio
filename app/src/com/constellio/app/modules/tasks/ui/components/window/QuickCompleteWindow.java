@@ -141,16 +141,18 @@ public class QuickCompleteWindow {
             public void buttonClick(Button.ClickEvent event) {
                 List<String> errors = new ArrayList<>();
                 for(int i = 0; i < fieldLayout.getComponentCount(); i++) {
-                    Field field = (Field) fieldLayout.getComponent(i);
-                    try {
-                        field.validate();
-                    } catch (Validator.InvalidValueException invalidValueException) {
-                        HashMap<String, Object> parameters = new HashMap<>();
-                        parameters.put("metadataLabel", field.getCaption());
-                        errors.add($("com.constellio.model.services.schemas.validators.MetadataValueTypeValidator_requiredValueForMetadata", parameters));
-                    } catch (Exception e) {
-                        view.showErrorMessage(e.getMessage());
-                        return;
+                    if(fieldLayout.getComponent(i) instanceof Field) {
+                        Field field = (Field) fieldLayout.getComponent(i);
+                        try {
+                            field.validate();
+                        } catch (Validator.InvalidValueException invalidValueException) {
+                            HashMap<String, Object> parameters = new HashMap<>();
+                            parameters.put("metadataLabel", field.getCaption());
+                            errors.add($("com.constellio.model.services.schemas.validators.MetadataValueTypeValidator_requiredValueForMetadata", parameters));
+                        } catch (Exception e) {
+                            view.showErrorMessage(e.getMessage());
+                            return;
+                        }
                     }
                 }
 

@@ -247,7 +247,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 	}
 
-	public void deleteButtonClicked(RecordVO userContentVO) {
+	public void deleteButtonClicked(RecordVO userContentVO, boolean refreshUI) {
 		User currentUser = getCurrentUser();
 		String schemaTypeCode = userContentVO.getSchema().getTypeCode();
 		Record record;
@@ -265,10 +265,14 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				RMUserFolder userFolder = rm.wrapUserFolder(record);
 				DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 				decommissioningService.deleteUserFolder(userFolder, currentUser);
-				userFoldersDataProvider.fireDataRefreshEvent();
+				if(refreshUI) {
+					userFoldersDataProvider.fireDataRefreshEvent();
+				}
 			} else {
 				delete(record);
-				userDocumentsDataProvider.fireDataRefreshEvent();
+				if(refreshUI) {
+					userDocumentsDataProvider.fireDataRefreshEvent();
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
