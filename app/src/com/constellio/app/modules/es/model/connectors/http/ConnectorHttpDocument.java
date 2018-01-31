@@ -39,6 +39,7 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 	public static final String DIGEST = "digest";
 	public static final String CONTENT_TYPE = "contentType";
 	public static final String DOWNLOAD_TIME = "downloadTime";
+	public static final String LANGUAGE = "language";
 
 	public ConnectorHttpDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, "connectorHttpDocument");
@@ -140,6 +141,15 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 
 	public ConnectorHttpDocument setDigest(String digest) {
 		set(DIGEST, digest);
+		return this;
+	}
+
+	public String getLanguage() {
+		return get(LANGUAGE);
+	}
+
+	public ConnectorHttpDocument setLanguage(String language) {
+		set(LANGUAGE, language);
 		return this;
 	}
 

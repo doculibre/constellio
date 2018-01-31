@@ -158,7 +158,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				} else {
 					httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
 					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
-					httpDocument.addStringProperty("language", parsedContent.getLanguage());
+					httpDocument.setLanguage(parsedContent.getLanguage());
 					httpDocument.setParsedContent(parsedContent.getParsedContent());
 
 					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
@@ -223,11 +223,11 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.resetErrorsCount()
 				.setParsedContent(results.getParsedContent())
 				.setDigest(results.getDigest())
+				.setLanguage(results.getLanguage())
 				//.setOutlinks(urls)
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
-				.addStringProperty("charset", page.getWebResponse().getContentCharset())
-				.addStringProperty("language", results.getLanguage()));
+				.addStringProperty("charset", page.getWebResponse().getContentCharset()));
 
 		saveDocumentDigestAndDetectCopy(httpDocument);
 		connectorHttp.getEventObserver().push(savedDocuments);
