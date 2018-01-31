@@ -3,8 +3,12 @@ package com.constellio.app.modules.rm.ui.pages.userDocuments;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.data.DataProvider;
+import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 
@@ -54,6 +58,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
 	private SelectionTableAdapter userContentSelectTableAdapter;
 	private RecordVOTable userContentTable;
+	private Button deleteAllButton;
 	private Builder<ContainerButton> classifyButtonFactory;
 	
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
@@ -106,7 +111,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						RecordVO recordVO = ((RecordVOItem) buttonsContainer.getItem(itemId)).getRecord();
-						presenter.deleteButtonClicked(recordVO);
+						presenter.deleteButtonClicked(recordVO, true);
 					}
 				};
 			}
@@ -178,7 +183,36 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 		};
 
-		mainLayout.addComponents(multiFileUpload, userContentSelectTableAdapter);
+		deleteAllButton = new DeleteButton($("ListUserDocumentsView.deleteAllButtonTitle")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ListUserDocumentsView.deleteAllConfirmation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				if(dialog.isConfirmed()) {
+					int size = userContentContainer.size();
+					for(int i = 0; i < size; i++) {
+						RecordVO recordVO = userContentContainer.getRecordVO(i);
+						presenter.deleteButtonClicked(recordVO, false);
+					}
+					if(dataProviders != null) {
+						for(RecordVODataProvider dataProvider: dataProviders) {
+							dataProvider.fireDataRefreshEvent();
+						}
+					}
+				}
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return userContentContainer != null && userContentContainer.size() > 0;
+			}
+		};
+		deleteAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+
+		mainLayout.addComponents(multiFileUpload, deleteAllButton, userContentSelectTableAdapter);
 
 		dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
