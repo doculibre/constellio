@@ -551,10 +551,10 @@ public class BigVaultServer implements Cloneable {
 	private void trySoftCommit(int currentAttempt, long methodEnteranceTimeStamp)
 			throws IOException, SolrServerException {
 
-		//		if (methodEnteranceTimeStamp < lastCommit - 500) {
-		//			//Another thread has committed during the wait
-		//			return;
-		//		}
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			return;
+		}
 
 		try {
 			commitSemaphore.acquire();
@@ -562,29 +562,29 @@ public class BigVaultServer implements Cloneable {
 			throw new RuntimeException(e);
 		}
 
-		//		if (methodEnteranceTimeStamp < lastCommit - 500) {
-		//			//Another thread has committed during the wait
-		//			commitSemaphore.release();
-		//			return;
-		//		} else {
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			commitSemaphore.release();
+			return;
+		} else {
 
-		try {
-			long timeStampWhenStartingToCommit = new Date().getTime();
-			server.commit(true, true, true);
-			lastCommit = timeStampWhenStartingToCommit;
-			commitSemaphore.release();
-		} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
-			commitSemaphore.release();
-			if (currentAttempt < MAX_FAIL_ATTEMPT) {
-				LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
-						waitedMillisecondsBetweenAttempts, solrServerException);
-				sleepBeforeRetrying(solrServerException);
-				trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
-			} else {
-				throw solrServerException;
+			try {
+				long timeStampWhenStartingToCommit = new Date().getTime();
+				server.commit(true, true, true);
+				lastCommit = timeStampWhenStartingToCommit;
+				commitSemaphore.release();
+			} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
+				commitSemaphore.release();
+				if (currentAttempt < MAX_FAIL_ATTEMPT) {
+					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
+							waitedMillisecondsBetweenAttempts, solrServerException);
+					sleepBeforeRetrying(solrServerException);
+					trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
+				} else {
+					throw solrServerException;
+				}
 			}
 		}
-		//		}
 
 	}
 
