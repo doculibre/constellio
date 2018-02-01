@@ -669,6 +669,7 @@ public class ContentManager implements StatefulService {
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
+					hashToDelete.add(hash + ".preview");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);
