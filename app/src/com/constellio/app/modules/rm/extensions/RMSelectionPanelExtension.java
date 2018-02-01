@@ -19,6 +19,8 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPDFWindow;
+import com.constellio.app.modules.rm.ui.pages.pdf.PdfFileNamePanel;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
@@ -112,9 +114,36 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
+        addPdfButton(param);
         if(hasAccessToSIP) {
             addSIPbutton(param);
         }
+    }
+
+    public void addPdfButton(final AvailableActionsParam param) {
+        WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
+                , WindowButton.WindowConfiguration.modalDialog("60%", "200px")) {
+            @Override
+            protected Component buildWindowContent() {
+                PdfFileNamePanel pdfPanel = new PdfFileNamePanel(getWindow());
+                pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
+                    @Override
+                    public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
+                        ConsolidatedPDFWindow.createPdf(pdfInfos.getPdfFileName());
+                    }
+
+                    @Override
+                    public void pdfFileNameCancelled() {
+
+                    }
+                });
+                return pdfPanel;
+            }
+        };
+        setStyles(pdfButton);
+        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout) param.getComponent()).addComponent(pdfButton);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
