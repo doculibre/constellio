@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -452,6 +453,7 @@ public abstract class Decommissioner {
 		}
 
 		try {
+			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
