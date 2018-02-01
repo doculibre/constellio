@@ -45,7 +45,7 @@ public class ReportTabButton extends WindowButton {
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
-    private TabSheet.Tab excelTab, pdfTab;
+    private TabSheet.Tab excelTab, pdfTab, errorTab;
     private NewReportPresenter viewPresenter;
     private List<PrintableReportTemplate> printableReportTemplateList;
     private ReportTabButtonPresenter buttonPresenter;
@@ -126,14 +126,30 @@ public class ReportTabButton extends WindowButton {
     protected Component buildWindowContent() {
         mainLayout = new VerticalLayout();
         tabSheet = new TabSheet();
+
+
         if (!this.noExcelButton) {
             excelTab = tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
         if (!this.noPDFButton) {
             pdfTab = tabSheet.addTab( createPDFTab(), $("ReportTabButton.PDFReport"));
         }
+
+        if(!(!this.noPDFButton && !this.noExcelButton)) {
+            errorTab = tabSheet.addTab(createErrorTab(), $("ReportTabButton.ShowError"));
+        }
         mainLayout.addComponent(tabSheet);
         return mainLayout;
+    }
+
+    private VerticalLayout createErrorTab(){
+        VerticalLayout verticalLayout = new VerticalLayout();
+
+        Label label = new Label($("ReportTabButton.ErrorMessage"));
+
+        verticalLayout.addComponent(label);
+
+        return verticalLayout;
     }
 
     private VerticalLayout createExcelTab() {
