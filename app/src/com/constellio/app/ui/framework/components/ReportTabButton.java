@@ -105,7 +105,7 @@ public class ReportTabButton extends WindowButton {
 
     @Override
     public void afterOpenModal() {
-        if(buttonPresenter.isNeedToRemovePDFTab()) {
+        if(buttonPresenter.isNeedToRemovePDFTab() || reportComboBox.getContainerDataSource().size() == 0) {
             pdfTab.setVisible(false);
         }
 
@@ -113,12 +113,10 @@ public class ReportTabButton extends WindowButton {
             excelTab.setVisible(false);
         }
 
-        if(this.removeExcelTab && this.removePrintableTab) {
-            UI.getCurrent().removeWindow(super.getWindow());
-            String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
-            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
-            notification.setHtmlContentAllowed(true);
-            notification.show(Page.getCurrent());
+        if(!pdfTab.isVisible() && !excelTab.isVisible()){
+            errorTab.setVisible(true);
+        } else {
+            errorTab.setVisible(false);
         }
     }
 
@@ -135,9 +133,8 @@ public class ReportTabButton extends WindowButton {
             pdfTab = tabSheet.addTab( createPDFTab(), $("ReportTabButton.PDFReport"));
         }
 
-        if(!(!this.noPDFButton && !this.noExcelButton)) {
-            errorTab = tabSheet.addTab(createErrorTab(), $("ReportTabButton.ShowError"));
-        }
+        errorTab = tabSheet.addTab(createErrorTab(), $("ReportTabButton.ShowError"));
+
         mainLayout.addComponent(tabSheet);
         return mainLayout;
     }
@@ -145,7 +142,7 @@ public class ReportTabButton extends WindowButton {
     private VerticalLayout createErrorTab(){
         VerticalLayout verticalLayout = new VerticalLayout();
 
-        Label label = new Label($("ReportTabButton.ErrorMessage"));
+        Label label = new Label($("ReportTabButton.noReportTemplateForCondition"));
 
         verticalLayout.addComponent(label);
 
