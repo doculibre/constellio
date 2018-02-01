@@ -388,7 +388,7 @@ public class BorrowingServices {
 			} else if (folder.getContainer() != null) {
 
 				ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
-				validateCanBorrow(currentUser, containerRecord, borrowingDate);
+				validateContainerIsNotBorrowed(containerRecord);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
@@ -398,14 +398,19 @@ public class BorrowingServices {
 	public void validateCanBorrow(User currentUser, ContainerRecord containerRecord, LocalDate borrowingDate) {
 
 		if (currentUser.hasReadAccess().on(containerRecord)) {
-			if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
-				throw new BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed(containerRecord.getId());
-			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
+			validateContainerIsNotBorrowed(containerRecord);
+			if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(),
 					containerRecord.getId());
+		}
+	}
+
+	public void validateContainerIsNotBorrowed(ContainerRecord containerRecord) {
+		if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
+			throw new BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed(containerRecord.getId());
 		}
 	}
 
