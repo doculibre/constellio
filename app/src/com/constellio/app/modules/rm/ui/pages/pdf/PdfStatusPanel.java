@@ -38,6 +38,7 @@ public class PdfStatusPanel<T> extends VerticalLayout {
     }
 
     protected void switchPdfTableProgress() {
+        // TODO Fix CSS bugs
         Label label = new Label("Progression de la génération du fichier: " + getPdfFileName());
         label.setHeight("40px");
 
