@@ -231,13 +231,13 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public void updateContent() {
+		if (isRightToLeft()) {
+			addStyleName("right-to-left");
+		}
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
 			setContent(setupView);
 			addStyleName("setupview");
-			if (isRightToLeft()) {
-				addStyleName("right-to-left");
-			}
 		} else {
 			ConstellioFactories constellioFactories = getConstellioFactories();
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -249,9 +249,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			if (currentUserVO != null) {
 				// Authenticated user
 				mainLayout = new MainLayoutImpl(appLayerFactory);
-				if (isRightToLeft()) {
-					mainLayout.addStyleName("right-to-left");
-				}
+//				if (isRightToLeft()) {
+//					mainLayout.addStyleName("right-to-left");
+//				}
 
 				setContent(mainLayout);
 
@@ -309,7 +309,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 				removeStyleName("setupview");
 				removeStyleName("loginview");
-				removeStyleName("right-to-left");
+//				removeStyleName("right-to-left");
 				navigator.navigateTo(navigator.getState());
 			} else {
 				removeStyleName("setupview");

@@ -13999,6 +13999,53 @@ div.v-layout.v-horizontal.v-widget {
 	background: transparent;
 }
 
+.constellio .right-to-left .v-widget {
+	text-align: right;
+}
+
+.constellio .right-to-left .icon-only {
+	text-align: center;
+}
+
+.constellio .right-to-left .v-filterselect-suggestmenu {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper {
+	direction: rtl;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left {
+	float: right;
+	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
+	text-align: right;
+}
+
+.constellio .right-to-left .base-display .display-value {
+	text-align: right;
+}
+
+.constellio .right-to-left .back-button {
+	right: inherit;
+	left: 20px;
+	direction: rtl;
+}
+
+.constellio .right-to-left .back-button img {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI .v-button {
+	transform: rotate(180deg);
+}
+
 .constellio .right-to-left .v-caption {
 	text-align: right;
 }
@@ -14058,45 +14105,6 @@ div.v-layout.v-horizontal.v-widget {
 	left: 10px;
 }
 
-.constellio .right-to-left .v-widget {
-	text-align: right;
-}
-
-.constellio .right-to-left .content-footer-wrapper {
-	direction: rtl;
-}
-
-.constellio .right-to-left .i18n-horizontal-layout-right-to-left {
-	float: right;
-	text-align: right;
-}
-
-.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
-	text-align: right;
-}
-
-.constellio .right-to-left .base-display .display-value {
-	text-align: right;
-}
-
-.constellio .right-to-left .back-button {
-	right: inherit;
-	left: 20px;
-	direction: rtl;
-}
-
-.constellio .right-to-left .back-button img {
-	transform: rotate(180deg);
-}
-
-.constellio .right-to-left .xbreadcrumbs LI {
-	transform: rotate(180deg);
-}
-
-.constellio .right-to-left .xbreadcrumbs LI .v-button {
-	transform: rotate(180deg);
-}
-
 .constellio .v-window .popupContent .action-menu {
 	right: inherit;
 	left: 20px;
@@ -14141,125 +14149,125 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 0px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .header {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header {
 	padding-right: inherit;
 	padding-left: 225px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .header .header-search {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header .header-search {
 	margin-left: inherit;
 	margin-right: 5px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper {
 	padding-right: inherit;
 	padding-left: 260px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value {
 	padding-right: inherit;
 	padding-left: 300px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: inherit;
 	padding-left: 26px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
 	margin-right: inherit;
 	margin-left: 300px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
 	padding-right: inherit;
 	padding-left: 300px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
 	padding-right: inherit;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .action-menu {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu {
 	right: inherit;
 	left: 20px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .v-slot-suggestions-summary-results {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-suggestions-summary-results {
 	padding-right: inherit;
 	padding-left: 320px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .v-slot-search-result-facets {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets {
 	float: left;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .right-to-left .v-slot-search-result-facets .facet-box {
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets .facet-box {
 	direction: ltr;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .header {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .header {
 	padding-right: inherit;
 	padding-left: 95px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .action-menu-wrapper {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper {
 	padding-right: inherit;
 	padding-left: 260px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .action-menu-wrapper .base-display .base-display-main-layout {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper .base-display .base-display-main-layout {
 	padding-right: inherit;
 	padding-left: 260px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .action-menu {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu {
 	right: inherit;
 	left: 20px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-suggestions-summary-results {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-suggestions-summary-results {
 	padding-right: inherit;
 	padding-left: 320px;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-search-result-facets {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets {
 	float: left;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .right-to-left .v-slot-search-result-facets .facet-box {
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets .facet-box {
 	direction: ltr;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .header .header-selection-button {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-selection-button {
 	right: inherit;
 	left: 290px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .header .header-collection-menu {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-collection-menu {
 	right: inherit;
 	left: 220px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .header .header-action-menu {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-action-menu {
 	right: inherit;
 	left: 150px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .base-display .v-slot-display-caption {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-caption {
 	float: right;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .base-display .v-slot-display-value {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-value {
 	float: right;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .back-button {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .back-button {
 	right: inherit;
 	left: 0px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .right-to-left .search-button:before {
+.constellio .v-ui[width-range~="0-800px"].right-to-left .search-button:before {
 	margin-left: inherit;
 	margin-right: -8px;
 }

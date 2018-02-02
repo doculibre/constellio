@@ -64,6 +64,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
+		
+		addStyleName("main-layout");
 
 		mainMenuContentFooterLayout = new I18NHorizontalLayout();
 		mainMenuContentFooterLayout.setSizeFull();
