@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataContainer;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusMessageProvider;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.i18n.i18n;
 import com.google.common.base.Preconditions;
@@ -8,9 +11,7 @@ import com.vaadin.ui.TabSheet.Tab;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,19 +35,40 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
     private void init() {
         VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setSpacing(true);
         verticalLayout.addComponent(tabSheet = new TabSheet());
+
+        tabSheet.setHeight("454");
+        tabSheet.setWidth("100%");
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setWidth("100%");
+
+        Button minimiserLaFenetre = new Button("Minimiser la fenêtre");
+        minimiserLaFenetre.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                close();
+            }
+        });
+
+        horizontalLayout.addComponent(minimiserLaFenetre);
+        horizontalLayout.setComponentAlignment(minimiserLaFenetre, Alignment.MIDDLE_CENTER);
+
+        verticalLayout.addComponent(horizontalLayout);
+
         setContent(verticalLayout);
 
         setWidth("60%");
-        setHeight("500px");
+        setHeight("560px");
         setModal(true);
+        setResizable(false);
+        setClosable(false);
 
         UI.getCurrent().addWindow(this);
     }
 
     public void addTabSheet(String pdfFileName) {
-        VerticalLayout verticalLayout = new VerticalLayout();
-
         if(pdfTabs.containsKey(pdfFileName)) {
             String baseName = FilenameUtils.getBaseName(pdfFileName);
             String extension = FilenameUtils.getExtension(pdfFileName);
@@ -55,24 +77,39 @@ public class ConsolidatedPDFWindow extends BaseWindow {
             for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension););
         }
 
-        Tab tab = tabSheet.addTab(verticalLayout, pdfFileName);
+        PdfStatusPanel panel = new PdfStatusPanel(pdfFileName, new PdfStatusMessageProvider());
+        panel.setHeight("415px");
+
+        Tab tab = tabSheet.addTab(panel, pdfFileName);
         pdfTabs.put(pdfFileName, tab);
 
         tabSheet.setSelectedTab(tab);
+
+        //TODO : code to be removed
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            list.add("Fichier "+i+": en cours");
+        }
+        ((PdfStatusMessageProvider)panel.getDataProvider()).setMessages(list);
+        // End TODO
     }
 
     private void show() {
-        UI.getCurrent().addWindow(this);
+        if(!isAttached()) {
+            UI.getCurrent().addWindow(this);
+        }
     }
 
     public static synchronized void createPdf(String pdfName) {
         checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
 
-        if(instance == null) {
+        //TODO Active comments
+
+        //if(instance == null) {
             instance = new ConsolidatedPDFWindow(pdfName);
-        } else {
+        /*} else {
             instance.addTabSheet(pdfName);
-        }
+        }*/
 
         instance.show();
     }

@@ -25,7 +25,11 @@ public abstract class DataContainer<T extends DataProvider> extends ContainerAda
 		removeAllItems();
 		populateFromData(dataProvider);
 	}
-	
+
+	public T getDataProvider() {
+		return dataProvider;
+	}
+
 	protected abstract void populateFromData(T dataProvider);
 	
 }
