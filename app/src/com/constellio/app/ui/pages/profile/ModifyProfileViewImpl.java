@@ -1,5 +1,11 @@
 package com.constellio.app.ui.pages.profile;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -7,6 +13,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
@@ -23,12 +30,17 @@ import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.*;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.InputStream;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Embedded;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
@@ -282,7 +294,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
 
-		loginLanguageCodeField = new ComboBox($("ModifyProfileView.loginLanguageCode"));
+		loginLanguageCodeField = new BaseComboBox($("ModifyProfileView.loginLanguageCode"));
 		loginLanguageCodeField.setId("loginLanguageCode");
 		loginLanguageCodeField.setRequired(true);
 		loginLanguageCodeField.setNullSelectionAllowed(false);

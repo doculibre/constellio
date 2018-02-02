@@ -1837,7 +1837,16 @@ $popup-view-z-index: 3;
 	}
 
 
+		
+	.v-filterselect-item-rtl {
+		direction: rtl;
+	}
+	
 	.right-to-left {
+	
+		.v-filterselect-button {
+			direction: rtl;
+		}
 	
 		.v-widget {
 			text-align: right;
@@ -1847,17 +1856,17 @@ $popup-view-z-index: 3;
 			text-align: center;
 		}
 		
-		.v-filterselect-suggestmenu { 
-			direction: rtl;
-		} 
-		
 		.content-footer-wrapper {
 			direction: rtl;
+			
+			.content-footer {
+				direction: ltr;
+			}
 		}
 	
 		.i18n-horizontal-layout-right-to-left {
 			
-			float: right;
+			//float: right;
 			//direction: rtl;
 			text-align: right;
 	
@@ -1968,6 +1977,19 @@ $popup-view-z-index: 3;
 				left: 10px;
 			}
 		}
+
+	    .content-footer-wrapper {
+		    .content-footer {
+				.content-view-wrapper {
+					.main-component-wrapper {
+					    .main-component {
+							padding-left: inherit;
+							padding-right: 5px;
+						}
+					}
+				}
+			}
+		}	
 		
 	}
 
@@ -1993,7 +2015,7 @@ $popup-view-z-index: 3;
 					.v-slot-display-value {
 						.display-value {
 	            			padding-right: inherit;
-	            			padding-left: 300px;
+	            			//padding-left: 300px;
 	            			
 	            			.agent-link {
 	            				padding-right: inherit;
@@ -2008,7 +2030,7 @@ $popup-view-z-index: 3;
 						
 						.reference-display {
 	            			padding-right: inherit;
-	            			padding-left: 300px;
+	            			//padding-left: 300px;
 						}
 					}
 						
@@ -2056,7 +2078,7 @@ $popup-view-z-index: 3;
 				.v-slot-display-value {
 					.display-value {
             			padding-right: inherit;
-            			padding-left: 300px;
+            			//padding-left: 300px;
             			
             			.agent-link {
             				padding-right: inherit;
@@ -2071,7 +2093,7 @@ $popup-view-z-index: 3;
 					
 					.reference-display {
             			padding-right: inherit;
-            			padding-left: 300px;
+            			//padding-left: 300px;
 					}
 				}
 			}
