@@ -33,11 +33,11 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
 
-	public SolrGlobalGroupsManager(ModelLayerFactory modelLayerFactory) {
+	public SolrGlobalGroupsManager(final ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		modelLayerFactory.addSystemCollectionListener(this);
 		searchServices = modelLayerFactory.newSearchServices();
-		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	@Override

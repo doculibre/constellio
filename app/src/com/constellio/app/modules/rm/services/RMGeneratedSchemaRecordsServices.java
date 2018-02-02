@@ -36,8 +36,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
-	ModelLayerFactory appLayerFactory;
-
 	public RMGeneratedSchemaRecordsServices(String collection,
 			ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);

@@ -31,6 +31,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	public RecordsCacheRequestImpl(String cacheId, RecordsCache nested) {
 		this.nested = nested;
 		this.cacheId = cacheId;
+
 	}
 
 	@Override
@@ -41,12 +42,14 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public Record get(String id) {
 		Record recordFromRequestCache = null;
-		if (cache.containsKey(id)) {
-			recordFromRequestCache = cache.get(id).getCopyOfOriginalRecord();
-		}
+		if (!disconnected) {
+			if (cache.containsKey(id)) {
+				recordFromRequestCache = cache.get(id).getCopyOfOriginalRecord();
+			}
 
-		if (!Toggle.TEST_REQUEST_CACHE.isEnabled() && recordFromRequestCache != null) {
-			return recordFromRequestCache;
+			if (!Toggle.TEST_REQUEST_CACHE.isEnabled() && recordFromRequestCache != null) {
+				return recordFromRequestCache;
+			}
 		}
 
 		Record record = nested.get(id);
@@ -207,19 +210,21 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	public Record getByMetadata(Metadata metadata, String value) {
 
 		Record recordFromRequestCache = null;
-		String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
-		for (Record cachedRecord : cache.values()) {
-			if (metadataTypeCode.equals(cachedRecord.getTypeCode())) {
-				Object recordValue = cachedRecord.get(metadata);
-				if (recordValue != null && recordValue.equals(value)) {
-					recordFromRequestCache = cachedRecord;
+		if (!disconnected) {
+			String metadataTypeCode = SchemaUtils.getSchemaTypeCode(metadata.getSchemaCode());
+			for (Record cachedRecord : cache.values()) {
+				if (metadataTypeCode.equals(cachedRecord.getTypeCode())) {
+					Object recordValue = cachedRecord.get(metadata);
+					if (recordValue != null && recordValue.equals(value)) {
+						recordFromRequestCache = cachedRecord;
+					}
 				}
 			}
-		}
 
-		if (!Toggle.TEST_REQUEST_CACHE.isEnabled()) {
-			if (recordFromRequestCache != null) {
-				return recordFromRequestCache;
+			if (!Toggle.TEST_REQUEST_CACHE.isEnabled()) {
+				if (recordFromRequestCache != null) {
+					return recordFromRequestCache;
+				}
 			}
 		}
 

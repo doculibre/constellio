@@ -36,7 +36,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		searchServices = modelLayerFactory.newSearchServices();
-		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	@Override

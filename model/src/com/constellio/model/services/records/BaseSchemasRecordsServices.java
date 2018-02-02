@@ -3,9 +3,12 @@ package com.constellio.model.services.records;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -18,15 +21,24 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class BaseSchemasRecordsServices {
+public class BaseSchemasRecordsServices implements Serializable {
 
 	protected String collection;
 
-	protected ModelLayerFactory modelLayerFactory;
+	protected transient ModelLayerFactory modelLayerFactory;
 
-	public BaseSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory) {
+	private Factory<ModelLayerFactory> modelLayerFactoryFactory;
+
+	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
+		this.modelLayerFactory = modelLayerFactoryFactory.get();
+		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		modelLayerFactory = modelLayerFactoryFactory.get();
 	}
 
 	public String getCollection() {

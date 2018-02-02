@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
@@ -30,6 +31,7 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
@@ -37,8 +39,38 @@ import com.constellio.model.services.security.roles.Roles;
 public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public SchemasRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory) {
-		super(collection, modelLayerFactory);
+			final ModelLayerFactory modelLayerFactory) {
+		super(collection, toModelLayerFactoryFactory(modelLayerFactory));
+	}
+
+	private static Factory<ModelLayerFactory> toModelLayerFactoryFactory(final ModelLayerFactory modelLayerFactory) {
+		if (modelLayerFactory instanceof ModelLayerFactoryWithRequestCacheImpl) {
+			return modelLayerFactory.getModelLayerFactoryFactory();
+		} else {
+			return new Factory<ModelLayerFactory>() {
+				@Override
+				public ModelLayerFactory get() {
+					return modelLayerFactory;
+				}
+			};
+		}
+	}
+
+	private SchemasRecordsServices(String collection,
+			final Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+		super(collection, modelLayerFactoryFactory);
+	}
+
+	public static SchemasRecordsServices usingMainModelLayerFactory(String collection,
+			final ModelLayerFactory modelLayerFactory) {
+
+		return new SchemasRecordsServices(collection, new Factory<ModelLayerFactory>() {
+
+			@Override
+			public ModelLayerFactory get() {
+				return modelLayerFactory;
+			}
+		});
 	}
 
 	public MetadataSchemaType collectionSchemaType() {
