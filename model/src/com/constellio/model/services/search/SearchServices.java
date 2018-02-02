@@ -50,6 +50,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -80,7 +81,7 @@ public class SearchServices {
 	RecordServices recordServices;
 	SecurityTokenManager securityTokenManager;
 	CollectionsListManager collectionsListManager;
-	RecordsCaches recordsCaches;
+	RecordsCaches disconnectableRecordsCaches;
 	MetadataSchemasManager metadataSchemasManager;
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
@@ -101,8 +102,17 @@ public class SearchServices {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
-		this.recordsCaches = recordsCaches;
+		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	public RecordsCaches getConnectedRecordsCache() {
+		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
+			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
+				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
+			}
+		}
+		return disconnectableRecordsCaches;
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
@@ -111,7 +121,7 @@ public class SearchServices {
 	}
 
 	public List<Record> cachedSearch(LogicalSearchQuery query) {
-		RecordsCache recordsCache = recordsCaches.getCache(query.getCondition().getCollection());
+		RecordsCache recordsCache = getConnectedRecordsCache().getCache(query.getCondition().getCollection());
 		List<Record> records = recordsCache.getQueryResults(query);
 		if (records == null) {
 			records = search(query);
@@ -121,7 +131,7 @@ public class SearchServices {
 	}
 
 	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
-		RecordsCache recordsCache = recordsCaches.getCache(query.getCondition().getCollection());
+		RecordsCache recordsCache = getConnectedRecordsCache().getCache(query.getCondition().getCollection());
 		List<String> records = recordsCache.getQueryResultIds(query);
 		if (records == null) {
 			records = searchRecordIds(query);
@@ -398,9 +408,8 @@ public class SearchServices {
 			if (query.isMoreLikeThis()) {
 				params.add(CommonParams.QT, "/mlt");
 			} else {
-					params.add(CommonParams.QT, "/spell");
-					params.add(ShardParams.SHARDS_QT, "/spell");
-
+				params.add(CommonParams.QT, "/spell");
+				params.add(ShardParams.SHARDS_QT, "/spell");
 
 			}
 		}
@@ -604,7 +613,7 @@ public class SearchServices {
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
 		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
 			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
-				recordsCaches.insert(entry.getKey(), entry.getValue());
+				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue());
 			}
 
 		}
@@ -686,7 +695,7 @@ public class SearchServices {
 
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
-		final RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
 		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 
 			if (cache.isConfigured(schemaType)) {

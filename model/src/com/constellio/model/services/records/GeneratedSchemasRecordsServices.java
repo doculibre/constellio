@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.Metadata;
@@ -16,9 +17,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices {
+
 	public GeneratedSchemasRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory) {
-		super(collection, modelLayerFactory);
+			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+		super(collection, modelLayerFactoryFactory);
 	}
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/

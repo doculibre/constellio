@@ -12,6 +12,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,8 +37,11 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemaRecordsServicesRuntimeException.ESSchemaRecordsServicesRuntimeException_RecordIsNotAConnectorDocument;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.AppLayerFactoryWithRequestCacheImpl;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -56,11 +60,31 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ESSchemasRecordsServices.class);
 	private static final int sharepointDefaultRefreshDelay = 0;
 
-	protected AppLayerFactory appLayerFactory;
+	protected transient AppLayerFactory appLayerFactory;
+	protected Factory<AppLayerFactory> appLayerFactoryFactory;
 
 	public ESSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory);
 		this.appLayerFactory = appLayerFactory;
+		this.appLayerFactoryFactory = toAppLayerFactoryFactory(appLayerFactory);
+	}
+
+	private static Factory<AppLayerFactory> toAppLayerFactoryFactory(final AppLayerFactory appLayerFactory) {
+		final boolean requestAppLayerFactory = appLayerFactory instanceof AppLayerFactoryWithRequestCacheImpl;
+		return new Factory<AppLayerFactory>() {
+			@Override
+			public AppLayerFactory get() {
+				return requestAppLayerFactory ?
+						ConstellioFactories.getInstance().getAppLayerFactory() :
+						ConstellioFactories.getInstance().getUncachedAppLayerFactory();
+			}
+		};
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		appLayerFactory = appLayerFactoryFactory.get();
 	}
 
 	private String sharepointConnectorTypeId;

@@ -30,14 +30,23 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
-	RecordsCaches recordsCaches;
+	RecordsCaches disconnectableRecordsCaches;
 
 	RecordServices recordServices;
 
 	public CachedRecordServices(ModelLayerFactory modelLayerFactory, RecordServices recordServices, RecordsCaches recordsCaches) {
 		super(modelLayerFactory);
 		this.recordServices = recordServices;
-		this.recordsCaches = recordsCaches;
+		this.disconnectableRecordsCaches = recordsCaches;
+	}
+
+	public RecordsCaches getConnectedRecordsCache() {
+		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
+			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
+				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
+			}
+		}
+		return disconnectableRecordsCaches;
 	}
 
 	@Override
@@ -47,7 +56,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getById(String dataStore, String id) {
-		Record record = RECORDS.equals(dataStore) ? recordsCaches.getRecord(id) : null;
+		Record record = RECORDS.equals(dataStore) ? getConnectedRecordsCache().getRecord(id) : null;
 		if (record == null) {
 			record = recordServices.getById(dataStore, id);
 		}
@@ -55,7 +64,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	public Record getById(MetadataSchemaType schemaType, String id) {
-		RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());
+		RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
 		Record record = cache.get(id);
 		if (record == null) {
 			record = recordServices.getById(schemaType, id);
@@ -70,7 +79,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
-		Record record = recordsCaches.getRecord(id);
+		Record record = getConnectedRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(schemaType, id);
 		}
@@ -79,7 +88,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(String dataStore, String id) {
-		Record record = recordsCaches.getRecord(id);
+		Record record = getConnectedRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(dataStore, id);
 		}
@@ -95,12 +104,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		Record foundRecord = recordsCaches.getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
 
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
 			if (foundRecord != null) {
-				recordsCaches.insert(foundRecord);
+				getConnectedRecordsCache().insert(foundRecord);
 			}
 		}
 
@@ -246,7 +255,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public RecordsCaches getRecordsCaches() {
-		return recordsCaches;
+		return getConnectedRecordsCache();
 	}
 
 	@Override
