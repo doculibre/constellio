@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataContainer;
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusMessageProvider;
-import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.i18n.i18n;
-import com.google.common.base.Preconditions;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
 import org.apache.commons.io.FilenameUtils;
@@ -38,7 +34,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         verticalLayout.setSpacing(true);
         verticalLayout.addComponent(tabSheet = new TabSheet());
 
-        tabSheet.setHeight("454");
         tabSheet.setWidth("100%");
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
@@ -53,19 +48,17 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         });
 
         horizontalLayout.addComponent(minimiserLaFenetre);
-        horizontalLayout.setComponentAlignment(minimiserLaFenetre, Alignment.MIDDLE_CENTER);
+        horizontalLayout.setComponentAlignment(minimiserLaFenetre, Alignment.TOP_CENTER);
 
         verticalLayout.addComponent(horizontalLayout);
 
         setContent(verticalLayout);
 
         setWidth("60%");
-        setHeight("560px");
-        setModal(true);
-        setResizable(false);
+        setModal(false);
         setClosable(false);
 
-        UI.getCurrent().addWindow(this);
+
     }
 
     public void addTabSheet(String pdfFileName) {
@@ -77,8 +70,13 @@ public class ConsolidatedPDFWindow extends BaseWindow {
             for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension););
         }
 
-        PdfStatusPanel panel = new PdfStatusPanel(pdfFileName, new PdfStatusMessageProvider());
-        panel.setHeight("415px");
+        PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName);
+        panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
+            @Override
+            public void firePdfGenerationCompleted() {
+                // TODO : Handle the event
+            }
+        });
 
         Tab tab = tabSheet.addTab(panel, pdfFileName);
         pdfTabs.put(pdfFileName, tab);
@@ -105,7 +103,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
         //TODO Active comments
 
-        //if(instance == null) {
+        /*if(instance == null) {*/
             instance = new ConsolidatedPDFWindow(pdfName);
         /*} else {
             instance.addTabSheet(pdfName);
