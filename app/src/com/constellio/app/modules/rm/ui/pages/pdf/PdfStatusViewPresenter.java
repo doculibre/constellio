@@ -13,6 +13,20 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 
     public PdfStatusViewPresenter(final PdfStatusView view) {
         super(view);
+
+        // TODO: suppress the following code
+       /* new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(25000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                view.firePdfGenerationCompleted(null);
+            }
+        }).start();*/
     }
 
     @Override

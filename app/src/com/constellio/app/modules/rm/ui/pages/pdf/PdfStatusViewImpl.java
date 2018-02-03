@@ -75,7 +75,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
                 enter(null);
 
                 for (PdfGenerationCompletedListener listener: listeners) {
-                    listener.firePdfGenerationCompleted();
+                    listener.firePdfGenerationCompleted(PdfStatusViewImpl.this);
                 }
             }
         });
@@ -143,6 +143,6 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
     }
 
     public interface PdfGenerationCompletedListener {
-        public void firePdfGenerationCompleted();
+        public void firePdfGenerationCompleted(PdfStatusViewImpl panel);
     }
 }

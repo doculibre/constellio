@@ -90,7 +90,6 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
@@ -122,27 +121,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addPdfButton(final AvailableActionsParam param) {
-//        WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
-//                , WindowButton.WindowConfiguration.modalDialog("60%", "200px")) {
-    	WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
-                , new WindowButton.WindowConfiguration(false, true, "60%", "200px")) { 	
+        WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
+                , WindowButton.WindowConfiguration.modalDialog("60%", "200px")) {
             @Override
             protected Component buildWindowContent() {
-            	Button toggleWindowModeButton = new BaseButton("Minimize") {
-            		boolean minimized = false;
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (minimized) {
-							((BaseWindow) getWindow()).restoreMinimized();
-							setCaption("Minimize");
-						} else {
-							((BaseWindow) getWindow()).minimize();
-							setCaption("Maximize");
-						}
-						minimized = !minimized;
-					}
-				};
-            	if (true) return new VerticalLayout(toggleWindowModeButton);
                 PdfFileNamePanel pdfPanel = new PdfFileNamePanel(getWindow());
                 pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
                     @Override
