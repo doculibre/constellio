@@ -648,25 +648,28 @@ public class DecommissioningService {
 	public boolean isTransferDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualTransferDate = folder.getActualTransferDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canTransferToSemiActive();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualTransferDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isDepositDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualDepositDate = folder.getActualDepositDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canDeposit();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualDepositDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isDestructionDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualDestructionDate = folder.getActualDestructionDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canDestroy();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualDestructionDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isContainerInputPossibleForUser(Folder folder, User user) {

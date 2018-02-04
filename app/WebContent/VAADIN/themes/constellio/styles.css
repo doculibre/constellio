@@ -1591,69 +1591,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
-.constellio .v-context-menu {
-	float: left;
-	font-family: Arial;
-	font-size: 12px;
-	background-color: #f0f0f0;
-	box-shadow: 5px 5px 10px #999;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	float: left;
-	clear: left;
-	height: 26px;
-	color: #222;
-	cursor: pointer;
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
-	border-bottom: 1px solid #d0d0d0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
-	background-color: #e0e0e0;
-	outline: none;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
-	opacity: 0.3;
-	filter: alpha(opacity = 30);
-	zoom: 1;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
-	float: left;
-	width: 26px;
-	height: 26px;
-	margin-right: 5px;
-	border-right: 1px solid #d0d0d0;
-	text-align: center;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
-	float: left;
-	width: 16px;
-	height: 16px;
-	padding: 5px;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-text {
-	float: left;
-	height: 26px;
-	line-height: 26px;
-	padding: 0 20px 0 10px;
-}
-
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -12741,14 +12678,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-table-cell-content-error {
 	color: #FFFFFF;
 	background-color: #F5A9A9;
-	background: #ff3019;
-	background: -moz-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ff3019), color-stop(100%, #cf0404));
-	background: -webkit-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -o-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -ms-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: linear, to bottom, #ff3019 0%, #cf0404 100%;
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#cf0404',GradientType=0 );
+	background: #F5A9A9;
+	background: -moz-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #F5A9A9), color-stop(100%, #d65353));
+	background: -webkit-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -o-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -ms-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: linear, to bottom, #F5A9A9 0%, #d65353 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 );
 }
 
 .constellio .v-table-cell-content-disabled {
@@ -12760,6 +12697,18 @@ div.v-layout.v-horizontal.v-widget {
 	background: -ms-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
 	background: linear, to bottom, #eeeeee 0%, #cccccc 100%;
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );
+}
+
+.constellio .v-table-cell-content-highlight {
+	background-color: #ffed7c;
+	background: #ffed7c;
+	background: -moz-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffed7c), color-stop(100%, #ffdd00));
+	background: -webkit-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -o-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -ms-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: linear, to bottom, #ffed7c 0%, #ffdd00 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffed7c', endColorstr='#ffdd00',GradientType=0 );
 }
 
 .constellio .v-slot-disabled-button {
