@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,7 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -110,7 +110,6 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private final CorrectorExcluderManager correctorExcluderManager;
 
-
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 		super(modelLayerFactory, statefullServiceDecorator, instanceName);
@@ -172,13 +171,16 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			locale = Locale.ENGLISH;
 		} else if ("fr".equals(mainDataLanguage)) {
 			locale = Locale.FRENCH;
+
+		} else if ("ar".equals(mainDataLanguage)) {
+			locale = new Locale("ar");
+
 		} else {
 			throw new ImpossibleRuntimeException("Invalid language " + mainDataLanguage);
 		}
 		i18n.setLocale(locale);
 
 	}
-
 
 	public void registerSystemWideManager(String module, String id, StatefulService manager) {
 		String key = module + "-" + id;
@@ -418,7 +420,6 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	public AppSchemasServices newSchemasServices() {
 		return new AppSchemasServices(this);
 	}
-
 
 	public CorrectorExcluderManager getCorrectorExcluderManager() {
 		return correctorExcluderManager;
