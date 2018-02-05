@@ -27,7 +27,7 @@ public class ConstellioLanguageTableIO {
 
     private static final String EXCEL_OUTPUT_FILE_NAME = "output";
     /* path of received input file : TODO modify path with received file */
-    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic_my_version.xls";
+    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
 
     private File[] filesAndFolders;
     private Set<File> filesInPath;
