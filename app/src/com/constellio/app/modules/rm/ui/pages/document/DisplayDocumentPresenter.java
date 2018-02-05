@@ -413,6 +413,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

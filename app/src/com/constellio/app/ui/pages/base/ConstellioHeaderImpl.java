@@ -36,6 +36,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -78,6 +79,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
@@ -569,13 +571,20 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
 				BaseButton saveButton;
 				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-						presenter.createNewCartAndAddToItRequested(param.getIds(), newCartTitleField.getValue());
-						getWindow().close();
+						String title = newCartTitleField.getValue();
+
+						try {
+							presenter.createNewCartAndAddToItRequested(param.getIds(), title);
+							getWindow().close();
+						} catch (Exception e){
+							getCurrentView().showErrorMessage(MessageUtils.toMessage(e));
+						}
 					}
 				});
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);

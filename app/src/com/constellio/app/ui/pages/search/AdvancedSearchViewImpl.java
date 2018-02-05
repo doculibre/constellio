@@ -39,6 +39,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.services.users.UserServices;
@@ -302,12 +303,17 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 newCartLayout.addComponent(new Label($("CartView.newCart")));
                 final BaseTextField newCartTitleField;
                 newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+                newCartTitleField.setRequired(true);
                 BaseButton saveButton;
                 newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
-                        presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-                        getWindow().close();
+                        try {
+                            presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+                            getWindow().close();
+                        } catch (Exception e){
+                            showErrorMessage(MessageUtils.toMessage(e));
+                        }
                     }
                 });
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);

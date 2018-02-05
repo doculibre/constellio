@@ -990,6 +990,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

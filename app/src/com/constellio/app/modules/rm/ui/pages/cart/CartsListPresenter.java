@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,6 +19,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.github.rjeschke.txtmark.Run;
 
 import java.util.Arrays;
 
@@ -78,6 +80,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 			view.navigate().to(RMViews.class).listCarts();
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 }

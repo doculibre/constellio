@@ -354,6 +354,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
