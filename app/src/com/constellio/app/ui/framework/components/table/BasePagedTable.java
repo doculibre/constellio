@@ -1,13 +1,18 @@
 package com.constellio.app.ui.framework.components.table;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.io.Serializable;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container;
+import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.server.ClientConnector;
@@ -34,17 +39,41 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	protected T container;
 	protected ComboBox itemsPerPageField;
 	
+	private String tableId;
+	private TableColumnsManager columnsManager;
+	
 	protected TablePropertyCache cellProperties = new TablePropertyCache();
 
-	public BasePagedTable(T container) {
+	public BasePagedTable(String tableId, T container) {
+		this.tableId = tableId;
 		this.container = container;
-		itemsPerPageField = new ComboBox();
+		init();
+	}
+	
+	private void init() {
+		itemsPerPageField = new BaseComboBox();
+		addAttachListener(new AttachListener() {
+			@Override
+			public void attach(AttachEvent event) {
+				String tableId = getTableId();
+				if (tableId != null && columnsManager == null) {
+					columnsManager = newColumnsManager();
+					columnsManager.manage(BasePagedTable.this, tableId);
+				}
+			}
+		});
+	}
+	
+	protected TableColumnsManager newColumnsManager() {
+		return new TableColumnsManager();
+	}
+	
+	protected String getTableId() {
+		return tableId;
 	}
 
 	@Override
 	public HorizontalLayout createControls() {
-		HorizontalLayout pageSize;
-
 		Label itemsPerPageLabel = new Label($("SearchResultTable.itemsPerPage"));
 		itemsPerPageField.addItem(DEFAULT_PAGE_LENGTH);
 		if (container.size() >= 10) {
@@ -70,7 +99,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		});
 		itemsPerPageField.setEnabled(itemsPerPageField.size() > 1);
 
-		pageSize = new HorizontalLayout(itemsPerPageLabel, itemsPerPageField);
+		HorizontalLayout pageSize = new I18NHorizontalLayout(itemsPerPageLabel, itemsPerPageField);
 		pageSize.setComponentAlignment(itemsPerPageLabel, Alignment.MIDDLE_LEFT);
 		pageSize.setComponentAlignment(itemsPerPageField, Alignment.MIDDLE_LEFT);
 		pageSize.setSpacing(true);
@@ -127,7 +156,18 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		last.setStyleName(ValoTheme.BUTTON_LINK);
 		last.setEnabled(getCurrentPage() < getTotalAmountOfPages());
 
-		HorizontalLayout pageManagement = new HorizontalLayout(
+		if (isRightToLeft()) {
+			String rtlFirstCaption = last.getCaption();
+			String rtlPreviousCaption = next.getCaption();
+			String rtlNextCaption = previous.getCaption();
+			String rtlLastCaption = first.getCaption();
+			first.setCaption(rtlFirstCaption);
+			previous.setCaption(rtlPreviousCaption);
+			next.setCaption(rtlNextCaption);
+			last.setCaption(rtlLastCaption);
+		}
+		
+		HorizontalLayout pageManagement = new I18NHorizontalLayout(
 				first, previous, page, currentPage, separator, totalPages, next, last);
 		pageManagement.setComponentAlignment(first, Alignment.MIDDLE_LEFT);
 		pageManagement.setComponentAlignment(previous, Alignment.MIDDLE_LEFT);
@@ -139,7 +179,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		pageManagement.setComponentAlignment(last, Alignment.MIDDLE_LEFT);
 		pageManagement.setSpacing(true);
 
-		HorizontalLayout controlBar = new HorizontalLayout(pageSize, pageManagement);
+		HorizontalLayout controlBar = new I18NHorizontalLayout(pageSize, pageManagement);
 		controlBar.setComponentAlignment(pageManagement, Alignment.MIDDLE_CENTER);
 		controlBar.setExpandRatio(pageSize, 1);
 		controlBar.setWidth("100%");

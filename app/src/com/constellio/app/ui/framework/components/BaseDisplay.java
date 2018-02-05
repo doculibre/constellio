@@ -3,9 +3,9 @@ package com.constellio.app.ui.framework.components;
 import java.io.Serializable;
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
@@ -48,7 +48,7 @@ public class BaseDisplay extends CustomComponent {
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 		if (displayComponent.isVisible()) {
-			HorizontalLayout captionAndComponentLayout = new HorizontalLayout();
+			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
 			if (isCaptionAndDisplayComponentWidthUndefined()) {
 				captionAndComponentLayout.setWidthUndefined();
 			} else {

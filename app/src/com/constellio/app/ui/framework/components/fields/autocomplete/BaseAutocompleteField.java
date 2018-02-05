@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -26,7 +27,7 @@ import com.vaadin.ui.ComboBox;
  * @param <T>
  *            Type of the selected object
  */
-public class BaseAutocompleteField<T> extends ComboBox {
+public class BaseAutocompleteField<T> extends BaseComboBox {
 
 	public static final String STYLE_NAME = "autocomplete";
 
