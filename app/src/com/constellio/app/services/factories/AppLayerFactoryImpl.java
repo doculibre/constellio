@@ -57,6 +57,7 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -166,6 +167,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			locale = Locale.ENGLISH;
 		} else if ("fr".equals(mainDataLanguage)) {
 			locale = Locale.FRENCH;
+		} else if ("ar".equals(mainDataLanguage)) {
+			locale = new Locale(Language.Arabic.getCode());
 		} else {
 			throw new ImpossibleRuntimeException("Invalid language " + mainDataLanguage);
 		}
