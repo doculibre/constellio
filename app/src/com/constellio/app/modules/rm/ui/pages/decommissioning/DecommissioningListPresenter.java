@@ -120,7 +120,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //
 //		return userList;
 
-		return decommissioningEmailService.getManagerEmailForList(decommissioningList);
+		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList);
+		if(managerEmailForList != null && managerEmailForList.contains(getCurrentUser())) {
+			managerEmailForList.remove(getCurrentUser());
+		}
+		return managerEmailForList;
 	}
 	
 	public List<String> getAvailableManagerIds() throws DecommissioningEmailServiceException {

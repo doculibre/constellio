@@ -99,6 +99,7 @@ public class GetXMLButton extends WindowButton {
                     }
                 } catch (Exception e) {
                     view.showErrorMessage(e.getMessage());
+                    e.printStackTrace();
                 }
             }
 

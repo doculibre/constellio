@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 import java.util.*;
 
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -31,6 +32,8 @@ public class SearchEventServices {
 
 	static Map<String, Object> incrementCounterMap;
 
+	boolean toogleAddLater = true;
+
 	static {
 		incrementCounterMap = new HashMap<>();
 		incrementCounterMap.put("inc", 1.0);
@@ -38,9 +41,14 @@ public class SearchEventServices {
 	}
 
 	public SearchEventServices(String collection, ModelLayerFactory modelLayerFactory) {
+		this(collection, modelLayerFactory, true);
+	}
+
+	public SearchEventServices(String collection, ModelLayerFactory modelLayerFactory, boolean toggleAddLater) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.collection = collection;
 		this.schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		toogleAddLater = toggleAddLater;
 	}
 
 	public void save(SearchEvent searchEvent) {
@@ -50,7 +58,11 @@ public class SearchEventServices {
 	public void save(List<SearchEvent> searchEvents) {
 		Transaction tx = new Transaction();
 		tx.addAll(searchEvents);
-		tx.setRecordFlushing(RecordsFlushing.ADD_LATER());
+		if(!Toggle.IS_ADD_NOW_SEARCH_EVENT_SERVICE.isEnabled()) {
+			tx.setRecordFlushing(RecordsFlushing.ADD_LATER());
+		} else {
+			tx.setRecordFlushing(RecordsFlushing.NOW());
+		}
 		try {
 			modelLayerFactory.newRecordServices().execute(tx);
 		} catch (RecordServicesException e) {
