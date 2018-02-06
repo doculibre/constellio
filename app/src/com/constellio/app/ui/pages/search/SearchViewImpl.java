@@ -24,6 +24,8 @@ import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -202,7 +204,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
 
-		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
@@ -442,7 +444,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return layout;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addFacetComponents(ComponentContainer container, SearchResultVODataProvider dataProvider) {
 		container.addComponent(buildSortComponent());
 
@@ -472,7 +473,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		toggle.addStyleName(ValoTheme.BUTTON_TINY);
 		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 
-		HorizontalLayout captionBar = new HorizontalLayout(deselect, title, toggle);
+		I18NHorizontalLayout captionBar = new I18NHorizontalLayout(deselect, title, toggle);
 		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
@@ -483,7 +484,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
 
-		final Table table = new Table();
+		final Table table = new BaseTable("facet-" + facet.getId());
 		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		table.addContainerProperty("value", Component.class, null);
 		table.setWidth("100%");
@@ -491,6 +492,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<FacetValueVO> values = facet.getValues();
 		for (final FacetValueVO facetValue : values) {
 			final CheckBox checkBox = new CheckBox();
+			checkBox.addStyleName("facet-value");
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
@@ -507,11 +509,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			String caption = facetValue.getLabel();
 			caption += " (" + facetValue.getCount() + ")";
-			checkBox.setCaption(caption);
+//			checkBox.setCaption(caption);
+			I18NHorizontalLayout checkBoxLayout = new I18NHorizontalLayout(checkBox, new Label(caption));
+			checkBoxLayout.setSpacing(true);
 
 			@SuppressWarnings("unchecked")
 			Property<Component> value = (Property<Component>) table.addItem(checkBox).getItemProperty("value");
-			value.setValue(checkBox);
+			value.setValue(checkBoxLayout);
 		}
 
 		table.setPageLength(Math.min(facet.getValuesPerPage(), values.size()));
@@ -625,7 +629,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				};
 
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 				horizontalLayout.setSpacing(true);
 				horizontalLayout.addComponents(saveSearchButton, cancelButton);
 

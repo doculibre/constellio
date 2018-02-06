@@ -27,6 +27,8 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -80,7 +82,7 @@ import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
+public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
 
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
@@ -297,7 +299,9 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		});
 		addCriterion.addStyleName(ValoTheme.BUTTON_LINK);
 
-		HorizontalLayout top = new HorizontalLayout(buildSchemaTypeComponent(), addCriterion);
+		Component schemaTypeComponent = buildSchemaTypeComponent();
+		I18NHorizontalLayout top = new I18NHorizontalLayout(schemaTypeComponent, addCriterion);
+		top.setComponentAlignment(schemaTypeComponent, Alignment.BOTTOM_LEFT);
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
 
@@ -340,7 +344,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		HorizontalLayout bottom = new HorizontalLayout(advancedSearch, clearAdvancedSearchButton, savedSearches);
+		I18NHorizontalLayout bottom = new I18NHorizontalLayout(advancedSearch, clearAdvancedSearchButton, savedSearches);
 		bottom.addStyleName("header-popup-clear-and-search-buttons");
 		bottom.setSpacing(true);
 
@@ -367,7 +371,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		HorizontalLayout layout = new HorizontalLayout(label, advancedSearchSchemaTypeField);
+		I18NHorizontalLayout layout = new I18NHorizontalLayout(label, advancedSearchSchemaTypeField);
 		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		layout.setSpacing(true);
 		return layout;
@@ -445,12 +449,12 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionPanel.addStyleName("header-selection-panel");
 		selectionPanel.addStyleName("no-scroll");
 
-		HorizontalLayout selectionLayout = new HorizontalLayout();
+		I18NHorizontalLayout selectionLayout = new I18NHorizontalLayout();
 		selectionLayout.setSpacing(true);
 		selectionLayout.setWidth("100%");
 		selectionLayout.addStyleName("header-selection-panel-layout");
 
-		selectionTable = new Table();
+		selectionTable = new BaseTable("selection-table");
 		selectionTable.addContainerProperty("recordId", ReferenceDisplay.class, null);
 		selectionTable.setWidth("100%");
 		selectionTable.setColumnExpandRatio("recordId", 1);
@@ -507,7 +511,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		};
 		Component component = selectionTableAdapter.getComponent(0);
-		HorizontalLayout topButtonsLayout = new HorizontalLayout(component, clearSelectionButton);
+		I18NHorizontalLayout topButtonsLayout = new I18NHorizontalLayout(component, clearSelectionButton);
 		topButtonsLayout.setSpacing(true);
 		selectionTableAdapter.addComponent(topButtonsLayout, 0);
 		selectionTableAdapter.removeComponent(component);
@@ -521,7 +525,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		selectionActionMenu.setSpacing(true);
 		selectionActionMenu.addComponent(actionMenuLayout);
 
-		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.setSpacing(true);
 
 		Button closeButton = new BaseButton($("ConstellioHeader.close")) {

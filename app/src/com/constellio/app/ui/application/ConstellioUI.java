@@ -1,6 +1,7 @@
 package com.constellio.app.ui.application;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
@@ -12,6 +13,8 @@ import java.util.Map;
 import com.constellio.app.ui.framework.components.BaseWindow;
 
 import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.DefaultConfirmDialogFactory;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
@@ -21,6 +24,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
@@ -61,8 +65,6 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
@@ -231,6 +233,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public void updateContent() {
+		if (isRightToLeft()) {
+			addStyleName("right-to-left");
+		}
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
 			setContent(setupView);
@@ -246,6 +251,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			if (currentUserVO != null) {
 				// Authenticated user
 				mainLayout = new MainLayoutImpl(appLayerFactory);
+//				if (isRightToLeft()) {
+//					mainLayout.addStyleName("right-to-left");
+//				}
 
 				setContent(mainLayout);
 
@@ -303,6 +311,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 				removeStyleName("setupview");
 				removeStyleName("loginview");
+//				removeStyleName("right-to-left");
 				navigator.navigateTo(navigator.getState());
 			} else {
 				removeStyleName("setupview");

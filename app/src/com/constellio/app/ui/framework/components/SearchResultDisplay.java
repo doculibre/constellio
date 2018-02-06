@@ -18,6 +18,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
@@ -36,7 +37,6 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -100,8 +100,8 @@ public class SearchResultDisplay extends VerticalLayout {
         title.addStyleName(TITLE_STYLE);
         title.setWidthUndefined();
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.addComponent(title);
+		I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
+		horizontalLayout.addComponent(title);
 
         CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
                 .has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
@@ -205,10 +205,10 @@ public class SearchResultDisplay extends VerticalLayout {
             Label caption = new Label(metadataVO.getLabel() + ":");
             caption.addStyleName("metadata-caption");
 
-            HorizontalLayout item = new HorizontalLayout(caption, value);
-            item.setHeight("100%");
-            item.setSpacing(true);
-            item.addStyleName("metadata-caption-layout");
+			I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
+			item.setHeight("100%");
+			item.setSpacing(true);
+			item.addStyleName("metadata-caption-layout");
 
             layout.addComponent(item);
         }

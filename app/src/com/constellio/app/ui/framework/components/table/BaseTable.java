@@ -82,5 +82,5 @@ public class BaseTable extends Table {
 	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
 		return super.getContainerProperty(itemId, propertyId);
 	}
-	
+
 }

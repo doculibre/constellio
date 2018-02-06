@@ -14018,3 +14018,310 @@ div.v-layout.v-horizontal.v-widget {
 	width: 20px;
 	background: transparent;
 }
+
+.constellio .v-filterselect-item-rtl {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-table .v-table-body .v-button {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-table .v-table-body .v-disabled {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon {
+	background-position: 99% center;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon .v-table-cell-wrapper {
+	text-align: right;
+	left: inherit;
+	right: 20px;
+}
+
+.constellio .right-to-left .v-filterselect-button {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-filterselect-input {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-widget {
+	text-align: right;
+}
+
+.constellio .right-to-left .icon-only {
+	text-align: center;
+}
+
+.constellio .right-to-left .content-footer-wrapper {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer {
+	direction: ltr;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left {
+	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
+	text-align: right;
+}
+
+.constellio .right-to-left .base-display .display-value {
+	text-align: right;
+}
+
+.constellio .right-to-left .back-button {
+	right: inherit;
+	left: 20px;
+	direction: rtl;
+}
+
+.constellio .right-to-left .back-button img {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI .v-button {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .v-caption {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-caption .v-captiontext {
+	direction: ltr;
+}
+
+.constellio .right-to-left .v-tabsheet {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-tabsheet .v-tabsheet-tabs {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-tree {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-tree .v-tree-node-children {
+	padding-left: 0px;
+	padding-right: 19px;
+}
+
+.constellio .right-to-left .v-tree-node-caption > div:before {
+	content: "\f0d9";
+}
+
+.constellio .right-to-left .header .header-search {
+	border-right: 1px solid #c5c5c5;
+	border-left: none;
+}
+
+.constellio .right-to-left .header .header-search:focus {
+	border-left: none;
+	border-right: 1px solid #c5c5c5;
+}
+
+.constellio .right-to-left .header .header-show-advanced-search-button {
+	text-align: center;
+	border-right: none;
+}
+
+.constellio .right-to-left .header .header-show-advanced-search-button .v-widget {
+	text-align: inherit;
+}
+
+.constellio .right-to-left .header .header-selection-button {
+	right: inherit;
+	left: 150px;
+}
+
+.constellio .right-to-left .header .header-collection-menu {
+	right: inherit;
+	left: 80px;
+}
+
+.constellio .right-to-left .header .header-action-menu {
+	right: inherit;
+	left: 10px;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
+	padding-left: inherit;
+	padding-right: 5px;
+}
+
+.constellio .v-window .popupContent .action-menu {
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-window .popupContent .action-menu .v-button {
+	text-align: right;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper {
+	padding-right: 10px;
+	padding-left: 260px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	padding-right: inherit;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: inherit;
+	padding-left: 26px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	margin-right: inherit;
+	margin-left: 300px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: inherit;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment .list-add-remove-comment {
+	padding-left: inherit;
+	padding-right: 0px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: inherit;
+	padding-left: 0px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header {
+	padding-right: inherit;
+	padding-left: 225px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header .header-search {
+	margin-left: inherit;
+	margin-right: 5px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: inherit;
+	padding-left: 26px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	margin-right: inherit;
+	margin-left: 300px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu {
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-suggestions-summary-results {
+	padding-right: inherit;
+	padding-left: 320px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets .facet-box {
+	direction: ltr;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .header {
+	padding-right: inherit;
+	padding-left: 95px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper .base-display .base-display-main-layout {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu {
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-suggestions-summary-results {
+	padding-right: inherit;
+	padding-left: 320px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets .facet-box {
+	direction: ltr;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-selection-button {
+	right: inherit;
+	left: 290px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-collection-menu {
+	right: inherit;
+	left: 220px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-action-menu {
+	right: inherit;
+	left: 150px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-caption {
+	float: right;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-value {
+	float: right;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .back-button {
+	right: inherit;
+	left: 0px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .search-button:before {
+	margin-left: inherit;
+	margin-right: -8px;
+}

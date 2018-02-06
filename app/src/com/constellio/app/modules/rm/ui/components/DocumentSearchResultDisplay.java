@@ -10,13 +10,13 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.model.entities.CorePermissions;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.users.CredentialUserPermissionChecker;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.MenuBar;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
@@ -46,7 +46,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(recordVO);
 
-		HorizontalLayout layout = new HorizontalLayout(titleComponent, menuBar);
+		I18NHorizontalLayout layout = new I18NHorizontalLayout(titleComponent, menuBar);
 
 		layout.setExpandRatio(titleComponent, 1);
 

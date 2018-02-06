@@ -22,41 +22,35 @@ public class ConstellioLanguageTableIO {
     public static final WritableFont.FontName FONT = WritableFont.ARIAL;
     public static final int FONT_SIZE = 10;
     public static final int ARABIC_CHARACTER_ASSIGNATION_LIMIT = 1791;
-    /* default value TODO set wanted value, either empty or specified */
-    public static final String PROPERTIES_FILE_NO_TRADUCTION_VALUE = null;
+    /* default value. If null, then keys with no values will not be added. TODO set wanted value */
+    public static final String PROPERTIES_FILE_NO_TRADUCTION_VALUE = "noTraductionAvailable";
 
     private static final String EXCEL_OUTPUT_FILE_NAME = "output";
     /* path of received input file : TODO modify path with received file */
-    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\output.xls";
+    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
 
     private File[] filesAndFolders;
+    private Set<File> filesInPath;
     private String minVersion;
+    private String maxVersion;
 
     private File arabicFile;
     private File outputFile;
     private File inputFile;
     private FileOutputStream fileOutputStream;
 
-    public ConstellioLanguageTableIO(String minVersion, boolean isWriteMode) throws IOException {
-        filesInPath = new TreeSet<>(
-                new Comparator<File>() {
-                    @Override
-                    public int compare(File o1, File o2) {
-
-                        // o2 gets compared before 01 for A-Z sorting (and not Z-A)
-                        int result = o2.getName().compareTo(o1.getName());
-
-                        // makes principal file first, independently of sort method
-                        if(o2.getName().equals(PRINCIPAL_LANG_FILE)){
-                            result = -1;
-                        }
-
-                        return result;
-                    }
-                }
-        );
+    /**
+     * Construct IO and parsing functions.
+     * @param minVersion - if null, constraint is ignored
+     * @param maxVersion - if null, constraint is ignored
+     * @param isWriteMode - for previous files deletion
+     * @throws IOException
+     */
+    public ConstellioLanguageTableIO(String minVersion, String maxVersion, boolean isWriteMode) throws IOException {
         this.minVersion = minVersion;
+        this.maxVersion = maxVersion;
         initSystemFiles(isWriteMode);
+        filesInPath = prepareConversion(getFilesAndFolders(), minVersion, maxVersion);
     }
 
     /**
@@ -106,8 +100,6 @@ public class ConstellioLanguageTableIO {
         return filesInPath;
     }
 
-    private Set<File> filesInPath;
-
     // DATA HOLDERS
 
     public File[] getFilesAndFolders() {
@@ -127,22 +119,52 @@ public class ConstellioLanguageTableIO {
      * @param files
      * @throws IOException
      */
-    protected void prepareConversion(File[] files) throws IOException {
+    protected Set<File> prepareConversion(File[] files, String minVersion, String maxVersion) throws IOException {
+        Set<File> filteredFileSet = filesInPath = new TreeSet<>(
+                new Comparator<File>() {
+                    @Override
+                    public int compare(File o1, File o2) {
+
+                        // o2 gets compared before 01 for A-Z sorting (and not Z-A)
+                        int result = o2.getName().compareTo(o1.getName());
+
+                        // makes principal file first, independently of sort method
+                        if(o2.getName().equals(PRINCIPAL_LANG_FILE)){
+                            result = -1;
+                        }
+
+                        return result;
+                    }
+                }
+        );
+
+        addToConversion(files, minVersion, maxVersion, filteredFileSet);
+
+        return filteredFileSet;
+    }
+
+    protected Set<File> addToConversion(File[] files, String minVersion, String maxVersion, Set<File> filteredFileSet) throws IOException {
 
         for (File file : files) {
 
             String fileName = file.getName();
             String filePath = file.getAbsolutePath();
 
-            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && fileName.compareTo(minVersion)>0) || isInInclusions(filePath))) {
-                prepareConversion(file.listFiles());
+            if (file.isDirectory() && (!isVersionNumber(fileName) || (isVersionNumber(fileName) && isVersionNumberInDefinedInteval(fileName, minVersion, maxVersion)) || isInInclusions(filePath))) {
+                addToConversion(file.listFiles(), minVersion, maxVersion, filteredFileSet);
             }
             else if(!file.isDirectory()){
 
-                filesInPath.add(file);
+                filteredFileSet.add(file);
 
             }
         }
+
+        return filteredFileSet;
+    }
+
+    private boolean isVersionNumberInDefinedInteval(String fileName, String minVersion, String maxVersion) {
+        return (minVersion==null || fileName.compareTo(minVersion)>0) && (maxVersion==null || fileName.compareTo(maxVersion)<0);
     }
 
     // INCLUSION/EXCLUSION TOOLS

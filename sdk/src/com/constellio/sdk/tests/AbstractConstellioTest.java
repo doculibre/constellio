@@ -83,6 +83,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -838,7 +839,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection) {
-		return givenCollection(collection, asList("fr", "en"));
+		return givenCollection(collection, asList("fr", "en", Language.Arabic.getCode()));
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenSpecialCollection(String collection, List<String> languages) {

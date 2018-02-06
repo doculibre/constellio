@@ -91,7 +91,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	}
 
 	private BasePagedTable buildTable(RecordVOWithDistinctSchemaTypesLazyContainer container) {
-		BasePagedTable table = new BasePagedTable<>(container);
+		BasePagedTable table = new BasePagedTable<>("connector-report-table", container);
 		table.addStyleName("connector-report-table");
 		table.setContainerDataSource(container);
 		table.setWidth("100%");
