@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -51,6 +52,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
 				final BaseTextField titleField = new BaseTextField($("CartsListView.cartTitleField"));
+				titleField.setRequired(true);
 				titleField.focus();
 				new OnEnterKeyHandler() {
 					@Override
@@ -63,8 +65,12 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.saveButtonClicked(titleField.getValue());
-						getWindow().close();
+						try {
+							presenter.saveButtonClicked(titleField.getValue());
+							getWindow().close();
+						} catch (Exception e) {
+							showErrorMessage(MessageUtils.toMessage(e));
+						}
 					}
 				};
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);

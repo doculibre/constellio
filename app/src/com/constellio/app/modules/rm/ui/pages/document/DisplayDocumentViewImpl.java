@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -640,12 +641,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
 				BaseButton saveButton;
 				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-						getWindow().close();
+						try {
+							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+							getWindow().close();
+						} catch (Exception e){
+							showErrorMessage(MessageUtils.toMessage(e));
+						}
 					}
 				});
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
