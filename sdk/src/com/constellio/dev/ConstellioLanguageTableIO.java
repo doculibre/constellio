@@ -280,7 +280,7 @@ public class ConstellioLanguageTableIO {
      * @return true if multiline
      */
     private static boolean isNotClosed(String currentLine) {
-        java.util.regex.Pattern pattern = Pattern.compile("\\\\$");
+        Pattern pattern = Pattern.compile("\\\\$");
         Matcher matcher = pattern.matcher(currentLine);
 
         return matcher.find();
