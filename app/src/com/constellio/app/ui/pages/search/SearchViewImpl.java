@@ -510,7 +510,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			String caption = facetValue.getLabel();
 			caption += " (" + facetValue.getCount() + ")";
 //			checkBox.setCaption(caption);
-			I18NHorizontalLayout checkBoxLayout = new I18NHorizontalLayout(checkBox, new Label(caption));
+			HorizontalLayout checkBoxLayout = new HorizontalLayout(checkBox, new Label(caption));
 			checkBoxLayout.setSpacing(true);
 
 			@SuppressWarnings("unchecked")
