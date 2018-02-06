@@ -26,7 +26,7 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
 
     private static void readLanguageFile() throws IOException {
         ReadConstellioLanguageTableMain convertConstellioLanguageTable = new ReadConstellioLanguageTableMain();
-//        FROM ALTERNATIVE 1 - convertConstellioLanguageTable.prepareConversion(convertConstellioLanguageTable.getFilesAndFolders());
+//        FROM ALTERNATIVE 1 - convertConstellioLanguageTable.getConversionFiles(convertConstellioLanguageTable.getFilesAndFolders());
 
         Map<String, Map<String,String>> valuesInArabicWithoutIcons = convertConstellioLanguageTable.getExcelFileInfos(convertConstellioLanguageTable.getInputFile(), 0, 3);
         Map<String, Map<String,String>> valuesInFrenchWithoutIcons = convertConstellioLanguageTable.getExcelFileInfos(convertConstellioLanguageTable.getInputFile(), 0, 1);
@@ -40,6 +40,7 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
 
         // NEW PART
         Map<String, String> valuesInArabicWithIconsFromCombos = flattenMapWithFilter(valuesInArabicWithIcons, "combo");
+//        File files = convertConstellioLanguageTable.getConversionFiles(convertConstellioLanguageTable.getFilesAndFolders(), null, VERSION_NUMBER_SEPARATOR);
     }
 
     private static Map<String, String> flattenMapWithFilter(Map<String, Map<String, String>> twoDimensionMap, String keyNameFilter) {
@@ -104,7 +105,7 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                     // do not add it - default property value will be taken
                 }
                 else if(frenchValue!=null && frenchValueWithIcons.contains(frenchValue) && arabicInfos.containsKey(property)){ // only if french and arabic data in Excel is reliable (not humanly modified or icons are in middle of text parsed or no traduction available at all), we can retreive icon
-                    arabicInfosWithIcons.put(property, frenchValueWithIcons.replace(frenchValue, arabicValue));
+                    arabicInfosWithIcons.put(property, arabicValue + frenchValueWithIcons.replace(frenchValue, ""));
                 }
                 else{ // no info in Excel about this property
                     if(PROPERTIES_FILE_NO_TRADUCTION_VALUE!=null) { // if default key is null, key will not be added to property file
