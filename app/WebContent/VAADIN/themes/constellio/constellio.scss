@@ -1911,7 +1911,15 @@ $popup-view-z-index: 3;
 			direction: rtl;
 			
 			.content-footer {
-				//direction: ltr;
+				direction: ltr;
+				
+				.v-slot-footer {
+					direction: rtl;
+				}
+				
+				.v-slot-license {
+					direction: rtl;
+				}
 			}
 		}
 	

@@ -14065,6 +14065,18 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .content-footer-wrapper .content-footer {
+	direction: ltr;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-footer {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-license {
+	direction: rtl;
+}
+
 .constellio .right-to-left .i18n-horizontal-layout-right-to-left {
 	text-align: right;
 }
