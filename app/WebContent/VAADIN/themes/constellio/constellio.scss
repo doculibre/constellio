@@ -1878,6 +1878,10 @@ $popup-view-z-index: 3;
 			text-align: right;
 		}
 		
+		.v-textfield {
+			direction: rtl;
+		}
+		
 		.icon-only {
 			text-align: center;
 		}
@@ -1934,7 +1938,7 @@ $popup-view-z-index: 3;
 			text-align: right;
 			
 			.v-captiontext {
-				direction: ltr;
+				//direction: ltr;
 			}
 		}
 		

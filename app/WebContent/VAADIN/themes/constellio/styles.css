@@ -14096,6 +14096,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: right;
 }
 
+.constellio .right-to-left .v-textfield {
+	direction: rtl;
+}
+
 .constellio .right-to-left .icon-only {
 	text-align: center;
 }
@@ -14140,10 +14144,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-caption {
 	text-align: right;
-}
-
-.constellio .right-to-left .v-caption .v-captiontext {
-	direction: ltr;
 }
 
 .constellio .right-to-left .v-tabsheet {
