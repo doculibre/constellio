@@ -45,6 +45,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	public static final String CANCEL_BUTTON = "base-form_cancel";
 
+	public static final String METADATA_CODE = "metadataCode";
+
+	public static final String CONTAINER_RECORD_DEFAULT_TITLE = "containerRecord_default_title";
+
+	public static final String REQUIRED_VALUE_FOR_METADATA = "requiredValueForMetadata";
+
+
+
 	protected T viewObject;
 
 	protected Item item;
@@ -66,6 +74,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 	private Map<String, VerticalLayout> tabs = new HashMap<>();
 
 	private boolean useTabSheet;
+
+	private boolean isSpecialContainerTitleCase = false;
+
+	private Class<?> validatorClass = null;
 
 	public BaseForm(final T viewObject, Serializable objectWithMemberFields, Field<?>... fields) {
 		this(viewObject, new MemberFieldBinder(objectWithMemberFields), fields);
@@ -173,6 +185,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+	}
+
+	public void setSpecialContainerTitleCase(boolean specialContainerTitleCase, Class<?> validatorClass) {
+		this.isSpecialContainerTitleCase = specialContainerTitleCase;
+		this.validatorClass = validatorClass;
+	}
+
+	public boolean getSpecialContainerTitleCase() {
+		return isSpecialContainerTitleCase;
 	}
 
 	protected boolean isCancelButtonVisible() {
@@ -296,10 +317,30 @@ public abstract class BaseForm<T> extends CustomComponent {
 					}
 				} catch (Exception e) {
 
-					ValidationErrors errors = MessageUtils.getValidationErrors(e);
+					ValidationErrors validationErrorsFromException = MessageUtils.getValidationErrors(e);
 
-					if (errors != null) {
-						showBackendValidationException(errors);
+					if(isSpecialContainerTitleCase){
+						ValidationErrors newValidationErrors = new ValidationErrors();
+						for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it.hasNext(); ) {
+							ValidationError validationError = it.next();
+							if(validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
+									&& validationError.getParameters().size() > 0
+									&& validationError.getParameters().get(METADATA_CODE).equals(CONTAINER_RECORD_DEFAULT_TITLE))
+							{
+								Map<String, Object> params = new HashMap<String, Object>();
+
+								ValidationError newValidationError = new ValidationError(validatorClass, REQUIRED_VALUE_FOR_METADATA, params);
+								newValidationErrors.add(newValidationError, newValidationError.getParameters());
+
+							} else {
+								newValidationErrors.add(validationError, validationError.getParameters());
+							}
+						}
+						validationErrorsFromException = newValidationErrors;
+					}
+
+					if (validationErrorsFromException != null) {
+						showBackendValidationException(validationErrorsFromException);
 					} else {
 						showErrorMessage(MessageUtils.toMessage(e));
 						LOGGER.warn(e.getMessage(), e);
