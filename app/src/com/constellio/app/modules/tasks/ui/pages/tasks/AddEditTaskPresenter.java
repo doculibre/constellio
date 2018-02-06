@@ -15,6 +15,7 @@ import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -183,7 +184,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					}
 				}
 			}
-			addOrUpdate(task.getWrappedRecord());
+
+			if(task.isModel()) {
+				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
+			} else {
+				addOrUpdate(task.getWrappedRecord());
+			}
+
 			if (StringUtils.isNotBlank(workflowId)) {
 				view.navigateToWorkflow(workflowId);
 			} else if (StringUtils.isNotBlank(parentId)) {

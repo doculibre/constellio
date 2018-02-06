@@ -12,6 +12,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
@@ -70,6 +71,10 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 
 	protected List<BatchProcess> addOrUpdate(Record record) {
 		return schemaPresenterUtils.addOrUpdate(record);
+	}
+
+	protected List<BatchProcess> addOrUpdate(Record record, RecordUpdateOptions updateOptions) {
+		return schemaPresenterUtils.addOrUpdate(record, updateOptions);
 	}
 
 	protected List<BatchProcess> addOrUpdateWithoutUser(Record record) {
