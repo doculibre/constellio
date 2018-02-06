@@ -83,7 +83,7 @@ public class RecordPopulateServices {
 						}
 					}
 				}
-			//}
+			}
 
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
 			if (LOG_CONTENT_MISSING) {

@@ -22,6 +22,7 @@ public class ContentConversionManager implements AutoCloseable {
 		contentManager = modelLayerFactory.getContentManager();
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
+		workingFolder = ioServices.newTemporaryFolder("ContentConversionManager");
 	}
 
 	public Content replaceContentByPDFA(Content content) {
