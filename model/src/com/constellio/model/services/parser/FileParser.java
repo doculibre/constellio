@@ -127,7 +127,7 @@ public class FileParser {
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
 			throws FileParserException {
 
-		Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
+		//Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
 		Pattern patternForSpaceAndReturn = Pattern.compile("((\\n{3,})|( ){2,})|(\\t)");
 		Pattern patternForCharWeDontWant = Pattern.compile("[\\[\\]\\(\\)]");
 		Pattern patternForSingleCharLine = Pattern.compile("^([\\w]){1}\\n$");
@@ -178,7 +178,7 @@ public class FileParser {
 
 		String type = metadata.get(Metadata.CONTENT_TYPE);
 		String parsedContent = handler.toString().trim();
-		parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
+		//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
 		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
 		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
