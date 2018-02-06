@@ -104,7 +104,7 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                 if(property.endsWith(".icon")){ // icon paths should never be in property files - anyways, if no value is found, it will refer to the default property file (where untraducted and good paths will be found)
                     // do not add it - default property value will be taken
                 }
-                else if(frenchValue.isEmpty()){
+                else if(frenchValue!=null && frenchValue.isEmpty()){
                     arabicInfosWithIcons.put(property, frenchValueWithIcons);
                 }
                 else if(frenchValue!=null && frenchValueWithIcons.contains(frenchValue) && arabicInfos.containsKey(property)){ // only if french and arabic data in Excel is reliable (not humanly modified or icons are in middle of text parsed or no traduction available at all), we can retreive icon
