@@ -1843,8 +1843,34 @@ $popup-view-z-index: 3;
 	}
 	
 	.right-to-left {
+
+		.v-table {
+	    	.v-table-body {
+	    		.v-button {
+	    			direction: rtl;
+	    		}
+	    		
+				.v-disabled {
+					text-align: right;
+				}
+			}
+		}
+
+	    .v-table-cell-content-file-icon {
+			background-position: 99% center;
+	
+			.v-table-cell-wrapper {
+				text-align: right;
+				left: inherit;
+				right: 20px;
+			}
+		}
 	
 		.v-filterselect-button {
+			direction: rtl;
+		}
+		
+		.v-filterselect-input {
 			direction: rtl;
 		}
 	
@@ -1928,9 +1954,13 @@ $popup-view-z-index: 3;
 			}
 		}
 		
-		.v-tree-node-children {
-			padding-left: 0px;
-			padding-right: 19px;
+		.v-tree {
+			direction: rtl;
+		
+			.v-tree-node-children {
+				padding-left: 0px;
+				padding-right: 19px;
+			}
 		}
 		
 		.v-tree-node-caption > div:before {

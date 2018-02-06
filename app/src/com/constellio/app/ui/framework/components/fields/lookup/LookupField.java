@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,8 @@ import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
@@ -51,7 +54,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -182,7 +184,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 		});
 
-		HorizontalLayout mainLayout = new HorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
+		I18NHorizontalLayout mainLayout = new I18NHorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
@@ -308,7 +310,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	protected class LookupWindowContent extends VerticalLayout {
 
-		private HorizontalLayout searchFieldLayout;
+		private I18NHorizontalLayout searchFieldLayout;
 
 		private TextField searchField;
 
@@ -332,7 +334,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			addStyleName(LOOKUP_WINDOW_CONTENT_STYLE_NAME);
 			setSpacing(true);
 
-			searchFieldLayout = new HorizontalLayout();
+			searchFieldLayout = new I18NHorizontalLayout();
 			searchFieldLayout.setWidthUndefined();
 			searchFieldLayout.setSpacing(true);
 
@@ -396,7 +398,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 			}
 
-			searchResultsTable = new Table();
+			searchResultsTable = new BaseTable(UUID.randomUUID().toString());
 			searchResultsTable.setWidth("100%");
 			searchResultsTable.setHeight("98%");
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);

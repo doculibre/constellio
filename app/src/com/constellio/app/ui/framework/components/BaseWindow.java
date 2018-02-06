@@ -1,9 +1,10 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.vaadin.server.Responsive;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
@@ -29,6 +30,9 @@ public class BaseWindow extends Window {
 	}
 	
 	private void init() {
+		if (isRightToLeft()) {
+			addStyleName("right-to-left");
+		}
 	}
 
 	public final Integer getZIndex() {
