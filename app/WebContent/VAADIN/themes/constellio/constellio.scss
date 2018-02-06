@@ -1996,6 +1996,15 @@ $popup-view-z-index: 3;
 			}
 		}
 		
+		// \f0da : caret-right
+		// \f0d9 : caret-left
+		// \f0d8 : caret-up
+		// \f0d7 : caret-down
+		
+		.v-tree-node-expanded > .v-tree-node-caption > div:before {
+			content: "\f0da";
+		}
+		
 		.v-tree-node-caption > div:before {
 			content: "\f0d9";
 		}
@@ -2041,19 +2050,26 @@ $popup-view-z-index: 3;
 			}
 		}
 
-	    .content-footer-wrapper {
-		    .content-footer {
-				.content-view-wrapper {
-					.main-component-wrapper {
-					    .main-component {
-							padding-left: inherit;
-							padding-right: 5px;
+		.constellio-layout {
+		    .content-footer-wrapper {
+			    .content-footer {
+					.content-view-wrapper {
+						.main-component-wrapper {
+							.action-menu {
+								.v-button {
+									text-align: right;
+								}
+							}
+						
+						    .main-component {
+								padding-left: inherit;
+								padding-right: 5px;
+							}
 						}
 					}
 				}
-			}
-		}	
-		
+			}	
+		}
 	}
 
 	.v-window {
@@ -2136,6 +2152,16 @@ $popup-view-z-index: 3;
         .action-menu-wrapper {
             padding-right: inherit;
             padding-left: 260px;
+        
+		    .action-menu {
+		    	direction: rtl;
+		        right: inherit;
+		        left: 20px;
+		        
+				.v-button {
+					text-align: right;
+				}
+		    }
 
 			.base-display {
 				.v-slot-display-value {
@@ -2172,11 +2198,6 @@ $popup-view-z-index: 3;
 				}
 			}
         }
-        
-	    .action-menu {
-	        right: inherit;
-	        left: 20px;
-	    }
 
     	.v-slot-suggestions-summary-results {
             padding-right: inherit;
@@ -2188,6 +2209,10 @@ $popup-view-z-index: 3;
     		
     		.facet-box {
     			direction: rtl;
+    			
+    			.facet-title {
+    				direction: ltr;
+    			}
     		}
     	}
     }
@@ -2228,6 +2253,10 @@ $popup-view-z-index: 3;
     		
     		.facet-box {
     			direction: rtl;
+    			
+    			.facet-title {
+    				direction: ltr;
+    			}
     		}
     		
     	}

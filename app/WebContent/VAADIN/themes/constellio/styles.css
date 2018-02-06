@@ -14128,6 +14128,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 19px;
 }
 
+.constellio .right-to-left .v-tree-node-expanded > .v-tree-node-caption > div:before {
+	content: "\f0da";
+}
+
 .constellio .right-to-left .v-tree-node-caption > div:before {
 	content: "\f0d9";
 }
@@ -14166,7 +14170,11 @@ div.v-layout.v-horizontal.v-widget {
 	left: 10px;
 }
 
-.constellio .right-to-left .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
+.constellio .right-to-left .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+	text-align: right;
+}
+
+.constellio .right-to-left .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
 	padding-left: inherit;
 	padding-right: 5px;
 }
@@ -14228,6 +14236,16 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 260px;
 }
 
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .action-menu {
+	direction: rtl;
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .action-menu .v-button {
+	text-align: right;
+}
+
 .constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value {
 	padding-right: inherit;
 }
@@ -14250,11 +14268,6 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: inherit;
 }
 
-.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu {
-	right: inherit;
-	left: 20px;
-}
-
 .constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-suggestions-summary-results {
 	padding-right: inherit;
 	padding-left: 320px;
@@ -14266,6 +14279,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets .facet-box {
 	direction: rtl;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets .facet-box .facet-title {
+	direction: ltr;
 }
 
 .constellio .v-ui[width-range~="801-1100px"].right-to-left .header {
@@ -14299,6 +14316,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets .facet-box {
 	direction: rtl;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets .facet-box .facet-title {
+	direction: ltr;
 }
 
 .constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-selection-button {
