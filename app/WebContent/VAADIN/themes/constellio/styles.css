@@ -14265,7 +14265,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets .facet-box {
-	direction: ltr;
+	direction: rtl;
 }
 
 .constellio .v-ui[width-range~="801-1100px"].right-to-left .header {
@@ -14298,7 +14298,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets .facet-box {
-	direction: ltr;
+	direction: rtl;
 }
 
 .constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-selection-button {
