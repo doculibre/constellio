@@ -17,8 +17,6 @@ import java.util.Map;
 
 public class WriteConstellioLanguageTableMain extends ConstellioLanguageTableIO implements ReportWriter {
 
-    private static final String VERSION_NUMBER_SEPARATOR = "7_6_3";
-
     private ReportModelImpl model;
     private WritableWorkbook workbook;
 

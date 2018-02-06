@@ -28,6 +28,7 @@ public class ConstellioLanguageTableIO {
     private static final String EXCEL_OUTPUT_FILE_NAME = "output";
     /* path of received input file : TODO modify path with received file */
     private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
+    public static final String VERSION_NUMBER_SEPARATOR = "7_6_3";
 
     private File[] filesAndFolders;
     private Set<File> filesInPath;
@@ -50,7 +51,7 @@ public class ConstellioLanguageTableIO {
         this.minVersion = minVersion;
         this.maxVersion = maxVersion;
         initSystemFiles(isWriteMode);
-        filesInPath = prepareConversion(getFilesAndFolders(), minVersion, maxVersion);
+        filesInPath = getConversionFiles(getFilesAndFolders(), minVersion, maxVersion);
     }
 
     /**
@@ -119,7 +120,7 @@ public class ConstellioLanguageTableIO {
      * @param files
      * @throws IOException
      */
-    protected Set<File> prepareConversion(File[] files, String minVersion, String maxVersion) throws IOException {
+    protected Set<File> getConversionFiles(File[] files, String minVersion, String maxVersion) throws IOException {
         Set<File> filteredFileSet = filesInPath = new TreeSet<>(
                 new Comparator<File>() {
                     @Override
