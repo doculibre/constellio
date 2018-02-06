@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator.EMPTY_METADATA_VALUE_TAG;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -1157,7 +1158,8 @@ public class DecommissioningService {
 	}
 
 	public String getDecommissionningLabel(ContainerRecord record) {
-		return getDecommissioningType(record).getLabel();
+		DecommissioningType decommissioningType = getDecommissioningType(record);
+		return decommissioningType != null? decommissioningType.getLabel():null;
 	}
 
 	public DecommissioningType getDecommissioningType(ContainerRecord container) {

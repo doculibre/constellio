@@ -29,6 +29,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class printableReportXmlGenerator extends AbstractXmlGenerator {
 
+    static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
+
     public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
         super(appLayerFactory, collection);
         this.xmlGeneratorParameters = xmlGeneratorParameters;
@@ -145,7 +147,8 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
             List<Record> recordChunk = searchServices.search(new LogicalSearchQuery(condition));
             allRecords.addAll(recordChunk);
         }
-        allRecords.sort(new Comparator<Record>() {
+
+        Collections.sort(allRecords, new Comparator<Record>() {
             @Override
             public int compare(Record o1, Record o2) {
                 Integer indexOfo1 = ids.indexOf(o1.getId());
@@ -173,7 +176,7 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
         List<Element> filledElements = new ArrayList<>();
         for (Element element : originalElements) {
             if(element.getText().isEmpty()) {
-                element.setText("This will not appear on the final report");
+                element.setText(EMPTY_METADATA_VALUE_TAG);
             }
             filledElements.add(element);
         }
