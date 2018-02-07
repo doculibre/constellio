@@ -6,11 +6,9 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
@@ -18,6 +16,7 @@ import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
@@ -267,6 +266,29 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustAcceptedField();
 		adjustReasonField();
 		adjustAssignerField();
+		adjustRequiredUSRMetadatasFields();
+	}
+
+	private void adjustRequiredUSRMetadatasFields() {
+		try {
+			TaskVO taskVO = getTask();
+			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
+			if(task.isModel()) {
+				TaskForm form = view.getForm();
+				if(form != null && form instanceof RecordForm) {
+					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+					MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(taskVO.getSchema().getCode());
+					for(Metadata metadata: schema.getMetadatas().onlyUSR().onlyAlwaysRequired()) {
+						Field<?> field = ((RecordForm) form).getField(metadata.getLocalCode());
+						if(field != null) {
+							field.setRequired(false);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void adjustQuestionField() {
@@ -416,6 +438,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	void reloadForm() {
 		view.getForm().reload();
 		adjustQuestionField();
+		adjustRequiredUSRMetadatasFields();
 	}
 
 	void commitForm() {
