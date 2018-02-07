@@ -47,7 +47,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		}
 		if (record.getCollection() != null && types.getCollection() != null
 				&& !record.getCollection().equals(types.getCollection())) {
-			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame();
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(), record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
