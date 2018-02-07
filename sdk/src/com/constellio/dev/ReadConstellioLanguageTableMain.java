@@ -138,12 +138,18 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                 if(property.endsWith(".icon")){ // icon paths should never be in property files - anyways, if no value is found, it will refer to the default property file (where untraducted and good paths will be found)
                     // do not add it - default property value will be taken
                 }
-                else if(frenchValue!=null && frenchValue.isEmpty()){
+                else if(frenchValue!=null && frenchValue.isEmpty()){ // if parsed string was an icon only
                     arabicInfosWithIcons.put(property, frenchValueWithIcons);
                 }
                 else if(frenchValue!=null && frenchValueWithIcons.contains(frenchValue) && arabicInfos.containsKey(property)){ // only if french and arabic data in Excel is reliable (not humanly modified or icons are in middle of text parsed or no traduction available at all), we can retreive icon
                     String iconWithFrenchSpace = frenchValueWithIcons.replace(frenchValue, "");
-                    arabicInfosWithIcons.put(property, iconWithFrenchSpace + arabicValue);
+                    String arabicValueWithProgrammaticElemsInversed = arabicValue;
+
+                    if(arabicValue.contains("{code}") && arabicValue.contains("{title}")){
+                        arabicValueWithProgrammaticElemsInversed = arabicValue.replace("{code}","{titleToBecome}").replace("{title}","{code}").replace("{titleToBecome}","{title}");
+                    }
+
+                    arabicInfosWithIcons.put(property, iconWithFrenchSpace + arabicValueWithProgrammaticElemsInversed);
                 }
                 else if(manualTraductionPropertiesWithTraductedValues.containsKey(property)){
                     arabicInfosWithIcons.put(property, manualTraductionPropertiesWithTraductedValues.get(property));
