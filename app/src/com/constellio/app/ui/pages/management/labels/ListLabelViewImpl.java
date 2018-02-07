@@ -53,7 +53,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
     private VerticalLayout mainLayout;
     private Button addLabelButton, downloadTemplateButton;
     private String currentSchema;
-    final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this);
+    final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this, true);
     public static final String TYPE_TABLE = "types";
 
     @Override

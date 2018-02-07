@@ -172,7 +172,7 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
      * @param originalElements element to check if empty
      * @return
      */
-    private List<Element> fillEmptyTags(List<Element> originalElements) {
+    static public List<Element> fillEmptyTags(List<Element> originalElements) {
         List<Element> filledElements = new ArrayList<>();
         for (Element element : originalElements) {
             if(element.getText().isEmpty()) {

@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -57,7 +58,7 @@ public class GetXMLButton extends WindowButton {
     private String currentSchema;
     private RecordServices recordServices;
 
-    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view) {
+    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view, boolean isForTest) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
@@ -66,6 +67,9 @@ public class GetXMLButton extends WindowButton {
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
         this.reportXmlGenerator = new LabelXmlGenerator(collection, factory);
+        if(isForTest) {
+            reportXmlGenerator.setXmlGeneratorParameters(new XmlReportGeneratorParameters().markAsTestXml());
+        }
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
         this.recordServices = this.model.newRecordServices();
