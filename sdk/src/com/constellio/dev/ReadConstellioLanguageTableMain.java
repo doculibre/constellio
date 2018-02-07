@@ -22,6 +22,10 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
     }
 
     private void initManualTraductions() {
+
+        // TODO manually add missing traductions here
+
+        // terms with recongition problem (back to .properties problem)
         manualTraductionPropertiesWithTraductedValues = new HashMap<>();
         manualTraductionPropertiesWithTraductedValues.put("BaseMultiFileUpload.dropZoneCaption", "\uF061 \u0627\u0646\u0642\u0631 \u0639\u0644\u0649 \u0627\u0644\u0632\u0631 \u0623\u0648 \uF016 \u0627\u0633\u062D\u0628\u0647");
         manualTraductionPropertiesWithTraductedValues.put("perm.core.manageSystemDataImports", "\u0627\u0633\u062A\u064A\u0631\u0627\u062F");
@@ -50,6 +54,15 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
         manualTraductionPropertiesWithTraductedValues.put("SearchResultDisplay.unexclusion", "\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0627\u0633\u062A\u0628\u0639\u0627\u062F");
         manualTraductionPropertiesWithTraductedValues.put("SearchResultDisplay.unelevation", "\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0627\u0631\u062A\u0641\u0627\u0639");
         manualTraductionPropertiesWithTraductedValues.put("AddEditCapsuleViewImpl.title", "\u0625\u0636\u0627\u0641\u0629 \u0643\u0628\u0633\u0648\u0644\u0629 \u0627\u0644\u0628\u062D\u062B");
+        manualTraductionPropertiesWithTraductedValues.put("SystemConfigurationGroup.reports", "\u0623\u0636\u0641 \u062A\u0642\u0631\u064A\u0631 \u0627\u0644\u0625\u062D\u0635\u0627\u0626\u064A\u0627\u062A \u0625\u0644\u0649 \u0627\u0644\u062E\u064A\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u062A\u0627\u062D\u0629");
+
+        // never traducted/missing terms
+        manualTraductionPropertiesWithTraductedValues.put("Language.ar", "العربية");
+        manualTraductionPropertiesWithTraductedValues.put("SystemConfigurationGroup.reports", "تقرير");
+        manualTraductionPropertiesWithTraductedValues.put("com.constellio.app.extensions.WorkflowPageExtension_noWorkflowItem", "لا يوجد سير عمل تم نشره");
+        manualTraductionPropertiesWithTraductedValues.put("ReportTabButton.ShowError", "خطأ");
+        manualTraductionPropertiesWithTraductedValues.put("ReportTabButton.ErrorMessage", "لا يتوفر نموذج تقرير للنوع أو النماذج المحددة");
+        manualTraductionPropertiesWithTraductedValues.put("com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerView_requiredValueForMetadata", "يجب ملء أحد البيانات الوصفية التالية: لا يوجد صندوق عملاء أو أي حاوية");
     }
 
     public static void main(String[] args) throws IOException {
@@ -135,7 +148,7 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                 String frenchValue = frenchInfos.get(property);
                 String frenchValueWithIcons = getValueWithoutErrors(frenchInfosWithIcons.get(property));
 
-                if(property.endsWith(".icon")){ // icon paths should never be in property files - anyways, if no value is found, it will refer to the default property file (where untraducted and good paths will be found)
+                if(property.endsWith(".icon") || property.equals("ConstellioSetupView.setup.ar")){ // setup welcome (non inherent from language) / icon paths should never be in property files - anyways, if no value is found, it will refer to the default property file (where untraducted and good paths will be found)
                     // do not add it - default property value will be taken
                 }
                 else if(frenchValue!=null && frenchValue.isEmpty()){ // if parsed string was an icon only
@@ -145,9 +158,8 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                     String iconWithFrenchSpace = frenchValueWithIcons.replace(frenchValue, "");
                     String arabicValueWithProgrammaticElemsInversed = arabicValue;
 
-                    if(arabicValue.contains("{code}") && arabicValue.contains("{title}")){
-                        arabicValueWithProgrammaticElemsInversed = arabicValue.replace("{code}","{titleToBecome}").replace("{title}","{code}").replace("{titleToBecome}","{title}");
-                    }
+                    arabicValueWithProgrammaticElemsInversed = inverse(arabicValueWithProgrammaticElemsInversed, "{code}", "{title}");
+                    arabicValueWithProgrammaticElemsInversed = inverse(arabicValueWithProgrammaticElemsInversed, "{taskName}", "{taskId}");
 
                     arabicInfosWithIcons.put(property, iconWithFrenchSpace + arabicValueWithProgrammaticElemsInversed);
                 }
@@ -164,9 +176,9 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
 //                    if(arabicValue==null) {
 //                        System.out.println(sheetName + ";" + property + ";" + frenchValue + ";" + "UNKNOWN" + ";" + arabicValue);
 //                    }
-//                    if(arabicValue!=null){
-//                        System.out.println("manualTraductionPropertiesWithTraductedValues.put(\""+property+'"' + ", " + '"'+ StringEscapeUtils.escapeJava(arabicValue)+"\");");
-//                    }
+                    if(arabicValue!=null){
+                        System.out.println("manualTraductionPropertiesWithTraductedValues.put(\""+property+'"' + ", " + '"'+ StringEscapeUtils.escapeJava(arabicValue)+"\");");
+                    }
                 }
 
                 lineNumber++;
@@ -177,6 +189,18 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
         }
 
         return sheetsWithArabicValuesWithIcons;
+    }
+
+    private String inverse(String string, String exp1, String exp2) {
+
+        String inversedString = string;
+        final String tempExp1 = "{tempExp1}";
+
+        if(string.contains(exp1) && string.contains(exp1)){
+            inversedString = string.replace(exp1,tempExp1).replace(exp2,exp1).replace(tempExp1,exp2);
+        }
+
+        return inversedString;
     }
 
     /**
