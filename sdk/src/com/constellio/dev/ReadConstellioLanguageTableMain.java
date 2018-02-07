@@ -142,7 +142,9 @@ public class ReadConstellioLanguageTableMain extends ConstellioLanguageTableIO {
                     arabicInfosWithIcons.put(property, frenchValueWithIcons);
                 }
                 else if(frenchValue!=null && frenchValueWithIcons.contains(frenchValue) && arabicInfos.containsKey(property)){ // only if french and arabic data in Excel is reliable (not humanly modified or icons are in middle of text parsed or no traduction available at all), we can retreive icon
-                    arabicInfosWithIcons.put(property, frenchValueWithIcons.replace(frenchValue, "") + arabicValue);
+                    String iconWithFrenchSpace = frenchValueWithIcons.replace(frenchValue, "");
+                    String iconWithInversedSpace = new StringBuilder(iconWithFrenchSpace).reverse().toString();
+                    arabicInfosWithIcons.put(property, arabicValue + iconWithInversedSpace);
                 }
                 else if(manualTraductionPropertiesWithTraductedValues.containsKey(property)){
                     arabicInfosWithIcons.put(property, manualTraductionPropertiesWithTraductedValues.get(property));
