@@ -1903,6 +1903,93 @@ $popup-view-z-index: 3;
 			direction: rtl;
 		}
 		
+		.v-radiobutton label {
+    		margin-right: 13px;
+    	}
+		
+		.v-radiobutton > input {
+			left: inherit;
+			right: -16px;
+		}
+		
+		.v-radiobutton > input:checked ~ label:after {
+			left: inherit;
+			right: -13px;
+		}
+		
+		.v-radiobutton > input ~ label:before, .v-radiobutton > input ~ label:after {
+			left: inherit;
+			right: -19px;
+		}
+		
+/*
+		.v-checkbox label {
+    		margin-right: 13px;
+    	}
+		
+		.v-checkbox > input {
+			left: inherit;
+			right: -16px;
+		}
+		
+		.v-checkbox > input:checked ~ label:after {
+			left: inherit;
+			right: -13px;
+		}
+		
+		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+			left: inherit;
+			right: -19px;
+		}
+		
+		.v-checkbox label {
+    		margin-right: 13px;
+    	}
+*/
+
+
+
+		.v-checkbox {
+			padding-left: 25px;
+		}
+		
+		.v-checkbox > label {
+			margin-right: 29px;
+		}
+		
+		.v-checkbox > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+			left: 19px;
+			right: 0;
+		}
+		
+		.v-checkbox-small {
+			padding-left: 21px;
+		}
+		
+		.v-checkbox-small > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox-small > input ~ label:before, .v-checkbox-small > input ~ label:after {
+			left: 0;
+		}
+		
+		.v-checkbox-large {
+			padding-left: 29px;
+		}
+		
+		.v-checkbox-large > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox-large > input ~ label:before, .v-checkbox-large > input ~ label:after {
+			left: 0;
+		}
+
 		.icon-only {
 			text-align: center;
 		}
@@ -1912,6 +1999,10 @@ $popup-view-z-index: 3;
 			
 			.content-footer {
 				direction: ltr;
+				
+				.search-result-summary {
+					direction: rtl;
+				}
 				
 				.v-slot-footer {
 					direction: rtl;
