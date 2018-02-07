@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.*;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -26,10 +27,6 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -170,6 +167,7 @@ public abstract class Decommissioner {
 		this.processingDate = processingDate;
 		this.user = user;
 		transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 		recordsToDelete = new ArrayList<>();
 		recordsToDeletePhysically = new ArrayList<>();
 	}
