@@ -29,7 +29,7 @@ public class ConstellioLanguageTableIO {
     /* path of received input file : TODO modify path with received file */
     //private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
 
-    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Users\\Constellio\\Documents\\dev-constellio-2017.2\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
+    private static final String EXCEL_INPUT_FILE_PATH = "C:\\Workspace\\dev-constellio\\constellio\\resources_i18n\\excelOutput\\i18n_v2_arabic.xls";
     public static final String VERSION_NUMBER_SEPARATOR = "7_6_3";
 
     private File[] filesAndFolders;
