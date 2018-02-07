@@ -14076,47 +14076,6 @@ div.v-layout.v-horizontal.v-widget {
 	right: -19px;
 }
 
-.constellio .right-to-left .v-checkbox {
-	padding-left: 25px;
-}
-
-.constellio .right-to-left .v-checkbox > label {
-	margin-right: 29px;
-}
-
-.constellio .right-to-left .v-checkbox > input {
-	left: 0.2em;
-}
-
-.constellio .right-to-left .v-checkbox > input ~ label:before, .constellio .right-to-left .v-checkbox > input ~ label:after {
-	left: 19px;
-	right: 0;
-}
-
-.constellio .right-to-left .v-checkbox-small {
-	padding-left: 21px;
-}
-
-.constellio .right-to-left .v-checkbox-small > input {
-	left: 0.2em;
-}
-
-.constellio .right-to-left .v-checkbox-small > input ~ label:before, .constellio .right-to-left .v-checkbox-small > input ~ label:after {
-	left: 0;
-}
-
-.constellio .right-to-left .v-checkbox-large {
-	padding-left: 29px;
-}
-
-.constellio .right-to-left .v-checkbox-large > input {
-	left: 0.2em;
-}
-
-.constellio .right-to-left .v-checkbox-large > input ~ label:before, .constellio .right-to-left .v-checkbox-large > input ~ label:after {
-	left: 0;
-}
-
 .constellio .right-to-left .icon-only {
 	text-align: center;
 }
@@ -14198,6 +14157,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-tree-node-caption > div:before {
 	content: "\f0d9";
+}
+
+.constellio .right-to-left .v-tree-node-caption {
+	direction: rtl;
 }
 
 .constellio .right-to-left .header .header-search {
