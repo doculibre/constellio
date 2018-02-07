@@ -230,7 +230,7 @@ public class RecordUpdateOptions {
 	}
 
 	public static RecordUpdateOptions userModificationsSafeOptions() {
-		return new RecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(false).setSkipMaskedMetadataValidations(false);
+		return new RecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true).setSkipMaskedMetadataValidations(true);
 	}
 
 	public boolean isCatchExtensionsExceptions() {

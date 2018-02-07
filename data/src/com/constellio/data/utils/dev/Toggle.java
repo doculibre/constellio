@@ -37,7 +37,7 @@ public class Toggle {
 
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
-	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(true);
+	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
 
 	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
 
@@ -46,6 +46,8 @@ public class Toggle {
 	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(false);
 
 	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
+
+	public static AvailableToggle IS_ADD_NOW_SEARCH_EVENT_SERVICE = newToggle(false);
 
 	// ------------------------------------------------
 

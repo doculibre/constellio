@@ -76,7 +76,8 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	private ContainerFormImpl buildForm() {
 		ContainerFormImpl form = newForm();
-		prepareTypeField(form.getTypeField());;
+		form.setSpecialContainerTitleCase(true, AddEditContainerView.class);
+		prepareTypeField(form.getTypeField());
 		prepareCapacityField(form.getCapacityField());
 		return form;
 	}
@@ -115,7 +116,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
-				presenter.saveButtonClicked(viewObject);
+					presenter.saveButtonClicked(viewObject);
 			}
 
 			@Override

@@ -3,12 +3,18 @@ package com.constellio.app.api.search;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.request.LocalSolrQueryRequest;
@@ -39,6 +45,7 @@ public class SearchWebService extends HttpServlet {
 		if (user == null) {
 			throw new RuntimeException("Invalid serviceKey/token");
 		}
+
 		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(
 				SolrRequestParsers.parseQueryString(request.getQueryString()));
@@ -46,6 +53,17 @@ public class SearchWebService extends HttpServlet {
 		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
 		solrParams.add("fq", "-type_s:index");
+
+		String[] strings = solrParams.getParams("fq");
+
+		String collection = "";
+
+		for(String param : strings) {
+			if(param.startsWith("collection_s")) {
+				collection = param.replace("collection_s:", "");
+				break;
+			}
+		}
 
 		QueryResponse queryResponse;
 		if (searchingInEvents) {
@@ -56,7 +74,47 @@ public class SearchWebService extends HttpServlet {
 			queryResponse = getEventQueryResponse(solrParams);
 
 		} else {
+			SchemasRecordsServices schemasRecordsServices = null;
+			ArrayList<String> paramList = new ArrayList<>();
+			SearchEvent searchEvent = null;
+
+			if(!Strings.isNullOrEmpty(collection)) {
+				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
+				searchEvent = schemasRecordsServices.newSearchEvent();
+
+				for (String paramName : solrParams.getParameterNames()) {
+					if (!paramName.equals("qf") && !paramName.equals("pf")
+							&& !paramName.equals("fl")) {
+						if (paramName.equals("q")) {
+							searchEvent.setQuery(StringUtils.stripAccents(solrParams.get(paramName).toLowerCase()));
+						} else {
+							String[] values = solrParams.getParams(paramName);
+
+							if (values.length == 1) {
+								paramList.add(paramName + "=" + values[0]);
+							} else if (values.length > 1) {
+								StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+								for (String value : values) {
+									valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+								}
+								paramList.add(valuesAsOneStringBuilder.toString());
+							}
+
+						}
+					}
+				}
+			}
+
 			queryResponse = getQueryResponse(solrParams, user);
+
+			if(schemasRecordsServices != null) {
+				searchEvent.setParams(paramList);
+				searchEvent.setQTime(queryResponse.getQTime());
+				searchEvent.setNumFound(queryResponse.getResults().getNumFound());
+
+				SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory());
+				searchEventServices.save(searchEvent);
+			}
 		}
 
 		writeResponse(response, solrParams, queryResponse);
@@ -106,4 +164,6 @@ public class SearchWebService extends HttpServlet {
 			throw new RuntimeException("Unable to convert Solr response into XML", e);
 		}
 	}
+
+
 }
