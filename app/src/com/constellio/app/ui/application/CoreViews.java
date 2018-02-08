@@ -40,6 +40,10 @@ public class CoreViews {
 		JavaScript javascript = JavaScript.getCurrent();
 		javascript.execute("window.history.back();");
 	}
+	
+	public void currentView() {
+		navigator.navigateTo(getState());
+	}
 
 	public void serviceMonitoring() {
 		navigator.getUI().getPage().setLocation("/constellio/serviceMonitoring");
