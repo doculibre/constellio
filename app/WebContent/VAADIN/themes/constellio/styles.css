@@ -13216,6 +13216,19 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
+.constellio .v-context-menu .context-menu-rtl {
+	clear: both;
+}
+
+.constellio .v-context-menu .context-menu-rtl .v-context-menu-item-basic-icon-container {
+	float: right;
+}
+
+.constellio .v-context-menu .context-menu-rtl .v-context-menu-item-basic-text {
+	text-align: right;
+	margin-right: 25px;
+}
+
 .constellio .v-table-row-textRed {
 	color: red;
 }
