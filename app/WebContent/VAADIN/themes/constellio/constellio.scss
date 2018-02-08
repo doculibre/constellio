@@ -1044,6 +1044,19 @@ $popup-view-z-index: 3;
 	    	color: white;
 		    background-color: #414B56;
 	    }
+	
+		.context-menu-rtl {
+			clear: both;
+		
+			.v-context-menu-item-basic-icon-container {
+				float: right;
+			}
+			
+			.v-context-menu-item-basic-text {
+				text-align: right;
+				margin-right: 25px;
+			}
+		}
     }
 
 	.v-table-row-textRed {
@@ -1856,8 +1869,6 @@ $popup-view-z-index: 3;
 		width: 20px;
 		background: transparent;
 	}
-
-
 		
 	.v-filterselect-item-rtl {
 		direction: rtl;
@@ -1922,6 +1933,47 @@ $popup-view-z-index: 3;
 			right: -19px;
 		}
 
+		.v-checkbox {
+			padding-left: 25px;
+		}
+		
+		.v-checkbox > label {
+			margin-right: 29px;
+		}
+		
+		.v-checkbox > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+			left: inherit;
+			right: 0;
+		}
+		
+		.v-checkbox-small {
+			padding-left: 21px;
+		}
+		
+		.v-checkbox-small > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox-small > input ~ label:before, .v-checkbox-small > input ~ label:after {
+			left: 0;
+		}
+		
+		.v-checkbox-large {
+			padding-left: 29px;
+		}
+		
+		.v-checkbox-large > input {
+			left: 0.2em;
+		}
+		
+		.v-checkbox-large > input ~ label:before, .v-checkbox-large > input ~ label:after {
+			left: 0;
+		}
+
 		.icon-only {
 			text-align: center;
 		}
@@ -1931,6 +1983,10 @@ $popup-view-z-index: 3;
 			
 			.content-footer {
 				direction: ltr;
+				
+				.content-view-wrapper {
+					padding-right: 10px;
+				}
 				
 				.search-result-summary {
 					direction: rtl;
@@ -1978,11 +2034,20 @@ $popup-view-z-index: 3;
 			}
 		}
 		
-		.xbreadcrumbs LI {
-			transform: rotate(180deg);
-			
-			.v-button {
+		.xbreadcrumbs {
+			direction: rtl;
+		
+			LI {
 				transform: rotate(180deg);
+				
+				.v-button {
+					transform: rotate(180deg);
+	
+					.v-icon {
+						float: right; 
+						padding-left: 8px;
+					}
+				}
 			}
 		}
 		
@@ -2039,6 +2104,23 @@ $popup-view-z-index: 3;
 		.v-tree-node-caption {
 			direction: rtl;
 		}
+    	
+    	.v-slot-search-result-facets {
+    		.facet-box {
+    			direction: rtl;
+    			
+    			.facet-title {
+    				direction: ltr;
+					padding-left: 0px;
+					padding-right: 13px;
+    			}
+
+				label {
+					direction: ltr;
+				}
+
+    		}
+    	}
 		
 		.header {
 
@@ -2097,12 +2179,12 @@ $popup-view-z-index: 3;
 				}
 			}	
 		}
-	}
+	}	
 
 	.v-window {
 	
 		.popupContent {
-			
+		
 			.action-menu {
 		        right: inherit;
 		        left: 20px;
@@ -2233,14 +2315,6 @@ $popup-view-z-index: 3;
     	
     	.v-slot-search-result-facets {
     		float: left;
-    		
-    		.facet-box {
-    			direction: rtl;
-    			
-    			.facet-title {
-    				direction: ltr;
-    			}
-    		}
     	}
     }
 
@@ -2276,16 +2350,7 @@ $popup-view-z-index: 3;
     	}
     	
     	.v-slot-search-result-facets {
-    		float: left;
-    		
-    		.facet-box {
-    			direction: rtl;
-    			
-    			.facet-title {
-    				direction: ltr;
-    			}
-    		}
-    		
+    		float: left;    		
     	}
 	    
 	}
