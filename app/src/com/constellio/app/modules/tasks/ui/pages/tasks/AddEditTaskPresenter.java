@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
@@ -93,8 +94,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		boolean isTerminatedOrClosed = finishedOrClosedStatuses.contains(tasksSchemasRecordsServices.wrapTask(restrictedRecord).getStatus());
-		return user.hasWriteAccess().on(restrictedRecord) && !isTerminatedOrClosed;
+		TaskStatusType statusType = new TasksSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory).wrapTask(restrictedRecord).getStatusType();
+		return user.hasWriteAccess().on(restrictedRecord) && !(statusType != null && statusType.isFinishedOrClosed());
 	}
 
 	@Override
