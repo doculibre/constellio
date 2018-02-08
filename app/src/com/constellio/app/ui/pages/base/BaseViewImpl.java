@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			try {
 				initBeforeCreateComponents(event);
 			} catch (Exception e) {
+				if (e instanceof RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) {
+					throw e;
+				}
 				e.printStackTrace();
 
 				LOGGER.error(e.getMessage(), e);

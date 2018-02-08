@@ -69,8 +69,11 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	public BasePresenter(final T view, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		this.view = view;
 		view.addViewEnterListener(new ViewEnterListener() {
+			private String viewEnteredParams;
+
 			@Override
 			public void viewEntered(String params) {
+				viewEnteredParams = params;
 			}
 
 			@Override
@@ -89,9 +92,10 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 							(RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) e;
 					String recordCollection = wrongCollectionException.getRecordCollection();
 					String sessionContextCollection = view.getSessionContext().getCurrentCollection();
-					if (!recordCollection.equals(sessionContextCollection)) {
+
+					if (sessionContextCollection.equals(recordCollection) ||
+							viewEnteredParams != null && isViewVisibleToCurrentUser(viewEnteredParams)) {
 						exceptionHandled = true;
-						view.getSessionContext().setCurrentCollection(recordCollection);
 						view.navigate().to().currentView();
 					} else {
 						exceptionHandled = false;
