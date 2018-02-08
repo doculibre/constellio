@@ -1,17 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusMessageProvider;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConsolidatedPDFWindow extends BaseWindow {
@@ -20,7 +25,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
     private TabSheet tabSheet;
 
-    private static ConsolidatedPDFWindow instance;
+    private static ConcurrentHashMap<String, ConsolidatedPDFWindow> instance = new ConcurrentHashMap<>();
 
     private boolean iconified;
     private float height;
@@ -33,16 +38,14 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     private Button fermerLaFenetre;
     private Button minimiserLaFenetre;
 
-    private ConsolidatedPDFWindow(String pdfName) {
+    private long id;
+
+    private ConsolidatedPDFWindow() {
         super($("ConsolidatedPDFWindow.caption"));
 
         setId("ConsolidatedPDFWindowId");
 
         init();
-
-        addTabSheet(pdfName);
-
-        iconified = false;
     }
 
     private void init() {
@@ -87,7 +90,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         setClosable(false);
     }
 
-    public void addTabSheet(String pdfFileName) {
+    private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata) {
         deiconify();
 
         if(pdfTabPanels.containsKey(pdfFileName)) {
@@ -98,7 +101,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
             for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension););
         }
 
-        PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName);
+        PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);
         panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
             @Override
             public void firePdfGenerationCompleted(PdfStatusViewImpl panel) {
@@ -116,14 +119,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         pdfTabPanels.put(pdfFileName, panel);
 
         tabSheet.setSelectedTab(tab);
-
-        //TODO : code to be removed
-        List<String> list = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            list.add("Fichier "+i+": en cours");
-        }
-        ((PdfStatusMessageProvider)panel.getDataProvider()).setMessages(list);
-        // End TODO
     }
 
     protected void checkAllGenerationStatus() {
@@ -138,8 +133,8 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         minimiserLaFenetre.setVisible(false);
         fermerLaFenetre.setVisible(true);
 
-        // TODO: should be thread safe
-        instance = null;
+        UserVO user = ConstellioUI.getCurrent().getSessionContext().getCurrentUser();
+        instance.remove(user.getUsername());
     }
 
     public boolean isIconified() {
@@ -207,18 +202,18 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         }
     }
 
-    // TODO: check for thread safe
-    public static synchronized void createPdf(String pdfName) {
+    public static void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
         checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
+        checkArgument(!CollectionUtils.isEmpty(documentIds), "Document ids is mandatory and must not be empty");
 
-        //TODO Active comments
+        UserVO user = ConstellioUI.getCurrent().getSessionContext().getCurrentUser();
 
-        if(instance == null) {
-            instance = new ConsolidatedPDFWindow(pdfName);
-        } else {
-            instance.addTabSheet(pdfName);
+        ConsolidatedPDFWindow window = instance.get(user.getUsername());
+        if(window == null) {
+            instance.put(user.getUsername(), window = new ConsolidatedPDFWindow());
         }
 
-        instance.show();
+        window.addTabSheet(pdfName, documentIds, withMetadata);
+        window.show();
     }
 }

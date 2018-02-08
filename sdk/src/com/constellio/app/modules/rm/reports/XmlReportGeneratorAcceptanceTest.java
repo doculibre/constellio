@@ -3,7 +3,7 @@ package com.constellio.app.modules.rm.reports;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
-import com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -61,7 +61,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     public void testXmlGeneratorIsNotNullAndReturnsCorrectValue() {
         int numberOfCopies = 20;
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(numberOfCopies);
-        printableReportXmlGenerator reportGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
         assertThat(reportGenerator.getXmlGeneratorParameters()).isNotNull();
         assertThat(reportGenerator.getXmlGeneratorParameters().getNumberOfCopies()).isEqualTo(numberOfCopies);
     }
@@ -69,7 +69,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     @Test
     public void testThatCoreElementOfTheGeneratorAreAccessibleAndNotNull() {
         XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(0);
-        AbstractXmlGenerator reportGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlGeneratorParameters);
+        AbstractXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlGeneratorParameters);
         assertThat(reportGenerator.getFactory()).isNotNull();
         assertThat(reportGenerator.getFactory()).isEqualTo(getAppLayerFactory());
 
@@ -80,7 +80,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
     @Test
     public void testThatElementAreNotNullWhenSettingThem() {
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1, records.getFolder_A01().getWrappedRecord());
-        AbstractXmlGenerator reportGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
         assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()).isNotEmpty();
         assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()[0]).isEqualTo(records.getFolder_A01().getWrappedRecord());
     }
@@ -90,7 +90,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         InputStream inputStream = null;
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(), records.getFolder_A08().getWrappedRecord());
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
         try {
             String xmlString = printableReportXmlGenerator.generateXML();
@@ -129,7 +129,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         InputStream inputStream = null;
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(), records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
         try {
             String xmlString = printableReportXmlGenerator.generateXML();
@@ -196,7 +196,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         zeThirdTask.setDueDate(new LocalDate().plusDays(30));
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
         try {
             String xmlString = printableReportXmlGenerator.generateXML();
             assertThat(xmlString).isNotEmpty();
@@ -234,7 +234,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
         xmlReportGeneratorParameters.markAsTestXml();
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
         try {
             String xmlString = printableReportXmlGenerator.generateXML();
             assertThat(xmlString).isNotEmpty();
@@ -257,7 +257,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
         xmlReportGeneratorParameters.markAsTestXml();
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
         try {
             String xmlString = printableReportXmlGenerator.generateXML();
             assertThat(xmlString).isNotEmpty();
@@ -282,7 +282,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
         XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
         xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
         xmlReportGeneratorParameters.markAsTestXml();
-        printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
         assertThat(printableReportXmlGenerator.getPath(records.getFolder_C30().getWrappedRecord())).isEqualTo("Xe category > X100 > X110 > Haricot");
 

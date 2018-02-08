@@ -6,4 +6,5 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface PdfStatusView extends BaseView {
     public void firePdfGenerationCompleted(DocumentVO documentVO);
+    public void notifyGlobalProgressMessage(String message);
 }

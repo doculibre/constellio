@@ -25,6 +25,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -192,6 +193,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return documentSchemaFor(getDocumentType(typeId));
 	}
 
+	public DocumentListPDF wrapDocumentListPdf(Record record) {
+		return record == null ? null : new DocumentListPDF(record, getTypes());
+	}
+
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -237,6 +242,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public MetadataSchema reportSchema() {
 		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchema documentListPDFSchema() {
+		return getTypes().getSchema(DocumentListPDF.DEFAULT_SCHEMA);
+	}
+
+	public DocumentListPDF newDocumentListPDFWithId(String id) {
+		return new DocumentListPDF(create(documentListPDFSchema(), id), getTypes());
 	}
 
 	public Document newDocumentWithId(String id) {

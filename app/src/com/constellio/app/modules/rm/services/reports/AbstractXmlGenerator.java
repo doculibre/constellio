@@ -96,8 +96,6 @@ public abstract class AbstractXmlGenerator {
     private MetadataSchemasManager metadataSchemasManager;
     private RMSchemasRecordsServices rm;
 
-    protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
-
     public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection) {
         this.factory = appLayerFactory;
         this.collection = collection;
@@ -474,12 +472,6 @@ public abstract class AbstractXmlGenerator {
         builder.append(" > ");
         return builder.toString();
     }
-
-    /**
-     * Method that returns the xml generator parameters
-     * @return AbstractXmlGeneratorParameters parameters
-     */
-    public abstract AbstractXmlGeneratorParameters getXmlGeneratorParameters();
 
     /**
      * Method that returns whether or not a record has a particular metadata

@@ -40,11 +40,10 @@ public class JasperPdfGenerator {
     /**
      * Method that takes a JasperReport (.jasper) file and the xml generated in the constructor to create a report.
      * @param jasperFile File jasper file
-     * @param format unused by the app.
      * @return File with the report.
      * @throws JRException
      */
-    public File createPDFFromXmlAndJasperFile(File jasperFile, String format) throws JRException {
+    public File createPDFFromXmlAndJasperFile(File jasperFile) throws JRException {
         Map<String, Object> params = new HashMap<>();
         Document document;
         String PDFFile = "";

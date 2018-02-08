@@ -309,11 +309,6 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
         return listOfMetadataTags;
     }
 
-    @Override
-    public AbstractXmlGeneratorParameters getXmlGeneratorParameters() {
-        return null;
-    }
-
     public static String getLabelOfMetadata(Metadata metadata) {
         return metadata.getCode().split("_")[2];
     }

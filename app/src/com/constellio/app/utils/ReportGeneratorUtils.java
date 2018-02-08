@@ -23,7 +23,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.LabelViewer;
@@ -46,7 +46,7 @@ public class ReportGeneratorUtils {
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
 					numberOfCopies);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
-			printableReportXmlGenerator printableReportXmlGenerator = new printableReportXmlGenerator(factory, collection,
+			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
 					xmlGeneratorParameters);
 			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager
@@ -57,7 +57,7 @@ public class ReportGeneratorUtils {
 			String title =
 					selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
 							+ ".pdf";
-			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile, title);
+			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile);
 			VerticalLayout newLayout = new VerticalLayout();
 			newLayout.addComponents(new LabelViewer(generatedJasperFile, title,
 					factory.getModelLayerFactory().getIOServicesFactory().newIOServices()));

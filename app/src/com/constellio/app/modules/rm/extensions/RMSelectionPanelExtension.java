@@ -25,8 +25,8 @@ import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -52,7 +52,6 @@ import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -129,7 +128,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
                     @Override
                     public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
-                        ConsolidatedPDFWindow.createPdf(pdfInfos.getPdfFileName());
+                        List<String> ids = param.getIds();
+                        if(!CollectionUtils.isEmpty(ids)) {
+                            ConsolidatedPDFWindow.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
+                        } else {
+                            showErrorMessage($("ConstellioHeader.noDocumentSelectedForPdf"));
+                        }
                     }
 
                     @Override

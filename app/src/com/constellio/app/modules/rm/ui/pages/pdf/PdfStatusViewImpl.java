@@ -23,12 +23,14 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
     private boolean finished;
 
     private List<PdfGenerationCompletedListener> listeners = new ArrayList<>();
+    private Label progressLabel;
 
-    public PdfStatusViewImpl(String pdfFileName) {
+    public PdfStatusViewImpl(String pdfFileName, List<String> documentIds, boolean withMetadata) {
         setWidth("100%");
 
         this.pdfFileName = pdfFileName;
-        this.presenter = new PdfStatusViewPresenter(this);
+        progressLabel = new Label("Progression de la génération du fichier: " + getPdfFileName());
+        this.presenter = new PdfStatusViewPresenter(this, pdfFileName, documentIds, withMetadata);
         this.finished = false;
 
         addComponent(buildMainComponent(null));
@@ -51,12 +53,10 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
-        // TODO Fix CSS bugs
-        Label label = new Label("Progression de la génération du fichier: " + getPdfFileName());
-        label.setHeight("40px");
+        progressLabel.setHeight("40px");
 
-        layout.addComponent(label);
-        layout.setExpandRatio(label, 1);
+        layout.addComponent(progressLabel);
+        layout.setExpandRatio(progressLabel, 1);
 
         Table table = new PdfStatusTable(getPdfFileName(), getDataProvider());
         table.setWidth("100%");
@@ -79,6 +79,11 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
                 }
             }
         });
+    }
+
+    @Override
+    public void notifyGlobalProgressMessage(String message) {
+        progressLabel.setValue(message);
     }
 
     protected Layout createPdfGenerationCompletedLayout() {
