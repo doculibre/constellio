@@ -1075,6 +1075,19 @@ $popup-view-z-index: 3;
     	}
     }
     
+    .header-action-menu.v-menubar-submenu.menubar-rtl, .header-collection-menu.v-menubar-submenu.menubar-rtl {
+    	.v-menubar-menuitem {
+    		direction: rtl;
+    	}
+    	
+    	.v-menubar-menuitem-checked {
+    		.v-menubar-menuitem-caption:before {
+	    		left: inherit;
+	    		right: 10px;
+    		}
+    	}
+    }
+    
 	.v-table-row-textRed {
 	    color: red;
 	}

@@ -13243,6 +13243,15 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 10px;
 }
 
+.constellio .header-action-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem, .constellio .header-collection-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
+	direction: rtl;
+}
+
+.constellio .header-action-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem-checked .v-menubar-menuitem-caption:before, .constellio .header-collection-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem-checked .v-menubar-menuitem-caption:before {
+	left: inherit;
+	right: 10px;
+}
+
 .constellio .v-table-row-textRed {
 	color: red;
 }
