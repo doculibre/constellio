@@ -36,6 +36,7 @@ import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumW
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -110,7 +111,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			};
 		}
 
-		table = new Table();
+		table = new BaseTable(getClass().getName());
 		table.setWidth("100%");
 		table.setPageLength(0);
 
@@ -173,7 +174,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 	@SuppressWarnings("unchecked")
 	private Table buildVariablePeriodTable() {
-		variablePeriodTable = new Table();
+		variablePeriodTable = new BaseTable(getClass().getName() + ".variablePeriodTable");
 		variablePeriodTable.setWidth("100%");
 		variablePeriodTable.setPageLength(Math.min(15, variableRetentionPeriodVOList.size()));
 		variablePeriodTable.setVisible(!formMode && !variableRetentionPeriodVOList.isEmpty());

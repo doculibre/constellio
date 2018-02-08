@@ -17,9 +17,9 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.components.converters.MediumTypeIdListToCodesConverter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
-import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecor
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -128,7 +129,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			};
 		}
 
-		table = new Table();
+		table = new BaseTable(getClass().getName());
 		table.setWidth("100%");
 		table.setPageLength(0);
 		table.setSelectable(false);
@@ -227,7 +228,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 	@SuppressWarnings("unchecked")
 	private Table buildVariablePeriodTable() {
-		variablePeriodTable = new Table();
+		variablePeriodTable = new BaseTable(getClass().getName() + ".variablePeriodTable");
 		variablePeriodTable.setWidth("100%");
 		variablePeriodTable.setPageLength(Math.min(15, variableRetentionPeriodVOList.size()));
 		variablePeriodTable.setVisible(!formMode && !variableRetentionPeriodVOList.isEmpty());

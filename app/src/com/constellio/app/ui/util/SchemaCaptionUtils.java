@@ -82,11 +82,12 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					if (isRightToLeft()) {
-						caption = caption + " " + captionForSchemaTypeCode;
-					} else {
-						caption = captionForSchemaTypeCode + " " + caption;
-					}
+//					if (isRightToLeft()) {
+//						caption = caption + " " + captionForSchemaTypeCode;
+//					} else {
+//						caption = captionForSchemaTypeCode + " " + caption;
+//					}
+					caption = captionForSchemaTypeCode + " " + caption;
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";

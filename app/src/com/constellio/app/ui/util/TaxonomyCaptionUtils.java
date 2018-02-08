@@ -29,21 +29,21 @@ public class TaxonomyCaptionUtils implements Serializable {
 				captionPrefixKey = "Taxonomy.default.caption";
 				captionPrefix = $(captionPrefixKey);
 			}
-			if (isRightToLeft()) {
-				if (captionPrefixKey.equals(captionPrefix)) {
-					captionPrefix = "";
-				} else {
-					captionPrefix = " " + captionPrefix;
-				}
-				caption = taxonomyTitle + captionPrefix;
-			} else {
+//			if (isRightToLeft()) {
+//				if (captionPrefixKey.equals(captionPrefix)) {
+//					captionPrefix = "";
+//				} else {
+//					captionPrefix = " " + captionPrefix;
+//				}
+//				caption = taxonomyTitle + captionPrefix;
+//			} else {
 				if (captionPrefixKey.equals(captionPrefix)) {
 					captionPrefix = "";
 				} else {
 					captionPrefix = captionPrefix + " ";
 				}
 				caption = captionPrefix + taxonomyTitle;
-			}
+//			}
 		} else {
 			caption = "";
 		}
