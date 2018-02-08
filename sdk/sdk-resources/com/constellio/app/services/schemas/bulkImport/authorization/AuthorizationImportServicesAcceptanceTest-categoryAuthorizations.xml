@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<authorizations>
+    <authorization id="1">
+        <access>rwd</access>
+        <principals>
+            <item type="user" username="bob"/>
+        </principals>
+        <targets>
+            <item type="category" legacyId="code:Z100"/>
+        </targets>
+    </authorization>
+    <authorization id="2">
+        <access>rwd</access>
+        <principals>
+            <item type="user" username="alice"/>
+            <item type="group" groupCode="heroes"/>
+        </principals>
+        <targets>
+            <item type="category" legacyId="code:Z200"/>
+        </targets>
+        <overrideInherited>true</overrideInherited>
+    </authorization>
+    <authorization id="3">
+        <access>r</access>
+        <principals>
+            <item type="user" username="alice"/>
+            <item type="group" groupCode="heroes"/>
+        </principals>
+        <targets>
+            <item type="category" legacyId="code:Z120"/>
+        </targets>
+        <overrideInherited>false</overrideInherited>
+    </authorization>
+</authorizations>

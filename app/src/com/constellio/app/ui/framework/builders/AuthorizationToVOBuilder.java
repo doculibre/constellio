@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.builders;
 
+import static com.constellio.model.entities.Language.withLocale;
 import static java.util.Arrays.asList;
 
 import java.io.IOException;
@@ -9,7 +10,10 @@ import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.AuthorizationVO;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -35,6 +39,11 @@ public class AuthorizationToVOBuilder implements Serializable {
 	}
 
 	public AuthorizationVO build(Authorization authorization) {
+		return build(authorization, null, null, null);
+	}
+
+	public AuthorizationVO build(Authorization authorization, Metadata receivedFromMetadata, Record receivedFromValue,
+			SessionContext sessionContext) {
 		List<String> principals = authorization.getGrantedToPrincipals();
 		List<String> records = asList(authorization.getGrantedOnRecord());
 		List<String> roles = authorization.getDetail().getRoles();
@@ -75,9 +84,15 @@ public class AuthorizationToVOBuilder implements Serializable {
 			}
 		}
 
+		String metadataLabel = receivedFromMetadata == null ? null :
+				receivedFromMetadata.getLabel(withLocale(sessionContext.getCurrentLocale()));
+
+		String recordCaption = receivedFromValue == null ? null :
+				SchemaCaptionUtils.getCaptionForRecord(receivedFromValue);
+
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getDetail().getId(), authorization.getDetail().getStartDate(),
-				authorization.getDetail().getEndDate(), authorization.getDetail().isSynced());
+				authorization.getDetail().getEndDate(), authorization.getDetail().isSynced(), metadataLabel, recordCaption);
 
 		return authorizationVO;
 	}

@@ -738,16 +738,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void waitUntilICloseTheBrowsers() {
-		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
-		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
 
-		if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
-			waitUntilChuckNorrisIsDead();
-		} else {
-			ensureNotUnitTest();
-			ensureInDevelopmentTest();
-			getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
-		}
+		ensureNotUnitTest();
+		ensureInDevelopmentTest();
+		getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
 	}
 
 	protected File unzipInTempFolder(File zipFile) {

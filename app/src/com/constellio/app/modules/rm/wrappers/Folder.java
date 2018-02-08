@@ -819,8 +819,12 @@ public class Folder extends RMObject {
 		return getList(DOCUMENTS_TOKENS);
 	}
 
-    public boolean hasExpectedDates() {
+	public boolean hasExpectedDates() {
 		return !(getExpectedTransferDate() == null && getExpectedDepositDate() == null && getExpectedDestructionDate() == null);
-    }
+	}
+
+	public static Folder wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new Folder(record, types);
+	}
 }
 

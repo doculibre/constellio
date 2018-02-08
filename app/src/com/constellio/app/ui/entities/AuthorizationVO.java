@@ -25,28 +25,30 @@ public class AuthorizationVO implements Serializable {
 	LocalDate startDate;
 	LocalDate endDate;
 	boolean synched;
+	String receivedFromMetadataLabel;
+	String receivedFromRecordCaption;
 
 	public static AuthorizationVO forUsers(String id) {
 		return new AuthorizationVO(
 				asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
 	}
 
 	public static AuthorizationVO forGroups(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), asList(id), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
 	}
 
 	public static AuthorizationVO forContent(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
 	}
 
 	public AuthorizationVO(List<String> users, List<String> groups, List<String> records, List<String> accessRoles,
 			List<String> userRoles, List<String> userRolesTitles, String authId, LocalDate startDate, LocalDate endDate,
-			boolean synched) {
+			boolean synched, String receivedFromMetadataLabel, String receivedFromRecordCaption) {
 		this.users = users;
 		this.records = records;
 		this.accessRoles = accessRoles;
@@ -57,6 +59,8 @@ public class AuthorizationVO implements Serializable {
 		this.endDate = endDate;
 		this.groups = groups;
 		this.synched = synched;
+		this.receivedFromMetadataLabel = receivedFromMetadataLabel;
+		this.receivedFromRecordCaption = receivedFromRecordCaption;
 	}
 
 	public List<String> getUsers() {
@@ -141,6 +145,24 @@ public class AuthorizationVO implements Serializable {
 
 	public boolean isSynched() {
 		return synched;
+	}
+
+	public String getReceivedFromMetadataLabel() {
+		return receivedFromMetadataLabel;
+	}
+
+	public AuthorizationVO setReceivedFromMetadataLabel(String receivedFromMetadataLabel) {
+		this.receivedFromMetadataLabel = receivedFromMetadataLabel;
+		return this;
+	}
+
+	public String getReceivedFromRecordCaption() {
+		return receivedFromRecordCaption;
+	}
+
+	public AuthorizationVO setReceivedFromRecordCaption(String receivedFromRecordCaption) {
+		this.receivedFromRecordCaption = receivedFromRecordCaption;
+		return this;
 	}
 
 	public AuthorizationVO withUsers(String... users) {

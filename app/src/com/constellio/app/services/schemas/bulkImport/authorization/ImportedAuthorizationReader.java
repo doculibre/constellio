@@ -17,6 +17,7 @@ public class ImportedAuthorizationReader {
 	private static final String TARGET = "targets";
 	private static final String PRINCIPAL = "principals";
 	private static final String TYPE = "type";
+	private static final String OVERRIDE_INHERITED = "overrideInherited";
 	private static final String LEGACY_ID = "legacyId";
 	private static final java.lang.String USERNAME = "username";
 	private static final java.lang.String GROUP_CODE = "groupCode";
@@ -39,7 +40,16 @@ public class ImportedAuthorizationReader {
 		return new ImportedAuthorization().setId(readId(authorizationElement)).setAccess(
 				readAccess(authorizationElement)).setRoles(readRoles(authorizationElement))
 				.setPrincipals(readPrincipals(authorizationElement))
-				.setTargets(readTargets(authorizationElement));
+				.setTargets(readTargets(authorizationElement))
+				.setOverrideInherited(readOverrideInherited(authorizationElement));
+	}
+
+	private Boolean readOverrideInherited(Element authorizationElement) {
+		Element overrideInherited = authorizationElement.getChild(OVERRIDE_INHERITED);
+		if (overrideInherited != null) {
+			return overrideInherited.getText().toLowerCase().equals("true");
+		}
+		return null;
 	}
 
 	private List<ImportedAuthorizationTarget> readTargets(Element authorizationElement) {
