@@ -83,8 +83,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
-		return securityService().hasAccessToDecommissioningListPage(decommissioningList, user);
+		DecommissioningSecurityService securityService = new DecommissioningSecurityService(restrictedRecord.getCollection(), appLayerFactory);
+		RMSchemasRecordsServices rmRecordsServices = new RMSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory);
+		DecommissioningList decommissioningList = rmRecordsServices.wrapDecommissioningList(restrictedRecord);
+		return securityService.hasAccessToDecommissioningListPage(decommissioningList, user);
 	}
 
 	public RecordVO getDecommissioningList() {

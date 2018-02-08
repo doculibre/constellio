@@ -94,8 +94,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		MetadataSchemasManager schemaManager = modelLayerFactory.getMetadataSchemasManager();
-		TaskStatusType statusType = restrictedRecord.get(schemaManager.getSchemaOf(restrictedRecord).get(Task.STATUS_TYPE));
+		TaskStatusType statusType = new TasksSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory).wrapTask(restrictedRecord).getStatusType();
 		return user.hasWriteAccess().on(restrictedRecord) && !(statusType != null && statusType.isFinishedOrClosed());
 	}
 
