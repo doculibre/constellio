@@ -25,7 +25,7 @@ public class RecordsCachesRequestMemoryImpl extends RecordsCachesMemoryImpl {
 
 		if (disconnected) {
 			((RecordsCacheRequestImpl) recordsCache).disconnect();
-			LOGGER.warn("A cache is created for disconnected cache '" + id + "'", new Throwable());
+			//LOGGER.warn("A cache is created for disconnected cache '" + id + "'", new Throwable());
 		}
 
 		return recordsCache;

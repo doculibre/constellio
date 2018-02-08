@@ -1,16 +1,15 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationBuilderRuntimeException.ImportedAuthorizationBuilderRuntimeException_NoValidPrincipal;
@@ -18,17 +17,15 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
@@ -44,6 +41,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	final RMSchemasRecordsServices rmSchemas;
 	final UserServices userServices;
 	final RecordServices recordServices;
+	final MetadataSchemaTypes types;
 
 	public ImportedAuthorizationToAuthorizationBuilder(String collection,
 			ModelLayerFactory modelLayerFactory) {
@@ -54,6 +52,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 		rmSchemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		userServices = modelLayerFactory.newUserServices();
 		recordServices = modelLayerFactory.newRecordServices();
+		this.types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
 	public AuthorizationAddRequest buildAddRequest(ImportedAuthorization importedAuthorization) {
@@ -68,8 +67,14 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 		}
 		List<String> roles = getRoles(importedAuthorization);
 
-		return authorizationInCollection(collection)
+		AuthorizationAddRequest request = authorizationInCollection(collection)
 				.forPrincipalsIds(grantedToPrincipals).giving(grantedOnRecords).giving(roles).on(grantedOnRecords.get(0));
+
+		if (importedAuthorization.getOverrideInherited() != null) {
+			request.andOverridingInheritedAuths(importedAuthorization.getOverrideInherited());
+		}
+
+		return request;
 	}
 
 	private List<String> getRoles(ImportedAuthorization importedAuthorization) {
@@ -133,21 +138,6 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 		}
 	}
 
-	private String getRecordIdOfRecordWithLegacyId(String legacyId, MetadataSchema schema) {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators
-				.from(schema).where(Schemas.LEGACY_ID).is(legacyId);
-		List<Record> result = searchServices.search(new LogicalSearchQuery(condition));
-		if (result == null) {
-			LOGGER.warn("no record with legacyId " + legacyId + " in schema " + schema.getCode());
-			return null;
-		} else if (result.size() != 1) {
-			LOGGER.warn("several records with legacyId " + legacyId + " in schema " + schema.getCode());
-			return null;
-		} else {
-			return result.get(0).getId();
-		}
-	}
-
 	private String getUserId(String username) {
 		try {
 			User user = userServices.getUserInCollection(username, this.collection);
@@ -176,34 +166,19 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	}
 
 	private String getValidTarget(ImportedAuthorizationTarget target) {
-		//"folder", "document", "administrativeUnit", "userTask"
-		String type = target.getType().trim();
-		if (type.equals("folder")) {
-			return getFolderIdOfFolderWithLegacyId(target.getLegacyId());
-		} else if (type.equals("document")) {
-			return getDocumentIdOfDocumentWithLegacyId(target.getLegacyId());
-		} else if (type.equals("administrativeUnit")) {
-			return getAdminUnitIdOfAdminUnitWithLegacyId(target.getLegacyId());
-		} else if (type.equals("userTask")) {
-			return getTaskIdOfTaskWithLegacyId(target.getLegacyId());
+
+		Record record;
+		if (target.getLegacyId().contains(":")) {
+
+			MetadataSchemaType schemaType = types.getSchemaType(target.getType());
+			Metadata metadata = schemaType.getDefaultSchema().get(StringUtils.substringBefore(target.getLegacyId(), ":"));
+			String value = StringUtils.substringAfter(target.getLegacyId(), ":");
+			record = recordServices.getRecordByMetadata(metadata, value);
+		} else {
+			record = schemas.getByLegacyId(target.getType(), target.getLegacyId());
 		}
-		return null;
-	}
 
-	private String getTaskIdOfTaskWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, schemas.defaultSchema(Task.SCHEMA_TYPE));
-	}
-
-	private String getAdminUnitIdOfAdminUnitWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.administrativeUnit.schema());
-	}
-
-	private String getDocumentIdOfDocumentWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.defaultDocumentSchema());
-	}
-
-	private String getFolderIdOfFolderWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.folder.schema());
+		return record == null ? null : record.getId();
 	}
 
 }

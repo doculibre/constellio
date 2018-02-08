@@ -1,9 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,19 +27,15 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidRole;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 
 public class AuthorizationImportServices {
 	private static final Logger LOGGER = LogManager.getLogger(AuthorizationImportServices.class);
@@ -57,12 +51,12 @@ public class AuthorizationImportServices {
 	public static final String EMPTY_LEGACY_ID = "AuthorizationImportServices.emptyLegacyId";
 	public static final String EMPTY_PRINCIPAL_ID = "AuthorizationImportServices.emptyPrincipalId";
 
-	private RecordServices recordServices;
+	private ModelLayerFactory modelLayerFactory;
 	private SchemasRecordsServices schemas;
 
 	public BulkImportResults bulkImport(File file, String collection, ModelLayerFactory modelLayerFactory) {
 		this.schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		this.recordServices = modelLayerFactory.newRecordServices();
+		this.modelLayerFactory = modelLayerFactory;
 		BulkImportResults result = new BulkImportResults();
 		if (file != null) {
 			Document document = getDocumentFromFile(file);
@@ -77,7 +71,7 @@ public class AuthorizationImportServices {
 			List<ImportedAuthorization> allImportedAuthorizations = new ImportedAuthorizationReader(
 					document).readAll();
 			List<ImportedAuthorization> validAuthorizations = addInvalidAuthorizationsToErrorsAndGetValidAuthorizations(
-					allImportedAuthorizations, bulkImportResults);
+					collection, allImportedAuthorizations, bulkImportResults);
 			addUpdateOrDeleteAuthorizations(validAuthorizations, collection, modelLayerFactory, bulkImportResults);
 		} catch (Exception e) {
 			bulkImportResults.add(new ImportError("", e.getMessage()));
@@ -120,13 +114,18 @@ public class AuthorizationImportServices {
 				String authId = authorizationServices.add(authorizationAddRequest);
 
 				try {
-					recordServices.update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
+					modelLayerFactory.newRecordServices()
+							.update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
 
 			} catch (ImportedAuthorizationBuilderRuntimeException e) {
-				deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
+				try {
+					deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
+				} finally {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
@@ -155,11 +154,17 @@ public class AuthorizationImportServices {
 	//	}
 
 	List<ImportedAuthorization> addInvalidAuthorizationsToErrorsAndGetValidAuthorizations(
+			String collection,
 			List<ImportedAuthorization> allImportedAuthorizations,
 			BulkImportResults bulkImportResults) {
 		List<String> addedAuthorizationsCodes = new ArrayList<>();
 		List<ImportedAuthorization> validAuthorizations = new ArrayList<>();
-		ImportedAuthorizationValidator importedAuthorizationValidator = new ImportedAuthorizationValidator();
+
+		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(collection);
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+
+		ImportedAuthorizationValidator importedAuthorizationValidator = new ImportedAuthorizationValidator(
+				types, principalTaxonomy);
 
 		for (ImportedAuthorization importedAuthorization : allImportedAuthorizations) {
 			String id = importedAuthorization.getId();

@@ -48,7 +48,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public static final String AUTHORIZATIONS = "authorizations";
 
 	public enum AuthorizationSource {
-		INHERITED, OWN
+		INHERITED, OWN, INHERITED_FROM_METADATA
 	}
 
 	public enum DisplayMode {
@@ -59,6 +59,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	protected RecordVO record;
 	private VerticalLayout layout;
 	private Table authorizations;
+	private Table authorizationsReceivedFromMetadatas;
 	private Button detach;
 
 	@Override
@@ -131,6 +132,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 		buildGlobalAccess(layout);
+		buildInheritedAuthorizationsFromMetadatas(layout);
 		buildInheritedAuthorizations(layout);
 		buildOwnAuthorizations(layout);
 
@@ -145,6 +147,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public void refresh() {
 		layout.removeAllComponents();
 		buildGlobalAccess(layout);
+		buildInheritedAuthorizationsFromMetadatas(layout);
 		buildInheritedAuthorizations(layout);
 		buildOwnAuthorizations(layout);
 		detach.setEnabled(presenter.isAttached());
@@ -175,6 +178,37 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		layout.addComponents(label, authorizations);
 	}
 
+	private void buildInheritedAuthorizationsFromMetadatas(VerticalLayout layout) {
+		List<AuthorizationVO> authorizationVOs = presenter.getInheritedAuthorizationsFromMetadatas();
+
+		Label label = new Label();
+		if (presenter.seeAccessField()) {
+			label.setValue($("ListAccessAuthorizationsView.inheritedMetadataAuthorizations"));
+		} else if (presenter.seeRolesField()) {
+			label.setValue($("ListRoleAuthorizationsView.inheritedMetadataAuthorizations"));
+		}
+		label.addStyleName(ValoTheme.LABEL_H2);
+		authorizationsReceivedFromMetadatas = buildAuthorizationTable(authorizationVOs,
+				AuthorizationSource.INHERITED_FROM_METADATA);
+
+		if (!authorizationVOs.isEmpty()) {
+
+			layout.addComponent(label);
+			if (presenter.hasOverridenSecurityFromMetadatas()) {
+				Label warningLabel = new Label();
+				if (presenter.seeAccessField()) {
+					warningLabel.setValue($("ListAccessAuthorizationsView.inheritedAuthorizationsOverriden"));
+				} else if (presenter.seeRolesField()) {
+					warningLabel.setValue($("ListRoleAuthorizationsView.inheritedAuthorizationsOverriden"));
+				}
+				warningLabel.addStyleName(ValoTheme.LABEL_COLORED);
+				layout.addComponent(warningLabel);
+			}
+
+			layout.addComponent(authorizationsReceivedFromMetadatas);
+		}
+	}
+
 	private void buildInheritedAuthorizations(VerticalLayout layout) {
 		List<AuthorizationVO> authorizationVOs = presenter.getInheritedAuthorizations();
 
@@ -185,8 +219,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			label.setValue($("ListRoleAuthorizationsView.inheritedAuthorizations"));
 		}
 		label.addStyleName(ValoTheme.LABEL_H2);
-		authorizations = buildAuthorizationTable(authorizationVOs, AuthorizationSource.INHERITED);
-		layout.addComponents(label, authorizations);
+
+		if (!presenter.hasOverridenSecurityFromMetadatas() || !authorizationVOs.isEmpty()) {
+			authorizations = buildAuthorizationTable(authorizationVOs, AuthorizationSource.INHERITED);
+			layout.addComponents(label, authorizations);
+		}
 	}
 
 	private Table buildAuthorizationTable(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
@@ -213,7 +250,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
 		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
-		if(canEditAuthorizations()) {
+		if (canEditAuthorizations()) {
 			container.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
@@ -359,12 +396,15 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		public static final String USER_ROLES = "userRoles";
 		public static final String START_DATE = "startDate";
 		public static final String END_DATE = "endDate";
+		public static final String RECEIVED_FROM_METADATA_LABEL = "receivedFromMetadataLabel";
+		public static final String RECEIVED_FROM_RECORD_CAPTION = "receivedFromRecordCaption";
 		public static final String BUTTONS = "buttons";
 
 		private final AuthorizationSource source;
 		private final DisplayMode mode;
 		private boolean seeRolesField;
 		private boolean seeAccessField;
+		private boolean seeMetadataField;
 		private final JodaDateToStringConverter converter;
 
 		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeAccessField) {
@@ -372,6 +412,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
 			this.seeAccessField = seeAccessField;
+			this.seeMetadataField = source == AuthorizationSource.INHERITED_FROM_METADATA;
 			converter = new JodaDateToStringConverter();
 		}
 
@@ -398,6 +439,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.setColumnHeader(USER_ROLES, $("AuthorizationsView.userRoles"));
 			}
 
+			if (seeMetadataField) {
+				table.addGeneratedColumn(RECEIVED_FROM_METADATA_LABEL, this);
+				table.setColumnHeader(RECEIVED_FROM_METADATA_LABEL, $("AuthorizationsView.receivedFromMetadata"));
+
+				table.addGeneratedColumn(RECEIVED_FROM_RECORD_CAPTION, this);
+				table.setColumnHeader(RECEIVED_FROM_RECORD_CAPTION, $("AuthorizationsView.receivedFromRecord"));
+			}
+
 			table.addGeneratedColumn(START_DATE, this);
 			table.setColumnHeader(START_DATE, $("AuthorizationsView.startDate"));
 
@@ -414,7 +463,19 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				} else if (seeRolesField && !seeAccessField) {
 					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE, BUTTONS);
 				}
-			} else {
+			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
+				if (seeRolesField && seeAccessField) {
+					table.setVisibleColumns(primary, ACCESS, RECEIVED_FROM_RECORD_CAPTION,
+							USER_ROLES, START_DATE, END_DATE);
+				} else if (!seeRolesField && seeAccessField) {
+					table.setVisibleColumns(primary, ACCESS, RECEIVED_FROM_RECORD_CAPTION,
+							START_DATE, END_DATE);
+				} else if (seeRolesField && !seeAccessField) {
+					table.setVisibleColumns(primary, USER_ROLES, RECEIVED_FROM_RECORD_CAPTION,
+							START_DATE, END_DATE);
+				}
+
+			} else if (source == AuthorizationSource.INHERITED) {
 				if (seeRolesField && seeAccessField) {
 					table.setVisibleColumns(primary, ACCESS, USER_ROLES, START_DATE, END_DATE);
 				} else if (!seeRolesField && seeAccessField) {
@@ -422,6 +483,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				} else if (seeRolesField && !seeAccessField) {
 					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE);
 				}
+
 			}
 
 			table.setWidth("100%");
@@ -439,6 +501,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				return buildAccessColumn(authorization.getAccessRoles());
 			case USER_ROLES:
 				return buildUserRolesColumn(authorization.getUserRoles(), authorization.getUserRolesTitles());
+			case RECEIVED_FROM_METADATA_LABEL:
+				return authorization.getReceivedFromMetadataLabel();
+			case RECEIVED_FROM_RECORD_CAPTION:
+				return authorization.getReceivedFromRecordCaption();
 			default:
 				LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
 				return converter.convertToPresentation(

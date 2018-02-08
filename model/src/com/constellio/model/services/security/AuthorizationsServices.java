@@ -720,9 +720,19 @@ public class AuthorizationsServices {
 
 		} else {
 			SchemasRecordsServices schemas = schemas(record.getCollection());
-			authIds = searchServices.searchRecordIds(from(schemas.authorizationDetails.schemaType())
-					.where(schemas.authorizationDetails.target()).isIn(record.<String>getList(ATTACHED_ANCESTORS))
-					.andWhere(Schemas.IDENTIFIER).isNotIn(record.getList(ALL_REMOVED_AUTHS)));
+
+			authIds = new ArrayList<>();
+			for (AuthorizationDetails authorizationDetails : schemas.getAllAuthorizations()) {
+
+				boolean targettingRecordOrAncestor =
+						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
+								|| record.getId().equals(authorizationDetails.getTarget()))
+								&& !record.getList(ALL_REMOVED_AUTHS).contains(authorizationDetails.getId());
+
+				if (targettingRecordOrAncestor) {
+					authIds.add(authorizationDetails.getId());
+				}
+			}
 
 		}
 
@@ -1142,7 +1152,16 @@ public class AuthorizationsServices {
 
 		String schemaType = newSchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		if (secondaryTaxonomySchemaTypes.contains(schemaType)) {
-			throw new CannotAddAuhtorizationInNonPrincipalTaxonomy();
+
+			boolean hasMetadataProvidingSecurityFromThisType = false;
+			for (Metadata metadata : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
+					.getAllMetadatas().onlyReferencesToType(schemaType)) {
+				hasMetadataProvidingSecurityFromThisType |= metadata.isRelationshipProvidingSecurity();
+			}
+
+			if (!hasMetadataProvidingSecurityFromThisType) {
+				throw new CannotAddAuhtorizationInNonPrincipalTaxonomy();
+			}
 		}
 
 	}

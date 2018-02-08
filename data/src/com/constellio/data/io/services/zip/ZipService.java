@@ -37,6 +37,7 @@ public class ZipService {
 		this.ioServices = ioServices;
 	}
 
+
 	public void zip(File zipFile, List<File> zippedFiles)
 			throws ZipServiceException {
 
