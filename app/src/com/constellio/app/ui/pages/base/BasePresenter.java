@@ -32,6 +32,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -78,6 +79,27 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 					LOGGER.warn("Error does not have access to the page");
 					view.navigate().to().home();
 				}
+			}
+
+			@Override
+			public boolean exception(Exception e) {
+				boolean exceptionHandled;
+				if (e instanceof RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) {
+					RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame wrongCollectionException = 
+							(RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) e;
+					String recordCollection = wrongCollectionException.getRecordCollection();
+					String sessionContextCollection = view.getSessionContext().getCurrentCollection();
+					if (!recordCollection.equals(sessionContextCollection)) {
+						exceptionHandled = true;
+						view.getSessionContext().setCurrentCollection(recordCollection);
+						view.navigate().to().currentView();
+					} else {
+						exceptionHandled = false;
+					}
+				} else {
+					exceptionHandled = false;
+				}
+				return exceptionHandled;
 			}
 		});
 		this.collection = sessionContext.getCurrentCollection();

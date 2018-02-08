@@ -80,135 +80,149 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public final void enter(ViewChangeEvent event) {
-		if (event != null) {
-			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-				viewEnterListener.viewEntered(event.getParameters());
-			}
-		}
-
-		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
-		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
-
-		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
-		if (collection != null) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
-		}
-
 		try {
-			initBeforeCreateComponents(event);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			LOGGER.error(e.getMessage(), e);
-			// TODO Obtain home without hard-coding the class
-			if (!(this instanceof HomeViewImpl)) {
-				navigateTo().home();
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					viewEnterListener.viewEntered(event.getParameters());
+				}
 			}
-			return;
-		}
 
-		if (event != null) {
-			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-				viewEnterListener.afterInit(event.getParameters());
+			DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+
+			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
+			String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+			if (collection != null) {
+				appLayerFactory.getExtensions().forCollection(collection)
+						.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 			}
-		}
 
-		addStyleName("main-component-wrapper");
-		setSizeFull();
+			try {
+				initBeforeCreateComponents(event);
+			} catch (Exception e) {
+				e.printStackTrace();
 
-		removeAllComponents();
-
-		if(isBreadcrumbsVisible()) {
-			breadcrumbTrail = buildBreadcrumbTrail();
-		}
-
-		titleBackButtonLayout = new I18NHorizontalLayout();
-		titleBackButtonLayout.setWidth("100%");
-
-		String title = getTitle();
-		if(isBreadcrumbsVisible()) {
-			if (breadcrumbTrail == null && title != null) {
-				breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-			} else if (title != null) {
-				titleLabel = new Label(title);
-				titleLabel.addStyleName(ValoTheme.LABEL_H1);
+				LOGGER.error(e.getMessage(), e);
+				// TODO Obtain home without hard-coding the class
+				if (!(this instanceof HomeViewImpl)) {
+					navigateTo().home();
+				}
+				return;
 			}
-		}
+
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					viewEnterListener.afterInit(event.getParameters());
+				}
+			}
+
+			addStyleName("main-component-wrapper");
+			setSizeFull();
+
+			removeAllComponents();
+
+			if(isBreadcrumbsVisible()) {
+				breadcrumbTrail = buildBreadcrumbTrail();
+			}
+
+			titleBackButtonLayout = new I18NHorizontalLayout();
+			titleBackButtonLayout.setWidth("100%");
+
+			String title = getTitle();
+			if(isBreadcrumbsVisible()) {
+				if (breadcrumbTrail == null && title != null) {
+					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+				} else if (title != null) {
+					titleLabel = new Label(title);
+					titleLabel.addStyleName(ValoTheme.LABEL_H1);
+				}
+			}
 
 
-		backButton = new BackButton();
-		ClickListener backButtonClickListener = getBackButtonClickListener();
-		if (backButtonClickListener != null) {
-			backButton.setVisible(true);
-			backButton.addStyleName(BACK_BUTTON_CODE);
-			backButton.addClickListener(backButtonClickListener);
-		} else {
-			backButton.setVisible(false);
-		}
+			backButton = new BackButton();
+			ClickListener backButtonClickListener = getBackButtonClickListener();
+			if (backButtonClickListener != null) {
+				backButton.setVisible(true);
+				backButton.addStyleName(BACK_BUTTON_CODE);
+				backButton.addClickListener(backButtonClickListener);
+			} else {
+				backButton.setVisible(false);
+			}
 
-		actionMenu = buildActionMenu(event);
-		if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
-			addStyleName("action-menu-wrapper");
+			actionMenu = buildActionMenu(event);
+			if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
+				addStyleName("action-menu-wrapper");
+				if (actionMenu != null) {
+					actionMenu.addStyleName("action-menu");
+				}
+			}
+
+			mainComponent = buildMainComponent(event);
+			mainComponent.addStyleName("main-component");
+
+//			if (titleLabel != null || backButton.isVisible()) {
+				addComponent(titleBackButtonLayout);
+//			}
+
+			if (breadcrumbTrail != null) {
+				addComponent(breadcrumbTrail);
+			}
+
+			addComponent(mainComponent);
 			if (actionMenu != null) {
-				actionMenu.addStyleName("action-menu");
+				addComponent(actionMenu);
 			}
-		}
 
-		mainComponent = buildMainComponent(event);
-		mainComponent.addStyleName("main-component");
+			if (titleLabel != null || backButton.isVisible()) {
+				if (titleLabel != null) {
+					titleBackButtonLayout.addComponents(titleLabel);
+				}
+				titleBackButtonLayout.addComponents(backButton);
+			}
 
-//		if (titleLabel != null || backButton.isVisible()) {
-			addComponent(titleBackButtonLayout);
-//		}
-
-		if (breadcrumbTrail != null) {
-			addComponent(breadcrumbTrail);
-		}
-
-		addComponent(mainComponent);
-		if (actionMenu != null) {
-			addComponent(actionMenu);
-		}
-
-		if (titleLabel != null || backButton.isVisible()) {
+			setExpandRatio(mainComponent, 1f);
 			if (titleLabel != null) {
-				titleBackButtonLayout.addComponents(titleLabel);
+				titleBackButtonLayout.setExpandRatio(titleLabel, 1);
 			}
-			titleBackButtonLayout.addComponents(backButton);
-		}
 
-		setExpandRatio(mainComponent, 1f);
-		if (titleLabel != null) {
-			titleBackButtonLayout.setExpandRatio(titleLabel, 1);
-		}
+			if (isBackgroundViewMonitor()) {
+				addBackgroundViewMonitor();
+			}
 
-		if (isBackgroundViewMonitor()) {
-			addBackgroundViewMonitor();
-		}
+			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
+			if (collection != null) {
+				appLayerFactory.getExtensions().forCollection(collection)
+						.decorateMainComponentAfterViewAssembledOnViewEntered(params);
+			}
 
-		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
-		if (collection != null) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.decorateMainComponentAfterViewAssembledOnViewEntered(params);
+			afterViewAssembled(event);
+			
+//			StringBuffer js = new StringBuffer();
+//			js.append("setTimeout(function() {setInterval(function() {\r\n"); 
+//			js.append("try {");
+//			js.append("\r\n");
+//			js.append("var req = new XMLHttpRequest();"); 
+//			js.append("\r\n");
+//			js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
+//			js.append("\r\n");
+//			js.append("req.send();");
+//			js.append("\r\n");
+//			js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
+//			js.append("}, 10000);}, 1000);");
+//			if (true) com.vaadin.ui.JavaScript.eval(js.toString());
+		} catch (Exception e) {
+			boolean exceptionHandled = false;
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					if (viewEnterListener.exception(e)) {
+						exceptionHandled = true;
+					}
+				}
+			}
+			if (!exceptionHandled) {
+				throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
+			}
 		}
-
-		afterViewAssembled(event);
-		
-//		StringBuffer js = new StringBuffer();
-//		js.append("setTimeout(function() {setInterval(function() {\r\n"); 
-//		js.append("try {");
-//		js.append("\r\n");
-//		js.append("var req = new XMLHttpRequest();"); 
-//		js.append("\r\n");
-//		js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
-//		js.append("\r\n");
-//		js.append("req.send();");
-//		js.append("\r\n");
-//		js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
-//		js.append("}, 10000);}, 1000);");
-//		if (true) com.vaadin.ui.JavaScript.eval(js.toString());
 	}
 
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
