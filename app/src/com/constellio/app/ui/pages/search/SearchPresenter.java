@@ -406,8 +406,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setQTime(response.getQtime());
 		searchEvent.setNumFound(response.getNumFound());
 		UIContext uiContext = view.getUIContext();
-		SearchEvent oldSearchEvent = schemasRecordsServices
-				.wrapSearchEvent((Record) uiContext.getAttribute("CURRENT_SEARCH_EVENT"));
+
+		Record oldSearchEventRecord = uiContext.getAttribute("CURRENT_SEARCH_EVENT");
+		SearchEvent oldSearchEvent = null;
+		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
+			oldSearchEvent = schemasRecordsServices.wrapSearchEvent(oldSearchEventRecord);
+		}
 
 		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
 			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
