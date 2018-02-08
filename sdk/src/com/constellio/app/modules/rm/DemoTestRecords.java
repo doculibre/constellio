@@ -329,6 +329,15 @@ public class DemoTestRecords {
 		PA = schemas.PA();
 		MD = schemas.DM();
 		MV = schemas.FI();
+
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
+		if ("ar".equals(mainDataLanguage)) {
+			PA = schemas.getMediumTypeByCode("ورقي").getId();
+			MD = schemas.getMediumTypeByCode("القرص المغناطيسي").getId();
+			MV = schemas.getMediumTypeByCode("فيلم").getId();
+		}
+
 		PA_MD = asList(PA, MD);
 
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
