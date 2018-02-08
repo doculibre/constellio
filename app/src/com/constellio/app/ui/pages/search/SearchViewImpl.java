@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamRes
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -402,7 +403,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
 		sortBy.addStyleName(SORT_TITLE_STYLE);
 
-		final ComboBox criterion = new ComboBox();
+		final ComboBox criterion = new BaseComboBox();
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		criterion.setWidth("100%");
 
@@ -509,13 +510,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			String caption = facetValue.getLabel();
 			caption += " (" + facetValue.getCount() + ")";
-//			checkBox.setCaption(caption);
-			HorizontalLayout checkBoxLayout = new HorizontalLayout(checkBox, new Label(caption));
-			checkBoxLayout.setSpacing(true);
+			checkBox.setCaption(caption);
 
 			@SuppressWarnings("unchecked")
 			Property<Component> value = (Property<Component>) table.addItem(checkBox).getItemProperty("value");
-			value.setValue(checkBoxLayout);
+			value.setValue(checkBox);
 		}
 
 		table.setPageLength(Math.min(facet.getValuesPerPage(), values.size()));

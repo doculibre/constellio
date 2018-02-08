@@ -14057,6 +14057,25 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .v-radiobutton label {
+	margin-right: 13px;
+}
+
+.constellio .right-to-left .v-radiobutton > input {
+	left: inherit;
+	right: -16px;
+}
+
+.constellio .right-to-left .v-radiobutton > input:checked ~ label:after {
+	left: inherit;
+	right: -13px;
+}
+
+.constellio .right-to-left .v-radiobutton > input ~ label:before, .constellio .right-to-left .v-radiobutton > input ~ label:after {
+	left: inherit;
+	right: -19px;
+}
+
 .constellio .right-to-left .icon-only {
 	text-align: center;
 }
@@ -14067,6 +14086,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .content-footer-wrapper .content-footer {
 	direction: ltr;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .search-result-summary {
+	direction: rtl;
 }
 
 .constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-footer {
@@ -14134,6 +14157,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-tree-node-caption > div:before {
 	content: "\f0d9";
+}
+
+.constellio .right-to-left .v-tree-node-caption {
+	direction: rtl;
 }
 
 .constellio .right-to-left .header .header-search {

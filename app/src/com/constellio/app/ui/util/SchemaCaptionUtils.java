@@ -1,6 +1,7 @@
 package com.constellio.app.ui.util;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.io.Serializable;
 
@@ -48,7 +49,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					caption = captionForSchemaTypeCode + " " + caption;
+					if (isRightToLeft()) {
+						caption = caption + " " + captionForSchemaTypeCode;
+					} else {
+						caption = captionForSchemaTypeCode + " " + caption;
+					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -77,7 +82,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					caption = captionForSchemaTypeCode + " " + caption;
+					if (isRightToLeft()) {
+						caption = caption + " " + captionForSchemaTypeCode;
+					} else {
+						caption = captionForSchemaTypeCode + " " + caption;
+					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -110,7 +119,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					caption = captionForSchemaTypeCode + " " + caption;
+					if (isRightToLeft()) {
+						caption = caption + " " + captionForSchemaTypeCode;
+					} else {
+						caption = captionForSchemaTypeCode + " " + caption;
+					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";
@@ -139,7 +152,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, recordVO);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-					caption = captionForSchemaTypeCode + " " + caption;
+					if (isRightToLeft()) {
+						caption = caption + " " + captionForSchemaTypeCode;
+					} else {
+						caption = captionForSchemaTypeCode + " " + caption;
+					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				caption = "";

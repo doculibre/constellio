@@ -1903,6 +1903,25 @@ $popup-view-z-index: 3;
 			direction: rtl;
 		}
 		
+		.v-radiobutton label {
+    		margin-right: 13px;
+    	}
+		
+		.v-radiobutton > input {
+			left: inherit;
+			right: -16px;
+		}
+		
+		.v-radiobutton > input:checked ~ label:after {
+			left: inherit;
+			right: -13px;
+		}
+		
+		.v-radiobutton > input ~ label:before, .v-radiobutton > input ~ label:after {
+			left: inherit;
+			right: -19px;
+		}
+
 		.icon-only {
 			text-align: center;
 		}
@@ -1912,6 +1931,10 @@ $popup-view-z-index: 3;
 			
 			.content-footer {
 				direction: ltr;
+				
+				.search-result-summary {
+					direction: rtl;
+				}
 				
 				.v-slot-footer {
 					direction: rtl;
@@ -2011,6 +2034,10 @@ $popup-view-z-index: 3;
 		
 		.v-tree-node {
 			//font-style: italic;
+		}
+		
+		.v-tree-node-caption {
+			direction: rtl;
 		}
 		
 		.header {
