@@ -644,12 +644,13 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 					descriptionField.setWidth("90%");
 
-					Button closeButton = new BaseButton($("OK")) {
+					Button closeButton = new BaseButton($("Ok")) {
 						@Override
 						protected void buttonClick(ClickEvent event) {
 							getWindow().close();
 						}
 					};
+					closeButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
 					windowLayout.addComponents(descriptionField, ignoreActivePeriodField, semiActiveYearTypeField,
 							inactiveYearTypeField, closeButton);
