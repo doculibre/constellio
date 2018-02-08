@@ -123,7 +123,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     }
 
     @Override
-    protected Component buildSummary(SearchResultTable results) {
+    protected Component buildSummary(final SearchResultTable results) {
         // TODO: Create an extension for this
 
         final String schemaType = getSchemaType();
@@ -178,12 +178,22 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
         }
 
 
-        reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, !presenter.getListSearchableMetadataSchemaType().contains(schemaType), !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType)));
+        reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this,
+                !presenter.getListSearchableMetadataSchemaType().contains(schemaType),
+                !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType))) {
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+                RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
+                        .toArray(new RecordVO[0]);
+                reportButton.setRecordVoList(recordVOS);
+                super.buttonClick(event);
+            }
+        };
         reportButton.addStyleName(ValoTheme.BUTTON_LINK);
         reportButton.setVisible(presenter.hasAnyReportForSchemaType(schemaType));
         reportButton.setEnabled(presenter.hasAnyReportForSchemaType(schemaType));
         selectionActions.add(reportButton);
-        addListenerToButton(results);
 
 
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
@@ -195,7 +205,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
             boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
                     .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
+                @Override
+                public void buttonClick(ClickEvent event) {
+                    RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
+                            .toArray(new RecordVO[0]);
+                    sipButton.setAllObject(recordVOS);
+                    super.buttonClick(event);
+                }
+            };
             sipButton.addStyleName(ValoTheme.BUTTON_LINK);
             sipButton.setVisible(hasAccessToSIP);
             sipButton.setEnabled(hasAccessToSIP);
@@ -337,33 +355,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             throw new RuntimeException("Unsupported mode " + mode);
         }
     }
-
-	private void addListenerToButton(SearchResultTable results) {
-		if (results instanceof SearchResultDetailedTable) {
-			((SearchResultDetailedTable) results)
-					.addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
-						@Override
-						public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
-							RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
-									.toArray(new RecordVO[0]);
-							if(reportButton != null) {reportButton.setRecordVoList(recordVOS);
-							}
-							if(sipButton != null) {sipButton.addAllObject(recordVOS);}
-						}
-					});
-		} else {
-			((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
-				@Override
-				public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
-					RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
-							.toArray(new RecordVO[0]);
-					if(reportButton != null) {reportButton.setRecordVoList(recordVOS);
-					}
-					if(sipButton != null) {sipButton.setAllObject(recordVOS);
-				}
-			}
-		});
-	}}
 
     @Override
     public Boolean computeStatistics() {
