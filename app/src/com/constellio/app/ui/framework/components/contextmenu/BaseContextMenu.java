@@ -25,7 +25,7 @@ public class BaseContextMenu extends ContextMenu {
 	
 	private ContextMenuItem adjustStyleName(ContextMenuItem item) {
 		if (isRightToLeft()) {
-			item.addStyleName("context-menu-rtl");
+			item.addStyleName("context-menu-item-rtl");
 		}
 		return item;
 	}

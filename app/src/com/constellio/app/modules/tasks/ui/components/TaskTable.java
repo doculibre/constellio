@@ -2,44 +2,40 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
-import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.vaadin.data.Container;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -74,7 +70,7 @@ public class TaskTable extends RecordVOTable {
 			@Override
 			public Object generateCell(Table source, final Object itemId, Object columnId) {
 				final RecordVO recordVO = records.getRecordVO((int) itemId);
-				MenuBar menuBar = new MenuBar();
+				MenuBar menuBar = new BaseMenuBar();
 				MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 				
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {

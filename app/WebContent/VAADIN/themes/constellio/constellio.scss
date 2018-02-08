@@ -1045,7 +1045,7 @@ $popup-view-z-index: 3;
 		    background-color: #414B56;
 	    }
 	
-		.context-menu-rtl {
+		.context-menu-item-rtl {
 			clear: both;
 		
 			.v-context-menu-item-basic-icon-container {
@@ -1058,7 +1058,23 @@ $popup-view-z-index: 3;
 			}
 		}
     }
+    
+    .v-menubar-submenu.menubar-rtl {
+    	.v-menubar-menuitem {
+    		clear: both;
 
+	    	.v-menubar-menuitem-caption {
+	    		text-align: right;
+	    		float: right;
+	    		
+	    		.v-icon {
+	    			float: right;
+	    			padding-left: 10px;
+	    		}
+	    	}
+    	}
+    }
+    
 	.v-table-row-textRed {
 	    color: red;
 	}

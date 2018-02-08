@@ -13216,17 +13216,31 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
-.constellio .v-context-menu .context-menu-rtl {
+.constellio .v-context-menu .context-menu-item-rtl {
 	clear: both;
 }
 
-.constellio .v-context-menu .context-menu-rtl .v-context-menu-item-basic-icon-container {
+.constellio .v-context-menu .context-menu-item-rtl .v-context-menu-item-basic-icon-container {
 	float: right;
 }
 
-.constellio .v-context-menu .context-menu-rtl .v-context-menu-item-basic-text {
+.constellio .v-context-menu .context-menu-item-rtl .v-context-menu-item-basic-text {
 	text-align: right;
 	margin-right: 25px;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
+	clear: both;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption {
+	text-align: right;
+	float: right;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption .v-icon {
+	float: right;
+	padding-left: 10px;
 }
 
 .constellio .v-table-row-textRed {
