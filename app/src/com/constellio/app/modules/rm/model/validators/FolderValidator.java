@@ -41,6 +41,7 @@ public class FolderValidator implements RecordValidator {
 
 	private void validate(Folder folder, RecordValidatorParams params) {
 		RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
+		boolean hasParentFolder = folder.getParentFolder() != null;
 		String uniformSubdivisionId = folder.getUniformSubdivision();
 		Boolean areUniformSubdivisionEnabled = (Boolean) params.getConfigProvider().get(RMConfigs.UNIFORM_SUBDIVISION_ENABLED);
 		String mainCopyRuleIdEntered = folder.getMainCopyRuleIdEntered();
@@ -79,7 +80,7 @@ public class FolderValidator implements RecordValidator {
 			params.getValidationErrors().add(FolderValidator.class, FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE, parameters);
 		}
 
-		if (mainCopyRuleIdEntered != null && retentionRule != null) {
+		if (mainCopyRuleIdEntered != null && retentionRule != null && !hasParentFolder) {
 			boolean match = false;
 			for (CopyRetentionRule applicableCopyRule : folder.getApplicableCopyRules()) {
 				if (mainCopyRuleIdEntered.equals(applicableCopyRule.getId())) {
