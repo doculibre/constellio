@@ -966,18 +966,20 @@ public class UserServices {
 	public void safePhysicalDeleteUserCredential(String username)
 			throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
 		LOGGER.info("safePhysicalDeleteUser : " + username);
-		UserCredential user = getUser(username);
-		for (String collection : user.getCollections()) {
-			String userId = this.getUserInCollection(user.getUsername(), collection).getId();
-			if (searchServices.hasResults(
-					from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-							.isEqualTo(userId))) {
-				LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
-				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+		UserCredential userCredential = getUser(username);
+		for (String collection : userCredential.getCollections()) {
+			User user = this.getUserInCollection(userCredential.getUsername(), collection);
+			if (user != null) {
+				if (searchServices.hasResults(
+						from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
+								.isEqualTo(user.getId()))) {
+					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
+					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+				}
 			}
 		}
-		recordServices.logicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
 	}
 
 	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
