@@ -319,6 +319,17 @@ public class RetentionRuleXMLExporter {
 		return new RetentionRuleXMLExporter(rm.wrapRetentionRules(records), exportFile, collection, modelLayerFactory);
 	}
 
+	public static RetentionRuleXMLExporter forAllRulesInCollection(String collection,
+																		   File exportFile, ModelLayerFactory modelLayerFactory) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<Record> records = searchServices.search(new LogicalSearchQuery(
+				from(rm.retentionRule.schemaType())
+						.where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).sortAsc(CODE));
+
+		return new RetentionRuleXMLExporter(rm.wrapRetentionRules(records), exportFile, collection, modelLayerFactory);
+	}
+
 	public static void validate(File xmlFile) {
 
 		try {

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
 import static com.constellio.app.modules.rm.exports.RetentionRuleXMLExporter.forAllApprovedRulesInCollection;
+import static com.constellio.app.modules.rm.exports.RetentionRuleXMLExporter.forAllRulesInCollection;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.File;
@@ -20,15 +21,15 @@ import com.vaadin.server.StreamResource;
 
 public class ExportRetentionRulesLink extends DownloadLink {
 
-	public ExportRetentionRulesLink(String caption) {
-		super(new RetentionRuleVOsResource(), caption);
+	public ExportRetentionRulesLink(String caption, boolean onlyApproved) {
+		super(new RetentionRuleVOsResource(onlyApproved), caption);
 	}
 	
 	public static class RetentionRuleVOsResource extends StreamResource {
 
 		private static final String STREAM_NAME = "ExportRetentionRulesLink.RetentionRuleVOsResource-InputStream";
 
-		public RetentionRuleVOsResource() {
+		public RetentionRuleVOsResource(final boolean onlyApproved) {
 			super(new StreamSource() {
 				@Override
 				public InputStream getStream() {
@@ -41,8 +42,13 @@ public class ExportRetentionRulesLink extends DownloadLink {
 						String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 						ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 						ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-						RetentionRuleXMLExporter exporter = forAllApprovedRulesInCollection(collection, tempFile, modelLayerFactory);
-						
+						RetentionRuleXMLExporter exporter;
+						if(onlyApproved) {
+							exporter = forAllApprovedRulesInCollection(collection, tempFile, modelLayerFactory);
+						} else {
+							exporter = forAllRulesInCollection(collection, tempFile, modelLayerFactory);
+						}
+
 						try {
 							exporter.run();
 							return new AutoCloseInputStream(new FileInputStream(tempFile)) {
