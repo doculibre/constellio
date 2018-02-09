@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.reports.label;
 
+import static com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator.fillEmptyTags;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -148,6 +149,9 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
                     for (Metadata metadata : listOfMetadataOfRecordElement) {
                         //Create the metadata tags.
                         List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);
+                        if(xmlGeneratorParameters != null && this.xmlGeneratorParameters.isForTest()) {
+                            metadataTags = fillEmptyTags(metadataTags);
+                        }
                         //add them to the childrens.
                         XMLMetadatasOfSingularElement.addContent(metadataTags);
                     }
@@ -316,7 +320,11 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
     @Override
     public AbstractXmlGeneratorParameters getXmlGeneratorParameters() {
-        return null;
+        return xmlGeneratorParameters;
+    }
+
+    public void setXmlGeneratorParameters(AbstractXmlGeneratorParameters xmlGeneratorParameters) {
+        this.xmlGeneratorParameters = xmlGeneratorParameters;
     }
 
     public static String getLabelOfMetadata(Metadata metadata) {

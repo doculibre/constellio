@@ -11,6 +11,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.vaadin.navigator.View;
@@ -106,7 +107,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	protected Component buildUserMenu() {
-		userMenu = new MenuBar();
+		userMenu = new BaseMenuBar();
 		userMenu.addStyleName("user-menu");
 		buildUserMenuItems(userMenu);
 		return userMenu;

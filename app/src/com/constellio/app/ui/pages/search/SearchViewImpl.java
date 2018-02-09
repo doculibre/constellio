@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -509,7 +510,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			});
 
 			String caption = facetValue.getLabel();
-			caption += " (" + facetValue.getCount() + ")";
+			if (isRightToLeft()) {
+				caption = "(" + facetValue.getCount() + ") " + caption;
+			} else {
+				caption += " (" + facetValue.getCount() + ")";
+			}
 			checkBox.setCaption(caption);
 
 			@SuppressWarnings("unchecked")

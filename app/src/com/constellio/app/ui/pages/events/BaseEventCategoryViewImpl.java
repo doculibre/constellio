@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.framework.components.EventByIdSearchPanel;
 import com.constellio.app.ui.framework.components.EventReportGenerationPanel;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.event.EventCategoryContainer;
@@ -110,7 +111,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		addButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 
-		Table table = new Table("", container);
+		Table table = new BaseTable("BaseEventCategoryTable", "", container);
 		table.setColumnHeader(EventCategoryContainer.LABEL, $("title"));
 		table.setColumnHeader(EventCategoryContainer.VALUE, $("value"));
 		table.setPageLength(table.getItemIds().size());
