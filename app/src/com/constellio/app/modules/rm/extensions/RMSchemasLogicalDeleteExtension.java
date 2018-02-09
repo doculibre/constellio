@@ -125,6 +125,7 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		//TODO check if user can delete borrowed documents
 		boolean hasCheckedOutDocument = searchServices.hasResults(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
 				.andWhere(PATH_PARTS).isEqualTo(event.getRecord()));
