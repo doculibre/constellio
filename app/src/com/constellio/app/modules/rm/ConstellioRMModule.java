@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.migrations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +131,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_8;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_9;
-import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -155,6 +154,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -443,6 +443,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(Printable.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(rm.printable.schemaType()));
+		}
+		if (!cache.isConfigured(Report.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.report.schemaType()));
 		}
 
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {

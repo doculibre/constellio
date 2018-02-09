@@ -63,6 +63,7 @@ import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -211,6 +212,9 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!recordsCache.isConfigured(Printable.SCHEMA_TYPE)) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.printable.schemaType()));
+		}
+		if (!recordsCache.isConfigured(Report.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.report.schemaType()));
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

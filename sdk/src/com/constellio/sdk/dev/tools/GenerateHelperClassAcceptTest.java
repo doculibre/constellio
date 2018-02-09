@@ -56,6 +56,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
@@ -110,6 +111,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
 		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
 		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
+		wrappers.put(Report.DEFAULT_SCHEMA, Report.class);
 		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
 		wrappers.put(UserFolder.DEFAULT_SCHEMA, UserFolder.class);
 		wrappers.put(TemporaryRecord.DEFAULT_SCHEMA, TemporaryRecord.class);
@@ -150,6 +152,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(StorageSpaceType.DEFAULT_SCHEMA, StorageSpaceType.class);
 		wrappers.put(PrintableLabel.SCHEMA_NAME, PrintableLabel.class);
 		wrappers.put(PrintableReport.SCHEMA_NAME, PrintableReport.class);
+
 		wrappers.put(RMUserFolder.DEFAULT_SCHEMA, RMUserFolder.class);
 		wrappers.put(RMTask.DEFAULT_SCHEMA, RMTask.class);
 		wrappers.put(SIParchive.SCHEMA, SIParchive.class);

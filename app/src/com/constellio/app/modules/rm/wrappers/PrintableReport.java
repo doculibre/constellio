@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.wrappers;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
 public class PrintableReport extends Printable {
 	public final static String SCHEMA_TYPE = "report";
 	public final static String SCHEMA_NAME = Printable.SCHEMA_TYPE + "_" + SCHEMA_TYPE;
@@ -9,7 +11,7 @@ public class PrintableReport extends Printable {
 	public final static String RECORD_SCHEMA = "recordSchema";
 
 	public PrintableReport(Record record, MetadataSchemaTypes types) {
-		super(record, types);
+		super(record, types, SCHEMA_NAME);
 	}
 
 	public String getReportType() {
@@ -20,5 +22,7 @@ public class PrintableReport extends Printable {
 		return SCHEMA_TYPE;
 	}
 
-    public String getReportSchema() { return get(RECORD_SCHEMA); }
+	public String getReportSchema() {
+		return get(RECORD_SCHEMA);
+	}
 }

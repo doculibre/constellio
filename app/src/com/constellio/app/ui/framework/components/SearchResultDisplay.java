@@ -23,7 +23,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -44,198 +43,195 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultDisplay extends VerticalLayout {
 
-    public static final String RECORD_STYLE = "search-result-record";
-    public static final String TITLE_STYLE = "search-result-title";
-    public static final String HIGHLIGHTS_STYLE = "search-result-highlights";
-    public static final String METADATA_STYLE = "search-result-metadata";
-    public static final String ELEVATION_BUTTON_STYLE = "search-result-elevation";
-    public static final String EXCLUSION_BUTTON_STYLE = "search-result-exclusion";
-    public static final String SEPARATOR = " ... ";
+	public static final String RECORD_STYLE = "search-result-record";
+	public static final String TITLE_STYLE = "search-result-title";
+	public static final String HIGHLIGHTS_STYLE = "search-result-highlights";
+	public static final String METADATA_STYLE = "search-result-metadata";
+	public static final String ELEVATION_BUTTON_STYLE = "search-result-elevation";
+	public static final String EXCLUSION_BUTTON_STYLE = "search-result-exclusion";
+	public static final String SEPARATOR = " ... ";
 
-    public static final String ELEVATION = "SearchResultDisplay.elevation";
-    public static final String EXCLUSION = "SearchResultDisplay.exclusion";
-    public static final String CANCEL_EXCLUSION = "SearchResultDisplay.unexclusion";
-    public static final String CANCEL_ELEVATION = "SearchResultDisplay.unelevation";
+	public static final String ELEVATION = "SearchResultDisplay.elevation";
+	public static final String EXCLUSION = "SearchResultDisplay.exclusion";
+	public static final String CANCEL_EXCLUSION = "SearchResultDisplay.unexclusion";
+	public static final String CANCEL_ELEVATION = "SearchResultDisplay.unelevation";
 
-    private AppLayerFactory appLayerFactory;
-    private SessionContext sessionContext;
+	private AppLayerFactory appLayerFactory;
+	private SessionContext sessionContext;
 
-    SearchConfigurationsManager searchConfigurationsManager;
+	SearchConfigurationsManager searchConfigurationsManager;
 
-    SchemasRecordsServices schemasRecordsService;
+	SchemasRecordsServices schemasRecordsService;
 
-    IconButton excludeButton;
-    IconButton elevateButton;
+	IconButton excludeButton;
+	IconButton elevateButton;
 
-    String query;
+	String query;
 
-    private Component titleComponent;
+	private Component titleComponent;
 
-    public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-                               AppLayerFactory appLayerFactory, String query) {
-        this.appLayerFactory = appLayerFactory;
-        schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
-                getAppLayerFactory().getModelLayerFactory());
-        this.query = query;
-        searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+			AppLayerFactory appLayerFactory, String query) {
+		this.appLayerFactory = appLayerFactory;
+		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
+				getAppLayerFactory().getModelLayerFactory());
+		this.query = query;
+		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
-        this.sessionContext = getCurrent().getSessionContext();
-        init(searchResultVO, componentFactory);
-    }
+		this.sessionContext = getCurrent().getSessionContext();
+		init(searchResultVO, componentFactory);
+	}
 
-    protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-        titleComponent = newTitleComponent(searchResultVO);
-        addComponents(titleComponent,
-                newHighlightsLabel(searchResultVO),
-                newMetadataComponent(searchResultVO, componentFactory));
-        addStyleName(RECORD_STYLE);
-        setWidth("100%");
-        setSpacing(true);
-    }
+	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+		titleComponent = newTitleComponent(searchResultVO);
+		addComponents(titleComponent,
+				newHighlightsLabel(searchResultVO),
+				newMetadataComponent(searchResultVO, componentFactory));
+		addStyleName(RECORD_STYLE);
+		setWidth("100%");
+		setSpacing(true);
+	}
 
-    protected Component newTitleComponent(SearchResultVO searchResultVO) {
-        final RecordVO record = searchResultVO.getRecordVO();
+	protected Component newTitleComponent(SearchResultVO searchResultVO) {
+		final RecordVO record = searchResultVO.getRecordVO();
 
-        ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
-        title.addStyleName(TITLE_STYLE);
-        title.setWidthUndefined();
+		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
+		title.addStyleName(TITLE_STYLE);
+		title.setWidthUndefined();
 
 		I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 		horizontalLayout.addComponent(title);
 
-        CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
-                .has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
+		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
+				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
 
-        final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
-        boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
+		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			boolean isElevated = searchConfigurationsManager.isElevated(query, record.getId());
 
-        //NE SCALE PAS : Il y a un getDocumentById
-//        if (!Strings.isNullOrEmpty(query)
-//                && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-//                && userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-//            excludeButton = new IconButton(FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION)) {
-//                @Override
-//                protected void buttonClick(ClickEvent event) {
-//                }
-//            };
-//            excludeButton.addStyleName(EXCLUSION_BUTTON_STYLE);
-//            excludeButton.addStyleName(ValoTheme.BUTTON_LINK);
-//
-//            Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN: FontAwesome.ARROW_CIRCLE_O_UP;
-//            String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
-//
-//            elevateButton = new IconButton(elevateIcon, elevateText) {
-//                @Override
-//                protected void buttonClick(ClickEvent event) {
-//                }
-//            };
-//            elevateButton.addStyleName(ELEVATION_BUTTON_STYLE);
-//            elevateButton.addStyleName(ValoTheme.BUTTON_LINK);
-//
-//            horizontalLayout.addComponent(excludeButton, 1);
-//            horizontalLayout.addComponent(elevateButton, 2);
-//            horizontalLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
-//            horizontalLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
-//            horizontalLayout.setExpandRatio(excludeButton, 1);
-//            horizontalLayout.setExpandRatio(elevateButton, 1);
-//            horizontalLayout.setSpacing(true);
-//        }
-        return horizontalLayout;
-    }
+			excludeButton = new IconButton(FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION)) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+				}
+			};
+			excludeButton.addStyleName(EXCLUSION_BUTTON_STYLE);
+			excludeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-    protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-        Component metadata = buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
-        metadata.addStyleName(METADATA_STYLE);
-        return metadata;
-    }
+			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
+			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
 
-    protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
-        String formattedHighlights = formatHighlights(searchResultVO.getHighlights(), searchResultVO.getRecordVO());
-        Label highlights = new Label(formattedHighlights, ContentMode.HTML);
-        highlights.addStyleName(HIGHLIGHTS_STYLE);
-        if (StringUtils.isBlank(formattedHighlights)) {
-            highlights.setVisible(false);
-        }
-        return highlights;
-    }
+			elevateButton = new IconButton(elevateIcon, elevateText) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+				}
+			};
+			elevateButton.addStyleName(ELEVATION_BUTTON_STYLE);
+			elevateButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-    private String formatHighlights(Map<String, List<String>> highlights, RecordVO recordVO) {
-        if (highlights == null) {
-            return null;
-        }
+			horizontalLayout.addComponent(excludeButton, 1);
+			horizontalLayout.addComponent(elevateButton, 2);
+			horizontalLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
+			horizontalLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
+			horizontalLayout.setExpandRatio(excludeButton, 1);
+			horizontalLayout.setExpandRatio(elevateButton, 1);
+			horizontalLayout.setSpacing(true);
+		}
+		return horizontalLayout;
+	}
 
-        String currentCollection = sessionContext.getCurrentCollection();
-        List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
-        MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-                .getSchemaTypes(currentCollection).getSchema(recordVO.getSchema().getCode());
-        SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+		Component metadata = buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
+		metadata.addStyleName(METADATA_STYLE);
+		return metadata;
+	}
 
-        List<String> highlightedDateStoreCodes = new ArrayList<>();
-        for (Metadata metadata : schema.getMetadatas()) {
-            if (displayManager.getMetadata(currentCollection, metadata.getCode()).isHighlight()) {
-                highlightedDateStoreCodes.add(metadata.getDataStoreCode());
-                for (String language : collectionLanguages) {
-                    highlightedDateStoreCodes.add(metadata.getAnalyzedField(language).getDataStoreCode());
-                }
-            }
-        }
-        List<String> parts = new ArrayList<>(highlights.size());
-        for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
-            if (highlightedDateStoreCodes.contains(entry.getKey())) {
-                parts.add(StringUtils.join(entry.getValue(), SEPARATOR));
-            }
-        }
-        return StringUtils.join(parts, SEPARATOR);
-    }
+	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
+		String formattedHighlights = formatHighlights(searchResultVO.getHighlights(), searchResultVO.getRecordVO());
+		Label highlights = new Label(formattedHighlights, ContentMode.HTML);
+		highlights.addStyleName(HIGHLIGHTS_STYLE);
+		if (StringUtils.isBlank(formattedHighlights)) {
+			highlights.setVisible(false);
+		}
+		return highlights;
+	}
 
-    private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setSpacing(true);
-        for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
-            MetadataVO metadataVO = metadataValue.getMetadata();
-            if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-                continue;
-            }
+	private String formatHighlights(Map<String, List<String>> highlights, RecordVO recordVO) {
+		if (highlights == null) {
+			return null;
+		}
 
-            Component value = componentFactory.build(recordVO, metadataValue);
-            if (value == null) {
-                continue;
-            }
+		String currentCollection = sessionContext.getCurrentCollection();
+		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
+		MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(currentCollection).getSchema(recordVO.getSchema().getCode());
+		SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
-            Label caption = new Label(metadataVO.getLabel() + ":");
-            caption.addStyleName("metadata-caption");
+		List<String> highlightedDateStoreCodes = new ArrayList<>();
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (displayManager.getMetadata(currentCollection, metadata.getCode()).isHighlight()) {
+				highlightedDateStoreCodes.add(metadata.getDataStoreCode());
+				for (String language : collectionLanguages) {
+					highlightedDateStoreCodes.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				}
+			}
+		}
+		List<String> parts = new ArrayList<>(highlights.size());
+		for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
+			if (highlightedDateStoreCodes.contains(entry.getKey())) {
+				parts.add(StringUtils.join(entry.getValue(), SEPARATOR));
+			}
+		}
+		return StringUtils.join(parts, SEPARATOR);
+	}
+
+	private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
+		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
+		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
+			MetadataVO metadataVO = metadataValue.getMetadata();
+			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
+				continue;
+			}
+
+			Component value = componentFactory.build(recordVO, metadataValue);
+			if (value == null) {
+				continue;
+			}
+
+			Label caption = new Label(metadataVO.getLabel() + ":");
+			caption.addStyleName("metadata-caption");
 
 			I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
 			item.setHeight("100%");
 			item.setSpacing(true);
 			item.addStyleName("metadata-caption-layout");
 
-            layout.addComponent(item);
-        }
-        return layout;
-    }
+			layout.addComponent(item);
+		}
+		return layout;
+	}
 
-    protected AppLayerFactory getAppLayerFactory() {
-        return appLayerFactory;
-    }
+	protected AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
+	}
 
-    public void addClickListener(ClickListener listener) {
-        ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
-        if (referenceDisplay != null) {
-            referenceDisplay.addClickListener(listener);
-        }
-    }
+	public void addClickListener(ClickListener listener) {
+		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
+		if (referenceDisplay != null) {
+			referenceDisplay.addClickListener(listener);
+		}
+	}
 
-    public void addElevationClickListener(ClickListener listener) {
-        if (elevateButton != null) {
-            elevateButton.addClickListener(listener);
-        }
-    }
+	public void addElevationClickListener(ClickListener listener) {
+		if (elevateButton != null) {
+			elevateButton.addClickListener(listener);
+		}
+	}
 
-    public void addExclusionClickListener(ClickListener listener) {
-        if (excludeButton != null) {
-            excludeButton.addClickListener(listener);
-        }
-    }
+	public void addExclusionClickListener(ClickListener listener) {
+		if (excludeButton != null) {
+			excludeButton.addClickListener(listener);
+		}
+	}
 
 }
