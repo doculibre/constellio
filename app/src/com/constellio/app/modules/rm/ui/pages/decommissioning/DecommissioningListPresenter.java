@@ -100,7 +100,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
-		Record record = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
+		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
 //		List<Authorization> recordAuthorizations = authorizationServices.getRecordAuthorizations(record);
 //		Set<String> allUsers = new HashSet<>();
@@ -121,12 +121,33 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //		}
 //
 //		return userList;
+		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
+				.getUsersWithPermissionOnRecord(
+						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
+		List<User> managerEmailForAdministrativeUnitWithoutGlobalPermission = new ArrayList<>();
+		for(User user: managerEmailForAdministrativeUnit) {
+			if(!user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+				managerEmailForAdministrativeUnitWithoutGlobalPermission.add(user);
+			}
+		}
 
 		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList);
-		if(managerEmailForList != null && managerEmailForList.contains(getCurrentUser())) {
-			managerEmailForList.remove(getCurrentUser());
+		HashSet<User> uniqueUsers = new HashSet<>();
+		if(managerEmailForList != null) {
+			uniqueUsers.addAll(managerEmailForList);
 		}
-		return managerEmailForList;
+		if(managerEmailForAdministrativeUnit != null) {
+			if(!managerEmailForAdministrativeUnitWithoutGlobalPermission.isEmpty()) {
+				uniqueUsers.addAll(managerEmailForAdministrativeUnitWithoutGlobalPermission);
+			} else {
+				uniqueUsers.addAll(managerEmailForAdministrativeUnit);
+			}
+		}
+
+		if(uniqueUsers.contains(getCurrentUser())) {
+			uniqueUsers.remove(getCurrentUser());
+		}
+		return new ArrayList<>(uniqueUsers);
 	}
 	
 	public List<String> getAvailableManagerIds() throws DecommissioningEmailServiceException {

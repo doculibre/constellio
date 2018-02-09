@@ -67,7 +67,7 @@ public class DecommissioningEmailService {
 		}
 	}
 
-	private List<User> filterUserWithoutEmail(List<User> users) {
+	public List<User> filterUserWithoutEmail(List<User> users) {
 		List<User> returnedUsers = new ArrayList<>();
 		for (User user : users) {
 			if (StringUtils.isNotBlank(user.getEmail()) && user.getStatus() == UserCredentialStatus.ACTIVE) {
