@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import javax.servlet.http.Cookie;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
@@ -104,7 +105,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	}
 
 	private HorizontalLayout buildFields() {
-		HorizontalLayout fieldsLayout = new HorizontalLayout();
+		HorizontalLayout fieldsLayout = new I18NHorizontalLayout();
 		fieldsLayout.setSpacing(true);
 		fieldsLayout.addStyleName("fields");
 

@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.components.converters.CollectionCodeToLab
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
@@ -81,7 +82,6 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
@@ -729,7 +729,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	protected MenuBar buildCollectionMenu() {
-		MenuBar collectionMenu = new MenuBar();
+		MenuBar collectionMenu = new BaseMenuBar();
 		if (!collections.isEmpty()) {
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");
@@ -765,7 +765,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private MenuBar buildActionMenu() {
-		MenuBar headerMenu = new MenuBar();
+		MenuBar headerMenu = new BaseMenuBar();
 		headerMenu.setAutoOpen(true);
 		headerMenu.addStyleName("header-action-menu");
 		MenuItem headerMenuRoot = headerMenu.addItem($("ConstellioHeader.actions"), FontAwesome.BARS, null);
