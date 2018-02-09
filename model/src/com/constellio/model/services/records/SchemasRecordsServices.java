@@ -18,6 +18,7 @@ import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
@@ -441,6 +442,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecords(group.schemaType()));
 	}
 
+	public List<Report> getAllReports() {
+		return wrapReports(getModelLayerFactory().newSearchServices().getAllRecords(report.schemaType()));
+	}
+
 	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
 		for (SolrAuthorizationDetails authorizationDetails : getAllAuthorizations()) {
 			if (authorizationDetails.getId().equals(id)) {
@@ -473,5 +478,18 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public List<Capsule> getAllCapsules() {
 		return wrapCapsules(getModelLayerFactory().newSearchServices().getAllRecords(capsule.schemaType()));
+	}
+
+	public BatchProcessReport wrapBatchProcessReport(Record record) {
+		return record == null ? null : new BatchProcessReport(record, getTypes());
+	}
+
+	public List<BatchProcessReport> wrapBatchProcessReports(List<Record> records) {
+		List<BatchProcessReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new BatchProcessReport(record, getTypes()));
+		}
+
+		return wrapped;
 	}
 }

@@ -87,6 +87,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("lastTokenRecalculate");
 		}
 
+		public Metadata overrideInherited() {
+			return metadata("overrideInherited");
+		}
+
 		public Metadata roles() {
 			return metadata("roles");
 		}
@@ -672,6 +676,82 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 		}
 	}
 
+	public Report wrapReport(Record record) {
+		return record == null ? null : new Report(record, getTypes());
+	}
+
+	public List<Report> wrapReports(List<Record> records) {
+		List<Report> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new Report(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<Report> searchReports(LogicalSearchQuery query) {
+		return wrapReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<Report> searchReports(LogicalSearchCondition condition) {
+		MetadataSchemaType type = report.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Report getReport(String id) {
+		return wrapReport(get(report.schemaType(), id));
+	}
+
+	public List<Report> getReports(List<String> ids) {
+		return wrapReports(get(report.schemaType(), ids));
+	}
+
+	public Report getReportWithLegacyId(String legacyId) {
+		return wrapReport(getByLegacyId(report.schemaType(), legacyId));
+	}
+
+	public Report newReport() {
+		return wrapReport(create(report.schema()));
+	}
+
+	public Report newReportWithId(String id) {
+		return wrapReport(create(report.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_report_default report
+			= new SchemaTypeShortcuts_report_default("report_default");
+
+	public class SchemaTypeShortcuts_report_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_report_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata columnsCount() {
+			return metadata("columnsCount");
+		}
+
+		public Metadata linesCount() {
+			return metadata("linesCount");
+		}
+
+		public Metadata reportedMetadata() {
+			return metadata("reportedMetadata");
+		}
+
+		public Metadata schemaTypeCode() {
+			return metadata("schemaTypeCode");
+		}
+
+		public Metadata separator() {
+			return metadata("separator");
+		}
+
+		public Metadata username() {
+			return metadata("username");
+		}
+	}
+
 	public SearchEvent wrapSearchEvent(Record record) {
 		return record == null ? null : new SearchEvent(record, getTypes());
 	}
@@ -727,8 +807,24 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("clickCount");
 		}
 
+		public Metadata numFound() {
+			return metadata("numFound");
+		}
+
+		public Metadata originalQuery() {
+			return metadata("originalQuery");
+		}
+
 		public Metadata pageNavigationCount() {
 			return metadata("pageNavigationCount");
+		}
+
+		public Metadata params() {
+			return metadata("params");
+		}
+
+		public Metadata qTime() {
+			return metadata("qTime");
 		}
 
 		public Metadata query() {
@@ -806,19 +902,6 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 		public Metadata title() {
 			return metadata("title");
 		}
-	}
-
-	public BatchProcessReport wrapBatchProcessReport(Record record) {
-		return record == null ? null : new BatchProcessReport(record, getTypes());
-	}
-
-	public List<BatchProcessReport> wrapBatchProcessReports(List<Record> records) {
-		List<BatchProcessReport> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new BatchProcessReport(record, getTypes()));
-		}
-
-		return wrapped;
 	}
 
 	public abstract User wrapUser(Record record);
