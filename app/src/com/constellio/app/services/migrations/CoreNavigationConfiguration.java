@@ -86,7 +86,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
 	public static final String STATISTICS = "statistics";
-	public static final String STATISTICS_ICON = "images/icons/config/statistics.png";
+	public static final String STATISTICS_ICON = "images/icons/config/chart_column.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
