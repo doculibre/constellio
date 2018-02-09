@@ -222,8 +222,6 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	@Test
 	public void testSearchEventPresentOnWebServiceQuery() throws IOException, SolrServerException {
 
-		Toggle.IS_ADD_NOW_SEARCH_EVENT_SERVICE.enable();
-
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.add("q", "*:*");
 		solrParams.add("fq", "collection_s:zeCollection");
@@ -236,7 +234,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		solrParams.set("token", token);
 		solrServer.query(solrParams);
 
-		getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().flush();
+		getModelLayerFactory().getDataLayerFactory().getEventsVaultServer().flush();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		MetadataSchemaType searchEventSchemaType = rm.searchEventSchemaType();

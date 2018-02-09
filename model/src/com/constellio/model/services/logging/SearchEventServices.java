@@ -41,14 +41,9 @@ public class SearchEventServices {
 	}
 
 	public SearchEventServices(String collection, ModelLayerFactory modelLayerFactory) {
-		this(collection, modelLayerFactory, true);
-	}
-
-	public SearchEventServices(String collection, ModelLayerFactory modelLayerFactory, boolean toggleAddLater) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.collection = collection;
 		this.schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-		toogleAddLater = toggleAddLater;
 	}
 
 	public void save(SearchEvent searchEvent) {
@@ -58,11 +53,8 @@ public class SearchEventServices {
 	public void save(List<SearchEvent> searchEvents) {
 		Transaction tx = new Transaction();
 		tx.addAll(searchEvents);
-		if(!Toggle.IS_ADD_NOW_SEARCH_EVENT_SERVICE.isEnabled()) {
-			tx.setRecordFlushing(RecordsFlushing.ADD_LATER());
-		} else {
-			tx.setRecordFlushing(RecordsFlushing.NOW());
-		}
+		tx.setRecordFlushing(RecordsFlushing.ADD_LATER());
+
 		try {
 			modelLayerFactory.newRecordServices().execute(tx);
 		} catch (RecordServicesException e) {
