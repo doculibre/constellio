@@ -30,10 +30,10 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class printableReportXmlGenerator extends AbstractXmlGenerator {
 
-	public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
-		super(appLayerFactory, collection);
-		this.xmlGeneratorParameters = xmlGeneratorParameters;
-	}
+    static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
+        super(appLayerFactory, collection);
+        this.xmlGeneratorParameters = xmlGeneratorParameters;
+    }
 
 	@Override
 	public String generateXML(){
@@ -130,32 +130,32 @@ public class printableReportXmlGenerator extends AbstractXmlGenerator {
 		return Collections.singletonList(metadataXmlElement);
 	}
 
-	/**
-	 * Method that return all the record of each given ids.
-	 * @param schemaType
-	 * @param ids
-	 * @return
-	 */
-	private Record[] getRecordFromIds(String schemaType, final List<String> ids) {
-		List<Record> allRecords = new ArrayList<>();
-		SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
-		MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
-		List<List<String>> splittedIds = getChunkList(ids, 1000);
-		for (List<String> idChunk : splittedIds) {
-			LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(idChunk);
-			List<Record> recordChunk = searchServices.search(new LogicalSearchQuery(condition));
-			allRecords.addAll(recordChunk);
-		}
-		allRecords.sort(new Comparator<Record>() {
-			@Override
-			public int compare(Record o1, Record o2) {
-				Integer indexOfo1 = ids.indexOf(o1.getId());
-				Integer indexOfo2 = ids.indexOf(o2.getId());
-				return indexOfo1.compareTo(indexOfo2);
-			}
-		});
-		return allRecords.toArray(new Record[0]);
-	}
+    /**
+     * Method that return all the record of each given ids.
+     * @param schemaType
+     * @param ids
+     * @return
+     */
+    private Record[] getRecordFromIds(String schemaType, final List<String> ids) {
+        List<Record> allRecords = new ArrayList<>();
+        SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();
+        MetadataSchemasManager metadataSchemasManager = getFactory().getModelLayerFactory().getMetadataSchemasManager();
+        List<List<String>> splittedIds = getChunkList(ids, 1000);
+        for (List<String> idChunk : splittedIds) {
+            LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isIn(idChunk);
+            List<Record> recordChunk = searchServices.search(new LogicalSearchQuery(condition));
+            allRecords.addAll(recordChunk);
+        }
+        Collections.sort(allRecords,new Comparator<Record>() {
+            @Override
+            public int compare(Record o1, Record o2) {
+                Integer indexOfo1 = ids.indexOf(o1.getId());
+                Integer indexOfo2 = ids.indexOf(o2.getId());
+                return indexOfo1.compareTo(indexOfo2);
+            }
+        });
+        return allRecords.toArray(new Record[0]);
+    }
 
 	private <T> List<List<T>> getChunkList(List<T> largeList , int chunkSize) {
 		List<List<T>> chunkList = new ArrayList<>();
