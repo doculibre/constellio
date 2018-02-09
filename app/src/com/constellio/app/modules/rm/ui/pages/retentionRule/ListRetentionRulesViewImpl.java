@@ -40,6 +40,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 	private RecordVODataProvider dataProvider;
 
 	private ExportRetentionRulesLink exportRetentionRulesLink;
+	private ExportRetentionRulesLink exportAllRetentionRulesLink;
 
 	public ListRetentionRulesViewImpl() {
 		presenter = new ListRetentionRulesPresenter(this);
@@ -79,7 +80,8 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 			}
 		};
 
-		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"));
+		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"), true);
+		exportAllRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportAllRetentionRules"), false);
 
 		RecordVOTable table = new RecordVOTable($("ListRetentionRulesView.tableTitle", dataProvider.size()), buildContainer());
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
@@ -93,8 +95,12 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		searchTextAndSearchButtonLayout = new HorizontalLayout();
 		searchTextAndSearchButtonLayout.setWidth("100%");
 		searchTextAndSearchButtonLayout.addComponents(searchLayout);
-		searchTextAndSearchButtonLayout.addComponents(searchLayout, exportRetentionRulesLink);
-		searchTextAndSearchButtonLayout.setComponentAlignment(exportRetentionRulesLink, Alignment.TOP_RIGHT);
+		VerticalLayout exportLayout = new VerticalLayout();
+		exportLayout.addComponents(exportRetentionRulesLink, exportAllRetentionRulesLink);
+		searchTextAndSearchButtonLayout.addComponents(searchLayout, exportLayout);
+		exportLayout.setComponentAlignment(exportRetentionRulesLink, Alignment.TOP_RIGHT);
+		exportLayout.setComponentAlignment(exportAllRetentionRulesLink, Alignment.TOP_RIGHT);
+		searchTextAndSearchButtonLayout.setComponentAlignment(exportLayout, Alignment.TOP_RIGHT);
 		searchTextAndSearchButtonLayout.setSpacing(true);
 
 		VerticalLayout mainLayout = new VerticalLayout();
