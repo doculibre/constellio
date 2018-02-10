@@ -8,6 +8,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
@@ -145,7 +146,7 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 	}
 
 	private ComboBox buildIsEmptyIsNotEmptyComponent(final Criterion criterion) {
-		final ComboBox operator = new ComboBox();
+		final ComboBox operator = new BaseComboBox();
 		addIsEmptyIsNotEmpty(criterion, operator);
 		operator.setWidth("100px");
 		operator.setItemCaptionMode(AbstractSelect.ItemCaptionMode.EXPLICIT);

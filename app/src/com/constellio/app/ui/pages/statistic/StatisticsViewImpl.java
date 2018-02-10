@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.statistic;
 
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -102,7 +103,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         excludedRequestField = new BaseTextArea($("StatisticsView.excludedRequest"));
         excludedRequestField.setId("excludedRequest");
 
-        statisticTypeField = new ComboBox($("StatisticsView.statisticType"));
+        statisticTypeField = new BaseComboBox($("StatisticsView.statisticType"));
         statisticTypeField.setNullSelectionAllowed(false);
         statisticTypeField.setId("statisticType");
 

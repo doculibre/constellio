@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -393,7 +394,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 				//				final BaseIntegerField durationField = new BaseIntegerField($("DisplayUserCredentialView.Duration"));
 				final TextField durationField = new TextField($("DisplayUserCredentialView.Duration"));
 
-				final ComboBox unitTimeCombobox = new ComboBox();
+				final ComboBox unitTimeCombobox = new BaseComboBox();
 				unitTimeCombobox.setNullSelectionAllowed(false);
 				unitTimeCombobox.setCaption($("DisplayUserCredentialView.unitTime"));
 				unitTimeCombobox.addItem("hours");

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
 import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBackgroundAction;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.vaadin.data.Container;
@@ -30,7 +31,7 @@ public class TaskReminderFrequencyFieldImpl extends CustomField<String> implemen
 		inputLayout.setSpacing(true);
 		HorizontalLayout frequencyLayout = new HorizontalLayout();
 		frequencyLayout.setSpacing(true);
-		reminderFrequencyType = new ComboBox(null, asList("mm", "hh", "DD"));
+		reminderFrequencyType = new BaseComboBox(null, asList("mm", "hh", "DD"));
 		reminderFrequencyType.setItemCaption("mm", $("Date.mm"));
 		reminderFrequencyType.setItemCaption("hh", $("Date.hh"));
 		reminderFrequencyType.setItemCaption("DD", $("Date.DD"));
@@ -40,7 +41,7 @@ public class TaskReminderFrequencyFieldImpl extends CustomField<String> implemen
 
 		HorizontalLayout durationLayout = new HorizontalLayout();
 		durationLayout.setSpacing(true);
-		reminderDurationType = new ComboBox("", asList("Times", "Date"));
+		reminderDurationType = new BaseComboBox("", asList("Times", "Date"));
 		reminderDurationType.setItemCaption("Times", $("TaskReminderFrequencyField.times"));
 		reminderDurationType.setItemCaption("Date", $("Date.Date"));
 		reminderDurationType.setNullSelectionAllowed(false);

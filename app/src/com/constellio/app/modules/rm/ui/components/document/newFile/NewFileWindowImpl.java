@@ -8,6 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -82,10 +83,10 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 			}
 		});
 
-		extensionField = new ComboBox();
+		extensionField = new BaseComboBox();
 		extensionField.setCaption($("NewFileWindow.extension"));
 
-		templateField = new ComboBox();
+		templateField = new BaseComboBox();
 		templateField.setCaption($("NewFileWindow.templates"));
 
 		extensionField.addValueChangeListener(new ValueChangeListener() {

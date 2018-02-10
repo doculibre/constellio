@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -151,7 +152,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 			@Override
 			protected Component buildWindowContent() {
 
-				final ComboBox metadataField = new ComboBox();
+				final ComboBox metadataField = new BaseComboBox();
 				metadataField.setCaption($("SearchBoostByMetadataView.metadataField"));
 				for (SearchBoostVO searchBoostVO : presenter.getMetadatasSearchBoostVO()) {
 					metadataField.addItem(searchBoostVO);
