@@ -35,7 +35,6 @@ public class PdfStatusMessageProvider extends AbstractDataProvider implements Pd
 
     public void setMessages(List<FileStatus> messages) {
         this.messages = messages;
-
         fireDataRefreshEvent();
     }
 }

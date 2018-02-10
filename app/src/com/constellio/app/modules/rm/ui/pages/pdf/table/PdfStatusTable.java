@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.pdf.table;
 
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.vaadin.data.Container;
-
 import java.util.Collection;
+
+import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.vaadin.ui.UI;
 
 public class PdfStatusTable extends BaseTable {
     public PdfStatusTable(String tableId, PdfStatusDataProvider<?> dataProvider) {
@@ -19,4 +19,11 @@ public class PdfStatusTable extends BaseTable {
             setColumnHeader(containerPropertyId, "");
         }
     }
+
+	@Override
+	public void containerItemSetChange(com.vaadin.data.Container.ItemSetChangeEvent event) {
+		if (!UI.getCurrent().getConnectorTracker().isWritingResponse()) {
+			super.containerItemSetChange(event);
+		}
+	}
 }

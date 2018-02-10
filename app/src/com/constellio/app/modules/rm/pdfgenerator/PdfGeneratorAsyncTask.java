@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -63,7 +64,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
     public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "PdfGeneratorAsyncTask-ReadContentForPreviewConversion";
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfGeneratorAsyncTask.class);
 
-    private ProgressInfo progressInfo = new ProgressInfo();
+    private PdfGeneratorProgressInfo progressInfo = new PdfGeneratorProgressInfo();
 
     public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidedId,
                                  String consolidatedName, String consolidatedTitle,
@@ -105,7 +106,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
                  progressInfo.notifyGlobalProcessingMessage("Processing file: " + number + "/" + documentIdList.size());
 
                 Record record = recordServices.getDocumentById(documentId);
-                 if(!SchemaUtils.getSchemaTypeCode(record.getSchemaCode()).equals(Document.SCHEMA_TYPE)) {
+                if (!SchemaUtils.getSchemaTypeCode(record.getSchemaCode()).equals(Document.SCHEMA_TYPE)) {
                      Map<String, Object> parameters = new HashMap<>();
                      parameters.put("schemaCode", SchemaUtils.getSchemaTypeCode(record.getSchemaCode()));
                      errors.add(PdfGeneratorAsyncTask.class, INVALID_SCHEMA_TYPE, parameters);
@@ -114,19 +115,26 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
                 final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
                 Document document = schemasRecordsServices.wrapDocument(record);
-                 progressInfo.notifyFileProcessingMessage(document.getTitle(), "Processing...");
+                progressInfo.notifyFileProcessingMessage(document.getTitle(), "Processing...");
 
                 documentList.add(document);
                 Content content = document.getContent();
                 String hash = document.getContent().getCurrentVersion().getHash();
 
                 InputStream in;
-
-                if(contentManager.hasContentPreview(hash)) {
+                if (contentManager.hasContentPreview(hash)) {
                      in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
                  } else {
-                     convertContentForPreview(content, conversionManager,tempFolder, modelLayerFactory);
-                     in = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + ".PdfGenerator");
+                     record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true);
+                     recordServices.update(record);
+                     
+                     try {
+                         convertContentForPreview(content, conversionManager,tempFolder, modelLayerFactory);
+                         in = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + ".PdfGenerator");
+                     } finally {
+                         record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, false);
+                         recordServices.update(record);
+                     }
                  }
                  inputStreamList.add(in);
                  PDDocument pdDocument = PDDocument.load(in);
