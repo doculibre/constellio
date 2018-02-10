@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -369,7 +370,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Table buildTable(Container container, String title) {
 
-		Table table = new Table(title, container);
+		Table table = new BaseTable(getClass().getName(), title, container);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
 			tableSize = table.getItemIds().size();

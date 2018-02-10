@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -183,7 +184,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 			}
 		});
 
-		Table table = new Table();
+		Table table = new BaseTable(getClass().getName());
 		table.setContainerDataSource(container);
 
 		table.addGeneratedColumn("selector", new ColumnGenerator() {

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.NestedMethodProperty;
@@ -90,7 +91,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
         horizontalLayout.setSizeFull();
 
-        final Table table = new Table();
+        final Table table = new BaseTable(getClass().getName());
 
         timeBeanContainer = new BeanItemContainer<>(TimeBean.class);
 

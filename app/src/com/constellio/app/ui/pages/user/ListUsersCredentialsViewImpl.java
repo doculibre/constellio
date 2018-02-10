@@ -157,7 +157,12 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new RecordVOTable($("ListUserCredentialsView.viewTitle", dataProvider.size()), tableContainer);
+		Table table = new RecordVOTable($("ListUserCredentialsView.viewTitle", dataProvider.size()), tableContainer) {
+			@Override
+			protected String getTableId() {
+				return ListUsersCredentialsViewImpl.class.getName();
+			}
+		};
 		table.setWidth("100%");
 		table.setColumnHeader("username", $("ListUsersCredentialsView.usernameColumn"));
 		table.setColumnHeader("firstName", $("ListUsersCredentialsView.firstNameColumn"));

@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -90,7 +91,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new Table($("SearchBoostByMetadataView.viewTitle"), tableContainer);
+		Table table = new BaseTable(getClass().getName(), $("SearchBoostByMetadataView.viewTitle"), tableContainer);
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.setWidth("100%");
 		table.setColumnHeader("label", $("SearchBoostByMetadataView.labelColumn"));

@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -85,7 +86,7 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new Table($("SearchBoostByQueryView.viewTitle"), tableContainer);
+		Table table = new BaseTable(getClass().getName(), $("SearchBoostByQueryView.viewTitle"), tableContainer);
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.setWidth("100%");
 		table.setColumnHeader("label", $("SearchBoostByQueryView.labelColumn"));

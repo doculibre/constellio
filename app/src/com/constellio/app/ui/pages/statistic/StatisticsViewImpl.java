@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.statistic;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.*;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -200,7 +201,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         List<String> properties = initColumnVisibility();
         LazyQueryContainer container = getContainer(properties);
 
-        resultTable = new Table("", container);
+        resultTable = new BaseTable(getClass().getName(), "", container);
         resultTable.setWidth("100%");
 
         for (String property: properties) {

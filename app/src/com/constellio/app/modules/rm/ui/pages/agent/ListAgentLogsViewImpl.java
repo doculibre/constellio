@@ -8,6 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.ui.entities.AgentLogVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Item;
@@ -78,7 +79,7 @@ public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogs
 		});
 		showLogsButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		
-		agentLogsTable = new Table($("ListAgentLogsView.tableTitle"));
+		agentLogsTable = new BaseTable(getClass().getName(), $("ListAgentLogsView.tableTitle"));
 		agentLogsTable.setWidth("100%");
 		agentLogsTable.addContainerProperty(FILENAME_PROPERTY, DownloadLink.class, null);
 		agentLogsTable.setColumnHeader(FILENAME_PROPERTY, $("ListAgentLogsView.filename"));
