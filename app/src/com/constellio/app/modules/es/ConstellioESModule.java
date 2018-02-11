@@ -201,6 +201,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				.getCache(collection);
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
+		recordsCache.configureCache(CacheConfig.permanentCache(es.connectorInstance.schemaType()));
+		recordsCache.configureCache(CacheConfig.permanentCache(es.connectorType.schemaType()));
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));

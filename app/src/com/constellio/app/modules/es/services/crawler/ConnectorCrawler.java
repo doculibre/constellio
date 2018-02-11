@@ -95,9 +95,9 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-					LOGGER.info(
-							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
-									+ " job(s) " + "' **** ");
+//					LOGGER.info(
+					//							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
+					//									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
 						connectorJobsMap.put(crawledConnector, connectorJobs);

@@ -192,7 +192,7 @@ public class ConnectorHttp extends Connector {
 			}
 		}
 
-		es.getRecordServices().refresh(connectorInstance);
+		es.getRecordServices().refreshUsingCache(connectorInstance);
 		List<ConnectorHttpDocument> onDemands = getOnDemandDocuments();
 
 		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);
