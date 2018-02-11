@@ -59,7 +59,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password) {
+					public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 
@@ -115,7 +115,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password) {
+					public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 
@@ -173,7 +173,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password) {
+					public boolean authenticate(String username, String password, boolean allowLocalAuthentication) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 

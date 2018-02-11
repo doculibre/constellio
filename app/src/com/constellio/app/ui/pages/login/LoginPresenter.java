@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -83,8 +84,9 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
 		List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+		boolean isAdminInAnyCollection = userServices.isAdminInAnyCollection(username);
 		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService
-				.authenticate(username, password)) {
+				.authenticate(username, password, isAdminInAnyCollection)) {
 			if (!collections.isEmpty()) {
 				String lastCollection = null;
 				User userInLastCollection = null;

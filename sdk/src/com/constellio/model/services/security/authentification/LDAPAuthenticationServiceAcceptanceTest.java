@@ -25,10 +25,10 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		saveValidLDAPSConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
+		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword(), false);
 		assertThat(authenticated).isTrue();
 
-		authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword() + "salt");
+		authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword() + "salt", false);
 		assertThat(authenticated).isFalse();
 	}
 
@@ -38,7 +38,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollectionWithUsers("administrator");
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
-		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
+		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword(), false);
 		assertThat(authenticated).isTrue();
 	}
 
@@ -50,7 +50,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("administrator", "");
+		boolean authenticated = authenticationService.authenticate("administrator", "", false);
 		assertThat(authenticated).isFalse();
 	}
 
@@ -74,7 +74,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollectionWithUsers("bob");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("bob", "password");
+		boolean authenticated = authenticationService.authenticate("bob", "password", false);
 		assertThat(authenticated).isFalse();
 	}
 
@@ -84,7 +84,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollectionWithUsers("admin");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("admin", "password");
+		boolean authenticated = authenticationService.authenticate("admin", "password", false);
 		assertThat(authenticated).isTrue();
 	}
 
@@ -94,7 +94,7 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollectionWithUsers("administrator");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("administrator", "bad_password");
+		boolean authenticated = authenticationService.authenticate("administrator", "bad_password", false);
 		assertThat(authenticated).isFalse();
 	}
 

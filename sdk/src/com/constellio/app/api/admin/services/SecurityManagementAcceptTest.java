@@ -213,17 +213,17 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	private void whenChangeOldPasswordThenOk() {
 		securityManagementDriver.changePassword(userCredentialAlice.getUsername(), alicePassword, newAlicePassword);
 
-		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword)).isFalse();
-		assertThat(authService.authenticate(userCredentialAlice.getUsername(), newAlicePassword)).isTrue();
+		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword, false)).isFalse();
+		assertThat(authService.authenticate(userCredentialAlice.getUsername(), newAlicePassword, false)).isTrue();
 	}
 
 	private void whenChangePasswordThenOk() {
 
-		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword)).isFalse();
+		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword, false)).isFalse();
 
 		securityManagementDriver.changePassword(userCredentialAlice.getUsername(), alicePassword);
 
-		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword)).isTrue();
+		assertThat(authService.authenticate(userCredentialAlice.getUsername(), alicePassword, false)).isTrue();
 	}
 	//
 	//	private void whenAddRoleThenItIsAdded() {

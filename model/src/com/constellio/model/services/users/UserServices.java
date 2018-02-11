@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.entities.CorePermissions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -749,7 +750,8 @@ public class UserServices {
 	}
 
 	public String getToken(String serviceKey, String username, String password, ReadableDuration duration) {
-		if (authenticationService.authenticate(username, password) && serviceKey.equals(getUser(username).getServiceKey())) {
+		boolean isAdminInAnyCollection = this.isAdminInAnyCollection(username);
+		if (authenticationService.authenticate(username, password, isAdminInAnyCollection) && serviceKey.equals(getUser(username).getServiceKey())) {
 			String token = generateToken(username, duration);
 			return token;
 		} else {
@@ -1035,5 +1037,9 @@ public class UserServices {
 			LOGGER.info("restoreDeletedGroup : " + group.getCode());
 			recordServices.restore(group.getWrappedRecord(), User.GOD);
 		}
+	}
+
+	public boolean isAdminInAnyCollection(String username) {
+		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 }

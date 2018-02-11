@@ -42,7 +42,7 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 	}
 
 	@Override
-	public boolean authenticate(String username, String password) {
+	public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
 		try {
 			validateCurrentPassword(username, password);
 		} catch (IncorrectPassword e) {

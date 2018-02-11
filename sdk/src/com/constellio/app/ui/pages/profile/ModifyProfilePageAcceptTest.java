@@ -181,7 +181,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
 
-		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
+		assertThat(authenticationService.authenticate("admin", "newPassword", false)).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
 				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
@@ -198,7 +198,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
 
-		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
+		assertThat(authenticationService.authenticate("admin", "newPassword", false)).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
 				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
@@ -215,7 +215,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
 
-		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
+		assertThat(authenticationService.authenticate("admin", "newPassword", false)).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
 				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
@@ -232,7 +232,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
 
-		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
+		assertThat(authenticationService.authenticate("admin", "newPassword", false)).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
 				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
@@ -251,7 +251,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
 
-		assertThat(authenticationService.authenticate("admin", "newPassword")).isTrue();
+		assertThat(authenticationService.authenticate("admin", "newPassword", false)).isTrue();
 	}
 
 }

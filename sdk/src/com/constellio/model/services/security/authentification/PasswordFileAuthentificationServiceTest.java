@@ -46,7 +46,7 @@ public class
 	public void whenAuthenticateThenValidateCurrentPassword()
 			throws Exception {
 
-		passwordFileAuthenticationService.authenticate("username", "password");
+		passwordFileAuthenticationService.authenticate("username", "password", false);
 
 		verify(passwordFileAuthenticationService).validateCurrentPassword("username", "password");
 	}
