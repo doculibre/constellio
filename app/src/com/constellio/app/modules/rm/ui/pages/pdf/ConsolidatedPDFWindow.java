@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConsolidatedPDFWindow extends BaseWindow {
+    public static final String WIDTH = "100%";
     private Map<String, Tab> pdfTabs = new HashMap<>();
     private Map<String, PdfStatusViewImpl> pdfTabPanels = new HashMap<>();
 
@@ -38,8 +39,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     private Button fermerLaFenetre;
     private Button minimiserLaFenetre;
 
-    private long id;
-
     private ConsolidatedPDFWindow() {
         super($("ConsolidatedPDFWindow.caption"));
 
@@ -57,9 +56,9 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setSpacing(true);
-        horizontalLayout.setWidth("100%");
+        horizontalLayout.setWidth(WIDTH);
 
-        minimiserLaFenetre = new Button("Minimiser la fenêtre");
+        minimiserLaFenetre = new Button($("ConsolidatedPDFWindow.minimize"));
         minimiserLaFenetre.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -67,7 +66,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
             }
         });
 
-        fermerLaFenetre = new Button("Fermer la fenêtre");
+        fermerLaFenetre = new Button($("ConsolidatedPDFWindow.close"));
         fermerLaFenetre.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -105,7 +104,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
             @Override
             public void firePdfGenerationCompleted(PdfStatusViewImpl panel) {
-                // TODO : Handle the event
                 tabSheet.setSelectedTab(pdfTabs.get(panel.getPdfFileName()));
 
                 checkAllGenerationStatus();

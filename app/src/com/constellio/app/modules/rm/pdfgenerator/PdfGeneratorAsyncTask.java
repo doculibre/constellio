@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
     private List<String> documentIdList;
@@ -64,8 +62,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
     public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "PdfGeneratorAsyncTask-ReadContentForPreviewConversion";
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfGeneratorAsyncTask.class);
 
-    private PdfGeneratorProgressInfo progressInfo = new PdfGeneratorProgressInfo();
-
     public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidedId,
                                  String consolidatedName, String consolidatedTitle,
                                  String userName, Boolean withMetadata) {
@@ -79,8 +75,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
     @Override
     public void execute(AsyncTaskExecutionParams params) throws ValidationException {
-        progressInfo.notifyStartProcessing();
-
         ValidationErrors errors = new ValidationErrors();
         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
         ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -103,8 +97,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
             number++;
              for(final String documentId : documentIdList) {
-                 progressInfo.notifyGlobalProcessingMessage("Processing file: " + number + "/" + documentIdList.size());
-
                 Record record = recordServices.getDocumentById(documentId);
                 if (!SchemaUtils.getSchemaTypeCode(record.getSchemaCode()).equals(Document.SCHEMA_TYPE)) {
                      Map<String, Object> parameters = new HashMap<>();
@@ -115,7 +107,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
                 final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
                 Document document = schemasRecordsServices.wrapDocument(record);
-                progressInfo.notifyFileProcessingMessage(document.getTitle(), "Processing...");
 
                 documentList.add(document);
                 Content content = document.getContent();
@@ -183,8 +174,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
                  }
 
                  ut.addSource(inputStream2);
-
-                 progressInfo.notifyFileProcessingMessage(document.getTitle(), "Finished.");
             }
 
             File fileTemporaryFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
@@ -224,8 +213,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
             for (InputStream inputStream : inputStreamList) {
                 ioServices.closeQuietly(inputStream);
             }
-
-            progressInfo.notifyEndProcessing();
         }
     }
 
@@ -256,10 +243,6 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
         } finally {
             modelLayerFactory.getIOServicesFactory().newIOServices().closeQuietly(inputStream);
         }
-    }
-
-    public PdfGeneratorProgressInfo getProgressInfo() {
-        return progressInfo;
     }
 
     public String getConsolidatedName() {

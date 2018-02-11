@@ -6,8 +6,10 @@ import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -15,21 +17,25 @@ import com.vaadin.ui.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
+    public static final String WIDTH = "100%";
+    public static final String PROGRESS_LABEL_HEIGHT = "40px";
     private final String pdfFileName;
     private final PdfStatusViewPresenter presenter;
 
-    private DocumentVO documentVO;
+    private String documentPdfId;
     private boolean finished;
 
     private List<PdfGenerationCompletedListener> listeners = new ArrayList<>();
     private Label progressLabel;
 
     public PdfStatusViewImpl(String pdfFileName, List<String> documentIds, boolean withMetadata) {
-        setWidth("100%");
+        setWidth(WIDTH);
 
         this.pdfFileName = pdfFileName;
-        progressLabel = new Label("Progression de la génération du fichier: " + getPdfFileName());
+        progressLabel = new Label($("PdfStatusViewImpl.generationProgress", getPdfFileName()));
         this.presenter = new PdfStatusViewPresenter(this, pdfFileName, documentIds, withMetadata);
         this.finished = false;
 
@@ -53,7 +59,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
-        progressLabel.setHeight("40px");
+        progressLabel.setHeight(PROGRESS_LABEL_HEIGHT);
 
         layout.addComponent(progressLabel);
         layout.setExpandRatio(progressLabel, 1);
@@ -65,8 +71,8 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         return layout;
     }
 
-    public void firePdfGenerationCompleted(DocumentVO documentVO) {
-        this.documentVO = documentVO;
+    public void firePdfGenerationCompleted(String documentId) {
+        this.documentPdfId = documentId;
         this.finished = true;
 
         VaadinSession.getCurrent().access(new Runnable() {
@@ -74,7 +80,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
             public void run() {
                 enter(null);
 
-                for (PdfGenerationCompletedListener listener: listeners) {
+                for (PdfGenerationCompletedListener listener : listeners) {
                     listener.firePdfGenerationCompleted(PdfStatusViewImpl.this);
                 }
             }
@@ -82,41 +88,40 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
     }
 
     @Override
-    public void notifyGlobalProgressMessage(String message) {
-        progressLabel.setValue(message);
+    public void notifyGlobalProgressMessage(final String message) {
+        VaadinSession.getCurrent().access(new Runnable() {
+            @Override
+            public void run() {
+                progressLabel.setValue(message);
+            }
+        });
     }
 
     protected Layout createPdfGenerationCompletedLayout() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
-        Button download = new LinkButton("Télécharger le document PDF") {
+        Button download = new LinkButton($("PdfStatusViewImpl.downloadPdfFile")) {
             @Override
             protected void buttonClick(ClickEvent event) {
-                // TODO Download the document here
+                Page.getCurrent().open(presenter.getPdfDocumentResource(documentPdfId), null, false);
             }
         };
 
         layout.addComponent(download);
         layout.setExpandRatio(download, 1);
 
-        Label label = new Label("Ce document se trouve dans les enregistrements temporaires.");
+        Label label = new Label($("PdfStatusViewImpl.documentInTemporaryZone"));
         label.setContentMode(ContentMode.HTML);
 
         layout.addComponent(label);
         layout.setExpandRatio(label, 1);
 
-        if(documentVO != null) {
-            // TODO Afficher Document PDF dans PDF.js
+        if (documentPdfId != null) {
+            DocumentVO documentVO = presenter.getPdfDocumentVO(documentPdfId);
             ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
 
             layout.addComponent(contentViewer);
-
-            // TODO How to solve this problem while the current window is a popup ??
-            //if (popup) {
-            // FIXME CSS bug when displayed in window, hiding for now.
-            //contentViewer.setVisible(false);
-            //}
         }
 
         return layout;
@@ -128,7 +133,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        if(!isFinished()) {
+        if (!isFinished()) {
             return createPdfTableProgressLayout();
         } else {
             return createPdfGenerationCompletedLayout();
