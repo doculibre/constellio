@@ -384,7 +384,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		assertThat(userServices.getUserCredential("admin").getEmail()).isEqualTo("admin@organization.com");
 		assertThat(userServices.getUserCredential("admin").getCollections()).isEqualTo(
 				Arrays.asList("LaCollectionDeRida", zeCollection));
-		assertThat(authenticationService.authenticate("admin", "2wsx1qaz"));
+		assertThat(authenticationService.authenticate("admin", "2wsx1qaz", false));
 	}
 
 	private void givenDisplayPageThenAllAddEditAndDeleteButtonsAreInvisibles() {

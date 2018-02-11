@@ -16,12 +16,15 @@ public class CombinedAuthenticationService implements AuthenticationService {
 	}
 
 	@Override
-	public boolean authenticate(String username, String password) {
+	public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
+		boolean authenticated = false;
 		if (ldapConfigurationManager.isLDAPAuthentication()) {
-			return ldapAuthenticationService.authenticate(username, password);
-		} else {
-			return passwordFileAuthenticationService.authenticate(username, password);
+			authenticated = ldapAuthenticationService.authenticate(username, password, isAdminInAnyCollection);
 		}
+		if (!authenticated && (isAdminInAnyCollection || !ldapConfigurationManager.isLDAPAuthentication())) {
+			authenticated = passwordFileAuthenticationService.authenticate(username, password, false);
+		}
+		return authenticated;
 	}
 
 	@Override

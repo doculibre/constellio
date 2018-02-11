@@ -2,7 +2,7 @@ package com.constellio.model.services.security.authentification;
 
 public interface AuthenticationService {
 
-	boolean authenticate(String username, String password);
+	boolean authenticate(String username, String password, boolean isAdminInAnyCollection);
 
 	boolean supportPasswordChange();
 

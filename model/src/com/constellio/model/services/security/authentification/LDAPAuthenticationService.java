@@ -62,9 +62,9 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	}
 
 	@Override
-	public boolean authenticate(String username, String password) {
+	public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
 		if (username.equals(ADMIN_USERNAME)) {
-			return adminAuthenticationService.authenticate(username, password);
+			return adminAuthenticationService.authenticate(username, password, isAdminInAnyCollection);
 		}
 		if (StringUtils.isBlank(password)) {
 			LOGGER.info("invalid blank password");
