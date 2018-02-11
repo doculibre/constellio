@@ -104,14 +104,14 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
                             if (contentManager.hasContentPreview(hash)) {
                                 // Preview ready for document
                                 processedCount++;
-                                messages.add($("PdfStatusViewPresenter.generationCompleted", contentVersion.getFilename()));
+                                messages.add($("PdfStatusViewPresenter.generationCompleted", document.getTitle()));
                             } else if (!Boolean.FALSE.equals(markedForPreviewConversion)) {
                                 // Conversion pending
-                                messages.add($("PdfStatusViewPresenter.generationPending", contentVersion.getFilename()));
+                                messages.add($("PdfStatusViewPresenter.generationPending", document.getTitle()));
                             } else {
                                 // The MARKED_FOR_PREVIEW_CONVERSION flag has been set to false, which means that the conversion failed
                                 processedCount++;
-                                messages.add($("PdfStatusViewPresenter.generationFailed", contentVersion.getFilename()));
+                                messages.add($("PdfStatusViewPresenter.generationFailed", document.getTitle()));
                             }
                         } else {
                             processedCount++;
