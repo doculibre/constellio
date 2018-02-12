@@ -84,8 +84,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		UserServices userServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserServices();
 		AuthenticationService authService = ConstellioFactories.getInstance().getModelLayerFactory().newAuthenticationService();
-		boolean isAdminInAnyCollection = userServices.isAdminInAnyCollection(username);
-		if (!authService.authenticate(username, password, isAdminInAnyCollection)) {
+		if (!authService.authenticate(username, password)) {
 			resp.getWriter().write(BAD_USERNAME_PASSWORD);
 			return;
 		}

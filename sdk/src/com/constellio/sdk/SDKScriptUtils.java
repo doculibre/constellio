@@ -59,7 +59,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
+					public boolean authenticate(String username, String password) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 
@@ -115,7 +115,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password, boolean isAdminInAnyCollection) {
+					public boolean authenticate(String username, String password) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 
@@ -147,8 +147,6 @@ public class SDKScriptUtils {
 		return appLayerFactory;
 	}
 
-
-
 	public static AppLayerFactory startApplicationWithBatchProcessesAndBackgroundThreads() {
 
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator() {
@@ -173,7 +171,7 @@ public class SDKScriptUtils {
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
-					public boolean authenticate(String username, String password, boolean allowLocalAuthentication) {
+					public boolean authenticate(String username, String password) {
 						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
 					}
 

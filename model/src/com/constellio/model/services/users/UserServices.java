@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.entities.CorePermissions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -26,6 +25,7 @@ import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -751,8 +751,7 @@ public class UserServices {
 	}
 
 	public String getToken(String serviceKey, String username, String password, ReadableDuration duration) {
-		boolean isAdminInAnyCollection = this.isAdminInAnyCollection(username);
-		if (authenticationService.authenticate(username, password, isAdminInAnyCollection) && serviceKey.equals(getUser(username).getServiceKey())) {
+		if (authenticationService.authenticate(username, password) && serviceKey.equals(getUser(username).getServiceKey())) {
 			String token = generateToken(username, duration);
 			return token;
 		} else {
@@ -970,12 +969,13 @@ public class UserServices {
 		UserCredential userCredential = getUser(username);
 		for (String collection : userCredential.getCollections()) {
 			User user = this.getUserInCollection(userCredential.getUsername(), collection);
-			if (user != null){
-			if (searchServices.hasResults(
-					fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES)
-							.isEqualTo(user.getId()))) {
-				LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
-				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);}
+			if (user != null) {
+				if (searchServices.hasResults(
+						fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES)
+								.isEqualTo(user.getId()))) {
+					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
+					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+				}
 			}
 		}
 		recordServices.logicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);

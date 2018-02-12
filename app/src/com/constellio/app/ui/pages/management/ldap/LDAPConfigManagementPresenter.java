@@ -4,7 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import com.constellio.model.entities.security.global.UserCredential;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotCon
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 
 public class LDAPConfigManagementPresenter extends
