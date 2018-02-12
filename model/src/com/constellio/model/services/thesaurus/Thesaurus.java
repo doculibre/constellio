@@ -1,0 +1,156 @@
+/**
+ * Constellio, Open Source Enterprise Search
+ * Copyright (C) 2010 DocuLibre inc.
+ *
+ * This copyrighted material is made available to anyone wishing to use, modify,
+ * copy, or redistribute it subject to the terms and conditions of the GNU
+ * Lesser General Public License, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this distribution; if not, write to:
+ * Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor
+ * Boston, MA  02110-1301  USA
+ */
+package com.constellio.model.services.thesaurus;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+@SuppressWarnings("serial")
+public class Thesaurus implements Serializable {
+
+	private String rdfAbout;
+	private String dcTitle;
+	private String dcDescription;
+	private String dcCreator;
+	private Date dcDate;
+	private Locale dcLanguage;
+	private String collection;
+	private String sourceFileName;
+
+	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
+	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
+
+	public Thesaurus() {
+	}
+
+	public Thesaurus(String dcTitle) {
+		this.dcTitle = dcTitle;
+	}
+
+	public String getSourceFileName() {
+		return sourceFileName;
+	}
+
+	public void setSourceFileName(String sourceFileName) {
+		this.sourceFileName = sourceFileName;
+	}
+
+	public String getCollection() {
+		return collection;
+	}
+
+	public void setCollection(String collection) {
+		this.collection = collection;
+	}
+
+	public void setRecordCollection(String recordCollection) {
+		this.collection = recordCollection;
+	}
+
+	public Map<String, SkosConcept> getAllConcepts() {
+		return allConcepts;
+	}
+
+	public void setAllConcepts(Map<String, SkosConcept> allConcepts) {
+		this.allConcepts = allConcepts;
+	}
+
+	public String getRdfAbout() {
+		return rdfAbout;
+	}
+
+	public void setRdfAbout(String rdfAbout) {
+		this.rdfAbout = rdfAbout;
+	}
+
+	public String getDcTitle() {
+		return dcTitle;
+	}
+
+	public void setDcTitle(String dcTitle) {
+		this.dcTitle = dcTitle;
+	}
+
+	public String getDcDescription() {
+		return dcDescription;
+	}
+
+	public void setDcDescription(String dcDescription) {
+		this.dcDescription = dcDescription;
+	}
+
+	public String getDcCreator() {
+		return dcCreator;
+	}
+
+	public void setDcCreator(String dcCreator) {
+		this.dcCreator = dcCreator;
+	}
+
+	public Date getDcDate() {
+		return dcDate;
+	}
+
+	public void setDcDate(Date dcDate) {
+		this.dcDate = dcDate;
+	}
+
+	public Locale getDcLanguage() {
+		return dcLanguage;
+	}
+
+	public void setDcLanguage(Locale dcLanguage) {
+		this.dcLanguage = dcLanguage;
+	}
+
+	public Set<SkosConcept> getTopConcepts() {
+		return topConcepts;
+	}
+
+	public void setTopConcepts(Set<SkosConcept> topConcepts) {
+		this.topConcepts = topConcepts;
+	}
+
+	public void addTopConcept(SkosConcept topConcept) {
+		topConcept.getBroader().clear();
+		this.topConcepts.add(topConcept);
+		topConcept.setThesaurus(this);
+	}
+
+	public boolean equalsRdfAbout(Thesaurus obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (super.equals(obj))
+			return true;
+		if (getClass() != obj.getClass())
+			return false;
+		Thesaurus other = (Thesaurus) obj;
+		if (rdfAbout == null) {
+			if (other.rdfAbout != null)
+				return false;
+		} else if (!rdfAbout.equals(other.rdfAbout))
+			return false;
+		return true;
+	}
+
+}
