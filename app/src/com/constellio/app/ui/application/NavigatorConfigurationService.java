@@ -85,6 +85,7 @@ import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
+import com.constellio.app.ui.pages.management.thesaurus.ThesaurusConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
 import com.constellio.app.ui.pages.profile.ModifyProfileViewImpl;
@@ -217,6 +218,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_ELEVATION = "editElevation";
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
+	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
 
 
 
@@ -343,6 +345,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_BAG_INFO, AddEditBagInfoViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteExclusionsImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

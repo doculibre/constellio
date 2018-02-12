@@ -8,6 +8,7 @@ import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.structure.ScriptReport;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -60,7 +61,7 @@ public class CoreMigrationTo_7_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder metadataSchemaTypeBuilderSriptReport = typesBuilder.getSchemaType(ScriptReport.SCHEMA_TYPE);
 			MetadataSchemaBuilder scriptReportReportSchema = metadataSchemaTypeBuilderSriptReport.createCustomSchema(ScriptReport.SCHEMA);
 
-			MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaType(SearchEvent.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE);
 			searchEvent.setDataStore(DataStore.EVENTS);
 			searchEvent.createMetadata(SearchEvent.USERNAME).setType(STRING);
 			searchEvent.createMetadata(SearchEvent.QUERY).setType(STRING);

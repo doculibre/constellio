@@ -61,7 +61,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
         if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
         	CssLayout layoutSystemPilot = new CustomCssLayout();
-            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
+            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton(),createThesaurusButton());
             verticalLayout.setSpacing(true);
             verticalLayout.addComponent(layoutSystemPilot);
         }
@@ -104,6 +104,16 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 				}, "config/search-exclusions") :
 				null;
 
+	}
+
+	private Button createThesaurusButton(){
+		return createLink($("AdminView.thesaurus"),new Button.ClickListener() {
+
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				navigate().to().thesaurusConfiguration();
+			}
+		}, "config/");
 	}
 
 	private Button createCorrectorExclusion() {

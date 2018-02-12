@@ -155,6 +155,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
 	}
 
+	public void thesaurusConfiguration(){
+		navigator.navigateTo(NavigatorConfigurationService.THESAURUS_CONFIGURATION);
+	}
+
 	public void permissionManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
