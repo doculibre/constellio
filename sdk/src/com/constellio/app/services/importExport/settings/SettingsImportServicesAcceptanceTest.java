@@ -3332,12 +3332,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 
-			try {
-				SettingsXMLFileWriter.writeToFile(settings, new File("/Users/francisbaril/Downloads/settings.xml"));
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
 			services.importSettings(settings);
 		} catch (ValidationException e) {
 			runTwice = false;
