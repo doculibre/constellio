@@ -15,12 +15,14 @@ import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStrin
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
@@ -51,8 +53,8 @@ public class MetadataDisplayFactory implements Serializable {
 
 	private JodaDateTimeToStringConverter jodaDateTimeConverter = new JodaDateTimeToStringConverter();
 
-	@SuppressWarnings("unchecked")
-	public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
+	public Component build(RecordVO recordVO, MetadataValueVO metadataValue)
+	{
 		Component displayComponent;
 		MetadataVO metadataVO = metadataValue.getMetadata();
 		Object displayValue = metadataValue.getValue();
@@ -64,7 +66,14 @@ public class MetadataDisplayFactory implements Serializable {
 		if (!metadataVO.isEnabled()) {
 			displayComponent = null;
 		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
-			displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
+				if(Boolean.TRUE
+						.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()))
+						.getValue())) {
+				displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
+			} else {
+				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
+			}
+
 			displayComponent.setWidthUndefined();
 		} else if (displayValue == null) {
 			displayComponent = null;
@@ -98,6 +107,7 @@ public class MetadataDisplayFactory implements Serializable {
 		}
 		return displayComponent;
 	}
+
 
 	/**
 	 * @param recordVO May be null, be careful!
