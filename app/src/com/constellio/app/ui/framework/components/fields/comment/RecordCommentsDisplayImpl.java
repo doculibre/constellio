@@ -26,6 +26,13 @@ public class RecordCommentsDisplayImpl extends ListAddRemoveCommentField impleme
         this.metadataCode = metadataCode;
         init();
     }
+
+    public RecordCommentsDisplayImpl(String recordId, String metadataCode) {
+        this.recordId = recordId;
+        this.metadataCode = metadataCode;
+        init();
+    }
+
     @Override
     protected boolean isAddEditFieldVisible() {
         return false;
@@ -47,10 +54,7 @@ public class RecordCommentsDisplayImpl extends ListAddRemoveCommentField impleme
         } else {
             presenter.forRecordId(recordId, metadataCode);
         }
-        this.setSizeFull();
     }
-
-
 
     @Override
     public void setComments(List<Comment> comments) {
