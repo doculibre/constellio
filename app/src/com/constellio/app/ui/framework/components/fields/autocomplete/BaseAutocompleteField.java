@@ -3,10 +3,7 @@ package com.constellio.app.ui.framework.components.fields.autocomplete;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -95,6 +92,7 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 			removeAllItems();
 		} else if (newFilterString != null && !(newFilterString.equals(querySubString))) {
 			// check to make sure the substring isn't null and its not equal to the last one
+			setInternalValue(null);
 			removeAllItems();
 			// set the sub string
 			querySubString = newFilterString;
