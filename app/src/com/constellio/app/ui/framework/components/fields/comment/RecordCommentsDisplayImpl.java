@@ -38,7 +38,22 @@ public class RecordCommentsDisplayImpl extends ListAddRemoveCommentField impleme
         return false;
     }
 
-    private void init() {
+    @Override
+	protected boolean isEditPossible() {
+		return false;
+	}
+
+	@Override
+	protected boolean isEditButtonVisible(Comment item) {
+		return false;
+	}
+
+	@Override
+	protected boolean isDeleteButtonVisible(Comment item) {
+		return false;
+	}
+
+	private void init() {
         setCaption($("comments"));
 
         addValueChangeListener(new Property.ValueChangeListener() {

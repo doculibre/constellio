@@ -66,9 +66,7 @@ public class MetadataDisplayFactory implements Serializable {
 		if (!metadataVO.isEnabled()) {
 			displayComponent = null;
 		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
-				if(Boolean.TRUE
-						.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()))
-						.getValue())) {
+			if (Boolean.TRUE.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue())) {
 				displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
 			} else {
 				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
