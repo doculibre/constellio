@@ -2,17 +2,22 @@ package com.constellio.app.modules.rm.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.constellio.app.modules.rm.wrappers.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class RMSchemasAcceptTest extends ConstellioTest {
@@ -31,7 +36,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 
 		assertThat(schemasDisplayManager.getReturnedFieldsForSearch(zeCollection)).containsOnly(
 				"archivisticStatus_s", "title_s", "assigneeId_s", "code_s", "content_s", "modifiedOn_dt", "dueDate_da",
-				"statusId_s", "description_s", "description_t", "mimetype_s", "migrationDataVersion_d", "deleted_s"
+				"statusId_s", "description_s", "description_t", "mimetype_s", "migrationDataVersion_d", "deleted_s", "question_s"
 		);
 	}
 
@@ -62,7 +67,8 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 		});
 		MetadataSchemaTypes newSchemaTypes = schemaManager.getSchemaTypes(zeCollection);
 		assertThat(SchemaUtils.getSchemaTypesInHierarchyOf(Folder.SCHEMA_TYPE, newSchemaTypes)).containsOnly(
-				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE
+				Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
+				StorageSpace.SCHEMA_TYPE
 		);
 	}
 }

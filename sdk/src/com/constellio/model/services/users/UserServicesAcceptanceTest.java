@@ -968,6 +968,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
+		c.setTitle("Ze cart");
 		Transaction t = new Transaction();
 		t.add(c);
 		recordServices.execute(t);
@@ -1007,6 +1008,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();
+		c.setTitle("Ze cart");
 		t.add(c);
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
@@ -1182,6 +1184,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		User chuck = users.chuckNorrisIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();
+		c.setTitle("Ze cart");
 		t.add(c);
 		recordServices.execute(t);
 		userServices = getModelLayerFactory().newUserServices();
@@ -1213,6 +1216,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		User alice = users.aliceIn(zeCollection);
 		Cart c = rm.getOrCreateUserCart(chuck);
 		Transaction t = new Transaction();
+		c.setTitle("Ze cart");
 		t.add(c);
 		recordServices.execute(t);
 		userCredentialsManager.removeUserCredentialFromCollection(userServices.getUserCredential("alice"), zeCollection);
