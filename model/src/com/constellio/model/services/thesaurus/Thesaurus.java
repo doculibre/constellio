@@ -38,7 +38,8 @@ public class Thesaurus implements Serializable {
 	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
 	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
 
-	public Thesaurus() {
+	public Thesaurus(){
+
 	}
 
 	public Thesaurus(String dcTitle) {
@@ -151,6 +152,60 @@ public class Thesaurus implements Serializable {
 		} else if (!rdfAbout.equals(other.rdfAbout))
 			return false;
 		return true;
+	}
+
+	public List<SkosConcept> searchPrefLabel(String input){
+
+		List<SkosConcept> skosConcepts = new ArrayList<>();
+
+		for(Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()){
+			SkosConcept skosConcept = skosConceptEntry.getValue();
+			Set<ThesaurusLabel> thesaurusLabels = skosConcept.getPrefLabels();
+
+			for(ThesaurusLabel thesaurusLabel : thesaurusLabels){
+				// one thesaurus label per lang code possible (and multiple lang codes possible)
+				for(String prefValue : thesaurusLabel.getValues().values()){ // TODO check if only iterate through values OK
+					if(prefValue.contains(input)){
+						skosConcepts.add(skosConcept);
+					}
+				}
+			}
+		}
+
+		return skosConcepts;
+	}
+
+	public List<SkosConcept> searchAltLabel(String input){
+
+		List<SkosConcept> skosConcepts = new ArrayList<>();
+
+		for(Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()){
+			SkosConcept skosConcept = skosConceptEntry.getValue();
+			Set<SkosConceptAltLabel> thesaurusLabels = skosConcept.getAltLabels();
+
+			for(SkosConceptAltLabel thesaurusLabel : thesaurusLabels){
+				// one thesaurus label per lang code possible (and multiple lang codes possible)
+				for(String prefValue : thesaurusLabel.getValues()){ // TODO check if only iterate through values OK
+					if(prefValue.contains(input)){
+						skosConcepts.add(skosConcept);
+					}
+				}
+			}
+		}
+
+		return skosConcepts;
+	}
+
+	public List<SkosConcept> searchAllLabels(String input){
+
+		List<SkosConcept> searchPrefLabel = searchPrefLabel(input);
+		List<SkosConcept> searchAltLabel = searchAltLabel(input);
+
+		List<SkosConcept> allLabels = new ArrayList<>(searchPrefLabel);
+		allLabels.addAll(searchAltLabel);
+
+
+		return allLabels;
 	}
 
 }
