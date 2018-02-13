@@ -170,5 +170,4 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache();
 
-	ThesaurusService getThesaurusService();
 }

@@ -128,7 +128,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 
-	private final ThesaurusService thesaurusService = new ThesaurusService();
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -466,10 +465,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
 
-	}
-
-	@Override
-	public ThesaurusService getThesaurusService() {
-		return thesaurusService;
 	}
 }
