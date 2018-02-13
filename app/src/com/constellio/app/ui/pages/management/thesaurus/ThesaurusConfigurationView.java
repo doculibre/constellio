@@ -1,4 +1,6 @@
 package com.constellio.app.ui.pages.management.thesaurus;
 
-interface ThesaurusConfigurationView {
+import com.constellio.app.ui.pages.base.BaseView;
+
+interface ThesaurusConfigurationView extends BaseView {
 }

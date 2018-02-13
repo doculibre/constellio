@@ -24,7 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("serial")
-public class Thesaurus implements Serializable {
+public class ThesaurusService implements Serializable {
 
 	private String rdfAbout;
 	private String dcTitle;
@@ -38,11 +38,11 @@ public class Thesaurus implements Serializable {
 	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
 	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
 
-	public Thesaurus(){
+	public ThesaurusService(){
 
 	}
 
-	public Thesaurus(String dcTitle) {
+	public ThesaurusService(String dcTitle) {
 		this.dcTitle = dcTitle;
 	}
 
@@ -136,7 +136,7 @@ public class Thesaurus implements Serializable {
 		topConcept.setThesaurus(this);
 	}
 
-	public boolean equalsRdfAbout(Thesaurus obj) {
+	public boolean equalsRdfAbout(ThesaurusService obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -145,7 +145,7 @@ public class Thesaurus implements Serializable {
 			return true;
 		if (getClass() != obj.getClass())
 			return false;
-		Thesaurus other = (Thesaurus) obj;
+		ThesaurusService other = (ThesaurusService) obj;
 		if (rdfAbout == null) {
 			if (other.rdfAbout != null)
 				return false;

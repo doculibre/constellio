@@ -13,8 +13,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.constellio.model.services.thesaurus.SkosConcept;
-import com.constellio.model.services.thesaurus.Thesaurus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.jaxen.JaxenException;
@@ -49,7 +47,7 @@ public class ThesaurusBuilder {
 
     private static final Namespace rdfNs = Namespace.getNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
-    private static Thesaurus thesaurus;
+    private static ThesaurusService thesaurus;
 
 //    public static Thesaurus getThesaurus(InputStream inputStream) {
 //        Thesaurus thesaurus = null;
@@ -62,8 +60,8 @@ public class ThesaurusBuilder {
 //    }
 
     @SuppressWarnings("unchecked")
-    public static Thesaurus getThesaurus(InputStream skosFileStream) {
-        thesaurus = new Thesaurus();
+    public static ThesaurusService getThesaurus(InputStream skosFileStream) {
+        thesaurus = new ThesaurusService();
         // thesaurus.setSourceFileLocation();
         Map<String, SkosConcept> parsedConcepts = new HashMap<String, SkosConcept>();
         SAXBuilder builder;
@@ -208,7 +206,7 @@ public class ThesaurusBuilder {
         return currentXPath.selectNodes(conceptSchemeElement);
     }
 
-    private static void processRDFAbout(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processRDFAbout(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                         Element conceptSchemeElement) throws JaxenException {
 
         Attribute thesaurusRdfAboutAttribute = getAttributeFromXPath(RDF_ABOUT_ATTR_XPATH, namespaceContext,
@@ -219,7 +217,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void processTitle(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processTitle(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                      Element conceptSchemeElement) throws JaxenException {
 
         Element titleElement = getElementFromXPath(DC_TITLE_XPATH, namespaceContext, conceptSchemeElement);
@@ -230,7 +228,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void processDescription(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processDescription(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                            Element conceptSchemeElement) throws JaxenException {
 
         Element descriptionElement = getElementFromXPath(DC_DESCRIPTION_XPATH, namespaceContext, conceptSchemeElement);
@@ -241,7 +239,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void processCreator(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processCreator(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                        Element conceptSchemeElement) throws JaxenException {
 
         Element creatorElement = getElementFromXPath(DC_CREATOR_XPATH, namespaceContext, conceptSchemeElement);
@@ -252,7 +250,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void processCreationDate(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processCreationDate(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                             Element conceptSchemeElement) throws JaxenException, ParseException {
 
         Element dateElement = getElementFromXPath(DC_DATE_XPATH, namespaceContext, conceptSchemeElement);
@@ -263,7 +261,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void processLanguage(Thesaurus thesaurus, SimpleNamespaceContext namespaceContext,
+    private static void processLanguage(ThesaurusService thesaurus, SimpleNamespaceContext namespaceContext,
                                         Element conceptSchemeElement) throws JaxenException {
 
         Element languageElement = getElementFromXPath(DC_LANGUAGE_XPATH, namespaceContext, conceptSchemeElement);
@@ -368,7 +366,7 @@ public class ThesaurusBuilder {
         }
     }
 
-    private static void addParsedConcepts(Thesaurus thesaurus, Map<String, SkosConcept> parsedConcepts) {
+    private static void addParsedConcepts(ThesaurusService thesaurus, Map<String, SkosConcept> parsedConcepts) {
         thesaurus.setAllConcepts(parsedConcepts);
     }
 

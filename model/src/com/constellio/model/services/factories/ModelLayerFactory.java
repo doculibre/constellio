@@ -36,7 +36,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchBoostManager;
-import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -48,7 +47,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
@@ -170,4 +169,6 @@ public interface ModelLayerFactory extends LayerFactory {
 	SearchConfigurationsManager getSearchConfigurationsManager();
 
 	TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache();
+
+	ThesaurusService getThesaurusService();
 }

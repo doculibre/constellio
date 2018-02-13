@@ -9,6 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -126,6 +127,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final SearchConfigurationsManager searchConfigurationsManager;
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+
+	private final ThesaurusService thesaurusService = new ThesaurusService();
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -463,5 +466,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
 
+	}
+
+	@Override
+	public ThesaurusService getThesaurusService() {
+		return thesaurusService;
 	}
 }
