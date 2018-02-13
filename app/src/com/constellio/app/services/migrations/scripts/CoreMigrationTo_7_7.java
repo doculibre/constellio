@@ -61,7 +61,7 @@ public class CoreMigrationTo_7_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder metadataSchemaTypeBuilderSriptReport = typesBuilder.getSchemaType(ScriptReport.SCHEMA_TYPE);
 			MetadataSchemaBuilder scriptReportReportSchema = metadataSchemaTypeBuilderSriptReport.createCustomSchema(ScriptReport.SCHEMA);
 
-			MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaType(SearchEvent.SCHEMA_TYPE);
 			searchEvent.setDataStore(DataStore.EVENTS);
 			searchEvent.createMetadata(SearchEvent.USERNAME).setType(STRING);
 			searchEvent.createMetadata(SearchEvent.QUERY).setType(STRING);
