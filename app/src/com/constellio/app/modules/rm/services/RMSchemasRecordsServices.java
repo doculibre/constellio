@@ -26,6 +26,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,14 +66,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -305,6 +298,18 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//
 
 	//Document type
+
+	public ThesaurusConfig newThesaurusConfig() {
+		return new ThesaurusConfig(create(thesaurusSchema()), getTypes());
+	}
+
+	public ThesaurusConfig wrapThesaurusConfig(Record record) {
+		return record == null ? null : new ThesaurusConfig(record, getTypes());
+	}
+
+	public MetadataSchema thesaurusSchema() {
+		return getTypes().getSchema(ThesaurusConfig.DEFAULT_SCHEMA);
+	}
 
 	public MetadataSchema documentTypeSchema() {
 		return getTypes().getSchema(DocumentType.DEFAULT_SCHEMA);

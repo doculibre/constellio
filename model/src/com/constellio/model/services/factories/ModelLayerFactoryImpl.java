@@ -464,6 +464,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
-
 	}
 }

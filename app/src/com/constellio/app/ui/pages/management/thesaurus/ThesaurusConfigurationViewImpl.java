@@ -2,9 +2,11 @@ package com.constellio.app.ui.pages.management.thesaurus;
 
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import net.didion.jwnl.data.Exc;
 
 import java.util.List;
 
@@ -15,7 +17,7 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     Button uploadButton;
     Button downloadButton;
     
-    TextArea textArea;
+    TextArea deniedTerms;
     Button saveButton;
     Button cancelButton;
 
@@ -28,27 +30,30 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         VerticalLayout verticalLayout = new VerticalLayout();
+        if(thesaurusConfigurationPresenter.haveThesaurusConfiguration()) {
+            downloadButton = new Button($("ThesaurusConfigurationView.button.download"));
 
-        downloadButton = new Button($("ThesaurusConfigurationView.button.download"));
+            downloadButton.addClickListener(new Button.ClickListener() {
+                @Override
+                public void buttonClick(Button.ClickEvent event) {
 
-        downloadButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
+                }
+            });
 
-            }
-        });
+            downloadButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-        downloadButton.addStyleName(ValoTheme.BUTTON_LINK);
-
-        verticalLayout.addComponent(downloadButton);
-
+            verticalLayout.addComponent(downloadButton);
+        }
         return verticalLayout;
+    }
+
+    public void showError(Exception exeption) {
+        this.showErrorMessage($("ThesaurusConfigurationView.saveUnexpectedError"));
     }
 
     @Override
     protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
         List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
-
         WindowButton.WindowConfiguration configuration = new WindowButton.WindowConfiguration(true, true, "50%", "750px");
         refusalWindow = new WindowButton($("ThesaurusConfigurationView.button.termsrefusal"),
                 $("ThesaurusConfigurationView.button.termsrefusal", configuration)) {
@@ -57,14 +62,21 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
                 VerticalLayout verticalLayout = new VerticalLayout();
 
                 verticalLayout.setSizeFull();
-                textArea = new TextArea();
-                textArea.setSizeFull();
+                deniedTerms = new TextArea();
+                deniedTerms.setValue(thesaurusConfigurationPresenter.getDenidedTerms());
+                deniedTerms.setSizeFull();
                 saveButton = new Button($("save"));
 
                 saveButton.addClickListener(new ClickListener() {
                     @Override
                     public void buttonClick(ClickEvent event) {
-                        
+                        try {
+                            thesaurusConfigurationPresenter.saveDenidedTerms(deniedTerms.getValue());
+                        } catch (RecordServicesException e) {
+                            showError(e);
+                            e.printStackTrace();
+                        }
+                        refusalWindow.getWindow().close();
                     }
                 });
 
@@ -77,8 +89,8 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
                     }
                 });
 
-                verticalLayout.addComponent(textArea);
-                verticalLayout.setExpandRatio(textArea, 1);
+                verticalLayout.addComponent(deniedTerms);
+                verticalLayout.setExpandRatio(deniedTerms, 1);
                 HorizontalLayout horizontalLayout = new HorizontalLayout();
                 horizontalLayout.addComponent(saveButton);
                 horizontalLayout.addComponent(cancelButton);

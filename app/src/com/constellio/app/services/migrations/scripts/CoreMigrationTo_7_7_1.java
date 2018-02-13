@@ -6,6 +6,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -19,7 +20,7 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new CoreSchemaAlterationFor_7_7_1(collection ,migrationResourcesProvider, appLayerFactory);
+        new CoreSchemaAlterationFor_7_7_1(collection ,migrationResourcesProvider, appLayerFactory).migrate();
     }
 
     class CoreSchemaAlterationFor_7_7_1 extends MetadataSchemasAlterationHelper {
@@ -34,7 +35,8 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).addLabel(Language.French,"configuration du thesaurus")
                     .addLabel(Language.English, "thesaurus configuration").getDefaultSchema();
-            thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true);
+            thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
+            thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
         }
     }
 }
