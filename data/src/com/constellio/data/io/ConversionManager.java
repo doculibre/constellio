@@ -1,13 +1,10 @@
 package com.constellio.data.io;
 
 import static java.io.File.createTempFile;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,7 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -212,11 +213,16 @@ public class ConversionManager implements StatefulService {
 	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
-
-	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl) {
+	private static DataLayerSystemExtensions extensions;
+	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl, DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
+		this.extensions = extensions;
+	}
+
+	public static String[] getSupportedExtensions() {
+		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
 	}
 
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
@@ -341,7 +347,40 @@ public class ConversionManager implements StatefulService {
 			throws OfficeException {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
+			String fileExtension = FilenameUtils.getExtension(input.getName());
+			if(Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
+				if(converter != null) {
+					FileInputStream inputStream = null;
+					FileOutputStream outputStream = null;
+					try {
+						//Source https://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
+						inputStream = new FileInputStream(converter.convert(input));
+						outputStream = new FileOutputStream(output);
+						byte[] buffer = new byte[1024];
 
+						int length;
+						/*copying the contents from input stream to
+						 * output stream using read and write methods
+						 */
+						while ((length = inputStream.read(buffer)) > 0){
+							outputStream.write(buffer, 0, length);
+						}
+					} catch (FileNotFoundException e ) {
+						throw new OfficeException(String.format("Could not found file %s", input.getName()));
+					} catch(IOException e) {
+						throw new RuntimeException(e);
+					} finally {
+						if(inputStream != null) {
+							ioServices.closeQuietly(inputStream);
+						}
+
+						if(outputStream != null) {
+							ioServices.closeQuietly(outputStream);
+						}
+					}
+				}
+			} else {
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
 			DocumentFormat outputFormat = toPDFa(input);
@@ -349,12 +388,12 @@ public class ConversionManager implements StatefulService {
 				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
 			}
 
-			delegate
-					.convert(input)
-					.as(inputFormat)
-					.to(output)
-					.as(outputFormat)
-					.execute();
+		    delegate
+		        .convert(input)
+		        .as(inputFormat)
+		        .to(output)
+		        .as(outputFormat)
+		        .execute();}
 		}
 	}
 
@@ -364,13 +403,13 @@ public class ConversionManager implements StatefulService {
 	private DocumentFamily getDocumentFamily(File file) {
 		DocumentFamily documentFamily;
 		String extension = StringUtils.toLowerCase(FilenameUtils.getExtension(file.getName()));
-		if (Arrays.asList(TEXT_EXTENSIONS).contains(extension)) {
+		if (asList(TEXT_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.TEXT;
-		} else if (Arrays.asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
+		} else if (asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.SPREADSHEET;
-		} else if (Arrays.asList(PRESENTATION_EXTENSIONS).contains(extension)) {
+		} else if (asList(PRESENTATION_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.PRESENTATION;
-		} else if (Arrays.asList(DRAWING_EXTENSIONS).contains(extension)) {
+		} else if (asList(DRAWING_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.DRAWING;
 		} else {
 			documentFamily = null;
