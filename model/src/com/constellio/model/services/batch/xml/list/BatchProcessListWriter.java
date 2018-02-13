@@ -260,6 +260,17 @@ public class BatchProcessListWriter {
 		}
 	}
 
+	public void cancelPendingBatchProcess(String batchProcessId) {
+		List<Element> standbyBatchProcesses = document.getRootElement().getChild(PENDING_BATCH_PROCESSES)
+				.getChildren(BATCH_PROCESS);
+		for (Element standbyBatchProcess : standbyBatchProcesses) {
+			if (standbyBatchProcess.getAttributeValue(ID).equals(batchProcessId)) {
+				standbyBatchProcess.detach();
+				break;
+			}
+		}
+	}
+
 	public void markAllBatchProcessAsPending() {
 		Element standbyListElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES);
 

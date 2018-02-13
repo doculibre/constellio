@@ -33,7 +33,9 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.Octets;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -45,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -160,6 +163,19 @@ public class ReindexingServices {
 				recordDao.expungeDeletes();
 
 				deleteMetadatasMarkedForDeletion();
+
+				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+				for (BatchProcess batchProcess : new ArrayList<>(batchProcessesManager.getAllNonFinishedBatchProcesses())) {
+					if (batchProcess instanceof RecordBatchProcess) {
+						if (((RecordBatchProcess) batchProcess).getAction() instanceof RecordsReindexingBackgroundAction) {
+							try {
+								batchProcessesManager.cancelBatchProcessNoMatterItStatus(batchProcess);
+							} catch (Exception e) {
+								LOGGER.info("Failed to cancel reindexing batch process");
+							}
+						}
+					}
+				}
 
 			}
 

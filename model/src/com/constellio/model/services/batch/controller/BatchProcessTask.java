@@ -1,5 +1,16 @@
 package com.constellio.model.services.batch.controller;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.RecursiveTask;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -8,19 +19,14 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.*;
+import com.constellio.model.services.records.RecordModificationImpactHandler;
+import com.constellio.model.services.records.RecordProvider;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.OptimisticLocking;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.RecursiveTask;
-
-import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class BatchProcessTask extends RecursiveTask<List<String>> {
@@ -37,7 +43,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	private final BatchProcessReport report;
 
 	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action, RecordServices recordServices,
-							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report) {
+			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report) {
 		this.records = records;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
@@ -73,7 +79,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices));
 
 		} catch (Throwable t) {
-			if(report != null) {
+			if (report != null) {
 				report.appendErrors(asList(t.getMessage()));
 			}
 			t.printStackTrace();
@@ -90,7 +96,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 
 			} catch (OptimisticLocking e) {
 				//e.printStackTrace();
-				LOGGER.info("Optimistic locking, retrying transaction ...");
+				LOGGER.info("Optimistic locking, retrying transaction ...", e);
 				//LOGGER.info("Optimistic locking, retrying transaction ...\n" + LoggerUtils.toString(e.getTransactionDTO()));
 				try {
 					Thread.sleep(100);
@@ -99,10 +105,11 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 				}
 				List<String> recordIds = new RecordUtils().toIdList(records);
 				List<Record> newBatch = recordServices.getRecordsById(batch.get(0).getCollection(), recordIds);
+				recordServices.flush();
 				execute(newBatch, errors);
 
 			} catch (RecordServicesRuntimeException | RecordServicesException t) {
-				if(report != null) {
+				if (report != null) {
 					report.appendErrors(asList(t.getMessage()));
 				}
 				t.printStackTrace();
@@ -114,7 +121,8 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	}
 
 	RecordModificationImpactHandler createSubTaskImpactHandler() {
-		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user, report);
+		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user,
+				report);
 	}
 
 	private void addRecordsIdsToErrorList(List<Record> batch, List<String> errors) {

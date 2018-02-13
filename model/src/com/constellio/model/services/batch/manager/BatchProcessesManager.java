@@ -212,6 +212,20 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		updateBatchProcesses(cancelStandByBatchProcessDocumentAlteration(batchProcess.getId()));
 	}
 
+	public void cancelPendingBatchProcess(BatchProcess batchProcess) {
+		updateBatchProcesses(cancelPendingBatchProcessDocumentAlteration(batchProcess.getId()));
+	}
+
+	public void cancelBatchProcessNoMatterItStatus(BatchProcess batchProcess) {
+		if (batchProcess.getStatus() == BatchProcessStatus.PENDING) {
+			cancelPendingBatchProcess(batchProcess);
+		}
+
+		if (batchProcess.getStatus() == BatchProcessStatus.STANDBY) {
+			cancelStandByBatchProcess(batchProcess);
+		}
+	}
+
 	public void markAllStandbyAsPending() {
 		updateBatchProcesses(markAllBatchProcessAsPendingDocumentAlteration());
 	}
@@ -395,6 +409,16 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			@Override
 			public void alter(Document document) {
 				newBatchProcessListWriter(document).cancelStandByBatchProcess(id);
+			}
+		};
+	}
+
+	DocumentAlteration cancelPendingBatchProcessDocumentAlteration(final String id) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).cancelPendingBatchProcess(id);
 			}
 		};
 	}
