@@ -8,15 +8,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -28,9 +28,10 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class printableReportXmlGenerator extends AbstractXmlGenerator {
+public class PrintableReportXmlGenerator42 extends AbstractXmlGenerator {
 
-    static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";public printableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
+    static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
+    public PrintableReportXmlGenerator42(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
         super(appLayerFactory, collection);
         this.xmlGeneratorParameters = xmlGeneratorParameters;
     }
