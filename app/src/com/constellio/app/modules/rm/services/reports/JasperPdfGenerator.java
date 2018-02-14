@@ -44,7 +44,7 @@ public class JasperPdfGenerator {
      * @return File with the report.
      * @throws JRException
      */
-    public File createPDFFromXmlAndJasperFile(File jasperFile, String format) throws JRException {
+    public File createPDFFromXmlAndJasperFile(File jasperFile) throws JRException {
         Map<String, Object> params = new HashMap<>();
         Document document;
         String PDFFile = "";

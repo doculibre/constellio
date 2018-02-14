@@ -388,12 +388,12 @@ public class ConversionManager implements StatefulService {
 				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
 			}
 
-		    delegate
-		        .convert(input)
-		        .as(inputFormat)
-		        .to(output)
-		        .as(outputFormat)
-		        .execute();}
+			delegate
+					.convert(input)
+					.as(inputFormat)
+					.to(output)
+					.as(outputFormat)
+					.execute();}
 		}
 	}
 
@@ -474,6 +474,7 @@ public class ConversionManager implements StatefulService {
 		} else {
 			pdfaFormat = null;
 		}
+
 		return pdfaFormat;
 	}
 	public static boolean isSupportedExtension(String ext) {
