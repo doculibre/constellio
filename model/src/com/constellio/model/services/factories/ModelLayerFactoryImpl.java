@@ -9,7 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.services.thesaurus.ThesaurusService;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -126,6 +126,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
 
+	private final ThesaurusManager thesaurusManager;
+
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 
 
@@ -203,6 +205,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.trashQueueManager = add(new TrashQueueManager(this));
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
+
+		this.thesaurusManager = add(new ThesaurusManager(null)); // TODO mettre le fichier?
 
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
 			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();

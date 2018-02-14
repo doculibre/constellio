@@ -19,6 +19,8 @@
  */
 package com.constellio.model.services.thesaurus;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -165,7 +167,7 @@ public class ThesaurusService implements Serializable {
 			for(ThesaurusLabel thesaurusLabel : thesaurusLabels){
 				// one thesaurus label per lang code possible (and multiple lang codes possible)
 				for(String prefValue : thesaurusLabel.getValues().values()){ // TODO check if only iterate through values OK
-					if(prefValue.contains(input)){
+					if(StringUtils.containsIgnoreCase(input, prefValue)){
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -186,7 +188,7 @@ public class ThesaurusService implements Serializable {
 			for(SkosConceptAltLabel thesaurusLabel : thesaurusLabels){
 				// one thesaurus label per lang code possible (and multiple lang codes possible)
 				for(String prefValue : thesaurusLabel.getValues()){ // TODO check if only iterate through values OK
-					if(prefValue.contains(input)){
+					if(StringUtils.containsIgnoreCase(input, prefValue)){
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -196,6 +198,31 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
+//	public List<SkosConcept> searchRelatedLabel(String rdfAbout){
+//
+//		List<SkosConcept> skosConcepts = new ArrayList<>();
+//
+//		for(Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()){
+//			SkosConcept skosConcept = skosConceptEntry.getValue();
+//			Set<SkosConcept> thesaurusLabels = skosConcept.getRelated();
+//
+//			for(SkosConcept thesaurusLabel : thesaurusLabels)
+//
+//				for(ThesaurusLabel : thesaurusLabel.getPrefLabels()) {
+//				}
+//
+//				// one thesaurus label per lang code possible (and multiple lang codes possible)
+//				for(String prefValue : thesaurusLabel.getValues()){ // TODO check if only iterate through values OK
+//					if(StringUtils.containsIgnoreCase(input, prefValue)){
+//						skosConcepts.add(skosConcept);
+//					}
+//				}
+//			}
+//		}
+//
+//		return skosConcepts;
+//	}
+
 	public List<SkosConcept> searchAllLabels(String input){
 
 		List<SkosConcept> searchPrefLabel = searchPrefLabel(input);
@@ -204,6 +231,7 @@ public class ThesaurusService implements Serializable {
 		List<SkosConcept> allLabels = new ArrayList<>(searchPrefLabel);
 		allLabels.addAll(searchAltLabel);
 
+		// TODO add suggestions
 
 		return allLabels;
 	}

@@ -49,16 +49,6 @@ public class ThesaurusBuilder {
 
     private static ThesaurusService thesaurus;
 
-//    public static Thesaurus getThesaurus(InputStream inputStream) {
-//        Thesaurus thesaurus = null;
-//        try {
-//            thesaurus = getThesaurus(inputStream);
-//        } finally {
-//            IOUtils.closeQuietly(inputStream);
-//        }
-//        return thesaurus;
-//    }
-
     @SuppressWarnings("unchecked")
     public static ThesaurusService getThesaurus(InputStream skosFileStream) {
         thesaurus = new ThesaurusService();
