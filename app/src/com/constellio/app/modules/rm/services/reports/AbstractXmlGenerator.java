@@ -45,451 +45,492 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public abstract class AbstractXmlGenerator {
-    /**
-     * First element of the XMl document, usually in plural form.
-     */
-    public static final String XML_ROOT_RECORD_ELEMENTS = "records";
+	/**
+	 * First element of the XMl document, usually in plural form.
+	 */
+	public static final String XML_ROOT_RECORD_ELEMENTS = "records";
 
+	/**
+	 * Xml tag of every element in the XML
+	 */
+	public static final String XML_EACH_RECORD_ELEMENTS = "record";
 
-    /**
-     * Xml tag of every element in the XML
-     */
-    public static final String XML_EACH_RECORD_ELEMENTS = "record";
+	/**
+	 * Prefix for reference
+	 */
+	public static final String REFERENCE_PREFIX = "ref_";
 
-    /**
-     * Prefix for reference
-     */
-    public static final String REFERENCE_PREFIX = "ref_";
+	/**
+	 * Suffix for reference of parents
+	 */
+	public static final String PARENT_SUFFIX = "_parent";
 
-    /**
-     * Suffix for reference of parents
-     */
-    public static final String PARENT_SUFFIX = "_parent";
+	/**
+	 * XML Tag for multiple Metadata
+	 */
+	public static final String XML_METADATA_TAGS = "metadatas";
 
-    /**
-     * XML Tag for multiple Metadata
-     */
-    public static final String XML_METADATA_TAGS = "metadatas";
+	/**
+	 * XMl tag for single metadata
+	 */
+	public static final String XML_METADATA_SINGLE_TAGS = "metadata";
 
-    /**
-     * XMl tag for single metadata
-     */
-    public static final String XML_METADATA_SINGLE_TAGS = "metadata";
+	public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "")
+			.replacingRegex("[&$%]", "");
+	public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
 
-    public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "").replacingRegex("[&$%]", "");
-    public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
+	/**
+	 * Constellio's AppLayerFactory
+	 */
+	private AppLayerFactory factory;
 
-    /**
-     * Constellio's AppLayerFactory
-     */
-    private AppLayerFactory factory;
+	/**
+	 * Constellio's Collection
+	 */
+	private String collection;
 
-    /**
-     * Constellio's Collection
-     */
-    private String collection;
+	private RecordServices recordServices;
 
+	private MetadataSchemasManager metadataSchemasManager;
+	private RMSchemasRecordsServices rm;
 
+	protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
 
-    private RecordServices recordServices;
+	public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection) {
+		this.factory = appLayerFactory;
+		this.collection = collection;
+		this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
+		this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
 
-    private MetadataSchemasManager metadataSchemasManager;
-    private RMSchemasRecordsServices rm;
+	public RecordServices getRecordServices() {
+		return recordServices;
+	}
 
-    public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection) {
-        this.factory = appLayerFactory;
-        this.collection = collection;
-        this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
-        this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
-        this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-    }
+	public RMSchemasRecordsServices getRMSchemasRecordsServices() {
+		return rm;
+	}
 
+	public AppLayerFactory getFactory() {
+		return this.factory;
+	}
 
-    public RecordServices getRecordServices() {
-        return recordServices;
-    }
+	public String getCollection() {
+		return this.collection;
+	}
 
-    public RMSchemasRecordsServices getRMSchemasRecordsServices() {
-        return rm;
-    }
+	protected MetadataList getListOfMetadataForElement(Record element) {
+		return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
+	}
 
-    public AppLayerFactory getFactory() {
-        return this.factory;
-    }
+	/**
+	 * Add additionnal needed information like collection code and title
+	 * there should be an extension here to add information from plugins.
+	 * @param recordElement record
+	 * @return list of elements
+	 */
+	protected List<Element> getAdditionalInformations(Record recordElement) {
+		MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypeOf(recordElement);
+		List<Element> elementsToAdd = new ArrayList<>(asList(
+				new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection")
+						.setAttribute("code", "collection_code"),
+				new Element("collection_title")
+						.setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName())
+						.setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
+		));
+		if (metadataSchemaType.getCode().equals(Folder.SCHEMA_TYPE)) {
+			Metadata typeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(Folder.TYPE);
+			String metadataTypeId = recordElement.get(typeMetadata);
+			if (metadataTypeId != null) {
+				FolderType currentFolderType = new RMSchemasRecordsServices(getCollection(), getFactory())
+						.getFolderType(metadataTypeId);
+				elementsToAdd.addAll(asList(
+						new Element("ref_folder_type_title").setText(currentFolderType.getTitle())
+								.setAttribute("label", metadataSchemaType.getFrenchLabel())
+								.setAttribute("code", typeMetadata.getCode()),
+						new Element("ref_folder_type_code").setText(currentFolderType.getCode())
+								.setAttribute("label", metadataSchemaType.getFrenchLabel())
+								.setAttribute("code", typeMetadata.getCode())
+				));
+			}
+		}
+		List<Element> listOfSpecificAdditionnalElement = getSpecificDataToAddForCurrentElement(recordElement);
+		if (!listOfSpecificAdditionnalElement.isEmpty()) {
+			elementsToAdd.addAll(listOfSpecificAdditionnalElement);
+		}
+		return elementsToAdd;
+	}
 
-    public String getCollection() {
-        return this.collection;
-    }
+	/**
+	 * Return the elements created from the value of metadata of type structure.
+	 * @param metadata
+	 * @param recordElement
+	 * @param collection
+	 * @param factory
+	 * @return
+	 */
+	public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement,
+			String collection, AppLayerFactory factory) {
+		if (!hasMetadata(recordElement, metadata)) {
+			return Collections.emptyList();
+		}
+		List<Element> listOfMetadataTags = new ArrayList<>();
+		if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
+			List<ModifiableStructure> metadataValue;
+			if (metadata.isMultivalue()) {
+				metadataValue = recordElement.getList(metadata);
+			} else {
+				metadataValue = Collections.singletonList(recordElement.<ModifiableStructure>get(metadata));
+			}
 
-    protected MetadataList getListOfMetadataForElement(Record element) {
-        return this.factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(element).getMetadatas();
-    }
+			for (ModifiableStructure value : metadataValue) {
+				CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ?
+						((CopyRetentionRuleInRule) value).getCopyRetentionRule() :
+						(CopyRetentionRule) value;
+				listOfMetadataTags.addAll(asList(
+						new Element(escapeForXmlTag(getLabelOfMetadata(metadata))).setText(retentionRule.toString()),
+						new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period")
+								.setText(retentionRule.getActiveRetentionPeriod().toString()),
+						new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment")
+								.setText(retentionRule.getActiveRetentionComment()),
+						new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period")
+								.setText(retentionRule.getSemiActiveRetentionPeriod().toString()),
+						new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period_comment")
+								.setText(retentionRule.getSemiActiveRetentionComment())
+				));
+			}
+		} else if (metadata.getLocalCode().equals("comments")) {
+			List<Comment> comments = recordElement.getList(metadata);
+			StringBuilder commentsText = new StringBuilder();
+			for (Comment comment : comments) {
+				commentsText.append(comment.getMessage()).append("\n");
+			}
+			listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(commentsText.toString()));
+		} else {
+			Object metadataValue = recordElement.get(metadata);
+			listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(
+					defaultFormatData(metadataValue != null ? metadataValue.toString() : null, metadata, factory, collection)));
+		}
+		return listOfMetadataTags;
+	}
 
-    /**
-     * Add additionnal needed information like collection code and title
-     * there should be an extension here to add information from plugins.
-     * @param recordElement record
-     * @return list of elements
-     */
-    protected List<Element> getAdditionalInformations(Record recordElement) {
-        MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(recordElement);
-        List<Element> elementsToAdd = new ArrayList<>(asList(
-                new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection").setAttribute("code", "collection_code"),
-                new Element("collection_title").setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName()).setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
-        ));
-        if (metadataSchemaType.getCode().equals(Folder.SCHEMA_TYPE)) {
-            Metadata typeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(Folder.TYPE);
-            String metadataTypeId = recordElement.get(typeMetadata);
-            if (metadataTypeId != null) {
-                FolderType currentFolderType = new RMSchemasRecordsServices(getCollection(), getFactory()).getFolderType(metadataTypeId);
-                elementsToAdd.addAll(asList(
-                        new Element("ref_folder_type_title").setText(currentFolderType.getTitle()).setAttribute("label", metadataSchemaType.getFrenchLabel()).setAttribute("code", typeMetadata.getCode()),
-                        new Element("ref_folder_type_code").setText(currentFolderType.getCode()).setAttribute("label", metadataSchemaType.getFrenchLabel()).setAttribute("code", typeMetadata.getCode())
-                ));
-            }
-        }
-        List<Element> listOfSpecificAdditionnalElement = getSpecificDataToAddForCurrentElement(recordElement);
-        if (!listOfSpecificAdditionnalElement.isEmpty()) {
-            elementsToAdd.addAll(listOfSpecificAdditionnalElement);
-        }
-        return elementsToAdd;
-    }
+	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
+		return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
+	}
 
-    /**
-     * Return the elements created from the value of metadata of type structure.
-     * @param metadata
-     * @param recordElement
-     * @param collection
-     * @param factory
-     * @return
-     */
-    public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
-        if(!hasMetadata(recordElement, metadata)) {
-            return Collections.emptyList();
-        }
-        List<Element> listOfMetadataTags = new ArrayList<>();
-        if (metadata.getLocalCode().toLowerCase().contains("copyrule")) {
-            List<ModifiableStructure> metadataValue;
-            if (metadata.isMultivalue()) {
-                metadataValue = recordElement.getList(metadata);
-            } else {
-                metadataValue = Collections.singletonList(recordElement.<ModifiableStructure>get(metadata));
-            }
+	/**
+	 * Method that returns the value of metadata enum,
+	 * use the i18n to get correct label for current user language.
+	 * @param metadata
+	 * @param recordElement
+	 * @param namespace
+	 * @return
+	 */
+	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement,
+			Namespace namespace) {
+		if (!hasMetadata(recordElement, metadata)) {
+			return Collections.emptyList();
+		}
+		List<Element> listOfMetadataTags = new ArrayList<>();
+		EnumWithSmallCode metadataValue = recordElement.get(metadata);
+		String code, title;
 
-            for (ModifiableStructure value : metadataValue) {
-                CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ? ((CopyRetentionRuleInRule) value).getCopyRetentionRule() : (CopyRetentionRule) value;
-                listOfMetadataTags.addAll(asList(
-                        new Element(escapeForXmlTag(getLabelOfMetadata(metadata))).setText(retentionRule.toString()),
-                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period").setText(retentionRule.getActiveRetentionPeriod().toString()),
-                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period_comment").setText(retentionRule.getActiveRetentionComment()),
-                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period").setText(retentionRule.getSemiActiveRetentionPeriod().toString()),
-                        new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_semi_active_period_comment").setText(retentionRule.getSemiActiveRetentionComment())
-                ));
-            }
-        } else if (metadata.getLocalCode().equals("comments")) {
-            List<Comment> comments = recordElement.getList(metadata);
-            StringBuilder commentsText = new StringBuilder();
-            for (Comment comment : comments) {
-                commentsText.append(comment.getMessage()).append("\n");
-            }
-            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(commentsText.toString()));
-        } else {
-            Object metadataValue = recordElement.get(metadata);
-            listOfMetadataTags.add(new Element(metadata.getLocalCode()).setText(defaultFormatData(metadataValue != null ? metadataValue.toString() : null, metadata, factory, collection)));
-        }
-        return listOfMetadataTags;
-    }
+		//TODO test;
+		if (metadata.isMultivalue()) {
+			StringBuilder codeBuilder = new StringBuilder();
+			StringBuilder titleBuilder = new StringBuilder();
+			for (EnumWithSmallCode enumWithSmallCode : recordElement.<EnumWithSmallCode>getList(metadata)) {
+				if (codeBuilder.length() > 0) {
+					codeBuilder.append(", ");
+				}
+				codeBuilder.append(enumWithSmallCode.getCode());
 
+				if (titleBuilder.length() > 0) {
+					titleBuilder.append(", ");
+				}
+				titleBuilder.append($(enumWithSmallCode));
+			}
+			code = codeBuilder.toString();
+			title = titleBuilder.toString();
+		} else if (metadataValue == null) {
+			code = null;
+			title = null;
+		} else {
+			code = metadataValue.getCode();
+			title = $(metadataValue);
+		}
+		listOfMetadataTags.addAll(asList(
+				new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(code)
+						.setAttribute("label", metadata.getFrenchLabel())
+						.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
+				new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(title)
+						.setAttribute("label", metadata.getFrenchLabel())
+						.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
+				)
+		);
+		return listOfMetadataTags;
+	}
 
-    public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
-        return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
-    }
+	public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement,
+			String collection, AppLayerFactory factory) {
+		return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, collection, factory, null);
+	}
 
-    /**
-     * Method that returns the value of metadata enum,
-     * use the i18n to get correct label for current user language.
-     * @param metadata
-     * @param recordElement
-     * @param namespace
-     * @return
-     */
-    public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Namespace namespace) {
-        if(!hasMetadata(recordElement, metadata)) {
-            return Collections.emptyList();
-        }
-        List<Element> listOfMetadataTags = new ArrayList<>();
-        EnumWithSmallCode metadataValue = recordElement.get(metadata);
-        String code, title;
+	/**
+	 * Method that will return the code and title of the referenced record element,
+	 * If referenced record has parent, will return the code and title of the parent.
+	 * @param metadata metadata
+	 * @param recordElement record
+	 * @param collection collection
+	 * @param factory factory
+	 * @param namespace use if need to add a namespace.
+	 * @return list of element to add
+	 */
+	public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement,
+			String collection, AppLayerFactory factory, Namespace namespace) {
+		if (!hasMetadata(recordElement, metadata)) {
+			return Collections.emptyList();
+		}
+		RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
+		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
+		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
+				recordElement.<String>getList(metadata) :
+				Collections.singletonList(recordElement.<String>get(metadata));
+		List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
+		List<Element> listOfMetadataTags = new ArrayList<>();
+		Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
+		String inheritedMetadataCode = metadataInSchema.getCode();
+		if (metadataInSchema.inheritDefaultSchema()) {
+			inheritedMetadataCode = metadataInSchema.getInheritance().getCode();
+		}
+		if (listOfRecordReferencedByMetadata.isEmpty()) {
+			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
+			listOfMetadataTags = asList(
+					new Element(elementNamePrefix + "_code", namespace).setText(null)
+							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
+					new Element(elementNamePrefix + "_title", namespace).setText(null)
+							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
 
-        //TODO test;
-        if(metadata.isMultivalue()) {
-            StringBuilder codeBuilder = new StringBuilder();
-            StringBuilder titleBuilder = new StringBuilder();
-            for(EnumWithSmallCode enumWithSmallCode : recordElement.<EnumWithSmallCode>getList(metadata)) {
-                if(codeBuilder.length() > 0) {
-                    codeBuilder.append(", ");
-                }
-                codeBuilder.append(enumWithSmallCode.getCode());
+		} else {
+			StringBuilder titleBuilder = new StringBuilder();
+			StringBuilder codeBuilder = new StringBuilder();
+			StringBuilder titleParentBuilder = new StringBuilder();
+			StringBuilder codeParentBuilder = new StringBuilder();
+			for (Record recordReferenced : listOfRecordReferencedByMetadata) {
+				if (titleBuilder.length() > 0) {
+					titleBuilder.append(", ");
+				}
+				titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
 
-                if(titleBuilder.length() > 0) {
-                    titleBuilder.append(", ");
-                }
-                titleBuilder.append($(enumWithSmallCode));
-            }
-            code = codeBuilder.toString();
-            title = titleBuilder.toString();
-        } else if (metadataValue == null) {
-            code = null;
-            title = null;
-        } else {
-            code = metadataValue.getCode();
-            title = $(metadataValue);
-        }
-        listOfMetadataTags.addAll(asList(
-                new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(code).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
-                new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(title).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
-                )
-        );
-        return listOfMetadataTags;
-    }
+				if (codeBuilder.length() > 0) {
+					codeBuilder.append(", ");
+				}
+				codeBuilder.append((String) recordReferenced.get(Schemas.CODE));
 
-    public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory) {
-        return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, collection, factory, null);
-    }
+				if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE
+						.equals(recordReferenced.getTypeCode())) {
+					Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
+							metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
+									.get(AdministrativeUnit.PARENT) :
+							metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+					String parentMetadataId = recordReferenced.get(parentMetadata);
+					if (parentMetadataId != null) {
+						Record parentRecord = recordServices.getDocumentById(parentMetadataId);
+						if (titleParentBuilder.length() > 0) {
+							titleParentBuilder.append(", ");
+						}
+						titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
 
-    /**
-     * Method that will return the code and title of the referenced record element,
-     * If referenced record has parent, will return the code and title of the parent.
-     * @param metadata metadata
-     * @param recordElement record
-     * @param collection collection
-     * @param factory factory
-     * @param namespace use if need to add a namespace.
-     * @return list of element to add
-     */
-    public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement, String collection, AppLayerFactory factory, Namespace namespace) {
-        if (!hasMetadata(recordElement, metadata)) {
-            return Collections.emptyList();
-        }
-        RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
-        MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-        MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
-        List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ? recordElement.<String>getList(metadata) : Collections.singletonList(recordElement.<String>get(metadata));
-        List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
-        List<Element> listOfMetadataTags = new ArrayList<>();
-        Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
-        String inheritedMetadataCode = metadataInSchema.getCode();
-        if(metadataInSchema.inheritDefaultSchema()) {
-            inheritedMetadataCode = metadataInSchema.getInheritance().getCode();
-        }
-        if (listOfRecordReferencedByMetadata.isEmpty()) {
-        	String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
-            listOfMetadataTags = asList(
-                    new Element(elementNamePrefix + "_code", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
-                    new Element(elementNamePrefix + "_title", namespace).setText(null).setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
+						if (codeParentBuilder.length() > 0) {
+							codeParentBuilder.append(", ");
+						}
+						codeParentBuilder.append((String) parentRecord.get(Schemas.CODE));
 
-        } else {
-            StringBuilder titleBuilder = new StringBuilder();
-            StringBuilder codeBuilder = new StringBuilder();
-            StringBuilder titleParentBuilder = new StringBuilder();
-            StringBuilder codeParentBuilder = new StringBuilder();
-            for (Record recordReferenced : listOfRecordReferencedByMetadata) {
-                if(titleBuilder.length() > 0) {
-                    titleBuilder.append(", ");
-                }
-                titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
+					}
+				}
+			}
 
-                if(codeBuilder.length() > 0) {
-                    codeBuilder.append(", ");
-                }
-                codeBuilder.append((String) recordReferenced.get(Schemas.CODE));
+			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
+			listOfMetadataTags.addAll(asList(
+					new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString())
+							.setAttribute("label", elementNamePrefix + "_code"),
+					new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString())
+							.setAttribute("label", elementNamePrefix + "_title")
+			));
+			if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
+				listOfMetadataTags.addAll(asList(
+						new Element(elementNamePrefix + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),
+						new Element(elementNamePrefix + PARENT_SUFFIX + "_title", namespace)
+								.setText(titleParentBuilder.toString())
+				));
+			}
+		}
+		return listOfMetadataTags;
+	}
 
+	/**
+	 * Function that checks a string and replace if needed. Used to get valid XML tag.
+	 *
+	 * @param input String
+	 * @return
+	 */
+	public static String escapeForXmlTag(String input) {
+		String inputWithoutaccent = AccentApostropheCleaner.removeAccents(input);
+		String inputWithoutPonctuation = AccentApostropheCleaner.cleanPonctuation(inputWithoutaccent);
+		return replaceInvalidXMLCharacter.replaceOn(inputWithoutPonctuation).toLowerCase();
+	}
 
-                if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE.equals(recordReferenced.getTypeCode())) {
-                    Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ? metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(AdministrativeUnit.PARENT) : metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
-                    String parentMetadataId = recordReferenced.get(parentMetadata);
-                    if (parentMetadataId != null) {
-                        Record parentRecord = recordServices.getDocumentById(parentMetadataId);
-                        if(titleParentBuilder.length() > 0) {
-                            titleParentBuilder.append(", ");
-                        }
-                        titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
+	/**
+	 * Format data to make sure it's conform.
+	 * ex: Will format date for the defined pattern in constellio config.
+	 *     Will also returns correct i18n value for boolean.
+	 *     And will remove html tags from text.
+	 * @param data
+	 * @param metadata
+	 * @param factory
+	 * @param collection
+	 * @return
+	 */
+	public static String defaultFormatData(String data, Metadata metadata, AppLayerFactory factory, String collection) {
+		if (StringUtils.isEmpty(data)) {
+			return data;
+		}
+		String finalData = data;
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(factory.getModelLayerFactory().getSystemConfigurationsManager());
+		if (metadata.getType().equals(MetadataValueType.BOOLEAN)) {
+			finalData = $(data);
+		} else if (metadata.getType().equals(MetadataValueType.DATE) || metadata.getType().equals(MetadataValueType.DATE_TIME)) {
+			try {
+				boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
+				DateFormat df = isDateTime ?
+						new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") :
+						new SimpleDateFormat("yyyy-MM-dd");
+				Date date = df.parse(data);
+				finalData = SimpleDateFormatSingleton
+						.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
+			} catch (ParseException e) {
+				return data;
+			}
+		} else if (metadata.getType().equals(MetadataValueType.TEXT)) {
+			finalData = Jsoup.parse(data).text();
+		}
+		return replaceBracketsInValueToString.replaceOn(finalData);
+	}
 
-                        if(codeParentBuilder.length() > 0) {
-                            codeParentBuilder.append(", ");
-                        }
-                        codeParentBuilder.append((String) parentRecord.get(Schemas.CODE));
+	public static String getLabelOfMetadata(Metadata metadata) {
+		return metadata.getCode().split("_")[2];
+	}
 
-                    }
-                }
-            }
+	protected String getToStringOrNull(Object ob) {
+		return ob == null ? null : ob.toString();
+	}
 
-            String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
-            listOfMetadataTags.addAll(asList(
-                    new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString()).setAttribute("label", elementNamePrefix + "_code"),
-                    new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString()).setAttribute("label", elementNamePrefix + "_title")
-            ));
-            if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
-                listOfMetadataTags.addAll(asList(
-                        new Element(elementNamePrefix + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),
-                        new Element(elementNamePrefix + PARENT_SUFFIX + "_title", namespace).setText(titleParentBuilder.toString())
-                ));
-            }
-        }
-        return listOfMetadataTags;
-    }
+	protected String getToStringOrNullInString(Object ob) {
+		return ob == null ? "null" : ob.toString();
+	}
 
-    /**
-     * Function that checks a string and replace if needed. Used to get valid XML tag.
-     *
-     * @param input String
-     * @return
-     */
-    public static String escapeForXmlTag(String input) {
-        String inputWithoutaccent = AccentApostropheCleaner.removeAccents(input);
-        String inputWithoutPonctuation = AccentApostropheCleaner.cleanPonctuation(inputWithoutaccent);
-        return replaceInvalidXMLCharacter.replaceOn(inputWithoutPonctuation).toLowerCase();
-    }
+	/**
+	 * Method that returns a XML String.
+	 * Should be override by children.
+	 * @return
+	 */
+	public abstract String generateXML();
 
-    /**
-     * Format data to make sure it's conform.
-     * ex: Will format date for the defined pattern in constellio config.
-     *     Will also returns correct i18n value for boolean.
-     *     And will remove html tags from text.
-     * @param data
-     * @param metadata
-     * @param factory
-     * @param collection
-     * @return
-     */
-    public static String defaultFormatData(String data, Metadata metadata, AppLayerFactory factory, String collection) {
-        if (StringUtils.isEmpty(data)) {
-            return data;
-        }
-        String finalData = data;
-        ConstellioEIMConfigs configs = new ConstellioEIMConfigs(factory.getModelLayerFactory().getSystemConfigurationsManager());
-        if (metadata.getType().equals(MetadataValueType.BOOLEAN)) {
-            finalData = $(data);
-        } else if (metadata.getType().equals(MetadataValueType.DATE) || metadata.getType().equals(MetadataValueType.DATE_TIME)) {
-            try {
-                boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
-                DateFormat df = isDateTime ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") : new SimpleDateFormat("yyyy-MM-dd");
-                Date date = df.parse(data);
-                finalData = SimpleDateFormatSingleton.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
-            } catch (ParseException e) {
-                return data;
-            }
-        } else if (metadata.getType().equals(MetadataValueType.TEXT)) {
-            finalData = Jsoup.parse(data).text();
-        }
-        return replaceBracketsInValueToString.replaceOn(finalData);
-    }
+	/**
+	 * Method that returns a list of element to add from the record.
+	 * Usually used for data that isn't from a metadata.
+	 * @param recordElement record
+	 * @return list of element to add.
+	 */
+	protected abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
 
-    public static String getLabelOfMetadata(Metadata metadata) {
-        return metadata.getCode().split("_")[2];
-    }
+	protected String formatData(String data, Metadata metadata) {
+		String formattedData = defaultFormatData(data, metadata, getFactory(), getCollection());
+		return formatToXml(formattedData);
+	}
 
-    protected String getToStringOrNull(Object ob) {
-        return ob == null ? null : ob.toString();
-    }
+	private String formatToXml(String stringToFormat) {
+		if (stringToFormat != null) {
+			StringBuilder stringBuilder = new StringBuilder();
+			char[] chars = stringToFormat.toCharArray();
+			for (char currentChar : chars) {
+				if (Verifier.isXMLCharacter(currentChar)) {
+					stringBuilder.append(currentChar);
+				} else {
+					stringBuilder.append(" ");
+				}
+			}
+			return stringBuilder.toString();
+		} else {
+			return null;
+		}
+	}
 
-    protected String getToStringOrNullInString(Object ob) {
-        return ob == null ? "null" : ob.toString();
-    }
+	/**
+	 * Method that format a path to make it better
+	 * ex:  folder1 > folder2 > folder3 > document
+	 * @param recordElement
+	 * @return
+	 */
+	public String getPath(Record recordElement) {
+		StringBuilder builder = new StringBuilder();
+		String parentId = recordElement.getParentId();
+		if (parentId == null) {
+			if (recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+				parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();
+			} else if (recordElement.getTypeCode().equals(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)) {
+				parentId = getRMSchemasRecordsServices().wrapDocument(recordElement).getFolder();
+			}
+		}
+		if (parentId != null) {
+			builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+		}
+		builder.append(recordElement.getTitle());
+		return builder.toString();
+	}
 
-    /**
-     * Method that returns a XML String.
-     * Should be override by children.
-     * @return
-     */
-    public abstract String generateXML();
+	private String getParentPath(Record recordElement) {
+		StringBuilder builder = new StringBuilder();
+		String parentId = null;
+		if (recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+			Folder folder = getRMSchemasRecordsServices().wrapFolder(recordElement);
+			parentId = folder.getParentFolder();
+			if (parentId == null) {
+				parentId = folder.getCategory();
+			}
+		} else if (recordElement.getTypeCode().equals(Category.SCHEMA_TYPE)) {
+			Category category = getRMSchemasRecordsServices().wrapCategory(recordElement);
+			parentId = category.getParent();
+		}
+		if (parentId != null) {
+			builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
+		}
+		builder.append(recordElement.getTitle());
+		builder.append(" > ");
+		return builder.toString();
+	}
 
-    /**
-     * Method that returns a list of element to add from the record.
-     * Usually used for data that isn't from a metadata.
-     * @param recordElement record
-     * @return list of element to add.
-     */
-    protected abstract List<Element> getSpecificDataToAddForCurrentElement(Record recordElement);
+	/**
+	 * Method that returns the xml generator parameters
+	 * @return AbstractXmlGeneratorParameters parameters
+	 */
+	public abstract AbstractXmlGeneratorParameters getXmlGeneratorParameters();
 
-    protected String formatData(String data, Metadata metadata) {
-        String formattedData = defaultFormatData(data, metadata, getFactory(), getCollection());
-        return formatToXml(formattedData);
-    }
-
-    private String formatToXml(String stringToFormat) {
-        if(stringToFormat != null) {
-            StringBuilder stringBuilder = new StringBuilder();
-            char[] chars = stringToFormat.toCharArray();
-            for(char currentChar: chars) {
-                if(Verifier.isXMLCharacter(currentChar)) {
-                    stringBuilder.append(currentChar);
-                } else {
-                    stringBuilder.append(" ");
-                }
-            }
-            return stringBuilder.toString();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Method that format a path to make it better
-     * ex:  folder1 > folder2 > folder3 > document
-     * @param recordElement
-     * @return
-     */
-    public String getPath(Record recordElement){
-        StringBuilder builder = new StringBuilder();
-        String parentId = recordElement.getParentId();
-        if(parentId == null) {
-            if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-                parentId = getRMSchemasRecordsServices().wrapFolder(recordElement).getCategory();
-            } else if(recordElement.getTypeCode().equals(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)) {
-                parentId = getRMSchemasRecordsServices().wrapDocument(recordElement).getFolder();
-            }
-        }
-        if(parentId != null ) {
-            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
-        }
-        builder.append(recordElement.getTitle());
-        return builder.toString();
-    }
-
-    private String getParentPath(Record recordElement) {
-        StringBuilder builder = new StringBuilder();
-        String parentId = null;
-        if(recordElement.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-            Folder folder = getRMSchemasRecordsServices().wrapFolder(recordElement);
-            parentId = folder.getParentFolder();
-            if(parentId == null) {
-                parentId = folder.getCategory();
-            }
-        } else if(recordElement.getTypeCode().equals(Category.SCHEMA_TYPE)) {
-            Category category = getRMSchemasRecordsServices().wrapCategory(recordElement);
-            parentId = category.getParent();
-        }
-        if(parentId != null) {
-            builder.append(this.getParentPath(getRecordServices().getDocumentById(parentId)));
-        }
-        builder.append(recordElement.getTitle());
-        builder.append(" > ");
-        return builder.toString();
-    }
-
-    /**
-     * Method that returns whether or not a record has a particular metadata
-     * @param record record
-     * @param metadata metadata
-     * @return boolean
-     */
-    private static boolean hasMetadata (Record record, Metadata metadata) {
-        try {
-            record.get(metadata);
-            return true;
-        } catch(MetadataSchemasRuntimeException.NoSuchMetadata e) {
-            return false;
-        }
-    }
+	/**
+	 * Method that returns whether or not a record has a particular metadata
+	 * @param record record
+	 * @param metadata metadata
+	 * @return boolean
+	 */
+	private static boolean hasMetadata(Record record, Metadata metadata) {
+		try {
+			record.get(metadata);
+			return true;
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			return false;
+		}
+	}
 }
