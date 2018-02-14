@@ -1,0 +1,158 @@
+package com.constellio.app.modules.rm.ui.pages.pdf;
+
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
+    public static final String WIDTH = "100%";
+    public static final String PROGRESS_LABEL_HEIGHT = "40px";
+    private final String pdfFileName;
+    private final PdfStatusViewPresenter presenter;
+
+    private String documentPdfId;
+    private boolean finished;
+
+    private List<PdfGenerationCompletedListener> listeners = new ArrayList<>();
+    private Label progressLabel;
+
+    public PdfStatusViewImpl(String pdfFileName, List<String> documentIds, boolean withMetadata) {
+        setWidth(WIDTH);
+
+        this.pdfFileName = pdfFileName;
+        progressLabel = new Label($("PdfStatusViewImpl.generationProgress", getPdfFileName()));
+        this.presenter = new PdfStatusViewPresenter(this, pdfFileName, documentIds, withMetadata);
+        this.finished = false;
+
+        addComponent(buildMainComponent(null));
+    }
+
+    @Override
+    protected boolean isBreadcrumbsVisible() {
+        return false;
+    }
+
+    public String getPdfFileName() {
+        return pdfFileName;
+    }
+
+    public PdfStatusDataProvider<?> getDataProvider() {
+        return presenter.getDataProvider();
+    }
+
+    protected Layout createPdfTableProgressLayout() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSpacing(true);
+
+        progressLabel.setHeight(PROGRESS_LABEL_HEIGHT);
+
+        layout.addComponent(progressLabel);
+        layout.setExpandRatio(progressLabel, 1);
+
+        Table table = new PdfStatusTable(getPdfFileName(), getDataProvider());
+        table.setWidth("100%");
+        layout.addComponent(table);
+
+        return layout;
+    }
+
+    public void firePdfGenerationCompleted(String documentId) {
+        this.documentPdfId = documentId;
+        this.finished = true;
+
+        VaadinSession.getCurrent().access(new Runnable() {
+            @Override
+            public void run() {
+                enter(null);
+
+                for (PdfGenerationCompletedListener listener : listeners) {
+                    listener.firePdfGenerationCompleted(PdfStatusViewImpl.this);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void notifyGlobalProgressMessage(final String message) {
+        VaadinSession.getCurrent().access(new Runnable() {
+            @Override
+            public void run() {
+                progressLabel.setValue(message);
+            }
+        });
+    }
+
+    protected Layout createPdfGenerationCompletedLayout() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSpacing(true);
+
+        Button download = new LinkButton($("PdfStatusViewImpl.downloadPdfFile")) {
+            @Override
+            protected void buttonClick(ClickEvent event) {
+                Page.getCurrent().open(presenter.getPdfDocumentResource(documentPdfId), null, false);
+            }
+        };
+
+        layout.addComponent(download);
+        layout.setExpandRatio(download, 1);
+
+        Label label = new Label($("PdfStatusViewImpl.documentInTemporaryZone"));
+        label.setContentMode(ContentMode.HTML);
+
+        layout.addComponent(label);
+        layout.setExpandRatio(label, 1);
+
+        if (documentPdfId != null) {
+            DocumentVO documentVO = presenter.getPdfDocumentVO(documentPdfId);
+            ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+
+            layout.addComponent(contentViewer);
+        }
+
+        return layout;
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    @Override
+    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+        if (!isFinished()) {
+            return createPdfTableProgressLayout();
+        } else {
+            return createPdfGenerationCompletedLayout();
+        }
+    }
+
+    public void addPdfGenerationCompletedListener(PdfGenerationCompletedListener listener) {
+        if (listener != null) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removePdfGenerationCompletedListener(PdfGenerationCompletedListener listener) {
+        if (listener != null) {
+            listeners.remove(listener);
+        }
+    }
+
+    public interface PdfGenerationCompletedListener {
+        public void firePdfGenerationCompleted(PdfStatusViewImpl panel);
+    }
+}

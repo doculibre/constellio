@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
@@ -14,6 +15,13 @@ public class BaseWindow extends Window {
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 	
 	private Integer zIndex = null;
+
+	private float widthBeforeMinimize;
+	private float heightBeforeMinimize;
+	private Unit widthUnitsBeforeMinimize;
+	private Unit heightUnitsBeforeMinimize;
+	private int positionXBeforeMinimize;
+	private int positionYBeforeMinimize;
 
 	public BaseWindow() {
 		init();
@@ -29,6 +37,37 @@ public class BaseWindow extends Window {
 		init();
 	}
 	
+	public void minimize() {
+		widthBeforeMinimize = getWidth();
+		heightBeforeMinimize = getHeight();
+
+		widthUnitsBeforeMinimize = getWidthUnits();
+		heightUnitsBeforeMinimize = getHeightUnits();
+
+		positionXBeforeMinimize = getPositionX();
+		positionYBeforeMinimize = getPositionY();
+
+		int browserWidth = Page.getCurrent().getBrowserWindowWidth();
+		int browserHeight = Page.getCurrent().getBrowserWindowHeight();
+
+		float minimizedWith = 150;
+		float mimizedHeight = 90;
+		int minimizedPositionX = (int) (browserWidth - minimizedWith);
+		int minimizedPositionY = (int) (browserHeight - mimizedHeight);
+
+		setWidth(minimizedWith + "px");
+		setHeight(mimizedHeight + "px");
+		setPositionX(minimizedPositionX);
+		setPositionY(minimizedPositionY);
+	}
+
+	public void restoreMinimized() {
+		setWidth(widthBeforeMinimize, widthUnitsBeforeMinimize);
+		setHeight(heightBeforeMinimize, heightUnitsBeforeMinimize);
+		setPositionX(positionXBeforeMinimize);
+		setPositionY(positionYBeforeMinimize);
+	}
+
 	private void init() {
 		if (isRightToLeft()) {
 			addStyleName("right-to-left");
@@ -69,5 +108,5 @@ public class BaseWindow extends Window {
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-	
+
 }

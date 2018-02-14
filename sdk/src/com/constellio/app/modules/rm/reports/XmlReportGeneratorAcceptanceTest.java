@@ -22,6 +22,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -59,15 +60,14 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		this.recordServices = getModelLayerFactory().newRecordServices();
 	}
 
-	@Test
-	public void testXmlGeneratorIsNotNullAndReturnsCorrectValue() {
-		int numberOfCopies = 20;
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(numberOfCopies);
-		PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection,
-				xmlReportGeneratorParameters);
-		assertThat(reportGenerator.getXmlGeneratorParameters()).isNotNull();
-		assertThat(reportGenerator.getXmlGeneratorParameters().getNumberOfCopies()).isEqualTo(numberOfCopies);
-	}
+    @Test
+    public void testXmlGeneratorIsNotNullAndReturnsCorrectValue() {
+        int numberOfCopies = 20;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(numberOfCopies);
+        PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        assertThat(reportGenerator.getXmlGeneratorParameters()).isNotNull();
+        assertThat(reportGenerator.getXmlGeneratorParameters().getNumberOfCopies()).isEqualTo(numberOfCopies);
+    }
 
 	@Test
 	public void testThatCoreElementOfTheGeneratorAreAccessibleAndNotNull() {
@@ -81,26 +81,20 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		assertThat(reportGenerator.getCollection()).isEqualTo(zeCollection);
 	}
 
-	@Test
-	public void testThatElementAreNotNullWhenSettingThem() {
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1,
-				records.getFolder_A01().getWrappedRecord());
-		AbstractXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection,
-				xmlReportGeneratorParameters);
-		assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()).isNotEmpty();
-		assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()[0])
-				.isEqualTo(records.getFolder_A01().getWrappedRecord());
-	}
+    @Test
+    public void testThatElementAreNotNullWhenSettingThem() {
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1, records.getFolder_A01().getWrappedRecord());
+        PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()).isNotEmpty();
+        assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()[0]).isEqualTo(records.getFolder_A01().getWrappedRecord());
+    }
 
-	@Test
-	public void testGenerateXmlWithFolder() {
-		InputStream inputStream = null;
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters
-				.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(),
-						records.getFolder_A08().getWrappedRecord());
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
+    @Test
+    public void testGenerateXmlWithFolder() {
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(), records.getFolder_A08().getWrappedRecord());
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
@@ -136,14 +130,12 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void testGenerateXmlWithDocument() {
-		InputStream inputStream = null;
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(),
-				records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
+    @Test
+    public void testGenerateXmlWithDocument() {
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(), records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
@@ -190,39 +182,37 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 
 		TaskStatus zeStatus = schemas.newTaskStatus().setCode("zeStatus").setStatusType(IN_PROGRESS).setTitle("status title");
 
-		Task zeTask = schemas.newTask();
-		zeTask.setCreatedOn(new LocalDateTime().minusDays(10));
-		zeTask.setDueDate(new LocalDate().minusDays(1));
-		zeTask.setEndDate(new LocalDate());
-		zeTask.setStatus(zeStatus.getId());
-		zeTask.setAssignee(records.getAdmin().getId());
-		zeTask.setDescription("Ceci est une description de test");
-		zeTask.setTitle("zeTask");
-		zeTask.setType(records.taskTypeForm());
-		Task zeSecondTask = schemas.newTask().setStatus(zeStatus.getId()).setDueDate(new LocalDate().plusDays(10));
-		zeSecondTask.setTitle("zeSecondTask");
-		zeSecondTask.setDescription("description of zeSecondTask");
-		zeSecondTask.setAssignee(records.getChuckNorris().getId());
-		zeSecondTask.setProgressPercentage(0D);
-		Task zeThirdTask = schemas.newTask().setStatus(zeStatus.getId());
-		zeThirdTask.setProgressPercentage(52D);
-		zeThirdTask.setTitle("zeThirdTask");
-		zeThirdTask.setAssignee(records.getDakota_managerInA_userInB().getId());
-		zeThirdTask.setDescription("zeThirdTask description");
-		zeThirdTask.setDueDate(new LocalDate().plusDays(30));
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters
-				.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
-		try {
-			String xmlString = printableReportXmlGenerator.generateXML();
-			assertThat(xmlString).isNotEmpty();
-			inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
-			Document xmlDocument = saxBuilder.build(inputStream);
-			// Assert that document contains correct tags;
-			assertThat(xmlDocument.getRootElement().getName()).isEqualTo(AbstractXmlGenerator.XML_ROOT_RECORD_ELEMENTS);
-			assertThat(xmlDocument.getRootElement().getChildren(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
+        Task zeTask = schemas.newTask();
+        zeTask.setCreatedOn(new LocalDateTime().minusDays(10));
+        zeTask.setDueDate(new LocalDate().minusDays(1));
+        zeTask.setEndDate(new LocalDate());
+        zeTask.setStatus(zeStatus.getId());
+        zeTask.setAssignee(records.getAdmin().getId());
+        zeTask.setDescription("Ceci est une description de test");
+        zeTask.setTitle("zeTask");
+        zeTask.setType(records.taskTypeForm());
+        Task zeSecondTask = schemas.newTask().setStatus(zeStatus.getId()).setDueDate(new LocalDate().plusDays(10));
+        zeSecondTask.setTitle("zeSecondTask");
+        zeSecondTask.setDescription("description of zeSecondTask");
+        zeSecondTask.setAssignee(records.getChuckNorris().getId());
+        zeSecondTask.setProgressPercentage(0D);
+        Task zeThirdTask = schemas.newTask().setStatus(zeStatus.getId());
+        zeThirdTask.setProgressPercentage(52D);
+        zeThirdTask.setTitle("zeThirdTask");
+        zeThirdTask.setAssignee(records.getDakota_managerInA_userInB().getId());
+        zeThirdTask.setDescription("zeThirdTask description");
+        zeThirdTask.setDueDate(new LocalDate().plusDays(30));
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
+            String xmlString = printableReportXmlGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
+            inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+            Document xmlDocument = saxBuilder.build(inputStream);
+            // Assert that document contains correct tags;
+            assertThat(xmlDocument.getRootElement().getName()).isEqualTo(AbstractXmlGenerator.XML_ROOT_RECORD_ELEMENTS);
+            assertThat(xmlDocument.getRootElement().getChildren(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
 
 			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS);
 			List<Tuple> xmlRecordValues = new ArrayList<>();
@@ -247,19 +237,18 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
-	public void checkIfMultivalueMetadataReturnsMutlivalueSeparatedByComa() {
-		InputStream inputStream = null;
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
-		xmlReportGeneratorParameters.markAsTestXml();
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
-		try {
-			String xmlString = printableReportXmlGenerator.generateXML();
-			assertThat(xmlString).isNotEmpty();
-			inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
-			Document xmlDocument = saxBuilder.build(inputStream);
+    @Test
+    public void checkIfMultivalueMetadataReturnsMutlivalueSeparatedByComa() {
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
+            String xmlString = printableReportXmlGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
+            inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+            Document xmlDocument = saxBuilder.build(inputStream);
 
 			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)
 					.getChild("metadatas");
@@ -272,19 +261,18 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
-	public void checkIfTestXmlGeneratorAreReturningEveryTagsFilled() {
-		InputStream inputStream = null;
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
-		xmlReportGeneratorParameters.markAsTestXml();
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
-		try {
-			String xmlString = printableReportXmlGenerator.generateXML();
-			assertThat(xmlString).isNotEmpty();
-			inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
-			Document xmlDocument = saxBuilder.build(inputStream);
+    @Test
+    public void checkIfTestXmlGeneratorAreReturningEveryTagsFilled(){
+        InputStream inputStream = null;
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
+        try {
+            String xmlString = printableReportXmlGenerator.generateXML();
+            assertThat(xmlString).isNotEmpty();
+            inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+            Document xmlDocument = saxBuilder.build(inputStream);
 
 			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS);
 			for (Object ob : xmlRecordElement.getChild(AbstractXmlGenerator.XML_METADATA_TAGS).getChildren()) {
@@ -299,14 +287,12 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
-	public void testForPathGeneration()
-			throws Exception {
-		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
-		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
-		xmlReportGeneratorParameters.markAsTestXml();
-		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters);
+    @Test
+    public void testForPathGeneration() throws Exception{
+        XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+        xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
+        xmlReportGeneratorParameters.markAsTestXml();
+        PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection, xmlReportGeneratorParameters);
 
 		assertThat(printableReportXmlGenerator.getPath(records.getFolder_C30().getWrappedRecord()))
 				.isEqualTo("Xe category > X100 > X110 > Haricot");

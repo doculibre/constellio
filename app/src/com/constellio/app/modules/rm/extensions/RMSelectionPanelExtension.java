@@ -19,12 +19,14 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPDFWindow;
+import com.constellio.app.modules.rm.ui.pages.pdf.PdfFileNamePanel;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -50,7 +52,6 @@ import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -112,9 +113,41 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
+        addPdfButton(param);
         if(hasAccessToSIP) {
             addSIPbutton(param);
         }
+    }
+
+    public void addPdfButton(final AvailableActionsParam param) {
+        WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
+                , WindowButton.WindowConfiguration.modalDialog("60%", "200px")) {
+            @Override
+            protected Component buildWindowContent() {
+                PdfFileNamePanel pdfPanel = new PdfFileNamePanel(getWindow());
+                pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
+                    @Override
+                    public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
+                        List<String> ids = param.getIds();
+                        if(!CollectionUtils.isEmpty(ids)) {
+                            ConsolidatedPDFWindow.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
+                        } else {
+                            showErrorMessage($("ConstellioHeader.noDocumentSelectedForPdf"));
+                        }
+                    }
+
+                    @Override
+                    public void pdfFileNameCancelled() {
+
+                    }
+                });
+                return pdfPanel;
+            }
+        };
+        setStyles(pdfButton);
+        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout) param.getComponent()).addComponent(pdfButton);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
