@@ -30,19 +30,23 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
+import com.vaadin.server.ClientConnector;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Window;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -486,6 +490,13 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS, 
 					RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS).contains(selectedTabCode)) {
 				navigateTo().home(selectedTabCode);
+			}
+		}
+		ClientConnector parent = getParent();
+		if (parent instanceof RecordVOTable) {
+			Container container = ((RecordVOTable) parent).getContainerDataSource();
+			if (container instanceof RefreshableContainer) {
+				((RefreshableContainer) container).refresh();
 			}
 		}
 	}

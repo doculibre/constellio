@@ -29,12 +29,16 @@ import com.constellio.app.ui.framework.components.content.ContentVersionVOResour
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
+import com.vaadin.server.ClientConnector;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -459,6 +463,13 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 					RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS, 
 					RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS).contains(selectedTabCode)) {
 				navigateTo().home(selectedTabCode);
+			}
+		}
+		ClientConnector parent = getParent();
+		if (parent instanceof RecordVOTable) {
+			Container container = ((RecordVOTable) parent).getContainerDataSource();
+			if (container instanceof RefreshableContainer) {
+				((RefreshableContainer) container).refresh();
 			}
 		}
 	}
