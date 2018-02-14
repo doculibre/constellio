@@ -23,7 +23,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator42;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.LabelViewer;
@@ -46,7 +46,7 @@ public class ReportGeneratorUtils {
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
 					numberOfCopies);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
-			PrintableReportXmlGenerator42 printableReportXmlGenerator = new PrintableReportXmlGenerator42(factory, collection,
+			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
 					xmlGeneratorParameters);
 			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager

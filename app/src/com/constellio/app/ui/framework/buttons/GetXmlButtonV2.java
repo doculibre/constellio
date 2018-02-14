@@ -2,7 +2,7 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
-import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator42;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
@@ -111,7 +111,7 @@ public class GetXmlButtonV2 extends WindowButton{
                     if(parent.isXmlForTest) {
                         xmlGeneratorParameters.markAsTestXml();
                     }
-                    AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator42(parent.factory, parent.collection, xmlGeneratorParameters);
+                    AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                     String xml = xmlGenerator.generateXML();
                     String filename = "Constellio-Test.xml";
                     StreamResource source = createResource(xml, filename);
