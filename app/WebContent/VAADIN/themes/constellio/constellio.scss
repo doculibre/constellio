@@ -1898,6 +1898,16 @@ $popup-view-z-index: 3;
 		width: 20px;
 		background: transparent;
 	}
+	
+	.v-filterselect-rtl {
+		.v-filterselect-button {
+			//direction: rtl;
+		}
+		
+		.v-filterselect-input {
+			direction: rtl;
+		}
+	}
 		
 	.v-filterselect-item-rtl {
 		direction: rtl;
@@ -1924,6 +1934,13 @@ $popup-view-z-index: 3;
 				text-align: right;
 				left: inherit;
 				right: 20px;
+			}
+
+		}
+
+		.v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon {
+			.v-table-cell-wrapper {
+				right: 30px;
 			}
 		}
 	
@@ -1973,10 +1990,19 @@ $popup-view-z-index: 3;
 		.v-checkbox > input {
 			left: 0.2em;
 		}
-		
+
 		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
 			left: inherit;
 			right: 0;
+		}
+		
+		.selection-table {
+			.v-table-cell-content {
+				.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+					left: 0;
+					right: inherit;
+				}
+			}
 		}
 		
 		.v-checkbox-small {

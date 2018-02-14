@@ -6,6 +6,7 @@ import java.util.Date;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -98,7 +99,7 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		relativeDateLayout.setCaption($("TaskReminderField.relativeDateMetadataCode"));
 		relativeDateLayout.setSpacing(true);
 		
-		relativeDateMetadataCodeField = new ComboBox();
+		relativeDateMetadataCodeField = new BaseComboBox();
 		relativeDateMetadataCodeField.addItem(Task.START_DATE);
 		relativeDateMetadataCodeField.addItem(Task.DUE_DATE);
 		relativeDateMetadataCodeField.setItemCaption(Task.START_DATE, $("TaskReminderField.startDate"));
@@ -118,7 +119,7 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		
 		numberOfDaysToRelativeDateLabel = new Label($("TaskReminderField.numberOfDaysToRelativeDate"));
 		
-		beforeRelativeDateField = new ComboBox();
+		beforeRelativeDateField = new BaseComboBox();
 		beforeRelativeDateField.addItem(Boolean.TRUE);
 		beforeRelativeDateField.addItem(Boolean.FALSE);
 		beforeRelativeDateField.setItemCaption(Boolean.TRUE, $("TaskReminderField.beforeRelativeDate"));

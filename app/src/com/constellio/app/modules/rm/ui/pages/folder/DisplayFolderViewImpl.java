@@ -48,6 +48,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -886,7 +887,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				lookupUser.addStyleName(USER_LOOKUP);
 				lookupUser.setRequired(true);
 
-				final ComboBox borrowingTypeField = new ComboBox();
+				final ComboBox borrowingTypeField = new BaseComboBox();
 				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
 				for (BorrowingType borrowingType : BorrowingType.values()) {
 					borrowingTypeField.addItem(borrowingType);

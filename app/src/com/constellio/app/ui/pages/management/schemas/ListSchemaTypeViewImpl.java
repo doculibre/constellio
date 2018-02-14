@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.ListMetadataGroupButton;
 import com.constellio.app.ui.framework.buttons.ReportDisplayButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
@@ -89,7 +90,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 
 		typeContainer = buttonsContainer;
 
-		Table table = new Table($("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);
+		Table table = new BaseTable(getClass().getName(), $("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);
 		table.setSizeFull();
 		table.setPageLength(Math.min(15, typeContainer.size()));
 		table.setColumnHeader("buttons", "");

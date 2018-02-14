@@ -7,6 +7,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -48,7 +49,7 @@ public class ReportSelector extends HorizontalLayout {
 	}
 
 	private AbstractSelect buildSelector() {
-		ComboBox comboBox = new ComboBox();
+		ComboBox comboBox = new BaseComboBox();
 		List<String> supportedReports = presenter.getSupportedReports();
 		if (supportedReports.isEmpty()) {
 			setVisible(false);

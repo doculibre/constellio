@@ -160,7 +160,12 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		addButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 
-		Table table = new RecordVOTable($("ListGlobalGroupsView.viewTitle", dataProvider.size()), container);
+		Table table = new RecordVOTable($("ListGlobalGroupsView.viewTitle", dataProvider.size()), container) {
+			@Override
+			protected String getTableId() {
+				return ListGlobalGroupsViewImpl.class.getName();
+			}
+		};
         table.setWidth("100%");
         table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
         table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));

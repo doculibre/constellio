@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -160,7 +161,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			}
 		});
 
-		Table table = new Table($("ListValueDomainView.tableTitle", container.size()), container);
+		Table table = new BaseTable(getClass().getName(), $("ListValueDomainView.tableTitle", container.size()), container);
 		table.setPageLength(Math.min(15, container.size()));
 		table.setVisibleColumns("label", "buttons");
 		table.setColumnHeader("label", $("ListValueDomainView.labelColumn"));

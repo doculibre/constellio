@@ -24,7 +24,7 @@ import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ContentVersionVOTable extends Table {
+public class ContentVersionVOTable extends BaseTable {
 
 	private static final String CHECK_BOX = "checkBox";
 
@@ -56,11 +56,12 @@ public class ContentVersionVOTable extends Table {
 
 	private HashSet<ContentVersionVO> selectedContentVersions;
 
-	public ContentVersionVOTable(AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
-		this(new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
+	public ContentVersionVOTable(String tableId, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
 	}
 
-	public ContentVersionVOTable(List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+		super(tableId);
 		this.appLayerFactory = appLayerFactory;
 		this.isShowingSystemFileName = isShowingSystemFileName;
 		this.selectedContentVersions = new HashSet<>();

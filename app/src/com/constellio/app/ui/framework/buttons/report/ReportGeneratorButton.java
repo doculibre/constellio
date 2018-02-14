@@ -17,6 +17,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -102,7 +103,7 @@ public class ReportGeneratorButton extends WindowButton {
 	}
 
 	private void setupPrintableReportTemplateSelection() throws Exception{
-        printableItemsFields = new ComboBox();
+        printableItemsFields = new BaseComboBox();
         List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
         if(printableReportTemplateList.size() > 0) {
         	boolean first = true;

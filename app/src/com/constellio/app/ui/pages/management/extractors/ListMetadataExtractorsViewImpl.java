@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -69,7 +70,7 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 			}
 		};
 
-		table = new Table($("ListMetadataExtractorsView.table.title", metadataExtractorVOs.size()));
+		table = new BaseTable(getClass().getName(), $("ListMetadataExtractorsView.table.title", metadataExtractorVOs.size()));
 		table.setWidth("100%");
 		table.setPageLength(Math.min(15, metadataExtractorVOs.size()));
 
