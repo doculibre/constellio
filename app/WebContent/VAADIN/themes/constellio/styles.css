@@ -13185,6 +13185,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	clear: both;
 	background-color: #414B56;
 	color: white;
 	font-weight: normal;
@@ -13194,6 +13195,7 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	border: none;
 	cursor: pointer;
+	left: 5px;
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container {
