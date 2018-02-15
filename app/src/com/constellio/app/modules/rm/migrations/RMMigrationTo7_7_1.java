@@ -11,7 +11,7 @@ import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo7_7_0 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo7_7_1 extends MigrationHelper implements MigrationScript {
     @Override
     public String getVersion() {
         return "7.7.0";
