@@ -63,6 +63,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private static final String INVALID_VISITION = "PdfGeneratorAsyncTask.invalidVisition";
 	private static final String TEMPORARY_PDF_DOCUMENT_NAME = "tempraryPdfDocumentName";
 	private static final String JASPER_FILE_ERROR = "PdfGeneratorAsyncTask.jasperFileError";
+	public static final String NO_PDF_TO_BE_GENERATED = "PdfGeneratorAsyncTask.noPdfToBeGenerated";
 
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "PdfGeneratorAsyncTask-ReadContentForPreviewConversion";
@@ -87,6 +88,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		ContentDao contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
+		boolean havePdfGenerated = false;
 
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -116,40 +118,48 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 				documentList.add(document);
 				Content content = document.getContent();
-				String hash = document.getContent().getCurrentVersion().getHash();
 
-				InputStream in;
-				if (contentManager.hasContentPreview(hash)) {
-					in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
-				} else {
-					record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true);
-					recordServices.update(record);
+				InputStream inputStream2 = null;
 
-					try {
-						convertContentForPreview(content, conversionManager,tempFolder, modelLayerFactory);
-						in = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + ".PdfGenerator");
-					} finally {
-						record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, false);
+				if(content != null){
+
+					String hash = document.getContent().getCurrentVersion().getHash();
+
+					InputStream in;
+					if (contentManager.hasContentPreview(hash)) {
+						in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator");
+					} else {
+						record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, true);
 						recordServices.update(record);
+
+						try {
+							convertContentForPreview(content, conversionManager,tempFolder, modelLayerFactory);
+							in = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + ".PdfGenerator");
+						} finally {
+							record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, false);
+							recordServices.update(record);
+						}
 					}
+					inputStreamList.add(in);
+					PDDocument pdDocument = PDDocument.load(in);
+					pdDocument.getDocumentCatalog().setDocumentOutline(null);
+
+
+					File file = ioServices.newTemporaryFile("PdTemporaryFile" + number);
+					temporaryPdfFile.add(file);
+
+					pdDocument.save(file);
+					pdDocument.close();
+
+					contentDao.moveFileToVault(file, hash + ".preview");
+
+					inputStream2 = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + "signet" + ".PdfGenerator");
+
+
+					inputStreamList.add(inputStream2);
+
 				}
-				inputStreamList.add(in);
-				PDDocument pdDocument = PDDocument.load(in);
-				pdDocument.getDocumentCatalog().setDocumentOutline(null);
 
-
-				File file = ioServices.newTemporaryFile("PdTemporaryFile" + number);
-				temporaryPdfFile.add(file);
-
-				pdDocument.save(file);
-				pdDocument.close();
-
-				contentDao.moveFileToVault(file, hash + ".preview");
-
-				InputStream inputStream2 = contentManager.getContentInputStream(hash + ".preview", getClass().getSimpleName() + hash + "signet" + ".PdfGenerator");
-
-
-				inputStreamList.add(inputStream2);
 				if(withMetadata) {
 
 					XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
@@ -179,30 +189,41 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 					ut.addSource(generatedJasperFile);
 				}
 
-				ut.addSource(inputStream2);
+				if(inputStream2 != null) {
+					ut.addSource(inputStream2);
+				}
+
+				if(content != null || withMetadata) {
+					havePdfGenerated = true;
+				}
 			}
 
-			File fileTemporaryFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
-			try (FileOutputStream fileOutputStream = new FileOutputStream(fileTemporaryFile)) {
-				ut.setDestinationStream(fileOutputStream);
-				ut.mergeDocuments();
-			}
+			if(havePdfGenerated) {
+				File fileTemporaryFile = ioServices.newTemporaryFile(TEMP_FILE_RESOURCE_NAME);
+				try (FileOutputStream fileOutputStream = new FileOutputStream(fileTemporaryFile)) {
+					ut.setDestinationStream(fileOutputStream);
+					ut.mergeDocuments();
+				}
 
-			DocumentListPDF documentListPDF;
-			try (InputStream resultInputStream = new FileInputStream(fileTemporaryFile)) {
-				documentListPDF = newDocumentListPdfWithContent(consolidedId, consolidatedTitle, resultInputStream, consolidatedName,
-						contentManager, userServices.getUserInCollection(userName,
-								params.getCollection()), schemasRecordsServices);
+				DocumentListPDF documentListPDF;
+				try (InputStream resultInputStream = new FileInputStream(fileTemporaryFile)) {
+					documentListPDF = newDocumentListPdfWithContent(consolidedId, consolidatedTitle, resultInputStream, consolidatedName,
+							contentManager, userServices.getUserInCollection(userName,
+									params.getCollection()), schemasRecordsServices);
 
-				recordServices.add(documentListPDF);
-			}
+					recordServices.add(documentListPDF);
+				}
 
-			contentDao.moveFileToVault(fileTemporaryFile, documentListPDF.getContent().getLastMajorContentVersion().getHash());
+				contentDao.moveFileToVault(fileTemporaryFile, documentListPDF.getContent().getLastMajorContentVersion().getHash());
 
-			temporaryPdfFile.add(fileTemporaryFile);
+				temporaryPdfFile.add(fileTemporaryFile);
 
-			for(File file : temporaryPdfFile)  {
-				ioServices.deleteQuietly(file);
+				for (File file : temporaryPdfFile) {
+					ioServices.deleteQuietly(file);
+				}
+			} else {
+				errors.add(PdfGeneratorAsyncTask.class, NO_PDF_TO_BE_GENERATED);
+				errors.throwIfNonEmpty();
 			}
 		} catch (FileNotFoundException e) {
 			errors.add(PdfGeneratorAsyncTask.class, FILE_NOT_FOUND);
