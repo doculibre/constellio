@@ -67,14 +67,14 @@ public class ValidationError {
 					stringBuilder.append(parameter.getKey() + "=" + parameterValue);
 				} else if (parameterValue instanceof Map) {
 					// TODO Pat manage Map value here...
-					Map<String, String> labelsMap = (Map<String, String>) parameterValue;
+					Map<Object, String> labelsMap = (Map<Object, String>) parameterValue;
 					boolean firstLabel = true;
 					stringBuilder.append(" ");
-					for (Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+					for (Map.Entry<Object, String> labelsEntry : labelsMap.entrySet()) {
 						if (!firstLabel) {
 							stringBuilder.append(",");
 						}
-						stringBuilder.append(labelsEntry.getKey() + "=" + labelsEntry.getValue());
+						stringBuilder.append(labelsEntry.getKey().toString() + "=" + labelsEntry.getValue());
 						firstLabel = false;
 					}
 				}
