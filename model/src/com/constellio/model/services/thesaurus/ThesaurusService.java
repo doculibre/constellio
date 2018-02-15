@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
@@ -167,7 +169,30 @@ public class ThesaurusService implements Serializable {
 			for(ThesaurusLabel thesaurusLabel : thesaurusLabels){
 				// one thesaurus label per lang code possible (and multiple lang codes possible)
 				for(String prefValue : thesaurusLabel.getValues().values()){ // TODO check if only iterate through values OK
-					if(StringUtils.containsIgnoreCase(input, prefValue)){
+					if(StringUtils.containsIgnoreCase(prefValue, input)){
+						skosConcepts.add(skosConcept);
+					}
+				}
+			}
+		}
+
+		return skosConcepts;
+	}
+
+	public List<SkosConcept> searchChildPrefLabel(String input){
+
+		List<SkosConcept> skosConcepts = new ArrayList<>();
+		Pattern p = Pattern.compile("(?i)"+input+".*\\(.*\\)"); // search for "generalSearchedWord (specification)"
+
+		for(Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()){
+			SkosConcept skosConcept = skosConceptEntry.getValue();
+			Set<ThesaurusLabel> thesaurusLabels = skosConcept.getPrefLabels();
+
+			for(ThesaurusLabel thesaurusLabel : thesaurusLabels){
+				// one thesaurus label per lang code possible (and multiple lang codes possible)
+				for(String prefValue : thesaurusLabel.getValues().values()){
+
+					if(p.matcher(prefValue).find()){
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -188,7 +213,7 @@ public class ThesaurusService implements Serializable {
 			for(SkosConceptAltLabel thesaurusLabel : thesaurusLabels){
 				// one thesaurus label per lang code possible (and multiple lang codes possible)
 				for(String prefValue : thesaurusLabel.getValues()){ // TODO check if only iterate through values OK
-					if(StringUtils.containsIgnoreCase(input, prefValue)){
+					if(StringUtils.containsIgnoreCase(prefValue, input)){
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -213,7 +238,7 @@ public class ThesaurusService implements Serializable {
 //
 //				// one thesaurus label per lang code possible (and multiple lang codes possible)
 //				for(String prefValue : thesaurusLabel.getValues()){ // TODO check if only iterate through values OK
-//					if(StringUtils.containsIgnoreCase(input, prefValue)){
+//					if(StringUtils.containsIgnoreCase()){
 //						skosConcepts.add(skosConcept);
 //					}
 //				}
