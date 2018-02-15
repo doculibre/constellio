@@ -1,5 +1,21 @@
 package com.constellio.app.modules.rm.pdfgenerator;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
@@ -27,21 +43,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
-import net.sf.jasperreports.engine.JRException;
-import org.apache.pdfbox.exceptions.COSVisitorException;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFMergerUtility;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import net.sf.jasperreports.engine.JRException;
 
 public class PdfGeneratorAsyncTask implements AsyncTask {
 
@@ -164,7 +167,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 					JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
 
-					File jasperFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "JasperPdfMetadataReport.jasper");
+					File jasperFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "DocumentMetadataReport.jasper");
 					File generatedJasperFile = null;
 					try {
 						generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile);
@@ -207,9 +210,9 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		} catch (IOException e) {
 			errors.add(PdfGeneratorAsyncTask.class, INVALID_PDF_MERGE);
 			errors.throwIfNonEmpty();
-		} catch (COSVisitorException e) {
-			errors.add(PdfGeneratorAsyncTask.class, INVALID_VISITION);
-			errors.throwIfNonEmpty();
+//		} catch (COSVisitorException e) {
+//			errors.add(PdfGeneratorAsyncTask.class, INVALID_VISITION);
+//			errors.throwIfNonEmpty();
 		} catch (RecordServicesException e) {
 			errors.add(PdfGeneratorAsyncTask.class, RECORD_SERVICE_EXCEPTION);
 		} finally {

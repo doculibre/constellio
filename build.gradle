@@ -57,6 +57,9 @@ subprojects {
         compile "org.apache.ignite:ignite-indexing:2.0.0"
         compile "org.apache.kafka:kafka-clients:0.11.0.0"
         compile "com.google.code.gson:gson:2.8.1"
+		compile "org.apache.pdfbox:pdfbox:2.0.8"
+		compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
+		compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'
@@ -107,6 +110,7 @@ war {
         }
     }
 
+   // gwt-dev-2.7.0.vaadin4.jar 
     rootSpec.exclude("**/gwt-*.vaadin4.jar")
 
     webAppDirName = "app/WebContent"
