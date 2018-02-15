@@ -1,25 +1,31 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
-import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.components.viewers.ContentViewer;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.Page;
-import com.vaadin.server.VaadinSession;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
+import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
+import com.constellio.app.ui.entities.TemporaryRecordVO;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
+	
     public static final String WIDTH = "100%";
     public static final String PROGRESS_LABEL_HEIGHT = "40px";
     private final String pdfFileName;
@@ -57,6 +63,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 
     protected Layout createPdfTableProgressLayout() {
         VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
         layout.setSpacing(true);
 
         progressLabel.setHeight(PROGRESS_LABEL_HEIGHT);
@@ -99,6 +106,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 
     protected Layout createPdfGenerationCompletedLayout() {
         VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
         layout.setSpacing(true);
 
         Button download = new LinkButton($("PdfStatusViewImpl.downloadPdfFile")) {
@@ -118,16 +126,21 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         layout.setExpandRatio(label, 1);
 
         if (documentPdfId != null) {
-            DocumentVO documentVO = presenter.getPdfDocumentVO(documentPdfId);
-            ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
-
+            TemporaryRecordVO temporaryRecordVO = presenter.getPdfDocumentVO(documentPdfId);
+            ContentViewer contentViewer = new ContentViewer(temporaryRecordVO, TemporaryRecord.CONTENT, temporaryRecordVO.getContent());
             layout.addComponent(contentViewer);
+            layout.setComponentAlignment(contentViewer, Alignment.TOP_CENTER);
         }
 
         return layout;
     }
 
-    public boolean isFinished() {
+    @Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+    	return true;
+	}
+
+	public boolean isFinished() {
         return finished;
     }
 

@@ -1,23 +1,30 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusMessageProvider;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.components.BaseWindow;
-import com.vaadin.event.MouseEvents;
-import com.vaadin.server.Page;
-import com.vaadin.ui.*;
-import com.vaadin.ui.TabSheet.Tab;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.BaseWindow;
+import com.vaadin.event.MouseEvents;
+import com.vaadin.server.Page;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 public class ConsolidatedPDFWindow extends BaseWindow {
     public static final String WIDTH = "100%";
@@ -25,8 +32,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     private Map<String, PdfStatusViewImpl> pdfTabPanels = new HashMap<>();
 
     private TabSheet tabSheet;
-
-    private static ConcurrentHashMap<String, ConsolidatedPDFWindow> instance = new ConcurrentHashMap<>();
 
     private boolean iconified;
     private float height;
@@ -36,10 +41,10 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     private Integer zIndex;
     private int positionX;
     private int positionY;
-    private Button fermerLaFenetre;
-    private Button minimiserLaFenetre;
+    private Button closeWindowButton;
+    private Button minimizeWindowButton;
 
-    private ConsolidatedPDFWindow() {
+    public ConsolidatedPDFWindow() {
         super($("ConsolidatedPDFWindow.caption"));
 
         setId("ConsolidatedPDFWindowId");
@@ -49,6 +54,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
     private void init() {
         VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.addStyleName("consolidated-pdf-window-content");
         verticalLayout.setSpacing(true);
         verticalLayout.addComponent(tabSheet = new TabSheet());
 
@@ -58,27 +64,27 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         horizontalLayout.setSpacing(true);
         horizontalLayout.setWidth(WIDTH);
 
-        minimiserLaFenetre = new Button($("ConsolidatedPDFWindow.minimize"));
-        minimiserLaFenetre.addClickListener(new Button.ClickListener() {
+        minimizeWindowButton = new Button($("ConsolidatedPDFWindow.minimize"));
+        minimizeWindowButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 iconify();
             }
         });
 
-        fermerLaFenetre = new Button($("ConsolidatedPDFWindow.close"));
-        fermerLaFenetre.addClickListener(new Button.ClickListener() {
+        closeWindowButton = new Button($("ConsolidatedPDFWindow.close"));
+        closeWindowButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 close();
             }
         });
-        fermerLaFenetre.setVisible(false);
+        closeWindowButton.setVisible(false);
 
-        horizontalLayout.addComponent(fermerLaFenetre);
-        horizontalLayout.addComponent(minimiserLaFenetre);
-        horizontalLayout.setComponentAlignment(fermerLaFenetre, Alignment.TOP_CENTER);
-        horizontalLayout.setComponentAlignment(minimiserLaFenetre, Alignment.TOP_CENTER);
+        horizontalLayout.addComponent(closeWindowButton);
+        horizontalLayout.addComponent(minimizeWindowButton);
+        horizontalLayout.setComponentAlignment(closeWindowButton, Alignment.TOP_CENTER);
+        horizontalLayout.setComponentAlignment(minimizeWindowButton, Alignment.TOP_CENTER);
 
         verticalLayout.addComponent(horizontalLayout);
 
@@ -88,11 +94,15 @@ public class ConsolidatedPDFWindow extends BaseWindow {
         setModal(false);
         setClosable(false);
     }
+    
+    private void adjustCloseable() {
+    	
+    }
 
-    private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata) {
+	private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata) {
         deiconify();
 
-        if(pdfTabPanels.containsKey(pdfFileName)) {
+        if (pdfTabPanels.containsKey(pdfFileName)) {
             String baseName = FilenameUtils.getBaseName(pdfFileName);
             String extension = FilenameUtils.getExtension(pdfFileName);
 
@@ -105,7 +115,6 @@ public class ConsolidatedPDFWindow extends BaseWindow {
             @Override
             public void firePdfGenerationCompleted(PdfStatusViewImpl panel) {
                 tabSheet.setSelectedTab(pdfTabs.get(panel.getPdfFileName()));
-
                 checkAllGenerationStatus();
                 deiconify();
             }
@@ -118,21 +127,40 @@ public class ConsolidatedPDFWindow extends BaseWindow {
 
         tabSheet.setSelectedTab(tab);
     }
+    
+    public static ConsolidatedPDFWindow getInstance() {
+		ConsolidatedPDFWindow instance = null;
+		for (Window uiWindow : UI.getCurrent().getWindows()) {
+			if (uiWindow instanceof ConsolidatedPDFWindow) {
+				instance = (ConsolidatedPDFWindow) uiWindow;
+				break;
+			}
+		}
+		
+		if (instance == null) {
+			String key = ConsolidatedPDFWindow.class.getName();
+			instance = ConstellioUI.getCurrentSessionContext().getAttribute(key);
+			if (instance == null) {
+				instance = new ConsolidatedPDFWindow();
+				ConstellioUI.getCurrentSessionContext().setAttribute(key, instance);
+			}
+			UI.getCurrent().addWindow(instance);
+		} 
+		return instance;
+    }
 
     protected void checkAllGenerationStatus() {
         for (PdfStatusViewImpl panel: pdfTabPanels.values()) {
-            if(!panel.isFinished()) {
+            if (!panel.isFinished()) {
                 return;
             }
         }
 
         setModal(true);
 
-        minimiserLaFenetre.setVisible(false);
-        fermerLaFenetre.setVisible(true);
-
-        UserVO user = ConstellioUI.getCurrent().getSessionContext().getCurrentUser();
-        instance.remove(user.getUsername());
+        minimizeWindowButton.setVisible(false);
+        closeWindowButton.setVisible(true);
+        setClosable(true);
     }
 
     public boolean isIconified() {
@@ -147,7 +175,7 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     };
 
     private void iconify() {
-        if(!isIconified()) {
+        if (!isIconified()) {
             height = getHeight();
             heightUnits = getHeightUnits();
 
@@ -195,23 +223,16 @@ public class ConsolidatedPDFWindow extends BaseWindow {
     }
 
     private void show() {
-        if(!isAttached()) {
+        if (!isAttached()) {
+        	setClosable(false);
             UI.getCurrent().addWindow(this);
         }
     }
 
-    public static void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
+    public void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
         checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
         checkArgument(!CollectionUtils.isEmpty(documentIds), "Document ids is mandatory and must not be empty");
-
-        UserVO user = ConstellioUI.getCurrent().getSessionContext().getCurrentUser();
-
-        ConsolidatedPDFWindow window = instance.get(user.getUsername());
-        if(window == null) {
-            instance.put(user.getUsername(), window = new ConsolidatedPDFWindow());
-        }
-
-        window.addTabSheet(pdfName, documentIds, withMetadata);
-        window.show();
+        addTabSheet(pdfName, documentIds, withMetadata);
+        show();
     }
 }

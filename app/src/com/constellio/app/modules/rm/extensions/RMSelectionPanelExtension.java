@@ -18,20 +18,13 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPDFWindow;
-import com.constellio.app.modules.rm.ui.pages.pdf.PdfFileNamePanel;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.model.services.users.UserServices;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
@@ -39,6 +32,15 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPDFWindow;
+import com.constellio.app.modules.rm.ui.pages.pdf.PdfFileNamePanel;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -47,7 +49,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -75,6 +79,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -129,8 +134,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     @Override
                     public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
                         List<String> ids = param.getIds();
-                        if(!CollectionUtils.isEmpty(ids)) {
-                            ConsolidatedPDFWindow.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
+                        if (!CollectionUtils.isEmpty(ids)) {
+                        	ConsolidatedPDFWindow window = ConsolidatedPDFWindow.getInstance();
+                        	window.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
                         } else {
                             showErrorMessage($("ConstellioHeader.noDocumentSelectedForPdf"));
                         }

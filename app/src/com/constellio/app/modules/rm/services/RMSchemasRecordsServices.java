@@ -201,6 +201,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return documentSchemaFor(getDocumentType(typeId));
 	}
 
+	public DocumentListPDF getDocumentListPDF(String id) {
+		return wrapDocumentListPdf(get(id));
+	}
+
 	public DocumentListPDF wrapDocumentListPdf(Record record) {
 		return record == null ? null : new DocumentListPDF(record, getTypes());
 	}

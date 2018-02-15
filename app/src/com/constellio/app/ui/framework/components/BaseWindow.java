@@ -12,6 +12,9 @@ import com.vaadin.ui.Window;
 
 public class BaseWindow extends Window {
 	
+	public static final String WINDOW_STYLE_NAME = "base-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
+	
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 	
 	private Integer zIndex = null;
@@ -69,9 +72,18 @@ public class BaseWindow extends Window {
 	}
 
 	private void init() {
+		addStyleName(WINDOW_STYLE_NAME);
 		if (isRightToLeft()) {
 			addStyleName("right-to-left");
 		}
+	}
+
+	@Override
+	public void setContent(Component content) {
+		if (content != null) {
+			content.addStyleName(WINDOW_CONTENT_STYLE_NAME);
+		}
+		super.setContent(content);
 	}
 
 	public final Integer getZIndex() {

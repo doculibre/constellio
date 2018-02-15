@@ -1,15 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import com.constellio.app.modules.rm.pdfgenerator.PdfGeneratorAsyncTask;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusMessageProvider;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.TemporaryRecordVO;
+import com.constellio.app.ui.framework.builders.TemporaryRecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -22,11 +29,6 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-
-import java.io.InputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
     private static final String PDF_GENERATION = "PdfGeneration";
@@ -134,14 +136,16 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
         return new StreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
-                return getPdfDocumentVO(id).getContent().getInputStreamProvider().getInputStream(pdfFileName);
+                TemporaryRecordVO vo = getPdfDocumentVO(id);
+                return vo.getContent().getInputStreamProvider().getInputStream(pdfFileName);
             }
         }, pdfFileName);
     }
+    
+    
 
-    public DocumentVO getPdfDocumentVO(String id) {
+    public TemporaryRecordVO getPdfDocumentVO(String id) {
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        DocumentToVOBuilder documentToVOBuilder = new DocumentToVOBuilder(appLayerFactory.getModelLayerFactory());
-        return documentToVOBuilder.build(rm.get(id), RecordVO.VIEW_MODE.TABLE, ConstellioUI.getCurrentSessionContext());
+        return new TemporaryRecordToVOBuilder().build(rm.get(id), VIEW_MODE.DISPLAY, view.getSessionContext());
     }
 }

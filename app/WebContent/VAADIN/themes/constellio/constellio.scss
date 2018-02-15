@@ -746,11 +746,11 @@ $popup-view-z-index: 3;
 		
 	}
 
-	.window-button-window {
+	.base-window {
 		.v-scrollable {
 			overflow: hidden;
 
-			.window-button-window-content {
+			.base-window-content {
 				padding-left: 10px;
 				margin-top: 5px;
 			}

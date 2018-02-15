@@ -197,7 +197,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 				recordServices.add(documentListPDF);
 			}
 
-			contentDao.moveFileToVault(fileTemporaryFile, documentListPDF.getContent().getLastMajorContentVersion().getHash());
+//			contentDao.moveFileToVault(fileTemporaryFile, documentListPDF.getContent().getLastMajorContentVersion().getHash());
 
 			temporaryPdfFile.add(fileTemporaryFile);
 

@@ -7,6 +7,7 @@ import java.util.List;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 
 @SuppressWarnings("serial")
@@ -57,11 +58,11 @@ public class RecordVO implements Serializable {
 	}
 
 	public String getTitle() {
-		return get(Schemas.TITLE.getLocalCode());
+		return get(Schemas.TITLE);
 	}
 
 	public void setTitle(String title) {
-		set(Schemas.TITLE.getLocalCode(), title);
+		set(Schemas.TITLE, title);
 	}
 
 	public boolean isSaved() {
@@ -226,6 +227,15 @@ public class RecordVO implements Serializable {
 		}
 	}
 
+	public <T extends Object> T get(String metadataCode) {
+		MetadataVO metadata = getMetadata(metadataCode);
+		return get(metadata);
+	}
+
+	public <T extends Object> T get(Metadata metadata) {
+		return get(metadata.getLocalCode());
+	}
+
 	public <T extends Object> T get(MetadataVO metadata) {
 		T value = null;
 		if (metadata != null) {
@@ -247,10 +257,9 @@ public class RecordVO implements Serializable {
 			}
 		}
 	}
-
-	public <T extends Object> T get(String metadataCode) {
-		MetadataVO metadata = getMetadata(metadataCode);
-		return get(metadata);
+	
+	public void set(Metadata metadata, Object value) {
+		set(metadata.getLocalCode(), value);
 	}
 
 	public void set(String metadataCode, Object value) {
