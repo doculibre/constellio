@@ -10,17 +10,23 @@ public class ThesaurusManager implements StatefulService {
     private ThesaurusService thesaurus;
     InputStream skosFileStream;
 
-    public ThesaurusManager(FileInputStream fileInputStream){
+    public ThesaurusManager(FileInputStream fileInputStream) {
         this.skosFileStream = fileInputStream;
         initialize();
     }
 
     /**
      * Gets thesaurus in non persistent memory.
+     *
      * @return
      */
-    public ThesaurusService get(){
+    public ThesaurusService get() {
         return thesaurus;
+    }
+
+    public void set(FileInputStream fileInputStream) {
+        skosFileStream = fileInputStream;
+        initialize();
     }
 
     /**
@@ -34,7 +40,9 @@ public class ThesaurusManager implements StatefulService {
 
     @Override
     public void initialize() {
-        this.thesaurus = ThesaurusBuilder.getThesaurus(skosFileStream);
+        if(skosFileStream != null) {
+            this.thesaurus = ThesaurusBuilder.getThesaurus(skosFileStream);
+        }
     }
 
     @Override

@@ -48,6 +48,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
@@ -341,6 +342,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return modelLayerFactory.getTaxonomiesSearchServicesCache();
+	}
+
+	@Override
+	public ThesaurusManager getThesaurusManager() {
+		return modelLayerFactory.getThesaurusManager();
 	}
 
 	@Override

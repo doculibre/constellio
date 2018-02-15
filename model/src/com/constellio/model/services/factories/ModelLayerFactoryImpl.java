@@ -241,6 +241,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
 	}
 
+	public ThesaurusManager getThesaurusManager() {
+		return thesaurusManager;
+	}
+
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
 		RecordDao recordDao = dataLayerFactory.newRecordDao();
 		RecordDao eventsDao = dataLayerFactory.newEventsDao();
