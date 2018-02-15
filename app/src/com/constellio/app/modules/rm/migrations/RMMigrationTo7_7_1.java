@@ -20,12 +20,12 @@ public class RMMigrationTo7_7_1 extends MigrationHelper implements MigrationScri
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
             throws Exception {
-        new SchemaAlterationFor7_7_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        new SchemaAlterationFor7_7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
     }
 
-    class SchemaAlterationFor7_7_0 extends MetadataSchemasAlterationHelper {
+    class SchemaAlterationFor7_7_1 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_7_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
+        protected SchemaAlterationFor7_7_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
                                            AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
         }
