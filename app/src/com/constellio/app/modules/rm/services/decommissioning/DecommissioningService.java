@@ -844,21 +844,27 @@ public class DecommissioningService {
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
 		for (Document child : childrenDocuments) {
-			Document newDocument = createDuplicateOfDocument(child);
+			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
 			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
 	}
 
-	public Document createDuplicateOfDocument(Document duplicatedDocument) {
+	public Document createDuplicateOfDocument(Document duplicatedDocument, User currentUser) {
 		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
 		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
 				.onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
 		}
-		return newDocument;
+		LocalDateTime now = LocalDateTime.now();
+
+		duplicatedDocument.setFormCreatedBy(currentUser);
+		duplicatedDocument.setFormCreatedOn(now);
+		duplicatedDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		duplicatedDocument.setCreatedOn(now).setModifiedOn(now);
+		return duplicatedDocument;
 	}
 
 	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
