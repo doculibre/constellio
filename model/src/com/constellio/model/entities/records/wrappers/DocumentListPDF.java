@@ -5,10 +5,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class DocumentListPDF extends TemporaryRecord
 {
-    public static final String SCHEMA_NAME = "ConsolidatedPdf";
-    public static final String SCHEMA = SCHEMA_TYPE + "_" + SCHEMA_NAME;
-    public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-    public static final String DEFAULT = "";
+    public static final String SCHEMA = "ConsolidatedPdf";
+    public static final String FULL_SCHEMA = SCHEMA_TYPE + "_" + SCHEMA;
 
     public DocumentListPDF(Record record, MetadataSchemaTypes types) {
         super(record, types);

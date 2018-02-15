@@ -261,7 +261,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public MetadataSchema documentListPDFSchema() {
-		return getTypes().getSchema(DocumentListPDF.DEFAULT_SCHEMA);
+		return getTypes().getSchema(DocumentListPDF.FULL_SCHEMA);
 	}
 
 	public DocumentListPDF newDocumentListPDFWithId(String id) {
