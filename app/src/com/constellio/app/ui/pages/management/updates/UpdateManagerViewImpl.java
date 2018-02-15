@@ -184,7 +184,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				
 		StringBuilder buttonCaption = new StringBuilder($("UpdateManagerViewImpl.allocatedMemoryButtonCaption"));
 		if (percentageOfAllocatedMemory != null) {
-			buttonCaption.append(percentageOfAllocatedMemory*100 + " %");
+			buttonCaption.append(" : " + percentageOfAllocatedMemory*100 + " %");
 			if (percentageOfAllocatedMemory >= 0.8) {
 				allocatedMemoryButton.addStyleName("button-caption-error");
 			} else {

@@ -39,19 +39,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
 
-	private static final String MEMINFO_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\meminfo";
-//	private static final String MEMINFO_PATH = "/proc/meminfo";
-
+	private static final String MEMINFO_PATH = "/proc/meminfo";
 	private static final String MEMTOTAL_PARAMETER = "MemTotal";
-
-	private static final String WRAPPER_CONF_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\wrapper.conf";
-//	private static final String WRAPPER_CONF_PATH = "/opt/constellio/conf/wrapper.conf";
-
 	private static final String CONSTELLIO_MEMORY_PARAMETER = "wrapper.java.maxmemory";
-
-	private static final String SOLR_CONF_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\solr.in.sh";
-//	private static final String SOLR_CONF_PATH = "/opt/solr/bin/solr.in.sh";
-
+	private static final String SOLR_CONF_PATH = "/opt/solr/bin/solr.in.sh";
+	private static final String SOLR_CURRENT_CONF_PATH = "/opt/solr-current/bin/solr.in.sh";
 	private static final String SOLR_MEMORY_PARAMETER = "SOLR_JAVA_MEM";
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -303,7 +295,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public String getAllocatedMemoryForConstellio() {
-		String allocatedMemory = findValueOfParameter(WRAPPER_CONF_PATH, CONSTELLIO_MEMORY_PARAMETER, "=");
+		FoldersLocator foldersLocator = modelLayerFactory.getFoldersLocator();
+		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");
 		if(allocatedMemory != null) {
 			allocatedMemory = toHumanReadleNumbers(allocatedMemory, "MB");
 		}
@@ -312,6 +305,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public String getAllocatedMemoryForSolr() {
 		String allocatedMemory = findValueOfParameter(SOLR_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
+		if(allocatedMemory == null) {
+			allocatedMemory = findValueOfParameter(SOLR_CURRENT_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
+		}
 		if(allocatedMemory != null) {
 			allocatedMemory = allocatedMemory.replaceAll("\"", "");
 			String[] splittedValue = allocatedMemory.split("Xmx");
@@ -322,20 +318,6 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			}
 		}
 		return allocatedMemory;
-	}
-
-	private String toHumanReadableNumbers(String totalMemory) {
-		if(totalMemory.trim().endsWith("kB")) {
-			try {
-				double totalMemoryInGB = Double.parseDouble(totalMemory.replace("kB", "").trim()) / (1024 * 1024);
-				totalMemoryInGB = roundToTwoDecimals(totalMemoryInGB);
-				return totalMemoryInGB + " GB";
-			} catch (Exception e) {
-				return totalMemory;
-			}
-		} else {
-			return totalMemory;
-		}
 	}
 
 	private String toHumanReadleNumbers(String totalMemory, String currentUnit) {
