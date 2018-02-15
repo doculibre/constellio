@@ -181,18 +181,18 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				return mainLayout;
 			}
 		};
-		allocatedMemoryButton.setCaptionAsHtml(true);
-		StringBuilder buttonCaption = new StringBuilder("<b>" + $("UpdateManagerViewImpl.allocatedMemoryButtonCaption") + " </b>");
-		if(percentageOfAllocatedMemory != null) {
+				
+		StringBuilder buttonCaption = new StringBuilder($("UpdateManagerViewImpl.allocatedMemoryButtonCaption"));
+		if (percentageOfAllocatedMemory != null) {
 			buttonCaption.append(percentageOfAllocatedMemory*100 + " %");
-			if(percentageOfAllocatedMemory >= 0.8) {
-				buttonCaption.reverse();
-				buttonCaption.append(new StringBuilder("<p style=\"color:red\"").reverse().toString());
-				buttonCaption.reverse();
-				buttonCaption.append("</p>");
+			if (percentageOfAllocatedMemory >= 0.8) {
+				allocatedMemoryButton.addStyleName("button-caption-error");
+			} else {
+				allocatedMemoryButton.addStyleName("button-caption-important");
 			}
 		} else {
-			buttonCaption.append($("UpdateManagerViewImpl.missingInfoForMemoryAnalysis"));
+			allocatedMemoryButton.addStyleName("button-caption-error");
+			buttonCaption.append(" : " + $("UpdateManagerViewImpl.missingInfoForMemoryAnalysis"));
 		}
 		allocatedMemoryButton.setCaption(buttonCaption.toString());
 		return allocatedMemoryButton;
