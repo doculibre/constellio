@@ -40,14 +40,17 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
 
 	private static final String MEMINFO_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\meminfo";
+//	private static final String MEMINFO_PATH = "/proc/meminfo";
 
 	private static final String MEMTOTAL_PARAMETER = "MemTotal";
 
 	private static final String WRAPPER_CONF_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\wrapper.conf";
+//	private static final String WRAPPER_CONF_PATH = "/opt/constellio/conf/wrapper.conf";
 
 	private static final String CONSTELLIO_MEMORY_PARAMETER = "wrapper.java.maxmemory";
 
 	private static final String SOLR_CONF_PATH = "C:\\Users\\Constellio\\Desktop\\Support\\solr.in.sh";
+//	private static final String SOLR_CONF_PATH = "/opt/solr/bin/solr.in.sh";
 
 	private static final String SOLR_MEMORY_PARAMETER = "SOLR_JAVA_MEM";
 
