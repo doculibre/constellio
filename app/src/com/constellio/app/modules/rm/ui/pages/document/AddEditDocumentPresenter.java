@@ -156,7 +156,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document);
+		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document, getCurrentUser());
 
 		documentVO = voBuilder.build(duplicatedDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 
