@@ -143,6 +143,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
 		}
 
+		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
+		layout.addComponent(allocatedMemoryButton);
+
 		Component messagePanel = buildMessagePanel();
 		layout.addComponent(messagePanel);
 		panel = new VerticalLayout();
@@ -152,6 +155,47 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		showStandardUpdatePanel();
 
 		return layout;
+	}
+
+	private WindowButton buildAllocatedMemoryButton() {
+		final String totalSystemMemory = presenter.getTotalSystemMemory();
+		final String allocatedMemoryForConstellio = presenter.getAllocatedMemoryForConstellio();
+		final String allocatedMemoryForSolr = presenter.getAllocatedMemoryForSolr();
+		Double percentageOfAllocatedMemory = presenter.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
+
+		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				if(totalSystemMemory != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.totalSystemMemory"), totalSystemMemory));
+				}
+
+				if(allocatedMemoryForConstellio != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
+				}
+
+				if(allocatedMemoryForSolr != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForSolr"), allocatedMemoryForSolr));
+				}
+				return mainLayout;
+			}
+		};
+		allocatedMemoryButton.setCaptionAsHtml(true);
+		StringBuilder buttonCaption = new StringBuilder("<b>" + $("UpdateManagerViewImpl.allocatedMemoryButtonCaption") + " </b>");
+		if(percentageOfAllocatedMemory != null) {
+			buttonCaption.append(percentageOfAllocatedMemory*100 + " %");
+			if(percentageOfAllocatedMemory >= 0.8) {
+				buttonCaption.reverse();
+				buttonCaption.append(new StringBuilder("<p style=\"color:red\"").reverse().toString());
+				buttonCaption.reverse();
+				buttonCaption.append("</p>");
+			}
+		} else {
+			buttonCaption.append($("UpdateManagerViewImpl.missingInfoForMemoryAnalysis"));
+		}
+		allocatedMemoryButton.setCaption(buttonCaption.toString());
+		return allocatedMemoryButton;
 	}
 
 	private Component buildMessagePanel() {
