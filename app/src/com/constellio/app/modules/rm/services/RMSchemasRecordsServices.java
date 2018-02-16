@@ -26,7 +26,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
-import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +65,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -1040,12 +1040,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				}
 			}
 
-			String from = getValue(CHUNKS.displayFromChunk);
-			String subject = getValue(CHUNKS.subjectChunk);
-			String to = getValue(CHUNKS.displayToChunk);
-			String cc = getValue(CHUNKS.displayCCChunk);
-			String bcc = getValue(CHUNKS.displayBCCChunk);
-			String content = getValue(CHUNKS.textBodyChunk);
+			String from = getValue(CHUNKS.getDisplayFromChunk());
+			String subject = getValue(CHUNKS.getSubjectChunk());
+			String to = getValue(CHUNKS.getDisplayToChunk());
+			String cc = getValue(CHUNKS.getDisplayCCChunk());
+			String bcc = getValue(CHUNKS.getDisplayBCCChunk());
+			String content = getValue(CHUNKS.getTextBodyChunk());
 
 			MsgParser msgp = new MsgParser();
 			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));

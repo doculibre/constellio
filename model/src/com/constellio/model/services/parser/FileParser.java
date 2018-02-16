@@ -5,7 +5,11 @@ import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARS
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
