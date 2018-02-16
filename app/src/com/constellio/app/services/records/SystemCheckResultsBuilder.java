@@ -12,6 +12,8 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -21,6 +23,8 @@ public class SystemCheckResultsBuilder {
 	private static final String BROKEN_LINK_ERROR = "brokenLink";
 	private static final String BROKEN_LINK_IN_DEFAULT_VALUES_ERROR = "brokenLinkInDefaultValues";
 	private static final String LOGICALLY_DELETED_RECORD_ERROR = "logicallyDeletedRecord";
+
+	public static final String PREFIX = "prefix";
 
 	Language language;
 
@@ -120,8 +124,15 @@ public class SystemCheckResultsBuilder {
 		return results.getResultsInfos();
 	}
 
-	public void addNewValidationError(RecordServicesException.ValidationException validationException) {
+	public void addNewValidationError(RecordServicesException.ValidationException validationException, String prefix) {
+		addPrefixToResults(prefix ,validationException);
 		results.errors.addAll(validationException.getErrors().getValidationErrors());
+	}
+
+	public void addPrefixToResults(String prefix, RecordServicesException.ValidationException validationException) {
+		for(ValidationError error: validationException.getErrors().getValidationErrors()) {
+			error.getParameters().put(PREFIX, prefix);
+		}
 	}
 
 	public void addNewValidationError(Class<?> clazz, String errorCode, Map<String, Object> parameters) {
