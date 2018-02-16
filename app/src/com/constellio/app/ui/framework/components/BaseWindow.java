@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.vaadin.event.MouseEvents;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
@@ -25,6 +26,17 @@ public class BaseWindow extends Window {
 	private Unit heightUnitsBeforeMinimize;
 	private int positionXBeforeMinimize;
 	private int positionYBeforeMinimize;
+	private boolean modalBeforeMinimize;
+	private boolean resizableBeforeMinimize;
+	
+	private boolean minimized;
+
+    private final MouseEvents.ClickListener restoreMinimizedListener = new MouseEvents.ClickListener() {
+        @Override
+        public void click(MouseEvents.ClickEvent event) {
+        	restoreMinimized();
+        }
+    };
 
 	public BaseWindow() {
 		init();
@@ -41,34 +53,54 @@ public class BaseWindow extends Window {
 	}
 	
 	public void minimize() {
-		widthBeforeMinimize = getWidth();
-		heightBeforeMinimize = getHeight();
+		if (!minimized) {
+	        setModal(false);
+	        setResizable(false);
+	        addClickListener(restoreMinimizedListener);
+	        
+			widthBeforeMinimize = getWidth();
+			heightBeforeMinimize = getHeight();
 
-		widthUnitsBeforeMinimize = getWidthUnits();
-		heightUnitsBeforeMinimize = getHeightUnits();
+			widthUnitsBeforeMinimize = getWidthUnits();
+			heightUnitsBeforeMinimize = getHeightUnits();
 
-		positionXBeforeMinimize = getPositionX();
-		positionYBeforeMinimize = getPositionY();
+			positionXBeforeMinimize = getPositionX();
+			positionYBeforeMinimize = getPositionY();
+			
+			modalBeforeMinimize = isModal();
+			resizableBeforeMinimize = isResizable();
 
-		int browserWidth = Page.getCurrent().getBrowserWindowWidth();
-		int browserHeight = Page.getCurrent().getBrowserWindowHeight();
+			int browserWidth = Page.getCurrent().getBrowserWindowWidth();
+			int browserHeight = Page.getCurrent().getBrowserWindowHeight();
 
-		float minimizedWith = 150;
-		float mimizedHeight = 90;
-		int minimizedPositionX = (int) (browserWidth - minimizedWith);
-		int minimizedPositionY = (int) (browserHeight - mimizedHeight);
+			float minimizedWith = 281;
+			float mimizedHeight = 36;
+			int minimizedPositionX = (int) (browserWidth - minimizedWith) - 20;
+			int minimizedPositionY = (int) (browserHeight - mimizedHeight);
 
-		setWidth(minimizedWith + "px");
-		setHeight(mimizedHeight + "px");
-		setPositionX(minimizedPositionX);
-		setPositionY(minimizedPositionY);
+			setWidth(minimizedWith + "px");
+			setHeight(mimizedHeight + "px");
+			setPositionX(minimizedPositionX);
+			setPositionY(minimizedPositionY);
+	        minimized = true;
+		} 
 	}
 
 	public void restoreMinimized() {
-		setWidth(widthBeforeMinimize, widthUnitsBeforeMinimize);
-		setHeight(heightBeforeMinimize, heightUnitsBeforeMinimize);
-		setPositionX(positionXBeforeMinimize);
-		setPositionY(positionYBeforeMinimize);
+		if (minimized) {
+			setWidth(widthBeforeMinimize, widthUnitsBeforeMinimize);
+			setHeight(heightBeforeMinimize, heightUnitsBeforeMinimize);
+			setPositionX(positionXBeforeMinimize);
+			setPositionY(positionYBeforeMinimize);
+			setModal(modalBeforeMinimize);
+			setResizable(resizableBeforeMinimize);
+			removeClickListener(restoreMinimizedListener);
+			minimized = false;
+		}
+	}
+	
+	public boolean isMinimized() {
+		return minimized;
 	}
 
 	private void init() {

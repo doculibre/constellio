@@ -348,9 +348,9 @@ public class ConversionManager implements StatefulService {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			String fileExtension = FilenameUtils.getExtension(input.getName());
-			if(Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+			if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
 				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
-				if(converter != null) {
+				if (converter != null) {
 					FileInputStream inputStream = null;
 					FileOutputStream outputStream = null;
 					try {
@@ -371,7 +371,7 @@ public class ConversionManager implements StatefulService {
 					} catch(IOException e) {
 						throw new RuntimeException(e);
 					} finally {
-						if(inputStream != null) {
+						if (inputStream != null) {
 							ioServices.closeQuietly(inputStream);
 						}
 
@@ -478,7 +478,7 @@ public class ConversionManager implements StatefulService {
 		return pdfaFormat;
 	}
 	public static boolean isSupportedExtension(String ext) {
-		for (String aSupportedExtension : SUPPORTED_EXTENSIONS) {
+		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {
 				return true;
 			}

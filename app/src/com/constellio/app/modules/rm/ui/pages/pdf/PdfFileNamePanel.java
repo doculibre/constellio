@@ -1,21 +1,20 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 public class PdfFileNamePanel extends VerticalLayout {
     @PropertyId("pdfFileName")
@@ -59,11 +58,11 @@ public class PdfFileNamePanel extends VerticalLayout {
             protected void saveButtonClick(PdfInfos viewObject) throws ValidationException {
                 cancelled = false;
 
-                if(window != null) {
+                if (window != null) {
                     window.close();
                 }
 
-                for(PdfFileNameListener listener: listeners) {
+                for (PdfFileNameListener listener: listeners) {
                     listener.pdfFileNameFinished(viewObject);
                 }
             }
@@ -72,11 +71,11 @@ public class PdfFileNamePanel extends VerticalLayout {
             protected void cancelButtonClick(PdfInfos viewObject) {
                 cancelled = true;
 
-                if(window != null) {
+                if (window != null) {
                     window.close();
                 }
 
-                for(PdfFileNameListener listener: listeners) {
+                for (PdfFileNameListener listener: listeners) {
                     listener.pdfFileNameCancelled();
                 }
             }

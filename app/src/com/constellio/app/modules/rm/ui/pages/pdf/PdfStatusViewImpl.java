@@ -85,7 +85,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         VaadinSession.getCurrent().access(new Runnable() {
             @Override
             public void run() {
-                enter(null);
+            	enter(null);
 
                 for (PdfGenerationCompletedListener listener : listeners) {
                     listener.firePdfGenerationCompleted(PdfStatusViewImpl.this);
@@ -110,7 +110,8 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         layout.setSpacing(true);
 
         Button download = new LinkButton($("PdfStatusViewImpl.downloadPdfFile")) {
-            @Override
+            @SuppressWarnings("deprecation")
+			@Override
             protected void buttonClick(ClickEvent event) {
                 Page.getCurrent().open(presenter.getPdfDocumentResource(documentPdfId), null, false);
             }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class SupportedExtensionExtension {
 
-    public List<String> getAdditionalSupportedExtension(){
+    public List<String> getAdditionalSupportedExtension() {
         return Collections.emptyList();
     }
 

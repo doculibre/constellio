@@ -12960,6 +12960,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13142,6 +13143,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13670,6 +13672,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;

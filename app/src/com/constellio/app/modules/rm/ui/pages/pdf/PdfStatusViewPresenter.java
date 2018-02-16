@@ -93,7 +93,7 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
                     int errors = batchProcess.getErrors();
                     if (errors > 0) {
                         // Display errors
-                        messages.add($("PdfStatusViewPresenter.generationErrors", errors));
+                        messages.add($("PdfStatusView.generationErrors", errors));
                     }
 
                     int processedCount = 0;
@@ -106,21 +106,21 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
                             if (contentManager.hasContentPreview(hash)) {
                                 // Preview ready for document
                                 processedCount++;
-                                messages.add($("PdfStatusViewPresenter.generationCompleted", document.getTitle()));
+                                messages.add($("PdfStatusView.generationCompleted", document.getTitle()));
                             } else if (!Boolean.FALSE.equals(markedForPreviewConversion)) {
                                 // Conversion pending
-                                messages.add($("PdfStatusViewPresenter.generationPending", document.getTitle()));
+                                messages.add($("PdfStatusView.generationPending", document.getTitle()));
                             } else {
                                 // The MARKED_FOR_PREVIEW_CONVERSION flag has been set to false, which means that the conversion failed
                                 processedCount++;
-                                messages.add($("PdfStatusViewPresenter.generationFailed", document.getTitle()));
+                                messages.add($("PdfStatusView.generationFailed", document.getTitle()));
                             }
                         } else {
                             processedCount++;
-                            messages.add($("PdfStatusViewPresenter.generationEmptyDocument", document.getTitle()));
+                            messages.add($("PdfStatusView.generationEmptyDocument", document.getTitle()));
                         }
                     }
-                    view.notifyGlobalProgressMessage($("PdfStatusViewPresenter.generationProgress", processedCount, documentIds.size()));
+                    view.notifyGlobalProgressMessage($("PdfStatusView.generationProgress", processedCount, documentIds.size()));
                     dataProvider.setMessages(messages);
 
                     if (batchProcess.getStatus() == BatchProcessStatus.FINISHED) {

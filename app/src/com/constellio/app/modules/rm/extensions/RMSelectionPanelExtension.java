@@ -18,7 +18,6 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -32,8 +31,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPDFWindow;
-import com.constellio.app.modules.rm.ui.pages.pdf.PdfFileNamePanel;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -125,31 +123,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addPdfButton(final AvailableActionsParam param) {
-        WindowButton pdfButton = new WindowButton($("ConstellioHeader.selection.actions.pdf"), $("PdfFileNamePanel.caption")
-                , WindowButton.WindowConfiguration.modalDialog("60%", "200px")) {
-            @Override
-            protected Component buildWindowContent() {
-                PdfFileNamePanel pdfPanel = new PdfFileNamePanel(getWindow());
-                pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
-                    @Override
-                    public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
-                        List<String> ids = param.getIds();
-                        if (!CollectionUtils.isEmpty(ids)) {
-                        	ConsolidatedPDFWindow window = ConsolidatedPDFWindow.getInstance();
-                        	window.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
-                        } else {
-                            showErrorMessage($("ConstellioHeader.noDocumentSelectedForPdf"));
-                        }
-                    }
-
-                    @Override
-                    public void pdfFileNameCancelled() {
-
-                    }
-                });
-                return pdfPanel;
-            }
-        };
+        WindowButton pdfButton = new ConsolidatedPdfButton(param);
         setStyles(pdfButton);
         pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
