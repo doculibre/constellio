@@ -23,7 +23,7 @@ public class ConsolidatedPdfButton extends WindowButton {
 	public ConsolidatedPdfButton(AvailableActionsParam param) {
 		super($("ConsolidatedPDFWindow.caption"), $("PdfFileNamePanel.caption"), WindowButton.WindowConfiguration.modalDialog("60%", "200px"));
 		this.param = param;
-		ConsolidatedPdfWindowImpl.ensurePresentIfRunningAndNotAdded();
+		ConsolidatedPdfWindow.ensurePresentIfRunningAndNotAdded();
 	}
 	
 	public void setParams(AvailableActionsParam param) {
@@ -38,7 +38,7 @@ public class ConsolidatedPdfButton extends WindowButton {
             public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
                 List<String> ids = param.getIds();
                 if (!CollectionUtils.isEmpty(ids)) {
-                	ConsolidatedPdfWindowImpl window = ConsolidatedPdfWindowImpl.getInstance();
+                	ConsolidatedPdfWindow window = ConsolidatedPdfWindow.getInstance();
                 	window.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
                 } else {
                     showErrorMessage($("ConsolidatedPDFWindow.noDocumentSelectedForPdf"));

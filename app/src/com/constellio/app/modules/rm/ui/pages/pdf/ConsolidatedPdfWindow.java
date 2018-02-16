@@ -28,9 +28,9 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class ConsolidatedPdfWindowImpl extends BaseWindow implements PollListener {
+public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 	
-	private static final String ATTRIBUTE_KEY = ConsolidatedPdfWindowImpl.class.getName();
+	private static final String ATTRIBUTE_KEY = ConsolidatedPdfWindow.class.getName();
 	
     public static final String WIDTH = "100%";
     private Map<String, Tab> pdfTabs = new HashMap<>();
@@ -41,7 +41,7 @@ public class ConsolidatedPdfWindowImpl extends BaseWindow implements PollListene
     private Button closeWindowButton;
     private Button minimizeWindowButton;
 
-    public ConsolidatedPdfWindowImpl() {
+    public ConsolidatedPdfWindow() {
         super($("ConsolidatedPDFWindow.caption"));
         setId("ConsolidatedPDFWindowId");
         init();
@@ -125,11 +125,11 @@ public class ConsolidatedPdfWindowImpl extends BaseWindow implements PollListene
         tabSheet.setSelectedTab(tab);
     }
     
-    public static ConsolidatedPdfWindowImpl getInstance() {
-		ConsolidatedPdfWindowImpl instance = null;
+    public static ConsolidatedPdfWindow getInstance() {
+		ConsolidatedPdfWindow instance = null;
 		for (Window uiWindow : UI.getCurrent().getWindows()) {
-			if (uiWindow instanceof ConsolidatedPdfWindowImpl) {
-				instance = (ConsolidatedPdfWindowImpl) uiWindow;
+			if (uiWindow instanceof ConsolidatedPdfWindow) {
+				instance = (ConsolidatedPdfWindow) uiWindow;
 				break;
 			}
 		}
@@ -137,7 +137,7 @@ public class ConsolidatedPdfWindowImpl extends BaseWindow implements PollListene
 		if (instance == null) {
 			instance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
 			if (instance == null) {
-				instance = new ConsolidatedPdfWindowImpl();
+				instance = new ConsolidatedPdfWindow();
 				ConstellioUI.getCurrent().setAttribute(ATTRIBUTE_KEY, instance);
 			}
 			UI.getCurrent().addWindow(instance);
@@ -152,12 +152,12 @@ public class ConsolidatedPdfWindowImpl extends BaseWindow implements PollListene
 	}
 
 	public static void ensurePresentIfRunningAndNotAdded() {
-		ConsolidatedPdfWindowImpl contextInstance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
+		ConsolidatedPdfWindow contextInstance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
 		if (contextInstance != null) {
-			ConsolidatedPdfWindowImpl uiInstance = null;
+			ConsolidatedPdfWindow uiInstance = null;
 			for (Window uiWindow : UI.getCurrent().getWindows()) {
-				if (uiWindow instanceof ConsolidatedPdfWindowImpl) {
-					uiInstance = (ConsolidatedPdfWindowImpl) uiWindow;
+				if (uiWindow instanceof ConsolidatedPdfWindow) {
+					uiInstance = (ConsolidatedPdfWindow) uiWindow;
 					break;
 				}
 			}
