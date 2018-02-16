@@ -2,11 +2,7 @@ package com.constellio.model.conf.ldap.services;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,6 +57,8 @@ public class AzureAdClient {
 
 		@VisibleForTesting
 		static int maxResults = 150;
+
+		Map<String, JSONObject> cacheObjects = new HashMap<>();
 
 		private static String getResponseText(final Response response) {
 			return response.readEntity(String.class).replace("\uFEFF", "");
@@ -332,6 +330,10 @@ public class AzureAdClient {
 		}
 
 		private JSONObject getObjectResponseByUrl(final String objectUrl) {
+			if (cacheObjects.containsKey(objectUrl)) {
+				return cacheObjects.get(objectUrl);
+			}
+
 			String responseText;
 
 			acquireAccessToken();
@@ -356,7 +358,9 @@ public class AzureAdClient {
 			responseText = getResponseText(response);
 
 			if (response.getStatus() == HttpURLConnection.HTTP_OK) {
-				return new JSONObject(responseText);
+				JSONObject responseObject = new JSONObject(responseText);
+				cacheObjects.put(objectUrl, responseObject);
+				return responseObject;
 			} else if (new Integer(response.getStatus()).toString().startsWith("5")) {
 				LOGGER.error(responseText);
 				throw new AzureAdClientException("Unexpected Azure AD Graph API server error");
