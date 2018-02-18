@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.ui.UI;
 
 public class PdfStatusTable extends BaseTable {
+	
     public PdfStatusTable(String tableId, PdfStatusDataProvider<?> dataProvider) {
         super(tableId);
 
@@ -26,4 +27,5 @@ public class PdfStatusTable extends BaseTable {
 			super.containerItemSetChange(event);
 		}
 	}
+	
 }

@@ -13040,7 +13040,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .base-window .v-scrollable .base-window-content {
-	padding-left: 10px;
+	padding-left: 5px;
+	padding-right: 5px;
 	margin-top: 5px;
 }
 

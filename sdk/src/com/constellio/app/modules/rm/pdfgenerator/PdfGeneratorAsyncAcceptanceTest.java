@@ -66,6 +66,14 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
                 public String getCollection() {
                     return zeCollection;
                 }
+
+				@Override
+				public void logWarning(String code, Map<String, Object> parameters) {
+				}
+
+				@Override
+				public void logError(String code, Map<String, Object> parameters) {
+				}
         };
         pdfGeneratorAsyncTask.execute(params);
 

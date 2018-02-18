@@ -3,11 +3,14 @@ package com.constellio.app.modules.rm.ui.pages.pdf.table;
 import com.constellio.app.ui.framework.containers.DataContainer;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Label;
 
 import java.util.Collection;
 import java.util.List;
 
 public class PdfStatusDataContainer extends DataContainer<PdfStatusDataProvider<?>> {
+	
     public PdfStatusDataContainer(PdfStatusDataProvider<?> dataProvider) {
         super(dataProvider);
     }
@@ -27,15 +30,15 @@ public class PdfStatusDataContainer extends DataContainer<PdfStatusDataProvider<
 
     @Override
     protected Class<?> getOwnType(Object propertyId) {
-        return getDataProvider().getOwnType(propertyId);
+        return Label.class;
     }
 
-    @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
-        Object value = getDataProvider().getOwnValue(itemId, propertyId);
-        Class<?> type = getType(propertyId);
-
-        return new ObjectProperty(value, type);
+        String value = (String) getDataProvider().getOwnValue(itemId, propertyId);
+        Label valueAsLabel = new Label(value, ContentMode.HTML);
+        return new ObjectProperty(valueAsLabel, Label.class);
     }
 
 

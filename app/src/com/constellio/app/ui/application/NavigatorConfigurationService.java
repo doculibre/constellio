@@ -203,7 +203,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
-	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
+	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryRecords";
 	public static final String SEARCH_CONFIGURATION = "searchConfiguration";
 
 	public static final String LIST_CAPSULE = "listCapsule";

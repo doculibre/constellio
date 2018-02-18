@@ -96,8 +96,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
-	public static final String TEMPORARY_REPORT = "temporaryRecords";
-	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
+	public static final String TEMPORARY_RECORDS = "temporaryRecords";
+	public static final String TEMPORARY_RECORDS_ICON = "images/icons/config/hourglass.png";
 
 	public static final String SEARCH_CONFIG = "searchConfig";
 	public static final String SEARCH_CONFIG_ICON = "images/icons/config/configuration-search.png";
@@ -119,6 +119,17 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
+			}
+		});
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(TEMPORARY_RECORDS) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecords();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return ComponentState.visibleIf(user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
 			}
 		});
 	}
@@ -475,10 +486,10 @@ public class CoreNavigationConfiguration implements Serializable {
 		//			}
 		//		});
 
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_RECORDS, TEMPORARY_RECORDS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to().listTemporaryRecord();
+				navigate.to().listTemporaryRecords();
 			}
 
 			@Override

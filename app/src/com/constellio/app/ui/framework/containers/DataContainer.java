@@ -12,6 +12,8 @@ public abstract class DataContainer<T extends DataProvider> extends ContainerAda
 	public DataContainer(T dataProvider) {
 		super(new IndexedContainer());
 		this.dataProvider = dataProvider;
+		
+		refresh();
 		dataProvider.addDataRefreshListener(new DataRefreshListener() {
 			@Override
 			public void dataRefresh() {

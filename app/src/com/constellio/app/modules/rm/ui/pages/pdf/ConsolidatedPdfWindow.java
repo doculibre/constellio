@@ -108,12 +108,12 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
         PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);
         panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
             @Override
-            public void firePdfGenerationCompleted(PdfStatusViewImpl panel) {
+            public void firePdfGenerationCompleted(PdfStatusViewImpl panel, boolean errorOccurred) {
                 checkAllGenerationStatus();
                 restoreMinimized();
             	Tab pdfTab = pdfTabs.get(panel.getPdfFileName());
                 tabSheet.setSelectedTab(pdfTab);
-                setContent(getContent());
+//                setContent(getContent());
             }
         });
 
