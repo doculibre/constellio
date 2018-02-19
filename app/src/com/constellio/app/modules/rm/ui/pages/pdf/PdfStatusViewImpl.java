@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.pdf;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
 import com.constellio.app.ui.entities.TemporaryRecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
@@ -18,6 +20,8 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
@@ -137,21 +141,25 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         });
     }
 
+	private Resource getPdfDocumentResource(final String id) {
+        return new StreamResource(new StreamResource.StreamSource() {
+            @Override
+            public InputStream getStream() {
+                TemporaryRecordVO vo = presenter.getPdfDocumentVO(id);
+                return vo.getContent().getInputStreamProvider().getInputStream(pdfFileName);
+            }
+        }, pdfFileName);
+    }
+
     protected Layout createPdfGenerationCompletedLayout() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 //        layout.setSpacing(true);
         
-        Button download = new LinkButton($("PdfStatusView.downloadPdfFile")) {
-            @SuppressWarnings("deprecation")
-			@Override
-            protected void buttonClick(ClickEvent event) {
-                Page.getCurrent().open(presenter.getPdfDocumentResource(documentPdfId), null, false);
-            }
-        };
+        DownloadLink downloadLink = new DownloadLink(getPdfDocumentResource(documentPdfId), $("PdfStatusView.downloadPdfFile"));
 
-        layout.addComponent(download);
-        layout.setExpandRatio(download, 1);
+        layout.addComponent(downloadLink);
+        layout.setExpandRatio(downloadLink, 1);
 
         Label label = new Label($("PdfStatusView.documentInTemporaryZone"));
         label.setContentMode(ContentMode.HTML);

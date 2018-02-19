@@ -22,6 +22,7 @@ import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
@@ -29,6 +30,8 @@ import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGenera
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
@@ -36,6 +39,7 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.User;
@@ -95,6 +99,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		PDDocument result;
 		try {
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 			String collection = document.getCollection();
 			String documentId = document.getId();
 			
@@ -107,11 +112,20 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			xmlGeneratorParameters.setElementWithIds(Document.SCHEMA_TYPE, documentIdAsString);
 
 			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
+			
+			InputStream jasperTemplateIn;
+			List<PrintableReportTemplate> printableReportTemplates = ReportGeneratorUtils.getPrintableReportTemplate(appLayerFactory, collection, document.getSchemaCode(), PrintableReportListPossibleType.DOCUMENT);
+			if (!printableReportTemplates.isEmpty()) {
+				ContentVersion printableReportTemplateContentVersion = printableReportTemplates.get(0).getJasperFile().getCurrentVersion();
+				jasperTemplateIn = contentManager.getContentInputStream(printableReportTemplateContentVersion.getHash(), getClass().getSimpleName() + ".jasperTemplate");
+			} else {
+				File jasperTemplateFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "DocumentMetadataReport.jasper");
+				jasperTemplateIn = new FileInputStream(jasperTemplateFile);
+			}
 
-			File jasperFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "DocumentMetadataReport.jasper");
 			File generatedJasperFile = null;
 			try {
-				generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile);
+				generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperTemplateIn);
 				result = PDDocument.load(generatedJasperFile);
 				result.getDocumentCatalog().setDocumentOutline(null);
 			} catch (JRException e) {

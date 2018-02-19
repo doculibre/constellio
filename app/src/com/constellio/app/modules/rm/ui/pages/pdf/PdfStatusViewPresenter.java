@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.pages.pdf;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -33,8 +32,6 @@ import com.constellio.model.services.batch.controller.BatchProcessState;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.vaadin.server.Resource;
-import com.vaadin.server.StreamResource;
 
 public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 	
@@ -126,15 +123,9 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
     	return status == BatchProcessStatus.FINISHED;
     }
 
-    public Resource getPdfDocumentResource(final String id) {
-        return new StreamResource(new StreamResource.StreamSource() {
-            @Override
-            public InputStream getStream() {
-                TemporaryRecordVO vo = getPdfDocumentVO(id);
-                return vo.getContent().getInputStreamProvider().getInputStream(pdfFileName);
-            }
-        }, pdfFileName);
-    }
+    public String getPdfFileName() {
+		return pdfFileName;
+	}
 
     public TemporaryRecordVO getPdfDocumentVO(String id) {
     	TemporaryRecordVO result;
