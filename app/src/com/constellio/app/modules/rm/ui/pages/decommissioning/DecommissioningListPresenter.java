@@ -27,11 +27,13 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -57,6 +59,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	String recordId;
 
+	private Set<String> missingFolders = new HashSet<>();
+
 	public DecommissioningListPresenter(DecommissioningListView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
 		searchServices = modelLayerFactory.newSearchServices();
@@ -79,8 +83,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
-		return securityService().hasAccessToDecommissioningListPage(decommissioningList, user);
+		DecommissioningSecurityService securityService = new DecommissioningSecurityService(restrictedRecord.getCollection(), appLayerFactory);
+		RMSchemasRecordsServices rmRecordsServices = new RMSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory);
+		DecommissioningList decommissioningList = rmRecordsServices.wrapDecommissioningList(restrictedRecord);
+		return securityService.hasAccessToDecommissioningListPage(decommissioningList, user);
 	}
 
 	public RecordVO getDecommissioningList() {
@@ -94,7 +100,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
-		Record record = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
+		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
 //		List<Authorization> recordAuthorizations = authorizationServices.getRecordAuthorizations(record);
 //		Set<String> allUsers = new HashSet<>();
@@ -115,8 +121,33 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 //		}
 //
 //		return userList;
+		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
+				.getUsersWithPermissionOnRecord(
+						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
+		List<User> managerEmailForAdministrativeUnitWithoutGlobalPermission = new ArrayList<>();
+		for(User user: managerEmailForAdministrativeUnit) {
+			if(!user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+				managerEmailForAdministrativeUnitWithoutGlobalPermission.add(user);
+			}
+		}
 
-		return decommissioningEmailService.getManagerEmailForList(decommissioningList);
+		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList);
+		HashSet<User> uniqueUsers = new HashSet<>();
+		if(managerEmailForList != null) {
+			uniqueUsers.addAll(managerEmailForList);
+		}
+		if(managerEmailForAdministrativeUnit != null) {
+			if(!managerEmailForAdministrativeUnitWithoutGlobalPermission.isEmpty()) {
+				uniqueUsers.addAll(managerEmailForAdministrativeUnitWithoutGlobalPermission);
+			} else {
+				uniqueUsers.addAll(managerEmailForAdministrativeUnit);
+			}
+		}
+
+		if(uniqueUsers.contains(getCurrentUser())) {
+			uniqueUsers.remove(getCurrentUser());
+		}
+		return new ArrayList<>(uniqueUsers);
 	}
 	
 	public List<String> getAvailableManagerIds() throws DecommissioningEmailServiceException {
@@ -383,7 +414,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded()) {
-				result.add(builder.build(folder));
+				try {
+					result.add(builder.build(folder));
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
+					e.printStackTrace();
+				}
 			}
 		}
 		return result;
@@ -395,9 +431,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)
 					&& !isFolderPlacedInContainer(folder)) {
-				FolderDetailVO folderVO = builder.build(folder);
-				addOtherMetadatasToFolderDetailVO(folderVO);
-				result.add(folderVO);
+				try {
+					FolderDetailVO folderVO = builder.build(folder);
+					addOtherMetadatasToFolderDetailVO(folderVO);
+					result.add(folderVO);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
+					e.printStackTrace();
+				}
 			}
 		}
 		return result;
@@ -416,7 +457,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder)
 					|| isFolderPlacedInContainer(folder))) {
-				result.add(builder.build(folder));
+				try {
+					result.add(builder.build(folder));
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
+					e.printStackTrace();
+				}
 			}
 		}
 		return result;
@@ -431,7 +477,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isExcluded()) {
-				result.add(builder.build(folder));
+				try {
+					result.add(builder.build(folder));
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
+					e.printStackTrace();
+				}
 			}
 		}
 		return result;
@@ -885,7 +936,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList().getDecommissioningListType().isDestroyal() && getFolderDetailTableExtension() != null;
 	}
 
-	public List<FolderVO> getFoldersVO(){
+	public List<FolderVO> getFoldersVO() {
 		List<Folder> foldersIds = rmRecordsServices().getFolders(decommissioningList().getFolders());
 		List<FolderVO> folderVOList = new ArrayList<>();
 		FolderToVOBuilder builder = new FolderToVOBuilder();
@@ -894,4 +945,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 		return folderVOList;
 	}
+
+    public Set<String> getMissingFolders() {
+        return missingFolders;
+    }
 }

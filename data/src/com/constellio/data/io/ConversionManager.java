@@ -1,13 +1,10 @@
 package com.constellio.data.io;
 
 import static java.io.File.createTempFile;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,7 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -41,17 +42,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.services.facades.IOServices;
 
 /**
  * Using https://github.com/sbraconnier/jodconverter
- * 
+ *
  * @author Vincent
  */
 public class ConversionManager implements StatefulService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConversionManager.class);
-	
+
 	/*
 	 * In addition to OpenDocument formats (.odt, .ott, .oth, and .odm), Writer 2.x can open the formats used by OOo 1.x (.sxw, .stw, and .sxg) and the following text document formats:
 	 *   Microsoft Word 6.0/95/97/2000/XP) (.doc and .dot)	WordPerfect Document (.wpd)
@@ -76,10 +78,10 @@ public class ConversionManager implements StatefulService {
 	 *   DocBook (.xml)
 	 *   AportisDoc (Palm) (.pdb)
 	 *   Pocket Word (.psw)
-	 */   
+	 */
 	public static final String[] TEXT_EXTENSIONS = {
-			"odt", "ott", "oth", "odm", "sxw", "stw", "sxg", "doc", "docx", "dot", 
-			"wpd", "xml", "wps", "sdw", "sgl", "jtd", "jtt", "pdb", "hwp", "psw", 
+			"odt", "ott", "oth", "odm", "sxw", "stw", "sxg", "doc", "docx", "dot",
+			"wpd", "xml", "wps", "sdw", "sgl", "jtd", "jtt", "pdb", "hwp", "psw",
 			"rtf", "txt", "htm", "html"
 	};
 
@@ -109,8 +111,8 @@ public class ConversionManager implements StatefulService {
 	 *   Pocket Excel (.pxl)
 	 */
 	public static final String[] SPREADSHEET_EXTENSIONS = {
-		"ods", "ots", "sxc", "stc", "xls", "xlw", "xlt", "xlsx", "xltx", "csv", "wk1", 
-		"wks", "123", "dif", "sdc", "vor", "dbf", "slk", "pxl", "wb2"
+			"ods", "ots", "sxc", "stc", "xls", "xlw", "xlt", "xlsx", "xltx", "csv", "wk1",
+			"wks", "123", "dif", "sdc", "vor", "dbf", "slk", "pxl", "wb2"
 	};
 
 	/*
@@ -128,8 +130,8 @@ public class ConversionManager implements StatefulService {
 	 *   Impress can also export to MacroMedia Flash (.swf) and any of the graphics formats listed for Draw.
 	 */
 	public static final String[] PRESENTATION_EXTENSIONS = {
-		"odp", "odg", "otp", "sxi", "sti", "ppt", "pps", "pot", "pptx", "ppsx", "potx", 
-		"sda", "sdd", "sdp", "cgm"
+			"odp", "odg", "otp", "sxi", "sti", "ppt", "pps", "pot", "pptx", "ppsx", "potx",
+			"sda", "sdd", "sdp", "cgm"
 	};
 
 	/*
@@ -144,23 +146,23 @@ public class ConversionManager implements StatefulService {
 	 * However, Draw can also export to BMP, EMF, EPS, GIF, JPEG, MET, PBM, PCT, PGM, PNG, PPM, RAS, SVG, SVM, TIFF, WMF, and XPM.
 	 */
 	public static final String[] DRAWING_EXTENSIONS = {
-		"odg", "otg", "sxd", "std", "bmp", "jpeg", "jpg", "pcx", "psd", "sgv", 
-		"wmf", "dxf", "met", "pgm", "ras", "svm", "xbm", "emf", "pbm", "plt", 
-		"sda", "tga", "xpm", "eps", "pcd", "png", "sdd", "tif", "tiff", "gif", 
-		"pct", "ppm", "sgf"
+			"odg", "otg", "sxd", "std", "bmp", "jpeg", "jpg", "pcx", "psd", "sgv",
+			"wmf", "dxf", "met", "pgm", "ras", "svm", "xbm", "emf", "pbm", "plt",
+			"sda", "tga", "xpm", "eps", "pcd", "png", "sdd", "tif", "tiff", "gif",
+			"pct", "ppm", "sgf"
 	};
-	
-	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>(); 
-	
+
+	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>();
+
 	public static String[] SUPPORTED_EXTENSIONS = new String[0];
-	
+
 	private static boolean openOfficeOrLibreOfficeInstalled = false;
-	
+
 	static {
 		try {
 			OfficeManager officeManager = LocalOfficeManager.install();
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-			
+
 			List<String> supportedExtensionsList = new ArrayList<>();
 			for (int i = 0; i < TEXT_EXTENSIONS.length; i++) {
 				DocumentFormat documentFormat = converter.getFormatRegistry().getFormatByExtension(TEXT_EXTENSIONS[i]);
@@ -186,23 +188,23 @@ public class ConversionManager implements StatefulService {
 					supportedExtensionsList.add(DRAWING_EXTENSIONS[i]);
 				}
 			}
-			
+
 			COPY_EXTENSIONS.put("dot", "doc");
 			COPY_EXTENSIONS.put("pptm", "ppt");
 			COPY_EXTENSIONS.put("pps", "ppt");
 			COPY_EXTENSIONS.put("tif", "png");
 			COPY_EXTENSIONS.put("tiff", "png");
 			supportedExtensionsList.addAll(COPY_EXTENSIONS.keySet());
-			
+
 			SUPPORTED_EXTENSIONS = supportedExtensionsList.toArray(new String[0]);
-			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS)); 
+			LOGGER.info("Conversion to PDF supported for the following extensions: " + Arrays.toString(SUPPORTED_EXTENSIONS));
 			openOfficeOrLibreOfficeInstalled = true;
 		} catch (Throwable t) {
-			LOGGER.error("OpenOffice or LibreOffice not installed", t); 
+			LOGGER.error("OpenOffice or LibreOffice not installed", t);
 			openOfficeOrLibreOfficeInstalled = false;
 		}
 	}
-	
+
 	public static int BASE_PORT = 2002;
 
 	private final IOServices ioServices;
@@ -211,42 +213,48 @@ public class ConversionManager implements StatefulService {
 	private OfficeManager officeManager;
 	private AbstractConverter delegate;
 	private ExecutorService executor;
-	
-	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl) {
+	private static DataLayerSystemExtensions extensions;
+	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl, DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
+		this.extensions = extensions;
 	}
-	
+
+	public static String[] getSupportedExtensions() {
+		return (String[]) ArrayUtils.addAll(SUPPORTED_EXTENSIONS, extensions.getSupportedExtensionExtensions());
+	}
+
 	public boolean isOpenOfficeOrLibreOfficeInstalled() {
 		return openOfficeOrLibreOfficeInstalled;
 	}
-	
+
 	@Override
 	public void initialize() {
 	}
-	
+
 	private synchronized void ensureInitialized() {
 		if (openOfficeOrLibreOfficeInstalled && executor == null) {
 			executor = newFixedThreadPool(numberOfProcesses);
-			
+
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
-				officeManager = OnlineOfficeManager.builder().poolSize(numberOfProcesses).urlConnection(onlineConversionUrl).build();
-				
+				officeManager = OnlineOfficeManager.builder().poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
+						.build();
+
 				delegate = OnlineConverter.builder()
-								.officeManager(officeManager)
-								.formatRegistry(formatRegistry)
-					            .build();
+						.officeManager(officeManager)
+						.formatRegistry(formatRegistry)
+						.build();
 			} else {
 				int[] portNumbers = getPortNumbers();
 				officeManager = LocalOfficeManager.builder().install().portNumbers(portNumbers).build();
-				
+
 				delegate =
-				        LocalConverter.builder()
-				            .officeManager(officeManager)
-				            .formatRegistry(formatRegistry)
-				            .build();
+						LocalConverter.builder()
+								.officeManager(officeManager)
+								.formatRegistry(formatRegistry)
+								.build();
 			}
 			try {
 				officeManager.start();
@@ -255,7 +263,7 @@ public class ConversionManager implements StatefulService {
 			}
 		}
 	}
-	
+
 	public int getNumberOfProcesses() {
 		return numberOfProcesses;
 	}
@@ -274,12 +282,18 @@ public class ConversionManager implements StatefulService {
 			return executor.submit(new Callable<File>() {
 				@Override
 				public File call() {
-					return convertToPDF(inputStream, originalName, workingFolder);
+					File personalWorkingFolder = null;
+					if (workingFolder != null) {
+						personalWorkingFolder = new File(workingFolder, UUIDV1Generator.newRandomId());
+						personalWorkingFolder.mkdirs();
+					}
+					//Each process requires a different working folder
+					return convertToPDF(inputStream, originalName, personalWorkingFolder);
 				}
 			});
 		} else {
 			return null;
-		}	
+		}
 	}
 
 	public File convertToPDF(InputStream inputStream, String originalName, File workingFolder) {
@@ -311,7 +325,7 @@ public class ConversionManager implements StatefulService {
 				executor.shutdownNow();
 			}
 
-		    // Stop the office process
+			// Stop the office process
 			try {
 				officeManager.stop();
 			} catch (OfficeException e) {
@@ -329,23 +343,57 @@ public class ConversionManager implements StatefulService {
 		}
 	}
 
-	private void convertToPDF(File input, File output) throws OfficeException {
+	private void convertToPDF(File input, File output)
+			throws OfficeException {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
-			
+			String fileExtension = FilenameUtils.getExtension(input.getName());
+			if (Arrays.asList(extensions.getSupportedExtensionExtensions()).contains(fileExtension)) {
+				ExtensionConverter converter = extensions.getConverterForSupportedExtension(fileExtension);
+				if (converter != null) {
+					FileInputStream inputStream = null;
+					FileOutputStream outputStream = null;
+					try {
+						//Source https://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
+						inputStream = new FileInputStream(converter.convert(input));
+						outputStream = new FileOutputStream(output);
+						byte[] buffer = new byte[1024];
+
+						int length;
+						/*copying the contents from input stream to
+						 * output stream using read and write methods
+						 */
+						while ((length = inputStream.read(buffer)) > 0){
+							outputStream.write(buffer, 0, length);
+						}
+					} catch (FileNotFoundException e ) {
+						throw new OfficeException(String.format("Could not found file %s", input.getName()));
+					} catch(IOException e) {
+						throw new RuntimeException(e);
+					} finally {
+						if (inputStream != null) {
+							ioServices.closeQuietly(inputStream);
+						}
+
+						if(outputStream != null) {
+							ioServices.closeQuietly(outputStream);
+						}
+					}
+				}
+			} else {
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
 			DocumentFormat outputFormat = toPDFa(input);
 			if (outputFormat == null) {
 				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
 			}
-			
-		    delegate
-		        .convert(input)
-		        .as(inputFormat)
-		        .to(output)
-		        .as(outputFormat)
-		        .execute();
+
+			delegate
+					.convert(input)
+					.as(inputFormat)
+					.to(output)
+					.as(outputFormat)
+					.execute();}
 		}
 	}
 
@@ -355,22 +403,23 @@ public class ConversionManager implements StatefulService {
 	private DocumentFamily getDocumentFamily(File file) {
 		DocumentFamily documentFamily;
 		String extension = StringUtils.toLowerCase(FilenameUtils.getExtension(file.getName()));
-		if (Arrays.asList(TEXT_EXTENSIONS).contains(extension)) {
+		if (asList(TEXT_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.TEXT;
-		} else if (Arrays.asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
+		} else if (asList(SPREADSHEET_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.SPREADSHEET;
-		} else if (Arrays.asList(PRESENTATION_EXTENSIONS).contains(extension)) {
+		} else if (asList(PRESENTATION_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.PRESENTATION;
-		} else if (Arrays.asList(DRAWING_EXTENSIONS).contains(extension)) {
+		} else if (asList(DRAWING_EXTENSIONS).contains(extension)) {
 			documentFamily = DocumentFamily.DRAWING;
 		} else {
 			documentFamily = null;
 		}
 		return documentFamily;
 	}
-	
+
 	@SuppressWarnings("unused")
-	private MediaType getMediaType(File input) throws IOException {
+	private MediaType getMediaType(File input)
+			throws IOException {
 		TikaConfig config = TikaConfig.getDefaultConfig();
 		Detector detector = config.getDetector();
 
@@ -381,7 +430,7 @@ public class ConversionManager implements StatefulService {
 		MediaType mediaType = detector.detect(stream, metadata);
 		return mediaType;
 	}
-	
+
 	private DocumentFormat getInputDocumentFormat(File input, OfficeDocumentConverter converter) {
 		String extension = StringUtils.toLowerCase(FilenameUtils.getExtension(input.getName()));
 		DocumentFormat inputFormat = converter.getFormatRegistry().getFormatByExtension(extension);
@@ -390,7 +439,7 @@ public class ConversionManager implements StatefulService {
 		}
 		return inputFormat;
 	}
-	
+
 	private DocumentFormat toPDFa(File input) {
 		DocumentFormat pdfaFormat;
 		DocumentFamily sourceDocumentFamily = getDocumentFamily(input);
@@ -405,10 +454,10 @@ public class ConversionManager implements StatefulService {
 			} else {
 				filterName = "draw_pdf_Export";
 			}
-			
+
 			Map<String, Object> filterData = new HashMap<>();
 			filterData.put("SelectPdfVersion", 1);
-		    filterData.put("UseTaggedPDF",Boolean.TRUE);
+			filterData.put("UseTaggedPDF", Boolean.TRUE);
 
 			Map<String, Object> properties = new HashMap<>();
 			properties.put("FilterName", filterName);
@@ -419,12 +468,22 @@ public class ConversionManager implements StatefulService {
 			storeProperties.put(DocumentFamily.SPREADSHEET, properties);
 			storeProperties.put(DocumentFamily.PRESENTATION, properties);
 			storeProperties.put(DocumentFamily.DRAWING, properties);
-			
-			pdfaFormat = new DocumentFormat("PDF/A-1", "pdf", "application/pdf", sourceDocumentFamily, properties, storeProperties);
+
+			pdfaFormat = new DocumentFormat("PDF/A-1", "pdf", "application/pdf", sourceDocumentFamily, properties,
+					storeProperties);
 		} else {
 			pdfaFormat = null;
 		}
+
 		return pdfaFormat;
 	}
-	
+	public static boolean isSupportedExtension(String ext) {
+		for (String aSupportedExtension : getSupportedExtensions()) {
+			if (aSupportedExtension.equalsIgnoreCase(ext)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

@@ -36,8 +36,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
-	ModelLayerFactory appLayerFactory;
-
 	public RMGeneratedSchemaRecordsServices(String collection,
 			ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
@@ -715,7 +713,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearEnd");
 		}
 	}
-
 
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());

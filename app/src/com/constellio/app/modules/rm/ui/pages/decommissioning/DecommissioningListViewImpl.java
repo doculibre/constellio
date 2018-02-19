@@ -12,11 +12,12 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -46,6 +47,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public static final String VALIDATION_REQUEST_BUTTON = "sendValidationRequest";
 	public static final String REMOVE_FOLDERS_BUTTON = "removeFolders";
 	public static final String ADD_FOLDERS_BUTTON = "addFolders";
+
+	private Label missingFolderLabel;
 
 	private final DecommissioningListPresenter presenter;
 
@@ -150,7 +153,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		});
 
-		VerticalLayout layout = new VerticalLayout(display, validationComponent, packageableFolderComponent,
+		missingFolderLabel = new Label($("DecommissioningListView.missingFoldersWarning"));
+		missingFolderLabel.setVisible(!presenter.getMissingFolders().isEmpty());
+		missingFolderLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, validationComponent, packageableFolderComponent,
 				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
@@ -591,8 +599,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildCreateSIPARchivesButton(){
-		SIPbutton button = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
-		button.setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+		final SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), presenter.isProcessed()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
+
 		return button;
 	}
 
@@ -772,7 +786,27 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	public ComboBox buildContainerSelector() {
-		ComboBox container = new ComboBox();
+		ComboBox container = new ComboBox() {
+			private boolean inFilterMode = false;
+
+			@Override
+			public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+				if (inFilterMode) {
+					super.containerItemSetChange(event);
+				}
+			}
+
+			@Override
+			protected List<?> getOptionsWithFilter(boolean needNullSelectOption) {
+				try {
+					inFilterMode = true;
+					return super.getOptionsWithFilter(needNullSelectOption);
+				}
+				finally {
+					inFilterMode = false;
+				}
+			}
+		};
 		container.setContainerDataSource(containerVOs);
 		container.setItemCaptionPropertyId("caption");
 		container.setNullSelectionAllowed(false);

@@ -10,20 +10,17 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.model.conf.ldap.LDAPConfigurationManager;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -140,7 +137,8 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			}
 			if (StringUtils.startsWith(url, "ldaps")) {
 				//env.put(Context.SECURITY_PROTOCOL, "ssl");
-				env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
+				env.put("java.naming.ldap.factory.socket",
+						"com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
 			}
 			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {

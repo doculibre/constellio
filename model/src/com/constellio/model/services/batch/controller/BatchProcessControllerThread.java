@@ -2,6 +2,7 @@ package com.constellio.model.services.batch.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -11,24 +12,34 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.InMemoryBatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.StoredBatchProcessPart;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriterRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 
 public class BatchProcessControllerThread extends ConstellioThread {
@@ -87,10 +98,12 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	void process()
 			throws Exception {
 
-		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()) {
-			BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
+				&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()) {
+			final BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 			if (batchProcess != null) {
 				try {
+					final BatchProcessState state = new BatchProcessState();
 					if (batchProcess instanceof RecordBatchProcess) {
 						RecordBatchProcess recordBatchProcess = (RecordBatchProcess) batchProcess;
 						if (recordBatchProcess.getRecords() != null) {
@@ -99,15 +112,32 @@ public class BatchProcessControllerThread extends ConstellioThread {
 							processFromQuery(recordBatchProcess);
 						}
 					} else if (batchProcess instanceof AsyncTaskBatchProcess) {
+
 						final AsyncTaskBatchProcess process = (AsyncTaskBatchProcess) batchProcess;
+						AsyncTask task = process.getTask();
+						final Class<? extends AsyncTask> taskClass = task.getClass();
 						AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
 
 							@Override
 							public String getCollection() {
 								return process.getCollection();
 							}
+
+							@Override
+							public void logWarning(String code, Map<String, Object> parameters) {
+								state.getWarnings().add(new ValidationError(taskClass, code, parameters));
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
+							public void logError(String code, Map<String, Object> parameters) {
+								state.getErrors().add(new ValidationError(taskClass, code, parameters));
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
 						};
-						process.getTask().execute(params);
+						task.execute(params);
+						batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
 						batchProcessesManager.markAsFinished(batchProcess, 0);
 					}
 				} catch (BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished alreadyFinished) {
@@ -124,7 +154,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private void processFromIds(RecordBatchProcess batchProcess)
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
-
+		BatchProcessReport report = getLinkedBatchProcessReport(batchProcess);
 		RecordFromIdListIterator iterator = new RecordFromIdListIterator(batchProcess.getRecords(), modelLayerFactory);
 		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 1000);
 		StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
@@ -139,6 +169,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		while (batchIterator.hasNext()) {
 			int oldErrorCount = recordsWithErrors.size();
+			List<String> newErrors = new ArrayList<>();
 			List<Record> records = batchIterator.next();
 			int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
 			String firstId = records.get(0).getId();
@@ -149,14 +180,16 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
-					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager);
+					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
 
 			for (BatchProcessTask task : tasks) {
-				List<String> errors = pool.invoke(task);
-				recordsWithErrors.addAll(errors);
+				newErrors = pool.invoke(task);
+				recordsWithErrors.addAll(newErrors);
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
+			report.addSkippedRecords(newErrors);
+			updateBatchProcessReport(report);
 
 			if (batchIterator.hasNext()) {
 				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
@@ -170,7 +203,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private void processFromQuery(RecordBatchProcess batchProcess)
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
-
+		BatchProcessReport report = getLinkedBatchProcessReport(batchProcess);
 		ModifiableSolrParams params = SolrUtils.parseQueryString(batchProcess.getQuery());
 		params.set("sort", "principalPath_s asc, id asc");
 
@@ -188,6 +221,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		while (batchIterator.hasNext()) {
 			int oldErrorCount = recordsWithErrors.size();
+			List<String> newErrors = new ArrayList<>();
 			List<Record> records = batchIterator.next();
 			int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
 			String firstId = records.get(0).getId();
@@ -198,14 +232,16 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
-					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager);
+					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
 
 			for (BatchProcessTask task : tasks) {
-				List<String> errors = pool.invoke(task);
-				recordsWithErrors.addAll(errors);
+				newErrors = pool.invoke(task);
+				recordsWithErrors.addAll(newErrors);
 			}
 			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
 			previousPart = storedBatchProcessPart;
+			report.addSkippedRecords(newErrors);
+			updateBatchProcessReport(report);
 			if (batchIterator.hasNext()) {
 				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
 			}
@@ -213,6 +249,46 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		pool.shutdown();
 		pool.awaitTermination(1, TimeUnit.DAYS);
 		batchProcessesManager.markAsFinished(batchProcess, recordsWithErrors.size());
+	}
+
+	private BatchProcessReport getLinkedBatchProcessReport(BatchProcess batchProcess) {
+		BatchProcessReport report = null;
+		String collection = batchProcess.getCollection();
+		if (collection != null) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			User user = userServices.getUserRecordInCollection(batchProcess.getUsername(), collection);
+			String userId = user != null ? user.getId() : null;
+			try {
+				MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection)
+						.getSchema(BatchProcessReport.FULL_SCHEMA);
+				Record reportRecord = searchServices.searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
+						.where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
+						.isEqualTo(batchProcess.getId()));
+				if (reportRecord != null) {
+					report = new BatchProcessReport(reportRecord, schemasManager.getSchemaTypes(collection));
+				} else {
+					report = schemas.newBatchProcessReport();
+					report.setLinkedBatchProcess(batchProcess.getId());
+					report.setCreatedBy(userId);
+				}
+			} catch (Exception e) {
+				report = schemas.newBatchProcessReport();
+				report.setLinkedBatchProcess(batchProcess.getId());
+				report.setCreatedBy(userId);
+			}
+		}
+		return report;
+	}
+
+	private void updateBatchProcessReport(BatchProcessReport report) {
+		try {
+			Transaction transaction = new Transaction();
+			transaction.addUpdate(report.getWrappedRecord());
+			transaction.setRecordFlushing(RecordsFlushing.LATER());
+			recordServices.execute(transaction);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	void waitUntilNotified()

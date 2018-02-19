@@ -222,7 +222,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 					.setApplicationKey(azurSynchTab.getApplicationKey())
 					.setClientId(azurSynchTab.getClientId());
 			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
-					scheduleComponentField.getPeriod(), selectedCollections());
+					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), selectedCollections());
 		}
 
 		private String getClientId() {

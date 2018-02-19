@@ -109,7 +109,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	
+
 	private FolderVO folderVO;
 
 	private transient RMConfigs rmConfigs;
@@ -123,7 +123,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	Boolean allItemsSelected = false;
 
 	Boolean allItemsDeselected = false;
-	
+
 	private boolean popup;
 
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
@@ -187,7 +187,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
+				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -208,7 +209,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
 
-		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		eventsDataProvider = getEventsDataProvider();
 		view.setEvents(eventsDataProvider);
 
@@ -310,7 +310,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void disableMenuItems(Folder folder) {
-		if(!folder.isLogicallyDeletedStatus()) {
+		if (!folder.isLogicallyDeletedStatus()) {
 			RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 
 			User user = getCurrentUser();
@@ -580,7 +580,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = taskSchemas.getTask(taskId);
-		if(isStarred) {
+		if (isStarred) {
 			task.addStarredBy(getCurrentUser().getId());
 		} else {
 			task.removeStarredBy(getCurrentUser().getId());
@@ -592,7 +592,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		dataProvider.fireDataRefreshEvent();
 	}
-	
+
 	private Navigation navigate() {
 		return view.navigate();
 	}
@@ -777,7 +777,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
-//				view.selectFolderContentTab();
+				//				view.selectFolderContentTab();
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
@@ -990,6 +990,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -1124,13 +1125,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public boolean isLogicallyDeleted() {
-		return Boolean.TRUE.equals(folderVO.getMetadataValue(folderVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
+		return Boolean.TRUE
+				.equals(folderVO.getMetadataValue(folderVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()))
+						.getValue());
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {
 		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
 		LogicalSearchQuerySort sortField
-				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')",
+				false);
 		query.sortFirstOn(sortField);
 	}
 }

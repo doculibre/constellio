@@ -109,5 +109,4 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-
 }

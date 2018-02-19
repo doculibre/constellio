@@ -1,5 +1,17 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -9,6 +21,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -17,20 +30,18 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
@@ -47,7 +58,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private BackButton backButton;
 
-	private HorizontalLayout titleBackButtonLayout;
+	private I18NHorizontalLayout titleBackButtonLayout;
 
 	private Component mainComponent;
 	private Component actionMenu;
@@ -70,130 +81,152 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public final void enter(ViewChangeEvent event) {
-		if (event != null) {
-			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-				viewEnterListener.viewEntered(event.getParameters());
-			}
-		}
-
-		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
-		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
-
-		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
-		if (collection != null) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
-		}
-
 		try {
-			initBeforeCreateComponents(event);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			LOGGER.error(e.getMessage(), e);
-			// TODO Obtain home without hard-coding the class
-			if (!(this instanceof HomeViewImpl)) {
-				navigateTo().home();
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					viewEnterListener.viewEntered(event.getParameters());
+				}
 			}
-			return;
-		}
 
-		if (event != null) {
-			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-				viewEnterListener.afterInit(event.getParameters());
+			DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+
+			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
+			String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+			if (collection != null) {
+				appLayerFactory.getExtensions().forCollection(collection)
+						.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 			}
-		}
 
-		addStyleName("main-component-wrapper");
-		setSizeFull();
+			try {
+				initBeforeCreateComponents(event);
+			} catch (Exception e) {
+				if (e instanceof RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) {
+					throw e;
+				}
+				e.printStackTrace();
 
-		removeAllComponents();
-
-		breadcrumbTrail = buildBreadcrumbTrail();
-
-		titleBackButtonLayout = new HorizontalLayout();
-		titleBackButtonLayout.setWidth("100%");
-
-		String title = getTitle();
-		if (breadcrumbTrail == null && title != null) {
-			breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-		} else if (title != null) {
-			titleLabel = new Label(title);
-			titleLabel.addStyleName(ValoTheme.LABEL_H1);
-		}
-
-		backButton = new BackButton();
-		ClickListener backButtonClickListener = getBackButtonClickListener();
-		if (backButtonClickListener != null) {
-			backButton.setVisible(true);
-			backButton.addStyleName(BACK_BUTTON_CODE);
-			backButton.addClickListener(backButtonClickListener);
-		} else {
-			backButton.setVisible(false);
-		}
-
-		actionMenu = buildActionMenu(event);
-		if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
-			addStyleName("action-menu-wrapper");
-			if (actionMenu != null) {
-				actionMenu.addStyleName("action-menu");
+				LOGGER.error(e.getMessage(), e);
+				// TODO Obtain home without hard-coding the class
+				if (!(this instanceof HomeViewImpl)) {
+					navigateTo().home();
+				}
+				return;
 			}
-		}
 
-		mainComponent = buildMainComponent(event);
-		mainComponent.addStyleName("main-component");
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					viewEnterListener.afterInit(event.getParameters());
+				}
+			}
 
-//		if (titleLabel != null || backButton.isVisible()) {
+			addStyleName("main-component-wrapper");
+			setSizeFull();
+
+			removeAllComponents();
+
+			if(isBreadcrumbsVisible()) {
+				breadcrumbTrail = buildBreadcrumbTrail();
+			}
+
+			titleBackButtonLayout = new I18NHorizontalLayout();
+			titleBackButtonLayout.setWidth("100%");
+
+			String title = getTitle();
+			if(isBreadcrumbsVisible()) {
+				if (breadcrumbTrail == null && title != null) {
+					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+				} else if (title != null) {
+					titleLabel = new Label(title);
+					titleLabel.addStyleName(ValoTheme.LABEL_H1);
+				}
+			}
+
+
+			backButton = new BackButton();
+			ClickListener backButtonClickListener = getBackButtonClickListener();
+			if (backButtonClickListener != null) {
+				backButton.setVisible(true);
+				backButton.addStyleName(BACK_BUTTON_CODE);
+				backButton.addClickListener(backButtonClickListener);
+			} else {
+				backButton.setVisible(false);
+			}
+
+			actionMenu = buildActionMenu(event);
+			if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
+				addStyleName("action-menu-wrapper");
+				if (actionMenu != null) {
+					actionMenu.addStyleName("action-menu");
+				}
+			}
+
+			mainComponent = buildMainComponent(event);
+			mainComponent.addStyleName("main-component");
+
 			addComponent(titleBackButtonLayout);
-//		}
 
-		if (breadcrumbTrail != null) {
-			addComponent(breadcrumbTrail);
-		}
-
-		addComponent(mainComponent);
-		if (actionMenu != null) {
-			addComponent(actionMenu);
-		}
-
-		if (titleLabel != null || backButton.isVisible()) {
-			if (titleLabel != null) {
-				titleBackButtonLayout.addComponents(titleLabel);
+			if (breadcrumbTrail != null) {
+				addComponent(breadcrumbTrail);
 			}
-			titleBackButtonLayout.addComponents(backButton);
-		}
 
-		setExpandRatio(mainComponent, 1f);
-		if (titleLabel != null) {
-			titleBackButtonLayout.setExpandRatio(titleLabel, 1);
-		}
+			addComponent(mainComponent);
+			if (actionMenu != null) {
+				addComponent(actionMenu);
+			}
 
-		if (isBackgroundViewMonitor()) {
-			addBackgroundViewMonitor();
-		}
+			if (titleLabel != null || backButton.isVisible()) {
+				if (titleLabel != null) {
+					titleBackButtonLayout.addComponents(titleLabel);
+				}
+				titleBackButtonLayout.addComponents(backButton);
+			} else {
+				titleBackButtonLayout.setVisible(false);
+			}
 
-		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
-		if (collection != null) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.decorateMainComponentAfterViewAssembledOnViewEntered(params);
-		}
+			setExpandRatio(mainComponent, 1f);
+			if (titleLabel != null) {
+				titleBackButtonLayout.setExpandRatio(titleLabel, 1);
+			}
 
-		afterViewAssembled(event);
-		
-//		StringBuffer js = new StringBuffer();
-//		js.append("setTimeout(function() {setInterval(function() {\r\n"); 
-//		js.append("try {");
-//		js.append("\r\n");
-//		js.append("var req = new XMLHttpRequest();"); 
-//		js.append("\r\n");
-//		js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
-//		js.append("\r\n");
-//		js.append("req.send();");
-//		js.append("\r\n");
-//		js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
-//		js.append("}, 10000);}, 1000);");
-//		if (true) com.vaadin.ui.JavaScript.eval(js.toString());
+			if (isBackgroundViewMonitor()) {
+				addBackgroundViewMonitor();
+			}
+
+			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
+			if (collection != null) {
+				appLayerFactory.getExtensions().forCollection(collection)
+						.decorateMainComponentAfterViewAssembledOnViewEntered(params);
+			}
+
+			afterViewAssembled(event);
+			
+//			StringBuffer js = new StringBuffer();
+//			js.append("setTimeout(function() {setInterval(function() {\r\n"); 
+//			js.append("try {");
+//			js.append("\r\n");
+//			js.append("var req = new XMLHttpRequest();"); 
+//			js.append("\r\n");
+//			js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
+//			js.append("\r\n");
+//			js.append("req.send();");
+//			js.append("\r\n");
+//			js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
+//			js.append("}, 10000);}, 1000);");
+//			if (true) com.vaadin.ui.JavaScript.eval(js.toString());
+		} catch (Exception e) {
+			boolean exceptionHandled = false;
+			if (event != null) {
+				for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+					if (viewEnterListener.exception(e)) {
+						exceptionHandled = true;
+					}
+				}
+			}
+			if (!exceptionHandled) {
+				throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
+			}
+		}
 	}
 
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -399,12 +432,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		if(!hasAccess) {
 			return null;
 		}
-		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
-		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		returnLink.addStyleName(CATEGORY_BUTTON);
-		returnLink.addClickListener(listener);
-		return returnLink;
+		return createLink(caption, listener, iconName);
 	}
 
 	protected Table setTableProperty(Table table, int maxSize) {
@@ -433,5 +461,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 		}
+	}
+
+	protected boolean isBreadcrumbsVisible(){
+		return true;
 	}
 }

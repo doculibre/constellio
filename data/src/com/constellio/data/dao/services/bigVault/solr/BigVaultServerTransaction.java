@@ -155,4 +155,20 @@ public class BigVaultServerTransaction {
 		this.testRollBackMode = testRollBackMode;
 		return this;
 	}
+
+	public boolean isRequiringLock() {
+
+		int updatedDocumentsWithOptimisticLocking = 0;
+		for (SolrInputDocument updatedDocument : updatedDocuments) {
+			if (updatedDocument.getField("_version_") != null) {
+				if (updatedDocument.getField("markedForReindexing_s") == null) {
+					updatedDocumentsWithOptimisticLocking++;
+				}
+			}
+		}
+
+		return updatedDocumentsWithOptimisticLocking > 1 || (updatedDocumentsWithOptimisticLocking == 1
+				&& newDocuments.size() > 0);
+
+	}
 }

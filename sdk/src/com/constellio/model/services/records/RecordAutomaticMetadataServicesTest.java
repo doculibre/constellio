@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -104,6 +106,8 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 	@Mock ModelLayerFactory modelLayerFactory;
 
+	@Mock RecordsCaches recordsCache;
+
 	@Mock RolesManager rolesManager;
 
 	@Before
@@ -129,6 +133,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(modelLayerFactory.getRecordsCaches()).thenReturn( recordsCache);
 
 		services = spy(new RecordAutomaticMetadataServices(modelLayerFactory));
 

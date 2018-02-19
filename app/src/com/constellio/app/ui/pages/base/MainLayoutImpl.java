@@ -18,6 +18,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.event.dd.DropHandler;
@@ -33,7 +34,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.JavaScriptFunction;
 import com.vaadin.ui.Label;
@@ -53,7 +53,7 @@ import com.vaadin.ui.themes.ValoTheme;
 public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private MainLayoutPresenter presenter;
 
-	private HorizontalLayout mainMenuContentFooterLayout;
+	private I18NHorizontalLayout mainMenuContentFooterLayout;
 	private CssLayout contentFooterWrapperLayout;
 	private VerticalLayout contentFooterLayout;
 	private ConstellioHeaderImpl header;
@@ -64,8 +64,10 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
+		
+		addStyleName("main-layout");
 
-		mainMenuContentFooterLayout = new HorizontalLayout();
+		mainMenuContentFooterLayout = new I18NHorizontalLayout();
 		mainMenuContentFooterLayout.setSizeFull();
 		mainMenuContentFooterLayout.addStyleName("main-menu-content-footer");
 

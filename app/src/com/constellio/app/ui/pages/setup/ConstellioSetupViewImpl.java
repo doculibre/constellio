@@ -1,11 +1,11 @@
 package com.constellio.app.ui.pages.setup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -44,13 +44,13 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	private ConstellioSetupBean bean = new ConstellioSetupBean();
 
-//	private String setupLocaleCode;
+	//	private String setupLocaleCode;
 
 	private List<String> localeCodes = new ArrayList<>();
 
 	private List<String> moduleIds = new ArrayList<>();
 
-//	private boolean loadSaveState;
+	//	private boolean loadSaveState;
 
 	private VerticalLayout mainLayout;
 
@@ -76,7 +76,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	@PropertyId("adminPassword")
 	private PasswordField adminPasswordField;
-	
+
 	@PropertyId("demoData")
 	private CheckBox demoDataField;
 
@@ -146,7 +146,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout = new VerticalLayout();
 		preSetupButtonsLayout.setSpacing(true);
 
-		for (final String localeCode : localeCodes) {
+		for (final String localeCode : asList("fr", "en")) {
 			Button languageButton = new Button($("ConstellioSetupView.setup." + localeCode));
 			languageButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			languageButton.setIcon(new ThemeResource("images/icons/language/" + localeCode + ".png"));
@@ -168,7 +168,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			}
 		});
 	}
-	
+
 	@Override
 	public void reloadForm() {
 		if (formLayout != null) {
@@ -194,7 +194,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				languagesField.setItemEnabled(languageCode, !setupLocaleCode.equals(languageCode));
 				languagesField.setItemCaption(languageCode, $("Language." + languageCode));
 			}
-			bean.setLanguages(Arrays.asList(setupLocaleCode));
+			bean.setLanguages(asList(setupLocaleCode));
 
 			modulesField = new ListOptionGroup($("ConstellioSetupView.modules"));
 			modulesField.setMultiSelect(true);
@@ -212,7 +212,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			collectionCodeField.setRequired(true);
 
 			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
-			
+
 			demoDataField = new CheckBox($("ConstellioSetupView.demoData"));
 
 			formFields = new Field[] { languagesField, modulesField, collectionCodeField, collectionTitleField,
@@ -315,7 +315,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		private String collectionTitle;
 
 		private String adminPassword;
-		
+
 		private boolean demoData = true;
 
 		private TempFileUpload saveState;

@@ -1,27 +1,35 @@
 package com.constellio.model.services.security.authentification;
 
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 
 public class CombinedAuthenticationService implements AuthenticationService {
 	private LDAPConfigurationManager ldapConfigurationManager;
 	private LDAPAuthenticationService ldapAuthenticationService;
 	private PasswordFileAuthenticationService passwordFileAuthenticationService;
+	private ModelLayerSystemExtensions modelLayerSystemExtensions;
 
 	public CombinedAuthenticationService(LDAPConfigurationManager ldapConfigurationManager,
 			LDAPAuthenticationService ldapAuthenticationService,
-			PasswordFileAuthenticationService passwordFileAuthenticationService) {
+			PasswordFileAuthenticationService passwordFileAuthenticationService, ModelLayerExtensions modelLayerExtensions) {
 		this.ldapConfigurationManager = ldapConfigurationManager;
 		this.ldapAuthenticationService = ldapAuthenticationService;
 		this.passwordFileAuthenticationService = passwordFileAuthenticationService;
+		this.modelLayerSystemExtensions = modelLayerExtensions.getSystemWideExtensions();
 	}
 
 	@Override
 	public boolean authenticate(String username, String password) {
+		boolean authenticated = false;
 		if (ldapConfigurationManager.isLDAPAuthentication()) {
-			return ldapAuthenticationService.authenticate(username, password);
-		} else {
-			return passwordFileAuthenticationService.authenticate(username, password);
+			authenticated = ldapAuthenticationService.authenticate(username, password);
 		}
+		if (!authenticated && (!ldapConfigurationManager.isLDAPAuthentication()
+				|| modelLayerSystemExtensions.canAuthenticateUsingPasswordFileIfLDAPFailed(username))) {
+			authenticated = passwordFileAuthenticationService.authenticate(username, password);
+		}
+		return authenticated;
 	}
 
 	@Override

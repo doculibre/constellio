@@ -1,0 +1,2 @@
+If you want to use novell (and only Novell) shares with the SMB connector, add "smb.novell=true" in constellio.properties and "jcifs_gcm-322.jar" will be renamed to "jcifs_gcm-322.jar.disabled" and "jcifs_novell.jar.disabled" to "jcifs_novell.jar" after an update
+Also, AppManagementService references "jcifs_gcm-322.jar"

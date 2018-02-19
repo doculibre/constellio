@@ -25,12 +25,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -49,6 +48,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.FilterUtils;
@@ -273,8 +273,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		int realRecordsStart = 0;
 		SPEQueryResponse nonTaxonomyRecordsResponse = null;
 		if (ctx.isSelectingAConcept()) {
-			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(),
-					new HashMap<Record, Map<Record, Double>>());
+			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(), new ArrayList<MoreLikeThisRecord>());
 		} else {
 			int realRecordsRows;
 			if (ctx.options.getFastContinueInfos() == null) {
@@ -387,7 +386,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 		if (ctx.forSelectionOfSchemaType == null
 				|| ctx.forSelectionOfSchemaType.getAllReferencesToTaxonomySchemas(asList(ctx.taxonomy)).isEmpty()) {
-			condition = fromAllSchemasInCollectionOf(ctx.record)
+			condition = fromAllSchemasInCollectionOf(ctx.record, DataStore.RECORDS)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {
@@ -922,25 +921,41 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
 					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
-
-			Iterator<List<Record>> iterator;
 
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 			int lastIteratedRecordIndex = 0;
 			FastContinueInfos continueInfos = ctx.options.getFastContinueInfos();
-			if (continueInfos != null) {
-				lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
-				for (int i = 0; i < ctx.options.getStartRow(); i++) {
-					visibleRecords.add(null);
+			Iterator<List<Record>> iterator;
+			if (!ctx.hasPermanentCache) {
+
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+							continueInfos.lastReturnRecordIndex).inBatches();
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+
+				} else {
+					iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
 				}
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
-						continueInfos.lastReturnRecordIndex).inBatches();
 
 			} else {
-				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
-			}
 
+				if (continueInfos != null) {
+					lastIteratedRecordIndex = continueInfos.lastReturnRecordIndex;
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25,
+							continueInfos.lastReturnRecordIndex).inBatches();
+					for (int i = 0; i < ctx.options.getStartRow(); i++) {
+						visibleRecords.add(null);
+					}
+
+				} else {
+					iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery.setStartRow(0), 25).inBatches();
+				}
+			}
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(ctx.getCollection());
 			while (visibleRecords.size() < ctx.options.getEndRow() + 1 && iterator.hasNext()) {
 
@@ -1126,7 +1141,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			TaxonomiesSearchOptions options) {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(concept.getCollection())
 				.getSchemaType(taxonomy.getSchemaTypes().get(0));
-		List<Record> records = searchServices.cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+		List<Record> records = searchServices.getAllRecords(schemaType);
 		for (final Record record : records) {
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));

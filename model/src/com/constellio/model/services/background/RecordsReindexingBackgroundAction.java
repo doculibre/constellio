@@ -6,6 +6,9 @@ import static com.constellio.model.entities.records.TransactionRecordsReindexati
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
@@ -19,6 +22,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class RecordsReindexingBackgroundAction implements Runnable {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsReindexingBackgroundAction.class);
 
 	private SearchServices searchServices;
 	private RecordServices recordServices;
@@ -46,7 +51,9 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
 							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true));
+
 					executeTransaction(transaction);
+
 				}
 			}
 		}
@@ -56,7 +63,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		try {
 			recordServices.executeHandlingImpactsAsync(transaction);
 		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
+			LOGGER.info("Optimistic locking while reindexing recods", e);
 		}
 	}
 }

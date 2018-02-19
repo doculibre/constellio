@@ -45,7 +45,7 @@ public class ReportTabButton extends WindowButton {
     private AppLayerFactory factory;
     private String collection;
     private TextField numberOfCopies;
-    private TabSheet.Tab excelTab, pdfTab;
+    private TabSheet.Tab excelTab, pdfTab, errorTab;
     private NewReportPresenter viewPresenter;
     private List<PrintableReportTemplate> printableReportTemplateList;
     private ReportTabButtonPresenter buttonPresenter;
@@ -105,7 +105,7 @@ public class ReportTabButton extends WindowButton {
 
     @Override
     public void afterOpenModal() {
-        if(buttonPresenter.isNeedToRemovePDFTab()) {
+        if(buttonPresenter.isNeedToRemovePDFTab() || reportComboBox.getContainerDataSource().size() == 0) {
             pdfTab.setVisible(false);
         }
 
@@ -113,12 +113,10 @@ public class ReportTabButton extends WindowButton {
             excelTab.setVisible(false);
         }
 
-        if(this.removeExcelTab && this.removePrintableTab) {
-            UI.getCurrent().removeWindow(super.getWindow());
-            String errorMessage = $("ReportTabButton.noReportTemplateForCondition");
-            Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
-            notification.setHtmlContentAllowed(true);
-            notification.show(Page.getCurrent());
+        if(!pdfTab.isVisible() && !excelTab.isVisible()){
+            errorTab.setVisible(true);
+        } else {
+            errorTab.setVisible(false);
         }
     }
 
@@ -126,14 +124,29 @@ public class ReportTabButton extends WindowButton {
     protected Component buildWindowContent() {
         mainLayout = new VerticalLayout();
         tabSheet = new TabSheet();
+
+
         if (!this.noExcelButton) {
             excelTab = tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
         }
         if (!this.noPDFButton) {
             pdfTab = tabSheet.addTab( createPDFTab(), $("ReportTabButton.PDFReport"));
         }
+
+        errorTab = tabSheet.addTab(createErrorTab(), $("ReportTabButton.ShowError"));
+
         mainLayout.addComponent(tabSheet);
         return mainLayout;
+    }
+
+    private VerticalLayout createErrorTab(){
+        VerticalLayout verticalLayout = new VerticalLayout();
+
+        Label label = new Label($("ReportTabButton.noReportTemplateForCondition"));
+
+        verticalLayout.addComponent(label);
+
+        return verticalLayout;
     }
 
     private VerticalLayout createExcelTab() {
@@ -177,7 +190,7 @@ public class ReportTabButton extends WindowButton {
 
         for (PrintableReportListPossibleType printableReportListPossibleType : values) {
             defaultElementSelected.addItem(printableReportListPossibleType);
-            defaultElementSelected.setItemCaption(printableReportListPossibleType, printableReportListPossibleType.getLabel());
+            defaultElementSelected.setItemCaption(printableReportListPossibleType, buttonPresenter.getLabelForSchemaType(printableReportListPossibleType.getSchemaType()));
             if (defaultElementSelected.getValue() == null) {
                 defaultElementSelected.setValue(printableReportListPossibleType);
                 selectedReporType = printableReportListPossibleType;

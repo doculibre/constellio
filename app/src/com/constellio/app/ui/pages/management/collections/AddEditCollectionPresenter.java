@@ -1,9 +1,21 @@
 package com.constellio.app.ui.pages.management.collections;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
@@ -23,13 +35,6 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionView> {
 	transient UserServices userServices;
@@ -69,7 +74,8 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		if (actionEdit) {
 			List<String> languages = collectionRecord.getLanguages();
 			return new CollectionVO(
-					code, collectionRecord.getName(), languages, getEnabledModules(code), collectionRecord.getOrganizationNumber(), collectionRecord.getConservationCalendarNumber());
+					code, collectionRecord.getName(), languages, getEnabledModules(code),
+					collectionRecord.getOrganizationNumber(), collectionRecord.getConservationCalendarNumber());
 		} else {
 			return new CollectionVO(null, null, Arrays.asList(getMainDataLanguage()));
 		}
@@ -137,8 +143,11 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 				throw new AddEditCollectionPresenterException_CodeCodeChangeForbidden();
 			}
 		} else {
-			if (collectionsListManager.getCollectionsExcludingSystem().contains(code)) {
-				throw new AddEditCollectionPresenterException_CodeUnAvailable();
+			List<String> collectionsExcludingSystem = collectionsListManager.getCollectionsExcludingSystem();
+			for (String existingCollection : collectionsExcludingSystem) {
+				if (existingCollection.toLowerCase().equals(code.toLowerCase())) {
+					throw new AddEditCollectionPresenterException_CodeUnAvailable();
+				}
 			}
 		}
 	}
@@ -164,30 +173,31 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
-		Set<String> retunrnValue = updateCollectionModules(entity, record, collectionCode, modules);
-		runScriptsFromConfigs(collectionName);
+		Set<String> returnValue = updateCollectionModules(entity, record, collectionCode, modules);
+		runScriptsFromConfigs(collectionCode);
 
-		return retunrnValue;
+		return returnValue;
 	}
 
 	public void runScriptsFromConfigs(String collection) {
 		SystemConfigurationsManager systemManager = modelLayerFactory.getSystemConfigurationsManager();
-		for(SystemConfiguration systemConfiguration : systemManager.getAllConfigurations()) {
+		for (SystemConfiguration systemConfiguration : systemManager.getAllConfigurations()) {
 			Object value = systemManager.getValue(systemConfiguration);
 			Object defaultValue = systemConfiguration.getDefaultValue();
-			Class<? extends SystemConfigurationScript>  scriptClass = systemConfiguration.getScriptClass();
-			if(value != null && !value.equals(defaultValue) && scriptClass != null) {
+			Class<? extends SystemConfigurationScript> scriptClass = systemConfiguration.getScriptClass();
+			if (value != null && !value.equals(defaultValue) && scriptClass != null) {
 				try {
 					SystemConfigurationScript systemConfigurationScript = scriptClass.newInstance();
-					systemConfigurationScript.onNewCollection(value,collection, modelLayerFactory);
+					systemConfigurationScript.onNewCollection(value, collection, modelLayerFactory);
 				} catch (Exception e) {
-					throw new RuntimeException("Instanciation exeption", e);
+					throw new RuntimeException("Instanciation exception", e);
 				}
 			}
 		}
 	}
 
-	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode, Set<String> modules) {
+	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode,
+			Set<String> modules) {
 		List<String> roles = new ArrayList<>();
 		Set<String> invalidModules = new HashSet<>();
 		for (String currentModule : modules) {
@@ -200,8 +210,8 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 
 		boolean isRMCollection = modules.contains(ConstellioRMModule.ID);
-		String conservationCalendarNumber = isRMCollection? entity.getConservationCalendarNumber(): null;
-		String organizationNumber = isRMCollection? entity.getOrganizationNumber(): null;
+		String conservationCalendarNumber = isRMCollection ? entity.getConservationCalendarNumber() : null;
+		String organizationNumber = isRMCollection ? entity.getOrganizationNumber() : null;
 		try {
 			recordServices().update(coreSchemas(collectionRecord.getCollection()).wrapCollection(collectionRecord)
 					.setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
@@ -278,7 +288,17 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	public List<String> getAllLanguages() {
-		return i18n.getSupportedLanguages();
+
+		List<String> languages = new ArrayList<>();
+		languages.add(getMainDataLanguage());
+		if (!languages.contains("en")) {
+			languages.add("en");
+		}
+		if (!languages.contains("fr")) {
+			languages.add("fr");
+		}
+
+		return languages;
 	}
 
 	public boolean isLanguageEnabled(String languageCode) {

@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.ui.util.MessageUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -475,7 +476,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private WindowButton buildAddToCartButton() {
-		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "50%");
+		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
 		return new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
 			@Override
 			protected Component buildWindowContent() {
@@ -487,12 +488,17 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
 				BaseButton saveButton;
 				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-						getWindow().close();
+						try {
+							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+							getWindow().close();
+						} catch (Exception e){
+							showErrorMessage(MessageUtils.toMessage(e));
+						}
 					}
 				});
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -509,7 +515,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
@@ -523,7 +528,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				});
 
-				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);

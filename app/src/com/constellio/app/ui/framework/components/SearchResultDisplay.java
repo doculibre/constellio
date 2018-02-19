@@ -16,40 +16,45 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.google.common.base.Strings;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultDisplay extends VerticalLayout {
+
 	public static final String RECORD_STYLE = "search-result-record";
 	public static final String TITLE_STYLE = "search-result-title";
 	public static final String HIGHLIGHTS_STYLE = "search-result-highlights";
 	public static final String METADATA_STYLE = "search-result-metadata";
+	public static final String ELEVATION_BUTTON_STYLE = "search-result-elevation";
+	public static final String EXCLUSION_BUTTON_STYLE = "search-result-exclusion";
 	public static final String SEPARATOR = " ... ";
 
 	public static final String ELEVATION = "SearchResultDisplay.elevation";
 	public static final String EXCLUSION = "SearchResultDisplay.exclusion";
-	public static final String UNEXCLUSION = "SearchResultDisplay.unexclusion";
-	public static final String UNELEVATION = "SearchResultDisplay.unelevation";
+	public static final String CANCEL_EXCLUSION = "SearchResultDisplay.unexclusion";
+	public static final String CANCEL_ELEVATION = "SearchResultDisplay.unelevation";
 
 	private AppLayerFactory appLayerFactory;
 	private SessionContext sessionContext;
@@ -58,10 +63,12 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	SchemasRecordsServices schemasRecordsService;
 
-	Button exclude;
-	Button raise;
+	IconButton excludeButton;
+	IconButton elevateButton;
 
 	String query;
+
+	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 			AppLayerFactory appLayerFactory, String query) {
@@ -76,7 +83,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-		addComponents(newTitleComponent(searchResultVO),
+		titleComponent = newTitleComponent(searchResultVO);
+		addComponents(titleComponent,
 				newHighlightsLabel(searchResultVO),
 				newMetadataComponent(searchResultVO, componentFactory));
 		addStyleName(RECORD_STYLE);
@@ -91,60 +99,41 @@ public class SearchResultDisplay extends VerticalLayout {
 		title.addStyleName(TITLE_STYLE);
 		title.setWidthUndefined();
 
-		HorizontalLayout horizontalLayout = new HorizontalLayout();
+		I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 		horizontalLayout.addComponent(title);
 
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
 
-		final Record recordFromRecordVO = schemasRecordsService.get(record.getId());
-		boolean isElevated = searchConfigurationsManager.isElevated(query, recordFromRecordVO);
+		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			boolean isElevated = searchConfigurationsManager.isElevated(query, record.getId());
 
-		if (!Strings.isNullOrEmpty(query)
-				&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT) &&
-				 appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
-						 .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true"))
-		{
-			exclude = new LinkButton($(EXCLUSION)) {
+			excludeButton = new IconButton(FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION)) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if (event.getButton().getCaption().equals($(EXCLUSION))) {
-						event.getButton().setCaption($(UNEXCLUSION));
-						raise.setCaption($(ELEVATION));
-						searchConfigurationsManager.setElevated(query, recordFromRecordVO, true);
-					} else {
-						event.getButton().setCaption($(EXCLUSION));
-						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
-					}
 				}
 			};
+			excludeButton.addStyleName(EXCLUSION_BUTTON_STYLE);
+			excludeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-			String elevatedText = ($(ELEVATION));
-			if (isElevated) {
-				elevatedText = $(UNELEVATION);
-			}
+			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
+			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
 
-			raise = new LinkButton(elevatedText) {
+			elevateButton = new IconButton(elevateIcon, elevateText) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if (event.getButton().getCaption().equals($(ELEVATION))) {
-						event.getButton().setCaption($(UNELEVATION));
-						exclude.setCaption($(EXCLUSION));
-						searchConfigurationsManager.setElevated(query, recordFromRecordVO, false);
-					} else {
-						event.getButton().setCaption($(ELEVATION));
-						searchConfigurationsManager.removeElevated(query, recordFromRecordVO.getId());
-					}
 				}
 			};
+			elevateButton.addStyleName(ELEVATION_BUTTON_STYLE);
+			elevateButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-			horizontalLayout.addComponent(exclude, 1);
-			horizontalLayout.addComponent(raise, 2);
-			horizontalLayout.setComponentAlignment(exclude, Alignment.TOP_LEFT);
-			horizontalLayout.setComponentAlignment(raise, Alignment.TOP_LEFT);
-			horizontalLayout.setExpandRatio(exclude, 1);
-			horizontalLayout.setExpandRatio(raise, 1);
+			horizontalLayout.addComponent(excludeButton, 1);
+			horizontalLayout.addComponent(elevateButton, 2);
+			horizontalLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
+			horizontalLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
+			horizontalLayout.setExpandRatio(excludeButton, 1);
+			horizontalLayout.setExpandRatio(elevateButton, 1);
 			horizontalLayout.setSpacing(true);
 		}
 		return horizontalLayout;
@@ -212,7 +201,7 @@ public class SearchResultDisplay extends VerticalLayout {
 			Label caption = new Label(metadataVO.getLabel() + ":");
 			caption.addStyleName("metadata-caption");
 
-			HorizontalLayout item = new HorizontalLayout(caption, value);
+			I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
 			item.setHeight("100%");
 			item.setSpacing(true);
 			item.addStyleName("metadata-caption-layout");
@@ -225,4 +214,24 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected AppLayerFactory getAppLayerFactory() {
 		return appLayerFactory;
 	}
+
+	public void addClickListener(ClickListener listener) {
+		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
+		if (referenceDisplay != null) {
+			referenceDisplay.addClickListener(listener);
+		}
+	}
+
+	public void addElevationClickListener(ClickListener listener) {
+		if (elevateButton != null) {
+			elevateButton.addClickListener(listener);
+		}
+	}
+
+	public void addExclusionClickListener(ClickListener listener) {
+		if (excludeButton != null) {
+			excludeButton.addClickListener(listener);
+		}
+	}
+
 }

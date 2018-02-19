@@ -47,7 +47,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		}
 		if (record.getCollection() != null && types.getCollection() != null
 				&& !record.getCollection().equals(types.getCollection())) {
-			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame();
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(), record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
@@ -65,6 +65,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	public Integer getInteger(String localCode) {
 		Number value = get(localCode);
 		return value == null ? null : value.intValue();
+	}
+
+	public int getPrimitiveInteger(String localCode) {
+		Number value = get(localCode);
+		return value == null ? 0 : value.intValue();
 	}
 
 	public <T> T get(Metadata metadata) {

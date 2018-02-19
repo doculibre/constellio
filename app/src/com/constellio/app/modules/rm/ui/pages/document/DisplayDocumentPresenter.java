@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.pages.base.BaseView;
+import com.vaadin.ui.Button;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -73,6 +75,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RMSchemasRecordsServices rm;
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
+	private Record record;
 
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
@@ -108,7 +111,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
-		Record record = getRecord(id);
+		this.record = getRecord(id);
 
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
@@ -413,6 +416,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -439,7 +443,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				LogicalSearchQuery query = rmEventsSearchServices
 						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
-				return rmEventsSearchServices.exceptEventTypes(query,
+				return query == null ? null : rmEventsSearchServices.exceptEventTypes(query,
 						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
 								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
 			}
@@ -481,6 +485,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			e.printStackTrace();
 		}
 		dataProvider.fireDataRefreshEvent();
+	}
+
+	public List<Button> getButtonsFromExtension(){
+		return appLayerFactory.getExtensions().forCollection(collection).getDocumentViewButtonExtension(this.record, getCurrentUser());
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

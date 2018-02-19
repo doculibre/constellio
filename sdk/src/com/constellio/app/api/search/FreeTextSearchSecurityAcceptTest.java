@@ -3,6 +3,7 @@ package com.constellio.app.api.search;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static junit.framework.Assert.fail;
@@ -14,6 +15,12 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -89,6 +96,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 			cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
 			cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 			cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(SearchEvent.SCHEMA_TYPE)));
 		}
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -210,6 +218,36 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
 
 	}
+
+	@Test
+	public void testSearchEventPresentOnWebServiceQuery() throws IOException, SolrServerException {
+
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		solrParams.add("q", "*:*");
+		solrParams.add("fq", "collection_s:zeCollection");
+
+		SolrClient solrServer = newSearchClient();
+
+		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", token);
+		solrServer.query(solrParams);
+
+		getModelLayerFactory().getDataLayerFactory().getEventsVaultServer().flush();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchemaType searchEventSchemaType = rm.searchEventSchemaType();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(searchEventSchemaType).returnAll());
+
+		List<Record> recordList = getModelLayerFactory().newSearchServices().search(query);
+
+		assertThat(recordList.size()).isEqualTo(1);
+		assertThat(rm.wrapSearchEvent(recordList.get(0)).getQuery()).isEqualTo("*:*");
+	 }
+
 
 	@Test
 	public void givenUserWithSomeAccessWhenSearchingUsingWebServiceWithOnNonSecuredSchemaThenSeeAllResults()

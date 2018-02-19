@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -196,9 +197,16 @@ public class TaskPresenterServices {
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record, User user) {
+		return addOrUpdate(record, user, null);
+	}
+
+	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordUpdateOptions updateOptions) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		if(updateOptions != null) {
+			createTransaction.setOptions(updateOptions);
+		}
 		createTransaction.addUpdate(record);
 		try {
 			return recordServices.executeHandlingImpactsAsync(createTransaction);
@@ -226,7 +234,7 @@ public class TaskPresenterServices {
 		record.set(tasksSchemas.userTask.assignee(), user.getId());
 		record.set(tasksSchemas.userTask.assigner(), user.getId());
 		record.set(tasksSchemas.userTask.assignedOn(), TimeProvider.getLocalDate());
-		addOrUpdate(record, user);
+		addOrUpdate(record, user, RecordUpdateOptions.userModificationsSafeOptions());
 	}
 
 	public boolean isAutoAssignButtonEnabled(Record record, User user) {

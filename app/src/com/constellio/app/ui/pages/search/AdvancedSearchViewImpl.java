@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
-import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -24,7 +24,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -36,15 +36,18 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -55,6 +58,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
@@ -66,7 +70,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     private final ConstellioHeader header;
     private WindowButton batchProcessingButton;
     private ReportTabButton reportButton;
-    private SIPbutton sipButton;
+    private SIPButtonImpl sipButton;
 
     public AdvancedSearchViewImpl() {
         presenter = new AdvancedSearchPresenter(this);
@@ -123,7 +127,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     }
 
     @Override
-    protected Component buildSummary(SearchResultTable results) {
+    protected Component buildSummary(final SearchResultTable results) {
         // TODO: Create an extension for this
 
         final String schemaType = getSchemaType();
@@ -175,15 +179,37 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                     new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
             zipButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(zipButton);
+
+    		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
+    			@Override
+    			public void buttonClick(ClickEvent event) {
+    				List<String> selectedDocumentIds = getSelectedRecordIds();
+    				AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+    				setParams(params);
+    				super.buttonClick(event);
+    			}
+    		};
+    		consolidatedPdfButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(consolidatedPdfButton);
         }
 
 
-        reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this, !presenter.getListSearchableMetadataSchemaType().contains(schemaType), !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType)));
+        reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this,
+                !presenter.getListSearchableMetadataSchemaType().contains(schemaType),
+                !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType))) {
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+                RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
+                        .toArray(new RecordVO[0]);
+                reportButton.setRecordVoList(recordVOS);
+                super.buttonClick(event);
+            }
+        };
         reportButton.addStyleName(ValoTheme.BUTTON_LINK);
         reportButton.setVisible(presenter.hasAnyReportForSchemaType(schemaType));
         reportButton.setEnabled(presenter.hasAnyReportForSchemaType(schemaType));
         selectionActions.add(reportButton);
-        addListenerToButton(results);
 
 
         if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
@@ -195,7 +221,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
             boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
                     .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-            sipButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
+            sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
+                @Override
+                public void buttonClick(ClickEvent event) {
+                    RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
+                            .toArray(new RecordVO[0]);
+                    sipButton.setAllObject(recordVOS);
+                    super.buttonClick(event);
+                }
+            };
             sipButton.addStyleName(ValoTheme.BUTTON_LINK);
             sipButton.setVisible(hasAccessToSIP);
             sipButton.setEnabled(hasAccessToSIP);
@@ -261,6 +295,15 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
         final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
         SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
         table.setWidth("100%");
+        table.getTable().addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+			}
+		});
         return table;
     }
 
@@ -269,18 +312,24 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
 
                 HorizontalLayout newCartLayout = new HorizontalLayout();
                 newCartLayout.setSpacing(true);
                 newCartLayout.addComponent(new Label($("CartView.newCart")));
                 final BaseTextField newCartTitleField;
                 newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+                newCartTitleField.setRequired(true);
                 BaseButton saveButton;
                 newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
-                        presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-                        getWindow().close();
+                        try {
+                            presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+                            getWindow().close();
+                        } catch (Exception e){
+                            showErrorMessage(MessageUtils.toMessage(e));
+                        }
                     }
                 });
                 saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -317,6 +366,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 tabSheet.addTab(ownedCartsTable);
                 tabSheet.addTab(sharedCartsTable);
                 layout.addComponents(newCartLayout, tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
                 return layout;
             }
         };
@@ -335,33 +385,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             throw new RuntimeException("Unsupported mode " + mode);
         }
     }
-
-	private void addListenerToButton(SearchResultTable results) {
-		if (results instanceof SearchResultDetailedTable) {
-			((SearchResultDetailedTable) results)
-					.addSelectionChangeListener(new SearchResultDetailedTable.SelectionChangeListener() {
-						@Override
-						public void selectionChanged(SearchResultDetailedTable.SelectionChangeEvent event) {
-							RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
-									.toArray(new RecordVO[0]);
-							if(reportButton != null) {reportButton.setRecordVoList(recordVOS);
-							}
-							if(sipButton != null) {sipButton.addAllObject(recordVOS);}
-						}
-					});
-		} else {
-			((SearchResultSimpleTable) results).addSelectionChangeListener(new SearchResultSimpleTable.SelectionChangeListener() {
-				@Override
-				public void selectionChanged(SearchResultSimpleTable.SelectionChangeEvent event) {
-					RecordVO[] recordVOS = presenter.getRecordVOList(event.getTable().getSelectedRecordIds())
-							.toArray(new RecordVO[0]);
-					if(reportButton != null) {reportButton.setRecordVoList(recordVOS);
-					}
-					if(sipButton != null) {sipButton.setAllObject(recordVOS);
-				}
-			}
-		});
-	}}
 
     @Override
     public Boolean computeStatistics() {

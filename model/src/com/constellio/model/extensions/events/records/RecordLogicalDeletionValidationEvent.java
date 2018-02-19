@@ -14,10 +14,14 @@ public class RecordLogicalDeletionValidationEvent implements RecordEvent {
 
 	Factory<Boolean> referenceCount;
 
-	public RecordLogicalDeletionValidationEvent(Record record, User user, Factory<Boolean> referenceCount) {
+	boolean thenPhysicallyDeleted;
+
+	public RecordLogicalDeletionValidationEvent(Record record, User user, Factory<Boolean> referenceCount,
+			boolean thenPhysicallyDeleted) {
 		this.record = record;
 		this.user = user;
 		this.referenceCount = new FactoryWithCache<>(referenceCount);
+		this.thenPhysicallyDeleted = thenPhysicallyDeleted;
 	}
 
 	public Record getRecord() {
@@ -42,5 +46,9 @@ public class RecordLogicalDeletionValidationEvent implements RecordEvent {
 
 	public String getCollection() {
 		return record.getCollection();
+	}
+
+	public boolean isThenPhysicallyDeleted() {
+		return thenPhysicallyDeleted;
 	}
 }

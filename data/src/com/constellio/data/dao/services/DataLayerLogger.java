@@ -3,10 +3,14 @@ package com.constellio.data.dao.services;
 import static com.constellio.data.utils.LoggerUtils.toParamsString;
 import static java.util.Arrays.asList;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
@@ -26,19 +30,60 @@ public class DataLayerLogger {
 
 	private boolean logFL = true;
 
-	private int printAllQueriesLongerThanMS = 100;
+	private int printAllQueriesLongerThanMS = 10000;
 
-	private int slowQueryDuration = 1000;
+	private int slowQueryDuration = 20000;
 
-	private int verySlowQueryDuration = 2000;
+	private int verySlowQueryDuration = 30000;
 
 	public boolean logAllTransactions = false;
 
 	private boolean queryLoggingEnabled = true;
 
-	public void logQueryResponse(SolrParams params, QueryResponse response) {
+	private boolean queryDebuggingMode;
 
-		if (queryLoggingEnabled) {
+	private String queryDebuggingPrefix;
+
+	public String getQueryDebuggingPrefix() {
+		return queryDebuggingPrefix;
+	}
+
+	public DataLayerLogger setQueryDebuggingPrefix(String queryDebuggingPrefix) {
+		this.queryDebuggingPrefix = queryDebuggingPrefix;
+		return this;
+	}
+
+	public void logQueryResponse(String queryName, SolrParams params, QueryResponse response) {
+
+		if (queryDebuggingMode) {
+
+			StringBuilder queryReport = new StringBuilder();
+
+			if (queryDebuggingPrefix != null) {
+				queryReport.append(queryDebuggingPrefix);
+			}
+
+			queryReport.append("\n");
+			if (queryName != null) {
+				queryReport.append("Name : " + queryName + "\n");
+			}
+			queryReport.append("Qtime : " + response.getQTime() + "\n");
+			queryReport.append("Numfound : " + response.getResults().getNumFound() + "\n");
+			queryReport.append("Returned documents : " + response.getResults().size());
+
+			queryReport.append("\n----- ----- ----- QUERY ----- ----- -----");
+			queryReport.append("\n");
+			String paramString = toParamsString(params, true);
+			queryReport.append(paramString);
+			queryReport.append("\n");
+			queryReport.append("\n----- ----- ----- STACK ----- ----- -----");
+			StringWriter sw = new StringWriter();
+			new Throwable("").printStackTrace(new PrintWriter(sw));
+			queryReport.append("\n");
+			queryReport.append(cleanStackTrace(sw.toString()));
+			queryReport.append("\n");
+			LOGGER.info(queryReport.toString());
+		} else if (queryLoggingEnabled) {
 			String prefix = null;
 			if (response.getQTime() >= verySlowQueryDuration) {
 				prefix = "VERY SLOW QUERY : ";
@@ -51,13 +96,35 @@ public class DataLayerLogger {
 			}
 
 			if (prefix != null) {
-				if (!toParamsString(params).contains("markedForReindexing_s")) {
-					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + response.getResults().getNumFound()
-							+ ", documents=" + response.getResults().size()
-							+ "\n" + toParamsString(params, "qt", "shards.qt", logFL ? "" : "fl") + "\n");
+				String paramString = toParamsString(params, false, "qt", "shards.qt", logFL ? "" : "fl");
+				if (!paramString.contains("markedForReindexing_s")) {
+					long numFound = response.getResults() == null ? 0 : response.getResults().getNumFound();
+					long size = response.getResults() == null ? 0 : response.getResults().size();
+					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + numFound + ", documents=" + size
+							+ "\n" + paramString + "\n");
 				}
 			}
 		}
+	}
+
+	private String cleanStackTrace(String string) {
+		//			int secondLine = string.indexOf("\n");
+		//			int thirdLine = string.indexOf("\n", secondLine + 1);
+		//			int fourthLine = string.indexOf("\n", thirdLine + 1);
+		//			return string.substring(fourthLine + 1);
+		List<String> lines = new ArrayList<>(Arrays.asList(string.split("\n")));
+
+		//Remove the first three lines
+		lines.remove(0);
+		lines.remove(0);
+		lines.remove(0);
+		lines.remove(0);
+
+		while (!lines.get(lines.size() - 1).startsWith("\tat com.constellio")) {
+			lines.remove(lines.size() - 1);
+		}
+
+		return StringUtils.join(lines, "\n");
 	}
 
 	public void logTransaction(TransactionDTO transaction) {
@@ -114,7 +181,11 @@ public class DataLayerLogger {
 			if (!hiddenFieldsInLogs.contains(modifiedField)) {
 				log.append(modifiedField);
 				log.append(":");
-				log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+				if (recordDeltaDTO.getInitialFields() != null) {
+					log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+				} else {
+					log.append("?");
+				}
 				log.append("=>");
 				log.append(recordDeltaDTO.getModifiedFields().get(modifiedField));
 				log.append("; ");
@@ -206,5 +277,10 @@ public class DataLayerLogger {
 	public DataLayerLogger setLogFL(boolean logFL) {
 		this.logFL = logFL;
 		return this;
+	}
+
+	public void setQueryDebuggingMode(boolean queryDebuggingMode) {
+		this.queryDebuggingMode = queryDebuggingMode;
+
 	}
 }

@@ -95,9 +95,9 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-					LOGGER.info(
-							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
-									+ " job(s) " + "' **** ");
+//					LOGGER.info(
+					//							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
+					//									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
 						connectorJobsMap.put(crawledConnector, connectorJobs);
@@ -132,13 +132,8 @@ public class ConnectorCrawler {
 				}
 
 				eventObserver.flush();
-			} else {
-				waitSinceNoJobs();
 			}
 
-			if (crawledConnectors.isEmpty()) {
-				waitSinceNoJobs();
-			}
 		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
 			// Ignore
 		} finally {
@@ -306,7 +301,18 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			crawlAllConnectors();
+			//			try {
+			//if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
+			boolean hasCrawledSomething;
+			//					try {
+			hasCrawledSomething = crawlAllConnectors();
+
+			//					} finally {
+			//						COLLECTIONS_CRAWLING_SEMAPHORE.release();
+			//					}
+			if (!hasCrawledSomething) {
+				waitSinceNoJobs();
+			}
 			if (crawledConnectors.isEmpty()) {
 				try {
 					Thread.sleep(200);
@@ -314,6 +320,10 @@ public class ConnectorCrawler {
 					throw new RuntimeException(e);
 				}
 			}
+			//}
+			//			} catch (InterruptedException e) {
+			//				e.printStackTrace();
+			//			}
 		}
 	}
 

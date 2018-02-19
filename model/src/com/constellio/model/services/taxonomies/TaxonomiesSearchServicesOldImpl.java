@@ -25,15 +25,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -53,6 +52,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -268,8 +268,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 		int realRecordsStart = 0;
 		SPEQueryResponse nonTaxonomyRecordsResponse = null;
 		if (ctx.isSelectingAConcept()) {
-			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(),
-					new HashMap<Record, Map<Record, Double>>());
+			nonTaxonomyRecordsResponse = new SPEQueryResponse(new ArrayList<Record>(), new ArrayList<MoreLikeThisRecord>());
 		} else {
 			childrenWithoutAccessToInclude.addAll(getChildrenRecordsWithoutRequiredAccessLeadingToRecordWithAccess(ctx));
 			int realRecordsRows;
@@ -398,7 +397,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 		if (ctx.forSelectionOfSchemaType == null
 				|| ctx.forSelectionOfSchemaType.getAllReferencesToTaxonomySchemas(asList(ctx.taxonomy)).isEmpty()) {
-			condition = fromAllSchemasInCollectionOf(ctx.record)
+			condition = fromAllSchemasInCollectionOf(ctx.record, DataStore.RECORDS)
 					.where(directChildOf(ctx.record)).andWhere(visibleInTrees)
 					.andWhere(schemaTypeIsNotIn(ctx.taxonomy.getSchemaTypes()));
 		} else {
@@ -1190,7 +1189,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 			TaxonomiesSearchOptions options) {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(concept.getCollection())
 				.getSchemaType(taxonomy.getSchemaTypes().get(0));
-		List<Record> records = searchServices.cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+		List<Record> records = searchServices.getAllRecords(schemaType);
 		for (final Record record : records) {
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));

@@ -40,6 +40,10 @@ public class CoreViews {
 		JavaScript javascript = JavaScript.getCurrent();
 		javascript.execute("window.history.back();");
 	}
+	
+	public void currentView() {
+		navigator.navigateTo(getState());
+	}
 
 	public void serviceMonitoring() {
 		navigator.getUI().getPage().setLocation("/constellio/serviceMonitoring");
@@ -145,6 +149,10 @@ public class CoreViews {
 
 	public void editCollectionGroupRoles(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_GROUP_ROLES + "/" + entityId);
+	}
+
+	public void deleteExclusionsImpl() {
+		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
 	}
 
 	public void permissionManagement() {
@@ -305,6 +313,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
 	}
 
+	public void statistics() {
+		navigator.navigateTo(NavigatorConfigurationService.STATISTICS);
+	}
+
 	public void listSchema(String params) {
 		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
 	}
@@ -430,7 +442,7 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void listTemporaryRecord() {
+	public void listTemporaryRecords() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_TEMPORARY_RECORDS);
 	}
 
@@ -626,6 +638,32 @@ public class CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_CAPSULE, params));
+	}
+
+	public void listBagInfo(){
+		navigator.navigateTo(NavigatorConfigurationService.LIST_BAG_INFO);
+	}
+
+	public void addBagInfo() {
+		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_BAG_INFO);
+	}
+
+	public void editBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_BAG_INFO, params));
+	}
+
+	public void displayBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_BAG_INFO, params));
+	}
+
+	public void displaySIPProgression(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
 }

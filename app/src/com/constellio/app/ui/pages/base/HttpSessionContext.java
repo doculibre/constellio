@@ -1,13 +1,26 @@
 package com.constellio.app.ui.pages.base;
 
-import com.constellio.app.ui.entities.UserVO;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_OUT_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
+
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.security.Principal;
-import java.util.*;
 
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.*;
+import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.entities.records.Record;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class HttpSessionContext extends BaseSessionContext {
 	
@@ -22,11 +35,14 @@ public class HttpSessionContext extends BaseSessionContext {
 		this.session = request.getSession();
 	}
 
-	private Object getAttribute(String name) {
-		return session.getAttribute(name);
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String name) {
+		return (T) session.getAttribute(name);
 	}
 
-	private void setAttribute(String name, Object object) {
+	@Override
+	public void setAttribute(String name, Object object) {
 		session.setAttribute(name, object);
 	}
 
@@ -68,6 +84,16 @@ public class HttpSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
+	}
+
+	@Override
+	public SessionContext setCurrentSearchEventRecord(Record searchEvent) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Record getCurrentSearchEventRecord() {
+		throw new NotImplementedException();
 	}
 
 	@Override

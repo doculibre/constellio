@@ -1,6 +1,7 @@
 package com.constellio.app.ui.util;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.io.Serializable;
 
@@ -28,12 +29,21 @@ public class TaxonomyCaptionUtils implements Serializable {
 				captionPrefixKey = "Taxonomy.default.caption";
 				captionPrefix = $(captionPrefixKey);
 			}
-			if (captionPrefixKey.equals(captionPrefix)) {
-				captionPrefix = "";
-			} else {
-				captionPrefix = captionPrefix + " ";
-			}
-			caption = captionPrefix + taxonomyTitle;
+//			if (isRightToLeft()) {
+//				if (captionPrefixKey.equals(captionPrefix)) {
+//					captionPrefix = "";
+//				} else {
+//					captionPrefix = " " + captionPrefix;
+//				}
+//				caption = taxonomyTitle + captionPrefix;
+//			} else {
+				if (captionPrefixKey.equals(captionPrefix)) {
+					captionPrefix = "";
+				} else {
+					captionPrefix = captionPrefix + " ";
+				}
+				caption = captionPrefix + taxonomyTitle;
+//			}
 		} else {
 			caption = "";
 		}

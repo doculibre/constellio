@@ -11,6 +11,15 @@ public class InfiniteIteratorIterator<V> extends LazyIterator<V> {
 		this.iteratorFactory = iteratorFactory;
 	}
 
+	public InfiniteIteratorIterator(final Iterable<V> iterable) {
+		this.iteratorFactory = new Factory<Iterator<V>>() {
+			@Override
+			public Iterator<V> get() {
+				return iterable.iterator();
+			}
+		};
+	}
+
 	@Override
 	protected synchronized V getNextOrNull() {
 		if (currentIterator == null || !currentIterator.hasNext()) {

@@ -133,7 +133,7 @@ public class i18n {
 						Object argValue = args.get(argName);
 						if (argValue instanceof String) {
 							message = message.replace("{" + argName + "}", (String) argValue);
-						} else if (argValue instanceof Number) {	
+						} else if (argValue instanceof Number) {
 							message = message.replace("{" + argName + "}", "" + argValue);
 						} else if (argValue instanceof Map) {
 							/*	TODO Manage Map value here:
@@ -274,7 +274,7 @@ public class i18n {
 	public static String $(ValidationErrors errors) {
 		StringBuilder sb = new StringBuilder();
 		for (ValidationError error : errors.getValidationErrors()) {
-			if(error != null) {
+			if (error != null) {
 				sb.append(" - " + $(error) + "<br/>" + "\n");
 			}
 		}
@@ -378,6 +378,11 @@ public class i18n {
 		}
 		throw new RuntimeException(
 				"Current locale" + loc + " does not correspond to any language" + StringUtils.join(languages, ","));
+	}
+
+	public static boolean isRightToLeft() {
+		Language language = getLanguage();
+		return Language.Arabic.equals(language);// || Language.French.equals(language);
 	}
 
 }

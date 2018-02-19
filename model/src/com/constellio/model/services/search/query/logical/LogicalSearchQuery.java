@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -29,12 +30,14 @@ import com.constellio.model.services.security.SecurityTokenManager;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
+
+	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
+
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
 	//This condition will be inserted in Filter Query
 	LogicalSearchCondition condition;
 	//This condition will be inserted in Query
-	private LogicalSearchCondition queryCondition;
 	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
 	List<UserFilter> userFilters;
@@ -55,7 +58,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private boolean highlighting = false;
 	private boolean spellcheck = false;
-	private boolean moreLikeThis = false;
+	private String moreLikeThisRecord = null;
 	private boolean preferAnalyzedFields = false;
 
 	private List<SearchBoost> fieldBoosts = new ArrayList<>();
@@ -66,7 +69,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private String name;
 
 	public LogicalSearchQuery() {
-		numberOfRows = 100000;
+		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
 		startRow = 0;
 		fieldFacetLimit = 0;
 	}
@@ -82,7 +85,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		name = query.name;
 		condition = query.condition;
-		queryCondition = query.queryCondition;
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
 		userFilters = query.userFilters;
@@ -106,6 +108,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		fieldBoosts = new ArrayList<>(query.fieldBoosts);
 		queryBoosts = new ArrayList<>(query.queryBoosts);
+
+		moreLikeThisFields = query.moreLikeThisFields;
 	}
 
 	// The following methods are attribute accessors
@@ -443,8 +447,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
 	}
 
-	public void setMoreLikeThis(boolean moreLikeThis) {
-		this.moreLikeThis = moreLikeThis;
+	public String getMoreLikeThisRecordId() {
+		return moreLikeThisRecord;
+	}
+
+	public LogicalSearchQuery setMoreLikeThisRecordId(String recordId) {
+		this.moreLikeThisRecord = recordId;
+		return this;
 	}
 
 	public void addMoreLikeThisField(DataStoreField... fields) {
@@ -473,15 +482,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public boolean isMoreLikeThis() {
-		return moreLikeThis;
-	}
-
-	public void setQueryCondition(LogicalSearchCondition queryCondition) {
-		this.queryCondition = queryCondition;
-	}
-
-	public LogicalSearchCondition getQueryCondition() {
-		return queryCondition;
+		return moreLikeThisRecord != null;
 	}
 
 	public String getName() {
@@ -491,6 +492,14 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery setName(String name) {
 		this.name = name;
 		return this;
+	}
+
+	public String getDataStore() {
+		if (condition == null || condition.getFilters() == null) {
+			return DataStore.RECORDS;
+		} else {
+			return condition.getFilters().getDataStore();
+		}
 	}
 
 	public interface UserFilter {

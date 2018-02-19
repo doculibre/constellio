@@ -13,12 +13,23 @@ public class ImportedAuthorization {
 
 	private List<ImportedAuthorizationTarget> targets;
 
+	Boolean overrideInherited;
+
 	public String getId() {
 		return id;
 	}
 
 	public ImportedAuthorization setId(String id) {
 		this.id = id;
+		return this;
+	}
+
+	public Boolean getOverrideInherited() {
+		return overrideInherited;
+	}
+
+	public ImportedAuthorization setOverrideInherited(Boolean overrideInherited) {
+		this.overrideInherited = overrideInherited;
 		return this;
 	}
 

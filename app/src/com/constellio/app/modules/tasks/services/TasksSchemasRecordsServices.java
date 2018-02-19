@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
@@ -72,6 +73,12 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvTaskStatus.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapTaskStatuss(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public List<TaskStatus> cachedSearchTaskStatuss(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvTaskStatus.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapTaskStatuss(appLayerFactory.getModelLayerFactory().newSearchServices().cachedSearch(query));
 	}
 
 	public TaskStatus getTaskStatus(String id) {
@@ -551,7 +558,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	public List<TaskStatus> getFinishedOrClosedStatuses() {
 		List<TaskStatus> status = new ArrayList<>();
-		status.addAll(searchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
+		status.addAll(cachedSearchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
 		status.add(getTaskStatusWithCode(CLOSED_CODE));
 		return status;
 	}
@@ -640,5 +647,11 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
 				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
 		return acceptedSchemas.contains(task.getSchemaCode());
+	}
+
+	public boolean isRequestTask(TaskVO task) {
+		List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
+				ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));
+		return acceptedSchemas.contains(task.getSchema().getCode());
 	}
 }

@@ -2,6 +2,7 @@ package com.constellio.model.services.parser;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +44,14 @@ public class LanguageDetectionManager implements StatefulService {
 	}
 
 	public String tryDetectLanguage(String content) {
-		try {
-			return detectLanguage(content);
-		} catch (LanguageDetectionServicesRuntimeException e) {
-			LOGGER.info(e.getMessage());
+		if (StringUtils.isNoneBlank(content)) {
+			try {
+				return detectLanguage(content);
+			} catch (LanguageDetectionServicesRuntimeException e) {
+				LOGGER.info(e.getMessage());
+				return null;
+			}
+		} else {
 			return null;
 		}
 	}

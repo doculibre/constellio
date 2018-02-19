@@ -12,6 +12,13 @@ import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -21,6 +28,7 @@ import com.constellio.model.services.security.AuthorizationsServices;
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
 	private transient AuthorizationsServices authorizationsServices;
 	private transient List<Authorization> authorizations;
+	private transient List<AuthorizationReceivedFromMetadata> authorizationsReceivedFromMetadatas;
 	protected String recordId;
 
 	public ListAuthorizationsPresenter(ListAuthorizationsView view) {
@@ -54,6 +62,19 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 			if (!(isOwnAuthorization(authorization) || authorization.getGrantedToPrincipals().isEmpty()) && isSameRoleType(
 					authorization)) {
 				results.add(builder.build(authorization));
+			}
+		}
+		return results;
+	}
+
+	public List<AuthorizationVO> getInheritedAuthorizationsFromMetadatas() {
+		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
+
+		List<AuthorizationVO> results = new ArrayList<>();
+		for (AuthorizationReceivedFromMetadata authorization : getAuthorizationsReceivedFromMetadatas()) {
+			if (isSameRoleType(authorization.authorization)) {
+				results.add(builder.build(authorization.authorization, authorization.metadata, authorization.receivedFrom,
+						view.getSessionContext()));
 			}
 		}
 		return results;
@@ -167,6 +188,57 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		authorizations = authorizationsServices().getRecordAuthorizations(record);
 		//}
 		return authorizations;
+	}
+
+	private static class AuthorizationReceivedFromMetadata {
+		Authorization authorization;
+		Metadata metadata;
+		Record receivedFrom;
+	}
+
+	protected List<AuthorizationReceivedFromMetadata> getAuthorizationsReceivedFromMetadatas() {
+		Record record = presenterService().getRecord(recordId);
+
+		authorizationsReceivedFromMetadatas = new ArrayList<>();
+		if (!record.getTypeCode().equals(User.SCHEMA_TYPE) && !record.getTypeCode().equals(Group.SCHEMA_TYPE)) {
+
+			List<String> ancestorsAndSelf = new ArrayList<>(record.<String>getList(Schemas.ATTACHED_ANCESTORS));
+
+			for (String ancestorId : ancestorsAndSelf) {
+				Record ancestor = recordServices().getDocumentById(ancestorId);
+				MetadataSchema metadataSchema = schema(ancestor.getSchemaCode());
+
+				for (Metadata metadata : metadataSchema.getMetadatas().onlyWithType(MetadataValueType.REFERENCE)) {
+					if (metadata.isRelationshipProvidingSecurity()) {
+						for (String referenceId : ancestor.<String>getValues(metadata)) {
+							Record reference = recordServices().getDocumentById(referenceId);
+							List<Authorization> referenceAuthorizations = authorizationsServices()
+									.getRecordAuthorizations(reference);
+							for (Authorization authorization : referenceAuthorizations) {
+								AuthorizationReceivedFromMetadata auth = new AuthorizationReceivedFromMetadata();
+								auth.authorization = authorization;
+								auth.metadata = metadata;
+								auth.receivedFrom = reference;
+								authorizationsReceivedFromMetadatas.add(auth);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return authorizationsReceivedFromMetadatas;
+	}
+
+	protected boolean hasOverridenSecurityFromMetadatas() {
+		boolean hasOverridenSecurityFromMetadatas = false;
+
+		for (AuthorizationReceivedFromMetadata authorization : getAuthorizationsReceivedFromMetadatas()) {
+			hasOverridenSecurityFromMetadatas |= ((SolrAuthorizationDetails) authorization.authorization.getDetail())
+					.isOverrideInherited();
+		}
+
+		return hasOverridenSecurityFromMetadatas;
 	}
 
 	private boolean isSameRoleType(Authorization authorization) {

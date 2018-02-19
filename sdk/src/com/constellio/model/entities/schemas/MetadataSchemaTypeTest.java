@@ -35,7 +35,7 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 
 		type = new MetadataSchemaType(aString(), null, aString(), asMap(Language.French, "label"),
 				asList(customSchema1, customSchema2),
-				defaultSchema, false, true, true, false);
+				defaultSchema, false, true, true, false, "records");
 	}
 
 	@Test

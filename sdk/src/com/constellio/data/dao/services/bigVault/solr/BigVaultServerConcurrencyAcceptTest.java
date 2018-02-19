@@ -27,6 +27,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.utils.ThreadList;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -58,12 +59,84 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsThenOK()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
 		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
 
 		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
 				inVersion("Frodon", 42L));
 
+		try {
+			updateWithCurrentVersionObtainedFromAQuery("Sam_Gamegie_ze_brave", "Gandalf");
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+
+		getDataLayerFactory().newRecordDao().flush();
+
 		updateWithCurrentVersionObtainedFromAQuery("Sam_Gamegie_ze_brave", "Gandalf");
+	}
+
+	@Test
+	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsUsingRealTimeGetThenOK()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
+		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
+
+		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
+				inVersion("Frodon", 42L));
+
+		updateWithCurrentVersionObtainedFromARealtimeGet("Sam_Gamegie_ze_brave", "Gandalf");
+
+	}
+
+	@Test
+	public void whenMultipleThreadsAreCommittingMassivelyThenCombined()
+			throws Exception {
+
+		BigVaultServer.MAX_FAIL_ATTEMPT = 0;
+		ThreadList<Thread> threadList = new ThreadList<>();
+		final AtomicInteger errorsCounter = new AtomicInteger();
+		for (int i = 1; i <= 20; i++) {
+			final int threadId = i;
+			threadList.add(new Thread() {
+				@Override
+				public void run() {
+					for (int o = 1; o <= 100; o++) {
+						BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.NOW());
+
+						SolrInputDocument doc = new SolrInputDocument();
+						doc.setField("id", threadId + "-" + o);
+						doc.setField("type_s", "test");
+						tx.setNewDocuments(asList(doc));
+
+						try {
+							vaultServer.addAndCommit(tx);
+
+						} catch (SolrServerException e) {
+							errorsCounter.incrementAndGet();
+							e.printStackTrace();
+							throw new RuntimeException(e);
+						} catch (IOException e) {
+							errorsCounter.incrementAndGet();
+							e.printStackTrace();
+							throw new RuntimeException(e);
+						}
+					}
+				}
+			});
+		}
+
+		threadList.startAll();
+
+		threadList.joinAll();
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "type_s:test");
+
+		assertThat(errorsCounter.get()).isEqualTo(0);
+		assertThat(vaultServer.query(params).getResults().getNumFound()).isEqualTo(2000);
 
 	}
 
@@ -93,6 +166,19 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		List<SolrInputDocument> inputDocuments = new ArrayList<>();
 		for (String id : ids) {
 			Long version = getVersionOf(id);
+			inputDocuments.add(updateDocument(id, "a", version));
+		}
+		try {
+			vaultServer.addAll(new BigVaultServerTransaction(NOW).setUpdatedDocuments(inputDocuments));
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void updateWithCurrentVersionObtainedFromARealtimeGet(String... ids) {
+		List<SolrInputDocument> inputDocuments = new ArrayList<>();
+		for (String id : ids) {
+			Long version = getRealVersionOf(id);
 			inputDocuments.add(updateDocument(id, "a", version));
 		}
 		try {
@@ -388,6 +474,13 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 							retry = false;
 						} catch (BigVaultException e) {
 							problems.addAndGet(1);
+							try {
+								vaultServer.flush();
+							} catch (IOException e1) {
+								throw new RuntimeException(e1);
+							} catch (SolrServerException e1) {
+								throw new RuntimeException(e1);
+							}
 							retry = true;
 						}
 					}
@@ -416,6 +509,13 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 							retry = false;
 						} catch (BigVaultException e) {
 							problems.addAndGet(1);
+							try {
+								vaultServer.flush();
+							} catch (IOException e1) {
+								throw new RuntimeException(e1);
+							} catch (SolrServerException e1) {
+								throw new RuntimeException(e1);
+							}
 							retry = true;
 						}
 					}
@@ -459,6 +559,16 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		params.set("q", "id:" + id);
 		try {
 			return (String) vaultServer.querySingleResult(params).getFieldValue("aField_s");
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	Long getRealVersionOf(String id) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "id:" + id);
+		try {
+			return (Long) vaultServer.realtimeGet(id).getFieldValue("_version_");
 		} catch (BigVaultException e) {
 			throw new RuntimeException(e);
 		}

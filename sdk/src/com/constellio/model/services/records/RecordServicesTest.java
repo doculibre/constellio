@@ -505,7 +505,9 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(savedRecord);
 		transaction.addUpdate(otherSavedRecord);
 
-		TransactionDTO transactionDTO = recordServices.createTransactionDTO(transaction, transaction.getModifiedRecords());
+		Map<String, TransactionDTO> transactionDTOs = recordServices
+				.createTransactionDTOs(transaction, transaction.getModifiedRecords());
+		TransactionDTO transactionDTO = transactionDTOs.get("records");
 
 		assertThat(transactionDTO.getNewRecords()).hasSize(2);
 		assertThat(transactionDTO.getModifiedRecords()).hasSize(2);
@@ -538,7 +540,9 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(savedRecord);
 		transaction.addUpdate(otherSavedRecord);
 
-		TransactionDTO transactionDTO = recordServices.createTransactionDTO(transaction, transaction.getModifiedRecords());
+		Map<String, TransactionDTO> transactionDTOs = recordServices
+				.createTransactionDTOs(transaction, transaction.getModifiedRecords());
+		TransactionDTO transactionDTO = transactionDTOs.get("records");
 
 		assertThat(transactionDTO.getNewRecords()).hasSize(1);
 		assertThat(transactionDTO.getModifiedRecords()).hasSize(0);
@@ -560,7 +564,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(savedRecord);
 		transaction.addUpdate(otherSavedRecord);
 		transaction.setRecordFlushing(recordsFlushing);
-		doReturn(transactionDTO).when(recordServices).createTransactionDTO(eq(transaction), anyList());
+		doReturn(asMap("records", transactionDTO)).when(recordServices).createTransactionDTOs(eq(transaction), anyList());
 		doReturn(transactionResponseDTO).when(recordDao).execute(transactionDTO);
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
@@ -585,8 +589,8 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(savedRecord);
 		transaction.addUpdate(otherSavedRecord);
 		transaction.setRecordFlushing(recordsFlushing);
-		doReturn(transactionDTO).when(recordServices)
-				.createTransactionDTO(eq(transaction), anyList());
+		doReturn(asMap("records", transactionDTO)).when(recordServices)
+				.createTransactionDTOs(eq(transaction), anyList());
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).handleOptimisticLocking(any(TransactionDTO.class), any(Transaction.class),
@@ -838,8 +842,8 @@ public class RecordServicesTest extends ConstellioTest {
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
-		doReturn(transactionDTO).when(recordServices)
-				.createTransactionDTO(eq(transaction), anyList());
+		doReturn(asMap("records",transactionDTO)).when(recordServices)
+				.createTransactionDTOs(eq(transaction), anyList());
 
 		recordServices.executeWithImpactHandler(transaction, handler);
 
@@ -963,7 +967,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
 		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
-
+		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 
 		try {

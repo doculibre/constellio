@@ -41,6 +41,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -129,6 +130,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@Rule public FailureDetectionTestWatcher failureDetectionTestWatcher = new FailureDetectionTestWatcher(this);
 
+	private String failMessage;
+
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
 	protected String zeCollection = "zeCollection";
@@ -162,6 +165,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
 		skipTestRule = new SkipTestsRule(sdkPropertiesLoader, isUnitTest(getClass().getSimpleName()));
 		ConsoleLogger.GLOBAL_PREFIX = getClass().getSimpleName();
+		failMessage = null;
 	}
 
 	@BeforeClass
@@ -738,16 +742,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void waitUntilICloseTheBrowsers() {
-		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
-		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
 
-		if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
-			waitUntilChuckNorrisIsDead();
-		} else {
-			ensureNotUnitTest();
-			ensureInDevelopmentTest();
-			getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
-		}
+		ensureNotUnitTest();
+		ensureInDevelopmentTest();
+		getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
 	}
 
 	protected File unzipInTempFolder(File zipFile) {
@@ -1049,6 +1047,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void finished(Description description) {
 		if (!skipTestRule.wasSkipped()) {
 			safeAfterTest(false);
+			if (failMessage != null) {
+				Assert.fail(failMessage);
+			}
 		}
 	}
 
@@ -1568,5 +1569,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return new File(configFile, "conf").getAbsolutePath();
 		}
 		return null;
+	}
+
+	public String getFailMessage() {
+		return failMessage;
+	}
+
+	public void setFailMessage(String failMessage) {
+		this.failMessage = failMessage;
 	}
 }

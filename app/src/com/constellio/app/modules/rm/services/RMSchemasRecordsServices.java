@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -43,11 +44,13 @@ import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -62,9 +65,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
@@ -184,12 +189,24 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchemaType(Document.SCHEMA_TYPE);
 	}
 
+	public MetadataSchemaType searchEventSchemaType() {
+		return getTypes().getSchemaType(SearchEvent.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema documentSchemaFor(DocumentType type) {
 		return getLinkedSchema(documentSchemaType(), type);
 	}
 
 	public MetadataSchema documentSchemaFor(String typeId) {
 		return documentSchemaFor(getDocumentType(typeId));
+	}
+
+	public DocumentListPDF getDocumentListPDF(String id) {
+		return wrapDocumentListPdf(get(id));
+	}
+
+	public DocumentListPDF wrapDocumentListPdf(Record record) {
+		return record == null ? null : new DocumentListPDF(record, getTypes());
 	}
 
 	public Document wrapDocument(Record record) {
@@ -235,8 +252,20 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Report(create(reportSchema()), getTypes());
 	}
 
+	public MetadataSchemaType reportSchemaType() {
+		return getTypes().getSchemaType(Report.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema reportSchema() {
 		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchema documentListPDFSchema() {
+		return getTypes().getSchema(DocumentListPDF.FULL_SCHEMA);
+	}
+
+	public DocumentListPDF newDocumentListPDFWithId(String id) {
+		return new DocumentListPDF(create(documentListPDFSchema(), id), getTypes());
 	}
 
 	public Document newDocumentWithId(String id) {
@@ -1011,12 +1040,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				}
 			}
 
-			String from = getValue(CHUNKS.displayFromChunk);
-			String subject = getValue(CHUNKS.subjectChunk);
-			String to = getValue(CHUNKS.displayToChunk);
-			String cc = getValue(CHUNKS.displayCCChunk);
-			String bcc = getValue(CHUNKS.displayBCCChunk);
-			String content = getValue(CHUNKS.textBodyChunk);
+			String from = getValue(CHUNKS.getDisplayFromChunk());
+			String subject = getValue(CHUNKS.getSubjectChunk());
+			String to = getValue(CHUNKS.getDisplayToChunk());
+			String cc = getValue(CHUNKS.getDisplayCCChunk());
+			String bcc = getValue(CHUNKS.getDisplayBCCChunk());
+			String content = getValue(CHUNKS.getTextBodyChunk());
 
 			MsgParser msgp = new MsgParser();
 			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
@@ -1122,4 +1151,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public YearType getYearTypeWithCode(String code) {
 		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}
+
+	public List<AdministrativeUnit> getAllAdministrativeUnits() {
+		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+	public List<PrintableReport> getAllPrintableReports() {
+		return wrapPrintableReports(getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
+				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
+	}
+
 }

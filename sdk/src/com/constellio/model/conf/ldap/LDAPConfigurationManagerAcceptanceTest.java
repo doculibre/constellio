@@ -3,6 +3,7 @@ package com.constellio.model.conf.ldap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false);
 		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey").setClientId("synchClientId");
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(azurConf, azurUsersRegex,
-				azurGroupsRegex, azurDuration, azurCollections);
+				azurGroupsRegex, azurDuration, null, azurCollections);
 		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 

@@ -8,7 +8,7 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
-public class SIPFolder extends SIPFicheMetadonnees implements SIPObject {
+public class SIPFolder extends SIPMetadataObject implements SIPObject {
 	
 	private String title;
 	
@@ -18,15 +18,15 @@ public class SIPFolder extends SIPFicheMetadonnees implements SIPObject {
 
 	private EntityRetriever entityRetriever;
 	
-	public SIPFolder(Folder ficheDossier, List<Metadata> folderMetadatas, EntityRetriever entityRetriever) {
-		super(adjust(ficheDossier).getWrappedRecord(), folderMetadatas);
-		this.title = ficheDossier.getTitle();
+	public SIPFolder(Folder folder, List<Metadata> folderMetadatas, EntityRetriever entityRetriever) {
+		super(adjust(folder).getWrappedRecord(), folderMetadatas);
+		this.title = folder.getTitle();
 		this.entityRetriever = entityRetriever;
-		Folder ficheDossierParent = entityRetriever.getFoldersFromString(ficheDossier.getParentFolder());
+		Folder ficheDossierParent = entityRetriever.getFoldersFromString(folder.getParentFolder());
 		if (ficheDossierParent != null) {
 			parentFolder = new SIPFolder(ficheDossierParent, folderMetadatas, entityRetriever);
 		} else {
-			Category processusActivite = entityRetriever.getCategoryById(ficheDossier.getCategory());
+			Category processusActivite = entityRetriever.getCategoryById(folder.getCategory());
 			category = new SIPCategory(processusActivite, entityRetriever);
 		}
 	}

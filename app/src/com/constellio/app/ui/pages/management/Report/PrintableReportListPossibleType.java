@@ -7,6 +7,8 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+//TODO KILL ME Gabriel Delete class and replace with simple Folder.schemaType, etc.
+
 public enum PrintableReportListPossibleType {
     FOLDER(Folder.SCHEMA_TYPE), DOCUMENT(Document.SCHEMA_TYPE), TASK(Task.SCHEMA_TYPE), CONTAINER(ContainerRecord.SCHEMA_TYPE);
 
@@ -14,10 +16,6 @@ public enum PrintableReportListPossibleType {
 
     PrintableReportListPossibleType(String schemaType) {
         this.schemaType = schemaType;
-    }
-
-    public String getLabel() {
-        return schemaType == null ? "" : $("PrintableReportListPossibleType." + schemaType);
     }
 
     public static PrintableReportListPossibleType getValue(String value) {

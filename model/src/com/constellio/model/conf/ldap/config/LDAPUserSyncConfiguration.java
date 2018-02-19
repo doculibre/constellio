@@ -52,7 +52,7 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public LDAPUserSyncConfiguration(AzureADUserSynchConfig azurUserSynchConfig,
-			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
+			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution, List<String> scheduleTime,
 			List<String> selectedCollectionsCodes) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
 		this.azurUserSynchConfig.setClientId(azurUserSynchConfig.getClientId());
@@ -62,6 +62,7 @@ public class LDAPUserSyncConfiguration {
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
+		this.scheduleTime = scheduleTime;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
 	}
 

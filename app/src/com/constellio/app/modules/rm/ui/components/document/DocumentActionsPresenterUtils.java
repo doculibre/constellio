@@ -10,12 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.model.services.logging.LoggingServices;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
@@ -48,6 +47,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -159,11 +159,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected boolean isDeleteDocumentPossibleExtensively() {
-		return isDeleteDocumentPossible() && presenterUtils.recordServices().isLogicallyDeletable(currentDocument(), getCurrentUser());
+		return isDeleteDocumentPossible() && presenterUtils.recordServices()
+				.isLogicallyDeletable(currentDocument(), getCurrentUser());
 	}
 
 	private ComponentState getDeleteButtonState() {
-		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
+
 		if (isDeleteDocumentPossible()) {
 			if (documentVO != null) {
 				Document document = new Document(currentDocument(), presenterUtils.types());
@@ -177,7 +178,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 					return ComponentState.INVISIBLE;
 				}
 			}
-			if (parentFolder.getArchivisticStatus().isInactive()) {
+			FolderStatus archivisticStatus = documentVO.get(Document.FOLDER_ARCHIVISTIC_STATUS);
+			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
@@ -186,7 +189,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
@@ -262,13 +266,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	private ComponentState getShareDocumentState() {
-		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isShareDocumentPossible()) {
-			if (parentFolder.getArchivisticStatus().isInactive()) {
+		FolderStatus archivisticStatus = rmSchemasRecordsServices.wrapDocument(currentDocument()).getArchivisticStatus();
+		if (isShareDocumentPossible() && archivisticStatus != null) {
+			if (archivisticStatus.isInactive()) {
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+			if (archivisticStatus.isSemiActive()) {
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
@@ -450,7 +454,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				presenterUtils.recordServices().update(record);
 				currentDocument = record;
 				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, sessionContext);
-				
+
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
@@ -503,11 +507,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	ComponentState getUploadButtonState() {
-		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-		if (isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument()) && extensions
-				.isRecordModifiableBy(currentDocument(), getCurrentUser()) && !extensions
-				.isModifyBlocked(currentDocument(), getCurrentUser())) {
-			if (parentFolder.getArchivisticStatus().isInactive()) {
+
+		FolderStatus archivisticStatus = documentVO.get(Document.FOLDER_ARCHIVISTIC_STATUS);
+		if (archivisticStatus != null && isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())
+				&& extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())
+				&& !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
+			if (archivisticStatus.isInactive()) {
+				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
@@ -516,7 +522,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+			if (archivisticStatus.isSemiActive()) {
+				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
@@ -624,8 +631,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
 	}
 
-
-
 	protected void updateBorrowedMessage() {
 		if (isContentCheckedOut()) {
 			Content content = getContent();
@@ -653,7 +658,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	Record currentDocument() {
 		if (currentDocument == null) {
-			currentDocument = presenterUtils.toRecord(documentVO); 
+			currentDocument = presenterUtils.toRecord(documentVO);
 		}
 		return currentDocument;
 	}

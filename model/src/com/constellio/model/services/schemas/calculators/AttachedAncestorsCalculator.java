@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -20,17 +21,19 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	LocalDependency<Boolean> isDetachedAuthsParams = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);
+	SpecialDependency<AllAuthorizationsTargettingRecordDependencyValue> authorizationsParam = SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD;
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
+		AllAuthorizationsTargettingRecordDependencyValue authorizations = parameters.get(authorizationsParam);
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
 		boolean isDetachedAuths = Boolean.TRUE == parameters.get(isDetachedAuthsParams);
-
 		boolean hasSecurity = parameters.getSchemaType().hasSecurity();
 
 		List<String> ancestors = new ArrayList<>();
 		if (hasSecurity) {
-			if (hierarchyDependencyValue != null && !isDetachedAuths) {
+			if (hierarchyDependencyValue != null && !isDetachedAuths
+					&& !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()) {
 				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 			}
 			ancestors.add(parameters.getId());
@@ -55,6 +58,6 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(taxonomiesParam, isDetachedAuthsParams);
+		return asList(taxonomiesParam, isDetachedAuthsParams, authorizationsParam);
 	}
 }

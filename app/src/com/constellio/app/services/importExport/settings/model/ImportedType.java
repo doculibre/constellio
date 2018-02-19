@@ -20,6 +20,13 @@ public class ImportedType {
 		return code;
 	}
 
+	public ImportedType() {
+	}
+
+	public ImportedType(String code) {
+		this.code = code;
+	}
+
 	public ImportedType setCode(String code) {
 		this.code = code;
 		return this;

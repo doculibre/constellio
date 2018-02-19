@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -51,6 +52,8 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 	@Mock Record record1;
 	@Mock Record record2;
 
+	@Mock BatchProcessReport report;
+
 	List<String> errorsList = new ArrayList<>();
 
 	List<BatchProcessTask> tasks = new ArrayList<>();
@@ -78,14 +81,14 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 	@Test
 	public void whenCreatingReindexationTasksThenTasksCreated() {
 		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, records, errorsList, numberOfRecordsPerTask,
-				schemasManager);
+				schemasManager, report);
 
 		assertThat(tasks).isNotEmpty();
 	}
 
 	@Test
 	public void whenCreatingTasksThenRightNumberOfTasksCreated() {
-		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, records, errorsList, 1, schemasManager);
+		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, records, errorsList, 1, schemasManager, report);
 
 		assertThat(tasks).hasSize(2);
 	}

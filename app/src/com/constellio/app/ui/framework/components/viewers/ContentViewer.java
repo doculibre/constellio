@@ -38,6 +38,8 @@ public class ContentViewer extends CustomComponent {
 				DocumentViewer documentViewer;
 				if (recordVO instanceof DocumentVO) {
 					documentViewer = new DocumentViewer(recordVO, Document.CONTENT, contentVersionVO);
+				} else if (metadataCode != null) {	
+					documentViewer = new DocumentViewer(recordVO, metadataCode, contentVersionVO);
 				} else {
 					documentViewer = null;
 				}

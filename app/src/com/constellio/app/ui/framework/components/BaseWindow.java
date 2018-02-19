@@ -1,18 +1,42 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.vaadin.server.Responsive;
+import com.vaadin.event.MouseEvents;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
 
 public class BaseWindow extends Window {
 	
+	public static final String WINDOW_STYLE_NAME = "base-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
+	
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 	
 	private Integer zIndex = null;
+
+	private float widthBeforeMinimize;
+	private float heightBeforeMinimize;
+	private Unit widthUnitsBeforeMinimize;
+	private Unit heightUnitsBeforeMinimize;
+	private int positionXBeforeMinimize;
+	private int positionYBeforeMinimize;
+	private boolean modalBeforeMinimize;
+	private boolean resizableBeforeMinimize;
+	
+	private boolean minimized;
+
+    private final MouseEvents.ClickListener restoreMinimizedListener = new MouseEvents.ClickListener() {
+        @Override
+        public void click(MouseEvents.ClickEvent event) {
+        	restoreMinimized();
+        }
+    };
 
 	public BaseWindow() {
 		init();
@@ -28,7 +52,70 @@ public class BaseWindow extends Window {
 		init();
 	}
 	
+	public void minimize() {
+		if (!minimized) {
+	        setModal(false);
+	        setResizable(false);
+	        addClickListener(restoreMinimizedListener);
+	        
+			widthBeforeMinimize = getWidth();
+			heightBeforeMinimize = getHeight();
+
+			widthUnitsBeforeMinimize = getWidthUnits();
+			heightUnitsBeforeMinimize = getHeightUnits();
+
+			positionXBeforeMinimize = getPositionX();
+			positionYBeforeMinimize = getPositionY();
+			
+			modalBeforeMinimize = isModal();
+			resizableBeforeMinimize = isResizable();
+
+			int browserWidth = Page.getCurrent().getBrowserWindowWidth();
+			int browserHeight = Page.getCurrent().getBrowserWindowHeight();
+
+			float minimizedWith = 281;
+			float mimizedHeight = 36;
+			int minimizedPositionX = (int) (browserWidth - minimizedWith) - 20;
+			int minimizedPositionY = (int) (browserHeight - mimizedHeight);
+
+			setWidth(minimizedWith + "px");
+			setHeight(mimizedHeight + "px");
+			setPositionX(minimizedPositionX);
+			setPositionY(minimizedPositionY);
+	        minimized = true;
+		} 
+	}
+
+	public void restoreMinimized() {
+		if (minimized) {
+			setWidth(widthBeforeMinimize, widthUnitsBeforeMinimize);
+			setHeight(heightBeforeMinimize, heightUnitsBeforeMinimize);
+			setPositionX(positionXBeforeMinimize);
+			setPositionY(positionYBeforeMinimize);
+			setModal(modalBeforeMinimize);
+			setResizable(resizableBeforeMinimize);
+			removeClickListener(restoreMinimizedListener);
+			minimized = false;
+		}
+	}
+	
+	public boolean isMinimized() {
+		return minimized;
+	}
+
 	private void init() {
+		addStyleName(WINDOW_STYLE_NAME);
+		if (isRightToLeft()) {
+			addStyleName("right-to-left");
+		}
+	}
+
+	@Override
+	public void setContent(Component content) {
+		if (content != null) {
+			content.addStyleName(WINDOW_CONTENT_STYLE_NAME);
+		}
+		super.setContent(content);
 	}
 
 	public final Integer getZIndex() {
@@ -65,5 +152,5 @@ public class BaseWindow extends Window {
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
-	
+
 }

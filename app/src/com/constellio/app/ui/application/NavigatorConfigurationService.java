@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
+import com.constellio.app.ui.pages.SIP.SIPProgressionViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
@@ -13,10 +14,13 @@ import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
 import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
+import com.constellio.app.ui.pages.elevations.EditElevationView;
 import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
+import com.constellio.app.ui.pages.exclusion.DeleteExclusionsImpl;
+import com.constellio.app.ui.pages.exclusion.DeleteExclusionsView;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
@@ -36,9 +40,11 @@ import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAu
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
+import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.capsule.addEdit.AddEditCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.capsule.display.DisplayCapsuleViewImpl;
-import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleView;
 import com.constellio.app.ui.pages.management.capsule.list.ListCapsuleViewImpl;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionViewImpl;
 import com.constellio.app.ui.pages.management.collections.CollectionManagementViewImpl;
@@ -87,6 +93,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
+import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
@@ -174,6 +181,11 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
 	public static final String EXCEL_REPORT_DISPLAY = "excelReportDisplay";
 
+	public static final String LIST_BAG_INFO = "listBagInfo";
+	public static final String DISPLAY_BAG_INFO = "displayBagInfo";
+	public static final String ADD_EDIT_BAG_INFO = "addEditBagInfo";
+	public static final String SIP_PROGRESSION = "sipProgression";
+
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
 	public static final String LIST_FACET_CONFIGURATION = "listFacetConfiguration";
@@ -191,7 +203,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
-	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
+	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryRecords";
 	public static final String SEARCH_CONFIGURATION = "searchConfiguration";
 
 	public static final String LIST_CAPSULE = "listCapsule";
@@ -203,6 +215,11 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
 
 	public static final String EDIT_ELEVATION = "editElevation";
+	public static final String STATISTICS = "statistics";
+	public static final String DELETE_EXCLUSION = "correctorExclusion";
+
+
+
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -256,6 +273,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_SEARCH, TaxonomyManagementSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FORCED_REINDEX, ForcedReindexViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteExclusionsImpl.class));
 
 		// TODO Use generic system to configure
 		viewProviders.add(new ClassBasedViewProvider(ADMIN_MODULE, AdminViewImpl.class));
@@ -318,6 +336,13 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EDIT_SYNONYMS, EditSynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SYNONYMS, DisplaySynonymsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_ELEVATION, EditElevationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(STATISTICS, StatisticsViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_BAG_INFO, DisplayBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_BAG_INFO, ListBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_BAG_INFO, AddEditBagInfoViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteExclusionsImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

@@ -102,6 +102,8 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
+
+		// facebook.com
 	}
 
 	private void setup() {

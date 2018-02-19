@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.MigrationServices;
@@ -138,6 +139,11 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 
 	public AppSchemasServices newSchemasServices() {
 		return appLayerFactory.newSchemasServices();
+	}
+
+	@Override
+	public CorrectorExcluderManager getCorrectorExcluderManager() {
+		return appLayerFactory.getCorrectorExcluderManager();
 	}
 
 	@Override

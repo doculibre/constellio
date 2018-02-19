@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
 import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_PRINCIPALS_MISSING;
 import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_TARGETS_MISSING;
 import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_ACCESS;
@@ -20,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -27,10 +29,13 @@ import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
 import com.constellio.app.services.schemas.bulkImport.ImportError;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -141,6 +146,42 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 		ImportError newInvalidAuthorizationWithInvalidRole = errorsMappedByAuthorizationId
 				.get("newInvalidAuthorizationWithInvalidRole");
 		assertThat(newInvalidAuthorizationWithInvalidRole.getErrorMessage()).isEqualTo($(INVALID_ROLE));
+
+	}
+
+	@Test
+	public void whenImportingAuthorizationsOnTypeProvidingSecurityThenOK()
+			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType("folder").getDefaultSchema().get(CATEGORY_ENTERED).setRelationshipProvidingSecurity(true);
+			}
+		});
+
+		File authorizationFile = getTestResourceFile("categoryAuthorizations.xml");
+		BulkImportResults results = importServices
+				.bulkImport(authorizationFile, zeCollection, getModelLayerFactory());
+		assertThat(results.getImportErrors()).isEmpty();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		SolrAuthorizationDetails auth1 = rm.getSolrAuthorizationDetailsWithLegacyId("1");
+		SolrAuthorizationDetails auth2 = rm.getSolrAuthorizationDetailsWithLegacyId("2");
+		SolrAuthorizationDetails auth3 = rm.getSolrAuthorizationDetailsWithLegacyId("3");
+
+		assertThat(auth1).isNotNull();
+		assertThat(auth1.getTarget()).isEqualTo(rm.getCategoryWithCode("Z100").getId());
+		assertThat(auth1.isOverrideInherited()).isFalse();
+
+		assertThat(auth2.getTarget()).isEqualTo(rm.getCategoryWithCode("Z200").getId());
+		assertThat(auth2).isNotNull();
+		assertThat(auth2.isOverrideInherited()).isTrue();
+
+		assertThat(auth3.getTarget()).isEqualTo(rm.getCategoryWithCode("Z120").getId());
+		assertThat(auth3).isNotNull();
+		assertThat(auth3.isOverrideInherited()).isFalse();
 
 	}
 

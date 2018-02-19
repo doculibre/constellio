@@ -2,7 +2,6 @@ package com.constellio.model.services.records;
 
 import static com.constellio.data.utils.LangUtils.isFalseOrNull;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -49,12 +48,12 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
-import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -438,8 +437,7 @@ public class RecordAutomaticMetadataServices {
 
 				}
 				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
-					for (Record record : searchServices
-							.cachedSearch(query(from(types.getSchemaType(Group.SCHEMA_TYPE)).returnAll()))) {
+					for (Record record : searchServices.getAllRecords(types.getSchemaType(Group.SCHEMA_TYPE))) {
 						if (record != null) {
 							if (!groupsInTransaction.contains(record.getId())) {
 								groups.add(Group.wrapNullable(record, types));
@@ -449,8 +447,7 @@ public class RecordAutomaticMetadataServices {
 						}
 					}
 
-					for (Record record : searchServices
-							.cachedSearch(query(from(types.getSchemaType(User.SCHEMA_TYPE)).returnAll()))) {
+					for (Record record : searchServices.getAllRecords(types.getSchemaType(User.SCHEMA_TYPE))) {
 						if (record != null) {
 							if (!usersInTransaction.contains(record.getId())) {
 								users.add(User.wrapNullable(record, types, roles));
@@ -476,10 +473,13 @@ public class RecordAutomaticMetadataServices {
 			RecordProvider recordProvider) {
 
 		Set<String> authsInTransaction = new HashSet<>();
+		boolean overridedByMetadataProvidingSecurity = false;
+		List<AuthorizationDetails> authsReceivedFromMetadatasProvidingSecurity = new ArrayList<>();
 		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
 
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
 
 		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
 				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
@@ -499,8 +499,7 @@ public class RecordAutomaticMetadataServices {
 					}
 				}
 
-				for (Record record : searchServices
-						.cachedSearch(query(from(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)).returnAll()))) {
+				for (Record record : searchServices.getAllRecords(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
 					if (record != null) {
 						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
 						if (!authsInTransaction.contains(authorizationDetail.getId())
@@ -514,13 +513,28 @@ public class RecordAutomaticMetadataServices {
 				context.setAllAuthorizationDetails(authorizationDetails);
 			}
 
+			Set<String> referencesProvidingSecurity = new HashSet<>();
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.isRelationshipProvidingSecurity()) {
+					referencesProvidingSecurity.addAll(calculatedRecord.<String>getValues(metadata));
+				}
+			}
+
 			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
 				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
 					returnedAuthorizationDetails.add(authorizationDetail);
 				}
+
+				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
+					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
+					overridedByMetadataProvidingSecurity |=
+							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
+				}
 			}
+
 		}
-		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails);
+		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails,
+				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
 	}
 
 	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,

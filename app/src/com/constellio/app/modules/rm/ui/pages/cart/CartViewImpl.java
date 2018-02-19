@@ -1,22 +1,25 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupFieldWithIgnoreOneRecord;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -47,6 +50,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -56,9 +60,9 @@ import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
-	private VerticalLayout folderLayout;
-	private VerticalLayout documentLayout;
-	private VerticalLayout containerLayout;
+	private CartTabLayout folderLayout;
+	private CartTabLayout documentLayout;
+	private CartTabLayout containerLayout;
 	private Table folderTable;
 	private Table documentTable;
 	private Table containerTable;
@@ -101,6 +105,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
+		buttons.add(buildConsolidatedPdfButton());
 		return buttons;
 	}
 
@@ -183,7 +188,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				VerticalLayout layout = new VerticalLayout();
 				layout.setSpacing(true);
 
-				final ListAddRemoveRecordLookupField lookup = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+				final ListAddRemoveRecordLookupFieldWithIgnoreOneRecord lookup = new ListAddRemoveRecordLookupFieldWithIgnoreOneRecord(User.SCHEMA_TYPE, getSessionContext().getCurrentUser().getId());
 				lookup.setValue(presenter.cart().getSharedWithUsers());
 
 				layout.addComponent(lookup);
@@ -245,11 +250,18 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildPrintMetadataReportButton() {
-		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext());
-		List<RecordVO> allRecords = new ArrayList<>();
-		allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
-		allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
-		reportGeneratorButton.setRecordVoList(allRecords.toArray(new RecordVO[0]));
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
+				this.getConstellioFactories().getAppLayerFactory(), getCollection(), false ,false, this.presenter, getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<RecordVO> allRecords = new ArrayList<>();
+				allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
+				allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
+				setRecordVoList(allRecords.toArray(new RecordVO[0]));
+				super.buttonClick(event);
+			}
+		};
+
 		return reportGeneratorButton;
 	}
 
@@ -316,17 +328,17 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
-		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new VerticalLayout(buildFolderFilterComponent(),folderTable));
+		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(),folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
-		folderLayout.setDescription(Folder.SCHEMA_TYPE);
+		folderLayout.setSchemaType(Folder.SCHEMA_TYPE);
 		folderTab.setVisible(!folderTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new VerticalLayout(buildDocumentFilterComponent(),documentTable));
+		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterComponent(),documentTable));
 		documentTab.setCaption($("CartView.documentsTab"));
-		documentLayout.setDescription(Document.SCHEMA_TYPE);
+		documentLayout.setSchemaType(Document.SCHEMA_TYPE);
 		documentTab.setVisible(!documentTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new VerticalLayout(buildContainerFilterComponent(),containerTable));
+		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterComponent(),containerTable));
 		containerTab.setCaption($("CartView.containersTab"));
-		containerLayout.setDescription(ContainerRecord.SCHEMA_TYPE);
+		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
 		mainLayout = new VerticalLayout(reportSelector = new ReportSelector(presenter));
 		mainLayout.setSizeFull();
@@ -334,7 +346,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				Component selectedTab = event.getTabSheet().getSelectedTab();
-				currentSchemaType = selectedTab.getDescription();
+				if(selectedTab instanceof CartTabLayout) {
+					currentSchemaType = ((CartTabLayout) selectedTab).getSchemaType();
+				}
 				ReportSelector newReportSelector = new ReportSelector(presenter);
 				mainLayout.replaceComponent(reportSelector, newReportSelector);
 				reportSelector = newReportSelector;
@@ -519,9 +533,32 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildCreateSIPArchivesButton(){
-		SIPbutton siPbutton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader());
-		siPbutton.setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
+		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
 		return siPbutton;
+	}
+
+	private Button buildConsolidatedPdfButton(){
+		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<String> notDeletedDocumentIds = new ArrayList<>();
+				List<DocumentVO> notDeletedDocumentVOs = presenter.getNotDeletedCartDocumentVO();
+				for (DocumentVO documentVO : notDeletedDocumentVOs) {
+					notDeletedDocumentIds.add(documentVO.getId());
+				}
+				AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+				setParams(params);
+				super.buttonClick(event);
+			}
+			
+		};
+		return consolidatedPdfButton;
 	}
 
 	@Override
@@ -580,6 +617,27 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private class FireableTabSheet extends TabSheet {
 		public void fireTabSelectionChanged() {
 			fireSelectedTabChange();
+		}
+	}
+
+	private class CartTabLayout extends VerticalLayout {
+		private String schemaType = null;
+
+		public CartTabLayout() {
+			super();
+		}
+
+		public CartTabLayout(Component... children) {
+			super(children);
+		}
+
+		public CartTabLayout setSchemaType(String schemaType) {
+			this.schemaType = schemaType;
+			return this;
+		}
+
+		public String getSchemaType() {
+			return schemaType;
 		}
 	}
 }

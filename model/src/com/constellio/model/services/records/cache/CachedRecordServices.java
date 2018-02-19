@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+
 import java.util.List;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -10,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
@@ -27,32 +30,67 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
-	RecordsCaches recordsCaches;
+	RecordsCaches disconnectableRecordsCaches;
 
 	RecordServices recordServices;
 
 	public CachedRecordServices(ModelLayerFactory modelLayerFactory, RecordServices recordServices, RecordsCaches recordsCaches) {
 		super(modelLayerFactory);
 		this.recordServices = recordServices;
-		this.recordsCaches = recordsCaches;
+		this.disconnectableRecordsCaches = recordsCaches;
+	}
+
+	public RecordsCaches getConnectedRecordsCache() {
+		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
+			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
+				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
+			}
+		}
+		return disconnectableRecordsCaches;
 	}
 
 	@Override
 	public Record getDocumentById(String id) {
-		Record record = recordsCaches.getRecord(id);
+		return getById(RECORDS, id);
+	}
+
+	@Override
+	public Record getById(String dataStore, String id) {
+		Record record = RECORDS.equals(dataStore) ? getConnectedRecordsCache().getRecord(id) : null;
 		if (record == null) {
-			record = recordServices.getDocumentById(id);
-			//recordsCaches.insert(record);
+			record = recordServices.getById(dataStore, id);
+		}
+		return record;
+	}
+
+	public Record getById(MetadataSchemaType schemaType, String id) {
+		RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
+		Record record = cache.get(id);
+		if (record == null) {
+			record = recordServices.getById(schemaType, id);
 		}
 		return record;
 	}
 
 	@Override
-	public Record realtimeGet(String id) {
-		Record record = recordsCaches.getRecord(id);
+	public Record realtimeGetRecordById(String id) {
+		return realtimeGetById(RECORDS, id);
+	}
+
+	@Override
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
+		Record record = getConnectedRecordsCache().getRecord(id);
 		if (record == null) {
-			record = recordServices.realtimeGet(id);
-			//recordsCaches.insert(record);
+			record = recordServices.realtimeGetById(schemaType, id);
+		}
+		return record;
+	}
+
+	@Override
+	public Record realtimeGetById(String dataStore, String id) {
+		Record record = getConnectedRecordsCache().getRecord(id);
+		if (record == null) {
+			record = recordServices.realtimeGetById(dataStore, id);
 		}
 		return record;
 	}
@@ -66,12 +104,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		Record foundRecord = recordsCaches.getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
 
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
 			if (foundRecord != null) {
-				recordsCaches.insert(foundRecord);
+				getConnectedRecordsCache().insert(foundRecord);
 			}
 		}
 
@@ -217,7 +255,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public RecordsCaches getRecordsCaches() {
-		return recordsCaches;
+		return getConnectedRecordsCache();
 	}
 
 	@Override
@@ -265,18 +303,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public boolean isLogicallyThenPhysicallyDeletable(Record record,
 			User user) {
 		return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
-	}
-
-	@Override
-	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record,
-			User user) {
-		return recordServices.isPrincipalConceptLogicallyDeletableExcludingContent(record, user);
-	}
-
-	@Override
-	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record,
-			User user) {
-		return recordServices.isPrincipalConceptLogicallyDeletableIncludingContent(record, user);
 	}
 
 	@Override

@@ -7,6 +7,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
 
 public class TemporaryRecord extends RecordWrapper {
+
+
     public static final String SCHEMA_TYPE = "temporaryRecord";
     public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
     public static final String DESTRUCTION_DATE = "destructionDate";

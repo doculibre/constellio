@@ -118,7 +118,7 @@ public class BigVaultRecordDaoUnitTest {
 
 		recordDao.flush();
 
-		verify(bigVaultServer).softCommit();
+		verify(bigVaultServer).flush();
 
 	}
 }

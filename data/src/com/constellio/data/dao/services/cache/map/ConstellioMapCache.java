@@ -1,8 +1,10 @@
 package com.constellio.data.dao.services.cache.map;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,6 +61,11 @@ public class ConstellioMapCache implements ConstellioCache {
 	@Override
 	public int size() {
 		return map.size();
+	}
+
+	@Override
+	public List<Object> getAllValues() {
+		return new ArrayList<>(map.values());
 	}
 
 }

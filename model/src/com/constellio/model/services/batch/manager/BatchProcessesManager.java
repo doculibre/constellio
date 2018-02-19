@@ -23,6 +23,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -30,6 +31,7 @@ import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
+import com.constellio.model.services.batch.controller.BatchProcessState;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
@@ -47,12 +49,14 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	private final SearchServices searchServices;
 	private final List<BatchProcessesListUpdatedEventListener> listeners = new ArrayList<>();
 	private final ModelLayerFactory modelLayerFactory;
+	private ConstellioCache statusCache;
 
 	public BatchProcessesManager(ModelLayerFactory modelLayerFactory) {
 		super();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
+		statusCache = modelLayerFactory.getDataLayerFactory().getRecordsCacheManager().getCache("batchProcessesStatus");
 		configManager.keepInCache(BATCH_PROCESS_LIST_PATH);
 	}
 
@@ -123,7 +127,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchQuery logicalQuery, BatchProcessAction action, String title) {
-		return  addBatchProcessInStandby(logicalQuery, action, null, title);
+		return addBatchProcessInStandby(logicalQuery, action, null, title);
 	}
 
 	public RecordBatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action,
@@ -212,6 +216,20 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		updateBatchProcesses(cancelStandByBatchProcessDocumentAlteration(batchProcess.getId()));
 	}
 
+	public void cancelPendingBatchProcess(BatchProcess batchProcess) {
+		updateBatchProcesses(cancelPendingBatchProcessDocumentAlteration(batchProcess.getId()));
+	}
+
+	public void cancelBatchProcessNoMatterItStatus(BatchProcess batchProcess) {
+		if (batchProcess.getStatus() == BatchProcessStatus.PENDING) {
+			cancelPendingBatchProcess(batchProcess);
+		}
+
+		if (batchProcess.getStatus() == BatchProcessStatus.STANDBY) {
+			cancelStandByBatchProcess(batchProcess);
+		}
+	}
+
 	public void markAllStandbyAsPending() {
 		updateBatchProcesses(markAllBatchProcessAsPendingDocumentAlteration());
 	}
@@ -228,7 +246,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				List<String> records = getRecords(batchProcess);
 				LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER)
 						.isIn(records);
-				ModifiableSolrParams params = modelLayerFactory.newSearchServices().addSolrModifiableParams(new LogicalSearchQuery(condition));
+				ModifiableSolrParams params = modelLayerFactory.newSearchServices()
+						.addSolrModifiableParams(new LogicalSearchQuery(condition));
 				String query = SolrUtils.toSingleQueryString(params);
 				batchProcess = recordBatchProcess.withQuery(query);
 			}
@@ -398,6 +417,16 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		};
 	}
 
+	DocumentAlteration cancelPendingBatchProcessDocumentAlteration(final String id) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).cancelPendingBatchProcess(id);
+			}
+		};
+	}
+
 	String newBatchProcessId() {
 		return UUID.randomUUID().toString();
 	}
@@ -509,5 +538,13 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).incrementProgression(batchProcess, progressionIncrement, errorsIncrement);
 			}
 		});
+	}
+
+	public BatchProcessState getBatchProcessState(String batchProcessId) {
+		return statusCache.get(batchProcessId);
+	}
+
+	public void updateBatchProcessState(String batchProcessId, BatchProcessState state) {
+		statusCache.put(batchProcessId, state);
 	}
 }

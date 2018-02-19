@@ -952,6 +952,10 @@
         </lst>
     </requestHandler>
 
+    <searchComponent name="mlt" class="solr.MoreLikeThisComponent"/>
+    <requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
+    </requestHandler>
+
     <!-- Search Components
 
          Search components are registered to SolrCore and used by
@@ -1117,8 +1121,8 @@
             <str name="spellcheck.maxCollations">5</str>
         </lst>
         <arr name="last-components">
-           <str>elevator</str>
-           <str>spellcheck</str>
+            <str>elevator</str>
+            <str>spellcheck</str>
         </arr>
     </requestHandler>
 

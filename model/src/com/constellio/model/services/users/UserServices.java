@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -717,7 +719,7 @@ public class UserServices {
 
 	public boolean isSystemAdmin(User user) {
 		UserCredential userCredential = getUserCredential(user.getUsername());
-		if(userCredential != null && userCredential.isSystemAdmin()) {
+		if (userCredential != null && userCredential.isSystemAdmin()) {
 			return true;
 		}
 		return false;
@@ -930,9 +932,7 @@ public class UserServices {
 
 		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
 		if (userInGroup.size() != 0 ||
-				searchServices.hasResults(
-						from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-								.isEqualTo(group.getId()))) {
+				searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
 		}
@@ -966,18 +966,20 @@ public class UserServices {
 	public void safePhysicalDeleteUserCredential(String username)
 			throws UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically {
 		LOGGER.info("safePhysicalDeleteUser : " + username);
-		UserCredential user = getUser(username);
-		for (String collection : user.getCollections()) {
-			String userId = this.getUserInCollection(user.getUsername(), collection).getId();
-			if (searchServices.hasResults(
-					from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-							.isEqualTo(userId))) {
-				LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
-				throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+		UserCredential userCredential = getUser(username);
+		for (String collection : userCredential.getCollections()) {
+			User user = this.getUserInCollection(userCredential.getUsername(), collection);
+			if (user != null) {
+				if (searchServices.hasResults(
+						fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES)
+								.isEqualTo(user.getId()))) {
+					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
+					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
+				}
 			}
 		}
-		recordServices.logicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(((SolrUserCredential) user).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
 	}
 
 	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
@@ -1007,9 +1009,7 @@ public class UserServices {
 	public void physicallyRemoveUser(User user, String collection) {
 		LOGGER.info("physicallyRemoveUser : " + user.getUsername());
 
-		if (searchServices.hasResults(
-				from(metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()).where(Schemas.ALL_REFERENCES)
-						.isEqualTo(user.getId()))) {
+		if (searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(user.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveUser : " + user.getUsername());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(user.getUsername());
 		}
@@ -1035,5 +1035,9 @@ public class UserServices {
 			LOGGER.info("restoreDeletedGroup : " + group.getCode());
 			recordServices.restore(group.getWrappedRecord(), User.GOD);
 		}
+	}
+
+	public boolean isAdminInAnyCollection(String username) {
+		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 }

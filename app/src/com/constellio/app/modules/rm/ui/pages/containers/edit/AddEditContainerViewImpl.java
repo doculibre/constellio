@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.modules.rm.ui.components.container.ContainerFormImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -75,12 +76,16 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 
 	private ContainerFormImpl buildForm() {
 		ContainerFormImpl form = newForm();
-		prepareTypeField(form.getTypeField());;
+		form.setSpecialContainerTitleCase(true, AddEditContainerView.class);
+		prepareTypeField(form.getTypeField());
 		prepareCapacityField(form.getCapacityField());
 		return form;
 	}
 
 	private void prepareTypeField(final Field<String> field) {
+		if((Field) field instanceof RecordComboBox) {
+			((RecordComboBox) (Field) field).setNullSelectionAllowed(false);
+		}
 		field.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
@@ -111,7 +116,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
-				presenter.saveButtonClicked(viewObject);
+					presenter.saveButtonClicked(viewObject);
 			}
 
 			@Override

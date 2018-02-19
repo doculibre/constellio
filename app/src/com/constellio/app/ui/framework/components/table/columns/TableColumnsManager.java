@@ -1,10 +1,14 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -16,6 +20,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnCollapseEvent;
 import com.vaadin.ui.Table.ColumnCollapseListener;
 import com.vaadin.ui.Table.ColumnReorderEvent;
@@ -66,6 +71,17 @@ public class TableColumnsManager implements Serializable {
 	public void manage(final Table table, final String tableId) {
 		table.setColumnCollapsingAllowed(true);
 		table.setColumnReorderingAllowed(true);
+		
+		Object[] visibleColumns = table.getVisibleColumns();
+		if (isRightToLeft()) {
+			ArrayUtils.reverse(visibleColumns);
+			table.setVisibleColumns(visibleColumns);
+			
+			for (Object propertyId : table.getContainerPropertyIds()) {
+				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
+				table.setColumnAlignment(propertyId, alignment);
+			}
+		}
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
@@ -145,6 +161,24 @@ public class TableColumnsManager implements Serializable {
 	
 	protected String toColumnId(Object propertyId) {
 		return propertyId.toString();
+	}
+	
+	private Align adjustAlignment(Align alignment) {
+		Align result;
+		if (isRightToLeft()) {
+			if (Align.LEFT.equals(alignment)) {
+				result = Align.RIGHT;
+			} else if (Align.RIGHT.equals(alignment)) {
+				result = Align.LEFT;
+			} else if (Align.CENTER.equals(alignment)) {
+				result = alignment;
+			} else {
+				result = Align.RIGHT;
+			}
+		} else {
+			result = alignment;
+		}
+		return result;
 	}
 
 }

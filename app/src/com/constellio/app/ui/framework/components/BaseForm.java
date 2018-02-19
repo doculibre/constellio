@@ -1,5 +1,22 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
@@ -16,19 +33,20 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -45,13 +63,19 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	public static final String CANCEL_BUTTON = "base-form_cancel";
 
+	public static final String METADATA_CODE = "metadataCode";
+
+	public static final String CONTAINER_RECORD_DEFAULT_TITLE = "containerRecord_default_title";
+
+	public static final String REQUIRED_VALUE_FOR_METADATA = "requiredValueForMetadata";
+
 	protected T viewObject;
 
 	protected Item item;
 
 	protected VerticalLayout formLayout;
 
-	protected HorizontalLayout buttonsLayout;
+	protected I18NHorizontalLayout buttonsLayout;
 
 	protected Button saveButton;
 
@@ -66,6 +90,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 	private Map<String, VerticalLayout> tabs = new HashMap<>();
 
 	private boolean useTabSheet;
+
+	private boolean isSpecialContainerTitleCase = false;
+
+	private Class<?> validatorClass = null;
 
 	public BaseForm(final T viewObject, Serializable objectWithMemberFields, Field<?>... fields) {
 		this(viewObject, new MemberFieldBinder(objectWithMemberFields), fields);
@@ -143,7 +171,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			addToDefaultLayoutOrTabSheet(field);
 		}
 
-		buttonsLayout = new HorizontalLayout();
+		buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
 		buttonsLayout.setSpacing(true);
 
@@ -165,6 +193,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				cancelButtonClick(viewObject);
 			}
 		});
+		cancelButton.setVisible(isCancelButtonVisible());
 
 		setCompositionRoot(formLayout);
 		if (tabSheet.iterator().hasNext()) {
@@ -173,11 +202,24 @@ public abstract class BaseForm<T> extends CustomComponent {
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
 	}
-	
+
+	public void setSpecialContainerTitleCase(boolean specialContainerTitleCase, Class<?> validatorClass) {
+		this.isSpecialContainerTitleCase = specialContainerTitleCase;
+		this.validatorClass = validatorClass;
+	}
+
+	public boolean getSpecialContainerTitleCase() {
+		return isSpecialContainerTitleCase;
+	}
+
+	protected boolean isCancelButtonVisible() {
+		return true;
+	}
+
 	protected String getSaveButtonCaption() {
 		return $("save");
 	}
-	
+
 	protected String getCancelButtonCaption() {
 		return $("cancel");
 	}
@@ -213,7 +255,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		addFieldToLayout(field, fieldLayout);
 	}
-	
+
 	protected void addFieldToLayout(Field<?> field, VerticalLayout fieldLayout) {
 		fieldLayout.addComponent(field);
 	}
@@ -282,8 +324,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 				try {
 					saveButtonClick(viewObject);
 
-				} catch(MetadataSchemaBuilderRuntimeException e) {
-					if(e.getMessage().contains("'localCode'")) {
+				} catch (MetadataSchemaBuilderRuntimeException e) {
+					if (e.getMessage().contains("'localCode'")) {
 						showErrorMessage($("BaseForm.SchemaBuilderRuntime"));
 					} else {
 						showErrorMessage(MessageUtils.toMessage(e));
@@ -291,10 +333,32 @@ public abstract class BaseForm<T> extends CustomComponent {
 					}
 				} catch (Exception e) {
 
-					ValidationErrors errors = MessageUtils.getValidationErrors(e);
+					ValidationErrors validationErrorsFromException = MessageUtils.getValidationErrors(e);
 
-					if (errors != null) {
-						showBackendValidationException(errors);
+					if (isSpecialContainerTitleCase) {
+						ValidationErrors newValidationErrors = new ValidationErrors();
+						for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
+								.hasNext(); ) {
+							ValidationError validationError = it.next();
+							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
+									&& validationError.getParameters().size() > 0
+									&& validationError.getParameters().get(METADATA_CODE)
+									.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
+								Map<String, Object> params = new HashMap<String, Object>();
+
+								ValidationError newValidationError = new ValidationError(validatorClass,
+										REQUIRED_VALUE_FOR_METADATA, params);
+								newValidationErrors.add(newValidationError, newValidationError.getParameters());
+
+							} else {
+								newValidationErrors.add(validationError, validationError.getParameters());
+							}
+						}
+						validationErrorsFromException = newValidationErrors;
+					}
+
+					if (validationErrorsFromException != null) {
+						showBackendValidationException(validationErrorsFromException);
 					} else {
 						showErrorMessage(MessageUtils.toMessage(e));
 						LOGGER.warn(e.getMessage(), e);
@@ -310,16 +374,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					if(missingRequiredFields.length() != 0) {
+					if (missingRequiredFields.length() != 0) {
 						missingRequiredFields.append("<br/>");
 					}
 					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
-				}
-				else if (!field.isValid()) {
-					if(missingRequiredFields.length() != 0) {
+				} else if (!field.isValid()) {
+					if (missingRequiredFields.length() != 0) {
 						missingRequiredFields.append("<br/>");
 					}
 					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));

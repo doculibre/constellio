@@ -147,8 +147,6 @@ public class SDKScriptUtils {
 		return appLayerFactory;
 	}
 
-
-
 	public static AppLayerFactory startApplicationWithBatchProcessesAndBackgroundThreads() {
 
 		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator() {

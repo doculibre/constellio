@@ -1,6 +1,12 @@
 package com.constellio.model.services.search;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
@@ -11,7 +17,6 @@ import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.apache.commons.lang.StringUtils;
 
 public class SearchConfigurationsManager {
 	public static final String ELEVATE_FILE_NAME = "/elevate.xml";
@@ -72,14 +77,17 @@ public class SearchConfigurationsManager {
 	}
 
 	public boolean isElevated(String freeTextQuery, Record record) {
+		return isElevated(freeTextQuery, record.getId());
+	}
+
+	public boolean isElevated(String freeTextQuery, String recordId) {
 		boolean found = false;
-		// Facebook.com youtube.com
 
 		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
 
 		if(docElevations != null) {
 			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
-				if (record.getId().equals(docElevation.getId())&& !docElevation.isExclude()) {
+				if (recordId.equals(docElevation.getId())&& !docElevation.isExclude()) {
 					found = true;
 					break;
 				}

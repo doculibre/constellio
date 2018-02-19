@@ -1,18 +1,22 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -20,25 +24,47 @@ import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamRes
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeEvent;
+import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
@@ -180,19 +206,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
 
-		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
 		Component capsuleComponent = null;
-		List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-		if(!capsules.isEmpty()) {
-			capsuleComponent = buildCapsuleIU(capsules);
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
+			if (!capsules.isEmpty()) {
+				capsuleComponent = buildCapsuleIU(capsules);
+			}
 		}
 
 		VerticalLayout main = new VerticalLayout(suggestions, summary);
-		if(capsuleComponent != null){
+		if (capsuleComponent != null) {
 			main.addComponent(capsuleComponent);
 		}
 		main.addComponent(body);
@@ -209,7 +237,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip());
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip()) {
+			@Override
+			protected void onPreviousPageButtonClicked() {
+				super.onPreviousPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onNextPageButtonClicked() {
+				super.onNextPageButtonClicked();
+				presenter.searchNavigationButtonClicked();
+			}
+
+			@Override
+			protected void onSetPageButtonClicked(int page) {
+				super.onSetPageButtonClicked(page);
+				presenter.searchNavigationButtonClicked();
+			}
+		};
 
 		int totalResults = container.size();
 		int totalAmountOfPages = srTable.getTotalAmountOfPages();
@@ -224,6 +270,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
+
+		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				System.out.println("Jonathan Plamndon");
+			}
+		});
 
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
@@ -256,11 +309,49 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
+		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
+				presenter.getSearchQuery().getFreeTextQuery()) {
+			@Override
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
 
-		return new SearchResultContainer(results, displayFactory, presenter.getSearchQuery().getFreeTextQuery());
+			@Override
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultElevationClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+
+			@Override
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultExclusionClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+		};
+
+		container.addItemSetChangeListener(new ItemSetChangeListener() {
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				presenter.searchNavigationButtonClicked();
+			}
+		});
+
+		return container;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void buildSuggestions(SearchResultVODataProvider dataProvider) {
 		if (!presenter.mustDisplaySuggestions(dataProvider)) {
 			suggestions.setVisible(false);
@@ -271,8 +362,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		caption.addStyleName(ValoTheme.LABEL_BOLD);
 		suggestions.addComponent(caption);
 
-		List<String> foundSuggestions = presenter.getSuggestions();
+		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
+
 			Button activateSuggestion = new Button(suggestion);
 			activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
 			activateSuggestion.addStyleName(SUGGESTION_STYLE);
@@ -282,9 +374,29 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					presenter.suggestionSelected(suggestion);
 				}
 			});
-			suggestions.addComponent(activateSuggestion);
+			HorizontalLayout horizontalLayout = new HorizontalLayout();
+
+			final DeleteButton excludeButton = new DeleteButton() {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deleteSuggestionButtonClicked(suggestion, getCollection());
+					updateUI();
+				}
+			};
+			excludeButton.setData(suggestion);
+
+			excludeButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+
+			excludeButton.setIcon(new ThemeResource("images/icons/actions/delete.png"));
+			horizontalLayout.addComponent(activateSuggestion);
+			horizontalLayout.addComponent(excludeButton);
+			suggestions.addComponent(horizontalLayout);
 		}
-		suggestions.setVisible(true);
+		if (foundSuggestions.size() > 0) {
+			suggestions.setVisible(true);
+		} else {
+			suggestions.setVisible(false);
+		}
 	}
 
 	private Component buildSortComponent() {
@@ -292,7 +404,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
 		sortBy.addStyleName(SORT_TITLE_STYLE);
 
-		final ComboBox criterion = new ComboBox();
+		final ComboBox criterion = new BaseComboBox();
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		criterion.setWidth("100%");
 
@@ -334,7 +446,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return layout;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addFacetComponents(ComponentContainer container, SearchResultVODataProvider dataProvider) {
 		container.addComponent(buildSortComponent());
 
@@ -364,7 +475,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		toggle.addStyleName(ValoTheme.BUTTON_TINY);
 		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 
-		HorizontalLayout captionBar = new HorizontalLayout(deselect, title, toggle);
+		I18NHorizontalLayout captionBar = new I18NHorizontalLayout(deselect, title, toggle);
 		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
 		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
@@ -375,7 +486,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
 
-		final Table table = new Table();
+		final Table table = new BaseTable("facet-" + facet.getId());
 		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		table.addContainerProperty("value", Component.class, null);
 		table.setWidth("100%");
@@ -383,6 +494,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<FacetValueVO> values = facet.getValues();
 		for (final FacetValueVO facetValue : values) {
 			final CheckBox checkBox = new CheckBox();
+			checkBox.addStyleName("facet-value");
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
@@ -398,7 +510,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			});
 
 			String caption = facetValue.getLabel();
-			caption += " (" + facetValue.getCount() + ")";
+			if (isRightToLeft()) {
+				caption = "(" + facetValue.getCount() + ") " + caption;
+			} else {
+				caption += " (" + facetValue.getCount() + ")";
+			}
 			checkBox.setCaption(caption);
 
 			@SuppressWarnings("unchecked")
@@ -466,6 +582,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		selectDeselectAllButton.setVisible(presenter.isAllowDownloadZip());
+
 		return selectDeselectAllButton;
 	}
 
@@ -516,7 +633,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				};
 
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 				horizontalLayout.setSpacing(true);
 				horizontalLayout.addComponents(saveSearchButton, cancelButton);
 
@@ -535,10 +652,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private Component buildCapsuleIU(List<Capsule> capsules) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
-		for(Capsule capsule : capsules) {
+		for (Capsule capsule : capsules) {
 			Panel panel = new Panel();
 			panel.setSizeFull();
-			Label label = new Label(capsule.getHTML(),  ContentMode.HTML);
+			Label label = new Label(capsule.getHTML(), ContentMode.HTML);
 			panel.setContent(label);
 			panel.setWidth("100%");
 			panel.setCaption(capsule.getTitle());

@@ -1,11 +1,12 @@
 package com.constellio.model.frameworks.validation;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class ValidationError {
+public class ValidationError implements Serializable {
 
 	private final Class<?> validatorClass;
 	private final String errorCode;

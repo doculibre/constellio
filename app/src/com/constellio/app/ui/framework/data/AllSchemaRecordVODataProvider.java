@@ -6,10 +6,12 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -32,6 +34,12 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 		return schemaTypes.getSchema(schemaCode);
 	}
 
+	private static MetadataSchemaType getSchemaType(String schemaTypeCode, String collection, ModelLayerFactory modelLayerFactory) {
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collection);
+		return schemaTypes.getSchemaType(schemaTypeCode);
+	}
+
 	private static MetadataSchemaVO getSchemaVO(String schemaCode, String collection) {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -44,11 +52,23 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 		MetadataSchemaVO schemaVO = getSchema();
 		String schemaCode = schemaVO.getCode();
 		String collection = schemaVO.getCollection();
-		MetadataSchema schema = getSchema(schemaCode, collection, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll()).filteredByStatus(StatusFilter.ACTIVES);
+		if (schemaCode.endsWith("_default")) {
+			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
+			MetadataSchemaType schemaType = getSchemaType(schemaTypeCode, collection, modelLayerFactory);
+			query.setCondition(LogicalSearchQueryOperators.from(schemaType).returnAll());		
+		} else {
+			MetadataSchema schema = getSchema(schemaCode, collection, modelLayerFactory);
+			query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll());		
+		}
+		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);
 		return query;
+	}
+
+	@Override
+	protected boolean isSearchCache() {
+		return true;
 	}
 
 }

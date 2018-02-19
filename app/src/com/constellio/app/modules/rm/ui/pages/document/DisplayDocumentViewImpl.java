@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -260,7 +261,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return $("DisplayDocumentView.deleteSelectedVersionsConfirmation");
 			}
 		};
-		deleteDocumentButton.setEnabled(deleteDocumentButton.isEnabled());
+		deleteSelectedVersions.setEnabled(deleteSelectedVersions.isEnabled());
 		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
 		tabLayout.addComponents(deleteSelectedVersions, versionTable);
 		return tabLayout;
@@ -625,6 +626,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			actionMenuButtons.add(startWorkflowButton);
 		}
 		actionMenuButtons.add(reportGeneratorButton);
+
+		//Extension
+		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
+
 		return actionMenuButtons;
 	}
 
@@ -633,18 +638,24 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
 				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
 				BaseButton saveButton;
 				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-						getWindow().close();
+						try {
+							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+							getWindow().close();
+						} catch (Exception e){
+							showErrorMessage(MessageUtils.toMessage(e));
+						}
 					}
 				});
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -678,6 +689,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponents(newCartLayout,tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
 		};

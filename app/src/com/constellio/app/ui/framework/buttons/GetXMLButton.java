@@ -2,9 +2,8 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
-import com.constellio.app.modules.rm.services.reports.ReportXMLGeneratorV2;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,11 +27,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GetXMLButton extends WindowButton {
@@ -56,12 +53,12 @@ public class GetXMLButton extends WindowButton {
     private List<String> ids;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private ReportXMLGeneratorV2 reportXmlGenerator;
+    private LabelXmlGenerator reportXmlGenerator;
     private BaseView view;
     private String currentSchema;
     private RecordServices recordServices;
 
-    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view) {
+    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view, boolean isForTest) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
@@ -69,7 +66,10 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.reportXmlGenerator = new ReportXMLGeneratorV2(collection, factory);
+        this.reportXmlGenerator = new LabelXmlGenerator(collection, factory);
+        if(isForTest) {
+            reportXmlGenerator.setXmlGeneratorParameters(new XmlReportGeneratorParameters().markAsTestXml());
+        }
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
         this.recordServices = this.model.newRecordServices();
@@ -102,7 +102,9 @@ public class GetXMLButton extends WindowButton {
                         getWindow().setContent(newLayout);
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     view.showErrorMessage(e.getMessage());
+                    e.printStackTrace();
                 }
             }
 

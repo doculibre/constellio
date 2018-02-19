@@ -29,6 +29,8 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 	private MultilingualTextField labelsField;
 	@PropertyId("advancedSearch")
 	private CheckBox advancedSearch;
+	@PropertyId("simpleSearch")
+	private CheckBox simpleSearch;
 
 	public AddEditSchemaViewImpl() {
 		this.presenter = new AddEditSchemaPresenter(this);
@@ -68,8 +70,9 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 		labelsField.setRequired(true);
 
 		advancedSearch = new CheckBox($("AddEditSchemaView.advancedSearch"));
+		simpleSearch = new CheckBox($("AddEditSchemaView.simpleSearch"));
 
-		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelsField, advancedSearch) {
+		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelsField, advancedSearch, simpleSearch) {
 			@Override
 			protected void saveButtonClick(FormMetadataSchemaVO schemaVO)
 					throws ValidationException {

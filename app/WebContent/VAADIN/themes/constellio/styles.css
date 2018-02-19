@@ -12741,14 +12741,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-table-cell-content-error {
 	color: #FFFFFF;
 	background-color: #F5A9A9;
-	background: #ff3019;
-	background: -moz-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ff3019), color-stop(100%, #cf0404));
-	background: -webkit-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -o-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: -ms-linear-gradient(top, #ff3019 0%, #cf0404 100%);
-	background: linear, to bottom, #ff3019 0%, #cf0404 100%;
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#cf0404',GradientType=0 );
+	background: #F5A9A9;
+	background: -moz-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #F5A9A9), color-stop(100%, #d65353));
+	background: -webkit-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -o-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: -ms-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
+	background: linear, to bottom, #F5A9A9 0%, #d65353 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 );
 }
 
 .constellio .v-table-cell-content-disabled {
@@ -12760,6 +12760,18 @@ div.v-layout.v-horizontal.v-widget {
 	background: -ms-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
 	background: linear, to bottom, #eeeeee 0%, #cccccc 100%;
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );
+}
+
+.constellio .v-table-cell-content-highlight {
+	background-color: #ffed7c;
+	background: #ffed7c;
+	background: -moz-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffed7c), color-stop(100%, #ffdd00));
+	background: -webkit-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -o-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: -ms-linear-gradient(top, #ffed7c 0%, #ffdd00 100%);
+	background: linear, to bottom, #ffed7c 0%, #ffdd00 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffed7c', endColorstr='#ffdd00',GradientType=0 );
 }
 
 .constellio .v-slot-disabled-button {
@@ -12837,15 +12849,15 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
-.constellio .lookup-autocomplete-field {
+.constellio .autocomplete {
 	width: 100%;
 }
 
-.constellio .lookup-autocomplete-field .v-filterselect-input {
+.constellio .autocomplete .v-filterselect-input {
 	padding-right: 0px;
 }
 
-.constellio .lookup-autocomplete-field .v-filterselect-button {
+.constellio .autocomplete .v-filterselect-button {
 	display: none;
 }
 
@@ -12948,6 +12960,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13022,20 +13035,21 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 0px;
 }
 
-.constellio .window-button-window .v-scrollable {
+.constellio .base-window .v-scrollable {
 	overflow: hidden;
 }
 
-.constellio .window-button-window .v-scrollable .window-button-window-content {
-	padding-left: 10px;
+.constellio .base-window .v-scrollable .base-window-content {
+	padding-left: 5px;
+	padding-right: 5px;
 	margin-top: 5px;
 }
 
-.constellio .window-button-window .v-scrollable .v-panel .v-scrollable {
+.constellio .base-window .v-scrollable .v-panel .v-scrollable {
 	overflow: auto;
 }
 
-.constellio .window-button-window .v-table .v-scrollable {
+.constellio .base-window .v-table .v-scrollable {
 	overflow: auto;
 }
 
@@ -13130,6 +13144,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13265,6 +13280,42 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-context-menu .v-disabled:hover {
 	color: white;
 	background-color: #414B56;
+}
+
+.constellio .v-context-menu .context-menu-item-rtl {
+	clear: both;
+}
+
+.constellio .v-context-menu .context-menu-item-rtl .v-context-menu-item-basic-icon-container {
+	float: right;
+}
+
+.constellio .v-context-menu .context-menu-item-rtl .v-context-menu-item-basic-text {
+	text-align: right;
+	margin-right: 25px;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
+	clear: both;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption {
+	text-align: right;
+	float: right;
+}
+
+.constellio .v-menubar-submenu.menubar-rtl .v-menubar-menuitem .v-menubar-menuitem-caption .v-icon {
+	float: right;
+	padding-left: 10px;
+}
+
+.constellio .header-action-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem, .constellio .header-collection-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem {
+	direction: rtl;
+}
+
+.constellio .header-action-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem-checked .v-menubar-menuitem-caption:before, .constellio .header-collection-menu.v-menubar-submenu.menubar-rtl .v-menubar-menuitem-checked .v-menubar-menuitem-caption:before {
+	left: inherit;
+	right: 10px;
 }
 
 .constellio .v-table-row-textRed {
@@ -13537,6 +13588,14 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-exclusion {
+	width: auto;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-exclusion:hover {
+	text-decoration: none;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-row-odd {
 	background-color: #fff;
 }
@@ -13614,6 +13673,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -14060,4 +14120,419 @@ div.v-layout.v-horizontal.v-widget {
 	height: 20px;
 	width: 20px;
 	background: transparent;
+}
+
+.constellio .v-filterselect-item-rtl {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-table .v-table-body .v-button {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-table .v-table-body .v-disabled {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon {
+	background-position: 99% center;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon .v-table-cell-wrapper {
+	text-align: right;
+	left: inherit;
+	right: 20px;
+}
+
+.constellio .right-to-left .v-filterselect-button {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-filterselect-input {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-widget {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-textfield {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-radiobutton label {
+	margin-right: 13px;
+}
+
+.constellio .right-to-left .v-radiobutton > input {
+	left: inherit;
+	right: -16px;
+}
+
+.constellio .right-to-left .v-radiobutton > input:checked ~ label:after {
+	left: inherit;
+	right: -13px;
+}
+
+.constellio .right-to-left .v-radiobutton > input ~ label:before, .constellio .right-to-left .v-radiobutton > input ~ label:after {
+	left: inherit;
+	right: -19px;
+}
+
+.constellio .right-to-left .v-checkbox {
+	padding-left: 25px;
+}
+
+.constellio .right-to-left .v-checkbox > label {
+	margin-right: 29px;
+}
+
+.constellio .right-to-left .v-checkbox > input {
+	left: 0.2em;
+}
+
+.constellio .right-to-left .v-checkbox > input ~ label:before, .constellio .right-to-left .v-checkbox > input ~ label:after {
+	left: inherit;
+	right: 0;
+}
+
+.constellio .right-to-left .v-checkbox-small {
+	padding-left: 21px;
+}
+
+.constellio .right-to-left .v-checkbox-small > input {
+	left: 0.2em;
+}
+
+.constellio .right-to-left .v-checkbox-small > input ~ label:before, .constellio .right-to-left .v-checkbox-small > input ~ label:after {
+	left: 0;
+}
+
+.constellio .right-to-left .v-checkbox-large {
+	padding-left: 29px;
+}
+
+.constellio .right-to-left .v-checkbox-large > input {
+	left: 0.2em;
+}
+
+.constellio .right-to-left .v-checkbox-large > input ~ label:before, .constellio .right-to-left .v-checkbox-large > input ~ label:after {
+	left: 0;
+}
+
+.constellio .right-to-left .icon-only {
+	text-align: center;
+}
+
+.constellio .right-to-left .content-footer-wrapper {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer {
+	direction: ltr;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .content-view-wrapper {
+	padding-right: 10px;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .search-result-summary {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-footer {
+	direction: rtl;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .v-slot-license {
+	direction: rtl;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left {
+	text-align: right;
+}
+
+.constellio .right-to-left .i18n-horizontal-layout-right-to-left .v-slot {
+	text-align: right;
+}
+
+.constellio .right-to-left .base-display .display-value {
+	text-align: right;
+}
+
+.constellio .right-to-left .back-button {
+	right: inherit;
+	left: 20px;
+	direction: rtl;
+}
+
+.constellio .right-to-left .back-button img {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs {
+	direction: rtl;
+}
+
+.constellio .right-to-left .xbreadcrumbs LI {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI .v-button {
+	transform: rotate(180deg);
+}
+
+.constellio .right-to-left .xbreadcrumbs LI .v-button .v-icon {
+	float: right;
+	padding-left: 8px;
+}
+
+.constellio .right-to-left .v-caption {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-tabsheet {
+	text-align: right;
+}
+
+.constellio .right-to-left .v-tabsheet .v-tabsheet-tabs {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-tree {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-tree .v-tree-node-children {
+	padding-left: 0px;
+	padding-right: 19px;
+}
+
+.constellio .right-to-left .v-tree-node-expanded > .v-tree-node-caption > div:before {
+	content: "\f0da";
+}
+
+.constellio .right-to-left .v-tree-node-caption > div:before {
+	content: "\f0d9";
+}
+
+.constellio .right-to-left .v-tree-node-caption {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-title {
+	direction: ltr;
+	padding-left: 0px;
+	padding-right: 13px;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box label {
+	direction: ltr;
+}
+
+.constellio .right-to-left .header .header-search {
+	border-right: 1px solid #c5c5c5;
+	border-left: none;
+}
+
+.constellio .right-to-left .header .header-search:focus {
+	border-left: none;
+	border-right: 1px solid #c5c5c5;
+}
+
+.constellio .right-to-left .header .header-show-advanced-search-button {
+	text-align: center;
+	border-right: none;
+}
+
+.constellio .right-to-left .header .header-show-advanced-search-button .v-widget {
+	text-align: inherit;
+}
+
+.constellio .right-to-left .header .header-selection-button {
+	right: inherit;
+	left: 150px;
+}
+
+.constellio .right-to-left .header .header-collection-menu {
+	right: inherit;
+	left: 80px;
+}
+
+.constellio .right-to-left .header .header-action-menu {
+	right: inherit;
+	left: 10px;
+}
+
+.constellio .right-to-left .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+	text-align: right;
+}
+
+.constellio .right-to-left .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
+	padding-left: inherit;
+	padding-right: 5px;
+}
+
+.constellio .v-window .popupContent .action-menu {
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-window .popupContent .action-menu .v-button {
+	text-align: right;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper {
+	padding-right: 10px;
+	padding-left: 260px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	padding-right: inherit;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: inherit;
+	padding-left: 26px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	margin-right: inherit;
+	margin-left: 300px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: inherit;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment .list-add-remove-comment {
+	padding-left: inherit;
+	padding-right: 0px;
+}
+
+.constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: inherit;
+	padding-left: 0px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header {
+	padding-right: inherit;
+	padding-left: 225px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .header .header-search {
+	margin-left: inherit;
+	margin-right: 5px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .action-menu {
+	direction: rtl;
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .action-menu .v-button {
+	text-align: right;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+	padding-right: inherit;
+	padding-left: 26px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+	margin-right: inherit;
+	margin-left: 300px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-ui[width-range~="1101px-"].right-to-left .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+	padding-right: inherit;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-suggestions-summary-results {
+	padding-right: inherit;
+	padding-left: 320px;
+}
+
+.constellio .v-ui[width-range~="1101px-"].right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .header {
+	padding-right: inherit;
+	padding-left: 95px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu-wrapper .base-display .base-display-main-layout {
+	padding-right: inherit;
+	padding-left: 260px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .action-menu {
+	right: inherit;
+	left: 20px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-suggestions-summary-results {
+	padding-right: inherit;
+	padding-left: 320px;
+}
+
+.constellio .v-ui[width-range~="801-1100px"].right-to-left .v-slot-search-result-facets {
+	float: left;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-selection-button {
+	right: inherit;
+	left: 290px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-collection-menu {
+	right: inherit;
+	left: 220px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .header .header-action-menu {
+	right: inherit;
+	left: 150px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-caption {
+	float: right;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .base-display .v-slot-display-value {
+	float: right;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .back-button {
+	right: inherit;
+	left: 0px;
+}
+
+.constellio .v-ui[width-range~="0-800px"].right-to-left .search-button:before {
+	margin-left: inherit;
+	margin-right: -8px;
 }

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.constellio.data.utils.PropertyFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -159,6 +160,10 @@ public class AppManagementService {
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 			updatePluginsWithThoseInWar(tempFolder);
+
+			currentStep = "Selecting SMB Library";
+			selectSmbLibrary(tempFolder);
+			LOGGER.info(currentStep);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -637,6 +642,28 @@ public class AppManagementService {
 
 	public void pointToVersionDuringApplicationStartup(ConstellioVersionInfo constellioVersionInfo) {
 		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
+	}
+
+	private void selectSmbLibrary(File newWebAppFolder) {
+		Map<String, String> configs = PropertyFileUtils.loadKeyValues(foldersLocator.getConstellioProperties());
+		if ("true".equals(configs.get("smb.novell"))) {
+			LOGGER.info("Replacing SMB library for Novell");
+			File libFolder = foldersLocator.getLibFolder(newWebAppFolder);
+			try {
+				File novellSmbLib = new File(libFolder, "jcifs_novell.jar.disabled");
+				LOGGER.info("Enabling : " + novellSmbLib);
+				if (novellSmbLib.exists()) {
+					FileUtils.moveFile(novellSmbLib, new File(libFolder, "jcifs_novell.jar"));
+				}
+				File defaultSmbLib = new File(libFolder, "jcifs_gcm-322.jar");
+				LOGGER.info("Disabling : " + defaultSmbLib);
+				if (defaultSmbLib.exists()) {
+					FileUtils.moveFile(defaultSmbLib, new File(libFolder, "jcifs_gcm-322.jar.disabled"));
+				}
+			} catch (IOException ioe) {
+				LOGGER.error("Could not install Novell/SMB libraries in the lib folder.", ioe);
+			}
+		}
 	}
 
 	private class WebAppFileNameFilter implements FilenameFilter {

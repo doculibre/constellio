@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -23,7 +24,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class  AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<AddEditPrintableReportView> {
     private transient MetadataSchemasManager metadataSchemasManager;
     protected RecordVO container;
-    private PrintableReportListPossibleType currentType;
+    private String currentType;
 
     public AddEditPrintableReportPresenter(AddEditPrintableReportView view) {
         super(view);
@@ -66,15 +67,15 @@ public class  AddEditPrintableReportPresenter extends SingleSchemaBasePresenter<
         return new RecordToVOBuilder().build(printableReportRecord,  RecordVO.VIEW_MODE.FORM, view.getSessionContext());
     }
 
-    public PrintableReportListPossibleType getCurrentType() {
-        return currentType;
-    }
-
-    public void setCurrentType(PrintableReportListPossibleType type) {
-        this.currentType = type;
+    public void setCurrentType(String schemaType) {
+        this.currentType = schemaType;
     }
 
     public List<MetadataSchema> getSchemasForCurrentType() {
-        return currentType != null ? modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(currentType.getSchemaType()).getAllSchemas() : new ArrayList<MetadataSchema>();
+        return currentType != null ? modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(currentType).getAllSchemas() : new ArrayList<MetadataSchema>();
+    }
+
+    public String getLabelForSchemaType(String schemaType) {
+        return metadataSchemasManager.getSchemaTypes(view.getCollection()).getSchemaType(schemaType).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
     }
 }

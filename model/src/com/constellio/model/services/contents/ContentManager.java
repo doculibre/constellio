@@ -95,6 +95,8 @@ public class ContentManager implements StatefulService {
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
+	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
+
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManager.class);
@@ -171,7 +173,7 @@ public class ContentManager implements StatefulService {
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
@@ -477,7 +479,7 @@ public class ContentManager implements StatefulService {
 
 			RecordDTO recordDTO = new RecordDTO(id, fields);
 			try {
-				recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)));
+				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {
 				throw new ImpossibleRuntimeException(e);
 			}
@@ -527,6 +529,7 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
+							transaction.setRecordFlushing(RecordsFlushing.LATER());
 							recordServices.execute(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
@@ -666,6 +669,7 @@ public class ContentManager implements StatefulService {
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
+					hashToDelete.add(hash + ".preview");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);

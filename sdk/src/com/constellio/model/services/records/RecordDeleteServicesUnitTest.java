@@ -13,10 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -161,17 +158,17 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(type2.hasSecurity()).thenReturn(true);
 
 		when(schema1.getMetadatas()).thenReturn(metadataList1);
-		when(metadataList1.iterator()).thenReturn(new Iterator<Metadata>() {
-			@Override
-			public boolean hasNext() {
-				return false;
-			}
-
-			@Override
-			public Metadata next() {
-				return null;
-			}
-		});
+//		when(metadataList1.iterator()).thenReturn(new Iterator<Metadata>() {
+		//			@Override
+		//			public boolean hasNext() {
+		//				return false;
+		//			}
+		//
+		//			@Override
+		//			public Metadata next() {
+		//				return null;
+		//			}
+		//		});
 
 		when(firstRecord.getId()).thenReturn("firstRecord");
 		when(secondRecord.getId()).thenReturn("secondRecord");
@@ -382,167 +379,167 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		}
 		verify(recordServices, never()).execute(any(Transaction.class));
 	}
-
-	@Test
-	public void givenNoDeleteAccessOnAllRecordsOfHierarchyThenNotRestorable()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
-
-		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenDeleteAccessOnAllRecordsOfHierarchyThenRestorable()
-			throws Exception {
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-
-		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
-
-	}
-
-	@Test
-	public void givenNoDeleteAccessOnAllRecordsOfHierarchyThenNotLogicallyDeletable()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
-
-		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenDeleteAccessOnAllRecordsOfHierarchyThenLogicallyDeletable()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(true);
-
-		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isTrue();
-
-	}
-
-	@Test
-	public void givenRecordNotLogicallyDeletedThenNotPysicallyDeletable()
-			throws Exception {
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
-		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
-
-		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenNoDeleteAccessOnAllLogicallyDeletedRecordsOfHierarchyThenNotPysicallyDeletable()
-			throws Exception {
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(false);
-		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
-		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
-
-		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenReferencesToRecordInHierarchyThenNotPhysicallyDeletable()
-			throws Exception {
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
-		doReturn(true).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
-
-		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenNotAllRecordsInHierarchyLogicallyDeletedThenCannotPhysicallyDeleteIt()
-			throws Exception {
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		doReturn(false).when(recordDeleteServices).containsNoActiveRecords(theRecord);
-		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
-
-		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenNoDeleteAccessOnAllPrincipalConceptsAndRecordsThenPrincipalConceptNotLogicallyDeletableIncludingHierarchy()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, true,
-				metadataSchemasManager)).thenReturn(false);
-
-		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableIncludingContent(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenDeleteAccessOnAllPrincipalConceptsAndRecordsThenPrincipalConceptLogicallyDeletableIncludingHierarchy()
-			throws Exception {
-		when(authorizationsServices
-				.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, true, metadataSchemasManager)).thenReturn(true);
-
-		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableIncludingContent(theRecord, user)).isTrue();
-
-	}
-
-	@Test
-	public void givenNoDeleteAccessOnAllPrincipalConceptsButNotOnRecordsThenPrincipalConceptNotLogicallyDeletableExcludingHierarchy()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, false,
-				metadataSchemasManager)).thenReturn(false);
-
-		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableExcludingContent(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenDeleteAccessOnAllPrincipalConceptsButNotOnRecordsThenPrincipalConceptLogicallyDeletableExcludingHierarchy()
-			throws Exception {
-		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, false,
-				metadataSchemasManager)).thenReturn(true);
-
-		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableExcludingContent(theRecord, user)).isTrue();
-
-	}
-
-	@Test
-	public void givenLogicallyDeletedRecordWithoutParentThenRestorable()
-			throws Exception {
-
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(theRecord.getParentId()).thenReturn(null);
-
-		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
-	}
-
-	@Test
-	public void givenLogicallyDeletedRecordWithActiveParentThenRestorable()
-			throws Exception {
-
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(theRecord.getParentId()).thenReturn("zeParent");
-		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
-		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
-
-		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
-	}
-
-	@Test
-	public void givenLogicallyDeletedRecordWithLogicallyDeletedParentThenNotRestorable()
-			throws Exception {
-
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(theRecord.getParentId()).thenReturn("zeParent");
-		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
-		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-
-		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
-	}
+//
+//	@Test
+//	public void givenNoDeleteAccessOnAllRecordsOfHierarchyThenNotRestorable()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
+//
+//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenDeleteAccessOnAllRecordsOfHierarchyThenRestorable()
+//			throws Exception {
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//
+//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+//
+//	}
+//
+//	@Test
+//	public void givenNoDeleteAccessOnAllRecordsOfHierarchyThenNotLogicallyDeletable()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
+//
+//		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenDeleteAccessOnAllRecordsOfHierarchyThenLogicallyDeletable()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//
+//		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isTrue();
+//
+//	}
+//
+//	@Test
+//	public void givenRecordNotLogicallyDeletedThenNotPysicallyDeletable()
+//			throws Exception {
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
+//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
+//
+//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenNoDeleteAccessOnAllLogicallyDeletedRecordsOfHierarchyThenNotPysicallyDeletable()
+//			throws Exception {
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(false);
+//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
+//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
+//
+//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenReferencesToRecordInHierarchyThenNotPhysicallyDeletable()
+//			throws Exception {
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
+//		doReturn(true).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
+//
+//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenNotAllRecordsInHierarchyLogicallyDeletedThenCannotPhysicallyDeleteIt()
+//			throws Exception {
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		doReturn(false).when(recordDeleteServices).containsNoActiveRecords(theRecord);
+//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
+//
+//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenNoDeleteAccessOnAllPrincipalConceptsAndRecordsThenPrincipalConceptNotLogicallyDeletableIncludingHierarchy()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, true,
+//				metadataSchemasManager)).thenReturn(false);
+//
+//		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableIncludingContent(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenDeleteAccessOnAllPrincipalConceptsAndRecordsThenPrincipalConceptLogicallyDeletableIncludingHierarchy()
+//			throws Exception {
+//		when(authorizationsServices
+//				.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, true, metadataSchemasManager)).thenReturn(true);
+//
+//		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableIncludingContent(theRecord, user)).isTrue();
+//
+//	}
+//
+//	@Test
+//	public void givenNoDeleteAccessOnAllPrincipalConceptsButNotOnRecordsThenPrincipalConceptNotLogicallyDeletableExcludingHierarchy()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, false,
+//				metadataSchemasManager)).thenReturn(false);
+//
+//		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableExcludingContent(theRecord, user)).isFalse();
+//
+//	}
+//
+//	@Test
+//	public void givenDeleteAccessOnAllPrincipalConceptsButNotOnRecordsThenPrincipalConceptLogicallyDeletableExcludingHierarchy()
+//			throws Exception {
+//		when(authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(user, theRecord, false,
+//				metadataSchemasManager)).thenReturn(true);
+//
+//		assertThat(recordDeleteServices.isPrincipalConceptLogicallyDeletableExcludingContent(theRecord, user)).isTrue();
+//
+//	}
+//
+//	@Test
+//	public void givenLogicallyDeletedRecordWithoutParentThenRestorable()
+//			throws Exception {
+//
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(theRecord.getParentId()).thenReturn(null);
+//
+//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+//	}
+//
+//	@Test
+//	public void givenLogicallyDeletedRecordWithActiveParentThenRestorable()
+//			throws Exception {
+//
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(theRecord.getParentId()).thenReturn("zeParent");
+//		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
+//		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
+//
+//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+//	}
+//
+//	@Test
+//	public void givenLogicallyDeletedRecordWithLogicallyDeletedParentThenNotRestorable()
+//			throws Exception {
+//
+//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
+//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//		when(theRecord.getParentId()).thenReturn("zeParent");
+//		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
+//		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
+//
+//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
+//	}
 
 	@Test(expected = RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection.class)
 	public void whenCallIsLogicallyDeleteWithUserAndRecordOfDifferentCollectionsThenThrowException() {

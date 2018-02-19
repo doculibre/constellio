@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -37,12 +38,13 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Window;
 
-public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
+public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
 	
 	private boolean visible = true;
 	private RecordVO recordVO;
@@ -262,7 +264,8 @@ public class DocumentMenuBarImpl extends MenuBar implements DocumentMenuBar {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
+							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
 					button.setRecordVoList(presenter.getDocumentVO());
 					button.click();
 				}

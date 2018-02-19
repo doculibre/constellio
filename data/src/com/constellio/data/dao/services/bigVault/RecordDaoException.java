@@ -17,8 +17,8 @@ public class RecordDaoException extends Exception {
 
 	public static class NoSuchRecordWithId extends RecordDaoException {
 
-		public NoSuchRecordWithId(String id) {
-			super("No such record with id '" + id + "'");
+		public NoSuchRecordWithId(String id, String dataStore) {
+			super("No such record with id '" + id + "' in dataStore '" + dataStore + "'");
 		}
 
 	}

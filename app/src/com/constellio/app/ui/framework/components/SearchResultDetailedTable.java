@@ -42,7 +42,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes) {
-		super(container);
+		super("SearchResultDetailedTable", container);
 
 		listeners = new HashSet<>();
 		selected = new HashSet<>();

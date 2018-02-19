@@ -1,21 +1,13 @@
 package com.constellio.app.utils;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import net.sf.jasperreports.engine.JRException;
 
 import org.apache.commons.io.FileUtils;
@@ -24,17 +16,24 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
@@ -47,9 +46,9 @@ public class ReportGeneratorUtils {
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
 					numberOfCopies);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
-			XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(factory, collection,
+			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
 					xmlGeneratorParameters);
-			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
+			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager
 					.getContentInputStream(selectedTemplate.getJasperFile().getCurrentVersion().getHash(),
 							"ReportGeneratorButtonReport.GeneratorButtonForm#saveButtonClick");
@@ -58,7 +57,7 @@ public class ReportGeneratorUtils {
 			String title =
 					selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
 							+ ".pdf";
-			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile, title);
+			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile);
 			VerticalLayout newLayout = new VerticalLayout();
 			newLayout.addComponents(new LabelViewer(generatedJasperFile, title,
 					factory.getModelLayerFactory().getIOServicesFactory().newIOServices()));
@@ -85,7 +84,7 @@ public class ReportGeneratorUtils {
 				LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
 						.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_SCHEMA)).isEqualTo(recordSchema);
 				LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
-						.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.toString());
+						.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(currentSchema.getSchemaType());
 				LogicalSearchCondition schemaCondition = from(printableReportSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME);
 				List<Record> records = factory.getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
 						from(printableReportSchemaType).whereAllConditions(schemaCondition, conditionCustomSchema, conditionSchemaType)));
