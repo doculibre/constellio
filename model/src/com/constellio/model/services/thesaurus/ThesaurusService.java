@@ -20,6 +20,7 @@
 package com.constellio.model.services.thesaurus;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.util.NamedList;
 
 import java.io.Serializable;
 import java.util.*;
@@ -29,6 +30,9 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
+
+	public static final String DESAMBIUGATION = "desambiguation";
+	public static final String SUGGESTION = "suggestion";
 
 	private String rdfAbout;
 	private String dcTitle;
@@ -261,4 +265,13 @@ public class ThesaurusService implements Serializable {
 		return allLabels;
 	}
 
+	public NamedList getSkosConcepts(String input) {
+		NamedList namedList = new NamedList();
+		namedList.add(DESAMBIUGATION, "tata");
+		namedList.add(DESAMBIUGATION, "tttt");
+		namedList.add(SUGGESTION, "jojo");
+		namedList.add(SUGGESTION, "jjjj");
+
+		return namedList;
+	}
 }

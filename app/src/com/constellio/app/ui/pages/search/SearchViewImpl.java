@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -47,25 +37,20 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
@@ -104,14 +89,70 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.addComponent(buildThesaurusDesambiguation());
 		layout.addComponent(buildSearchUI());
 		layout.addComponent(buildResultsUI());
+		layout.addComponent(buildThesaurusSuggestion());
 		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
+	}
+
+	public Component buildThesaurusDesambiguation() {
+		List<String> desambiguationList = presenter.getDesambiguation();
+
+		VerticalLayout verticalLayout = new VerticalLayout();
+		if(desambiguationList != null && desambiguationList.size() > 0) {
+			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.desambiguation.title" ) +  "</h3>");
+			title.setContentMode(ContentMode.HTML);
+			verticalLayout.addComponent(title);
+
+			for(String entry : desambiguationList) {
+				Button button = new Button();
+				button.setCaption(entry);
+				button.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						navigateTo().simpleSearch(event.getButton().getCaption());
+					}
+				});
+				button.addStyleName(ValoTheme.BUTTON_LINK);
+				verticalLayout.addComponent(button);
+			}
+		}
+
+		return verticalLayout;
+	}
+
+	public Component buildThesaurusSuggestion() {
+		List<String> suggestionList = presenter.getSuggestion();
+
+		VerticalLayout verticalLayout = new VerticalLayout();
+		if(suggestionList != null && suggestionList.size() > 0) {
+
+			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.suggestion.title" ) +  "</h3>");
+			title.setContentMode(ContentMode.HTML);
+			verticalLayout.addComponent(title);
+
+			for(String entry : suggestionList) {
+				Button button = new Button();
+				button.setCaption(entry);
+				button.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						event.getButton().getCaption();
+					}
+				});
+				button.addStyleName(ValoTheme.BUTTON_LINK);
+				verticalLayout.addComponent(button);
+			}
+		}
+
+
+		return verticalLayout;
 	}
 
 	@Override
