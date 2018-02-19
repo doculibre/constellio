@@ -14055,6 +14055,10 @@ div.v-layout.v-horizontal.v-widget {
 	background: transparent;
 }
 
+.constellio .v-filterselect-rtl .v-filterselect-input {
+	direction: rtl;
+}
+
 .constellio .v-filterselect-item-rtl {
 	direction: rtl;
 }
@@ -14075,6 +14079,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: right;
 	left: inherit;
 	right: 20px;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon .v-table-cell-wrapper {
+	right: 30px;
 }
 
 .constellio .right-to-left .v-filterselect-button {
@@ -14127,6 +14135,11 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .right-to-left .v-checkbox > input ~ label:before, .constellio .right-to-left .v-checkbox > input ~ label:after {
 	left: inherit;
 	right: 0;
+}
+
+.constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:before, .constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:after {
+	left: 0;
+	right: inherit;
 }
 
 .constellio .right-to-left .v-checkbox-small {

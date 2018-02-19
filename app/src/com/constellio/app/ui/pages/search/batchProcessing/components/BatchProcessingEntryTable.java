@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.search.batchProcessing.components;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
@@ -28,7 +29,7 @@ public class BatchProcessingEntryTable extends CustomField<List<String>> {
 	protected Component initContent() {
 		BeanItemContainer<BatchProcessingEntry> entries = new BeanItemContainer<>(
 				BatchProcessingEntry.class, presenter.getEntries());
-		table = new TableComponent(entries);
+		table = new TableComponent(getClass().getName(), entries);
 		table.setWidth("100%");
 		return table;
 	}
@@ -50,7 +51,8 @@ public class BatchProcessingEntryTable extends CustomField<List<String>> {
 		List<BatchProcessingEntry> getEntries();
 	}
 
-	private static class TableComponent extends Table implements ColumnGenerator {
+	private static class TableComponent extends BaseTable implements ColumnGenerator {
+		
 		public static final String LABEL = "label";
 		public static final String TYPE = "type";
 		public static final String INDEX = "index";
@@ -58,8 +60,8 @@ public class BatchProcessingEntryTable extends CustomField<List<String>> {
 		public static final String MAPPING = "mapping";
 		public static final String DEFAULT = "default";
 
-		public TableComponent(BeanItemContainer<BatchProcessingEntry> entries) {
-			super($("BatchProcessingEntryTable.caption", entries.size()), entries);
+		public TableComponent(String tableId, BeanItemContainer<BatchProcessingEntry> entries) {
+			super(tableId, $("BatchProcessingEntryTable.caption", entries.size()), entries);
 
 			setColumnHeader(LABEL, $("BatchProcessingEntryTable.label"));
 

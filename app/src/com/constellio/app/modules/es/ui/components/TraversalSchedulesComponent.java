@@ -11,6 +11,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -155,7 +156,7 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 		}
 
 		private Component buildOperatorField(final TraversalSchedule traversalSchedule) {
-			ComboBox comboBox = new ComboBox();
+			ComboBox comboBox = new BaseComboBox();
 			comboBox.setPropertyDataSource(new NestedMethodProperty<Integer>(traversalSchedule, WEEK_DAY_FIELD));
 			comboBox.addItem(DateTimeConstants.MONDAY);
 			comboBox.setItemCaption(DateTimeConstants.MONDAY, $("TraversalSchedule.monday"));
@@ -185,7 +186,7 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 		}
 
 		private Component buildOperatorField(final TraversalSchedule traversalSchedule, String columnId) {
-			ComboBox comboBox = new ComboBox();
+			ComboBox comboBox = new BaseComboBox();
 			for (int h = 0; h < 24; h++) {
 				comboBox.addItem(h + ":00");
 				comboBox.addItem(h + ":30");

@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
@@ -128,7 +129,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildMetadataField(final Criterion criterion, final Table source) {
-			ComboBox comboBox = new ComboBox();
+			ComboBox comboBox = new BaseComboBox();
 			comboBox.addStyleName("advanced-search-form-metadata");
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
@@ -327,7 +328,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildBooleanValueComponent(final Criterion criterion) {
-			final ComboBox operator = new ComboBox();
+			final ComboBox operator = new BaseComboBox();
 			operator.addItem(SearchOperator.IS_TRUE);
 			operator.setItemCaption(SearchOperator.IS_TRUE, $("AdvancedSearchView.isTrue"));
 			operator.addItem(SearchOperator.IS_FALSE);
@@ -346,7 +347,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private ComboBox buildIsEmptyIsNotEmptyComponent(final Criterion criterion) {
-			final ComboBox operator = new ComboBox();
+			final ComboBox operator = new BaseComboBox();
 			addIsEmptyIsNotEmpty(criterion, operator);
 			operator.setWidth("100px");
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
@@ -491,7 +492,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 			Object defaultValue = criterion.getSearchOperator() != null ? criterion.getSearchOperator() : SearchOperator.EQUALS;
 
-			final ComboBox operator = new ComboBox();
+			final ComboBox operator = new BaseComboBox();
 			operator.setWidth("150px");
 			operator.addItem(SearchOperator.EQUALS);
 			operator.setItemCaption(SearchOperator.EQUALS, "=");
@@ -585,7 +586,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			final ComboBox measuringTimeField = new ComboBox();
+			final ComboBox measuringTimeField = new BaseComboBox();
 			measuringTimeField.setWidth("150px");
 			measuringTimeField.addItem(MeasuringUnitTime.DAYS);
 			measuringTimeField.setItemCaption(MeasuringUnitTime.DAYS, $("MeasuringUnitTime.D"));
@@ -618,7 +619,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 						criterion.getRelativeCriteria().getRelativeSearchOperator() :
 						RelativeSearchOperator.EQUALS;
 			}
-			final ComboBox relativeSearchOperatorCombo = new ComboBox();
+			final ComboBox relativeSearchOperatorCombo = new BaseComboBox();
 			relativeSearchOperatorCombo.setWidth("150px");
 			relativeSearchOperatorCombo.addItem(RelativeSearchOperator.EQUALS);
 			relativeSearchOperatorCombo.setItemCaption(RelativeSearchOperator.EQUALS,
@@ -705,7 +706,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildOperatorField(final Criterion criterion) {
-			ComboBox comboBox = new ComboBox();
+			ComboBox comboBox = new BaseComboBox();
 			comboBox.addItem(BooleanOperator.AND);
 			comboBox.setItemCaption(BooleanOperator.AND, $("AdvancedSearchView.AND"));
 			comboBox.addItem(BooleanOperator.OR);

@@ -39,6 +39,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	}
 
 	public SelectionTableAdapter(Table table) {
+		addStyleName("selection-table");
 		setSpacing(true);
 		setTable(table);
 	}
@@ -147,18 +148,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			table.setColumnWidth(SELECT_PROPERTY_ID, 44);
 			table.setColumnCollapsible(SELECT_PROPERTY_ID, false);
 
-			List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
-			int checkboxColumnIndex;
-			if (isRightToLeft()) {
-				checkboxColumnIndex = 0;
-			} else {
-				checkboxColumnIndex = newVisibleColumns.size();
+			if (!oldVisibleColumns.contains(SELECT_PROPERTY_ID)) {
+				List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
+				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
+				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 			}
-			
-			if (!newVisibleColumns.contains(SELECT_PROPERTY_ID)) {
-				newVisibleColumns.add(checkboxColumnIndex, SELECT_PROPERTY_ID);
-			}
-			table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 
 			setWidth("100%");
 			addComponents(toggleButton, table);

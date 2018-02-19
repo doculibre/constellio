@@ -13,6 +13,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
@@ -75,7 +76,7 @@ public class BagInfoSIPForm extends BaseViewImpl {
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         List<BagInfoVO> bagInfoVOList = presenter.getAllBagInfo();
         final VerticalLayout mainLayout = new VerticalLayout();
-        ComboBox cb = new ComboBox($("SIPButton.predefinedBagInfo"));
+        ComboBox cb = new BaseComboBox($("SIPButton.predefinedBagInfo"));
         for (BagInfoVO bagInfoVO : bagInfoVOList) {
             cb.addItem(bagInfoVO);
             cb.setItemCaption(bagInfoVO, bagInfoVO.getTitle());

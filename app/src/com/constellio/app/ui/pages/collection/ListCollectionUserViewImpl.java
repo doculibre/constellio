@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -106,7 +107,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		lookupUser = new UserCredentialLookup(presenter.getUserLookupProvider());
 		lookupUser.addStyleName(USER_LOOKUP);
 
-		comboboxUserRoles = new ComboBox();
+		comboboxUserRoles = new BaseComboBox();
 		comboboxUserRoles.setNullSelectionAllowed(false);
 		comboboxUserRoles.addStyleName(ROLES_USERS_COMBO);
 		for (RoleVO roleVO : presenter.getRoles()) {
@@ -176,7 +177,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 			}
 		});
 
-		comboboxGroupRoles = new ComboBox();
+		comboboxGroupRoles = new BaseComboBox();
 		comboboxGroupRoles.setNullSelectionAllowed(false);
 		comboboxGroupRoles.addStyleName(ROLES_GROUPS_COMBO);
 		for (RoleVO roleVO : presenter.getRoles()) {
