@@ -533,4 +533,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	}
 
+	public Button getSaveButton(){
+		return saveButton;
+	}
+
 }

@@ -3,43 +3,48 @@ package com.constellio.app.ui.pages.management.thesaurus;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.thesaurus.ThesaurusBuilder;
-import com.constellio.model.services.thesaurus.ThesaurusService;
+import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.easyuploads.UploadField;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.io.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements ThesaurusConfigurationView {
     WindowButton refusalWindow;
-    Button uploadButton;
-    Button downloadButton;
+    DownloadContentVersionLink downloadContentVersionLink;
     BaseDisplay baseDisplay;
+
+    TabSheet tabSheet;
 
     TextArea deniedTerms;
     Button saveButton;
     Button cancelButton;
-    ModelLayerFactory modelLayerFactory;
+    Button deleteButton;
+
+    VerticalLayout verticalLayoutSkosFile;
+    BaseForm baseFormForUpload;
+
+    boolean isInStateToBeSaved = false;
 
     ThesaurusConfigurationPresenter thesaurusConfigurationPresenter;
 
     private FormBean formBean = new FormBean();
 
-    @PropertyId("string")
-    private UploadField upload;
+    @PropertyId("file")
+    private BaseUploadField upload;
 
     public ThesaurusConfigurationViewImpl() {
         thesaurusConfigurationPresenter = new ThesaurusConfigurationPresenter(this);
@@ -47,81 +52,177 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        VerticalLayout verticalLayout = new VerticalLayout();
+        VerticalLayout mainLayout = new VerticalLayout();
+        Label title = new Label("<h3 style=\"Font-Weight: Bold;\">" + $("ThesaurusConfigurationView.thesaurus") + "</h3>");
+        title.setContentMode(ContentMode.HTML);
+        mainLayout.addComponent(title);
+        verticalLayoutSkosFile = new VerticalLayout();
+        tabSheet = new TabSheet();
+        baseFormForUpload = baseFormForFileUpload();
         if(thesaurusConfigurationPresenter.haveThesaurusConfiguration()) {
-            List<BaseDisplay.CaptionAndComponent> listCaptionAndComponent = new ArrayList<>();
-
-            BaseDisplay.CaptionAndComponent captionAndComponent = new BaseDisplay
-                    .CaptionAndComponent(new Label($("ThesaurusConfigurationView.about")), new Label(thesaurusConfigurationPresenter.getAbout()));
-            listCaptionAndComponent.add(captionAndComponent);
-
-            captionAndComponent = new BaseDisplay
-                    .CaptionAndComponent(new Label($("ThesaurusConfigurationView.title")), new Label(thesaurusConfigurationPresenter.getTitle()));
-            listCaptionAndComponent.add(captionAndComponent);
-
-            captionAndComponent = new BaseDisplay
-                    .CaptionAndComponent(new Label($("ThesaurusConfigurationView.description")), new Label(thesaurusConfigurationPresenter.getDescription()));
-            listCaptionAndComponent.add(captionAndComponent);
-
-            captionAndComponent = new BaseDisplay
-                    .CaptionAndComponent(new Label($("ThesaurusConfigurationView.date")), new Label(thesaurusConfigurationPresenter.getDate()));
-            listCaptionAndComponent.add(captionAndComponent);
-
-            captionAndComponent = new BaseDisplay
-                    .CaptionAndComponent(new Label($("ThesaurusConfigurationView.creator")), new Label(thesaurusConfigurationPresenter.getCreator()));
-            listCaptionAndComponent.add(captionAndComponent);
-
-            baseDisplay = new BaseDisplay(listCaptionAndComponent);
-            verticalLayout.addComponent(baseDisplay);
-
-            downloadButton = new Button($("ThesaurusConfigurationView.button.download"));
-
-            downloadButton.addClickListener(new Button.ClickListener() {
+            thesaurusConfigurationPage(verticalLayoutSkosFile);
+            downloadContentVersionLink = new DownloadContentVersionLink(thesaurusConfigurationPresenter.getContentVersionForDownloadLink());
+            downloadContentVersionLink.setCaption($("ThesaurusConfigurationView.button.download"));
+            verticalLayoutSkosFile.addComponent(downloadContentVersionLink);
+            deleteButton = new Button($("ThesaurusConfigurationView.removeSkosFile"));
+            deleteButton.addClickListener(new Button.ClickListener() {
                 @Override
                 public void buttonClick(Button.ClickEvent event) {
-                    thesaurusConfigurationPresenter.downloadThesaurusFile();
+                    thesaurusConfigurationPresenter.deleteButtonClick();
                 }
             });
-
-
-            downloadButton.addStyleName(ValoTheme.BUTTON_LINK);
-
-            verticalLayout.addComponent(downloadButton);
-            verticalLayout.setSpacing(true);
-
+            verticalLayoutSkosFile.addComponent(deleteButton);
         } else {
-            Label noThesaurusAvalible = new Label($("ThesaurusConfigurationView.noThesaurusAvalible") + "<br /> ");
-            noThesaurusAvalible.setContentMode(ContentMode.HTML);
-            verticalLayout.addComponent(noThesaurusAvalible);
+            noThesaurusAvalibleState(verticalLayoutSkosFile);
         }
 
-        verticalLayout.addComponent(baseFormForFileUpload());
+        verticalLayoutSkosFile.addComponent(baseFormForUpload);
 
-        return verticalLayout;
+        tabSheet.addTab(verticalLayoutSkosFile, $("ThesaurusConfigurationViewImpl.thesaurusFileAndInfo"));
+
+        VerticalLayout verticalLayoutRefusalTerms = new VerticalLayout();
+
+
+        verticalLayoutRefusalTerms.setSizeFull();
+        deniedTerms = new TextArea();
+        deniedTerms.setValue(thesaurusConfigurationPresenter.getDenidedTerms());
+        deniedTerms.setWidth("100%");
+        deniedTerms.setHeight("300px");
+
+        saveButton = new Button($("save"));
+
+        saveButton.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                try {
+                    thesaurusConfigurationPresenter.saveDenidedTerms(deniedTerms.getValue());
+                } catch (RecordServicesException e) {
+                    showError(e);
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        cancelButton = new Button($("cancel"));
+
+        cancelButton.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                deniedTerms.setValue(thesaurusConfigurationPresenter.getDenidedTerms());
+            }
+        });
+
+        verticalLayoutRefusalTerms.addComponent(deniedTerms);
+        verticalLayoutRefusalTerms.setExpandRatio(deniedTerms, 1);
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addComponent(saveButton);
+        buttonLayout.addComponent(cancelButton);
+        buttonLayout.setHeight("50px");
+        verticalLayoutRefusalTerms.addComponent(buttonLayout);
+        verticalLayoutRefusalTerms.setComponentAlignment(buttonLayout, Alignment.MIDDLE_CENTER);
+
+        tabSheet.addTab(verticalLayoutRefusalTerms, $("ThesaurusConfigurationView.termsrefusal"));
+        mainLayout.addComponent(tabSheet);
+
+        enableSKOSSaveButton(false);
+
+        return mainLayout;
+    }
+
+    private void noThesaurusAvalibleState(VerticalLayout verticalLayoutSkosFile) {
+        Label noThesaurusAvalible = new Label($("ThesaurusConfigurationView.noThesaurusAvalible") + "<br /> ");
+        noThesaurusAvalible.setContentMode(ContentMode.HTML);
+        verticalLayoutSkosFile.addComponent(noThesaurusAvalible);
+    }
+
+    public void enableSKOSSaveButton(boolean enabled) {
+        baseFormForUpload.getSaveButton().setEnabled(enabled);
+    }
+
+    public void toNoThesaurusAvalible() {
+        VerticalLayout noThesaurusAvalibleVerticalLayout = new VerticalLayout();
+        noThesaurusAvalibleState(noThesaurusAvalibleVerticalLayout);
+
+        noThesaurusAvalibleVerticalLayout.addComponent(baseFormForUpload);
+
+        tabSheet.replaceComponent(verticalLayoutSkosFile, noThesaurusAvalibleVerticalLayout);
+        this.verticalLayoutSkosFile = noThesaurusAvalibleVerticalLayout;
+    }
+
+    private void thesaurusConfigurationPage(VerticalLayout verticalLayoutSkosFile) {
+        List<BaseDisplay.CaptionAndComponent> listCaptionAndComponent = new ArrayList<>();
+
+        BaseDisplay.CaptionAndComponent captionAndComponent = new BaseDisplay
+                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.about")), new Label(thesaurusConfigurationPresenter.getAbout()));
+        listCaptionAndComponent.add(captionAndComponent);
+
+        captionAndComponent = new BaseDisplay
+                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.title")), new Label(thesaurusConfigurationPresenter.getTitle()));
+        listCaptionAndComponent.add(captionAndComponent);
+
+        captionAndComponent = new BaseDisplay
+                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.description")), new Label(thesaurusConfigurationPresenter.getDescription()));
+        listCaptionAndComponent.add(captionAndComponent);
+
+        captionAndComponent = new BaseDisplay
+                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.date")), new Label(thesaurusConfigurationPresenter.getDate()));
+        listCaptionAndComponent.add(captionAndComponent);
+
+        captionAndComponent = new BaseDisplay
+                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.creator")), new Label(thesaurusConfigurationPresenter.getCreator()));
+        listCaptionAndComponent.add(captionAndComponent);
+
+        baseDisplay = new BaseDisplay(listCaptionAndComponent);
+        verticalLayoutSkosFile.addComponent(baseDisplay);
+
+        verticalLayoutSkosFile.setSpacing(true);
+    }
+
+    public void unloadDescriptionsField() {
+        VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
+        noThesaurusAvalibleState(newVerticalLayoutSkosFile);
+    }
+
+    public void loadDescriptionFieldsWithFileValue(){
+        VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
+        thesaurusConfigurationPage(newVerticalLayoutSkosFile);
+        newVerticalLayoutSkosFile.addComponent(baseFormForUpload);
+        tabSheet.replaceComponent(verticalLayoutSkosFile, newVerticalLayoutSkosFile);
+
+        verticalLayoutSkosFile = newVerticalLayoutSkosFile;
+
     }
 
     public BaseForm baseFormForFileUpload() {
-        upload = new UploadField();
-        upload.setButtonCaption($("ThesaurusConfigurationView.upload"));
+        upload = new BaseUploadField();
+        upload.setUploadButtonCaption($("ThesaurusConfigurationView.upload"));
+        upload.setMultiValue(false);
         upload.setCaption($("ThesaurusConfigurationView.File"));
+        upload.setImmediate(true);
+
+        upload.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                TempFileUpload value = (TempFileUpload) upload.getValue();
+                thesaurusConfigurationPresenter.valueChangeInFileSelector(value);
+            }
+        });
+
+        upload.addValidator(new Validator() {
+            @Override
+            public void validate(Object value) throws InvalidValueException {
+                // there to not get a NullPointerException
+            }
+        });
         BaseForm baseForm = new BaseForm(formBean, this, upload) {
             @Override
             protected void saveButtonClick(Object viewObject) throws ValidationException {
-                thesaurusConfigurationPresenter.saveNewThesaurusFile(upload.getContentAsStream());
+               thesaurusConfigurationPresenter.saveNewThesaurusFile((TempFileUpload) upload.getValue());
             }
 
             @Override
             protected void cancelButtonClick(Object viewObject) {
-            }
-
-            @Override
-            protected boolean isCancelButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected String getSaveButtonCaption() {
-                return $("ThesaurusConfigurationView.UploadThesaurusFile");
+                navigateTo().searchConfiguration();
             }
         };
 
@@ -133,87 +234,24 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     }
 
     @Override
-    protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-        List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
-        WindowButton.WindowConfiguration configuration = new WindowButton.WindowConfiguration(true, true, "50%", "750px");
-        refusalWindow = new WindowButton($("ThesaurusConfigurationView.button.termsrefusal"),
-                $("ThesaurusConfigurationView.button.termsrefusal", configuration)) {
-            @Override
-            protected Component buildWindowContent() {
-                VerticalLayout verticalLayout = new VerticalLayout();
-
-                verticalLayout.setSizeFull();
-                deniedTerms = new TextArea();
-                deniedTerms.setValue(thesaurusConfigurationPresenter.getDenidedTerms());
-                deniedTerms.setSizeFull();
-                saveButton = new Button($("save"));
-
-                saveButton.addClickListener(new ClickListener() {
-                    @Override
-                    public void buttonClick(ClickEvent event) {
-                        try {
-                            thesaurusConfigurationPresenter.saveDenidedTerms(deniedTerms.getValue());
-                        } catch (RecordServicesException e) {
-                            showError(e);
-                            e.printStackTrace();
-                        }
-                        refusalWindow.getWindow().close();
-                    }
-                });
-
-                cancelButton = new Button($("cancel"));
-
-                cancelButton.addClickListener(new ClickListener() {
-                    @Override
-                    public void buttonClick(ClickEvent event) {
-                        refusalWindow.getWindow().close();
-                    }
-                });
-
-                verticalLayout.addComponent(deniedTerms);
-                verticalLayout.setExpandRatio(deniedTerms, 1);
-                HorizontalLayout horizontalLayout = new HorizontalLayout();
-                horizontalLayout.addComponent(saveButton);
-                horizontalLayout.addComponent(cancelButton);
-                horizontalLayout.setHeight("50px");
-                verticalLayout.addComponent(horizontalLayout);
-                verticalLayout.setComponentAlignment(horizontalLayout, Alignment.MIDDLE_CENTER);
-
-                return verticalLayout;
-            }
-        };
-
-        uploadButton = new Button($("ThesaurusConfigurationView.button.upload"));
-
-        uploadButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-
-            }
-        });
-
-        actionMenuButtons.add(refusalWindow);
-        actionMenuButtons.add(uploadButton);
-
-
-
-        return actionMenuButtons;
-    }
-
-    @Override
     protected Component buildActionMenu(ViewChangeListener.ViewChangeEvent event) {
         return super.buildActionMenu(event);
     }
 
-    public class FormBean {
-        private String string;
+    @Override
+    public void removeAllTheSelectedFile() {
+        upload.setValue(null);
+    }
 
-        public String getString() {
-            return string;
+    public class FormBean {
+        private TempFileUpload file;
+
+        public TempFileUpload getFile() {
+            return file;
         }
 
-        public void setString(String string) {
-            this.string = string;
+        public void setFile(TempFileUpload file) {
+            this.file = file;
         }
 
     }

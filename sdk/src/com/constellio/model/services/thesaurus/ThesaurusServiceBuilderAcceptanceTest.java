@@ -17,7 +17,7 @@ import org.junit.Test;
 
 public class ThesaurusServiceBuilderAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Workspace\\Projets\\SCOS_ServiceQC\\Fichiers depart\\SKOS destination 21 juillet 2017.xml";
+	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS destination 21 juillet 2017.xml";
 	private static ThesaurusService thesaurus;
 	private static Map<String, SkosConcept> allConcepts;
 

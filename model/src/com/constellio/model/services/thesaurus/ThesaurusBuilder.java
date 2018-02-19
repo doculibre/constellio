@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.jaxen.JaxenException;
@@ -50,7 +51,7 @@ public class ThesaurusBuilder {
     private static ThesaurusService thesaurus;
 
     @SuppressWarnings("unchecked")
-    public static ThesaurusService getThesaurus(InputStream skosFileStream) {
+    public static ThesaurusService getThesaurus(InputStream skosFileStream) throws ThesaurusInvalidFileFormat {
         thesaurus = new ThesaurusService();
         // thesaurus.setSourceFileLocation();
         Map<String, SkosConcept> parsedConcepts = new HashMap<String, SkosConcept>();
@@ -97,8 +98,8 @@ public class ThesaurusBuilder {
             processSKOSConceptsRelationships(parsedConcepts, namespaceContext, skosConceptElements);
 
         } catch (JDOMException e) {
-            // FIXME Report exception "Invalid document" to UI....
-            throw new RuntimeException(e);
+
+            throw new ThesaurusInvalidFileFormat(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (JaxenException e) {

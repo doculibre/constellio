@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.records.wrappers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,10 +154,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
@@ -451,6 +448,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
 			cache.removeCache(Category.SCHEMA_TYPE);
 		}
+
+		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
+		}
+
 		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));
 
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));

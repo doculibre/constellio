@@ -1,6 +1,7 @@
 package com.constellio.model.services.thesaurus;
 
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -24,7 +25,7 @@ public class ThesaurusManager implements StatefulService {
         return thesaurus;
     }
 
-    public void set(FileInputStream fileInputStream) {
+    public void set(InputStream fileInputStream) {
         skosFileStream = fileInputStream;
         initialize();
     }
@@ -41,7 +42,11 @@ public class ThesaurusManager implements StatefulService {
     @Override
     public void initialize() {
         if(skosFileStream != null) {
-            this.thesaurus = ThesaurusBuilder.getThesaurus(skosFileStream);
+            try {
+                this.thesaurus = ThesaurusBuilder.getThesaurus(skosFileStream);
+            } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
+                thesaurusInvalidFileFormat.printStackTrace();
+            }
         }
     }
 

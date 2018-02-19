@@ -299,17 +299,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Document type
 
-	public ThesaurusConfig newThesaurusConfig() {
-		return new ThesaurusConfig(create(thesaurusSchema()), getTypes());
-	}
 
-	public ThesaurusConfig wrapThesaurusConfig(Record record) {
-		return record == null ? null : new ThesaurusConfig(record, getTypes());
-	}
-
-	public MetadataSchema thesaurusSchema() {
-		return getTypes().getSchema(ThesaurusConfig.DEFAULT_SCHEMA);
-	}
 
 	public MetadataSchema documentTypeSchema() {
 		return getTypes().getSchema(DocumentType.DEFAULT_SCHEMA);
