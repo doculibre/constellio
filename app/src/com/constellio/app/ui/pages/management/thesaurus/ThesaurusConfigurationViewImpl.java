@@ -37,8 +37,6 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     VerticalLayout verticalLayoutSkosFile;
     BaseForm baseFormForUpload;
 
-    boolean isInStateToBeSaved = false;
-
     ThesaurusConfigurationPresenter thesaurusConfigurationPresenter;
 
     private FormBean formBean = new FormBean();
@@ -48,6 +46,12 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 
     public ThesaurusConfigurationViewImpl() {
         thesaurusConfigurationPresenter = new ThesaurusConfigurationPresenter(this);
+    }
+
+
+    @Override
+    protected String getTitle() {
+        return $("ThesaurusConfigurationViewImpl");
     }
 
     @Override
@@ -81,8 +85,9 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
         tabSheet.addTab(verticalLayoutSkosFile, $("ThesaurusConfigurationViewImpl.thesaurusFileAndInfo"));
 
         VerticalLayout verticalLayoutRefusalTerms = new VerticalLayout();
-
-
+        Label refusedTermsTitle = new Label("<h3 style=\"Font-Weight: Bold;\">" + $("ThesaurusConfigurationView.termsrefusal") + "</h3>");
+        refusedTermsTitle.setContentMode(ContentMode.HTML);
+        verticalLayoutRefusalTerms.addComponent(refusedTermsTitle);
         verticalLayoutRefusalTerms.setSizeFull();
         deniedTerms = new TextArea();
         deniedTerms.setValue(thesaurusConfigurationPresenter.getDenidedTerms());
