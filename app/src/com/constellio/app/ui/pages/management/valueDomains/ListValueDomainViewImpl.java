@@ -2,9 +2,14 @@ package com.constellio.app.ui.pages.management.valueDomains;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -14,6 +19,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
@@ -99,8 +105,8 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	}
 
 	private Table buildTable() {
-		BeanItemContainer elements = new BeanItemContainer<>(
-				MetadataSchemaTypeVO.class, presenter.getDomainValues());
+		final List<MetadataSchemaTypeVO> schemaTypeVOS = presenter.getDomainValues();
+		BeanItemContainer elements = new BeanItemContainer<>(MetadataSchemaTypeVO.class, schemaTypeVOS);
 
 		ButtonsContainer container = new ButtonsContainer<>(elements, "buttons");
 		container.addButton(new ContainerButton() {
@@ -161,12 +167,36 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			}
 		});
 
+		container.addButton(new ContainerButton() {
+
+			@Override
+			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
+				final MetadataSchemaTypeVO typeVO = (MetadataSchemaTypeVO) itemId;
+				final String schemaTypeCode = typeVO.getCode();
+				DeleteButton deleteButton = new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+
+						try {
+							presenter.deleteButtonClicked(schemaTypeCode);
+						} catch (ValidationException e) {
+							showErrorMessage($(e));
+						}
+					}
+				};
+
+				deleteButton.setVisible(presenter.isValueListPossiblyDeletable(schemaTypeCode));
+
+				return deleteButton;
+			}
+		});
+
 		Table table = new BaseTable(getClass().getName(), $("ListValueDomainView.tableTitle", container.size()), container);
 		table.setPageLength(Math.min(15, container.size()));
 		table.setVisibleColumns("label", "buttons");
 		table.setColumnHeader("label", $("ListValueDomainView.labelColumn"));
 		table.setColumnHeader("buttons", "");
-		table.setColumnWidth("buttons", 88);
+		table.setColumnWidth("buttons", 124);
 		table.setWidth("100%");
 
 		return table;

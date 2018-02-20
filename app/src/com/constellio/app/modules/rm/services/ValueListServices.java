@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,12 +26,17 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class ValueListServices {
@@ -35,6 +44,7 @@ public class ValueListServices {
 	SchemasDisplayManager schemasDisplayManager;
 	TaxonomiesManager taxonomiesManager;
 	UniqueIdGenerator uniqueIdGenerator;
+	SearchServices searchServices;
 	String collection;
 
 	public ValueListServices(AppLayerFactory appLayerFactory, String collection) {
@@ -43,6 +53,7 @@ public class ValueListServices {
 		this.schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
+		this.searchServices = modelLayerFactory.newSearchServices();
 		this.collection = collection;
 	}
 
@@ -62,6 +73,47 @@ public class ValueListServices {
 	}
 
 	public MetadataSchemaType createValueDomain(String code, String title) {
+		return createValueDomain(code, title, new CreateValueListOptions());
+	}
+
+	public static class CreateValueListOptions {
+
+		ValueListItemSchemaTypeBuilderOptions codeMode = ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique();
+
+		boolean createMetadatasAsMultivalued = true;
+
+		List<String> typesWithReferenceMetadata = new ArrayList<>();
+
+		public ValueListItemSchemaTypeBuilderOptions getCodeMode() {
+			return codeMode;
+		}
+
+		public CreateValueListOptions setCodeMode(
+				ValueListItemSchemaTypeBuilderOptions codeMode) {
+			this.codeMode = codeMode;
+			return this;
+		}
+
+		public boolean isCreateMetadatasAsMultivalued() {
+			return createMetadatasAsMultivalued;
+		}
+
+		public CreateValueListOptions setCreateMetadatasAsMultivalued(boolean createMetadatasAsMultivalued) {
+			this.createMetadatasAsMultivalued = createMetadatasAsMultivalued;
+			return this;
+		}
+
+		public List<String> getTypesWithReferenceMetadata() {
+			return typesWithReferenceMetadata;
+		}
+
+		public CreateValueListOptions setTypesWithReferenceMetadata(List<String> typesWithReferenceMetadata) {
+			this.typesWithReferenceMetadata = typesWithReferenceMetadata;
+			return this;
+		}
+	}
+
+	public MetadataSchemaType createValueDomain(String code, String title, CreateValueListOptions options) {
 
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
@@ -70,7 +122,17 @@ public class ValueListServices {
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
-		builder.createValueListItemSchema(code, title, ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
+		MetadataSchemaTypeBuilder valueListSchemaType = builder.createValueListItemSchema(code, title, options.codeMode);
+
+		if (options.getTypesWithReferenceMetadata() != null) {
+			for (String schemaType : options.getTypesWithReferenceMetadata()) {
+				String metadataCode = code.replace("ddv", "");
+				types.getSchemaType(schemaType).getDefaultSchema().create(metadataCode).setType(REFERENCE)
+						.setMultivalue(options.isCreateMetadatasAsMultivalued())
+						.setLabels(valueListSchemaType.getLabels())
+						.defineReferencesTo(valueListSchemaType);
+			}
+		}
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
@@ -109,6 +171,11 @@ public class ValueListServices {
 
 	public Taxonomy createTaxonomy(String title, List<String> userIds, List<String> groupIds, boolean isVisibleInHomePage) {
 		String code = generateCode("");
+		return createTaxonomy(code, title, userIds, groupIds, isVisibleInHomePage);
+	}
+
+	public Taxonomy createTaxonomy(String code, String title, List<String> userIds, List<String> groupIds,
+			boolean isVisibleInHomePage) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title);
 		Taxonomy taxonomy = Taxonomy
 				.createPublic("taxo" + code, title, collection, userIds, groupIds, Arrays.asList(type.getCode()),
@@ -214,5 +281,47 @@ public class ValueListServices {
 		String id = uniqueIdGenerator.next();
 		id = id.replace("0", " ").trim().replace(" ", "0");
 		return prefix + id;
+	}
+
+	public void deleteValueListOrTaxonomy(final String schemaTypeCode)
+			throws ValidationException {
+
+		final MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+		if (searchServices.hasResults(query(from(schemaType).returnAll()))) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("code", schemaTypeCode);
+			parameters.put("label", schemaType.getLabels());
+
+			ValidationErrors errors = new ValidationErrors();
+			errors.add(ValueListServices.class, "valueListHasRecords", parameters);
+
+			throw new ValidationException(errors);
+		}
+
+		final List<String> metadatasToRemove = new ArrayList<>();
+		for (MetadataSchemaType aSchemaType : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			for (MetadataSchema aSchema : aSchemaType.getAllSchemas()) {
+				for (Metadata aMetadata : aSchema.getMetadatas().onlyReferencesToType(schemaTypeCode).onlyWithoutInheritance()) {
+					metadatasToRemove.add(aMetadata.getCode());
+				}
+			}
+		}
+
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(collection, schemaTypeCode);
+		if (taxonomy != null) {
+			taxonomiesManager.deleteWithoutValidations(taxonomy);
+		}
+
+		schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				for (String metadataToRemove : metadatasToRemove) {
+					String schemaCode = new SchemaUtils().getSchemaCode(metadataToRemove);
+					types.getSchema(schemaCode).deleteMetadataWithoutValidation(metadataToRemove);
+				}
+
+				types.deleteSchemaType(schemaType, searchServices);
+			}
+		});
 	}
 }

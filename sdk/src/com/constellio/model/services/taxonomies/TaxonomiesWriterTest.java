@@ -179,7 +179,7 @@ public class TaxonomiesWriterTest extends ConstellioTest {
 		groupIds.add("groupId2");
 
 		taxonomy = taxonomy.withTitle("newTitle").withUserIds(userIds).withGroupIds(groupIds);
-		writer.editTaxonmy(taxonomy);
+		writer.editTaxonomy(taxonomy);
 
 		taxonomiesElement = document.getRootElement();
 		assertThat(taxonomiesElement.getChildren()).hasSize(2);

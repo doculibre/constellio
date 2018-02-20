@@ -7,9 +7,10 @@ import java.security.Key;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import com.constellio.data.conf.ConfigManagerType;
 import org.apache.commons.io.FileUtils;
 
+import com.constellio.data.conf.ConfigManagerType;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -49,11 +50,19 @@ public class EncryptionKeyFactory {
 
 	private static String getFileKey(ModelLayerFactory modelLayerFactory)
 			throws IOException {
+
 		File encryptionFile = modelLayerFactory.getConfiguration().getConstellioEncryptionFile();
-		if (modelLayerFactory.getConfiguration().getDataLayerConfiguration().getSettingsConfigType().equals(ConfigManagerType.ZOOKEEPER)) {
+
+		if (modelLayerFactory.getConfiguration().getDataLayerConfiguration().getSettingsConfigType()
+				.equals(ConfigManagerType.ZOOKEEPER)) {
 			String path = encryptionFile.getName();
 			return modelLayerFactory.getDataLayerFactory().getConfigManager().getText(path).getText();
 		} else {
+			if (!encryptionFile.exists()) {
+				DataLayerConfiguration dataLayerConfigs = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration();
+				encryptionFile = new File(dataLayerConfigs.getSettingsFileSystemBaseFolder(), "key.txt");
+			}
+
 			return FileUtils.readFileToString(encryptionFile);
 		}
 	}
