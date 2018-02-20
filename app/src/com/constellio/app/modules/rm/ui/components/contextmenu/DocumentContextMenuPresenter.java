@@ -66,6 +66,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 
 		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, contextMenu.getSessionContext());
+			setRecordVO(documentVO);
 			contextMenu.setDocumentVO(documentVO);
 			updateActionsComponent();
 			showContextMenu = true;

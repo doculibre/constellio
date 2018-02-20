@@ -1013,6 +1013,7 @@ $popup-view-z-index: 3;
 		background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
 			
 		.v-context-menu-item-basic, .v-context-menu-item-basic-submenu {
+			clear: both;
     		background-color: #414B56;
 	    	color: white;
 	    	font-weight: normal;
@@ -1023,6 +1024,7 @@ $popup-view-z-index: 3;
 			text-align: left;
 			border: none;
 			cursor: pointer;
+			left: 5px;
 
 			.v-context-menu-item-basic-icon-container {
 				float: left;
