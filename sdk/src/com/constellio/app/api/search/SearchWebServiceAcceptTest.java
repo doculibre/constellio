@@ -64,7 +64,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
-public class FreeTextSearchAcceptTest extends ConstellioTest {
+public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 	String englishSearchField = "search_txt_en";
 	String frenchSearchField = "search_txt_fr";

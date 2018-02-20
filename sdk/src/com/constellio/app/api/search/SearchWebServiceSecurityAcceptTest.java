@@ -53,7 +53,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
 @SlowTest
-public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
+public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 	String anotherCollection = "otherCollection";
 	TestsSchemasSetup anotherCollectionSetup = new TestsSchemasSetup(anotherCollection);
