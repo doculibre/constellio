@@ -1,9 +1,20 @@
 package com.constellio.app.ui.framework.buttons;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
-import com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -23,18 +34,11 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.VerticalLayout;
 
 public class GetXmlButtonV2 extends WindowButton{
     private ModelLayerFactory model;
@@ -112,7 +116,7 @@ public class GetXmlButtonV2 extends WindowButton{
                     if(parent.isXmlForTest) {
                         xmlGeneratorParameters.markAsTestXml();
                     }
-                    AbstractXmlGenerator xmlGenerator = new printableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                    AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
                     String xml = xmlGenerator.generateXML();
                     String filename = "Constellio-Test.xml";
                     StreamResource source = createResource(xml, filename);

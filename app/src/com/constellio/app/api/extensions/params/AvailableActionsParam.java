@@ -1,11 +1,10 @@
 package com.constellio.app.api.extensions.params;
 
-import com.constellio.app.ui.pages.base.BaseView;
+import java.util.List;
+
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Component;
-
-import java.util.List;
 
 /**
  * Created by Constellio on 2017-02-14.

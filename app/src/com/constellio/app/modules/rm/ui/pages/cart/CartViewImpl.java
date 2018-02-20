@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -47,6 +50,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -101,6 +105,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
+		buttons.add(buildConsolidatedPdfButton());
 		return buttons;
 	}
 
@@ -536,6 +541,24 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 		return siPbutton;
+	}
+
+	private Button buildConsolidatedPdfButton(){
+		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<String> notDeletedDocumentIds = new ArrayList<>();
+				List<DocumentVO> notDeletedDocumentVOs = presenter.getNotDeletedCartDocumentVO();
+				for (DocumentVO documentVO : notDeletedDocumentVOs) {
+					notDeletedDocumentIds.add(documentVO.getId());
+				}
+				AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+				setParams(params);
+				super.buttonClick(event);
+			}
+			
+		};
+		return consolidatedPdfButton;
 	}
 
 	@Override

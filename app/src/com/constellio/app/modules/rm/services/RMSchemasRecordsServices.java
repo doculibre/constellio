@@ -65,6 +65,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -200,6 +201,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return documentSchemaFor(getDocumentType(typeId));
 	}
 
+	public DocumentListPDF getDocumentListPDF(String id) {
+		return wrapDocumentListPdf(get(id));
+	}
+
+	public DocumentListPDF wrapDocumentListPdf(Record record) {
+		return record == null ? null : new DocumentListPDF(record, getTypes());
+	}
+
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -249,6 +258,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public MetadataSchema reportSchema() {
 		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchema documentListPDFSchema() {
+		return getTypes().getSchema(DocumentListPDF.FULL_SCHEMA);
+	}
+
+	public DocumentListPDF newDocumentListPDFWithId(String id) {
+		return new DocumentListPDF(create(documentListPDFSchema(), id), getTypes());
 	}
 
 	public Document newDocumentWithId(String id) {
@@ -1023,12 +1040,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				}
 			}
 
-			String from = getValue(CHUNKS.displayFromChunk);
-			String subject = getValue(CHUNKS.subjectChunk);
-			String to = getValue(CHUNKS.displayToChunk);
-			String cc = getValue(CHUNKS.displayCCChunk);
-			String bcc = getValue(CHUNKS.displayBCCChunk);
-			String content = getValue(CHUNKS.textBodyChunk);
+			String from = getValue(CHUNKS.getDisplayFromChunk());
+			String subject = getValue(CHUNKS.getSubjectChunk());
+			String to = getValue(CHUNKS.getDisplayToChunk());
+			String cc = getValue(CHUNKS.getDisplayCCChunk());
+			String bcc = getValue(CHUNKS.getDisplayBCCChunk());
+			String content = getValue(CHUNKS.getTextBodyChunk());
 
 			MsgParser msgp = new MsgParser();
 			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));

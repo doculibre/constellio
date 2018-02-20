@@ -16,10 +16,8 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FakeSessionContext extends BaseSessionContext {
 
@@ -34,6 +32,8 @@ public class FakeSessionContext extends BaseSessionContext {
 	Map<String, Long> selectedRecordSchemaTypeCodes;
 
 	Record searchEvent = null;
+	
+	private Map<String, Object> attributes = new HashMap<>();
 
 	private static FakeSessionContext current;
 
@@ -267,5 +267,16 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
 		return selectedRecordSchemaTypeCodes;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String key) {
+		return (T) attributes.get(key);
+	}
+
+	@Override
+	public void setAttribute(String key, Object value) {
+		attributes.put(key, value);
 	}
 }

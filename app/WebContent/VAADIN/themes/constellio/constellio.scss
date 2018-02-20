@@ -654,6 +654,7 @@ $popup-view-z-index: 3;
 			    border-radius: 4px;
 	
 				.v-button {
+					padding-left: 8px;
 			    	color: white;
 			    	font-weight: normal;
 					text-decoration: none;
@@ -746,12 +747,13 @@ $popup-view-z-index: 3;
 		
 	}
 
-	.window-button-window {
+	.base-window {
 		.v-scrollable {
 			overflow: hidden;
 
-			.window-button-window-content {
-				padding-left: 10px;
+			.base-window-content {
+				padding-left: 5px;
+				padding-right: 5px;
 				margin-top: 5px;
 			}
 		
@@ -869,6 +871,7 @@ $popup-view-z-index: 3;
 			    border-radius: 4px;
 	
 				.v-button {
+					padding-left: 8px;
 			    	color: white;
 			    	font-weight: normal;
 					text-decoration: none;
@@ -1490,6 +1493,7 @@ $popup-view-z-index: 3;
 						    border-radius: 4px;
 
 							.v-button {
+								padding-left: 8px;
 						    	color: white;
 						    	font-weight: normal;
 								text-decoration: none;

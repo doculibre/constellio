@@ -12960,6 +12960,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13034,20 +13035,21 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 0px;
 }
 
-.constellio .window-button-window .v-scrollable {
+.constellio .base-window .v-scrollable {
 	overflow: hidden;
 }
 
-.constellio .window-button-window .v-scrollable .window-button-window-content {
-	padding-left: 10px;
+.constellio .base-window .v-scrollable .base-window-content {
+	padding-left: 5px;
+	padding-right: 5px;
 	margin-top: 5px;
 }
 
-.constellio .window-button-window .v-scrollable .v-panel .v-scrollable {
+.constellio .base-window .v-scrollable .v-panel .v-scrollable {
 	overflow: auto;
 }
 
-.constellio .window-button-window .v-table .v-scrollable {
+.constellio .base-window .v-table .v-scrollable {
 	overflow: auto;
 }
 
@@ -13142,6 +13144,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;
@@ -13681,6 +13684,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+	padding-left: 8px;
 	color: white;
 	font-weight: normal;
 	text-decoration: none;

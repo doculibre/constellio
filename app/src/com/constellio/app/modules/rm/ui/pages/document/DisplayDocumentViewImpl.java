@@ -626,6 +626,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			actionMenuButtons.add(startWorkflowButton);
 		}
 		actionMenuButtons.add(reportGeneratorButton);
+
+		//Extension
+		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
+
 		return actionMenuButtons;
 	}
 

@@ -1,16 +1,19 @@
 package com.constellio.app.ui.pages.base;
 
-import com.constellio.app.ui.entities.UserVO;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.entities.records.Record;
+
 public interface SessionContext extends Serializable {
+	
+	<T extends Object> T getAttribute(String key);
+	
+	void setAttribute(String key, Object value);
 
 	UserVO getCurrentUser();
 

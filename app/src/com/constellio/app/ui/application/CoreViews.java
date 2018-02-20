@@ -446,7 +446,7 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void listTemporaryRecord() {
+	public void listTemporaryRecords() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_TEMPORARY_RECORDS);
 	}
 

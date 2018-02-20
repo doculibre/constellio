@@ -1,13 +1,16 @@
 package com.constellio.app.ui.pages.base;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.vaadin.server.VaadinSession;
-
-import java.security.Principal;
-import java.util.*;
 
 public class VaadinSessionContext extends BaseSessionContext {
 
@@ -22,14 +25,17 @@ public class VaadinSessionContext extends BaseSessionContext {
 	public VaadinSessionContext() {
 	}
 
-	private Object getAttribute(String name) {
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String key) {
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
-		return vaadinSession.getSession().getAttribute(name);
+		return (T) vaadinSession.getSession().getAttribute(key);
 	}
 
-	private void setAttribute(String name, Object object) {
+	@Override
+	public void setAttribute(String key, Object value) {
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
-		vaadinSession.getSession().setAttribute(name, object);
+		vaadinSession.getSession().setAttribute(key, value);
 	}
 
 	@Override

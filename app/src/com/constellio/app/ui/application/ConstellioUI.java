@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.framework.components.BaseWindow;
-
 import org.joda.time.LocalDateTime;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.dialogs.DefaultConfirmDialogFactory;
@@ -64,6 +62,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
@@ -71,6 +70,8 @@ import com.vaadin.ui.themes.ValoTheme;
 public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
 	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
+	
+	private static final int POLL_INTERVAL = 1000;
 
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
@@ -277,13 +278,22 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						if (newView instanceof BaseViewImpl) {
 							if (((BaseViewImpl) newView).isBackgroundViewMonitor()) {
 								// Important to allow update of components in current UI from another Thread
-								setPollInterval(1000);
+								setPollInterval(POLL_INTERVAL);
 							}
 						} else if (newView instanceof PollListener) {
 							// Important to allow update of components in current UI from another Thread
-							setPollInterval(1000);
+							setPollInterval(POLL_INTERVAL);
 						} else {
-							setPollInterval(-1);
+							boolean pollListenerWindow = false;
+							for (Window window : getWindows()) {
+								if (window instanceof PollListener) {
+									pollListenerWindow = true;
+									break;
+								}
+							}
+							if (!pollListenerWindow) {
+								setPollInterval(-1);
+							}
 						}
 						ConstellioUI.this.currentView = newView;
 						
@@ -293,19 +303,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						for (EnterViewListener enterViewListener : enterViewListeners) {
 							enterViewListener.enterView(newView);
 						}
-
-						//						if (enterViewListeners.isEmpty() && !isProductionMode()) {
-						//							try {
-						//								ConstellioSerializationUtils.validateSerializable(event.getOldView());
-						//							} catch (Exception e) {
-						//								LOGGER.warn(e.getMessage(), e);
-						//							}
-						//							try {
-						//								ConstellioSerializationUtils.validateSerializable(event.getNewView());
-						//							} catch (Exception e) {
-						//								LOGGER.warn(e.getMessage(), e);
-						//							}
-						//						}
 					}
 				});
 
@@ -320,6 +317,14 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				addStyleName("loginview");
 			}
 		}
+	}
+
+	@Override
+	public void addWindow(Window window) throws IllegalArgumentException, NullPointerException {
+		if (window instanceof PollListener) {
+			setPollInterval(POLL_INTERVAL);
+		}
+		super.addWindow(window);
 	}
 
 	private boolean isSetupRequired() {
