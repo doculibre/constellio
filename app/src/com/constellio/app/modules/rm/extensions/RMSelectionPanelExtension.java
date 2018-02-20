@@ -89,6 +89,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDateTime;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -537,6 +538,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             for (Metadata metadata: oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
+                            LocalDateTime now = LocalDateTime.now();
+                            newDocument.setFormCreatedBy(param.getUser());
+                            newDocument.setFormCreatedOn(now);
+                            newDocument.setCreatedBy(param.getUser().getId()).setModifiedBy(param.getUser().getId());
+                            newDocument.setCreatedOn(now).setModifiedOn(now);
                             if (newDocument.getContent() != null) {
                             	User user = param.getUser();
                             	Content content = newDocument.getContent();
