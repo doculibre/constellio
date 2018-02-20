@@ -30,7 +30,6 @@ public class ContainerRecordValidator implements RecordValidator {
 	public static final String STORAGE_SPACE = "storageSpace";
 	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
 	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
-	public static final String PREFIX = "prefix";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -55,7 +54,6 @@ public class ContainerRecordValidator implements RecordValidator {
 			parameters.put(LINEAR_SIZE, formatToParameter(Math.round(linearSize * 100.0)/100.0));
 			parameters.put(LINEAR_SIZE_ENTERED, formatToParameter(container.getLinearSizeEntered()));
 			parameters.put(LINEAR_SIZE_SUM, formatToParameter(container.getLinearSizeSum()));
-			parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 			params.getValidationErrors().add(ContainerRecordValidator.class, CONTAINER_CAPACITY_MUST_BE_GREATER_OR_EQUAL_TO_LINEAR_SIZE, parameters);
 		}
@@ -64,7 +62,6 @@ public class ContainerRecordValidator implements RecordValidator {
 			if(!canContain(storageSpace, container.getType(), params.getRecordProvider(), params.getTypes())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
-				parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 				params.getValidationErrors().add(ContainerRecordValidator.class, STORAGE_SPACE_CANNOT_CONTAIN_THIS_TYPE_OF_CONTAINER, parameters);
 			}
@@ -75,7 +72,6 @@ public class ContainerRecordValidator implements RecordValidator {
 			if(originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(FIRST_TRANSFER_REPORT_DATE, formatToParameter(container.getFirstTransferReportDate()));
-				parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 				params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_TRANSFER_REPORT_DATE_CANNOT_BE_EDITED, parameters);
 			}
@@ -84,7 +80,6 @@ public class ContainerRecordValidator implements RecordValidator {
 			if(originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(FIRST_DEPOSIT_REPORT_DATE, formatToParameter(container.getFirstDepositReportDate()));
-				parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 				params.getValidationErrors().add(ContainerRecordValidator.class, FIRST_DEPOSIT_REPORT_DATE_CANNOT_BE_EDITED, parameters);
 			}
@@ -110,7 +105,6 @@ public class ContainerRecordValidator implements RecordValidator {
 					if(numberOfContainers != null && numberOfContainers > 0){
 						Map<String, Object> parameters = new HashMap<>();
 						parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
-						parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 						params.getValidationErrors().add(ContainerRecordValidator.class, STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER, parameters);
 					}
@@ -119,7 +113,6 @@ public class ContainerRecordValidator implements RecordValidator {
 				if(numberOfContainers != null && numberOfContainers > 0){
 					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
-					parameters.put(PREFIX, formatToParameter(container.getTitle() + " (" + container.getId() + ")", " : "));
 
 					params.getValidationErrors().add(ContainerRecordValidator.class, STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER, parameters);
 				}

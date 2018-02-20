@@ -1154,6 +1154,15 @@ $popup-view-z-index: 3;
 		}
 	}
 	
+	.button-caption-important {
+		font-weight: bold;
+	}
+	
+	.button-caption-error {
+		font-weight: bold;
+		color: red;
+	}
+	
     .constellio-layout {
 
 	    .sidebar {
