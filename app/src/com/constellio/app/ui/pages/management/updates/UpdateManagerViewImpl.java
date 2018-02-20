@@ -6,6 +6,7 @@ import java.awt.*;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.constellio.app.api.admin.services.SystemAnalysisUtils;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -158,10 +159,10 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	}
 
 	private WindowButton buildAllocatedMemoryButton() {
-		final String totalSystemMemory = presenter.getTotalSystemMemory();
-		final String allocatedMemoryForConstellio = presenter.getAllocatedMemoryForConstellio();
-		final String allocatedMemoryForSolr = presenter.getAllocatedMemoryForSolr();
-		Double percentageOfAllocatedMemory = presenter.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
+		final String totalSystemMemory = SystemAnalysisUtils.getTotalSystemMemory();
+		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		final String allocatedMemoryForSolr = SystemAnalysisUtils.getAllocatedMemoryForSolr();
+		Double percentageOfAllocatedMemory = SystemAnalysisUtils.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
 
 		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
 			@Override
