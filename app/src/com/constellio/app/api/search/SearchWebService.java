@@ -1,18 +1,16 @@
 package com.constellio.app.api.search;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.constellio.app.api.HttpServletRequestAuthenticator;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.FreeTextSearchServices;
+import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -23,22 +21,30 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.response.XMLResponseWriter;
 import org.apache.solr.servlet.SolrRequestParsers;
 
-import com.constellio.app.api.HttpServletRequestAuthenticator;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.FreeTextSearchServices;
-import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchWebService extends HttpServlet {
 
 	private static synchronized ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
 	}
+	public static final String THESAURUS_VALUE = "thesaurusValue";
+
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
+		List<String> desanbiguation = null;
+		List<String> suggestion = null;
 
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		UserCredential user = authenticator.authenticate(request);
@@ -49,7 +55,9 @@ public class SearchWebService extends HttpServlet {
 		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(
 				SolrRequestParsers.parseQueryString(request.getQueryString()));
+		String thesaurusValue = solrParams.get(THESAURUS_VALUE);
 		solrParams.remove("searchEvents");
+		solrParams.remove(THESAURUS_VALUE);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
 		solrParams.add("fq", "-type_s:index");
@@ -65,8 +73,13 @@ public class SearchWebService extends HttpServlet {
 			}
 		}
 
+
+
 		QueryResponse queryResponse;
-		if (searchingInEvents) {
+		if(!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
+			throw new RuntimeException("You cannot search event and have a thesaurusValue");
+		}
+		else if (searchingInEvents) {
 			if (!user.isSystemAdmin()) {
 				throw new RuntimeException("You need system admin privileges");
 			}
@@ -77,6 +90,15 @@ public class SearchWebService extends HttpServlet {
 			SchemasRecordsServices schemasRecordsServices = null;
 			ArrayList<String> paramList = new ArrayList<>();
 			SearchEvent searchEvent = null;
+
+			if(!Strings.isNullOrEmpty(thesaurusValue)) {
+				ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
+				ThesaurusService thesaurusService;
+				if((thesaurusService = thesaurusManager.get()) != null) {
+					suggestion = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.SUGGESTION);
+					desanbiguation = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.DESAMBIUGATION);
+				}
+			}
 
 			if(!Strings.isNullOrEmpty(collection)) {
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
@@ -115,6 +137,14 @@ public class SearchWebService extends HttpServlet {
 				SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory());
 				searchEventServices.save(searchEvent);
 			}
+		}
+
+		if(suggestion != null && suggestion.size() > 0) {
+			solrParams.add(ThesaurusService.SUGGESTION, suggestion.toArray(new String[0]));
+		}
+
+		if(desanbiguation != null && suggestion.size() > 0) {
+			solrParams.add(ThesaurusService.DESAMBIUGATION, desanbiguation.toArray(new String[0]));
 		}
 
 		writeResponse(response, solrParams, queryResponse);

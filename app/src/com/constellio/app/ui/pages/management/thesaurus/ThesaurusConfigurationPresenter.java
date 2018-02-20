@@ -78,18 +78,6 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         return true;
     }
 
-    public StreamResource inputStreamToStreamRessource(final InputStream inputStream, String fileName) {
-        StreamResource.StreamSource source = new StreamResource.StreamSource() {
-
-            public InputStream getStream() {
-                return inputStream;
-
-            }
-        };
-        StreamResource resource = new StreamResource ( source, fileName);
-        return resource;
-    }
-
     public void saveNewThesaurusFile(TempFileUpload tempFileUpload) {
         boolean isNew = false;
         IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();

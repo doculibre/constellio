@@ -103,12 +103,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	public Component buildThesaurusDesambiguation() {
 		List<String> desambiguationList = presenter.getDesambiguation();
-
-		VerticalLayout verticalLayout = new VerticalLayout();
+		HorizontalLayout horizontalLayout = new HorizontalLayout();
+		horizontalLayout.setWidth("100%");
 		if(desambiguationList != null && desambiguationList.size() > 0) {
-			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.desambiguation.title" ) +  "</h3>");
+
+			VerticalLayout verticalLayout = new VerticalLayout();
+
+			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.desambiguation.title",
+					presenter.getUserSearchExpression()) +  "</h3>");
+			horizontalLayout.addComponent(title);
+			horizontalLayout.setExpandRatio(title, 0);
+			title.setWidth("310px");
 			title.setContentMode(ContentMode.HTML);
-			verticalLayout.addComponent(title);
+			horizontalLayout.addComponent(verticalLayout);
+			horizontalLayout.setExpandRatio(verticalLayout, 1);
 
 			for(String entry : desambiguationList) {
 				Button button = new Button();
@@ -124,19 +132,22 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		}
 
-		return verticalLayout;
+		return horizontalLayout;
 	}
 
 	public Component buildThesaurusSuggestion() {
 		List<String> suggestionList = presenter.getSuggestion();
-
+		int count = 0;
 		VerticalLayout verticalLayout = new VerticalLayout();
+		CssLayout cssLayout = new CssLayout();
 		if(suggestionList != null && suggestionList.size() > 0) {
 
-			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.suggestion.title" ) +  "</h3>");
+			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.suggestion.title", presenter.getUserSearchExpression()) +  "</h3>");
 			title.setContentMode(ContentMode.HTML);
 			verticalLayout.addComponent(title);
-
+			verticalLayout.addComponent(cssLayout);
+			VerticalLayout currentVerticalLayout = new VerticalLayout();
+			cssLayout.addComponent(currentVerticalLayout);
 			for(String entry : suggestionList) {
 				Button button = new Button();
 				button.setCaption(entry);
@@ -147,7 +158,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				});
 				button.addStyleName(ValoTheme.BUTTON_LINK);
-				verticalLayout.addComponent(button);
+				currentVerticalLayout.addComponent(button);
+				count++;
+				if(count % 6 == 0) {
+					cssLayout.addComponent(currentVerticalLayout);
+					currentVerticalLayout = new VerticalLayout();
+				}
 			}
 		}
 
