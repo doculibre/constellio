@@ -175,7 +175,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenThesaurusValueIsResponseOk() throws IOException, SolrServerException {
+	public void givenThesaurusValueIsResponseOk() throws Exception {
 		Users users = new Users();
 		RMTestRecords records = new RMTestRecords(zeCollection);
 
@@ -191,8 +191,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");
 
-		getModelLayerFactory().getThesaurusManager().set(new FileInputStream(SKOS_XML_FILE_PATH));
-
+		getModelLayerFactory().getThesaurusManager().set(new FileInputStream(SKOS_XML_FILE_PATH), zeCollection);
 
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.add("q", "*:*");

@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
+
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
 
@@ -288,10 +290,9 @@ public class ThesaurusService implements Serializable {
 
 		responseSkosConcept.getSuggestion();
 
-		namedList.add(DESAMBIUGATIONS, "tata");
-		namedList.add(DESAMBIUGATIONS, "tttt");
-		namedList.add(SUGGESTIONS, "jojo");
-		namedList.add(SUGGESTIONS, "jjjj");
+		responseSkosConcept.getDisambiguations().put(Language.French, asList("frenchDesambiguation1", "frenchDesambiguation2"));
+		responseSkosConcept.getSuggestion().put(Language.French, asList("frenchSuggestion1", "frenchSuggestion2"));
+
 
 		return responseSkosConcept;
 	}

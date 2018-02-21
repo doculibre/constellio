@@ -82,7 +82,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 
             inputStreamFromFile = ioServices.newFileInputStream(tempFileUpload.getTempFile(), THESAURUS_CONFIGURATION_PRESENTER_STREAM_NAME);
-            thesaurusManager.set(inputStreamFromFile);
+            thesaurusManager.set(inputStreamFromFile, view.getCollection());
 
             if(thesaurusConfig == null)  {
                 thesaurusConfig = schemaRecordService.newThesaurusConfig();
@@ -108,6 +108,10 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
+            view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
+        } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
+            // Not suppose to happen because the file have been validated when uploaded.
+            thesaurusInvalidFileFormat.printStackTrace();
             view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
         } finally {
             ioServices.closeQuietly(inputStreamFromFile);
