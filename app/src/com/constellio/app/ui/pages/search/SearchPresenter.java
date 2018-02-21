@@ -36,6 +36,7 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
@@ -129,6 +130,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		initSortParameters();
 		correctorExcluderManager = appLayerFactory.getCorrectorExcluderManager();
 		thesaurusManager = modelLayerFactory.getThesaurusManager();
+
 	}
 
 	private void initSortParameters() {
@@ -180,7 +182,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ThesaurusService thesaurusService;
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.SUGGESTIONS);
+			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
+					language).getSuggestion().get(language);
 		}
 
 		return result;
@@ -191,7 +195,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		ThesaurusService thesaurusService;
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.DESAMBIUGATIONS);
+			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
+					language).getDisambiguations().get(language);
 		}
 
 		return result;

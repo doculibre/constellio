@@ -10,6 +10,7 @@ import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
@@ -39,6 +40,7 @@ public class SearchWebService extends HttpServlet {
 		return ConstellioFactories.getInstance();
 	}
 	public static final String THESAURUS_VALUE = "thesaurusValue";
+	public static final String SKOS_CONCEPTS = "skosConcepts";
 
 
 	@Override
@@ -54,6 +56,7 @@ public class SearchWebService extends HttpServlet {
 			throw new RuntimeException("Invalid serviceKey/token");
 		}
 
+		NamedList skosConcept = null;
 		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(
 				SolrRequestParsers.parseQueryString(request.getQueryString()));
@@ -67,6 +70,8 @@ public class SearchWebService extends HttpServlet {
 		String[] strings = solrParams.getParams("fq");
 
 		String collection = "";
+
+		ResponseSkosConcept responseSkosConcept = null;
 
 		for(String param : strings) {
 			if(param.startsWith("collection_s")) {
@@ -98,16 +103,18 @@ public class SearchWebService extends HttpServlet {
 			ArrayList<String> paramList = new ArrayList<>();
 			SearchEvent searchEvent = null;
 
-			if(!Strings.isNullOrEmpty(thesaurusValue)) {
-				ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
-				ThesaurusService thesaurusService;
-				if((thesaurusService = thesaurusManager.get()) != null) {
-					//suggestion = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.SUGGESTION);
-					//desanbiguation = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.DESAMBIUGATION);
-				}
-			}
+
 
 			if(!Strings.isNullOrEmpty(collection)) {
+				if(!Strings.isNullOrEmpty(thesaurusValue)) {
+					ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
+					ThesaurusService thesaurusService;
+					if((thesaurusService = thesaurusManager.get(collection)) != null) {
+						responseSkosConcept = thesaurusService.getSkosConcepts(thesaurusValue);
+					}
+				}
+
+
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
 				searchEvent = schemasRecordsServices.newSearchEvent();
 
@@ -147,20 +154,26 @@ public class SearchWebService extends HttpServlet {
 		}
 
 		NamedList skosConceptsNL = new NamedList();
-
+		boolean haveValue = false;
 		if(suggestion != null && suggestion.size() > 0) {
 			NamedList suggestionsNL = new NamedList();
 
-			skosConceptsNL.add(ThesaurusService.SUGGESTION, suggestionsNL);
+			skosConceptsNL.add(ThesaurusService.SUGGESTIONS, suggestionsNL);
+			haveValue = true;
 		}
 
 		if(desanbiguation != null && suggestion.size() > 0) {
 			NamedList disambiguationsNL = new NamedList();
 
-			skosConceptsNL.add(ThesaurusService.SUGGESTION, disambiguationsNL);
+			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
+			haveValue = true;
 		}
 
-		writeResponse(response, solrParams, queryResponse);
+		if(haveValue) {
+			queryResponse.getSortValues().addAll(skosConceptsNL);
+		}
+
+		writeResponse(response, solrParams, queryResponse, skosConcept);
 	}
 
 	private ModelLayerFactory modelLayerFactory() {
@@ -179,7 +192,7 @@ public class SearchWebService extends HttpServlet {
 		return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
 	}
 
-	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse) {
+	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList thesaurus) {
 		response.setContentType("application/xml; charset=UTF-8");
 		OutputStream outputStream;
 		try {
@@ -190,6 +203,10 @@ public class SearchWebService extends HttpServlet {
 
 		SolrQueryResponse sResponse = new SolrQueryResponse();
 		sResponse.setAllValues(queryResponse.getResponse());
+
+		if(thesaurus  != null) {
+			sResponse.getValues().add(SKOS_CONCEPTS , thesaurus);
+		}
 
 		XMLResponseWriter xmlWriter = new XMLResponseWriter();
 

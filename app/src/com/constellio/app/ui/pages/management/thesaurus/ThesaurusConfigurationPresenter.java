@@ -37,7 +37,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
     public static final String THESAURUS_FILE = "thesaurus.xml";
 
     ThesaurusConfig thesaurusConfig = null;
-    SchemasRecordsServices schemas;
+    SchemasRecordsServices schemaRecordService;
     RecordServices recordServices;
     ThesaurusManager thesaurusManager;
     ThesaurusService tempThesarusService = null;
@@ -49,12 +49,12 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
         SearchServices searchService = modelLayerFactory.newSearchServices();
         recordServices = modelLayerFactory.newRecordServices();
-        schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+        schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
         List<Record> thesaurusConfigRecordFound = searchService.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators
-                .from(schemas.thesaurusConfig.schemaType()).returnAll()));
+                .from(schemaRecordService.thesaurusConfig.schemaType()).returnAll()));
 
         if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
-            thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
+            thesaurusConfig = schemaRecordService.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
         }
 
         thesaurusManager = modelLayerFactory.getThesaurusManager();
@@ -85,7 +85,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             thesaurusManager.set(inputStreamFromFile);
 
             if(thesaurusConfig == null)  {
-                thesaurusConfig = schemas.newThesaurusConfig();
+                thesaurusConfig = schemaRecordService.newThesaurusConfig();
                 isNew = true;
             }
             inputStream2FromFile = ioServices.newFileInputStream(tempFileUpload.getTempFile(), THESAURUS_CONFIGURATION_PRESENTER_STREAM_NAME);
@@ -171,16 +171,19 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         List<String> termsPerLineAsList = Arrays.asList(termsPerLine);
         boolean isNew = false;
         if(thesaurusConfig == null) {
-            thesaurusConfig = schemas.newThesaurusConfig();
+            thesaurusConfig = schemaRecordService.newThesaurusConfig();
             isNew = true;
         }
 
         thesaurusConfig.setDenidedWords(termsPerLineAsList);
+
         if(isNew) {
             recordServices.add(thesaurusConfig);
         } else {
             recordServices.update(thesaurusConfig);
         }
+
+
     }
 
     public String getDenidedTerms() {

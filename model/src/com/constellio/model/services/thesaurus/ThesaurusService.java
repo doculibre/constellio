@@ -281,14 +281,23 @@ public class ThesaurusService implements Serializable {
 		return allLabels;
 	}
 
-	public NamedList getSkosConcepts(String input) {
+	public ResponseSkosConcept getSkosConcepts(String input, Language language) {
 		NamedList namedList = new NamedList();
+
+		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
+
+		responseSkosConcept.getSuggestion();
+
 		namedList.add(DESAMBIUGATIONS, "tata");
 		namedList.add(DESAMBIUGATIONS, "tttt");
 		namedList.add(SUGGESTIONS, "jojo");
 		namedList.add(SUGGESTIONS, "jjjj");
 
-		return namedList;
+		return responseSkosConcept;
+	}
+
+	public ResponseSkosConcept getSkosConcepts(String input) {
+		return getSkosConcepts(input, null);
 	}
 //
 //	public NamedList getSkosConcepts(String input) {

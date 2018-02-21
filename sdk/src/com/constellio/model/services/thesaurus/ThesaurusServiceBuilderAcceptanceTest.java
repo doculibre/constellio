@@ -150,13 +150,6 @@ public class ThesaurusServiceBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(allLabelResults.equals(expectedLabelResults));
 	}
 
-	@Test
-	public void whenThen(){
-		List result = thesaurusService.getSkosConcepts("carte").getAll(ThesaurusService.SUGGESTIONS);
-
-	}
-
-	// UTILS METHODS
 
 	private String addSpaces(String searchTerm) {
 		return " "+searchTerm+" ";
