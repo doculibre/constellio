@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.type;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaVOLazyContainer;
@@ -188,7 +189,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		});
 
-		Table table = new Table($("ListSchemaView.tableTitle", schemaContainer.size()), buttonsContainer);
+		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", schemaContainer.size()), buttonsContainer);
 		table.setSizeFull();
 		table.setPageLength(Math.min(15, schemaContainer.size()));
 		table.setColumnHeader("buttons", "");

@@ -26,6 +26,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -81,6 +82,10 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
+		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled()) {
+			return false;
+		}
+
 		boolean executedJobs = false;
 
 		try {
@@ -95,7 +100,7 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-//					LOGGER.info(
+					//					LOGGER.info(
 					//							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
 					//									+ " job(s) " + "' **** ");
 

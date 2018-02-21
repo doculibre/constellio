@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.FieldOverridePresenter;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
 
@@ -53,7 +54,7 @@ public class OverridingMetadataFieldFactory<T extends FieldOverridePresenter> ex
 	}
 
 	private Field<?> buildDropdown(MetadataVO metadata) {
-		ComboBox comboBox = new ComboBox();
+		ComboBox comboBox = new BaseComboBox();
 		for (Choice choice : presenter.getChoices(metadata.getCode())) {
 			comboBox.addItem(choice.getValue());
 			comboBox.setItemCaption(choice.getValue(), choice.getCaption());

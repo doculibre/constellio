@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
@@ -64,7 +65,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	}
 
 	private ComboBox buildTypeSelectionComponent() {
-		ComboBox typeSelection = new ComboBox($("TrashView.typeSelection"));
+		ComboBox typeSelection = new BaseComboBox($("TrashView.typeSelection"));
 		Container typeContainer = new SchemaTypeVOLazyContainer(presenter.getSchemaTypes());
 		typeSelection.setContainerDataSource(typeContainer);
 		typeSelection.setItemCaptionPropertyId("label");

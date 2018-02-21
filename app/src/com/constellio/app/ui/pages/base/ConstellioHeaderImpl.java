@@ -26,6 +26,7 @@ import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
@@ -358,7 +359,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private Component buildSchemaTypeComponent() {
 		Label label = new Label($("AdvancedSearchView.type"));
 
-		advancedSearchSchemaTypeField = new ComboBox();
+		advancedSearchSchemaTypeField = new BaseComboBox();
 		for (MetadataSchemaTypeVO schemaType : presenter.getSchemaTypes()) {
 			advancedSearchSchemaTypeField.addItem(schemaType.getCode());
 			String itemCaption = schemaType.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -104,5 +105,19 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 
 		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
 		verify(view, never()).refreshTable();
+	}
+
+	@Test
+	public void whenDeterminingIfASchemaTypeIsPossiblyDeletableThenOnlyIfHasUSROrNumberCode() {
+		assertThat(presenter.isValueListPossiblyDeletable("USRddvFolderType")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("USRDDVFolderType")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("ddvusrFolderType")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("ddvUSRFolderType")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("ddvFolderType")).isFalse();
+		assertThat(presenter.isValueListPossiblyDeletable("ddvFolderZEUSRoy")).isFalse();
+		assertThat(presenter.isValueListPossiblyDeletable("folder")).isFalse();
+		assertThat(presenter.isValueListPossiblyDeletable("ddv12345")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("ddv12345type")).isTrue();
+		assertThat(presenter.isValueListPossiblyDeletable("ddvFolder12")).isFalse();
 	}
 }

@@ -503,7 +503,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
 						getVariablePeriods());
-				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
+				final ComboBox openRetentionPeriodDDVField = new BaseComboBox("", container);
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
 				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 				for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {

@@ -1016,6 +1016,7 @@ $popup-view-z-index: 3;
 		background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
 			
 		.v-context-menu-item-basic, .v-context-menu-item-basic-submenu {
+			clear: both;
     		background-color: #414B56;
 	    	color: white;
 	    	font-weight: normal;
@@ -1026,6 +1027,7 @@ $popup-view-z-index: 3;
 			text-align: left;
 			border: none;
 			cursor: pointer;
+			left: 5px;
 
 			.v-context-menu-item-basic-icon-container {
 				float: left;
@@ -1153,6 +1155,15 @@ $popup-view-z-index: 3;
 				height: 20px;
 			}
 		}
+	}
+	
+	.button-caption-important {
+		font-weight: bold;
+	}
+	
+	.button-caption-error {
+		font-weight: bold;
+		color: red;
 	}
 	
     .constellio-layout {
@@ -1902,11 +1913,21 @@ $popup-view-z-index: 3;
 		width: 20px;
 		background: transparent;
 	}
-		
+
+	.v-filterselect-rtl {
+		.v-filterselect-button {
+			//direction: rtl;
+		}
+
+		.v-filterselect-input {
+			direction: rtl;
+		}
+	}
+
 	.v-filterselect-item-rtl {
 		direction: rtl;
 	}
-	
+
 	.right-to-left {
 
 		.v-table {
@@ -1914,7 +1935,7 @@ $popup-view-z-index: 3;
 	    		.v-button {
 	    			direction: rtl;
 	    		}
-	    		
+
 				.v-disabled {
 					text-align: right;
 				}
@@ -1923,44 +1944,51 @@ $popup-view-z-index: 3;
 
 	    .v-table-cell-content-file-icon {
 			background-position: 99% center;
-	
+
 			.v-table-cell-wrapper {
 				text-align: right;
 				left: inherit;
 				right: 20px;
 			}
+
 		}
-	
+
+		.v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon {
+			.v-table-cell-wrapper {
+				right: 30px;
+			}
+		}
+
 		.v-filterselect-button {
 			direction: rtl;
 		}
-		
+
 		.v-filterselect-input {
 			direction: rtl;
 		}
-	
+
 		.v-widget {
 			text-align: right;
 		}
-		
+
 		.v-textfield {
 			direction: rtl;
 		}
-		
+
 		.v-radiobutton label {
     		margin-right: 13px;
     	}
-		
+
 		.v-radiobutton > input {
 			left: inherit;
 			right: -16px;
 		}
-		
+
 		.v-radiobutton > input:checked ~ label:after {
 			left: inherit;
 			right: -13px;
 		}
-		
+
 		.v-radiobutton > input ~ label:before, .v-radiobutton > input ~ label:after {
 			left: inherit;
 			right: -19px;
@@ -1969,18 +1997,27 @@ $popup-view-z-index: 3;
 		.v-checkbox {
 			padding-left: 25px;
 		}
-		
+
 		.v-checkbox > label {
 			margin-right: 29px;
 		}
-		
+
 		.v-checkbox > input {
 			left: 0.2em;
 		}
-		
+
 		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
 			left: inherit;
 			right: 0;
+		}
+
+		.selection-table {
+			.v-table-cell-content {
+				.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
+					left: 0;
+					right: inherit;
+				}
+			}
 		}
 		
 		.v-checkbox-small {
@@ -2212,10 +2249,7 @@ $popup-view-z-index: 3;
 				}
 			}	
 		}
-	}	
 
-	.v-window {
-	
 		.popupContent {
 		
 			.action-menu {
@@ -2277,7 +2311,7 @@ $popup-view-z-index: 3;
 	        
 		}
 		
-	} 
+	}	
 
     .v-ui[width-range~="1101px-"].right-to-left {
 	

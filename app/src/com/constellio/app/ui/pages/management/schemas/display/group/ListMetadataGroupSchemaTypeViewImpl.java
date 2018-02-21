@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -56,7 +57,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	}
 
 	private Table buildTable() {
-		Table table = new Table();
+		Table table = new BaseTable(getClass().getName());
 		table.setWidth("100%");
 		table.setColumnHeader("button", "");
 		table.setColumnWidth("button", 60);

@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCode;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -14,6 +19,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.ValueListServices.CreateValueListOptions;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -25,6 +31,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -42,6 +51,11 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 	List<MetadataSchemaType> initialValueLists;
 
+	RecordServices recordServices;
+	RMSchemasRecordsServices rm;
+
+	TaxonomiesManager taxonomiesManager;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -50,6 +64,9 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule()
 		);
 
+		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+		recordServices = getModelLayerFactory().newRecordServices();
+
 		services = new ValueListServices(getAppLayerFactory(), zeCollection);
 
 		initialValueLists = services.getValueDomainTypes();
@@ -57,6 +74,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
@@ -190,6 +209,27 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenTaxonomyWithMetadataWhenDeletedThenTypeTaxonomyAndMetadataAreDeleted()
+			throws ValidationException {
+		Taxonomy zeTaxo = services
+				.createTaxonomy("zeTaxo", "Ze ultimate taxo!", new ArrayList<String>(), new ArrayList<String>(), true);
+
+		Metadata referenceMetadata = services
+				.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
+
+		assertThat(taxonomiesManager.getEnabledTaxonomies(zeCollection)).extracting("code").contains("taxozeTaxo");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("taxozeTaxoType")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata(referenceMetadata.getCode())).isTrue();
+
+		services.deleteValueListOrTaxonomy("taxozeTaxoType");
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("taxozeTaxoType")).isFalse();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata(referenceMetadata.getCode())).isFalse();
+		assertThat(taxonomiesManager.getEnabledTaxonomies(zeCollection)).extracting("code").doesNotContain("taxozeTaxo");
+
+	}
+
+	@Test
 	public void givenGroupExistingWhenCreateAMultivalueClassificationMetadataInGroupThenMetadataCreatedCorrectlyInGroup() {
 
 		Map<String, Map<Language, String>> groups = new HashMap<>();
@@ -246,6 +286,61 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		List<String> typesWithTaxo = new SchemaUtils().toSchemaTypeCodes(services.getClassifiedSchemaTypes(zeTaxo));
 		assertThat(typesWithTaxo).containsOnly(Document.SCHEMA_TYPE);
+	}
+
+	@Test
+	public void givenAValueListWithoutRecordsWhenDeletingItThenSchemaTypeAndMetadatasUsingItAreRemoved()
+			throws Exception {
+
+		CreateValueListOptions options = new CreateValueListOptions();
+		options.setCreateMetadatasAsMultivalued(true);
+		options.typesWithReferenceMetadata = asList("administrativeUnit");
+
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", "zora", options);
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("administrativeUnit_default_USRZora").isMultivalue())
+				.isTrue();
+		services.deleteValueListOrTaxonomy("ddvUSRZora");
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isFalse();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isFalse();
+
+	}
+
+	@Test
+	public void givenAValueListWithRecordsWhenDeletingItThenSchemaTypeAndMetadatasUsingItAreRemoved()
+			throws Exception {
+
+		CreateValueListOptions options = new CreateValueListOptions();
+		options.setCreateMetadatasAsMultivalued(false);
+		options.typesWithReferenceMetadata = asList("administrativeUnit");
+
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", "zora", options);
+
+		recordServices
+				.add(recordServices.newRecordWithSchema(zoraDomain.getDefaultSchema()).set(TITLE, "test")
+						.set(Schemas.CODE, "test"));
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("administrativeUnit_default_USRZora").isMultivalue())
+				.isFalse();
+
+		try {
+			services.deleteValueListOrTaxonomy("ddvUSRZora");
+			fail("Exception expected");
+
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCode(e.getValidationErrors())).containsOnly("ValueListServices_valueListHasRecords");
+			assertThat(frenchMessages(e.getValidationErrors()))
+					.containsOnly("Le domaine de valeurs «zora» ne peut pas être supprimé, car il n'est pas vide");
+		}
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();
+
 	}
 
 }

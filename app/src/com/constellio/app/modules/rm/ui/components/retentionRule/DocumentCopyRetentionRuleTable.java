@@ -402,7 +402,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
 						getVariablePeriods());
-				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
+				final ComboBox openRetentionPeriodDDVField = new BaseComboBox("", container);
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
 				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 				for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {

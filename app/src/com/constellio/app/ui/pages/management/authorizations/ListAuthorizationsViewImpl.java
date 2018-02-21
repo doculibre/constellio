@@ -22,6 +22,7 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -234,7 +235,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		} else if (presenter.seeRolesField()) {
 			tableCaption = $("ListRoleAuthorizationsView.authorizations", container.size());
 		}
-		Table table = new Table(tableCaption, container);
+		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
 		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField()).attachTo(table);

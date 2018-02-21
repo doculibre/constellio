@@ -22,6 +22,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
@@ -86,7 +87,7 @@ public class GetXmlButtonV2 extends WindowButton{
     }
 
     private ComboBox getLookupFieldForTaskSchema() {
-        ComboBox taskFieldcomboBox = new ComboBox();
+        ComboBox taskFieldcomboBox = new BaseComboBox();
         MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
         List<Record> records = factory.getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(Task.SCHEMA_TYPE)).where(ALL)));
         TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();

@@ -13251,6 +13251,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	clear: both;
 	background-color: #414B56;
 	color: white;
 	font-weight: normal;
@@ -13260,6 +13261,7 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 	border: none;
 	cursor: pointer;
+	left: 5px;
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container {
@@ -13376,6 +13378,15 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .config-management .config-group .v-spacing {
 	height: 20px;
+}
+
+.constellio .button-caption-important {
+	font-weight: bold;
+}
+
+.constellio .button-caption-error {
+	font-weight: bold;
+	color: red;
 }
 
 .constellio .constellio-layout .sidebar {
@@ -14122,6 +14133,10 @@ div.v-layout.v-horizontal.v-widget {
 	background: transparent;
 }
 
+.constellio .v-filterselect-rtl .v-filterselect-input {
+	direction: rtl;
+}
+
 .constellio .v-filterselect-item-rtl {
 	direction: rtl;
 }
@@ -14142,6 +14157,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: right;
 	left: inherit;
 	right: 20px;
+}
+
+.constellio .right-to-left .v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon .v-table-cell-wrapper {
+	right: 30px;
 }
 
 .constellio .right-to-left .v-filterselect-button {
@@ -14194,6 +14213,11 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .right-to-left .v-checkbox > input ~ label:before, .constellio .right-to-left .v-checkbox > input ~ label:after {
 	left: inherit;
 	right: 0;
+}
+
+.constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:before, .constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:after {
+	left: 0;
+	right: inherit;
 }
 
 .constellio .right-to-left .v-checkbox-small {
@@ -14377,44 +14401,44 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 5px;
 }
 
-.constellio .v-window .popupContent .action-menu {
+.constellio .right-to-left .popupContent .action-menu {
 	right: inherit;
 	left: 20px;
 }
 
-.constellio .v-window .popupContent .action-menu .v-button {
+.constellio .right-to-left .popupContent .action-menu .v-button {
 	text-align: right;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper {
+.constellio .right-to-left .popupContent .action-menu-wrapper {
 	padding-right: 10px;
 	padding-left: 260px;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
+.constellio .right-to-left .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value {
 	padding-right: inherit;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
+.constellio .right-to-left .popupContent .action-menu-wrapper .base-display .v-slot-display-value .display-value .agent-link {
 	padding-right: inherit;
 	padding-left: 26px;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
+.constellio .right-to-left .popupContent .action-menu-wrapper .base-display .v-slot-display-value .v-label-display-value {
 	margin-right: inherit;
 	margin-left: 300px;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
+.constellio .right-to-left .popupContent .action-menu-wrapper .base-display .v-slot-display-value .reference-display {
 	padding-right: inherit;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment .list-add-remove-comment {
+.constellio .right-to-left .popupContent .action-menu-wrapper .base-display .record-comments-layout .v-slot-list-add-remove-comment .list-add-remove-comment {
 	padding-left: inherit;
 	padding-right: 0px;
 }
 
-.constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .v-window .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
+.constellio .right-to-left .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_copyRetentionRules, .constellio .right-to-left .popupContent .action-menu-wrapper .retention-rule-display .v-slot-display-value .display-value-retentionRule_default_documentCopyRetentionRules {
 	padding-right: inherit;
 	padding-left: 0px;
 }

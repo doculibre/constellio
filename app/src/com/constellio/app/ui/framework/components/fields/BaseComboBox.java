@@ -33,6 +33,7 @@ public class BaseComboBox extends ComboBox {
 	private void init() {
 		addStyleName(COMBO_BOX_STYLE);
 		if (isRightToLeft()) {
+			addStyleName("v-filterselect-rtl");
 			setItemStyleGenerator(new ItemStyleGenerator() {
 				@Override
 				public String getStyle(ComboBox source, Object itemId) {

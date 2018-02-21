@@ -14,6 +14,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -319,7 +320,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			}
 		});
 
-		valuesTable = new Table();
+		valuesTable = new BaseTable(getClass().getName());
 		valuesTable.addStyleName(TABLE_STYLE_NAME);
 		valuesTable.setContainerDataSource(valuesAndButtonsContainer);
 		valuesTable.setPageLength(0);
