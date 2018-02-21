@@ -179,8 +179,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
-		if((thesaurusService = thesaurusManager.get()) != null) {
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.SUGGESTION);
+		if((thesaurusService = thesaurusManager.get(collection)) != null) {
+			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.SUGGESTIONS);
 		}
 
 		return result;
@@ -190,8 +190,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
-		if((thesaurusService = thesaurusManager.get()) != null) {
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.DESAMBIUGATION);
+		if((thesaurusService = thesaurusManager.get(collection)) != null) {
+			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery()).getAll(ThesaurusService.DESAMBIUGATIONS);
 		}
 
 		return result;

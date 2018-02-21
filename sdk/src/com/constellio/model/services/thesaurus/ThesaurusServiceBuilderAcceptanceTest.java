@@ -1,106 +1,188 @@
 package com.constellio.model.services.thesaurus;
 
-import static com.constellio.sdk.tests.TestUtils.asSet;
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 import java.io.FileInputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.constellio.sdk.tests.ConstellioTest;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.olap4j.metadata.NamedList;
 
+/**
+ * Tests for searching in Thesaurus. Search should be permissive at all time (ignore case, accents and trim spaces).
+ */
 public class ThesaurusServiceBuilderAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS destination 21 juillet 2017.xml";
-	private static ThesaurusService thesaurus;
+	public static final String SKOS_XML_FILE_PATH = "C:\\Workspace\\Projets\\SCOS_ServiceQC\\Fichiers depart\\SKOS destination 21 juillet 2017.xml";
+	private static ThesaurusService thesaurusService;
 	private static Map<String, SkosConcept> allConcepts;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		// prevent parsing each time
-		if(thesaurus==null){
-			thesaurus = ThesaurusBuilder.getThesaurus(new FileInputStream(SKOS_XML_FILE_PATH));
-			allConcepts = thesaurus.getAllConcepts();
+		if(thesaurusService ==null){
+			thesaurusService = ThesaurusBuilder.getThesaurus(new FileInputStream(SKOS_XML_FILE_PATH));
+			allConcepts = thesaurusService.getAllConcepts();
 		}
 	}
 
 	@Test
-	public void whenSearchPrefLabelThenCorrespondingConceptsFound()
+	public void whenGetPrefLabelsThatContainsThenCorrespondingConceptsFound()
 			throws Exception {
 
-		String searchValue = "déclAratiON de Revenus";
+		Set<String> searchValues = getStringPermissiveCases("déclaration de revenus".substring(1));
 
-		List<SkosConcept> allConceptsFound = thesaurus.searchPrefLabel(searchValue);
-		assertThat(allConceptsFound.size()).isEqualTo(1);
+		for(String searchValue : searchValues) {
 
-		Set<ThesaurusLabel> concepts = allConceptsFound.get(0).getPrefLabels();
-		assertThat(concepts.iterator().next().getValues().values()).containsAll(asList("DÉCLARATION DE REVENUS","INCOME TAX RETURN"));
+			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatContains(searchValue);
+
+			assertThat(concepts).extracting("rdfAbout").containsOnly(
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736"
+			);
+		}
 	}
 
 	@Test
-	public void whenSearchChildPrefLabelThenCorrespondingConceptsFound()
+	public void whenGetPrefLabelsThatEqualsOrSpecifyWithEqualsThenCorrespondingConceptsFound()
 			throws Exception {
 
-		String searchValue = "caRte";
+		Set<String> searchValues = getStringPermissiveCases("déclaration de revenus");
 
-		List<SkosConcept> allConceptsFound = thesaurus.searchChildPrefLabel(searchValue);
-		assertThat(allConceptsFound.size()).isEqualTo(2);
+		for(String searchValue : searchValues) {
 
-		Set<ThesaurusLabel> concepts = allConceptsFound.get(0).getPrefLabels();
-		assertThat(concepts.iterator().next().getValues().values()).containsAll(asList("CARTE (lieu)","CARTE (identification)"));
+			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatEqualsOrSpecify(searchValue);
+
+			assertThat(concepts).extracting("rdfAbout").containsOnly(
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736"
+			);
+		}
 	}
 
 	@Test
-	public void whenSearchAltLabelThenCorrespondingConceptsFound()
+	public void whenGetPrefLabelsThatEqualsOrSpecifyWithSpecifyThenCorrespondingConceptsFound()
 			throws Exception {
 
-		String searchValue = "rapPort d'iMpÔt";
+		Set<String> searchValues = getStringPermissiveCases("carte");
 
-		List<SkosConcept> allConceptsFound = thesaurus.searchAllLabels(searchValue);
-		assertThat(allConceptsFound.size()).isEqualTo(1);
+		for(String searchValue : searchValues) {
 
-		Set<SkosConceptAltLabel> concepts = allConceptsFound.get(0).getAltLabels();
+			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatEqualsOrSpecify(searchValue);
 
-		assertThat(concepts).extracting("skosConcept.rdfAbout","values").containsOnly(
-				tuple("http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736", asSet("déclaration fiscale", "déclaration d'impôt", "rapport d'impôt")
-				));
+			assertThat(concepts).extracting("rdfAbout").containsOnly(
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=1990",
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=1991"
+			);
+
+		}
 	}
 
 	@Test
-	public void whenSearchAllLabelsWithOnlyPrefLabelResultsThenCorrespondingConceptsFound()
+	public void whenGetAltLabelsThatContainsThenCorrespondingConceptsFound()
 			throws Exception {
-		String searchValue;
-		List<SkosConcept> allLabelResults;
-		List<SkosConcept> altLabelResults;
-		List<SkosConcept> prefLabelResults;
 
-		searchValue = "iMpÔt";
-		allLabelResults = thesaurus.searchAllLabels(searchValue);
-		prefLabelResults = thesaurus.searchPrefLabel(searchValue);
+		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt".substring(1));
 
-		assertThat(allLabelResults.equals(prefLabelResults));
+		for(String searchValue : searchValues) {
+
+			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatContains(searchValue);
+
+			assertThat(concepts).extracting("rdfAbout").containsOnly(
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736"
+			);
+		}
 	}
 
 	@Test
-	public void whenSearchAllLabelsWithOnlyAltLabelResultsThenCorrespondingConceptsFound()
+	public void whenGetAltLabelsThatEqualsThenCorrespondingConceptsFound()
 			throws Exception {
-		String searchValue;
-		List<SkosConcept> allLabelResults;
-		List<SkosConcept> altLabelResults;
-		List<SkosConcept> prefLabelResults;
 
-		searchValue = "RAPPORT D'iMpÔt";
-		allLabelResults = thesaurus.searchAllLabels(searchValue);
-		altLabelResults = thesaurus.searchAltLabel(searchValue);
+		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt");
 
-		assertThat(allLabelResults.equals(altLabelResults));
+		for(String searchValue : searchValues) {
+
+			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatEquals(searchValue);
+
+			assertThat(concepts).extracting("rdfAbout").containsOnly(
+					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736"
+			);
+		}
 	}
 
+	@Test
+	public void whenGetAltLabelsThatEqualsNotThenNoConceptsFound()
+			throws Exception {
+
+		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt".substring(1));
+
+		for(String searchValue : searchValues) {
+
+			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatEquals(searchValue);
+
+			assertThat(concepts.isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void whenGetAllLabelsThatContainsWithOnlyPrefLabelResultsThenCorrespondingConceptsFound()
+			throws Exception {
+		String searchValue = " iMpÔt ";
+		Set<SkosConcept> allLabelResults = thesaurusService.getAllLabelsThatContains(searchValue);
+		Set<SkosConcept> expectedLabelResults = thesaurusService.getPrefLabelsThatContains(searchValue);
+
+		assertThat(allLabelResults.equals(expectedLabelResults));
+	}
+
+	@Test
+	public void whenGetAllLabelsThatContainsWithOnlyAltLabelResultsThenCorrespondingConceptsFound()
+			throws Exception {
+		String searchValue = " RAPPORT D'iMpÔt ";
+		Set<SkosConcept> allLabelResults = thesaurusService.getAllLabelsThatContains(searchValue);
+		Set<SkosConcept> expectedLabelResults = thesaurusService.getAltLabelsThatContains(searchValue);
+
+		assertThat(allLabelResults.equals(expectedLabelResults));
+	}
+
+	@Test
+	public void whenThen(){
+		List result = thesaurusService.getSkosConcepts("carte").getAll(ThesaurusService.SUGGESTIONS);
+
+	}
+
+	// UTILS METHODS
+
+	private String addSpaces(String searchTerm) {
+		return " "+searchTerm+" ";
+	}
+
+	private String mixCase(String input) {
+
+		String output = "";
+
+		if(input!=null && !input.isEmpty()){
+			char[] charArray = input.toCharArray();
+			for(int i = 0; i< charArray.length; i++){
+				char currentChar = charArray[i];
+
+				if(i%2==0){
+					currentChar = Character.toUpperCase(currentChar);
+				}
+
+				output += currentChar;
+			}
+		}
+
+		return output;
+	}
+
+	private Set<String> getStringPermissiveCases(String searchTerm) {
+		return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
+	}
 }

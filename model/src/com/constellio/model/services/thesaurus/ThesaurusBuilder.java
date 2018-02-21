@@ -273,7 +273,7 @@ public class ThesaurusBuilder {
             LOGGER.finest("Collecting labels for " + rdfAbout);
 
             SkosConcept skosConcept = new SkosConcept();
-            skosConcept.setThesaurus(thesaurus);
+            skosConcept.setThesaurusService(thesaurus);
             parsedConcepts.put(rdfAbout, skosConcept);
             skosConcept.setRdfAbout(rdfAbout);
 

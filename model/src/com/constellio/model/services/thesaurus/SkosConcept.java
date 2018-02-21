@@ -33,7 +33,7 @@ public class SkosConcept implements Serializable {
 
 	private String skosNotes;
 
-	private ThesaurusService thesaurus;
+	private ThesaurusService thesaurusService;
 
 	private Set<SkosConcept> broader = new HashSet<SkosConcept>();
 
@@ -61,12 +61,12 @@ public class SkosConcept implements Serializable {
 		this.skosNotes = skosNotes;
 	}
 
-	public ThesaurusService getThesaurus() {
-		return thesaurus;
+	public ThesaurusService getThesaurusService() {
+		return thesaurusService;
 	}
 
-	public void setThesaurus(ThesaurusService thesaurus) {
-		this.thesaurus = thesaurus;
+	public void setThesaurusService(ThesaurusService thesaurusService) {
+		this.thesaurusService = thesaurusService;
 	}
 
 	public Set<SkosConcept> getBroader() {

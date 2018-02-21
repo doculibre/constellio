@@ -206,7 +206,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
-		this.thesaurusManager = add(new ThesaurusManager(null)); // TODO mettre le fichier?
+		this.thesaurusManager = add(new ThesaurusManager(this)); // TODO mettre le fichier?
 
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
 			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();

@@ -1,13 +1,10 @@
 package com.constellio.app.ui.pages.management.thesaurus;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -26,10 +23,7 @@ import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
 import com.vaadin.server.Page;
-import com.vaadin.server.StreamResource;
-import org.apache.commons.io.FileUtils;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +37,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
     public static final String THESAURUS_FILE = "thesaurus.xml";
 
     ThesaurusConfig thesaurusConfig = null;
-    SchemasRecordsServices rm;
+    SchemasRecordsServices schemas;
     RecordServices recordServices;
     ThesaurusManager thesaurusManager;
     ThesaurusService tempThesarusService = null;
@@ -55,12 +49,12 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
         SearchServices searchService = modelLayerFactory.newSearchServices();
         recordServices = modelLayerFactory.newRecordServices();
-        rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+        schemas = new SchemasRecordsServices(collection, modelLayerFactory);
         List<Record> thesaurusConfigRecordFound = searchService.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators
-                .from(rm.thesaurusConfig.schemaType()).returnAll()));
+                .from(schemas.thesaurusConfig.schemaType()).returnAll()));
 
         if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
-            thesaurusConfig = rm.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
+            thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
         }
 
         thesaurusManager = modelLayerFactory.getThesaurusManager();
@@ -91,7 +85,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             thesaurusManager.set(inputStreamFromFile);
 
             if(thesaurusConfig == null)  {
-                thesaurusConfig = rm.newThesaurusConfig();
+                thesaurusConfig = schemas.newThesaurusConfig();
                 isNew = true;
             }
             inputStream2FromFile = ioServices.newFileInputStream(tempFileUpload.getTempFile(), THESAURUS_CONFIGURATION_PRESENTER_STREAM_NAME);
@@ -177,7 +171,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         List<String> termsPerLineAsList = Arrays.asList(termsPerLine);
         boolean isNew = false;
         if(thesaurusConfig == null) {
-            thesaurusConfig = rm.newThesaurusConfig();
+            thesaurusConfig = schemas.newThesaurusConfig();
             isNew = true;
         }
 
@@ -210,7 +204,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         if(isInStateToBeSaved) {
             return tempThesarusService.getRdfAbout();
         }
-        else if((thesaurusService = thesaurusManager.get()) != null) {
+        else if((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getRdfAbout();
         }
         return "";
@@ -222,7 +216,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get()) != null) {
+        if((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcTitle();
         }
         return "";
@@ -234,7 +228,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get()) != null) {
+        if((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcDescription();
         }
         return "";
@@ -252,7 +246,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get()) != null && thesaurusService.getDcDate() != null) {
+        if((thesaurusService = thesaurusManager.get(collection)) != null && thesaurusService.getDcDate() != null) {
             return sdf.format(thesaurusService.getDcDate());
         }
         return "";
@@ -264,7 +258,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get()) != null) {
+        if((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcCreator();
         }
         return "";
