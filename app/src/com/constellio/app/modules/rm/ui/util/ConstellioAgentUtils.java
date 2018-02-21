@@ -261,13 +261,25 @@ public class ConstellioAgentUtils {
 			Content content = document.getContent();
 			if (content == null) {
 				resourcePath = null;
+			} else if (currentUserId.equals(content.getCheckoutUserId())) {
+				StringBuffer sb = new StringBuffer();
+				sb.append("/");
+				sb.append(currentUsername);
+				sb.append("/");
+				sb.append(collectionName);
+				sb.append("/checkedOutDocuments");
+				sb.append("/");
+				sb.append(document.getId());
+//				sb.append("/");
+//				sb.append(filename);
+				resourcePath = sb.toString();
 			} else {
 				StringBuffer sb = new StringBuffer();
 				sb.append("/");
 				sb.append(currentUsername);
 				sb.append("/");
 				sb.append(collectionName);
-				sb.append("/documents");
+				sb.append("/notCheckedOutDocuments");
 				sb.append("/");
 				sb.append(document.getId());
 //				sb.append("/");
