@@ -209,7 +209,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getDataLayerFactory().getEventsVaultServer().flush();
 
 		QueryResponse solrDocumentsList = solrServer.query(solrParams);
-		solrDocumentsList.getResponse().getAll(ThesaurusService.SUGGESTIONS);
+		solrDocumentsList.getResponse().getAll(SearchWebService.SKOS_CONCEPTS);
 		solrDocumentsList.getResponse().getAll(ThesaurusService.DESAMBIUGATIONS);
 
 	}

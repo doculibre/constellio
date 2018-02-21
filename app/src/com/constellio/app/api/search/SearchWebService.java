@@ -47,8 +47,6 @@ public class SearchWebService extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		List<String> desanbiguation = null;
-		List<String> suggestion = null;
 
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
 		UserCredential user = authenticator.authenticate(request);
@@ -56,7 +54,6 @@ public class SearchWebService extends HttpServlet {
 			throw new RuntimeException("Invalid serviceKey/token");
 		}
 
-		NamedList skosConcept = null;
 		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(
 				SolrRequestParsers.parseQueryString(request.getQueryString()));
@@ -80,13 +77,6 @@ public class SearchWebService extends HttpServlet {
 			}
 		}
 
-		List<String> liststringLanguage = modelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection);
-
-		List<Language> languageList = new ArrayList<>();
-		for(String language : liststringLanguage) {
-			languageList.add(Language.withCode(language));
-		}
-
 		QueryResponse queryResponse;
 		if(!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
 			throw new RuntimeException("You cannot search event and have a thesaurusValue");
@@ -102,8 +92,6 @@ public class SearchWebService extends HttpServlet {
 			SchemasRecordsServices schemasRecordsServices = null;
 			ArrayList<String> paramList = new ArrayList<>();
 			SearchEvent searchEvent = null;
-
-
 
 			if(!Strings.isNullOrEmpty(collection)) {
 				if(!Strings.isNullOrEmpty(thesaurusValue)) {
@@ -154,26 +142,40 @@ public class SearchWebService extends HttpServlet {
 		}
 
 		NamedList skosConceptsNL = new NamedList();
-		boolean haveValue = false;
-		if(suggestion != null && suggestion.size() > 0) {
+
+		if(responseSkosConcept != null && responseSkosConcept.getSuggestion().size() > 0) {
 			NamedList suggestionsNL = new NamedList();
 
+			for(Language language : responseSkosConcept.getSuggestion().keySet()) {
+				List<String> suggestionList = responseSkosConcept.getSuggestion().get(language);
+				NamedList localeSuggestionsNL = new NamedList();
+				for(String suggestion : suggestionList) {
+					localeSuggestionsNL.add("label", suggestion);
+				}
+
+				suggestionsNL.add(language.getCode(), localeSuggestionsNL);
+			}
+
 			skosConceptsNL.add(ThesaurusService.SUGGESTIONS, suggestionsNL);
-			haveValue = true;
 		}
 
-		if(desanbiguation != null && suggestion.size() > 0) {
+		if(responseSkosConcept != null && responseSkosConcept.getDisambiguations().size() > 0) {
 			NamedList disambiguationsNL = new NamedList();
 
+			for(Language language : responseSkosConcept.getDisambiguations().keySet()) {
+				List<String> disambiguationList = responseSkosConcept.getDisambiguations().get(language);
+				NamedList localeDisambiguationsNL = new NamedList();
+				for(String disambiguation : disambiguationList) {
+					localeDisambiguationsNL.add("label", disambiguation);
+				}
+
+				disambiguationsNL.add(language.getCode(), localeDisambiguationsNL);
+			}
+
 			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
-			haveValue = true;
 		}
 
-		if(haveValue) {
-			queryResponse.getSortValues().addAll(skosConceptsNL);
-		}
-
-		writeResponse(response, solrParams, queryResponse, skosConcept);
+		writeResponse(response, solrParams, queryResponse, skosConceptsNL);
 	}
 
 	private ModelLayerFactory modelLayerFactory() {
@@ -192,7 +194,7 @@ public class SearchWebService extends HttpServlet {
 		return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
 	}
 
-	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList thesaurus) {
+	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL) {
 		response.setContentType("application/xml; charset=UTF-8");
 		OutputStream outputStream;
 		try {
@@ -204,8 +206,8 @@ public class SearchWebService extends HttpServlet {
 		SolrQueryResponse sResponse = new SolrQueryResponse();
 		sResponse.setAllValues(queryResponse.getResponse());
 
-		if(thesaurus  != null) {
-			sResponse.getValues().add(SKOS_CONCEPTS , thesaurus);
+		if(skosConceptsNL  != null || skosConceptsNL.size() > 0) {
+			sResponse.getValues().add(SKOS_CONCEPTS , skosConceptsNL);
 		}
 
 		XMLResponseWriter xmlWriter = new XMLResponseWriter();
@@ -224,6 +226,4 @@ public class SearchWebService extends HttpServlet {
 			throw new RuntimeException("Unable to convert Solr response into XML", e);
 		}
 	}
-
-
 }
