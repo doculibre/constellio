@@ -34,8 +34,6 @@ import static java.util.Arrays.asList;
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
 
-	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
-	private static final Language[] languagesAvailable = {Language.French, Language.English};
 	public static final String DESAMBIUGATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
 
