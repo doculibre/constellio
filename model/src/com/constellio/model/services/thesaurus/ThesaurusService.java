@@ -19,6 +19,7 @@
  */
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.util.NamedList;
 

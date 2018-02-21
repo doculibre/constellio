@@ -2,6 +2,7 @@ package com.constellio.app.api.search;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -15,6 +16,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.LocalSolrQueryRequest;
 import org.apache.solr.response.JSONResponseWriter;
 import org.apache.solr.response.SolrQueryResponse;
@@ -73,7 +75,12 @@ public class SearchWebService extends HttpServlet {
 			}
 		}
 
+		List<String> liststringLanguage = modelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection);
 
+		List<Language> languageList = new ArrayList<>();
+		for(String language : liststringLanguage) {
+			languageList.add(Language.withCode(language));
+		}
 
 		QueryResponse queryResponse;
 		if(!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
@@ -95,8 +102,8 @@ public class SearchWebService extends HttpServlet {
 				ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
 				ThesaurusService thesaurusService;
 				if((thesaurusService = thesaurusManager.get()) != null) {
-					suggestion = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.SUGGESTION);
-					desanbiguation = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.DESAMBIUGATION);
+					//suggestion = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.SUGGESTION);
+					//desanbiguation = thesaurusService.getSkosConcepts(thesaurusValue).getAll(ThesaurusService.DESAMBIUGATION);
 				}
 			}
 
@@ -139,12 +146,18 @@ public class SearchWebService extends HttpServlet {
 			}
 		}
 
+		NamedList skosConceptsNL = new NamedList();
+
 		if(suggestion != null && suggestion.size() > 0) {
-			solrParams.add(ThesaurusService.SUGGESTION, suggestion.toArray(new String[0]));
+			NamedList suggestionsNL = new NamedList();
+
+			skosConceptsNL.add(ThesaurusService.SUGGESTION, suggestionsNL);
 		}
 
 		if(desanbiguation != null && suggestion.size() > 0) {
-			solrParams.add(ThesaurusService.DESAMBIUGATION, desanbiguation.toArray(new String[0]));
+			NamedList disambiguationsNL = new NamedList();
+
+			skosConceptsNL.add(ThesaurusService.SUGGESTION, disambiguationsNL);
 		}
 
 		writeResponse(response, solrParams, queryResponse);

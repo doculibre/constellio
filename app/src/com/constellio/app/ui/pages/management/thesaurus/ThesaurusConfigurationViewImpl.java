@@ -23,7 +23,6 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements ThesaurusConfigurationView {
-    WindowButton refusalWindow;
     DownloadContentVersionLink downloadContentVersionLink;
     BaseDisplay baseDisplay;
 

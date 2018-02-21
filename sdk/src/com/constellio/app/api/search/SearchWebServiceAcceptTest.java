@@ -184,8 +184,6 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
-
-
 		users.using(userServices);
 
 		User systemAdmin = users.adminIn(zeCollection);

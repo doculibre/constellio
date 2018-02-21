@@ -46,6 +46,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsuleButton());
 			layout.addComponent(createCorrectorExclusion());
+			layout.addComponent(createThesaurusButton());
 		}
 
 
@@ -61,7 +62,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
         if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
         	CssLayout layoutSystemPilot = new CustomCssLayout();
-            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton(),createThesaurusButton());
+            layoutSystemPilot.addComponents(createSynonymsButton(), createElevationManagementButton());
             verticalLayout.setSpacing(true);
             verticalLayout.addComponent(layoutSystemPilot);
         }
