@@ -35,7 +35,6 @@ import static java.util.Arrays.asList;
 public class ThesaurusService implements Serializable {
 
 	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
-	private static final Language[] languagesAvailable = {Language.French, Language.English};
 	public static final String DESAMBIUGATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
 
@@ -45,44 +44,22 @@ public class ThesaurusService implements Serializable {
 	private String dcCreator;
 	private Date dcDate;
 	private Locale dcLanguage;
-	private String collection;
-	private Locale locale;
-	private String sourceFileName;
+    private Set<String> languagesAvailable;
 
 	private List<String> deniedWords = new ArrayList<>();
 	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
 	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
 
-	public ThesaurusService(){
-		locale = new Locale("fr"); // TODO define according to current sys. locale!
+	public ThesaurusService(List<String> languagesAvailable){
+	    this.languagesAvailable = new HashSet<>(languagesAvailable);
 	}
 
 	public ThesaurusService(String dcTitle) {
 		this.dcTitle = dcTitle;
 	}
 
-	public String getSourceFileName() {
-		return sourceFileName;
-	}
-
 	public void setDeniedWords(List<String> deniedWords) {
 		this.deniedWords = deniedWords;
-	}
-
-	public void setSourceFileName(String sourceFileName) {
-		this.sourceFileName = sourceFileName;
-	}
-
-	public String getCollection() {
-		return collection;
-	}
-
-	public void setCollection(String collection) {
-		this.collection = collection;
-	}
-
-	public void setRecordCollection(String recordCollection) {
-		this.collection = recordCollection;
 	}
 
 	public Map<String, SkosConcept> getAllConcepts() {
@@ -173,7 +150,7 @@ public class ThesaurusService implements Serializable {
 		return true;
 	}
 
-	public Set<SkosConcept> getPrefLabelsThatEqualsOrSpecify(String input){
+	public Set<SkosConcept> getPrefLabelsThatEqualsOrSpecify(String input, Locale locale){
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
@@ -201,7 +178,7 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getPrefLabelsThatContains(String input){
+	public Set<SkosConcept> getPrefLabelsThatContains(String input, Locale locale){
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
@@ -226,7 +203,7 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAltLabelsThatContains(String input){
+	public Set<SkosConcept> getAltLabelsThatContains(String input, Locale locale){
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
@@ -248,7 +225,7 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAltLabelsThatEquals(String input){
+	public Set<SkosConcept> getAltLabelsThatEquals(String input, Locale locale){
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
@@ -270,10 +247,10 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAllLabelsThatContains(String input){
+	public Set<SkosConcept> getAllLabelsThatContains(String input, Locale locale){
 
-		Set<SkosConcept> searchPrefLabel = getPrefLabelsThatContains(input);
-		Set<SkosConcept> searchAltLabel = getAltLabelsThatContains(input);
+		Set<SkosConcept> searchPrefLabel = getPrefLabelsThatContains(input, locale);
+		Set<SkosConcept> searchAltLabel = getAltLabelsThatContains(input, locale);
 
 		Set<SkosConcept> allLabels = new HashSet<>(searchPrefLabel);
 		allLabels.addAll(searchAltLabel);
@@ -300,7 +277,7 @@ public class ThesaurusService implements Serializable {
 	public ResponseSkosConcept getSkosConcepts(String input) {
 		return getSkosConcepts(input, null);
 	}
-//
+
 //	public NamedList getSkosConcepts(String input) {
 //
 //			// prepares output structures
@@ -310,7 +287,8 @@ public class ThesaurusService implements Serializable {
 //			skosConceptsNL.add("disambiguations", disambiguationsNL);
 //			skosConceptsNL.add("suggestions", suggestionsNL);
 //
-//			for (final Language language : languagesAvailable) {
+//			for (final String languageCodeAvailable : languagesAvailable) {
+//			    final Locale currentLanguage = new Locale(languageCodeAvailable);
 //				NamedList localeDisambiguationsNL = new NamedList();
 //				NamedList localeSuggestionsNL = new NamedList();
 //
@@ -336,7 +314,7 @@ public class ThesaurusService implements Serializable {
 //				// pref search (contains)
 //				Set<SkosConcept> prefLabelMatches = getPrefLabelsThatContains(input);
 //				for (SkosConcept prefLabelMatch : prefLabelMatches) {
-//					String prefLabel = prefLabelMatch.getPrefLabel(language.getLocale());
+//					String prefLabel = prefLabelMatch.getPrefLabel(currentLanguage);
 //					if (StringUtils.isNotBlank(prefLabel)) {
 //						prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 //						if (!suggestions.contains(prefLabel)) { // TODO unicity possible... NamedList => Set? + TODO unused suggestions... will never contains any value!!!
@@ -354,7 +332,7 @@ public class ThesaurusService implements Serializable {
 //					SkosConcept skosConcept = prefLabelsThatEqualsOrSpecifyTerm.iterator().next();
 //					Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
 //					for (SkosConcept narrowerConcept : narrowerConcepts) {
-//						String prefLabel = narrowerConcept.getPrefLabel(locale);
+//						String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
 //						if (StringUtils.isNotBlank(prefLabel)) {
 //							linkConcepts.add(narrowerConcept);
 //						}
@@ -362,7 +340,7 @@ public class ThesaurusService implements Serializable {
 //
 //					Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
 //					for (SkosConcept relatedConcept : relatedConcepts) {
-//						String prefLabel = relatedConcept.getPrefLabel(locale);
+//						String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
 //						if (StringUtils.isNotBlank(prefLabel)) {
 //							linkConcepts.add(relatedConcept);
 //						}
@@ -370,7 +348,7 @@ public class ThesaurusService implements Serializable {
 //
 //					Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
 //					for (SkosConcept broaderConcept : broaderConcepts) {
-//						String prefLabel = broaderConcept.getPrefLabel(locale);
+//						String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
 //						if (StringUtils.isNotBlank(prefLabel)) {
 //							linkConcepts.add(broaderConcept);
 //						}
@@ -401,7 +379,7 @@ public class ThesaurusService implements Serializable {
 //
 //						Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
 //						for (SkosConcept narrowerConcept : narrowerConcepts) {
-//							String prefLabel = narrowerConcept.getPrefLabel(locale);
+//							String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
 //							if (StringUtils.isNotBlank(prefLabel)) {
 //								broaderCount++;
 //							}
@@ -409,7 +387,7 @@ public class ThesaurusService implements Serializable {
 //
 //						Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
 //						for (SkosConcept relatedConcept : relatedConcepts) {
-//							String prefLabel = relatedConcept.getPrefLabel(locale);
+//							String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
 //							if (StringUtils.isNotBlank(prefLabel)) {
 //								narrowerCount++;
 //							}
@@ -417,7 +395,7 @@ public class ThesaurusService implements Serializable {
 //
 //						Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
 //						for (SkosConcept broaderConcept : broaderConcepts) {
-//							String prefLabel = broaderConcept.getPrefLabel(locale);
+//							String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
 //							if (StringUtils.isNotBlank(prefLabel)) {
 //								relatedCount++;
 //							}
@@ -427,7 +405,7 @@ public class ThesaurusService implements Serializable {
 //				});
 //
 //				for (SkosConcept linkConcept : linkConcepts) {
-//					String prefLabel = linkConcept.getPrefLabel(locale);
+//					String prefLabel = linkConcept.getPrefLabel(currentLanguage);
 //					prefLabel = StringUtils.capitalize(prefLabel.toLowerCase()); // TODO why do .toLowerCase right before .capitalize?
 //					allLinks.add(prefLabel);
 //				}
@@ -438,7 +416,7 @@ public class ThesaurusService implements Serializable {
 //				int max = 21;
 //				for (int i = 0; i < disambiguationConcepts.size(); i++) {
 //					SkosConcept disambiguationConcept = disambiguationConcepts.get(i);
-//					String prefLabel = disambiguationConcept.getPrefLabel(locale);
+//					String prefLabel = disambiguationConcept.getPrefLabel(currentLanguage);
 //					prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 //					String disambiguation = prefLabel;
 //					localeDisambiguationsNL.add("label", disambiguation);
@@ -458,8 +436,8 @@ public class ThesaurusService implements Serializable {
 //				// suggestionsNL.add("label", suggestionsLabel);
 //				// }
 //
-//				disambiguationsNL.add(locale.getLanguage(), localeDisambiguationsNL);
-//				suggestionsNL.add(locale.getLanguage(), localeSuggestionsNL);
+//				disambiguationsNL.add(languageCodeAvailable, localeDisambiguationsNL);
+//				suggestionsNL.add(languageCodeAvailable, localeSuggestionsNL);
 //			}
 //		// end
 ////		response.getValues().add("skosConcepts", skosConceptsNL);

@@ -26,9 +26,9 @@ import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 
-public class ThesaurusBuilder {
+public class ThesaurusServiceBuilder {
 
-    private static final Logger LOGGER = Logger.getLogger(ThesaurusBuilder.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ThesaurusServiceBuilder.class.getName());
 
     private static final String SKOS_CONCEPT_SCHEME = "//skos:ConceptScheme";
     private static final String SKOS_HAS_TOP_CONCEPT_XPATH = "skos:hasTopConcept";
@@ -50,10 +50,11 @@ public class ThesaurusBuilder {
 
     private static ThesaurusService thesaurus;
 
-    public static ThesaurusService getThesaurus(InputStream skosFileStream) throws ThesaurusInvalidFileFormat {
-        thesaurus = new ThesaurusService();
-
-        Map<String, SkosConcept> parsedConcepts = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    public static ThesaurusService getThesaurus(InputStream skosFileStream, List<String> languagesAvailable) throws ThesaurusInvalidFileFormat {
+        thesaurus = new ThesaurusService(languagesAvailable);
+        // thesaurus.setSourceFileLocation();
+        Map<String, SkosConcept> parsedConcepts = new HashMap<String, SkosConcept>();
         SAXBuilder builder;
         try {
             builder = new SAXBuilder();

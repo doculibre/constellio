@@ -18,7 +18,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.thesaurus.ThesaurusBuilder;
+import com.constellio.model.services.thesaurus.ThesaurusServiceBuilder;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
@@ -144,7 +144,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         }
 
         try {
-            tempThesarusService = ThesaurusBuilder.getThesaurus(new FileInputStream(tempFileUpload.getTempFile()));
+            tempThesarusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(tempFileUpload.getTempFile()));
             isInStateToBeSaved = true;
             view.enableSKOSSaveButton(true);
             view.loadDescriptionFieldsWithFileValue();
