@@ -96,6 +96,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	public void initTaskVO(String id) {
 		Record task = getRecord(id);
+		setSchemaCode(task.getSchemaCode());
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task, FORM, view.getSessionContext()));
 		initSubTaskDataProvider();
 		eventsDataProvider = getEventsDataProvider();

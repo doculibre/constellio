@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -231,9 +232,12 @@ public class TaskPresenterServices {
 		if (record == null) {
 			return;
 		}
-		record.set(tasksSchemas.userTask.assignee(), user.getId());
-		record.set(tasksSchemas.userTask.assigner(), user.getId());
-		record.set(tasksSchemas.userTask.assignedOn(), TimeProvider.getLocalDate());
+
+		MetadataSchema schema = tasksSchemas.schema(record.getSchemaCode());
+
+		record.set(schema.getMetadata(Task.ASSIGNEE), user.getId());
+		record.set(schema.getMetadata(Task.ASSIGNER), user.getId());
+		record.set(schema.getMetadata(Task.ASSIGNED_ON), TimeProvider.getLocalDate());
 		addOrUpdate(record, user, RecordUpdateOptions.userModificationsSafeOptions());
 	}
 

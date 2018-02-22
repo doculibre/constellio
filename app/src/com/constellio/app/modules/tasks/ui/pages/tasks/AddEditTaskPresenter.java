@@ -440,6 +440,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		view.getForm().reload();
 		adjustQuestionField();
 		adjustRequiredUSRMetadatasFields();
+		adjustDecisionField();
+		adjustInclusiveDecisionField();
 	}
 
 	void commitForm() {
