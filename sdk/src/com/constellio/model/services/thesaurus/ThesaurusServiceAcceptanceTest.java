@@ -137,7 +137,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		Set<SkosConcept> allLabelResults = thesaurusService.getAllLabelsThatContains(searchValue, DEFAULT_LOCALE);
 		Set<SkosConcept> expectedLabelResults = thesaurusService.getPrefLabelsThatContains(searchValue, DEFAULT_LOCALE);
 
-		assertThat(allLabelResults.equals(expectedLabelResults));
+		assertThat(allLabelResults).containsAll(expectedLabelResults);
 	}
 
 	@Test
@@ -147,11 +147,24 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		Set<SkosConcept> allLabelResults = thesaurusService.getAllLabelsThatContains(searchValue, DEFAULT_LOCALE);
 		Set<SkosConcept> expectedLabelResults = thesaurusService.getAltLabelsThatContains(searchValue, DEFAULT_LOCALE);
 
-		assertThat(allLabelResults.equals(expectedLabelResults));
+		assertThat(allLabelResults).containsAll(expectedLabelResults);
 	}
 
 	@Test
 	public void whenGetSkosConceptsWithSpecificationDesambiguationThenCorrespondingTermsFound()
+			throws Exception {
+
+		Set<String> searchValues = getStringPermissiveCases("carte");
+
+		for(String searchValue : searchValues) {
+			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
+			assertThat(concepts.disambiguations.values()).containsOnly(asList("Carte (lieu)", "Carte (identification)"));
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).contains("Carte routière");
+		}
+	}
+
+	@Test
+	public void whenGetSkosConceptsWithSpecificationDesambiguationThenCorrespondingTermsFound2()
 			throws Exception {
 
 		Set<String> searchValues = getStringPermissiveCases("carte");
