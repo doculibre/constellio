@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,10 +174,8 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 						if (isContentCheckedOut(recordVO)) {
 							if (checkingIn) {
-								if(sameVersion) {
-									content.checkIn();
-									content.renameCurrentVersion(fileName);
-									content.setVersionModificationDatetime(LocalDateTime.now());
+								if (sameVersion) {
+									content.checkInWithModificationAndNameInSameVersion(newVersionDataSummary, fileName);
 								} else {
 									content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
 								}
@@ -198,12 +195,12 @@ public class UpdateContentVersionPresenter implements Serializable {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
 						content.checkIn();
-						if(!wasMajorVersion(content)) {
+						if (!wasMajorVersion(content)) {
 							content.finalizeVersion();
 						}
 					} else if (newMinorVersion) {
 						content.checkIn();
-						if(!wasMinorVersion(content)) {
+						if (!wasMinorVersion(content)) {
 							content.updateMinorVersion();
 						}
 					} else {
