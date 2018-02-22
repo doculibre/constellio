@@ -343,7 +343,7 @@ public class ReindexingServices {
 	private ReindexingAggregatedValuesTempStorage newReindexingAggregatedValuesTempStorage() {
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
 
-		if (new ConstellioEIMConfigs(modelLayerFactory).getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
+		if (new ConstellioEIMConfigs(modelLayerFactory).getMemoryConsumptionLevel().isPrioritizingMemoryConsumptionOrNormal()) {
 			File aggregatedValuesTempStorageFile = new File(new FoldersLocator().getWorkFolder(), "reindexing");
 			try {
 				FileUtils.deleteDirectory(aggregatedValuesTempStorageFile);
