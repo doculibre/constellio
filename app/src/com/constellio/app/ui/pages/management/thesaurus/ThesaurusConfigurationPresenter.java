@@ -143,23 +143,23 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             return;
         }
 
-        try {
-            tempThesarusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(tempFileUpload.getTempFile()));
-            isInStateToBeSaved = true;
-            view.enableSKOSSaveButton(true);
-            view.loadDescriptionFieldsWithFileValue();
-        } catch (FileNotFoundException e) {
-            isInStateToBeSaved = false;
-            view.enableSKOSSaveButton(false);
-            e.printStackTrace();
-            throw new RuntimeException("ThesaurusConfigurationPresenter - Internal Error", e);
-        } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
-            isInStateToBeSaved = false;
-            view.enableSKOSSaveButton(false);
-            view.toNoThesaurusAvalible();
-            view.showErrorMessage($("ThesaurusConfigurationView.errorInvalidFileFormat"));
-            view.removeAllTheSelectedFile();
-        }
+//        try {
+//            tempThesarusService =;
+//            isInStateToBeSaved = true;
+//            view.enableSKOSSaveButton(true);
+//            view.loadDescriptionFieldsWithFileValue();
+//        } catch (FileNotFoundException e) {
+//            isInStateToBeSaved = false;
+//            view.enableSKOSSaveButton(false);
+//            e.printStackTrace();
+//            throw new RuntimeException("ThesaurusConfigurationPresenter - Internal Error", e);
+//        } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
+//            isInStateToBeSaved = false;
+//            view.enableSKOSSaveButton(false);
+//            view.toNoThesaurusAvalible();
+//            view.showErrorMessage($("ThesaurusConfigurationView.errorInvalidFileFormat"));
+//            view.removeAllTheSelectedFile();
+//        }
     }
 
     public ContentVersionVO getContentVersionForDownloadLink() {

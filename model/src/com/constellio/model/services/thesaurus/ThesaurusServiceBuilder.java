@@ -51,8 +51,8 @@ public class ThesaurusServiceBuilder {
     private static ThesaurusService thesaurus;
 
     @SuppressWarnings("unchecked")
-    public static ThesaurusService getThesaurus(InputStream skosFileStream, List<String> languagesAvailable) throws ThesaurusInvalidFileFormat {
-        thesaurus = new ThesaurusService(languagesAvailable);
+    public static ThesaurusService getThesaurus(InputStream skosFileStream) throws ThesaurusInvalidFileFormat {
+        thesaurus = new ThesaurusService();
         // thesaurus.setSourceFileLocation();
         Map<String, SkosConcept> parsedConcepts = new HashMap<String, SkosConcept>();
         SAXBuilder builder;

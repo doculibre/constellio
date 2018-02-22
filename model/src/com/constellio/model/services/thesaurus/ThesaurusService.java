@@ -22,18 +22,16 @@ package com.constellio.model.services.thesaurus;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.util.NamedList;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static java.util.Arrays.asList;
-
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
 
+	private static final int EXACT_PREF_RESULTS_NUMBER_FOR_NARROWING = 1;
 	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
 	public static final String DESAMBIUGATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
@@ -44,14 +42,13 @@ public class ThesaurusService implements Serializable {
 	private String dcCreator;
 	private Date dcDate;
 	private Locale dcLanguage;
-    private Set<String> languagesAvailable;
 
 	private List<String> deniedWords = new ArrayList<>();
 	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
 	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
 
-	public ThesaurusService(List<String> languagesAvailable){
-	    this.languagesAvailable = new HashSet<>(languagesAvailable);
+	public ThesaurusService(){
+
 	}
 
 	public ThesaurusService(String dcTitle) {
@@ -233,7 +230,7 @@ public class ThesaurusService implements Serializable {
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
-				Set<String> labelValues = skosConcept.getAltLabels(locale); // TODO if not working, try getAltLabels() without parameters
+				Set<String> labelValues = skosConcept.getAltLabels(locale);
 
 				// for each label of given lang
 				for (String labelValue : labelValues) {
@@ -255,195 +252,170 @@ public class ThesaurusService implements Serializable {
 		Set<SkosConcept> allLabels = new HashSet<>(searchPrefLabel);
 		allLabels.addAll(searchAltLabel);
 
-		// TODO add suggestions
-
 		return allLabels;
 	}
 
-	public ResponseSkosConcept getSkosConcepts(String input, Language language) {
-		NamedList namedList = new NamedList();
+	public ResponseSkosConcept getSkosConcepts(String input, List<String> languageCodesAvailableList) {
 
-		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
+			ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
+			Set<String> languageCodesAvailable = new HashSet<>(languageCodesAvailableList);
 
-		responseSkosConcept.getSuggestion();
-
-		responseSkosConcept.getDisambiguations().put(Language.French, asList("frenchDesambiguation1", "frenchDesambiguation2"));
-		responseSkosConcept.getSuggestion().put(Language.French, asList("frenchSuggestion1", "frenchSuggestion2"));
-
+			for (final String languageCodeAvailable : languageCodesAvailable) {
+				addSkosConcepts(input, languageCodeAvailable, responseSkosConcept);
+			}
 
 		return responseSkosConcept;
 	}
 
-	public ResponseSkosConcept getSkosConcepts(String input) {
-		return getSkosConcepts(input, null);
+	public ResponseSkosConcept getSkosConcepts(String input, Language languageCodeAvailable) {
+
+		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
+		addSkosConcepts(input, languageCodeAvailable.getLocale().getLanguage(), responseSkosConcept);
+
+		return responseSkosConcept;
 	}
 
-//	public NamedList getSkosConcepts(String input) {
-//
-//			// prepares output structures
-//			NamedList skosConceptsNL = new NamedList();
-//			NamedList disambiguationsNL = new NamedList();
-//			NamedList suggestionsNL = new NamedList();
-//			skosConceptsNL.add("disambiguations", disambiguationsNL);
-//			skosConceptsNL.add("suggestions", suggestionsNL);
-//
-//			for (final String languageCodeAvailable : languagesAvailable) {
-//			    final Locale currentLanguage = new Locale(languageCodeAvailable);
-//				NamedList localeDisambiguationsNL = new NamedList();
-//				NamedList localeSuggestionsNL = new NamedList();
-//
-//				Set<String> suggestions = new HashSet<String>();
-//				List<SkosConcept> suggestedConcepts = new ArrayList<SkosConcept>();
-//
-//				// pref search (exact or specify)
-//				Set<SkosConcept> prefLabelsThatEqualsOrSpecifyTerm = getPrefLabelsThatEqualsOrSpecify(input);
-//				List<SkosConcept> disambiguationConcepts = new ArrayList<SkosConcept>();
-//				// enough results
-//				if (prefLabelsThatEqualsOrSpecifyTerm.size() >= SUFFICIENT_RESULTS_NUMBER) {
-//					disambiguationConcepts.addAll(prefLabelsThatEqualsOrSpecifyTerm);
-//				}
-//				// not enough results
-//				if (localeSuggestionsNL.size() == 0) { // TODO replace by isEmpty when real collection
-//					Set<SkosConcept> altLabelsThatEqualsTerm = getAltLabelsThatEquals(input);
-//					if (!altLabelsThatEqualsTerm.isEmpty()) {
-//						SkosConcept firstAltLabelConcept = altLabelsThatEqualsTerm.iterator().next();
-//						suggestedConcepts.add(firstAltLabelConcept);
-//					}
-//				}
-//
-//				// pref search (contains)
-//				Set<SkosConcept> prefLabelMatches = getPrefLabelsThatContains(input);
-//				for (SkosConcept prefLabelMatch : prefLabelMatches) {
-//					String prefLabel = prefLabelMatch.getPrefLabel(currentLanguage);
-//					if (StringUtils.isNotBlank(prefLabel)) {
-//						prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
-//						if (!suggestions.contains(prefLabel)) { // TODO unicity possible... NamedList => Set? + TODO unused suggestions... will never contains any value!!!
-//							suggestedConcepts.add(prefLabelMatch);
-//						}
-//					}
-//				}
-//
-//				// adds linked concepts
-//
-//				List<String> allLinks = new ArrayList<String>();
-//				List<SkosConcept> linkConcepts = new ArrayList<SkosConcept>();
-//
-//				if (prefLabelsThatEqualsOrSpecifyTerm.size() == 1) {
-//					SkosConcept skosConcept = prefLabelsThatEqualsOrSpecifyTerm.iterator().next();
-//					Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
-//					for (SkosConcept narrowerConcept : narrowerConcepts) {
-//						String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
-//						if (StringUtils.isNotBlank(prefLabel)) {
-//							linkConcepts.add(narrowerConcept);
-//						}
-//					}
-//
-//					Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
-//					for (SkosConcept relatedConcept : relatedConcepts) {
-//						String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
-//						if (StringUtils.isNotBlank(prefLabel)) {
-//							linkConcepts.add(relatedConcept);
-//						}
-//					}
-//
-//					Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
-//					for (SkosConcept broaderConcept : broaderConcepts) {
-//						String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
-//						if (StringUtils.isNotBlank(prefLabel)) {
-//							linkConcepts.add(broaderConcept);
-//						}
-//					}
-//				} else {
-//					for (SkosConcept suggestedConcept : suggestedConcepts) {
-//						if (!linkConcepts.contains(suggestedConcept)) {
-//							linkConcepts.add(suggestedConcept);
-//						}
-//					}
-//				}
-//
-//				// sorts linked concepts
-//
-//				Collections.sort(linkConcepts, new Comparator<SkosConcept>() {
-//					@Override
-//					public int compare(SkosConcept o1, SkosConcept o2) {
-//						int density1 = getDensity(o1);
-//						int density2 = getDensity(o2);
-//						int result = -(new Integer(density1).compareTo(new Integer(density2)));
-//						return result;
-//					}
-//
-//					private int getDensity(SkosConcept skosConcept) {
-//						int broaderCount = 0;
-//						int narrowerCount = 0;
-//						int relatedCount = 0;
-//
-//						Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
-//						for (SkosConcept narrowerConcept : narrowerConcepts) {
-//							String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
-//							if (StringUtils.isNotBlank(prefLabel)) {
-//								broaderCount++;
-//							}
-//						}
-//
-//						Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
-//						for (SkosConcept relatedConcept : relatedConcepts) {
-//							String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
-//							if (StringUtils.isNotBlank(prefLabel)) {
-//								narrowerCount++;
-//							}
-//						}
-//
-//						Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
-//						for (SkosConcept broaderConcept : broaderConcepts) {
-//							String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
-//							if (StringUtils.isNotBlank(prefLabel)) {
-//								relatedCount++;
-//							}
-//						}
-//						return broaderCount + narrowerCount + relatedCount;
-//					}
-//				});
-//
-//				for (SkosConcept linkConcept : linkConcepts) {
-//					String prefLabel = linkConcept.getPrefLabel(currentLanguage);
-//					prefLabel = StringUtils.capitalize(prefLabel.toLowerCase()); // TODO why do .toLowerCase right before .capitalize?
-//					allLinks.add(prefLabel);
-//				}
-//
-////				String queryAdjusted = StringUtils.capitalize(query.toLowerCase());
-////				allLinks.remove(queryAdjusted); // TODO voir ce que fait cette ligne...
-//
-//				int max = 21;
-//				for (int i = 0; i < disambiguationConcepts.size(); i++) {
-//					SkosConcept disambiguationConcept = disambiguationConcepts.get(i);
-//					String prefLabel = disambiguationConcept.getPrefLabel(currentLanguage);
-//					prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
-//					String disambiguation = prefLabel;
-//					localeDisambiguationsNL.add("label", disambiguation);
-//					allLinks.remove(disambiguation);
-//				}
-//				for (int i = 0; i < max && i < allLinks.size(); i++) {
-//					String suggestion = allLinks.get(i);
-//					localeSuggestionsNL.add("label", suggestion);
-//				}
-//				//
-//				// Set<String> suggestionsLabels = new TreeSet<String>();
-//				// for (SkosConcept skosConcept : getSuggestions(query,
-//				// collection, locale)) {
-//				// suggestionsLabels.add(skosConcept.getPrefLabel(locale));
-//				// }
-//				// for (String suggestionsLabel : suggestionsLabels) {
-//				// suggestionsNL.add("label", suggestionsLabel);
-//				// }
-//
-//				disambiguationsNL.add(languageCodeAvailable, localeDisambiguationsNL);
-//				suggestionsNL.add(languageCodeAvailable, localeSuggestionsNL);
-//			}
-//		// end
-////		response.getValues().add("skosConcepts", skosConceptsNL);
-//
-//		return skosConceptsNL;
-//	}
+	public void addSkosConcepts(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept){
+		final Locale currentLanguage = new Locale(languageCodeAvailable);
+		Set<String> localeDisambiguationsNL = new HashSet<>();
+		Set<String> localeSuggestionsNL = new HashSet<>();
+
+		Set<String> suggestions = new HashSet<String>();
+		List<SkosConcept> suggestedConcepts = new ArrayList<SkosConcept>();
+
+		// pref search (exact or specify)
+		Set<SkosConcept> prefLabelsThatEqualsOrSpecifyTerm = getPrefLabelsThatEqualsOrSpecify(input, currentLanguage);
+		List<SkosConcept> disambiguationConcepts = new ArrayList<SkosConcept>();
+		// enough results
+		if (prefLabelsThatEqualsOrSpecifyTerm.size() >= SUFFICIENT_RESULTS_NUMBER) {
+			disambiguationConcepts.addAll(prefLabelsThatEqualsOrSpecifyTerm);
+		}
+		// not enough results
+		if (localeSuggestionsNL.size() == 0) { // TODO replace by isEmpty when real collection
+			Set<SkosConcept> altLabelsThatEqualsTerm = getAltLabelsThatEquals(input, currentLanguage);
+			if (!altLabelsThatEqualsTerm.isEmpty()) {
+				SkosConcept firstAltLabelConcept = altLabelsThatEqualsTerm.iterator().next();
+				suggestedConcepts.add(firstAltLabelConcept);
+			}
+		}
+
+		// pref search (contains)
+		Set<SkosConcept> prefLabelMatches = getPrefLabelsThatContains(input, currentLanguage);
+		for (SkosConcept prefLabelMatch : prefLabelMatches) {
+			String prefLabel = prefLabelMatch.getPrefLabel(currentLanguage);
+			if (StringUtils.isNotBlank(prefLabel)) {
+				prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
+				if (!suggestions.contains(prefLabel)) { // TODO unicity possible... NamedList => Set? + TODO unused suggestions... will never contains any value!!!
+					suggestedConcepts.add(prefLabelMatch);
+				}
+			}
+		}
+
+		// adds linked concepts
+
+		List<String> allLinks = new ArrayList<String>();
+		List<SkosConcept> linkConcepts = new ArrayList<SkosConcept>();
+
+		// based on prefs if only one
+		if (prefLabelsThatEqualsOrSpecifyTerm.size() == EXACT_PREF_RESULTS_NUMBER_FOR_NARROWING) {
+			SkosConcept skosConcept = prefLabelsThatEqualsOrSpecifyTerm.iterator().next();
+			Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
+			for (SkosConcept narrowerConcept : narrowerConcepts) {
+				String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
+				if (StringUtils.isNotBlank(prefLabel)) {
+					linkConcepts.add(narrowerConcept);
+				}
+			}
+
+			Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
+			for (SkosConcept relatedConcept : relatedConcepts) {
+				String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
+				if (StringUtils.isNotBlank(prefLabel)) {
+					linkConcepts.add(relatedConcept);
+				}
+			}
+
+			Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
+			for (SkosConcept broaderConcept : broaderConcepts) {
+				String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
+				if (StringUtils.isNotBlank(prefLabel)) {
+					linkConcepts.add(broaderConcept);
+				}
+			}
+		} else {
+			for (SkosConcept suggestedConcept : suggestedConcepts) {
+				if (!linkConcepts.contains(suggestedConcept)) {
+					linkConcepts.add(suggestedConcept);
+				}
+			}
+		}
+
+		// sorts linked concepts
+
+		Collections.sort(linkConcepts, new Comparator<SkosConcept>() {
+			@Override
+			public int compare(SkosConcept o1, SkosConcept o2) {
+				int density1 = getDensity(o1);
+				int density2 = getDensity(o2);
+				int result = -(new Integer(density1).compareTo(new Integer(density2)));
+				return result;
+			}
+
+			private int getDensity(SkosConcept skosConcept) {
+				int broaderCount = 0;
+				int narrowerCount = 0;
+				int relatedCount = 0;
+
+				Set<SkosConcept> narrowerConcepts = skosConcept.getNarrower();
+				for (SkosConcept narrowerConcept : narrowerConcepts) {
+					String prefLabel = narrowerConcept.getPrefLabel(currentLanguage);
+					if (StringUtils.isNotBlank(prefLabel)) {
+						broaderCount++;
+					}
+				}
+
+				Set<SkosConcept> relatedConcepts = skosConcept.getRelated();
+				for (SkosConcept relatedConcept : relatedConcepts) {
+					String prefLabel = relatedConcept.getPrefLabel(currentLanguage);
+					if (StringUtils.isNotBlank(prefLabel)) {
+						narrowerCount++;
+					}
+				}
+
+				Set<SkosConcept> broaderConcepts = skosConcept.getBroader();
+				for (SkosConcept broaderConcept : broaderConcepts) {
+					String prefLabel = broaderConcept.getPrefLabel(currentLanguage);
+					if (StringUtils.isNotBlank(prefLabel)) {
+						relatedCount++;
+					}
+				}
+				return broaderCount + narrowerCount + relatedCount;
+			}
+		});
+
+		for (SkosConcept linkConcept : linkConcepts) {
+			String prefLabel = linkConcept.getPrefLabel(currentLanguage);
+			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase()); // TODO why do .toLowerCase right before .capitalize?
+			allLinks.add(prefLabel);
+		}
+
+		int max = 21;
+		for (int i = 0; i < disambiguationConcepts.size(); i++) {
+			SkosConcept disambiguationConcept = disambiguationConcepts.get(i);
+			String prefLabel = disambiguationConcept.getPrefLabel(currentLanguage);
+			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
+			String disambiguation = prefLabel;
+			localeDisambiguationsNL.add(disambiguation);
+			allLinks.remove(disambiguation);
+		}
+		for (int i = 0; i < max && i < allLinks.size(); i++) {
+			String suggestion = allLinks.get(i);
+			localeSuggestionsNL.add(suggestion);
+		}
+
+		responseSkosConcept.getDisambiguations().put(currentLanguage, new ArrayList(localeDisambiguationsNL));
+		responseSkosConcept.getSuggestions().put(currentLanguage, new ArrayList(localeSuggestionsNL));
+	}
 
 	// UTILS
 

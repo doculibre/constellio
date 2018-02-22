@@ -58,7 +58,7 @@ public class ThesaurusManager implements StatefulService {
      * @param
      */
     public void set(InputStream inputStream, String collection) throws ThesaurusInvalidFileFormat {
-        cache.put(collection, getThesaurusService(collection, inputStream));
+        cache.put(collection, getThesaurusService(inputStream));
     }
 
     /**
@@ -79,7 +79,7 @@ public class ThesaurusManager implements StatefulService {
         List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 
         for(String collection : collections){
-            cache.put(collection, getThesaurusService(collection, getThesaurusFileFromConfigs(collection)));
+            cache.put(collection, getThesaurusService(getThesaurusFileFromConfigs(collection)));
         }
     }
 
@@ -110,11 +110,11 @@ public class ThesaurusManager implements StatefulService {
         return thesaurusFile;
     }
 
-    private ThesaurusService getThesaurusService(String collection, InputStream thesaurusFile){
+    private ThesaurusService getThesaurusService(InputStream thesaurusFile){
         ThesaurusService thesaurusService = null;
 
         try {
-            thesaurusService = ThesaurusServiceBuilder.getThesaurus(thesaurusFile, collectionsListManager.getCollectionLanguages(collection));
+            thesaurusService = ThesaurusServiceBuilder.getThesaurus(thesaurusFile);
         } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
             new RuntimeException("Invalid Thesaurus file format.");
         }

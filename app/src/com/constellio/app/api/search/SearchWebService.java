@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class SearchWebService extends HttpServlet {
 
@@ -98,7 +99,7 @@ public class SearchWebService extends HttpServlet {
 					ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
 					ThesaurusService thesaurusService;
 					if((thesaurusService = thesaurusManager.get(collection)) != null) {
-						responseSkosConcept = thesaurusService.getSkosConcepts(thesaurusValue);
+//						responseSkosConcept = thesaurusService.getSkosConcepts(thesaurusValue);
 					}
 				}
 
@@ -143,17 +144,17 @@ public class SearchWebService extends HttpServlet {
 
 		NamedList skosConceptsNL = new NamedList();
 
-		if(responseSkosConcept != null && responseSkosConcept.getSuggestion().size() > 0) {
+		if(responseSkosConcept != null && responseSkosConcept.getSuggestions().size() > 0) {
 			NamedList suggestionsNL = new NamedList();
 
-			for(Language language : responseSkosConcept.getSuggestion().keySet()) {
-				List<String> suggestionList = responseSkosConcept.getSuggestion().get(language);
+			for(Locale locale : responseSkosConcept.getSuggestions().keySet()) {
+				List<String> suggestionList = responseSkosConcept.getSuggestions().get(locale);
 				NamedList localeSuggestionsNL = new NamedList();
 				for(String suggestion : suggestionList) {
 					localeSuggestionsNL.add("label", suggestion);
 				}
 
-				suggestionsNL.add(language.getCode(), localeSuggestionsNL);
+				suggestionsNL.add(locale.getLanguage(), localeSuggestionsNL);
 			}
 
 			skosConceptsNL.add(ThesaurusService.SUGGESTIONS, suggestionsNL);
@@ -162,14 +163,14 @@ public class SearchWebService extends HttpServlet {
 		if(responseSkosConcept != null && responseSkosConcept.getDisambiguations().size() > 0) {
 			NamedList disambiguationsNL = new NamedList();
 
-			for(Language language : responseSkosConcept.getDisambiguations().keySet()) {
-				List<String> disambiguationList = responseSkosConcept.getDisambiguations().get(language);
+			for(Locale locale : responseSkosConcept.getDisambiguations().keySet()) {
+				List<String> disambiguationList = responseSkosConcept.getDisambiguations().get(locale);
 				NamedList localeDisambiguationsNL = new NamedList();
 				for(String disambiguation : disambiguationList) {
 					localeDisambiguationsNL.add("label", disambiguation);
 				}
 
-				disambiguationsNL.add(language.getCode(), localeDisambiguationsNL);
+				disambiguationsNL.add(locale.getLanguage(), localeDisambiguationsNL);
 			}
 
 			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
