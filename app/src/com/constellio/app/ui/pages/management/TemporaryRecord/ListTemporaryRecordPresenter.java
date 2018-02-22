@@ -55,6 +55,9 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 	}
 
 	private boolean canDeleteArchive(RecordVO recordVO, User user) {
+		if(recordVO == null) {
+			return false;
+		}
 		Record record = recordVO.getRecord();
 		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()

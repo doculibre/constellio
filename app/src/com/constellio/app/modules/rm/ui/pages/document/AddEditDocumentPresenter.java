@@ -721,7 +721,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								((Email) document).setEmailTo(email.getEmailTo());
 								((Email) document).setEmailCCTo(email.getEmailCCTo());
 								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
-								((Email) document).setEmailContent(email.getEmailContent());
 								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
 							} finally {
 								ioServices.closeQuietly(inputStream);
