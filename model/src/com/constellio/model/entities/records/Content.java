@@ -3,7 +3,6 @@ package com.constellio.model.entities.records;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.services.contents.ContentImpl;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.model.entities.records.wrappers.User;
@@ -37,6 +36,8 @@ public interface Content extends ModifiableStructure {
 	Content checkIn();
 
 	Content cancelCheckOut();
+
+	Content checkInWithModificationAndNameInSameVersion(ContentVersionDataSummary newVersion, String name);
 
 	Content checkInWithModification(ContentVersionDataSummary newVersion, boolean finalized);
 
