@@ -858,7 +858,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		List<String> to = (List<String>) parsedEmail.get(Email.EMAIL_TO);
 		List<String> ccTo = (List<String>) parsedEmail.get(Email.EMAIL_CC_TO);
 		List<String> bccTo = (List<String>) parsedEmail.get(Email.EMAIL_BCC_TO);
-		String content = (String) parsedEmail.get(Email.EMAIL_CONTENT);
 		List<String> attachmentFileNames = (List<String>) parsedEmail.get(Email.EMAIL_ATTACHMENTS_LIST);
 
 		LocalDateTime sentOnDateTime = sentOn != null ? new LocalDateTime(sentOn.getTime()) : null;
@@ -872,7 +871,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		email.setEmailTo(to);
 		email.setEmailCCTo(ccTo);
 		email.setEmailBCCTo(bccTo);
-		email.setEmailContent(content);
 		email.setEmailAttachmentsList(attachmentFileNames);
 
 		return email;
@@ -913,7 +911,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			parsed.put(Email.EMAIL_TO, addressesAsStringList(to));
 			parsed.put(Email.EMAIL_CC_TO, addressesAsStringList(cc));
 			parsed.put(Email.EMAIL_BCC_TO, addressesAsStringList(bcc));
-			parsed.put(Email.EMAIL_CONTENT, content);
 
 			Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 			parsed.put(EMAIL_ATTACHMENTS, attachments);
@@ -1060,7 +1057,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			parsed.put(Email.EMAIL_CC_TO, splitAddresses(to));
 			parsed.put(Email.EMAIL_CC_TO, splitAddresses(cc));
 			parsed.put(Email.EMAIL_BCC_TO, splitAddresses(bcc));
-			parsed.put(Email.EMAIL_CONTENT, content);
 			insertMsgAttachments(parsed, msg);
 
 		} catch (UnsupportedOperationException e) {
