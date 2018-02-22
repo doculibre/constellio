@@ -1,6 +1,7 @@
 package com.constellio.model.services.thesaurus;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -150,41 +151,15 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetSkosConceptsThenCorrespondingConceptsFound()
+	public void whenGetSkosConceptsWithSpecificationDesambiguationThenCorrespondingTermsFound()
 			throws Exception {
-		String searchValue = " carte ";//" RAPPORT D'iMpÔt ";
-		ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
-		assertThat(concepts.disambiguations.values()).containsOnly(asList("Carte (lieu)","Carte (identification)"));
-		assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).contains("Carte routière");
-//		Set<SkosConcept> expectedLabelResults = thesaurusService.getAltLabelsThatContains(searchValue, DEFAULT_LOCALE);
-//		assertThat(allLabelResults.equals(expectedLabelResults));
-	}
 
-	private String addSpaces(String searchTerm) {
-		return " "+searchTerm+" ";
-	}
+		Set<String> searchValues = getStringPermissiveCases("carte");
 
-	private String mixCase(String input) {
-
-		String output = "";
-
-		if(input!=null && !input.isEmpty()){
-			char[] charArray = input.toCharArray();
-			for(int i = 0; i< charArray.length; i++){
-				char currentChar = charArray[i];
-
-				if(i%2==0){
-					currentChar = Character.toUpperCase(currentChar);
-				}
-
-				output += currentChar;
-			}
+		for(String searchValue : searchValues) {
+			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
+			assertThat(concepts.disambiguations.values()).containsOnly(asList("Carte (lieu)", "Carte (identification)"));
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).contains("Carte routière");
 		}
-
-		return output;
-	}
-
-	private Set<String> getStringPermissiveCases(String searchTerm) {
-		return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
 	}
 }

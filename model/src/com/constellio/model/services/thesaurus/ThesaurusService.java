@@ -261,7 +261,7 @@ public class ThesaurusService implements Serializable {
 			Set<String> languageCodesAvailable = new HashSet<>(languageCodesAvailableList);
 
 			for (final String languageCodeAvailable : languageCodesAvailable) {
-				addSkosConcepts(input, languageCodeAvailable, responseSkosConcept);
+				getSkosConceptForGivenLang(input, languageCodeAvailable, responseSkosConcept);
 			}
 
 		return responseSkosConcept;
@@ -270,12 +270,12 @@ public class ThesaurusService implements Serializable {
 	public ResponseSkosConcept getSkosConcepts(String input, Language languageCodeAvailable) {
 
 		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
-		addSkosConcepts(input, languageCodeAvailable.getLocale().getLanguage(), responseSkosConcept);
+		getSkosConceptForGivenLang(input, languageCodeAvailable.getLocale().getLanguage(), responseSkosConcept);
 
 		return responseSkosConcept;
 	}
 
-	public void addSkosConcepts(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept){
+	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept){
 		final Locale currentLanguage = new Locale(languageCodeAvailable);
 		Set<String> localeDisambiguationsNL = new HashSet<>();
 		Set<String> localeSuggestionsNL = new HashSet<>();
