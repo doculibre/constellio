@@ -64,6 +64,15 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 		return this;
 	}
 
+	public List<String> getThesaurusMatch() {
+		return get(THESAURUS_MATCH);
+	}
+
+	public ConnectorHttpDocument setThesaurusMatch(List<String> thesaurusMatch) {
+		set(THESAURUS_MATCH, thesaurusMatch);
+		return this;
+	}
+
 	public int getLevel() {
 		return getInteger(LEVEL);
 	}

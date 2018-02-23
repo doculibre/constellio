@@ -24,14 +24,13 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 	private static final Locale DEFAULT_LOCALE = new Locale("fr");
 	private static final List<String> AVAILABLE_LOCALES = asList(DEFAULT_LOCALE.getLanguage());
 
+
 	@Before
 	public void setUp()
 			throws Exception {
 		// prevent parsing each time
-		if(thesaurusService == null){
 			thesaurusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(SKOS_XML_FILE_PATH));
 			allConcepts = thesaurusService.getAllConcepts();
-		}
 	}
 
 	@Test
@@ -188,9 +187,32 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	// 1094 1094 1095 1117
+
 	@Test
 	public void givenSkosConceptMatchThesaurusLabel() {
-		thesaurusService.matchThesaurusLabel("", new Locale("fr"));
+		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
+				"\n " +
+				"\n ASSURANCE-EMPloi gouvernement " +
+				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+				"\ngouvernement gouvernement " +
+				"\n  RESTAURATEUR", new Locale("fr"));
+		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117", "6156", "6156", "6156");
+	}
+
+	@Test
+	public void givenSkosConceptMatchThesaurusLabelWithDeniedTerms() {
+		thesaurusService.setDeniedTerms(asList("gouvernement"));
+
+		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
+				"\n " +
+				"\n ASSURANCE-EMPloi gouvernement " +
+				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+				"\ngouvernement gouvernement " +
+				"\n  RESTAURATEUR", new Locale("fr"));
+		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117");
 	}
 
 	private Set<String> getStringPermissiveCases(String searchTerm) {

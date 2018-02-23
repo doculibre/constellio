@@ -259,24 +259,40 @@ public class ThesaurusService implements Serializable {
 		return allLabels;
 	}
 
-	public String matchThesaurusLabel(String text, Locale locale) {
-		SkosUtil.normaliseTextForMatching(text);
+	public List<String> matchThesaurusLabels(String text, Locale locale) {
+		String normalisedTextForMatching = SkosUtil.normaliseTextForMatching(text);
+		List<String> idsMatching = new ArrayList<>();
+		boolean isDenied = false;
 
 		for(String key : allConcepts.keySet()) {
-
+			isDenied = false;
 			SkosConcept skosConcept = allConcepts.get(key);
 			String prefLabel = skosConcept.getPrefLabelWithoutParentheses(locale);
+
+			for(String term : deniedTerms) {
+				if(term.equalsIgnoreCase(prefLabel)) {
+					isDenied = true;
+					break;
+				}
+			}
+			if(isDenied) {
+				continue;
+			}
+
 			if(prefLabel != null && !Strings.isNullOrEmpty(prefLabel)) {
+				String skosConceptId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
 
-				int count = StringUtils.countMatches(allConcepts.get(key).getPrefLabel(locale)
-						.toUpperCase(), text);
+				int count = StringUtils.countMatches(normalisedTextForMatching, " " + prefLabel
+						.toUpperCase() + " ");
 				if(count  > 0) {
-
+					for(int i = 0; i < count; i++) {
+						idsMatching.add(skosConceptId);
+					}
 				}
 			}
 		}
 
-		return "";
+		return idsMatching;
 	}
 
 

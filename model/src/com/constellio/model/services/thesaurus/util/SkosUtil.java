@@ -2,8 +2,9 @@ package com.constellio.model.services.thesaurus.util;
 
 public class SkosUtil {
     public static String normaliseTextForMatching(String text) {
-        return text.replaceAll("\\r?\\n", " ").trim()
+        String normalised = text.replaceAll("\\r?\\n", " ")
                 .replaceAll(" +", " ").toUpperCase();
+        return " " + normalised + " ";
     }
 
     public static String getSkosConceptId(String text){
