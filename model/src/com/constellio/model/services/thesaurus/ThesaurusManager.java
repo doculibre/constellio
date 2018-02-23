@@ -3,27 +3,19 @@ package com.constellio.model.services.thesaurus;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
-import jdk.internal.util.xml.impl.Input;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ThesaurusManager implements StatefulService {
 
@@ -58,11 +50,10 @@ public class ThesaurusManager implements StatefulService {
      * @param
      */
     public void set(InputStream inputStream, String collection) throws ThesaurusInvalidFileFormat {
+        ThesaurusConfig thesaurusConfig = getThesaurusConfigs(collection);
         ThesaurusService thesaurusService = getThesaurusService(inputStream);
-        ThesaurusConfig thesaurusConfig = getThesaurusConfiguration(collection);
-        if(thesaurusConfig != null) {
-            thesaurusConfig.setDenidedWords(thesaurusConfig.getDenidedWords());
-        }
+        thesaurusConfig.setDenidedWords(thesaurusConfig.getDenidedWords());
+
         cache.put(collection, thesaurusService);
     }
 
@@ -84,21 +75,17 @@ public class ThesaurusManager implements StatefulService {
         List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 
         for(String collection : collections){
-            cache.put(collection, getThesaurusService(getThesaurusFileFromConfigs(collection)));
+            ThesaurusConfig thesaurusConfig = getThesaurusConfigs(collection);
+            ThesaurusService thesaurusService = getThesaurusService(getThesaurusFile(thesaurusConfig));
+            thesaurusService.setDeniedTerms(thesaurusConfig.getDenidedWords());
+
+            cache.put(collection, thesaurusService);
         }
     }
 
-    private InputStream getThesaurusFileFromConfigs(String collection) {
+    private InputStream getThesaurusFile(ThesaurusConfig thesaurusConfig) {
 
         InputStream thesaurusFile = null;
-
-        // getting Thesaurus configs
-
-        ThesaurusConfig thesaurusConfig = null;
-        SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-        List<Record> thesaurusConfigRecordFound = searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(schemas.thesaurusConfig.schemaType()).returnAll()));
-        if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
-            thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
 
             // getting Thesaurus file
 
@@ -107,12 +94,28 @@ public class ThesaurusManager implements StatefulService {
             } catch (ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
                 new RuntimeException("Invalid Thesaurus file content in DAO.");
             }
+
+        return thesaurusFile;
+    }
+
+    private ThesaurusConfig getThesaurusConfigs(String collection) {
+        ThesaurusConfig thesaurusConfig = null;
+        SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+
+        List<Record> thesaurusConfigRecordFound = searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(schemas.thesaurusConfig.schemaType()).returnAll()));
+
+        if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
+            thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
         }
         else{
             throw new RuntimeException("Cannot have multiple files.");
         }
 
-        return thesaurusFile;
+        if(thesaurusConfig==null){
+            throw new RuntimeException("Invalid Thesaurus Configuration.");
+        }
+
+        return thesaurusConfig;
     }
 
     private ThesaurusService getThesaurusService(InputStream thesaurusFile){
@@ -125,20 +128,6 @@ public class ThesaurusManager implements StatefulService {
         }
 
         return thesaurusService;
-    }
-
-    public ThesaurusConfig getThesaurusConfiguration(String collection) {
-        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-        ThesaurusConfig thesaurusConfig = null;
-
-        List<Record> thesaurusConfigRecordFound = searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators
-                .from(schemasRecordsServices.thesaurusConfig.schemaType()).returnAll()));
-
-        if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
-            thesaurusConfig = schemasRecordsServices.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
-        }
-
-        return thesaurusConfig;
     }
 
     @Override

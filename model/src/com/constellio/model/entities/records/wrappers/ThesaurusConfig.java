@@ -12,7 +12,6 @@ public class ThesaurusConfig extends RecordWrapper {
     public static final String CONTENT = "content";
     public static final String DENINED_WORDS = "deniedWord";
 
-
     public ThesaurusConfig(Record record, MetadataSchemaTypes types) {
         super(record, types, SCHEMA_TYPE);
     }
