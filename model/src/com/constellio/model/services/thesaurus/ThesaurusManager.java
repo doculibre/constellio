@@ -59,6 +59,10 @@ public class ThesaurusManager implements StatefulService {
      */
     public void set(InputStream inputStream, String collection) throws ThesaurusInvalidFileFormat {
         ThesaurusService thesaurusService = getThesaurusService(inputStream);
+        ThesaurusConfig thesaurusConfig = getThesaurusConfiguration(collection);
+        if(thesaurusConfig != null) {
+            thesaurusConfig.setDenidedWords(thesaurusConfig.getDenidedWords());
+        }
         cache.put(collection, thesaurusService);
     }
 

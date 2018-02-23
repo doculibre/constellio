@@ -21,12 +21,16 @@ package com.constellio.model.services.thesaurus;
 
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.thesaurus.util.SkosUtil;
+import com.drew.lang.StringUtil;
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.Locale;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
@@ -254,6 +258,28 @@ public class ThesaurusService implements Serializable {
 
 		return allLabels;
 	}
+
+	public String matchThesaurusLabel(String text, Locale locale) {
+		SkosUtil.normaliseTextForMatching(text);
+
+		for(String key : allConcepts.keySet()) {
+
+			SkosConcept skosConcept = allConcepts.get(key);
+			String prefLabel = skosConcept.getPrefLabelWithoutParentheses(locale);
+			if(prefLabel != null && !Strings.isNullOrEmpty(prefLabel)) {
+
+				int count = StringUtils.countMatches(allConcepts.get(key).getPrefLabel(locale)
+						.toUpperCase(), text);
+				if(count  > 0) {
+
+				}
+			}
+		}
+
+		return "";
+	}
+
+
 
 	public ResponseSkosConcept getSkosConcepts(String input, List<String> languageCodesAvailableList) {
 

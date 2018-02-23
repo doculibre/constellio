@@ -5,12 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.addSpaces;
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.mixCase;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Workspace\\Projets\\SCOS_ServiceQC\\Fichiers depart\\SKOS destination 21 juillet 2017.xml";
+	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS\\SKOS destination 21 juillet 2017.xml";
 	private static ThesaurusService thesaurusService;
 	private static Map<String, SkosConcept> allConcepts;
 	private static final Locale DEFAULT_LOCALE = new Locale("fr");
@@ -188,4 +187,15 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).containsOnly("Relevé", "Déclaration de pourboires", "Formulaire", "Avis de cotisation", "Impôt sur le revenu", "Impôt", "Revenu");
 		}
 	}
+
+	@Test
+	public void givenSkosConceptMatchThesaurusLabel() {
+		thesaurusService.matchThesaurusLabel("", new Locale("fr"));
+	}
+
+	private Set<String> getStringPermissiveCases(String searchTerm) {
+		return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
+	}
+
+
 }

@@ -14,7 +14,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.es.extensions.api.ConnectorHttpDocumentExtension;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
 import org.eclipse.jetty.server.Server;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDateTime;
@@ -73,6 +79,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	CommitCounter commitCounter;
 
+	AtomicInteger counter;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -86,7 +94,10 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver).withoutSleeps());
 		givenTimeIs(TIME1);
 		commitCounter = new CommitCounter(getDataLayerFactory());
+		counter = new AtomicInteger();
 	}
+
+
 
 	@Test
 	public void whenModifyingSeedsAndInclusionsDuringExecutionThenApplied()
@@ -486,6 +497,30 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				tuple(MODIFY_EVENT, WEBSITE + "singes/gorille.html"),
 				tuple(MODIFY_EVENT, WEBSITE + "singes/macaque.html")
 		);
+	}
+
+	@Test
+	public void givenWebSiteIsHttpDocumentExtensionCalled() {
+		givenTestWebsiteInState1();
+		givenDataSet1Connector();
+
+		fullyFetchWebsite();
+		givenTestWebsiteInState2();
+		givenTimeIs(TWO_WEEKS_AFTER_TIME1);
+
+		AppLayerCollectionExtensions extensions = getAppLayerFactory().getExtensions().forCollection(zeCollection);
+		ESModuleExtensions esExtensions = extensions.forModule(ConstellioESModule.ID);
+		esExtensions.connectorHttpDocumentExtensions.add(new ConnectorHttpDocumentExtension() {
+			@Override
+			public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
+				counter.incrementAndGet();
+			}
+		});
+
+		connectorDocuments = tickAndGetAllDocuments();
+
+
+		assertThat(counter.get()).isEqualTo(5);
 	}
 
 	@Test

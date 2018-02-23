@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -164,6 +168,10 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+
+					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams().setConnectorHttpDocument(httpDocument));
 				}
 			} catch (FileParserException e) {
 				//TODO Test!
@@ -228,6 +236,10 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
 				.addStringProperty("charset", page.getWebResponse().getContentCharset()));
+
+		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams().setConnectorHttpDocument(httpDocument));
 
 		saveDocumentDigestAndDetectCopy(httpDocument);
 		connectorHttp.getEventObserver().push(savedDocuments);
