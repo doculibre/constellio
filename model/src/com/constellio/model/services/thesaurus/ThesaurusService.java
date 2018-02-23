@@ -43,7 +43,7 @@ public class ThesaurusService implements Serializable {
 	private Date dcDate;
 	private Locale dcLanguage;
 
-	private List<String> deniedWords = new ArrayList<>();
+	private List<String> deniedTerms = new ArrayList<>();
 	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
 	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
 
@@ -55,8 +55,8 @@ public class ThesaurusService implements Serializable {
 		this.dcTitle = dcTitle;
 	}
 
-	public void setDeniedWords(List<String> deniedWords) {
-		this.deniedWords = deniedWords;
+	public void setDeniedTerms(List<String> deniedTerms) {
+		this.deniedTerms = deniedTerms;
 	}
 
 	public Map<String, SkosConcept> getAllConcepts() {
@@ -408,6 +408,10 @@ public class ThesaurusService implements Serializable {
 			String suggestion = allLinks.get(i);
 			localeSuggestionsNL.add(suggestion);
 		}
+
+		// custom user filter
+		localeDisambiguationsNL.removeAll(deniedTerms);
+		localeSuggestionsNL.removeAll(deniedTerms);
 
 		responseSkosConcept.getDisambiguations().put(currentLanguage, new ArrayList(localeDisambiguationsNL));
 		responseSkosConcept.getSuggestions().put(currentLanguage, new ArrayList(localeSuggestionsNL));
