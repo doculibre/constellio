@@ -16,14 +16,6 @@ public class ResponseSkosConcept {
         disambiguations = new HashMap<>();
     }
 
-    public void setSuggestions(Locale locale, List<String> suggestions) {
-        this.suggestions.put(locale, suggestions);
-    }
-
-    public void setDisambiguations(Locale locale, List<String> suggestions) {
-        this.disambiguations = disambiguations;
-    }
-
     public Map<Locale, List> getSuggestions() {
         return suggestions;
     }

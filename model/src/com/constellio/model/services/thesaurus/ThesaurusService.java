@@ -277,11 +277,9 @@ public class ThesaurusService implements Serializable {
 
 	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept){
 		final Locale currentLanguage = new Locale(languageCodeAvailable);
-		Set<String> localeDisambiguationsNL = new HashSet<>();
-		Set<String> localeSuggestionsNL = new HashSet<>();
-
-		Set<String> suggestions = new HashSet<String>();
-		List<SkosConcept> suggestedConcepts = new ArrayList<SkosConcept>();
+		Set<String> localeDisambiguationsNL = new LinkedHashSet<>();
+		Set<String> localeSuggestionsNL = new LinkedHashSet<>();
+		Set<SkosConcept> suggestedConcepts = new LinkedHashSet<>();
 
 		// pref search (exact or specify)
 		Set<SkosConcept> prefLabelsThatEqualsOrSpecifyTerm = getPrefLabelsThatEqualsOrSpecify(input, currentLanguage);
@@ -291,7 +289,7 @@ public class ThesaurusService implements Serializable {
 			disambiguationConcepts.addAll(prefLabelsThatEqualsOrSpecifyTerm);
 		}
 		// not enough results
-		if (localeSuggestionsNL.size() == 0) { // TODO replace by isEmpty when real collection
+		if (localeSuggestionsNL.isEmpty()) {
 			Set<SkosConcept> altLabelsThatEqualsTerm = getAltLabelsThatEquals(input, currentLanguage);
 			if (!altLabelsThatEqualsTerm.isEmpty()) {
 				SkosConcept firstAltLabelConcept = altLabelsThatEqualsTerm.iterator().next();
@@ -305,9 +303,7 @@ public class ThesaurusService implements Serializable {
 			String prefLabel = prefLabelMatch.getPrefLabel(currentLanguage);
 			if (StringUtils.isNotBlank(prefLabel)) {
 				prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
-				if (!suggestions.contains(prefLabel)) { // TODO unicity possible... NamedList => Set? + TODO unused suggestions... will never contains any value!!!
-					suggestedConcepts.add(prefLabelMatch);
-				}
+				suggestedConcepts.add(prefLabelMatch);
 			}
 		}
 
@@ -395,7 +391,7 @@ public class ThesaurusService implements Serializable {
 
 		for (SkosConcept linkConcept : linkConcepts) {
 			String prefLabel = linkConcept.getPrefLabel(currentLanguage);
-			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase()); // TODO why do .toLowerCase right before .capitalize?
+			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 			allLinks.add(prefLabel);
 		}
 

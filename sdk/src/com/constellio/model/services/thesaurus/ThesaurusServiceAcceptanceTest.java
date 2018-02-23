@@ -1,17 +1,18 @@
 package com.constellio.model.services.thesaurus;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
-import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.FileInputStream;
-import java.util.*;
-
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
-import org.olap4j.metadata.NamedList;
+
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for searching in Thesaurus. Search should be permissive at all time (ignore case, accents and trim spaces).
@@ -158,21 +159,33 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		for(String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
-			assertThat(concepts.disambiguations.values()).containsOnly(asList("Carte (lieu)", "Carte (identification)"));
-			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).contains("Carte routière");
+			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).containsOnly("Carte (lieu)", "Carte (identification)");
 		}
 	}
 
 	@Test
-	public void whenGetSkosConceptsWithSpecificationDesambiguationThenCorrespondingTermsFound2()
+	public void whenGetSkosConceptsWithNoDesambiguationAndOneSuggestionThenCorrespondingTermsFound()
 			throws Exception {
 
-		Set<String> searchValues = getStringPermissiveCases("carte");
+		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt");
 
 		for(String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
-			assertThat(concepts.disambiguations.values()).containsOnly(asList("Carte (lieu)", "Carte (identification)"));
-			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).contains("Carte routière");
+			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).isEmpty();
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).containsOnly("Déclaration de revenus");
+		}
+	}
+
+	@Test
+	public void whenGetSkosConceptsWithNoDesambiguationAndMultipleSuggestionsThenCorrespondingTermsFound()
+			throws Exception {
+
+		Set<String> searchValues = getStringPermissiveCases("Déclaration de revenus");
+
+		for(String searchValue : searchValues) {
+			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
+			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).isEmpty();
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).containsOnly("Relevé", "Déclaration de pourboires", "Formulaire", "Avis de cotisation", "Impôt sur le revenu", "Impôt", "Revenu");
 		}
 	}
 }
