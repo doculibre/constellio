@@ -459,6 +459,89 @@ public class ThesaurusService implements Serializable {
 		responseSkosConcept.getSuggestions().put(currentLanguage, new ArrayList(localeSuggestionsNL));
 	}
 
+//	public List<String> suggestSimpleSearch(String input, Locale locale) {
+//
+//		List<String> suggestions = new ArrayList<String>();
+//
+//
+//		if (StringUtils.isNotEmpty(input) && input.length() >= 3) { // && !input.contains("*:*") && !collection.isOpenSearch()
+//			try {
+//				StatsServices statsServices = ConstellioSpringUtils.getStatsServices();
+//
+//				// get related pref labels that contains input
+//
+//				int maxResults = 5; // TODO maxResults = MAX_RESULTS_NUMBER_INIT; (+cte)
+////				String analyzedInput = AnalyzerUtils.analyze(input);
+//				List<String> analyzedSuggestions = new ArrayList<String>();
+//				Set<SkosConcept> prefLabelSuggestions = getPrefLabelsThatContains(input, locale);
+//
+//					for (SkosConcept thesaurusSuggestion : prefLabelSuggestions) {
+//						String prefLabel = thesaurusSuggestion.getPrefLabel(locale).toLowerCase();
+////						String analyzedSuggestion = AnalyzerUtils.analyze(prefLabel);
+//
+//						if (isValidAutocompleteSuggestion(input, analyzedInput, prefLabel, analyzedSuggestion)
+//								&& !isAlreadyInSuggestions(analyzedSuggestions, analyzedSuggestion)) {
+//							maxResults--;
+//							suggestions.add(prefLabel);
+//							analyzedSuggestions.add(analyzedSuggestion);
+//							if (maxResults == 0) {
+//								break;
+//							}
+//						}
+//					}
+//
+//					// if not enough results, get related alt labels
+//					if (maxResults > 0) {
+//						Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
+//						for (SkosConcept thesaurusSuggestion : altLabelSuggestions) {
+//							for (String altLabel : thesaurusSuggestion.getAltLabels(locale)) {
+//								altLabel = altLabel.toLowerCase();
+//								String analyzedSuggestion = AnalyzerUtils.analyze(altLabel);
+//								if (isValidAutocompleteSuggestion(input, analyzedInput, altLabel, analyzedSuggestion)
+//										&& !analyzedSuggestions.contains(analyzedSuggestion)) {
+//									maxResults--;
+//									suggestions.add(altLabel);
+//									analyzedSuggestions.add(analyzedSuggestion);
+//									if (maxResults == 0) {
+//										break;
+//									}
+//								}
+//							}
+//						}
+//					}
+//				// if not enough results, get related most popular queries
+//				if (maxResults > 0) {
+//					List<String> mostPopularQueriesSuggestions = statsServices.getMostPopularQueriesAutocomplete(input, maxResults, null);
+//					for (String mostPopularQueriesSuggestion : mostPopularQueriesSuggestions) {
+//						String analyzedSuggestion = AnalyzerUtils.analyze(mostPopularQueriesSuggestion);
+//						if (isValidAutocompleteSuggestion(input, analyzedInput, mostPopularQueriesSuggestion, analyzedSuggestion) && !analyzedSuggestions.contains(analyzedSuggestion)) {
+//							maxResults--;
+//							suggestions.add(mostPopularQueriesSuggestion);
+//							analyzedSuggestions.add(analyzedSuggestion);
+//							if (maxResults == 0) {
+//								break;
+//							}
+//						}
+//					}
+//				}
+//			} catch (Exception e) {
+//			}
+//		}
+//		return suggestions;
+//	}
+
+	private boolean isValidAutocompleteSuggestion(String input, String analyzedInput, String suggestion, String analyzedSuggestion) {
+		boolean valid = false;
+
+		if (!deniedTerms.contains(suggestion)) {
+			if ((StringUtils.isNotBlank(analyzedInput) && analyzedSuggestion.startsWith(analyzedInput))
+					|| (StringUtils.isNotBlank(input) && suggestion.startsWith(input))) {
+				valid = true;
+			}
+		}
+		return valid;
+	}
+
 	// UTILS
 
 	/**
