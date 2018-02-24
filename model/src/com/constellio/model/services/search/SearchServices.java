@@ -693,6 +693,8 @@ public class SearchServices {
 		}
 	}
 
+	//public Record getRecordWithId(MetadataSchemaType schemaType) {
+
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());

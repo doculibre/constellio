@@ -447,33 +447,15 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
-		for (SolrAuthorizationDetails authorizationDetails : getAllAuthorizations()) {
-			if (authorizationDetails.getId().equals(id)) {
-				return authorizationDetails;
-			}
-		}
-
-		return null;
+		return wrapSolrAuthorizationDetails(get(id));
 	}
 
 	public User getUser(String id) {
-		for (User user : getAllUsers()) {
-			if (user.getId().equals(id)) {
-				return user;
-			}
-		}
-
-		return null;
+		return wrapUser(get(id));
 	}
 
 	public Group getGroup(String id) {
-		for (Group group : getAllGroups()) {
-			if (group.getId().equals(id)) {
-				return group;
-			}
-		}
-
-		return null;
+		return wrapGroup(get(id));
 	}
 
 	public List<Capsule> getAllCapsules() {
