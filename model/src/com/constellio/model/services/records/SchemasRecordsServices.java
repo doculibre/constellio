@@ -434,8 +434,17 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 				getModelLayerFactory().newSearchServices().getAllRecords(authorizationDetails.schemaType()));
 	}
 
+	public List<SolrAuthorizationDetails> getAllAuthorizationsInUnmodifiableState() {
+		return wrapSolrAuthorizationDetailss(
+				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
+	}
+
 	public List<User> getAllUsers() {
 		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecords(user.schemaType()));
+	}
+
+	public List<User> getAllUsersInUnmodifiableState() {
+		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
 	}
 
 	public List<Group> getAllGroups() {

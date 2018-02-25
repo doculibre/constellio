@@ -60,7 +60,6 @@ import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
@@ -291,38 +290,6 @@ public class BigVaultRecordDao implements RecordDao {
 				secondTransactionLogManager.cancel(transactionId);
 			}
 			throw new RuntimeException(e);
-		}
-
-		Iterator<List<RecordDTO>> batchsOfIdsIterator = new BatchBuilderIterator<>(idsIterator, 10000);
-
-		while (batchsOfIdsIterator.hasNext()) {
-			List<RecordDTO> batchOfIds = batchsOfIdsIterator.next();
-
-			List<SolrInputDocument> inputDocuments = new ArrayList<>();
-
-			BigVaultServerTransaction batchTransaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
-					.setNewDocuments(inputDocuments);
-			String batchTransactionId = batchTransaction.getTransactionId();
-
-			try {
-				if (secondTransactionLogManager != null) {
-					secondTransactionLogManager.prepare(batchTransactionId, batchTransaction);
-				}
-
-				bigVaultServer.addAll(batchTransaction);
-
-				if (secondTransactionLogManager != null) {
-					secondTransactionLogManager.flush(batchTransactionId, null);
-				}
-
-			} catch (BigVaultException e) {
-
-				if (secondTransactionLogManager != null) {
-					secondTransactionLogManager.cancel(batchTransactionId);
-				}
-
-				throw new RuntimeException(e);
-			}
 		}
 
 	}

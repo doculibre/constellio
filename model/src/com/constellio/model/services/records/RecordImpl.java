@@ -52,7 +52,7 @@ public class RecordImpl implements Record {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordImpl.class);
 
-	protected final Map<String, Object> modifiedValues = new HashMap<String, Object>();
+	protected Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private String schemaCode;
 	private String schemaTypeCode;
 	private final String collection;
@@ -63,8 +63,8 @@ public class RecordImpl implements Record {
 	private Map<String, Object> lazyTransientValues = new HashMap<String, Object>();
 	private Map<String, Object> eagerTransientValues = new HashMap<String, Object>();
 	private Map<String, Object> structuredValues;
-	private List<String> followers;
 	private boolean fullyLoaded;
+	private boolean unmodifiable;
 
 	public RecordImpl(String schemaCode, String collection, String id) {
 		if (schemaCode == null) {
@@ -80,7 +80,6 @@ public class RecordImpl implements Record {
 		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
-		this.followers = new ArrayList<String>();
 		this.fullyLoaded = true;
 	}
 
@@ -92,6 +91,15 @@ public class RecordImpl implements Record {
 	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded) {
 		this(recordDTO, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded, boolean unmodifiable) {
+		this(recordDTO, fullyLoaded);
+		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
+		this.unmodifiable = unmodifiable;
+		if (unmodifiable) {
+			this.modifiedValues = Collections.unmodifiableMap(modifiedValues);
+		}
 	}
 
 	public RecordImpl(RecordDTO recordDTO) {
@@ -108,10 +116,6 @@ public class RecordImpl implements Record {
 			throw new IllegalArgumentException("Require collection code for record '" + id + "'");
 		}
 
-		this.followers = (List<String>) recordDTO.getFields().get("followers_ss");
-		if (this.followers == null) {
-			this.followers = new ArrayList<>();
-		}
 		this.recordDTO = recordDTO;
 		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
 	}
@@ -144,7 +148,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public Record set(Metadata metadata, Object value) {
-
+		ensureModifiable();
 		if ("".equals(value)) {
 			value = null;
 		}
@@ -460,6 +464,7 @@ public class RecordImpl implements Record {
 		if (recordDTO.getFields().get("schema_s") == null) {
 			throw new IllegalArgumentException("Argument recordDTO requires a schema_s value");
 		}
+		ensureModifiable();
 
 		this.version = version;
 		this.recordDTO = recordDTO;
@@ -467,6 +472,13 @@ public class RecordImpl implements Record {
 		if (structuredValues != null) {
 			this.structuredValues.clear();
 		}
+	}
+
+	private void ensureModifiable() {
+		if (unmodifiable) {
+			throw new RecordImplRuntimeException.RecordImplException_RecordIsUnmodifiable();
+		}
+
 	}
 
 	@Override
@@ -739,7 +751,7 @@ public class RecordImpl implements Record {
 	}
 
 	public void merge(RecordImpl otherVersion, MetadataSchema schema) {
-
+		ensureModifiable();
 		RecordDTO otherVersionRecordDTO = otherVersion.recordDTO;
 
 		List<String> removedKeys = new ArrayList<>();
@@ -818,6 +830,7 @@ public class RecordImpl implements Record {
 	}
 
 	public void markAsSaved(long version, MetadataSchema schema) {
+		ensureModifiable();
 		if (!isSaved()) {
 			RecordDTO dto = toNewDocumentDTO(schema, new ArrayList<FieldsPopulator>()).withVersion(
 					version);
@@ -870,19 +883,19 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public List<String> getFollowers() {
-		if (modifiedValues.containsKey("followers_ss")) {
-			followers = (List<String>) modifiedValues.get("followers_ss");
-		}
-		return followers;
-	}
-
-	@Override
 	public Record getCopyOfOriginalRecord() {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
 		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded);
+	}
+
+	@Override
+	public Record getUnmodifiableCopyOfOriginalRecord() {
+		if (recordDTO == null) {
+			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
+		}
+		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded, true);
 	}
 
 	@Override
@@ -935,6 +948,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public void markAsModified(Metadata metadata) {
+		ensureModifiable();
 		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
 	}
 
@@ -962,6 +976,7 @@ public class RecordImpl implements Record {
 	@Override
 	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
 		//LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		ensureModifiable();
 		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
@@ -1072,6 +1087,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public <T> void addValueToList(Metadata metadata, T value) {
+		ensureModifiable();
 		List<T> values = new ArrayList<>(this.<T>getList(metadata));
 		values.add(value);
 		set(metadata, values);
@@ -1079,6 +1095,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public <T> void removeValueFromList(Metadata metadata, T value) {
+		ensureModifiable();
 		List<T> values = new ArrayList<>(this.<T>getList(metadata));
 		values.remove(value);
 		set(metadata, values);

@@ -42,8 +42,9 @@ public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Ru
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizations()) {
+			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
+					auth = auth.getCopyOfOriginalRecord();
 					try {
 						Transaction tx = new Transaction();
 						tx.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL()));

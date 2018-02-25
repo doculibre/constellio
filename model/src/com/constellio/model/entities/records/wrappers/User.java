@@ -542,4 +542,12 @@ public class User extends RecordWrapper {
 		set(DEFAULT_PAGE_LENGTH, defaultPageLength);
 		return this;
 	}
+
+	public User getCopyOfOriginalRecord() {
+		return User.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types, roles);
+	}
+
+	public User getUnmodifiableCopyOfOriginalRecord() {
+		return User.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types, roles);
+	}
 }

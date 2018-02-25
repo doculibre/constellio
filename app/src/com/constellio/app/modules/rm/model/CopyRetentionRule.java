@@ -3,9 +3,6 @@ package com.constellio.app.modules.rm.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -301,13 +298,99 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dirty");
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof CopyRetentionRule))
+			return false;
+
+		CopyRetentionRule that = (CopyRetentionRule) o;
+
+		if (essential != that.essential)
+			return false;
+		if (ignoreActivePeriod != that.ignoreActivePeriod)
+			return false;
+		if (code != null ? !code.equals(that.code) : that.code != null)
+			return false;
+		if (title != null ? !title.equals(that.title) : that.title != null)
+			return false;
+		if (description != null ? !description.equals(that.description) : that.description != null)
+			return false;
+		if (copyType != that.copyType)
+			return false;
+		if (mediumTypeIds != null ? !mediumTypeIds.equals(that.mediumTypeIds) : that.mediumTypeIds != null)
+			return false;
+		if (contentTypesComment != null ?
+				!contentTypesComment.equals(that.contentTypesComment) :
+				that.contentTypesComment != null)
+			return false;
+		if (activeRetentionPeriod != null ?
+				!activeRetentionPeriod.equals(that.activeRetentionPeriod) :
+				that.activeRetentionPeriod != null)
+			return false;
+		if (activeRetentionComment != null ?
+				!activeRetentionComment.equals(that.activeRetentionComment) :
+				that.activeRetentionComment != null)
+			return false;
+		if (semiActiveRetentionPeriod != null ?
+				!semiActiveRetentionPeriod.equals(that.semiActiveRetentionPeriod) :
+				that.semiActiveRetentionPeriod != null)
+			return false;
+		if (semiActiveRetentionComment != null ?
+				!semiActiveRetentionComment.equals(that.semiActiveRetentionComment) :
+				that.semiActiveRetentionComment != null)
+			return false;
+		if (inactiveDisposalType != that.inactiveDisposalType)
+			return false;
+		if (inactiveDisposalComment != null ?
+				!inactiveDisposalComment.equals(that.inactiveDisposalComment) :
+				that.inactiveDisposalComment != null)
+			return false;
+		if (typeId != null ? !typeId.equals(that.typeId) : that.typeId != null)
+			return false;
+		if (semiActiveDateMetadata != null ?
+				!semiActiveDateMetadata.equals(that.semiActiveDateMetadata) :
+				that.semiActiveDateMetadata != null)
+			return false;
+		if (activeDateMetadata != null ? !activeDateMetadata.equals(that.activeDateMetadata) : that.activeDateMetadata != null)
+			return false;
+		if (openActiveRetentionPeriod != null ?
+				!openActiveRetentionPeriod.equals(that.openActiveRetentionPeriod) :
+				that.openActiveRetentionPeriod != null)
+			return false;
+		if (semiActiveYearTypeId != null ?
+				!semiActiveYearTypeId.equals(that.semiActiveYearTypeId) :
+				that.semiActiveYearTypeId != null)
+			return false;
+		if (inactiveYearTypeId != null ? !inactiveYearTypeId.equals(that.inactiveYearTypeId) : that.inactiveYearTypeId != null)
+			return false;
+		return id != null ? id.equals(that.id) : that.id == null;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "dirty");
+	public int hashCode() {
+		int result = code != null ? code.hashCode() : 0;
+		result = 31 * result + (title != null ? title.hashCode() : 0);
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		result = 31 * result + (copyType != null ? copyType.hashCode() : 0);
+		result = 31 * result + (mediumTypeIds != null ? mediumTypeIds.hashCode() : 0);
+		result = 31 * result + (contentTypesComment != null ? contentTypesComment.hashCode() : 0);
+		result = 31 * result + (activeRetentionPeriod != null ? activeRetentionPeriod.hashCode() : 0);
+		result = 31 * result + (activeRetentionComment != null ? activeRetentionComment.hashCode() : 0);
+		result = 31 * result + (semiActiveRetentionPeriod != null ? semiActiveRetentionPeriod.hashCode() : 0);
+		result = 31 * result + (semiActiveRetentionComment != null ? semiActiveRetentionComment.hashCode() : 0);
+		result = 31 * result + (inactiveDisposalType != null ? inactiveDisposalType.hashCode() : 0);
+		result = 31 * result + (inactiveDisposalComment != null ? inactiveDisposalComment.hashCode() : 0);
+		result = 31 * result + (typeId != null ? typeId.hashCode() : 0);
+		result = 31 * result + (semiActiveDateMetadata != null ? semiActiveDateMetadata.hashCode() : 0);
+		result = 31 * result + (activeDateMetadata != null ? activeDateMetadata.hashCode() : 0);
+		result = 31 * result + (openActiveRetentionPeriod != null ? openActiveRetentionPeriod.hashCode() : 0);
+		result = 31 * result + (essential ? 1 : 0);
+		result = 31 * result + (ignoreActivePeriod ? 1 : 0);
+		result = 31 * result + (semiActiveYearTypeId != null ? semiActiveYearTypeId.hashCode() : 0);
+		result = 31 * result + (inactiveYearTypeId != null ? inactiveYearTypeId.hashCode() : 0);
+		result = 31 * result + (id != null ? id.hashCode() : 0);
+		return result;
 	}
 
 	@Override

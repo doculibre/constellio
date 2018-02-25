@@ -734,6 +734,50 @@ public class SearchServices {
 		}
 	}
 
+	public List<Record> getAllRecordsInUnmodifiableState(MetadataSchemaType schemaType) {
+
+		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
+		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+
+			if (cache.isConfigured(schemaType)) {
+				if (cache.isFullyLoaded(schemaType.getCode())) {
+					return cache.getAllValuesInUnmodifiableState(schemaType.getCode());
+
+				} else {
+
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+
+						if (records.size() > 1000) {
+							loadUsingMultithreading(cache, records);
+
+						} else {
+							cache.insert(records);
+						}
+					}
+					cache.markAsFullyLoaded(schemaType.getCode());
+
+					List<Record> unmodifiableRecords = new ArrayList<>();
+					for (Record record : records) {
+						unmodifiableRecords.add(record.getUnmodifiableCopyOfOriginalRecord());
+					}
+
+					return unmodifiableRecords;
+				}
+			} else {
+				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
+			}
+
+		} else {
+			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+				cache.insert(records);
+			}
+			return records;
+		}
+	}
+
 	private void loadUsingMultithreading(final RecordsCache cache, List<Record> records) {
 		final Iterator<List<Record>> recordIterator = new BatchBuilderIterator<>(records.iterator(), 500);
 
