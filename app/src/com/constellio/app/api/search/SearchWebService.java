@@ -95,15 +95,6 @@ public class SearchWebService extends HttpServlet {
 			SearchEvent searchEvent = null;
 
 			if(!Strings.isNullOrEmpty(collection)) {
-				if(!Strings.isNullOrEmpty(thesaurusValue)) {
-					ThesaurusManager thesaurusManager = modelLayerFactory().getThesaurusManager();
-					ThesaurusService thesaurusService;
-					if((thesaurusService = thesaurusManager.get(collection)) != null) {
-//						responseSkosConcept = thesaurusService.getSkosConcepts(thesaurusValue);
-					}
-				}
-
-
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
 				searchEvent = schemasRecordsServices.newSearchEvent();
 
