@@ -94,6 +94,8 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             ContentVersionDataSummary contentVersionDataSummary = upload(inputStream2FromFile, THESAURUS_FILE,contentManager);
             ioServices.closeQuietly(inputStream2FromFile);
             Content content = contentManager.createMajor(getCurrentUser(), THESAURUS_FILE,contentVersionDataSummary);
+
+            thesaurusManager.get(collection).setDeniedTerms(thesaurusConfig.getDenidedWords());
             thesaurusConfig.setContent(content);
             if(isNew){
                 recordServices.add(thesaurusConfig);

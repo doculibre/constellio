@@ -50,9 +50,7 @@ public class ThesaurusManager implements StatefulService {
      * @param
      */
     public void set(InputStream inputStream, String collection) throws ThesaurusInvalidFileFormat {
-        ThesaurusConfig thesaurusConfig = getThesaurusConfigs(collection);
         ThesaurusService thesaurusService = getThesaurusService(inputStream);
-        thesaurusConfig.setDenidedWords(thesaurusConfig.getDenidedWords());
 
         cache.put(collection, thesaurusService);
     }
@@ -99,12 +97,12 @@ public class ThesaurusManager implements StatefulService {
     }
 
     private ThesaurusConfig getThesaurusConfigs(String collection) {
-        ThesaurusConfig thesaurusConfig = null;
+        ThesaurusConfig thesaurusConfig;
         SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 
         List<Record> thesaurusConfigRecordFound = searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(schemas.thesaurusConfig.schemaType()).returnAll()));
 
-        if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() ==  1) {
+        if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() >  1) {
             thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
         }
         else{
