@@ -9,14 +9,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -99,6 +95,8 @@ import com.vaadin.server.StreamResource.StreamSource;
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
+	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
+	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
@@ -382,9 +380,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ArrayList<String> paramList = new ArrayList<>();
 
 		for (String paramName : modifiableSolrParams.getParameterNames()) {
-			if (!paramName.equals("qf") && !paramName.equals("pf")
-					&& !paramName.equals("fl")) {
-				if (paramName.equals("q")) {
+			if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
+				if ("q".equals(paramName)) {
 					searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
 				} else {
 					String[] values = modifiableSolrParams.getParams(paramName);
@@ -407,40 +404,46 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setNumFound(response.getNumFound());
 		UIContext uiContext = view.getUIContext();
 
-		Record oldSearchEventRecord = uiContext.getAttribute("CURRENT_SEARCH_EVENT");
+		Record oldSearchEventRecord = uiContext.getAttribute(CURRENT_SEARCH_EVENT);
 		SearchEvent oldSearchEvent = null;
 		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
 			oldSearchEvent = schemasRecordsServices.wrapSearchEvent(oldSearchEventRecord);
 		}
 
 		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
+			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent.getWrappedRecord());
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			searchEventServices.save(searchEvent);
+
+			checkAndUpdateDwellTime(oldSearchEvent);
 		}
 	}
 
+	private void checkAndUpdateDwellTime(SearchEvent searchEvent) {
+		Long start = view.getUIContext().clearAttribute(SEARCH_EVENT_DWELL_TIME);
+		if(!ObjectUtils.allNotNull(searchEvent, start)) {
+			return;
+		}
+
+		long dwellTime = System.currentTimeMillis() - start;
+		searchEvent.setDwellTime(dwellTime);
+
+		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+		searchEventServices.updateDwellTime(searchEvent.getId(), dwellTime);
+	}
+
 	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
-		if (searchEvenFromSessionContext == null && searchEvent != null
-				|| searchEvent == null && searchEvenFromSessionContext != null
-				|| searchEvent == null && searchEvenFromSessionContext == null) {
+		if (!ObjectUtils.allNotNull(searchEvenFromSessionContext, searchEvent)) {
 			return false;
 		}
 
-		if (searchEvenFromSessionContext.getUsername() == null &&
-				searchEvent.getUsername() != null
-				|| searchEvenFromSessionContext.getUsername() != null &&
-				searchEvent.getUsername() == null) {
+		if (!ObjectUtils.allNotNull(searchEvenFromSessionContext.getUsername(), searchEvent.getUsername())) {
 			return false;
 		}
 
-		boolean isUserEqual = searchEvent.getUsername() == null && searchEvenFromSessionContext.getUsername() == null
-				|| searchEvenFromSessionContext.getUsername()
-				.equals(searchEvent.getUsername());
+		boolean isUserEqual = searchEvenFromSessionContext.getUsername().equals(searchEvent.getUsername());
 
-		boolean isQEqual = searchEvenFromSessionContext.getQuery() == null &&
-				searchEvent.getQuery() == null || searchEvenFromSessionContext.getQuery()
-				.equals(searchEvent.getQuery());
+		boolean isQEqual = Objects.equals(searchEvenFromSessionContext.getQuery(), searchEvent.getQuery());
 
 		if (!isQEqual || !isUserEqual) {
 			return false;
@@ -837,16 +840,18 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return allExclusionFormCollection;
 	}
 
-	public void searchResultClicked(RecordVO searchResultVO) {
+	public void searchResultClicked() {
+		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		Record searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
 	}
 
 	public void searchNavigationButtonClicked() {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		Record searchEvent = (Record) view.getUIContext().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementPageNavigationCounter(searchEvent.getId());
 	}

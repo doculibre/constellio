@@ -62,6 +62,23 @@ public class SearchEventServices {
 		}
 	}
 
+	public void updateDwellTime(String searchEventId, long dwellTime) {
+
+		SolrInputDocument doc = new SolrInputDocument();
+
+		doc.setField("id", searchEventId);
+		doc.setField(schemas.searchEvent.dwellTime().getDataStoreCode(), dwellTime);
+
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.ADD_LATER());
+		tx.setUpdatedDocuments(asList(doc));
+		try {
+			modelLayerFactory.getDataLayerFactory().newEventsDao().getBigVaultServer().addAll(tx);
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	public void incrementClickCounter(String searchEventId) {
 
 		SolrInputDocument doc = new SolrInputDocument();
@@ -123,7 +140,7 @@ public class SearchEventServices {
 		params.add("fq", "collection_s:" + collection);
 
 		computeDateParams(from, to, params);
-
+	
 		computeExcludedRequest(excludedRequest, params);
 
 		String limit = "";
