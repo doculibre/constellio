@@ -184,7 +184,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
-					language).getSuggestions().get(language);
+					language).getSuggestions().get(language.getLocale());
 		}
 
 		return result;
@@ -197,7 +197,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
-					language).getDisambiguations().get(language);
+					language).getDisambiguations().get(language.getLocale());
 		}
 
 		return result;
