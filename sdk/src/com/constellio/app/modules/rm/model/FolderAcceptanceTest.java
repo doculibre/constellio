@@ -211,7 +211,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			);
 
 			assertThat(frenchMessages(e)).containsOnly(
-					"Ze folder (" + folder.getId() + ") : La subdivision uniforme d''un dossier doit être liée à sa règle");
+					"La subdivision uniforme d''un dossier doit être liée à sa règle");
 		}
 
 		givenConfig(RMConfigs.UNIFORM_SUBDIVISION_ENABLED, false);
