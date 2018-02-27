@@ -60,27 +60,25 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private <T extends Serializable> void synchronizeIfNecessary() {
+	private synchronized <T extends Serializable> void synchronizeIfNecessary() {
 		Date expiryDate = DateUtils.addMinutes(lastSynchronizationDate, 5);
 		Date now = new Date();
 		if (now.after(expiryDate)) {
-			synchronized (this) {
-				if (!synchronizing) {
-					synchronizing = true;
-					localCache.clear();
-					Iterator<Entry<String, Object>> remoteIterator = igniteCache.iterator();
-					while (remoteIterator.hasNext()) {
-						Entry<String, Object> remoteEntry = remoteIterator.next();
-						put(remoteEntry.getKey(), (T) remoteEntry.getValue(), true);
-					}
-					lastSynchronizationDate = new Date();
-					synchronizing = false;
-				} else {
-					while (synchronizing) {
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {
-						}
+			if (!synchronizing) {
+				synchronizing = true;
+				localCache.clear();
+				Iterator<Entry<String, Object>> remoteIterator = igniteCache.iterator();
+				while (remoteIterator.hasNext()) {
+					Entry<String, Object> remoteEntry = remoteIterator.next();
+					put(remoteEntry.getKey(), (T) remoteEntry.getValue(), true);
+				}
+				lastSynchronizationDate = new Date();
+				synchronizing = false;
+			} else {
+				while (synchronizing) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
 					}
 				}
 			}
