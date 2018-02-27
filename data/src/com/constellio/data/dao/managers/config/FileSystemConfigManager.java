@@ -435,7 +435,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
-	private void cacheRemoveAndCallListeners(String path ) {
+	private void cacheRemoveAndCallListeners(String path) {
 		removeFromCache(path);
 
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
@@ -655,5 +655,12 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 		return cachedConfiguration;
 
+	}
+
+	@Override
+	public void notifyChanged(String path) {
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
 	}
 }

@@ -520,4 +520,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	public void keepInCache(String path) {
 		//This config manager has no cache
 	}
+
+	@Override
+	public void notifyChanged(String path) {
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
+	}
 }

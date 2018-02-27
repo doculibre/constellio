@@ -45,7 +45,7 @@ public class SchemasDisplayManager
 
 	public static final String REQUIRED_METADATA_IN_FORM_LIST = "requiredMetadataInFormList";
 
-	private static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
+	public static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
 
 	private ConfigManager configManager;
 
