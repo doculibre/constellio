@@ -453,7 +453,9 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 			}
 		}
 
-		return null;
+		Record record = modelLayerFactory.newRecordServices().getDocumentById(id);
+
+		return new SolrAuthorizationDetails(record, getTypes());
 	}
 
 	public User getUser(String id) {
