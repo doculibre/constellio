@@ -283,6 +283,12 @@ public class DecommissioningService {
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
+
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+		parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+		parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + decommissioningList.getId());
+
 		sendEmailForList(managerList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
 		try {
 			decommissioningList.setApprovalRequest(approvalUser);
@@ -363,6 +369,11 @@ public class DecommissioningService {
 		List<Comment> commentaires = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
+
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+		parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+		parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + list.getId());
 
 		sendEmailForList(list, null, users, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
