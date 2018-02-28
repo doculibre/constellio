@@ -41,6 +41,7 @@ public class ThesaurusService implements Serializable {
 	private static final int MAX_AUTOCOMPLETE_RESULTS = 5;
 	public static final String DESAMBIUGATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
+	public static final String DOMAINE_LABEL = "DOMAINE";
 
 	private String rdfAbout;
 	private String dcTitle;
@@ -287,6 +288,73 @@ public class ThesaurusService implements Serializable {
 		}
 
 		return idsMatching;
+	}
+
+	public List<SkosConcept> findRootDomain(String skosId) {
+	    SkosConcept skosConcept = getSkosConcept(skosId);
+		List<SkosConcept> domainSkosConcept = new ArrayList<>();
+		findDomainOfSkosConcept(skosConcept, DOMAINE_LABEL, domainSkosConcept);
+		return domainSkosConcept;
+	}
+
+	public void findDomainOfSkosConcept(SkosConcept skosConcept, String frenchLabelParentRequirement, List<SkosConcept> domainSkosConcepts) {
+
+		if(domainSkosConcepts == null) {
+			throw new IllegalArgumentException("domainSkosConcepts cannot be null when calling this" +
+					" mehtod it is an out parameter.");
+		}
+
+		if(skosConcept.getBroader() == null || skosConcept.getBroader().size() == 0) {
+			return;
+		}
+
+		for(SkosConcept skosConcept1 : skosConcept.getBroader()) {
+			if(skosConcept1.getBroader() == null || skosConcept1.getBroader().size() == 0) {
+				return;
+			} else {
+				boolean isFound = false;
+				for(SkosConcept skosConcept2 : skosConcept1.getBroader()) {
+					boolean meetParentLabelCriteria = false;
+					if(frenchLabelParentRequirement != null && StringUtils.isNotBlank(frenchLabelParentRequirement)) {
+						for(ThesaurusLabel thesaurusLabel : skosConcept2.getLabels()) {
+							String frLabel = thesaurusLabel.getValue(new Locale("fr"));
+							if(frenchLabelParentRequirement.equalsIgnoreCase(frLabel)) {
+								meetParentLabelCriteria = true;
+							}
+						}
+					} else {
+						meetParentLabelCriteria = true;
+					}
+					if(skosConcept2.getBroader() == null || skosConcept2.getBroader().size() == 0 &&
+							meetParentLabelCriteria) {
+						boolean found = false;
+						for(SkosConcept skosConcept3 : domainSkosConcepts) {
+							if(skosConcept1.getRdfAbout().equals(skosConcept3.getRdfAbout())) {
+								found = true;
+							}
+						}
+						if(!found) {
+							domainSkosConcepts.add(skosConcept1);
+						}
+					} else {
+						if(!isFound) {
+							findDomainOfSkosConcept(skosConcept1, frenchLabelParentRequirement, domainSkosConcepts);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public SkosConcept getSkosConcept(String id) {
+		for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
+			SkosConcept skosConcept = skosConceptEntry.getValue();
+			String currentId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
+			if(currentId.equals(id)) {
+				return skosConcept;
+			}
+		}
+		return null;
 	}
 
 	/**

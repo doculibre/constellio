@@ -166,6 +166,7 @@ public class ContentManager implements StatefulService {
 			}
 		};
 
+
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
 						.executedEvery(

@@ -29,6 +29,7 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 	public static final String ERRORS_COUNT = ConnectorDocument.ERRORS_COUNT;
 
 	public static final String THESAURUS_MATCH = "thesaurusMatch";
+	public static final String DOMAIN = "DOMAIN";
 	public static final String PARSED_CONTENT = "parsedContent";
 	public static final String LEVEL = "level";
 	public static final String PRIORITY = "priority";
@@ -62,6 +63,15 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 	public ConnectorHttpDocument setParsedContent(String parsedContent) {
 		set(PARSED_CONTENT, parsedContent);
 		return this;
+	}
+
+	public ConnectorHttpDocument setDomain(String domain) {
+		set(DOMAIN, domain);
+		return this;
+	}
+
+	public String getDomain() {
+		return get(DOMAIN);
 	}
 
 	public List<String> getThesaurusMatch() {

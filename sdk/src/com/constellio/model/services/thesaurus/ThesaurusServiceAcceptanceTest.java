@@ -1,5 +1,6 @@
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.model.services.thesaurus.util.SkosUtil;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
@@ -25,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Workspace\\Projets\\SCOS_ServiceQC\\Fichiers depart\\SKOS destination 21 juillet 2017.xml";
+	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS\\SKOS destination 21 juillet 2017.xml";
 	private static ThesaurusService thesaurusService;
 	private static Map<String, SkosConcept> allConcepts;
 	private static final Locale DEFAULT_LOCALE = new Locale("fr");
@@ -66,6 +67,43 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 					"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=3736"
 			);
 		}
+	}
+
+	@Test
+	public void whenGetAllTheConceptDomainThenValidatePresenceOfAllRootDomainConcept() {
+		List<SkosConcept> domainFound = new ArrayList<>();
+		for (Map.Entry<String, SkosConcept> mapStringSkos : thesaurusService.getAllConcepts().entrySet()) {
+			thesaurusService.findDomainOfSkosConcept(mapStringSkos.getValue(), ThesaurusService.DOMAINE_LABEL, domainFound);
+		}
+
+		String[] domainsAsArray = {"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6817",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11380",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11130",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=12589",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4682",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4627",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6155",
+				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11950"};
+
+		for(int i = 0; i< domainsAsArray.length; i++) {
+			boolean isFound = false;
+
+			for(SkosConcept rootSkosConcept : domainFound) {
+				if(rootSkosConcept.getRdfAbout().equalsIgnoreCase(domainsAsArray[i])) {
+					isFound = true;
+					break;
+				}
+			}
+
+			assertThat(isFound).isTrue();
+		}
+	}
+
+	@Test
+	public void withSkosConceptMatchFindDomainFromSkosId() {
+		List<SkosConcept> skosConcept = thesaurusService.findRootDomain("10032");
+		assertThat(skosConcept.get(0).getRdfAbout()).isEqualTo("http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506");
 	}
 
 	@Test

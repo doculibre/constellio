@@ -4,6 +4,9 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.contents.ContentDaoException;
+import com.constellio.data.threads.BackgroundThreadConfiguration;
+import com.constellio.data.threads.BackgroundThreadExceptionHandling;
+import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -21,11 +24,14 @@ import java.util.List;
 public class ThesaurusManager implements StatefulService {
 
     final String FILE_INPUT_STREAM_NAME = "ThesaurusManager.ThesaurusFile";
-    CollectionsListManager collectionsListManager;
-    SearchServices searchServices;
+    private CollectionsListManager collectionsListManager;
+    private SearchServices searchServices;
 
-    ConstellioCache cache;
-    ModelLayerFactory modelLayerFactory;
+    private ConstellioCache cache;
+    private ModelLayerFactory modelLayerFactory;
+
+    private BackgroundThreadsManager backgroundThreadsManager;
+
 
     public ThesaurusManager(ModelLayerFactory modelLayerFactory) {
         this.modelLayerFactory = modelLayerFactory;
@@ -35,6 +41,8 @@ public class ThesaurusManager implements StatefulService {
 
         collectionsListManager = this.modelLayerFactory.getCollectionsListManager();
         searchServices = this.modelLayerFactory.newSearchServices();
+
+        backgroundThreadsManager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
     }
 
     /**
@@ -83,6 +91,7 @@ public class ThesaurusManager implements StatefulService {
                 cache.put(collection, thesaurusService);
             }
         }
+
     }
 
     private InputStream getThesaurusFile(ThesaurusConfig thesaurusConfig) {
