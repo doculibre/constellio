@@ -19,11 +19,11 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
-import com.constellio.model.services.records.cache.DefaultEventBusListenerAdapter;
+import com.constellio.model.services.records.cache.DefaultRecordsCacheAdapter;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter implements EventBusListener, RecordsCache {
+public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter implements EventBusListener, RecordsCache {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusRecordsCacheImpl.class);
 

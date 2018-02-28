@@ -8,11 +8,11 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class DefaultEventBusListenerAdapter implements RecordsCache {
+public class DefaultRecordsCacheAdapter implements RecordsCache {
 
 	protected RecordsCache nestedRecordsCache;
 
-	public DefaultEventBusListenerAdapter(RecordsCache nestedRecordsCache) {
+	public DefaultRecordsCacheAdapter(RecordsCache nestedRecordsCache) {
 		this.nestedRecordsCache = nestedRecordsCache;
 	}
 
