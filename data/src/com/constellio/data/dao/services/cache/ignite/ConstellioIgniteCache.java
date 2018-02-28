@@ -126,7 +126,6 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		} else {
 			w.lock();
 			try {
-				synchronizeIfNecessary();
 				value = value == null ? (T) NULL : value;
 				localCache.put(key, value);
 				igniteCache.put(key, value);
