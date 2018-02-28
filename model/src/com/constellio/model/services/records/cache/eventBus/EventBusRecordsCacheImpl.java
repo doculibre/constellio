@@ -35,12 +35,12 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	public static final String INSERT_QUERY_RESULTS = "insertQueryResults";
 	public static final String INSERT_QUERY_RESULTS_IDS = "insertQueryResultsIds";
 
-	EventBus recordsCacheEventBus;
+	EventBus eventBus;
 
 	public EventBusRecordsCacheImpl(EventBus recordsEventBus, RecordsCache nestedRecordsCache) {
 		super(nestedRecordsCache);
-		this.recordsCacheEventBus = recordsEventBus;
-		this.recordsCacheEventBus.register(this);
+		this.eventBus = recordsEventBus;
+		this.eventBus.register(this);
 	}
 
 	@Override
@@ -82,10 +82,10 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 			statuses.add(status);
 		}
 		if (!invalidatedRecords.isEmpty()) {
-			recordsCacheEventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
+			eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
 		}
 		if (!insertedRecords.isEmpty()) {
-			recordsCacheEventBus.send(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
+			eventBus.send(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
 		}
 
 		return statuses;
@@ -93,7 +93,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 	@Override
 	public CacheInsertionStatus forceInsert(Record insertedRecord) {
-		recordsCacheEventBus.send(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
+		eventBus.send(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
 		return CacheInsertionStatus.ACCEPTED;
 	}
 
@@ -102,7 +102,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 		Map<String, Object> data = new HashMap<>();
 		data.put("query", query);
 		data.put("records", records);
-		recordsCacheEventBus.send(INSERT_QUERY_RESULTS, data);
+		eventBus.send(INSERT_QUERY_RESULTS, data);
 	}
 
 	@Override
@@ -110,17 +110,17 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 		Map<String, Object> data = new HashMap<>();
 		data.put("query", query);
 		data.put("recordIds", recordIds);
-		recordsCacheEventBus.send(INSERT_QUERY_RESULTS_IDS, data);
+		eventBus.send(INSERT_QUERY_RESULTS_IDS, data);
 	}
 
 	@Override
 	public void invalidateRecordsOfType(String recordType) {
-		recordsCacheEventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
+		eventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
 	}
 
 	@Override
 	public void invalidate(List<String> recordIds) {
-		recordsCacheEventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, recordIds);
+		eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, recordIds);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 	@Override
 	public void invalidateAll() {
-		recordsCacheEventBus.send(INVALIDATE_ALL_EVENT_TYPE);
+		eventBus.send(INVALIDATE_ALL_EVENT_TYPE);
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 		default:
 			throw new ImpossibleRuntimeException("Unsupported event type '" + event.getType()
-					+ "' on record's cache event bus '" + recordsCacheEventBus.getName());
+					+ "' on record's cache event bus '" + eventBus.getName());
 
 		}
 	}
