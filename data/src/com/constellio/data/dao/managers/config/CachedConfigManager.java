@@ -261,4 +261,8 @@ public class CachedConfigManager implements ConfigManager {
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
 		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
 	}
+
+	public void clearCache() {
+		constellioCache.clear();
+	}
 }
