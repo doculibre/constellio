@@ -20,19 +20,19 @@ public class EventBus {
 		this.manager = manager;
 	}
 
-	public void send(String type, Object data) {
+	public void sendAsync(String type, Object data) {
 		long timeStamp = new Date().getTime();
 		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
 	}
 
-	public void send(String type) {
+	public void sendAsync(String type) {
 		this.send(type, null);
 	}
 
-	public void sendAndAwaitLocalExecution(String type, Object data) {
+	public void send(String type, Object data) {
 		long timeStamp = new Date().getTime();
 		Semaphore semaphore = manager
-				.sendAndAwaitExecution(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
+				.sendWithInstantaneousLocalExecution(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
 		try {
 			semaphore.acquire(1);
 		} catch (InterruptedException e) {
@@ -40,8 +40,8 @@ public class EventBus {
 		}
 	}
 
-	public void sendAndAwaitLocalExecution(String type) {
-		this.sendAndAwaitLocalExecution(type, null);
+	public void send(String type) {
+		this.send(type, null);
 	}
 
 	public void register(EventBusListener listener) {

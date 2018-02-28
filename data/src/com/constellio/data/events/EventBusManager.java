@@ -47,7 +47,7 @@ public abstract class EventBusManager {
 		return eventBus;
 	}
 
-	public Semaphore sendAndAwaitExecution(Event event) {
+	public Semaphore sendWithInstantaneousLocalExecution(Event event) {
 		//		LOGGER.info("Sending event " + event.id + " of type " + event.getType() + " on bus " + event.busName + " with data "
 		//				+ event.data);
 		Semaphore semaphore = new Semaphore(1);

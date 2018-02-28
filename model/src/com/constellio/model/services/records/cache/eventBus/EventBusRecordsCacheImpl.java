@@ -45,53 +45,26 @@ public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter imp
 
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord) {
-		if (insertedRecord == null) {
-			return CacheInsertionStatus.REFUSED_NULL;
-		}
-
-		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
-		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
-		if (cacheConfig != null) {
-			synchronized (cacheConfig) {
-
-				if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
-					recordsCacheEventBus
-							.sendAndAwaitLocalExecution(INVALIDATE_RECORDS_EVENT_TYPE, asList(insertedRecord.getId()));
-				}
-
-				if (status == ACCEPTED) {
-					recordsCacheEventBus.sendAndAwaitLocalExecution(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
-					return ACCEPTED;
-
-				} else {
-					return status;
-				}
-			}
-		} else {
-			return status;
-		}
+		return insertAllWithResponses(asList(insertedRecord)).get(0);
 	}
-
-	//	@Override
-	//	public void insert(List<Record> record) {
-	//		super.insert(record);
-	//	}
 
 	@Override
 	public void insert(List<Record> records) {
+		insertAllWithResponses(records);
+	}
 
-		//		for (Record record : records) {
-		//			insert(record);
-		//		}
+	private List<CacheInsertionStatus> insertAllWithResponses(List<Record> records) {
 
 		List<Record> insertedRecords = new ArrayList<>();
 		List<String> invalidatedRecords = new ArrayList<>();
-
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		for (Record insertedRecord : records) {
+
+			CacheInsertionStatus status = null;
 			if (insertedRecord != null) {
 
 				CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
-				CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
+				status = evaluateCacheInsert(insertedRecord, cacheConfig);
 				if (cacheConfig != null) {
 					synchronized (cacheConfig) {
 
@@ -105,19 +78,22 @@ public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter imp
 					}
 				}
 			}
+
+			statuses.add(status);
 		}
 		if (!invalidatedRecords.isEmpty()) {
-			recordsCacheEventBus.sendAndAwaitLocalExecution(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
+			recordsCacheEventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
 		}
 		if (!insertedRecords.isEmpty()) {
-			recordsCacheEventBus.sendAndAwaitLocalExecution(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
+			recordsCacheEventBus.send(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
 		}
 
+		return statuses;
 	}
 
 	@Override
 	public CacheInsertionStatus forceInsert(Record insertedRecord) {
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
+		recordsCacheEventBus.send(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
 		return CacheInsertionStatus.ACCEPTED;
 	}
 
@@ -126,7 +102,7 @@ public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter imp
 		Map<String, Object> data = new HashMap<>();
 		data.put("query", query);
 		data.put("records", records);
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INSERT_QUERY_RESULTS, data);
+		recordsCacheEventBus.send(INSERT_QUERY_RESULTS, data);
 	}
 
 	@Override
@@ -134,17 +110,17 @@ public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter imp
 		Map<String, Object> data = new HashMap<>();
 		data.put("query", query);
 		data.put("recordIds", recordIds);
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INSERT_QUERY_RESULTS_IDS, data);
+		recordsCacheEventBus.send(INSERT_QUERY_RESULTS_IDS, data);
 	}
 
 	@Override
 	public void invalidateRecordsOfType(String recordType) {
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
+		recordsCacheEventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
 	}
 
 	@Override
 	public void invalidate(List<String> recordIds) {
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INVALIDATE_RECORDS_EVENT_TYPE, recordIds);
+		recordsCacheEventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, recordIds);
 	}
 
 	@Override
@@ -154,7 +130,7 @@ public class EventBusRecordsCacheImpl extends DefaultEventBusListenerAdapter imp
 
 	@Override
 	public void invalidateAll() {
-		recordsCacheEventBus.sendAndAwaitLocalExecution(INVALIDATE_ALL_EVENT_TYPE);
+		recordsCacheEventBus.send(INVALIDATE_ALL_EVENT_TYPE);
 	}
 
 	@Override
