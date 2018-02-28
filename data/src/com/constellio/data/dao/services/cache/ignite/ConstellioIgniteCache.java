@@ -64,15 +64,31 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return igniteStreamer;
 	}
 	
+	private void lockRead() {
+		r.lock();
+	}
+	
+	private void unlockRead() {
+		r.unlock();
+	}
+	
+	private void lockWrite() {
+		w.lock();
+	}
+	
+	private void unlockWrite() {
+		w.unlock();
+	}
+	
 	@SuppressWarnings("unchecked")
 	private <T extends Serializable> void synchronizeIfNecessary() {
-		r.lock();
+		lockRead();
 		Date expiryDate = DateUtils.addMinutes(lastSynchronizationDate, 5);
 		Date now = new Date();
 		if (now.after(expiryDate)) {
 	        // Must release read lock before acquiring write lock
-	        r.unlock();
-	        w.lock();
+	        unlockRead();
+	        lockWrite();
 	        try {
 				localCache.clear();
 				Iterator<Entry<String, Object>> remoteIterator = igniteCache.iterator();
@@ -82,17 +98,19 @@ public class ConstellioIgniteCache implements ConstellioCache {
 				}
 				lastSynchronizationDate = new Date();
 	            // Downgrade by acquiring read lock before releasing write lock
-	            r.lock();
+	            lockRead();
 	        } finally {
-	            w.unlock(); // Unlock write, still hold read
+	            unlockWrite(); // Unlock write, still hold read
 	        }
+		} else {
+			unlockRead();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
-		r.lock();
+		lockRead();
 		try {
 			T result = (T) localCache.get(key);
 			if (result == null) {
@@ -106,18 +124,18 @@ public class ConstellioIgniteCache implements ConstellioCache {
 			result = NULL.equals(result) ? null : result;
 			return result;
 		} finally {
-			r.unlock();
+			unlockRead();
 		}
 	}
 
 	@Override
 	public <T extends Serializable> void put(String key, T value) {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			put(key, value, false);
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 		
@@ -126,7 +144,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		if (locallyOnly) {
 			localCache.put(key, value);
 		} else {
-			w.lock();
+			lockWrite();
 			try {
 				synchronizeIfNecessary();
 				value = value == null ? (T) NULL : value;
@@ -135,26 +153,26 @@ public class ConstellioIgniteCache implements ConstellioCache {
 					igniteCache.put(key, value);
 				}
 			} finally {
-				w.unlock();
+				unlockWrite();
 			}
 		}
 	}
 
 	@Override
 	public void remove(String key) {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			localCache.remove(key);
 			igniteCache.remove(key);
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 
 	@Override
 	public void removeAll(Set<String> keys) {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			for (String key : keys) {
@@ -162,46 +180,46 @@ public class ConstellioIgniteCache implements ConstellioCache {
 			}
 			igniteCache.removeAll(keys);
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 
 	@Override
 	public void clear() {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			clearLocal();
 			igniteClient.message(igniteClient.cluster().forRemotes()).send(CLEAR_MESSAGE_TOPIC, igniteCache.getName());
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 
 	public void removeLocal(String key) {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			localCache.remove(key);
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 
 	public void clearLocal() {
-		w.lock();
+		lockWrite();
 		try {
 			synchronizeIfNecessary();
 			localCache.clear();
 			igniteCache.clear();
 		} finally {
-			w.unlock();
+			unlockWrite();
 		}
 	}
 
 	@Override
 	public Iterator<String> keySet() {
-		r.lock();
+		lockRead();
 		try {
 			synchronizeIfNecessary();
 			final Iterator<String> adaptee = localCache.keySet().iterator();
@@ -223,29 +241,29 @@ public class ConstellioIgniteCache implements ConstellioCache {
 				}
 			};
 		} finally {
-			r.unlock();
+			unlockRead();
 		}
 	}
 
 	@Override
 	public int size() {
-		r.lock();
+		lockRead();
 		try {
 			synchronizeIfNecessary();
 			return localCache.size();
 		} finally {
-			r.unlock();
+			unlockRead();
 		}
 	}
 
 	@Override
 	public List<Object> getAllValues() {
-		r.lock();
+		lockRead();
 		try {
 			synchronizeIfNecessary();
 			return new ArrayList<>(localCache.values());
 		} finally {
-			r.unlock();
+			unlockRead();
 		}
 	}
 
