@@ -1,15 +1,22 @@
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.util.*;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
-import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.addSpaces;
-import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.mixCase;
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,19 +25,31 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS\\SKOS destination 21 juillet 2017.xml";
+	public static final String SKOS_XML_FILE_PATH = "C:\\Workspace\\Projets\\SCOS_ServiceQC\\Fichiers depart\\SKOS destination 21 juillet 2017.xml";
 	private static ThesaurusService thesaurusService;
 	private static Map<String, SkosConcept> allConcepts;
 	private static final Locale DEFAULT_LOCALE = new Locale("fr");
 	private static final List<String> AVAILABLE_LOCALES = asList(DEFAULT_LOCALE.getLanguage());
+	private final String COLLECTION = zeCollection;
 
 
 	@Before
 	public void setUp()
 			throws Exception {
-		// prevent parsing each time
+		if(thesaurusService==null) { // prevent parsing each time (time consuming task)
 			thesaurusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(SKOS_XML_FILE_PATH));
 			allConcepts = thesaurusService.getAllConcepts();
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		thesaurusService.setDeniedTerms(new ArrayList<String>());
+	}
+
+	public void setupConstellio()
+			throws Exception {
+		prepareSystem(withZeCollection().withAllTest(new Users()));
 	}
 
 	@Test
@@ -187,7 +206,68 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	// 1094 1094 1095 1117
+	@Test
+	public void whenGetSkosConceptsWithSpecificationDesambiguationAndExclusionsThenExcludedTermsNotFound()
+			throws Exception {
+
+		thesaurusService.setDeniedTerms(asList("Carte (identification)","Carte routière"));
+		Set<String> searchValues = getStringPermissiveCases("carte");
+
+		for(String searchValue : searchValues) {
+			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
+			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).containsOnly("Carte (lieu)");
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).doesNotContain("Carte routière");
+		}
+	}
+
+	@Test
+	public void whenSuggestSimpleSearchThenCorrespondingTermsFound()
+			throws Exception {
+
+		setupConstellio();
+
+		Map<String, Integer> searchValuesWithOccurences = new HashMap<>();
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete1", new Integer(10));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete2", new Integer(5));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete3", new Integer(4));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete4", new Integer(3));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete5", new Integer(2));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete6", new Integer(1));
+		searchValuesWithOccurences.put("searchTermNotInThesaurusAutocomplete7", new Integer(1));
+
+		// prepares transaction
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(COLLECTION, getModelLayerFactory());
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION); // changes transatction limit from 1 000 to 100 000
+
+		// makes transaction
+		for (Map.Entry searchValueWithOccurence : searchValuesWithOccurences.entrySet()) {
+
+			String searchValue = (String) searchValueWithOccurence.getKey();
+			Integer searchOccurence = (Integer) searchValueWithOccurence.getValue();
+
+			// determines if should be concluent search
+			int numFound = 1;
+
+			// searches for number of times indicated
+			for(int i = 0; i <searchOccurence; i++) {
+				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				transaction.add(searchEvent);
+			}
+		}
+		recordServices.execute(transaction);
+
+		thesaurusService.setDeniedTerms(asList("searchTermNotInThesaurusAutocomplete5"));
+		thesaurusService.setSearchEventServices(new SearchEventServices(COLLECTION, getModelLayerFactory()));
+		Set<String> searchValues = getStringPermissiveCases("searchTermNotInThesaurus");
+
+		for(String searchValue : searchValues) {
+			Set<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE);
+			assertThat(suggestions).containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2", "searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4", "searchtermnotinthesaurusautocomplete6");
+		}
+	}
 
 	@Test
 	public void givenSkosConceptMatchThesaurusLabel() {
@@ -214,10 +294,4 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 				"\n  RESTAURATEUR", new Locale("fr"));
 		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117");
 	}
-
-	private Set<String> getStringPermissiveCases(String searchTerm) {
-		return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
-	}
-
-
 }

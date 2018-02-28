@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -74,10 +75,13 @@ public class ThesaurusManager implements StatefulService {
 
         for(String collection : collections){
             ThesaurusConfig thesaurusConfig = getThesaurusConfigs(collection);
-            ThesaurusService thesaurusService = getThesaurusService(getThesaurusFile(thesaurusConfig));
-            thesaurusService.setDeniedTerms(thesaurusConfig.getDenidedWords());
 
-            cache.put(collection, thesaurusService);
+            if(thesaurusConfig!=null) {
+                ThesaurusService thesaurusService = getThesaurusService(getThesaurusFile(thesaurusConfig));
+                thesaurusService.setDeniedTerms(thesaurusConfig.getDenidedWords());
+                thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
+                cache.put(collection, thesaurusService);
+            }
         }
     }
 
@@ -97,20 +101,13 @@ public class ThesaurusManager implements StatefulService {
     }
 
     private ThesaurusConfig getThesaurusConfigs(String collection) {
-        ThesaurusConfig thesaurusConfig;
+        ThesaurusConfig thesaurusConfig = null;
         SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 
         List<Record> thesaurusConfigRecordFound = searchServices.cachedSearch(new LogicalSearchQuery(LogicalSearchQueryOperators.from(schemas.thesaurusConfig.schemaType()).returnAll()));
 
         if(thesaurusConfigRecordFound != null && thesaurusConfigRecordFound.size() >  1) {
             thesaurusConfig = schemas.wrapThesaurusConfig(thesaurusConfigRecordFound.get(0));
-        }
-        else{
-            throw new RuntimeException("Cannot have multiple files.");
-        }
-
-        if(thesaurusConfig==null){
-            throw new RuntimeException("Invalid Thesaurus Configuration.");
         }
 
         return thesaurusConfig;

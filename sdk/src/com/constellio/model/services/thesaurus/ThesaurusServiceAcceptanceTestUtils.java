@@ -8,8 +8,12 @@ import static java.util.Arrays.asList;
 
 public class ThesaurusServiceAcceptanceTestUtils {
 
+    public static Set<String> getStringPermissiveCases(String searchTerm) {
+        return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
+    }
+
     public static String addSpaces(String searchTerm) {
-        return " "+searchTerm+" ";
+        return "  "+searchTerm+"  ";
     }
 
     public static String mixCase(String input) {
@@ -30,9 +34,5 @@ public class ThesaurusServiceAcceptanceTestUtils {
         }
 
         return output;
-    }
-
-    public static Set<String> getStringPermissiveCases(String searchTerm) {
-        return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
     }
 }

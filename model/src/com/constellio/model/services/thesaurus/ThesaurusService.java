@@ -19,10 +19,9 @@
  */
 package com.constellio.model.services.thesaurus;
 
-import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.thesaurus.util.SkosUtil;
-import com.drew.lang.StringUtil;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,13 +29,16 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import java.util.Locale;
+
+import static com.constellio.model.services.thesaurus.util.SkosUtil.*;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
 
+	private static final int MIN_INPUT_LENGTH = 3;
 	private static final int EXACT_PREF_RESULTS_NUMBER_FOR_NARROWING = 1;
 	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
+	private static final int MAX_AUTOCOMPLETE_RESULTS = 5;
 	public static final String DESAMBIUGATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
 
@@ -47,20 +49,23 @@ public class ThesaurusService implements Serializable {
 	private Date dcDate;
 	private Locale dcLanguage;
 
-	private List<String> deniedTerms = new ArrayList<>();
-	private Set<SkosConcept> topConcepts = new HashSet<SkosConcept>();
-	private Map<String, SkosConcept> allConcepts = new ConcurrentHashMap<String, SkosConcept>();
+	private SearchEventServices searchEventServices;
+	private Set<String> deniedTerms;
+	private Set<SkosConcept> topConcepts;
+	private Map<String, SkosConcept> allConcepts;
 
 	public ThesaurusService(){
-
+		deniedTerms = new HashSet<>();
+		topConcepts = new HashSet<>();
+		allConcepts = new ConcurrentHashMap<>();
 	}
 
-	public ThesaurusService(String dcTitle) {
-		this.dcTitle = dcTitle;
+	public void setSearchEventServices(SearchEventServices searchEventServices){
+		this.searchEventServices = searchEventServices;
 	}
 
 	public void setDeniedTerms(List<String> deniedTerms) {
-		this.deniedTerms = deniedTerms;
+		this.deniedTerms = getToLowerCase(new HashSet<>(deniedTerms));
 	}
 
 	public Map<String, SkosConcept> getAllConcepts() {
@@ -111,21 +116,10 @@ public class ThesaurusService implements Serializable {
 		this.dcDate = dcDate;
 	}
 
-	public Locale getDcLanguage() {
-		return dcLanguage;
-	}
-
 	public void setDcLanguage(Locale dcLanguage) {
 		this.dcLanguage = dcLanguage;
 	}
 
-	public Set<SkosConcept> getTopConcepts() {
-		return topConcepts;
-	}
-
-	public void setTopConcepts(Set<SkosConcept> topConcepts) {
-		this.topConcepts = topConcepts;
-	}
 
 	public void addTopConcept(SkosConcept topConcept) {
 		topConcept.getBroader().clear();
@@ -295,8 +289,12 @@ public class ThesaurusService implements Serializable {
 		return idsMatching;
 	}
 
-
-
+	/**
+	 * Get skos concepts for all languages available.
+	 * @param input unparsed search term
+	 * @param languageCodesAvailableList
+	 * @return skos concept response
+	 */
 	public ResponseSkosConcept getSkosConcepts(String input, List<String> languageCodesAvailableList) {
 
 			ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
@@ -309,6 +307,12 @@ public class ThesaurusService implements Serializable {
 		return responseSkosConcept;
 	}
 
+	/**
+	 * Get skos concept for a given language.
+	 * @param input unparsed search term
+	 * @param languageCodeAvailable
+	 * @return skos concept response
+	 */
 	public ResponseSkosConcept getSkosConcepts(String input, Language languageCodeAvailable) {
 
 		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
@@ -443,133 +447,92 @@ public class ThesaurusService implements Serializable {
 			String prefLabel = disambiguationConcept.getPrefLabel(currentLanguage);
 			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 			String disambiguation = prefLabel;
-			localeDisambiguationsNL.add(disambiguation);
-			allLinks.remove(disambiguation);
+
+			if(isNotExcludedByUser(disambiguation)){
+				localeDisambiguationsNL.add(disambiguation);
+				allLinks.remove(disambiguation); // so disambiguations are not in suggestions
+			}
 		}
 		for (int i = 0; i < max && i < allLinks.size(); i++) {
 			String suggestion = allLinks.get(i);
-			localeSuggestionsNL.add(suggestion);
+			if(isNotExcludedByUser(suggestion)){
+				localeSuggestionsNL.add(suggestion);
+			}
 		}
-
-		// custom user filter
-		localeDisambiguationsNL.removeAll(deniedTerms);
-		localeSuggestionsNL.removeAll(deniedTerms);
 
 		responseSkosConcept.getDisambiguations().put(currentLanguage, new ArrayList(localeDisambiguationsNL));
 		responseSkosConcept.getSuggestions().put(currentLanguage, new ArrayList(localeSuggestionsNL));
 	}
 
-//	public List<String> suggestSimpleSearch(String input, Locale locale) {
-//
-//		List<String> suggestions = new ArrayList<String>();
-//
-//
-//		if (StringUtils.isNotEmpty(input) && input.length() >= 3) { // && !input.contains("*:*") && !collection.isOpenSearch()
-//			try {
-//				StatsServices statsServices = ConstellioSpringUtils.getStatsServices();
-//
-//				// get related pref labels that contains input
-//
-//				int maxResults = 5; // TODO maxResults = MAX_RESULTS_NUMBER_INIT; (+cte)
-////				String analyzedInput = AnalyzerUtils.analyze(input);
-//				List<String> analyzedSuggestions = new ArrayList<String>();
-//				Set<SkosConcept> prefLabelSuggestions = getPrefLabelsThatContains(input, locale);
-//
-//					for (SkosConcept thesaurusSuggestion : prefLabelSuggestions) {
-//						String prefLabel = thesaurusSuggestion.getPrefLabel(locale).toLowerCase();
-////						String analyzedSuggestion = AnalyzerUtils.analyze(prefLabel);
-//
-//						if (isValidAutocompleteSuggestion(input, analyzedInput, prefLabel, analyzedSuggestion)
-//								&& !isAlreadyInSuggestions(analyzedSuggestions, analyzedSuggestion)) {
-//							maxResults--;
-//							suggestions.add(prefLabel);
-//							analyzedSuggestions.add(analyzedSuggestion);
-//							if (maxResults == 0) {
-//								break;
-//							}
-//						}
-//					}
-//
-//					// if not enough results, get related alt labels
-//					if (maxResults > 0) {
-//						Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
-//						for (SkosConcept thesaurusSuggestion : altLabelSuggestions) {
-//							for (String altLabel : thesaurusSuggestion.getAltLabels(locale)) {
-//								altLabel = altLabel.toLowerCase();
-//								String analyzedSuggestion = AnalyzerUtils.analyze(altLabel);
-//								if (isValidAutocompleteSuggestion(input, analyzedInput, altLabel, analyzedSuggestion)
-//										&& !analyzedSuggestions.contains(analyzedSuggestion)) {
-//									maxResults--;
-//									suggestions.add(altLabel);
-//									analyzedSuggestions.add(analyzedSuggestion);
-//									if (maxResults == 0) {
-//										break;
-//									}
-//								}
-//							}
-//						}
-//					}
-//				// if not enough results, get related most popular queries
-//				if (maxResults > 0) {
-//					List<String> mostPopularQueriesSuggestions = statsServices.getMostPopularQueriesAutocomplete(input, maxResults, null);
-//					for (String mostPopularQueriesSuggestion : mostPopularQueriesSuggestions) {
-//						String analyzedSuggestion = AnalyzerUtils.analyze(mostPopularQueriesSuggestion);
-//						if (isValidAutocompleteSuggestion(input, analyzedInput, mostPopularQueriesSuggestion, analyzedSuggestion) && !analyzedSuggestions.contains(analyzedSuggestion)) {
-//							maxResults--;
-//							suggestions.add(mostPopularQueriesSuggestion);
-//							analyzedSuggestions.add(analyzedSuggestion);
-//							if (maxResults == 0) {
-//								break;
-//							}
-//						}
-//					}
-//				}
-//			} catch (Exception e) {
-//			}
-//		}
-//		return suggestions;
-//	}
+	private boolean isNotExcludedByUser(String term) {
+		return !deniedTerms.contains(term.toLowerCase());
+	}
 
-	private boolean isValidAutocompleteSuggestion(String input, String analyzedInput, String suggestion, String analyzedSuggestion) {
+	public Set<String> suggestSimpleSearch(String input, Locale locale) {
+
+		// ordered Set to prioritize results found first (since last results are often found as last resort)
+		Set<String> suggestions = new LinkedHashSet<>();
+
+		if (StringUtils.isNotEmpty(input) && input.length() >= MIN_INPUT_LENGTH) {
+
+				// get related pref labels that contains input
+
+				Set<SkosConcept> prefLabelSuggestions = getPrefLabelsThatContains(input, locale);
+
+				for (SkosConcept suggestion : prefLabelSuggestions) {
+					String localeSuggestion = suggestion.getPrefLabel(locale);
+
+					if(isValidAutocompleteSuggestion(input, localeSuggestion)){
+						addToSuggestions(suggestions, localeSuggestion);
+					}
+				}
+
+				// if not enough results, get related alt labels
+
+				if(suggestions.size() <= MAX_AUTOCOMPLETE_RESULTS) {
+					Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
+
+					for (SkosConcept suggestion : altLabelSuggestions) {
+						for (String localeSuggestion : suggestion.getAltLabels(locale)) {
+							if (isValidAutocompleteSuggestion(input, localeSuggestion)) {
+								addToSuggestions(suggestions, localeSuggestion);
+							}
+						}
+					}
+				}
+
+				List<String> autocompleteSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(parseForSearch(input), MAX_AUTOCOMPLETE_RESULTS, deniedTerms.toArray(new String[deniedTerms.size()]));
+
+				for (String suggestion : autocompleteSuggestions) {
+					if(isValidAutocompleteSuggestion(input, suggestion)){
+						addToSuggestions(suggestions, suggestion);
+					}
+				}
+
+		}
+
+		return suggestions;
+	}
+
+	private void addToSuggestions(Set<String> suggestions, String suggestion) {
+		if(suggestions.size()<MAX_AUTOCOMPLETE_RESULTS) {
+			suggestions.add(suggestion.toLowerCase());
+		}
+	}
+
+	/**
+	 * Validates pertinence of autocomplete suggestion result.
+	 * @param input
+	 * @param suggestion
+	 * @return true if matching and not in exclusions.
+	 */
+	private boolean isValidAutocompleteSuggestion(String input, String suggestion) {
 		boolean valid = false;
 
-		if (!deniedTerms.contains(suggestion)) {
-			if ((StringUtils.isNotBlank(analyzedInput) && analyzedSuggestion.startsWith(analyzedInput))
-					|| (StringUtils.isNotBlank(input) && suggestion.startsWith(input))) {
-				valid = true;
-			}
+		if (isNotExcludedByUser(suggestion) && suggestion.startsWith(parseForSearch(input))) {
+			valid = true;
 		}
+
 		return valid;
-	}
-
-	// UTILS
-
-	/**
-	 * Compares two strings after parsing.
-	 * @param s1
-	 * @param s2
-	 * @return true if parsed strings are equal
-	 */
-	private boolean equalsWithParsing(String s1, String s2){
-		return parseForSearch(s1).equals(parseForSearch(s2));
-	}
-
-	/**
-	 * Check if string contains another after parsing.
-	 * @param container
-	 * @param content
-	 * @return true if parsed strings are equal
-	 */
-	private boolean containsWithParsing(String container, String content){
-		return parseForSearch(container).contains(parseForSearch(content));
-	}
-
-	/**
-	 * Remove accents, trim whitespaces and standardize case.
-	 * @param input
-	 * @return the parsed input
-	 */
-	private String parseForSearch(String input) {
-		return AccentApostropheCleaner.removeAccents(input.trim().toLowerCase());
 	}
 }

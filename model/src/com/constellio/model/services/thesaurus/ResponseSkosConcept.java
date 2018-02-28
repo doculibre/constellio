@@ -1,11 +1,9 @@
 package com.constellio.model.services.thesaurus;
 
-import com.constellio.model.entities.Language;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.List;
 
 public class ResponseSkosConcept {
     Map<Locale, List> suggestions;
