@@ -23,6 +23,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -52,6 +53,7 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
+import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
 import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImpl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -136,16 +138,22 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		systemCollectionListeners = new ArrayList<>();
 
+		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
 			this.recordsCaches = new RecordsCachesIgniteImpl(this);
 		} else {
-			this.recordsCaches = new RecordsCachesMemoryImpl(this);
+
+			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
+				this.recordsCaches = new EventsBusRecordsCachesImpl(this);
+			} else {
+				this.recordsCaches = new RecordsCachesMemoryImpl(this);
+			}
 		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
-		this.dataLayerFactory = dataLayerFactory;
+
 		this.foldersLocator = foldersLocator;
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();

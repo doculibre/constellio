@@ -55,6 +55,8 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.MemoryEventBusManager;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -91,6 +93,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
+	private final EventBusManager eventBusManager;
 	private static DataLayerFactory lastCreatedInstance;
 
 	public static int countConstructor;
@@ -116,6 +119,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.dataLayerLogger = new DataLayerLogger();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
+
+		this.eventBusManager = new MemoryEventBusManager();
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
@@ -395,4 +400,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return conversionManager;
 	}
 
+	public EventBusManager getEventBusManager() {
+		return eventBusManager;
+	}
 }
