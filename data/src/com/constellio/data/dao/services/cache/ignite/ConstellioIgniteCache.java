@@ -120,7 +120,6 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		
 	@SuppressWarnings("unchecked")
 	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {
-		synchronizeIfNecessary();
 		if (locallyOnly) {
 			localCache.put(key, value);
 		} else {
