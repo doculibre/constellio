@@ -17,7 +17,7 @@ public class EventBusManager implements EventReceiver {
 
 	protected EventBusSendingService eventBusSendingService;
 
-	protected EventDataSerializer eventDataSerializer;
+	protected EventDataSerializer eventDataSerializer = new EventDataSerializer();
 
 	public EventBusManager(EventBusSendingService eventBusSendingService) {
 		this.eventBusSendingService = eventBusSendingService;
