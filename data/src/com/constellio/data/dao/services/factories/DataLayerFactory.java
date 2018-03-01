@@ -56,7 +56,7 @@ import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManage
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.events.EventBusManager;
-import com.constellio.data.events.MemoryEventBusManager;
+import com.constellio.data.events.StandaloneEventBusSendingService;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -120,7 +120,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
-		this.eventBusManager = new MemoryEventBusManager();
+		this.eventBusManager = new EventBusManager(new StandaloneEventBusSendingService());
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 

@@ -3,7 +3,6 @@ package com.constellio.data.events;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 
@@ -20,24 +19,9 @@ public class EventBus {
 		this.manager = manager;
 	}
 
-	public void sendAsync(String type, Object data) {
-		long timeStamp = new Date().getTime();
-		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
-	}
-
-	public void sendAsync(String type) {
-		this.send(type, null);
-	}
-
 	public void send(String type, Object data) {
 		long timeStamp = new Date().getTime();
-		Semaphore semaphore = manager
-				.sendWithInstantaneousLocalExecution(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
-		try {
-			semaphore.acquire(1);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
 	}
 
 	public void send(String type) {

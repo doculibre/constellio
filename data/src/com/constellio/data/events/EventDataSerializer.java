@@ -1,11 +1,23 @@
 package com.constellio.data.events;
 
-public interface EventDataSerializer {
+import java.util.ArrayList;
+import java.util.List;
 
-	Class<?> getSupportedDataClass();
+public class EventDataSerializer {
 
-	String serialize(Object data);
+	protected List<EventDataSerializerExtension> eventDataSerializers = new ArrayList<>();
 
-	Object deserialize(String deserialize);
+	public void validateData(Object data) {
+		//TODO
+	}
 
+	public String serialize(Object data) {
+		//TODO
+		return null;
+	}
+
+	public String deserialize(Object data) {
+		//TODO
+		return null;
+	}
 }

@@ -5,9 +5,7 @@ import static com.constellio.model.services.records.cache.RecordsCachesUtils.eva
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +19,10 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.DefaultRecordsCacheAdapter;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+/**
+ * insertQueryRecords and insertQueryIds are not distributed, the request may repeated once per node
+ */
 public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter implements EventBusListener, RecordsCache {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusRecordsCacheImpl.class);
@@ -31,9 +31,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	public static final String INVALIDATE_SCHEMA_TYPE_EVENT_TYPE = "invalidateSchemaTypeRecords";
 	public static final String INVALIDATE_RECORDS_EVENT_TYPE = "invalidateRecords";
 	public static final String INVALIDATE_ALL_EVENT_TYPE = "invalidateAll";
-
-	public static final String INSERT_QUERY_RESULTS = "insertQueryResults";
-	public static final String INSERT_QUERY_RESULTS_IDS = "insertQueryResultsIds";
 
 	EventBus eventBus;
 
@@ -98,22 +95,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	}
 
 	@Override
-	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
-		Map<String, Object> data = new HashMap<>();
-		data.put("query", query);
-		data.put("records", records);
-		eventBus.send(INSERT_QUERY_RESULTS, data);
-	}
-
-	@Override
-	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
-		Map<String, Object> data = new HashMap<>();
-		data.put("query", query);
-		data.put("recordIds", recordIds);
-		eventBus.send(INSERT_QUERY_RESULTS_IDS, data);
-	}
-
-	@Override
 	public void invalidateRecordsOfType(String recordType) {
 		eventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
 	}
@@ -152,16 +133,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 		case INVALIDATE_ALL_EVENT_TYPE:
 			nestedRecordsCache.invalidateAll();
-			break;
-
-		case INSERT_QUERY_RESULTS:
-			nestedRecordsCache.insertQueryResults(
-					event.<LogicalSearchQuery>getData("query"), event.<List<Record>>getData("records"));
-			break;
-
-		case INSERT_QUERY_RESULTS_IDS:
-			nestedRecordsCache.insertQueryResultIds(
-					event.<LogicalSearchQuery>getData("query"), event.<List<String>>getData("recordIds"));
 			break;
 
 		default:

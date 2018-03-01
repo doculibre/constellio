@@ -1,10 +1,7 @@
 package com.constellio.data.events;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,14 +9,20 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
 
-public abstract class EventBusManager {
+public class EventBusManager implements EventReceiver {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusManager.class);
 
 	protected Map<String, EventBus> eventBuses = new HashMap<>();
-	protected Map<String, Semaphore> awaitExecution = new HashMap<>();
 
-	protected List<EventDataSerializer> eventDataSerializers = new ArrayList<>();
+	protected EventBusSendingService eventBusSendingService;
+
+	protected EventDataSerializer eventDataSerializer;
+
+	public EventBusManager(EventBusSendingService eventBusSendingService) {
+		this.eventBusSendingService = eventBusSendingService;
+		this.eventBusSendingService.setEventReceiver(this);
+	}
 
 	public EventBus getEventBus(String name) {
 		EventBus eventBus = eventBuses.get(name);
@@ -47,52 +50,21 @@ public abstract class EventBusManager {
 		return eventBus;
 	}
 
-	public Semaphore sendWithInstantaneousLocalExecution(Event event) {
-		//		LOGGER.info("Sending event " + event.id + " of type " + event.getType() + " on bus " + event.busName + " with data "
-		//				+ event.data);
-		Semaphore semaphore = new Semaphore(1);
-		awaitExecution.put(event.getId(), semaphore);
-		send(event);
-		return semaphore;
-	}
-
 	public void send(Event event) {
-		validateData(event);
-		handleSending(event);
+		eventDataSerializer.validateData(event.getData());
+		receive(event);
+		eventBusSendingService.sendRemotely(event);
+
 	}
 
 	public void receive(Event event) {
-		try {
-			EventBus eventBus = eventBuses.get(event.busName);
-			if (eventBus != null) {
-				for (EventBusListener listener : eventBus.listeners) {
-					//					LOGGER.info("Listening to event " + event.id + " of type " + event.getType() + " on bus " + event.busName
-					//							+ " with data " + event.data);
-					listener.onEventReceived(event);
-				}
-			}
-
-		} finally {
-			Semaphore semaphore = awaitExecution.get(event.getId());
-			if (semaphore != null) {
-				semaphore.release(1);
+		EventBus eventBus = eventBuses.get(event.busName);
+		if (eventBus != null) {
+			for (EventBusListener listener : eventBus.listeners) {
+				listener.onEventReceived(event);
 			}
 		}
+
 	}
 
-	private void validateData(Event event) {
-		//TODO
-	}
-
-	String serialize(Object data) {
-		//TODO
-		return null;
-	}
-
-	String deserialize(Object data) {
-		//TODO
-		return null;
-	}
-
-	protected abstract void handleSending(Event event);
 }
