@@ -197,6 +197,10 @@ public class User extends RecordWrapper {
 		return get(GROUPS);
 	}
 
+	public List<String> getUserGroupsOrEmpty() {
+		return getList(GROUPS);
+	}
+
 	public User setUserGroups(List<String> groups) {
 		set(GROUPS, groups);
 		return this;
