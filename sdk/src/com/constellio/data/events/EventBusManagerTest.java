@@ -1,9 +1,22 @@
 package com.constellio.data.events;
 
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -138,30 +151,9 @@ public class EventBusManagerTest extends ConstellioTest {
 		assertThatDataIsNotSerializable(eventBusManager);
 		assertThatDataIsNotSerializable(new Thread());
 		assertThatDataIsNotSerializable(new Thread());
-
 		assertThatDataIsNotSerializable(new UnserializableObject("test"));
 
-		eventBusManager.eventDataSerializer.register(new EventDataSerializerExtension() {
-			@Override
-			public String getId() {
-				return "qwlf";
-			}
-
-			@Override
-			public Class<?> getSupportedDataClass() {
-				return UnserializableObject.class;
-			}
-
-			@Override
-			public String serialize(Object data) {
-				return ((UnserializableObject) data).simpleData;
-			}
-
-			@Override
-			public Object deserialize(String deserialize) {
-				return new UnserializableObject(deserialize);
-			}
-		});
+		eventBusManager.eventDataSerializer.register(anExtension);
 		assertThatDataIsSerializable(new UnserializableObject("test"));
 		assertThatDataIsSerializable(new UnserializableObject("~test2"));
 		assertThatDataIsSerializable(new UnserializableObject(":test3"));
@@ -173,18 +165,127 @@ public class EventBusManagerTest extends ConstellioTest {
 	public void whenSendingEventWithListOfVariousTypesThenSerializedCorrectly()
 			throws Exception {
 
+		assertThatDataIsSerializable(asList("~test", null, 1, true));
+		assertThatDataIsNotSerializable(asList(":test", null, 1, true, eventBusManager));
+		assertThatDataIsNotSerializable(asList(new Thread()));
+		assertThatDataIsNotSerializable(asList("~test", null, 1, true, new UnserializableObject("test")));
+
+		eventBusManager.eventDataSerializer.register(anExtension);
+
+		assertThatDataIsSerializable(asList("~test", null, 1, true, new UnserializableObject("test")));
+
 	}
+
+	@Test
+	public void whenSendingEventWithSetOfVariousTypesThenSerializedCorrectly()
+			throws Exception {
+
+		assertThatDataIsSerializable(asSet("~test", null, 1, true));
+		assertThatDataIsNotSerializable(asSet(":test", null, 1, true, eventBusManager));
+		assertThatDataIsNotSerializable(asSet(new Thread()));
+		assertThatDataIsNotSerializable(asSet("~test", null, 1, true, new UnserializableObject("test")));
+
+		eventBusManager.eventDataSerializer.register(anExtension);
+
+		assertThatDataIsSerializable(asSet("~test", null, 1, true, new UnserializableObject("test")));
+
+	}
+
+	@Test
+	public void whenSendingEventWithMapOfVariousTypesThenSerializedCorrectly()
+			throws Exception {
+
+		assertThatDataIsSerializable(asMap("~test", null, 1, true));
+		assertThatDataIsNotSerializable(asMap(":test", null, 1, true, eventBusManager, ""));
+		assertThatDataIsNotSerializable(asMap(":test", null, 1, true, "", eventBusManager));
+		assertThatDataIsNotSerializable(asMap("", new Thread()));
+		assertThatDataIsNotSerializable(asMap(new Thread(), ""));
+		assertThatDataIsNotSerializable(asMap("~test", null, 1, true, "$", new UnserializableObject("test")));
+
+		eventBusManager.eventDataSerializer.register(anExtension);
+
+		assertThatDataIsSerializable(asSet("~test", null, 1, true, new UnserializableObject("test")));
+
+	}
+
+	@Test
+	public void givenComplexStructureOfMapSetAndListThenAllConverted()
+			throws Exception {
+
+		Map<Object, Object> map = new HashMap<>();
+		map.put("test", asList("1", asList("2")));
+		map.put(asSet("t"), null);
+
+		HashMap<Object, Object> map2 = new HashMap<>();
+		map2.put("yyyyyy", asList(asList(asList(asList("here", new UnserializableObject("test"))))));
+		map.put("nestedMap", map2);
+
+		assertThatDataIsNotSerializable(map);
+
+		eventBusManager.eventDataSerializer.register(anExtension);
+
+		assertThatDataIsSerializable(map);
+
+	}
+
+	EventDataSerializerExtension anExtension = new EventDataSerializerExtension() {
+		@Override
+		public String getId() {
+			return "qwlf";
+		}
+
+		@Override
+		public Class<?> getSupportedDataClass() {
+			return UnserializableObject.class;
+		}
+
+		@Override
+		public String serialize(Object data) {
+			return ((UnserializableObject) data).simpleData;
+		}
+
+		@Override
+		public Object deserialize(String deserialize) {
+			return new UnserializableObject(deserialize);
+		}
+	};
 
 	// --------------------------------------------------------
 
-	private void assertThatDataIsSerializable(Object data) {
+	private void assertThatDataIsSerializable(Object data)
+			throws IOException, ClassNotFoundException {
 		eventBusManager.eventDataSerializer.validateData(data);
 
 		Object serializedData = eventBusManager.eventDataSerializer.serialize(data);
-		Object unserializedData = eventBusManager.eventDataSerializer.deserialize(serializedData);
+
+		String base64 = serializeToBase64((Serializable) serializedData);
+
+		Object unserializedData = eventBusManager.eventDataSerializer.deserialize(deserializeBase64(base64));
 
 		assertThat(unserializedData).isEqualTo(data);
 
+	}
+
+	/** Read the object from Base64 string. */
+	private static Object deserializeBase64(String s)
+			throws IOException,
+			ClassNotFoundException {
+		byte[] data = DatatypeConverter.parseBase64Binary(s);
+		ObjectInputStream ois = new ObjectInputStream(
+				new ByteArrayInputStream(data));
+		Object o = ois.readObject();
+		ois.close();
+		return o;
+	}
+
+	/** Write the object to a Base64 string. */
+	private static String serializeToBase64(Serializable o)
+			throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+		oos.writeObject(o);
+		oos.close();
+		return DatatypeConverter.printBase64Binary(baos.toByteArray());
 	}
 
 	private void assertThatDataIsNotSerializable(Object o) {

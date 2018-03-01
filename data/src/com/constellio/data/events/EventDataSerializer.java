@@ -6,12 +6,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
 
@@ -26,8 +32,22 @@ public class EventDataSerializer {
 	}
 
 	public void validateData(Object data) {
+		if (data instanceof Collection) {
+			Iterator<Object> iterator = ((Collection) data).iterator();
+			while (iterator.hasNext()) {
+				validateData(iterator.next());
+			}
+		}
+
+		if (data instanceof Map) {
+			for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) data).entrySet()) {
+				validateData(entry.getKey());
+				validateData(entry.getValue());
+			}
+		}
 
 		validateAtomicData(data);
+
 	}
 
 	private void validateAtomicData(Object data) {
@@ -53,7 +73,48 @@ public class EventDataSerializer {
 	}
 
 	public Object serialize(Object data) {
-		return serializeAtomicData(data);
+		if (data instanceof Collection) {
+			return serializeList((Collection) data);
+
+		} else if (data instanceof Map) {
+			return serializeMap((Map) data);
+
+		} else {
+			return serializeAtomicData(data);
+		}
+	}
+
+	private Collection<Object> serializeList(Collection<Object> listData) {
+
+		Collection<Object> serializedList = createEmptyCollection(listData);
+
+		for (Object item : listData) {
+			serializedList.add(serialize(item));
+		}
+
+		return serializedList;
+	}
+
+	private Map<Object, Object> serializeMap(Map<Object, Object> mapData) {
+
+		Map<Object, Object> serializedMap = new HashMap<>();
+
+		for (Map.Entry<Object, Object> item : mapData.entrySet()) {
+			serializedMap.put(serialize(item.getKey()), serialize(item.getValue()));
+		}
+
+		return serializedMap;
+	}
+
+	@NotNull
+	private Collection<Object> createEmptyCollection(Collection<Object> listData) {
+		Collection<Object> serializedList;
+		if (listData instanceof List) {
+			serializedList = new ArrayList<>();
+		} else {
+			serializedList = new HashSet<>();
+		}
+		return serializedList;
 	}
 
 	private Object serializeAtomicData(Object data) {
@@ -75,7 +136,35 @@ public class EventDataSerializer {
 	}
 
 	public Object deserialize(Object data) {
-		return deserializeAtomicData(data);
+		if (data instanceof Collection) {
+			return deserializeCollection((Collection) data);
+
+		} else if (data instanceof Map) {
+			return deserializeMap((Map) data);
+
+		} else {
+			return deserializeAtomicData(data);
+		}
+	}
+
+	private Collection<Object> deserializeCollection(Collection<Object> serializedList) {
+		Collection<Object> deserializedList = createEmptyCollection(serializedList);
+
+		for (Object item : serializedList) {
+			deserializedList.add(deserialize(item));
+		}
+
+		return deserializedList;
+	}
+
+	private Map<Object, Object> deserializeMap(Map<Object, Object> serializedMap) {
+		Map<Object, Object> deserializedMap = new HashMap<>();
+
+		for (Map.Entry<Object, Object> item : serializedMap.entrySet()) {
+			deserializedMap.put(deserialize(item.getKey()), deserialize(item.getValue()));
+		}
+
+		return deserializedMap;
 	}
 
 	private Object deserializeAtomicData(Object data) {
