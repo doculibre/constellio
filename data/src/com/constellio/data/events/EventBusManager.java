@@ -24,6 +24,12 @@ public class EventBusManager implements EventReceiver {
 		this.eventBusSendingService.setEventReceiver(this);
 	}
 
+	public EventBusManager setEventBusSendingService(EventBusSendingService eventBusSendingService) {
+		this.eventBusSendingService = eventBusSendingService;
+		this.eventBusSendingService.setEventReceiver(this);
+		return this;
+	}
+
 	public EventBus getEventBus(String name) {
 		EventBus eventBus = eventBuses.get(name);
 		if (eventBus == null) {
