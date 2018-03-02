@@ -1,5 +1,6 @@
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.thesaurus.util.SkosUtil;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Transaction;
@@ -11,9 +12,11 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.*;
 
@@ -26,9 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS\\SKOS destination 21 juillet 2017.xml";
 	private static ThesaurusService thesaurusService;
-	private static Map<String, SkosConcept> allConcepts;
 	private static final Locale DEFAULT_LOCALE = new Locale("fr");
 	private static final List<String> AVAILABLE_LOCALES = asList(DEFAULT_LOCALE.getLanguage());
 	private final String COLLECTION = zeCollection;
@@ -37,15 +38,15 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		if(thesaurusService==null) { // prevent parsing each time (time consuming task)
-			thesaurusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(SKOS_XML_FILE_PATH));
-			allConcepts = thesaurusService.getAllConcepts();
-		}
-	}
+		FoldersLocator foldersLocator = new FoldersLocator();
+		String skosDestination = foldersLocator.getPluginsSDKProject()
+				.getAbsoluteFile() + "\\sdk-resources" + "\\SKOS destination.xml";
+		File file = new File(skosDestination);
+		Assume.assumeTrue(file.exists());
 
-	@After
-	public void tearDown() throws Exception {
-		thesaurusService.setDeniedTerms(new ArrayList<String>());
+		if(thesaurusService==null) { // prevent parsing each time (time consuming task)
+			thesaurusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(file));
+		}
 	}
 
 	public void setupConstellio()
@@ -302,7 +303,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		Set<String> searchValues = getStringPermissiveCases("searchTermNotInThesaurus");
 
 		for(String searchValue : searchValues) {
-			Set<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE);
+			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE);
 			assertThat(suggestions).containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2", "searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4", "searchtermnotinthesaurusautocomplete6");
 		}
 	}

@@ -314,7 +314,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 					.getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
-					contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
+					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);
 		}
 		return trans;

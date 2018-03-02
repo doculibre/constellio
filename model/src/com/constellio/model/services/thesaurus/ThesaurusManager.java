@@ -30,8 +30,6 @@ public class ThesaurusManager implements StatefulService {
     private ConstellioCache cache;
     private ModelLayerFactory modelLayerFactory;
 
-    private BackgroundThreadsManager backgroundThreadsManager;
-
 
     public ThesaurusManager(ModelLayerFactory modelLayerFactory) {
         this.modelLayerFactory = modelLayerFactory;
@@ -41,8 +39,6 @@ public class ThesaurusManager implements StatefulService {
 
         collectionsListManager = this.modelLayerFactory.getCollectionsListManager();
         searchServices = this.modelLayerFactory.newSearchServices();
-
-        backgroundThreadsManager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
     }
 
     /**
@@ -60,7 +56,7 @@ public class ThesaurusManager implements StatefulService {
      */
     public void set(InputStream inputStream, String collection) throws ThesaurusInvalidFileFormat {
         ThesaurusService thesaurusService = getThesaurusService(inputStream);
-
+        thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
         cache.put(collection, thesaurusService);
     }
 

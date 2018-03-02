@@ -536,10 +536,10 @@ public class ThesaurusService implements Serializable {
 		return !deniedTerms.contains(term.toLowerCase());
 	}
 
-	public Set<String> suggestSimpleSearch(String input, Locale locale) {
+	public List<String> suggestSimpleSearch(String input, Locale locale) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
-		Set<String> suggestions = new LinkedHashSet<>();
+		List<String> suggestions = new ArrayList<>();
 
 		if (StringUtils.isNotEmpty(input) && input.length() >= MIN_INPUT_LENGTH) {
 
@@ -582,7 +582,7 @@ public class ThesaurusService implements Serializable {
 		return suggestions;
 	}
 
-	private void addToSuggestions(Set<String> suggestions, String suggestion) {
+	private void addToSuggestions(List<String> suggestions, String suggestion) {
 		if(suggestions.size()<MAX_AUTOCOMPLETE_RESULTS) {
 			suggestions.add(suggestion.toLowerCase());
 		}

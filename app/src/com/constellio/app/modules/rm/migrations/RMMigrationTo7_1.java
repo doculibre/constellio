@@ -124,7 +124,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
-					contentManager.createFileSystem(etiquetteName + "-" + format + "-" + type + extension, upload));
+					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
 			trans.add(record);
 			} finally {
 				fileInputStream.close();
