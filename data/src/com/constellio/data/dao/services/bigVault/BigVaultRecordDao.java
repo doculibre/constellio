@@ -591,8 +591,7 @@ public class BigVaultRecordDao implements RecordDao {
 				&& response.getResponse().get("match") != null) {
 			List<SolrDocument> results = ((List<SolrDocument>) response.getResponse().get("response"));
 			SolrDocument aSolrDocument = ((List<SolrDocument>) response.getResponse().get("match")).get(0);
-			JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer.getNestedSolrServer(), aSolrDocument,
-					moreLikeThisFields, "id");
+			JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer, aSolrDocument, moreLikeThisFields, "id");
 			List<SolrDocument> sortedResults = sorter.sort(results);
 			for (SolrDocument aSimilarDoc : sortedResults) {
 				Double score = (Double) aSimilarDoc.get(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
