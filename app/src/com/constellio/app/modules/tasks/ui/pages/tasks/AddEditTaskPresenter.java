@@ -185,6 +185,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				}
 			}
 
+			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
+				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
+			}
+
 			if(task.isModel()) {
 				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
 			} else {
