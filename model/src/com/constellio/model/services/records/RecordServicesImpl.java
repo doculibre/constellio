@@ -579,18 +579,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		}
 
+		ValidationErrors errors = new ValidationErrors();
+		boolean catchValidationsErrors = transaction.getRecordUpdateOptions().isCatchExtensionsValidationsErrors();
+
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(transaction.getCollection());
 		for (Record record : transaction.getRecords()) {
+			ValidationErrors transactionExtensionErrors =
+					catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 			if (record.isDirty()) {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
-									modifiedMetadatas), options);
+									modifiedMetadatas, transactionExtensionErrors), options);
 				} else {
 					extensions.callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(
-									record, transaction.getUser()), options);
+									record, transaction.getUser(), transactionExtensionErrors), options);
+				}
+			}
+		}
+
+		if (!errors.isEmpty()) {
+
+			if (catchValidationsErrors) {
+				LOGGER.warn("Validating errors added by extensions : \n" + $(errors));
+
+			} else {
+				if (!errors.isEmpty()) {
+					throw new RecordServicesException.ValidationException(transaction, errors);
 				}
 			}
 		}
@@ -715,10 +732,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
 		}
 
-		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
-
-		boolean catchValidationsErrors = transaction.getRecordUpdateOptions().isCatchExtensionsValidationsErrors();
 
 		ValidationErrors transactionExtensionErrors =
 				catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);

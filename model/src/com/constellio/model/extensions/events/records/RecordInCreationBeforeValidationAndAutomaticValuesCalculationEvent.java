@@ -2,16 +2,20 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent implements RecordEvent {
 
 	Record record;
 	private User transactionUser;
+	ValidationErrors validationErrors;
 
-	public RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(Record record, User transactionUser) {
+	public RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(Record record, User transactionUser,
+			ValidationErrors validationErrors) {
 		this.record = record;
 		this.transactionUser = transactionUser;
+		this.validationErrors = validationErrors;
 	}
 
 	public Record getRecord() {
@@ -28,5 +32,9 @@ public class RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent 
 
 	public User getTransactionUser() {
 		return transactionUser;
+	}
+
+	public ValidationErrors getValidationErrors() {
+		return validationErrors;
 	}
 }
