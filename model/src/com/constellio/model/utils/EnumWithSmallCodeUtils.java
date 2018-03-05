@@ -42,9 +42,12 @@ public class EnumWithSmallCodeUtils {
 
 	public static List<String> toSmallCodeList(List<Enum<?>> enumValues) {
 		List<String> codes = new ArrayList<>();
-		for (Enum<?> enumValue : enumValues) {
-			codes.add(toSmallCode(enumValue));
+		if(enumValues != null) {
+			for (Enum<?> enumValue : enumValues) {
+				codes.add(toSmallCode(enumValue));
+			}
 		}
+
 		return codes;
 	}
 
