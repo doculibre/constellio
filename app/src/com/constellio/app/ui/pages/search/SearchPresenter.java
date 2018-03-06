@@ -63,6 +63,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryFace
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
+import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
@@ -183,8 +184,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ThesaurusService thesaurusService;
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
-					language).getSuggestions().get(language.getLocale());
+
+			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
+					language);
+
+			if(responseSkosConcept.getSuggestions() != null
+					&& responseSkosConcept.getSuggestions().size() > 0) {
+
+				result = responseSkosConcept.getSuggestions().get(language.getLocale());
+
+				if (result.size() > 10) {
+					result = result.subList(0, 10);
+				}
+			}
 		}
 
 		return result;
@@ -196,8 +208,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ThesaurusService thesaurusService;
 		if((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-			result = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
-					language).getDisambiguations().get(language.getLocale());
+
+			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
+					language);
+			if(responseSkosConcept.getDisambiguations() != null
+					&& responseSkosConcept.getDisambiguations().size() > 0) {
+				result = responseSkosConcept.getDisambiguations().get(language.getLocale());
+				if(result.size() > 10) {
+					result = result.subList(0, 10);
+				}
+			}
 		}
 
 		return result;

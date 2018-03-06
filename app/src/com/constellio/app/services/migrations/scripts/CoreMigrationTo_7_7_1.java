@@ -10,6 +10,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.records.DataStore;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
@@ -74,6 +75,11 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 				searchEvent.createMetadata(SearchEvent.NUM_FOUND).setType(NUMBER);
 				searchEvent.createMetadata(SearchEvent.Q_TIME).setType(NUMBER);
 			}
+
+			MetadataSchemaBuilder thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).addLabel(Language.French,"Configuration du thesaurus")
+					.addLabel(Language.English, "Thesaurus configuration").getDefaultSchema();
+			thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
+			thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
 		}
 	}
 }
