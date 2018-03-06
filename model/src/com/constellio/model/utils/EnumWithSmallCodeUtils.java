@@ -44,10 +44,13 @@ public class EnumWithSmallCodeUtils {
 		List<String> codes = new ArrayList<>();
 		if(enumValues != null) {
 			for (Enum<?> enumValue : enumValues) {
-				codes.add(toSmallCode(enumValue));
+				if (enumValue != null) {
+					codes.add(toSmallCode(enumValue));
+				} else {
+					codes.add(null);
+				}
 			}
 		}
-
 		return codes;
 	}
 
