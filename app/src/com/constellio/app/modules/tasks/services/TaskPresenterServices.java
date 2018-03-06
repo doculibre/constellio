@@ -7,6 +7,10 @@ import java.util.Map;
 
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -38,6 +42,7 @@ public class TaskPresenterServices {
 	private final RecordServices recordServices;
 	private final TasksSearchServices tasksSearchServices;
 	private LoggingServices loggingServices;
+	private SearchServices searchServices;
 
 	public TaskPresenterServices(TasksSchemasRecordsServices tasksSchemas, RecordServices recordServices,
 			TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
@@ -45,6 +50,7 @@ public class TaskPresenterServices {
 		this.recordServices = recordServices;
 		this.tasksSearchServices = tasksSearchServices;
 		this.loggingServices = loggingServices;
+		this.searchServices = tasksSchemas.appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
 	public Task toTask(TaskVO taskVO, Record record) {
@@ -185,6 +191,15 @@ public class TaskPresenterServices {
 
 	public boolean isSendReminderButtonVisible(Record record, User user) {
 		return user.hasWriteAccess().on(record);
+	}
+
+	public boolean isSubTaskPresent(Record record) {
+
+	 List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
+						LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
+								.where(Schemas.IDENTIFIER).isEqualTo(record.getId())));
+
+	 	return tasksSearchServices != null && tasksSearchServices.size() > 0;
 	}
 
 	public void deleteTask(Record record, User currentUser) {
