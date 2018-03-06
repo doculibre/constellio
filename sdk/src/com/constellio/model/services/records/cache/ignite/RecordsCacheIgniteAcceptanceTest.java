@@ -1581,8 +1581,22 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public List<String> getFollowers() {
-			return null;
+		public Record getUnmodifiableCopyOfOriginalRecord() {
+			Record record = this;
+			if (givenDisabledRecordDuplications) {
+				return record;
+			} else {
+				boolean dirty = record.isDirty();
+				boolean fullyLoaded = record.isFullyLoaded();
+				boolean saved = record.isSaved();
+				Boolean logicallyDeleted = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+				TestRecord recordCopy = new TestRecord(schemaCode, typeCode, id, version, givenDisabledRecordDuplications);
+				recordCopy.setDirty(dirty);
+				recordCopy.setFullyLoaded(fullyLoaded);
+				recordCopy.setSaved(saved);
+				recordCopy.setLogicallyDeleted(logicallyDeleted);
+				return recordCopy;
+			}
 		}
 
 		@Override

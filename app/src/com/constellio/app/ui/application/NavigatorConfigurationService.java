@@ -23,7 +23,12 @@ import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
-import com.constellio.app.ui.pages.imports.*;
+import com.constellio.app.ui.pages.imports.ExportViewImpl;
+import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
+import com.constellio.app.ui.pages.imports.ListImportExportViewImpl;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
@@ -85,6 +90,7 @@ import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchV
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.app.ui.pages.management.thesaurus.ThesaurusConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
+import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainRecordsViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
 import com.constellio.app.ui.pages.profile.ModifyProfileViewImpl;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
@@ -126,6 +132,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String ADD_EDIT_SCHEMA_RECORD = "addSchemaRecord";
 	public static final String DISPLAY_SCHEMA_RECORD = "displaySchemaRecord";
 	public static final String LIST_SCHEMA_RECORDS = "listSchemaRecords";
+	public static final String LIST_VALUE_LIST_RECORDS = "listValueListRecords";
 	public static final String USER_DISPLAY = "userDisplay";
 	public static final String LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS = "principalAccessAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AUTHORIZATIONS = "objectAccessAuthorizations";
@@ -202,13 +209,12 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String LIST_BATCH_PROCESSES = "batchProcesses";
 	public static final String LIST_IMPORT_EXPORT = "importExport";
-	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryReport";
+	public static final String LIST_TEMPORARY_RECORDS = "listTemporaryRecords";
 	public static final String SEARCH_CONFIGURATION = "searchConfiguration";
 
 	public static final String LIST_CAPSULE = "listCapsule";
 	public static final String ADD_EDIT_CAPSULE = "addEditCapsule";
 	public static final String DISPLAY_CAPSULE = "displayCapsule";
-
 
 	public static final String EDIT_SYNONYMS = "editSynonyms";
 	public static final String DISPLAY_SYNONYMS = "displaysynonyms";
@@ -217,9 +223,6 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
-
-
-
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -238,7 +241,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(USER_LIST, ListUsersCredentialsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_SCHEMA_RECORD, AddEditSchemaRecordViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SCHEMA_RECORD, DisplaySchemaRecordViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(LIST_SCHEMA_RECORDS, ListSchemaRecordsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_SCHEMA_RECORDS, ListValueDomainRecordsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_VALUE_LIST_RECORDS, ListSchemaRecordsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SCHEMA_TYPE, ListSchemaTypeViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_SCHEMA, ListSchemaViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_SCHEMA, AddEditSchemaViewImpl.class));
@@ -312,7 +316,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EDIT_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION, OrderDecommissioningListViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,
+				OrderDecommissioningListViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
 

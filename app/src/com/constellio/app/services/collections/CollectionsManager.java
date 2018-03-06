@@ -388,11 +388,21 @@ public class CollectionsManager implements StatefulService {
 	void initializeCollection(String collection) {
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
 		SchemasRecordsServices core = new SchemasRecordsServices(collection, modelLayerFactory);
-		cache.configureCache(CacheConfig.permanentCache(core.userSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(core.facetSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(core.authorizationDetails.schemaType()));
+		if (!cache.isConfigured(core.userSchemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(core.userSchemaType()));
+		}
+		if (!cache.isConfigured(core.groupSchemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
+		}
+		if (!cache.isConfigured(core.collectionSchemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
+		}
+		if (!cache.isConfigured(core.facetSchemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(core.facetSchemaType()));
+		}
+		if (!cache.isConfigured(core.authorizationDetails.schemaType())) {
+			cache.configureCache(CacheConfig.permanentCache(core.authorizationDetails.schemaType()));
+		}
 
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

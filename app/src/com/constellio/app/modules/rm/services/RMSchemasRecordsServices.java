@@ -66,6 +66,15 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.DocumentListPDF;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -193,6 +202,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return documentSchemaFor(getDocumentType(typeId));
 	}
 
+	public DocumentListPDF getDocumentListPDF(String id) {
+		return wrapDocumentListPdf(get(id));
+	}
+
+	public DocumentListPDF wrapDocumentListPdf(Record record) {
+		return record == null ? null : new DocumentListPDF(record, getTypes());
+	}
+
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -242,6 +259,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public MetadataSchema reportSchema() {
 		return getTypes().getSchema(Report.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchema documentListPDFSchema() {
+		return getTypes().getSchema(DocumentListPDF.FULL_SCHEMA);
+	}
+
+	public DocumentListPDF newDocumentListPDFWithId(String id) {
+		return new DocumentListPDF(create(documentListPDFSchema(), id), getTypes());
 	}
 
 	public Document newDocumentWithId(String id) {
@@ -836,7 +861,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		List<String> to = (List<String>) parsedEmail.get(Email.EMAIL_TO);
 		List<String> ccTo = (List<String>) parsedEmail.get(Email.EMAIL_CC_TO);
 		List<String> bccTo = (List<String>) parsedEmail.get(Email.EMAIL_BCC_TO);
-		String content = (String) parsedEmail.get(Email.EMAIL_CONTENT);
 		List<String> attachmentFileNames = (List<String>) parsedEmail.get(Email.EMAIL_ATTACHMENTS_LIST);
 
 		LocalDateTime sentOnDateTime = sentOn != null ? new LocalDateTime(sentOn.getTime()) : null;
@@ -850,7 +874,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		email.setEmailTo(to);
 		email.setEmailCCTo(ccTo);
 		email.setEmailBCCTo(bccTo);
-		email.setEmailContent(content);
 		email.setEmailAttachmentsList(attachmentFileNames);
 
 		return email;
@@ -891,7 +914,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			parsed.put(Email.EMAIL_TO, addressesAsStringList(to));
 			parsed.put(Email.EMAIL_CC_TO, addressesAsStringList(cc));
 			parsed.put(Email.EMAIL_BCC_TO, addressesAsStringList(bcc));
-			parsed.put(Email.EMAIL_CONTENT, content);
 
 			Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 			parsed.put(EMAIL_ATTACHMENTS, attachments);
@@ -1018,12 +1040,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				}
 			}
 
-			String from = getValue(CHUNKS.displayFromChunk);
-			String subject = getValue(CHUNKS.subjectChunk);
-			String to = getValue(CHUNKS.displayToChunk);
-			String cc = getValue(CHUNKS.displayCCChunk);
-			String bcc = getValue(CHUNKS.displayBCCChunk);
-			String content = getValue(CHUNKS.textBodyChunk);
+			String from = getValue(CHUNKS.getDisplayFromChunk());
+			String subject = getValue(CHUNKS.getSubjectChunk());
+			String to = getValue(CHUNKS.getDisplayToChunk());
+			String cc = getValue(CHUNKS.getDisplayCCChunk());
+			String bcc = getValue(CHUNKS.getDisplayBCCChunk());
+			String content = getValue(CHUNKS.getTextBodyChunk());
 
 			MsgParser msgp = new MsgParser();
 			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
@@ -1038,7 +1060,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			parsed.put(Email.EMAIL_CC_TO, splitAddresses(to));
 			parsed.put(Email.EMAIL_CC_TO, splitAddresses(cc));
 			parsed.put(Email.EMAIL_BCC_TO, splitAddresses(bcc));
-			parsed.put(Email.EMAIL_CONTENT, content);
 			insertMsgAttachments(parsed, msg);
 
 		} catch (UnsupportedOperationException e) {
@@ -1132,6 +1153,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {
+		return wrapAdministrativeUnits(
+				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(administrativeUnit.schemaType()));
 	}
 
 	public List<PrintableReport> getAllPrintableReports() {

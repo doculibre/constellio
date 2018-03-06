@@ -6,11 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -23,7 +22,6 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -36,14 +34,11 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
 
@@ -84,9 +79,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
 		List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
-		boolean isAdminInAnyCollection = userServices.isAdminInAnyCollection(username);
 		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService
-				.authenticate(username, password, isAdminInAnyCollection)) {
+				.authenticate(username, password)) {
 			if (!collections.isEmpty()) {
 				String lastCollection = null;
 				User userInLastCollection = null;

@@ -25,6 +25,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class i18n {
@@ -139,9 +140,17 @@ public class i18n {
 							/*	TODO Manage Map value here:
 								- Must fetch the entry for the current language.
 							 */
-							Map<String, String> labelsMap = (Map<String, String>) argValue;
+							Map<Object, String> labelsMap = (Map<Object, String>) argValue;
 							String language = getLocale().getLanguage();
-							message = message.replace("{" + argName + "}", labelsMap.get(language));
+
+							String label = null;
+							for (Map.Entry<Object, String> entry : labelsMap.entrySet()) {
+								if (entry.getKey().equals(language) || entry.getKey().equals(Language.withCode(language))) {
+									label = entry.getValue();
+								}
+							}
+
+							message = message.replace("{" + argName + "}", label);
 						} else if (argValue instanceof EnumWithSmallCode) {
 							EnumWithSmallCode enumWithSmallCode = (EnumWithSmallCode) argValue;
 							message = message.replace("{" + argName + "}",
@@ -317,7 +326,11 @@ public class i18n {
 	}
 
 	public static String $(Throwable throwable) {
-		return $(throwable, (Object) null);
+		if (throwable instanceof ValidationException) {
+			return $(((ValidationException) throwable).getValidationErrors());
+		} else {
+			return $(throwable, (Object) null);
+		}
 	}
 
 	public static String $(Throwable throwable, Object... args) {

@@ -41,11 +41,11 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 		passwordFileAuthenticationService.changePassword("adminconstellio", "password1");
 		passwordFileAuthenticationService.changePassword("adminCONSTELLIO", "password2");
 
-		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password1", false)).isFalse();
-		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password2", false)).isTrue();
-		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password1", false)).isFalse();
-		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password2", false)).isTrue();
-		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password4", false)).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password4")).isFalse();
 	}
 
 	@Test
@@ -138,7 +138,7 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 			throws Exception {
 		givenChuckPasswordProperty();
 
-		boolean authenticated = passwordFileAuthenticationService.authenticate(usernameChuck, PASSWORD, false);
+		boolean authenticated = passwordFileAuthenticationService.authenticate(usernameChuck, PASSWORD);
 
 		assertThat(authenticated).isTrue();
 	}
@@ -148,7 +148,7 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 			throws Exception {
 		givenChuckPasswordProperty();
 
-		boolean authenticated = passwordFileAuthenticationService.authenticate("inexistentUsername", PASSWORD, false);
+		boolean authenticated = passwordFileAuthenticationService.authenticate("inexistentUsername", PASSWORD);
 
 		assertThat(authenticated).isFalse();
 	}
@@ -158,7 +158,7 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 			throws Exception {
 		givenChuckPasswordProperty();
 
-		boolean authenticated = passwordFileAuthenticationService.authenticate(usernameChuck, "inexistentPassword", false);
+		boolean authenticated = passwordFileAuthenticationService.authenticate(usernameChuck, "inexistentPassword");
 
 		assertThat(authenticated).isFalse();
 	}

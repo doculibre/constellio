@@ -179,7 +179,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet = new TabSheet();
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
-		versionTable = new ContentVersionVOTable(presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
+		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isSelectionColumn() {
 				return isDeleteColumn();
@@ -626,6 +626,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			actionMenuButtons.add(startWorkflowButton);
 		}
 		actionMenuButtons.add(reportGeneratorButton);
+
+		//Extension
+		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
+
 		return actionMenuButtons;
 	}
 

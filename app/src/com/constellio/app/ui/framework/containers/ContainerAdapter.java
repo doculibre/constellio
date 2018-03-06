@@ -20,7 +20,7 @@ import com.vaadin.data.util.filter.UnsupportedFilterException;
 
 @SuppressWarnings("serial")
 public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
-		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier {
+		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier, RefreshableContainer {
 
 	protected T adapted;
 	
@@ -365,6 +365,13 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		super.fireItemSetChange(event);
 		for (ItemSetChangeListener listener : itemSetChangeListeners) {
 			listener.containerItemSetChange(event);
+		}
+	}
+
+	@Override
+	public void refresh() {
+		if (adapted instanceof RefreshableContainer) {
+			((RefreshableContainer) adapted).refresh();
 		}
 	}
 	

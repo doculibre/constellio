@@ -39,7 +39,12 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
@@ -83,7 +88,6 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -833,7 +837,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection) {
-		return givenCollection(collection, asList("fr", "en", Language.Arabic.getCode()));
+		return givenCollection(collection, asList("fr", "en"));
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenSpecialCollection(String collection, List<String> languages) {

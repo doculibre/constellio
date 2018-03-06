@@ -16,7 +16,7 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class
-		PasswordFileAuthentificationServiceTest extends ConstellioTest {
+PasswordFileAuthentificationServiceTest extends ConstellioTest {
 
 	@Mock ConfigManager configManager;
 	@Mock HashingService hashingService;
@@ -46,7 +46,7 @@ public class
 	public void whenAuthenticateThenValidateCurrentPassword()
 			throws Exception {
 
-		passwordFileAuthenticationService.authenticate("username", "password", false);
+		passwordFileAuthenticationService.authenticate("username", "password");
 
 		verify(passwordFileAuthenticationService).validateCurrentPassword("username", "password");
 	}

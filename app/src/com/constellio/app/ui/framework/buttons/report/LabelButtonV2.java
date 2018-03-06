@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -139,7 +140,7 @@ public class LabelButtonV2 extends WindowButton {
     private void setupStartingPositionField() {
         this.getWindow().setResizable(true);
 
-        startPositionField = new ComboBox($("LabelsButton.startPosition"));
+        startPositionField = new BaseComboBox($("LabelsButton.startPosition"));
         startPositionField.setNullSelectionAllowed(false);
         startPositionField.setRequired(true);
         //Custom user templates.
@@ -163,7 +164,7 @@ public class LabelButtonV2 extends WindowButton {
 
     private void setupFormLayoutField() {
 
-        formatField = new ComboBox($("LabelsButton.labelFormat"));
+        formatField = new BaseComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
 
         setItemsForFormatFields(listOfAllTemplates);
@@ -304,7 +305,7 @@ public class LabelButtonV2 extends WindowButton {
                 try {
                     FileUtils.copyInputStreamToFile(inputStream, jasperFile);
                     String titleOfthePdfFile = LabelXmlGenerator.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
-                    File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, titleOfthePdfFile);
+                    File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile);
                     layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
                 } finally {
                     ioServicesFactory.newIOServices().deleteQuietly(jasperFile);

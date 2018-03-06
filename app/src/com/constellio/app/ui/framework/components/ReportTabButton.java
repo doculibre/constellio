@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
@@ -181,7 +182,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createDefaultSelectComboBox() {
-        defaultElementSelected = new ComboBox();
+        defaultElementSelected = new BaseComboBox();
         List<PrintableReportListPossibleType> values = buttonPresenter.getAllGeneralSchema();
         if (values.size() == 1) {
             selectedReporType = values.get(0);
@@ -219,7 +220,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createCustomSelectComboBox() {
-        customElementSelected = new ComboBox();
+        customElementSelected = new BaseComboBox();
 
         customElementSelected.addValidator(new Validator() {
             @Override
@@ -244,7 +245,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Component createReportSelectorComboBox() {
-        reportComboBox = new ComboBox();
+        reportComboBox = new BaseComboBox();
 
         reportComboBox.setCaption($("ReportTabButton.selectTemplate"));
         reportComboBox.setWidth("100%");

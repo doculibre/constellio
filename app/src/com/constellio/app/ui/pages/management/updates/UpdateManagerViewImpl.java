@@ -6,6 +6,7 @@ import java.awt.*;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.constellio.app.api.admin.services.SystemAnalysisUtils;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -143,6 +144,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
 		}
 
+		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
+		layout.addComponent(allocatedMemoryButton);
+
 		Component messagePanel = buildMessagePanel();
 		layout.addComponent(messagePanel);
 		panel = new VerticalLayout();
@@ -152,6 +156,47 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		showStandardUpdatePanel();
 
 		return layout;
+	}
+
+	private WindowButton buildAllocatedMemoryButton() {
+		final String totalSystemMemory = SystemAnalysisUtils.getTotalSystemMemory();
+		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		final String allocatedMemoryForSolr = SystemAnalysisUtils.getAllocatedMemoryForSolr();
+		Double percentageOfAllocatedMemory = SystemAnalysisUtils.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
+
+		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				if(totalSystemMemory != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.totalSystemMemory"), totalSystemMemory));
+				}
+
+				if(allocatedMemoryForConstellio != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
+				}
+
+				if(allocatedMemoryForSolr != null) {
+					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForSolr"), allocatedMemoryForSolr));
+				}
+				return mainLayout;
+			}
+		};
+				
+		StringBuilder buttonCaption = new StringBuilder($("UpdateManagerViewImpl.allocatedMemoryButtonCaption"));
+		if (percentageOfAllocatedMemory != null) {
+			buttonCaption.append(" : " + percentageOfAllocatedMemory*100 + " %");
+			if (percentageOfAllocatedMemory >= 0.8) {
+				allocatedMemoryButton.addStyleName("button-caption-error");
+			} else {
+				allocatedMemoryButton.addStyleName("button-caption-important");
+			}
+		} else {
+			allocatedMemoryButton.addStyleName("button-caption-error");
+			buttonCaption.append(" : " + $("UpdateManagerViewImpl.missingInfoForMemoryAnalysis"));
+		}
+		allocatedMemoryButton.setCaption(buttonCaption.toString());
+		return allocatedMemoryButton;
 	}
 
 	private Component buildMessagePanel() {

@@ -1,5 +1,20 @@
 package com.constellio.app.utils.scripts;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -14,24 +29,13 @@ import org.apache.solr.common.params.CursorMarkParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.handler.loader.XMLLoader;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-
 public class SolrCloudBackup {
 
-	private static final String[] COLLECTIONS = new String[] {"records", "events", "notifications"};
+	private static final String[] COLLECTIONS = new String[] { "records", "events", "notifications" };
 	private static final int BATCH_SIZE = 1000;
 	private static final int THREADS = Runtime.getRuntime().availableProcessors() * 8;
-	private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(THREADS, THREADS, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(20), new ThreadPoolExecutor.CallerRunsPolicy());
+	private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(THREADS, THREADS, 10, TimeUnit.SECONDS,
+			new ArrayBlockingQueue<Runnable>(20), new ThreadPoolExecutor.CallerRunsPolicy());
 	private static final AtomicLong COUNTER = new AtomicLong();
 
 	public static void main(String[] argv)
@@ -56,28 +60,27 @@ public class SolrCloudBackup {
 				FileUtils.forceMkdir(recordsFolder);
 				exportIndex(client, recordsFolder);
 			}
+
+			close();
+
 		} else if (argv[0].equals("--import")) {
-			EXECUTOR.setCorePoolSize(2);
-			EXECUTOR.setMaximumPoolSize(2);
-			for (String collection : COLLECTIONS) {
-				SolrClient client = new HttpSolrClient.Builder().withBaseSolrUrl(argv[2] + collection).build();
-				if (isEmpty(client)) {
-					File recordsFolder = new File(localDir, collection);
-					importIndex(client, recordsFolder);
-					client.commit();
-				} else {
-					throw new RuntimeException("Destination index is not empty");
-				}
-			}
+			importCollectionsIndex(argv[2], localDir);
+		} else {
+			close();
 		}
 
+	}
+
+	protected static void close()
+			throws InterruptedException {
 		EXECUTOR.shutdown();
 		while (!EXECUTOR.isTerminated()) {
 			Thread.sleep(100);
 		}
 	}
 
-	private static void exportIndex(SolrClient client, final File localDir) throws IOException, SolrServerException, InterruptedException {
+	private static void exportIndex(SolrClient client, final File localDir)
+			throws IOException, SolrServerException, InterruptedException {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("sort", "_version_ asc, id asc");
 		params.set("q", "*:*");
@@ -122,7 +125,8 @@ public class SolrCloudBackup {
 		}
 	}
 
-	private static boolean isEmpty(SolrClient client)  throws IOException, SolrServerException {
+	private static boolean isEmpty(SolrClient client)
+			throws IOException, SolrServerException {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", 0);
@@ -132,12 +136,31 @@ public class SolrCloudBackup {
 		return numFound == 0;
 	}
 
-	private static void importIndex(final SolrClient client, final File localDir) throws IOException, SolrServerException, InterruptedException, XMLStreamException {
+	public static void importCollectionsIndex(final String httpSolrUrl, final File localDir)
+			throws IOException, SolrServerException, InterruptedException, XMLStreamException {
+		EXECUTOR.setCorePoolSize(2);
+		EXECUTOR.setMaximumPoolSize(2);
+		for (String collection : COLLECTIONS) {
+			SolrClient client = new HttpSolrClient.Builder().withBaseSolrUrl(httpSolrUrl + collection).build();
+			if (isEmpty(client)) {
+				File recordsFolder = new File(localDir, collection);
+				importCollectionIndex(client, recordsFolder);
+				client.commit();
+			} else {
+				throw new RuntimeException("Destination index is not empty");
+			}
+		}
+
+		close();
+	}
+
+	public static void importCollectionIndex(final SolrClient client, final File localDir)
+			throws IOException, SolrServerException, InterruptedException, XMLStreamException {
 		System.out.println("Importing folder : " + localDir);
 		final List<File> inputFiles = new ArrayList<>();
 		for (final File file : localDir.listFiles()) {
 			if (file.isDirectory()) {
-				importIndex(client, file);
+				importCollectionIndex(client, file);
 			} else {
 				inputFiles.add(file);
 			}
@@ -146,30 +169,30 @@ public class SolrCloudBackup {
 			Runnable commitDocs = new Runnable() {
 				@Override
 				public void run() {
-				try {
-					List<SolrInputDocument> solrInputDocuments = new ArrayList<>();
-					for (File inputFile : inputFiles) {
-						XMLLoader loader = new XMLLoader();
-						XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-						try (FileInputStream fis = new FileInputStream(inputFile)) {
-							XMLStreamReader reader = inputFactory.createXMLStreamReader(fis);
-							if (reader.hasNext()) {
-								reader.next();
-								SolrInputDocument solrInputDocument = loader.readDoc(reader);
-								solrInputDocuments.add(solrInputDocument);
+					try {
+						List<SolrInputDocument> solrInputDocuments = new ArrayList<>();
+						for (File inputFile : inputFiles) {
+							XMLLoader loader = new XMLLoader();
+							XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+							try (FileInputStream fis = new FileInputStream(inputFile)) {
+								XMLStreamReader reader = inputFactory.createXMLStreamReader(fis);
+								if (reader.hasNext()) {
+									reader.next();
+									SolrInputDocument solrInputDocument = loader.readDoc(reader);
+									solrInputDocuments.add(solrInputDocument);
+								}
 							}
 						}
+						client.add(solrInputDocuments);
+						COUNTER.addAndGet(solrInputDocuments.size());
+						if (System.currentTimeMillis() % 10 == 0) {
+							client.commit();
+						}
+						System.out.println("Added : " + solrInputDocuments.size() + "/" + COUNTER.get());
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.exit(-1);
 					}
-					client.add(solrInputDocuments);
-					COUNTER.addAndGet(solrInputDocuments.size());
-					if (System.currentTimeMillis() % 10 == 0) {
-						client.commit();
-					}
-					System.out.println("Added : " + solrInputDocuments.size() + "/" + COUNTER.get());
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.exit(-1);
-				}
 				}
 			};
 			EXECUTOR.submit(commitDocs);
@@ -200,7 +223,8 @@ public class SolrCloudBackup {
 		return inputDocuments;
 	}
 
-	private static boolean validateArgs(String argv[]) throws Exception {
+	private static boolean validateArgs(String argv[])
+			throws Exception {
 		if (argv.length != 3) {
 			return false;
 		}

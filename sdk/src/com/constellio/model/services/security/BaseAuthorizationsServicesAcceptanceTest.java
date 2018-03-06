@@ -142,9 +142,15 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-					cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
-					cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-					cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+					if (!cache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+						cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+					}
+					if (!cache.isConfigured(User.SCHEMA_TYPE)) {
+						cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+					}
+					if (!cache.isConfigured(Group.SCHEMA_TYPE)) {
+						cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+					}
 				}
 
 				RolesManager rolesManager = getModelLayerFactory().getRolesManager();

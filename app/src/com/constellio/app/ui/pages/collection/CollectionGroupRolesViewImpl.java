@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -94,7 +95,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	}
 
 	private void buildInheritedRolesTable() {
-		inheritedRolesTable = new Table($("CollectionGroupRolesView.inheritedRolesTable"));
+		inheritedRolesTable = new BaseTable(getClass().getName() + ".inherited", $("CollectionGroupRolesView.inheritedRolesTable"));
 		BeanItemContainer<RoleAuthVO> container = new BeanItemContainer<>(RoleAuthVO.class);
 		List<RoleAuthVO> userRoles = presenter.getInheritedRoles();
 		for (RoleAuthVO roleAuth : userRoles) {
@@ -109,7 +110,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	}
 
 	private Table buildSpecificRolesTable() {
-		Table table = new Table($("CollectionGroupRolesView.specificRolesTable"));
+		Table table = new BaseTable(getClass().getName() + ".specific", $("CollectionGroupRolesView.specificRolesTable"));
 		BeanItemContainer<RoleAuthVO> container = new BeanItemContainer<>(RoleAuthVO.class);
 		ButtonsContainer<BeanItemContainer> buttonsContainer = new ButtonsContainer<BeanItemContainer>(container, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {

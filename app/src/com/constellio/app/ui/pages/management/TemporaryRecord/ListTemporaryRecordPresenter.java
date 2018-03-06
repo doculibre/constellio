@@ -50,11 +50,14 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 			recordServices.logicallyDelete(currentTemporaryRecord.getRecord(), user,
 					new RecordLogicalDeleteOptions().setSkipValidations(true));
 			recordServices.physicallyDelete(currentTemporaryRecord.getRecord(), user);
-			view.navigate().to().listTemporaryRecord();
+			view.navigate().to().listTemporaryRecords();
 		}
 	}
 
 	private boolean canDeleteArchive(RecordVO recordVO, User user) {
+		if(recordVO == null) {
+			return false;
+		}
 		Record record = recordVO.getRecord();
 		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()

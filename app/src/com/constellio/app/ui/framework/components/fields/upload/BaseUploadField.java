@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.vaadin.data.Item;
@@ -164,7 +165,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 				}
 			});
 		}
-		fileUploadsTable = new Table();
+		fileUploadsTable = new BaseTable(getClass().getName());
 
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);

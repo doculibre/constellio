@@ -192,7 +192,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
 				ioServicesFactory.newHashingService(BASE64));
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
-				passwordFileAuthenticationService);
+				passwordFileAuthenticationService, modelLayerExtensions);
 		this.emailConfigurationsManager = add(
 				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
 

@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -55,6 +58,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
@@ -175,6 +179,18 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                     new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
             zipButton.addStyleName(ValoTheme.BUTTON_LINK);
             selectionActions.add(zipButton);
+
+    		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
+    			@Override
+    			public void buttonClick(ClickEvent event) {
+    				List<String> selectedDocumentIds = getSelectedRecordIds();
+    				AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+    				setParams(params);
+    				super.buttonClick(event);
+    			}
+    		};
+    		consolidatedPdfButton.addStyleName(ValoTheme.BUTTON_LINK);
+            selectionActions.add(consolidatedPdfButton);
         }
 
 

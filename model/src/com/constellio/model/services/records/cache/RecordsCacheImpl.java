@@ -109,7 +109,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				CacheConfig config = getCacheConfigOf(copy.getSchemaCode());
 				if (config.isVolatile()) {
 					VolatileCache cache = volatileCaches.get(config.getSchemaType());
-					synchronized (this) {
+					synchronized (config) {
 						cache.hit(holder);
 					}
 				}
@@ -176,7 +176,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
 
-	public synchronized void insert(List<Record> records) {
+	public void insert(List<Record> records) {
 		if (records != null) {
 			for (Record record : records) {
 				insert(record);
@@ -218,20 +218,48 @@ public class RecordsCacheImpl implements RecordsCache {
 	public List<Record> getAllValues(String schemaType) {
 		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
 
-		List<Record> records = new ArrayList<>();
-		synchronized (this) {
-			for (RecordHolder holder : this.cacheById.values()) {
-				if (holder != null) {
-					Record record = holder.record;
-					if (record != null && record.isOfSchemaType(schemaType)) {
-						records.add(record.getCopyOfOriginalRecord());
+		if (cacheConfig.isPermanent()) {
+			List<Record> records = new ArrayList<>();
+			synchronized (cacheConfig) {
+				for (RecordHolder holder : permanentCaches.get(schemaType).holders) {
+					if (holder != null) {
+						Record record = holder.record;
+						if (record != null) {
+							records.add(record.getCopyOfOriginalRecord());
+						}
 					}
 				}
 			}
+
+			return records;
+		} else {
+			return null;
 		}
+	}
 
-		return records;
+	@Override
+	public List<Record> getAllValuesInUnmodifiableState(String schemaType) {
+		CacheConfig cacheConfig = getCacheConfigOf(schemaType);
 
+		if (cacheConfig.isPermanent()) {
+			List<Record> records = new ArrayList<>();
+			synchronized (cacheConfig) {
+				for (RecordHolder holder : permanentCaches.get(schemaType).holders) {
+					if (holder != null) {
+						Record record = holder.record;
+						if (record != null) {
+							records.add(record);
+						}
+
+					}
+				}
+
+			}
+
+			return records;
+		} else {
+			return null;
+		}
 	}
 
 	PermanentCache getCacheFor(LogicalSearchQuery query, boolean onlyIds) {
@@ -342,7 +370,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
-			synchronized (this) {
+			synchronized (cacheConfig) {
 				modelLayerFactory.getExtensions().getSystemWideExtensions().onPutInCache(recordCopy, 0);
 				RecordHolder holder = cacheById.get(recordCopy.getId());
 				if (holder != null) {
@@ -381,13 +409,19 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
 		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
+		if (cacheConfig != null) {
+			synchronized (cacheConfig) {
 
-		if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
-			invalidate(insertedRecord.getId());
-		}
+				if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
+					invalidate(insertedRecord.getId());
+				}
 
-		if (status == ACCEPTED) {
-			return forceInsert(insertedRecord);
+				if (status == ACCEPTED) {
+					return forceInsert(insertedRecord);
+				} else {
+					return status;
+				}
+			}
 		} else {
 			return status;
 		}
@@ -419,19 +453,22 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public synchronized void invalidateRecordsOfType(String recordType) {
+	public void invalidateRecordsOfType(String recordType) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
+
 		if (cacheConfig != null) {
-			if (cacheConfig.isVolatile()) {
-				volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
-			} else {
-				permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+			synchronized (cacheConfig) {
+				if (cacheConfig.isVolatile()) {
+					volatileCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+				} else {
+					permanentCaches.get(cacheConfig.getSchemaType()).invalidateAll();
+				}
 			}
 		}
 		fullyLoadedSchemaTypes.remove(recordType);
 	}
 
-	public synchronized void invalidate(List<String> recordIds) {
+	public void invalidate(List<String> recordIds) {
 		if (recordIds != null) {
 			for (String recordId : recordIds) {
 				invalidate(recordId);
@@ -440,16 +477,18 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public synchronized void invalidate(String recordId) {
+	public void invalidate(String recordId) {
 		if (recordId != null) {
 			RecordHolder holder = cacheById.get(recordId);
 			if (holder != null && holder.record != null) {
 				CacheConfig cacheConfig = getCacheConfigOf(holder.record.getSchemaCode());
-				recordByMetadataCache.get(cacheConfig.getSchemaType()).invalidate(holder.record);
-				holder.invalidate();
+				synchronized (cacheConfig) {
+					recordByMetadataCache.get(cacheConfig.getSchemaType()).invalidate(holder.record);
+					holder.invalidate();
 
-				if (cacheConfig.isPermanent()) {
-					permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+					if (cacheConfig.isPermanent()) {
+						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+					}
 				}
 			}
 		}
@@ -471,7 +510,8 @@ public class RecordsCacheImpl implements RecordsCache {
 			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(cacheConfig.getSchemaType());
 		}
 		if (cachedTypes.containsKey(cacheConfig.getSchemaType())) {
-			removeCache(cacheConfig.getSchemaType());
+			LOGGER.warn("Cache is already configured, nothing is changed");
+			return;
 		}
 
 		cachedTypes.put(cacheConfig.getSchemaType(), cacheConfig);
@@ -550,7 +590,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public synchronized void removeCache(String schemaType) {
+	public void removeCache(String schemaType) {
 		invalidateRecordsOfType(schemaType);
 		recordByMetadataCache.remove(schemaType);
 		if (volatileCaches.containsKey(schemaType)) {
@@ -805,7 +845,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			//			if (logicallyDeletedStatus == null
 			//					|| (logicallyDeletedStatus instanceof Boolean && !(Boolean) logicallyDeletedStatus)
 			//					|| (logicallyDeletedStatus instanceof String && logicallyDeletedStatus.equals("false"))) {
-			this.record = record.getCopyOfOriginalRecord();
+			this.record = record.getUnmodifiableCopyOfOriginalRecord();
 			//			} else {
 			//				this.record = null;
 			//			}

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +134,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_8;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_9;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -264,7 +266,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_6_9(),
 				new RMMigrationTo7_6_10(),
 				new RMMigrationTo7_6_11(),
-				new RMMigrationTo7_7()
+				new RMMigrationTo7_7(),
+				new RMMigrationTo7_7_1()
 		);
 	}
 
@@ -274,6 +277,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
+		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
 
 		return scripts;
 	}

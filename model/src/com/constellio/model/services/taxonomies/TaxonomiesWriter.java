@@ -109,10 +109,15 @@ public class TaxonomiesWriter {
 		document.getRootElement().addContent(elementsTo);
 	}
 
-	public void editTaxonmy(Taxonomy taxonomy) {
+	public void editTaxonomy(Taxonomy taxonomy) {
 		Element root = document.getRootElement();
 		removeIfExists(taxonomy.getCode(), root);
 		addTaxonmy(taxonomy);
+	}
+
+	public void deleteTaxonomy(Taxonomy taxonomy) {
+		Element root = document.getRootElement();
+		removeIfExists(taxonomy.getCode(), root);
 	}
 
 	private void removeIfExists(String taxonomieCode, Element root) {

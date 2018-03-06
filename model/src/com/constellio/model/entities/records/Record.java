@@ -55,9 +55,9 @@ public interface Record extends Serializable, CollectionObject {
 
 	boolean isDisconnected();
 
-	List<String> getFollowers();
-
 	Record getCopyOfOriginalRecord();
+
+	Record getUnmodifiableCopyOfOriginalRecord();
 
 	Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas);
 

@@ -64,7 +64,12 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 		ButtonsContainer container = new ButtonsContainer<>(new CollectionVOLazyContainer(dataProvider), PROPERTY_BUTTONS);
 		addButtons(dataProvider, container);
 
-		RecordVOTable table = new RecordVOTable($(""), container);
+		RecordVOTable table = new RecordVOTable($(""), container) {
+			@Override
+			protected String getTableId() {
+				return CollectionManagementViewImpl.class.getName();
+			}
+		};
 		table.setColumnHeader(CollectionVOLazyContainer.CODE, $("code"));
 		table.setColumnHeader(CollectionVOLazyContainer.NAME, $("name"));
 		table.setPageLength(table.getItemIds().size());

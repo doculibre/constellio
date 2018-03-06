@@ -164,9 +164,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			mainComponent = buildMainComponent(event);
 			mainComponent.addStyleName("main-component");
 
-//			if (titleLabel != null || backButton.isVisible()) {
-				addComponent(titleBackButtonLayout);
-//			}
+			addComponent(titleBackButtonLayout);
 
 			if (breadcrumbTrail != null) {
 				addComponent(breadcrumbTrail);
@@ -182,6 +180,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					titleBackButtonLayout.addComponents(titleLabel);
 				}
 				titleBackButtonLayout.addComponents(backButton);
+			} else {
+				titleBackButtonLayout.setVisible(false);
 			}
 
 			setExpandRatio(mainComponent, 1f);

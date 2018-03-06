@@ -1,9 +1,10 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Container;
 import com.vaadin.ui.Table;
 
-public class DynamicHeightTable extends Table {
+public class DynamicHeightTable extends BaseTable {
 	
 	public static final String STYLE_NAME = "dynamic-height";
 
@@ -13,18 +14,18 @@ public class DynamicHeightTable extends Table {
 	
     /* Sizeable and other size related methods */
 
-    public DynamicHeightTable() {
-		super();
+    public DynamicHeightTable(String tableId) {
+		super(tableId);
 		init();
 	}
 
-	public DynamicHeightTable(String caption, Container dataSource) {
-		super(caption, dataSource);
+	public DynamicHeightTable(String tableId, String caption, Container dataSource) {
+		super(tableId, caption, dataSource);
 		init();
 	}
 
-	public DynamicHeightTable(String caption) {
-		super(caption);
+	public DynamicHeightTable(String tableId, String caption) {
+		super(tableId, caption);
 		init();
 	}
 	

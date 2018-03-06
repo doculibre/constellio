@@ -3,6 +3,7 @@ package com.constellio.app.services.schemas.bulkImport.data.excel;
 import java.util.Date;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DateUtil;
 
@@ -22,7 +23,12 @@ public class Excel2007Cell implements ExcelCell {
 
 	@Override
 	public String getContents() {
-		return formatter.formatCellValue(cell);
+		CellType cellType = cell.getCellTypeEnum();
+		if (cellType == CellType.BOOLEAN) {
+			return cell.getBooleanCellValue() ? "true" : "false";
+		} else {
+			return formatter.formatCellValue(cell);
+		}
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.services.reports.printableReport.printableReportXmlGenerator.EMPTY_METADATA_VALUE_TAG;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -15,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -53,9 +50,11 @@ import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -835,7 +834,7 @@ public class DecommissioningService {
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
+			Folder duplicatedChild = duplicateStructureAndDocumentsAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
@@ -844,21 +843,27 @@ public class DecommissioningService {
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
 		for (Document child : childrenDocuments) {
-			Document newDocument = createDuplicateOfDocument(child);
+			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
 			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
 	}
 
-	public Document createDuplicateOfDocument(Document duplicatedDocument) {
+	public Document createDuplicateOfDocument(Document duplicatedDocument, User currentUser) {
 		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
 		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
 				.onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
 		}
-		return newDocument;
+		LocalDateTime now = LocalDateTime.now();
+
+		duplicatedDocument.setFormCreatedBy(currentUser);
+		duplicatedDocument.setFormCreatedOn(now);
+		duplicatedDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		duplicatedDocument.setCreatedOn(now).setModifiedOn(now);
+		return duplicatedDocument;
 	}
 
 	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {

@@ -2,17 +2,22 @@ package com.constellio.model.extensions;
 
 import java.util.List;
 
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.frameworks.extensions.ExtensionUtils;
+import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordCacheExtension;
+import com.constellio.model.extensions.behaviors.UserAuthenticationExtension;
 import com.constellio.model.extensions.events.recordsCache.CacheHitParams;
 import com.constellio.model.extensions.events.recordsCache.CacheMissParams;
 import com.constellio.model.extensions.events.recordsCache.CachePutParams;
 import com.constellio.model.extensions.events.recordsCache.CacheQueryHitParams;
 import com.constellio.model.extensions.events.recordsCache.CacheQueryMissParams;
 import com.constellio.model.extensions.events.recordsCache.CacheQueryPutParams;
+import com.constellio.model.extensions.params.CanAuthenticateUsingPasswordFileIfLDAPFailedParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
 
 public class ModelLayerSystemExtensions {
@@ -20,6 +25,8 @@ public class ModelLayerSystemExtensions {
 	//------------ Extension points -----------
 
 	public VaultBehaviorsList<RecordCacheExtension> recordCacheExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserAuthenticationExtension> userAuthenticationExtensions = new VaultBehaviorsList<>();
 
 	//----------------- Callers ---------------
 
@@ -69,5 +76,16 @@ public class ModelLayerSystemExtensions {
 		for (RecordCacheExtension extension : recordCacheExtensions) {
 			extension.onCacheQueryPut(new CacheQueryPutParams(signature, ids, duration));
 		}
+	}
+
+	public boolean canAuthenticateUsingPasswordFileIfLDAPFailed(final String username) {
+		return ExtensionUtils.getBooleanValue(userAuthenticationExtensions, false,
+				new BooleanCaller<UserAuthenticationExtension>() {
+					@Override
+					public ExtensionBooleanResult call(UserAuthenticationExtension behavior) {
+						return behavior.canAuthenticateUsingPasswordFileIfLDAPFailed(
+								new CanAuthenticateUsingPasswordFileIfLDAPFailedParams(username));
+					}
+				});
 	}
 }

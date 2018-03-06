@@ -15,8 +15,6 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Locale;
 
-import com.constellio.model.services.records.RecordLogicalDeleteOptions;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +36,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
@@ -140,8 +140,10 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(recordServices.isLogicallyThenPhysicallyDeletable(record, user)).thenReturn(true);
 
 		presenter.deleteButtonClicked();
-		verify(factories.getRecordServices(), times(1)).logicallyDelete(eq(record), eq(user), any(RecordLogicalDeleteOptions.class));
-		verify(factories.getRecordServices(), times(1)).physicallyDelete(record, user);
+		verify(factories.getRecordServices(), times(1))
+				.logicallyDelete(eq(record), eq(user), any(RecordLogicalDeleteOptions.class));
+		verify(factories.getRecordServices(), times(1))
+				.physicallyDeleteNoMatterTheStatus(eq(record), eq(user), any(RecordPhysicalDeleteOptions.class));
 	}
 
 	@Test

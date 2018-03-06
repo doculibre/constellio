@@ -101,6 +101,11 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
+	public List<Record> getAllValuesInUnmodifiableState(String schemaType) {
+		return nested.getAllValuesInUnmodifiableState(schemaType);
+	}
+
+	@Override
 	public List<Record> getQueryResults(LogicalSearchQuery query) {
 		return nested.getQueryResults(query);
 	}

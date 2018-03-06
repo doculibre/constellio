@@ -1,11 +1,12 @@
 package com.constellio.model.frameworks.validation;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class ValidationError {
+public class ValidationError implements Serializable {
 
 	private final Class<?> validatorClass;
 	private final String errorCode;
@@ -67,14 +68,14 @@ public class ValidationError {
 					stringBuilder.append(parameter.getKey() + "=" + parameterValue);
 				} else if (parameterValue instanceof Map) {
 					// TODO Pat manage Map value here...
-					Map<String, String> labelsMap = (Map<String, String>) parameterValue;
+					Map<Object, String> labelsMap = (Map<Object, String>) parameterValue;
 					boolean firstLabel = true;
 					stringBuilder.append(" ");
-					for (Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+					for (Map.Entry<Object, String> labelsEntry : labelsMap.entrySet()) {
 						if (!firstLabel) {
 							stringBuilder.append(",");
 						}
-						stringBuilder.append(labelsEntry.getKey() + "=" + labelsEntry.getValue());
+						stringBuilder.append(labelsEntry.getKey().toString() + "=" + labelsEntry.getValue());
 						firstLabel = false;
 					}
 				}
