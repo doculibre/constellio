@@ -75,11 +75,6 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 				searchEvent.createMetadata(SearchEvent.NUM_FOUND).setType(NUMBER);
 				searchEvent.createMetadata(SearchEvent.Q_TIME).setType(NUMBER);
 			}
-
-			MetadataSchemaBuilder thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).addLabel(Language.French,"Configuration du thesaurus")
-					.addLabel(Language.English, "Thesaurus configuration").getDefaultSchema();
-			thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
-			thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
 		}
 	}
 }

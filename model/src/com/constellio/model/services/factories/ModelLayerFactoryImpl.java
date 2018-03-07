@@ -126,7 +126,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
 
-	private final ThesaurusManager thesaurusManager;
+	private ThesaurusManager thesaurusManager;
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 
@@ -206,7 +206,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
-		this.thesaurusManager = add(new ThesaurusManager(this)); // TODO mettre le fichier?
+		this.thesaurusManager = null; // TODO mettre le fichier?
 
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
 			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
@@ -242,6 +242,9 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public ThesaurusManager getThesaurusManager() {
+		if(thesaurusManager == null) {
+			thesaurusManager = add(new ThesaurusManager(this));
+		}
 		return thesaurusManager;
 	}
 
