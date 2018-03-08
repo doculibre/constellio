@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -69,6 +71,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient TaskPresenterServices taskPresenterServices;
 	private transient BetaWorkflowServices workflowServices;
 	private RecordVODataProvider provider;
+	private transient SearchServices searchServices;
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
@@ -123,6 +126,32 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private void refreshCurrentTab() {
 		view.reloadCurrentTab();
 	}
+
+	@Override
+	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {
+
+		Record record = toRecord(recordVO);
+
+		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
+				LogicalSearchQueryOperators.from(tasksSchemasRecordsServices.taskSchemaType())
+						.where(tasksSchemasRecordsServices.userTask.parentTask()).isEqualTo(record.getId())));
+
+		final String STAND_BY = "S";
+		final String IN_PROGRESS = "I";
+
+		boolean isSubTaskWithRequiredStatusFound = false;
+
+		for(Record taskAsRecord : tasksSearchServices){
+			Task currentTask = tasksSchemasRecordsServices.wrapTask(taskAsRecord);
+			if(currentTask.getStatusType() != null && currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
+					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS)) {
+				isSubTaskWithRequiredStatusFound = true;
+				break;
+			}
+		}
+		return isSubTaskWithRequiredStatusFound;
+	}
+
 
 	@Override
 	public void displayButtonClicked(RecordVO record) {
@@ -388,6 +417,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		tasksSearchServices = new TasksSearchServices(schemas);
 		taskPresenterServices = new TaskPresenterServices(
 				schemas, recordServices(), tasksSearchServices, modelLayerFactory.newLoggingServices());
+		searchServices = modelLayerFactory.newSearchServices();
 	}
 
 	public boolean areWorkflowsEnabled() {

@@ -54,6 +54,8 @@ import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
+import javax.ws.rs.core.Response;
+
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
@@ -294,6 +296,20 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public boolean isCompletedOrClosedStatus(RecordVO recordVO) {
+		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
+		if(statusType == null || statusType.getStatusType() == null) {
+			return false;
+		}
+
+		return "C".equalsIgnoreCase(statusType.getStatusType().getCode()) || "F".equalsIgnoreCase(statusType.getStatusType().getCode());
+	}
+
+	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {
+		return taskPresenterServices.isSubTaskPresentAndHaveCertainStatus(recordVO.getId());
 	}
 
 	private void adjustQuestionField() {

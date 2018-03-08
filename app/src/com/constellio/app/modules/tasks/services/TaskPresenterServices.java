@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.vaadin.event.MouseEvents;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -193,16 +196,31 @@ public class TaskPresenterServices {
 		return user.hasWriteAccess().on(record);
 	}
 
-	public boolean isSubTaskPresent(Record record) {
 
-	 List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
-						LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
-								.where(Schemas.IDENTIFIER).isEqualTo(record.getId())));
+	public boolean isSubTaskPresentAndHaveCertainStatus(String id) {
 
-	 	return tasksSearchServices != null && tasksSearchServices.size() > 0;
+		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
+				LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
+						.where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
+
+		final String STAND_BY = "S";
+		final String IN_PROGRESS = "I";
+
+		boolean isSubTaskWithRequiredStatusFound = false;
+
+		for(Record taskAsRecord : tasksSearchServices){
+			Task currentTask = tasksSchemas.wrapTask(taskAsRecord);
+			if(currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
+					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS)) {
+				isSubTaskWithRequiredStatusFound = true;
+				break;
+			}
+		}
+		return isSubTaskWithRequiredStatusFound;
 	}
 
 	public void deleteTask(Record record, User currentUser) {
+
 		recordServices.logicallyDelete(record, currentUser);
 		loggingServices.logDeleteRecordWithJustification(record, currentUser, "");
 		//recordServices.physicallyDelete(record, currentUser);
