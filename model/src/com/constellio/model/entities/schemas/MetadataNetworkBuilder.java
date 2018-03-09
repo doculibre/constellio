@@ -1,32 +1,21 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AUTOMATIC_METADATA_INPUT;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.SEQUENCE_INPUT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.*;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
+import static java.util.Arrays.asList;
 
 public class MetadataNetworkBuilder {
 
@@ -361,9 +350,23 @@ public class MetadataNetworkBuilder {
 		} else if (DataEntryType.SEQUENCE == metadata.getDataEntry().getType()) {
 			SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
 			if (dataEntry.getMetadataProvidingSequenceCode() != null) {
-				Metadata sequenceInputMetadata = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
-				int level = builder.getDependencyLevelRequiredFor(metadata, asList(sequenceInputMetadata), false, true);
-				builder.addNetworkLink(metadata, sequenceInputMetadata, null, level, SEQUENCE_INPUT, false, true);
+
+				List<Metadata> metadatas = new ArrayList<>();
+
+				if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
+					String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
+					Metadata firstMetadata = schema.getMetadata(splittedCode[0]);
+					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaType()).getDefaultSchema().getMetadata(splittedCode[1]);
+					metadatas.add(firstMetadata);
+					metadatas.add(secondMetadata);
+				} else {
+					metadatas.add(schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode()));
+				}
+
+				for(Metadata sequenceInputMetadata : metadatas) {
+					int level = builder.getDependencyLevelRequiredFor(metadata, asList(sequenceInputMetadata), false, true);
+					builder.addNetworkLink(metadata, sequenceInputMetadata, null, level, SEQUENCE_INPUT, false, true);
+				}
 			}
 
 		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
