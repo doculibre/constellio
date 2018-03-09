@@ -248,7 +248,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 						.isIn(records);
 				ModifiableSolrParams params = modelLayerFactory.newSearchServices()
 						.addSolrModifiableParams(new LogicalSearchQuery(condition));
-				String query = SolrUtils.toSingleQueryString(params);
+				String query = SolrUtils.toSingleQueryStringForPreviousFramework(params);
 				batchProcess = recordBatchProcess.withQuery(query);
 			}
 		}
