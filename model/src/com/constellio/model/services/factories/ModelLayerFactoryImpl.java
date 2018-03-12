@@ -241,7 +241,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
 	}
 
-	public ThesaurusManager getThesaurusManager() {
+	public synchronized ThesaurusManager getThesaurusManager() {
 		if(thesaurusManager == null) {
 			thesaurusManager = add(new ThesaurusManager(this));
 		}
