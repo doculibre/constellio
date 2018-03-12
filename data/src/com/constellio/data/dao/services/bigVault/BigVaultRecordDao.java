@@ -80,6 +80,7 @@ public class BigVaultRecordDao implements RecordDao {
 	public static final String DELETED_FIELD = "deleted_s";
 	private static final String ID_FIELD = "id";
 	private static final String VERSION_FIELD = "_version_";
+	public static final String DATE_SEARCH_FIELD = ".search_ss";
 	private final BigVaultServer bigVaultServer;
 	private final DataStoreTypesFactory dataStoreTypesFactory;
 	private final DataLayerLogger dataLayerLogger;
@@ -832,7 +833,7 @@ public class BigVaultRecordDao implements RecordDao {
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
 		for (String fieldName : solrDocument.getFieldNames()) {
-			if (!fieldName.equals("sys_s") && !containsTwoUnderscoresAndIsNotVersionField(fieldName)) {
+			if (!fieldName.equals("sys_s") && !containsTwoUnderscoresAndIsNotVersionField(fieldName) && !fieldName.endsWith(DATE_SEARCH_FIELD)) {
 				Object value = convertSolrValueToBigVaultValue(fieldName, solrDocument.getFieldValue(fieldName));
 				if (value != null) {
 					fieldValues.put(fieldName, value);

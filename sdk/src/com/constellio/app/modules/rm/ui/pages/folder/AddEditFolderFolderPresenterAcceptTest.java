@@ -9,20 +9,33 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
@@ -199,6 +212,44 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		MetadataSchemaTypesBuilder typesBuilder = metadataSchemasManager.modify(zeCollection);
 		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRcustom1");
 		metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
+	}
+
+	@Test
+	public void givenSearchableDateMetadataThenInfoIsOnlyFoundWhenNeeded() throws Exception {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.OPENING_DATE).setSearchable(true);
+			}
+		});
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
+		recordServices.update(records.getFolder_A01().setOpenDate(new LocalDate("2018-02-11")));
+		reindex();
+		waitForBatchProcess();
+
+		List<String> queriesWithResults = getQueriesWithResults();
+		assertThat(queriesWithResults).containsOnly("2018-02-11", "2018");
+
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "dd-MM-yyyy");
+		reindex();
+		waitForBatchProcess();
+
+		queriesWithResults = getQueriesWithResults();
+		assertThat(queriesWithResults).containsOnly("11-02-2018", "2018");
+	}
+
+	private List<String> getQueriesWithResults() {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rmSchemasRecordsServices.folder.schemaType()).returnAll());
+		List<String> possibleQueries = asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf");
+		List<String> queriesWithResults = new ArrayList<>();
+		for(String freeText: possibleQueries) {
+			if(searchServices.searchRecordIds(query.setFreeTextQuery(freeText)).contains(records.getFolder_A01().getId())) {
+				queriesWithResults.add(freeText);
+			}
+		}
+
+		return queriesWithResults;
 	}
 
 	private FolderVO buildFolderVO() {

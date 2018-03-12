@@ -131,7 +131,7 @@ public class MetadataSchemaTypes implements Serializable {
 		return types;
 	}
 
-	public List<Metadata> getHighlightedMetadatas() {
+	public List<Metadata> getSearchableMetadatas() {
 		return searchableMetadatas;
 	}
 

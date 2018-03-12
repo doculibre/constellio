@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
@@ -156,7 +157,11 @@ Schemas {
 			if (metadata.getType() == MetadataValueType.CONTENT) {
 				dataStoreCode = dataStoreCode.replace("_s", "_txt_" + languageCode);
 			} else {
-				dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+				if(dataStoreCode.endsWith("_da")) {
+					dataStoreCode = dataStoreCode.replace("_da", DATE_SEARCH_FIELD);
+				} else {
+					dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+				}
 			}
 		}
 
