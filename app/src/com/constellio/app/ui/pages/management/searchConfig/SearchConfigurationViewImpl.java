@@ -1,20 +1,15 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.entities.navigation.NavigationItem;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -41,7 +36,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 		CssLayout layout = new CustomCssLayout();
 		user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
-		layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createFacetteButton());
+		layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createSolrFeatureRequestButton(), createFacetteButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsuleButton());
@@ -114,6 +109,18 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 				navigate().to().deleteExclusionsImpl();
 			}
 		}, "config/search-suggestions-exlusions");
+	}
+
+	private Button createSolrFeatureRequestButton() {
+		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
+				createLink($("AdminView.solrFeature"), new Button.ClickListener() {
+
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						navigate().to().solrFeatures();
+					}
+				}, "config/boost-text-search") :
+				null;
 	}
 
 	private Button createBoostRequestButton() {
