@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.vaadin.data.Property;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
@@ -26,15 +30,9 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.VerticalLayout;
 
 public class CollectionGroupRolesViewImpl extends BaseViewImpl implements CollectionGroupRolesView {
 	public static final String GROUP_ROLES = Group.DEFAULT_SCHEMA + "_" + Group.ROLES;
@@ -150,11 +148,22 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 				$("CollectionGroupRolesView.addRoleWindowTitle")) {
 			@Override
 			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
 
 				targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
 				targetField.setCaption($("CollectionGroupRolesView.targetField"));
 
-				return new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionGroupRolesViewImpl.this, availableRolesField,
+				final Label warningLabel = new Label("<p style=\"color:red\">" + $("CollectionUserRolesView.onCollectionWarning") + "</p>", ContentMode.HTML);
+				warningLabel.setReadOnly(true);
+				warningLabel.addStyleName(ValoTheme.TEXTFIELD_BORDERLESS);
+				targetField.addValueChangeListener(new Property.ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						warningLabel.setVisible(event.getProperty().getValue() == null);
+					}
+				});
+
+				BaseForm<RoleAuthVO> form = new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionGroupRolesViewImpl.this, availableRolesField,
 						targetField) {
 					@Override
 					protected void saveButtonClick(RoleAuthVO viewObject)
@@ -168,6 +177,8 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 						getWindow().close();
 					}
 				};
+				mainLayout.addComponents(warningLabel, form);
+				return mainLayout;
 			}
 		};
 		return Arrays.asList(windowButton);
