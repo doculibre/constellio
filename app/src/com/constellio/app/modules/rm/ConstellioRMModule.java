@@ -11,6 +11,7 @@ import java.util.Map;
 
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
+import com.constellio.app.modules.rm.migrations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,6 +201,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_6_10(),
 				new RMMigrationTo7_6_11(),
 				new RMMigrationTo7_7(),
+				new RMMigrationTo7_7_0_42(),
 				new RMMigrationTo7_7_1(),
 				new RMMigrationTo7_7_2()
 		);
