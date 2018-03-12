@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -227,21 +228,46 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		reindex();
 		waitForBatchProcess();
 
-		List<String> queriesWithResults = getQueriesWithResults();
+		List<String> queriesWithResults = getQueriesWithResults(asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf"));
 		assertThat(queriesWithResults).containsOnly("2018-02-11", "2018");
 
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "dd-MM-yyyy");
 		reindex();
 		waitForBatchProcess();
 
-		queriesWithResults = getQueriesWithResults();
+		queriesWithResults = getQueriesWithResults(asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf"));
 		assertThat(queriesWithResults).containsOnly("11-02-2018", "2018");
 	}
 
-	private List<String> getQueriesWithResults() {
+	@Test
+	public void givenSearchableMultivalueDateMetadataThenInfoIsOnlyFoundWhenNeeded() throws Exception {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("test").setMultivalue(true).setType(MetadataValueType.DATE).setSearchable(true);
+			}
+		});
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
+		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2018-02-11"))));
+		reindex();
+		waitForBatchProcess();
+
+		List<String> queriesWithResults = getQueriesWithResults(asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf"));
+		assertThat(queriesWithResults).containsOnly("2018-02-11", "2018");
+
+		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2019-03-12"), new LocalDate("2020-04-13"))));
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "dd-MM-yyyy");
+		reindex();
+		waitForBatchProcess();
+
+		queriesWithResults = getQueriesWithResults(asList("2019-03-12", "12-03-2019", "2019-03", "2019-12", "2019", "03", "12", "3", "1", "asdf",
+				"2020-04-13", "13-04-2020", "2020-04", "2020-13", "2020", "04", "13", "4", "2018-02-11"));
+		assertThat(queriesWithResults).containsOnly("12-03-2019", "2019", "13-04-2020", "2020");
+	}
+
+	private List<String> getQueriesWithResults(List<String> possibleQueries) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rmSchemasRecordsServices.folder.schemaType()).returnAll());
-		List<String> possibleQueries = asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf");
 		List<String> queriesWithResults = new ArrayList<>();
 		for(String freeText: possibleQueries) {
 			if(searchServices.searchRecordIds(query.setFreeTextQuery(freeText)).contains(records.getFolder_A01().getId())) {

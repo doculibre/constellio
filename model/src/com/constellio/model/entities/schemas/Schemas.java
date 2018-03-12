@@ -148,6 +148,7 @@ Schemas {
 		if (metadata.isMultivalue()) {
 			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
 			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+			dataStoreCode = dataStoreCode.replace("_das", DATE_SEARCH_FIELD);
 
 		} else if (metadata.getLocalCode().equals("id")) {
 			dataStoreCode = "id_txt_" + languageCode;
@@ -157,17 +158,22 @@ Schemas {
 			if (metadata.getType() == MetadataValueType.CONTENT) {
 				dataStoreCode = dataStoreCode.replace("_s", "_txt_" + languageCode);
 			} else {
-				if(dataStoreCode.endsWith("_da")) {
-					dataStoreCode = dataStoreCode.replace("_da", DATE_SEARCH_FIELD);
-				} else {
-					dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
-				}
+				dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+				dataStoreCode = dataStoreCode.replace("_da", DATE_SEARCH_FIELD);
 			}
 		}
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
 		return new Metadata(schemaCode, dataStoreCode, TEXT, metadata.isMultivalue(),
 				metadata.isMultiLingual());
+	}
+
+	private static String replaceLast(String string, String expressionToReplace, String replacement)	{
+		int index = string.lastIndexOf(expressionToReplace);
+		if (index == -1) {
+			return string;
+		}
+		return string.substring(0, index) + replacement + string.substring(index+expressionToReplace.length());
 	}
 
 	public static boolean isGlobalMetadata(String metadata) {

@@ -258,14 +258,14 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 		String prefix = copiedMetadataCodePrefix;
 		if (!prefix.contains("_")) {
-			prefix += "_da_";
+			prefix += "_das_";
 		}
 		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
-		int index = prefix.lastIndexOf("_da_");
-		if (prefix.endsWith("_da_")) {
-			prefix = new StringBuilder(prefix).replace(index, index + 4, DATE_SEARCH_FIELD).toString();
+		int index = prefix.lastIndexOf("_das_");
+		if (prefix.endsWith("_das_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 5, DATE_SEARCH_FIELD).toString();
 		}
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
