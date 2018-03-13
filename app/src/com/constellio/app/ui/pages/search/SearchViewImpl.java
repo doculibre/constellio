@@ -165,6 +165,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					currentVerticalLayout = new VerticalLayout();
 				}
 			}
+			if(count > 0 && count % 6 != 0) {
+				cssLayout.addComponent(currentVerticalLayout);
+			}
 		}
 
 

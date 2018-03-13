@@ -192,10 +192,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					&& responseSkosConcept.getSuggestions().size() > 0) {
 
 				result = responseSkosConcept.getSuggestions().get(language.getLocale());
-
-				if (result.size() > 10) {
-					result = result.subList(0, 10);
-				}
 			}
 		}
 
