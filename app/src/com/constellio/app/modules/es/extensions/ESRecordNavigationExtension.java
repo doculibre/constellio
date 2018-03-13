@@ -53,33 +53,54 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 
 	@Override
 	public void navigateToView(NavigationParams navigationParams) {
-        try {
-            openWithAgent(navigationParams);
-        } catch (Exception e) {
-			RecordVO recordVO = navigationParams.getRecordVO();
-			if (recordVO != null) {
-				Page page = navigationParams.getPage();
-				String schemaTypeCode = navigationParams.getSchemaTypeCode();
+		boolean openWithAgent;
+		Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(navigationParams.getRecordVO().getId());
+		if (ConstellioAgentUtils.isAgentSupported()) {
+			String typeCode = record.getTypeCode();
+			if (ConnectorSmbDocument.SCHEMA_TYPE.equals(typeCode)) {
+				openWithAgent = true;
+			} else {
+				openWithAgent = false;
+			}
+		} else {
+			openWithAgent = false;
+		}
+		
+		if (openWithAgent) {
+	        try {
+	            openWithAgent(navigationParams);
+	        } catch (Exception e) {
+	        	openWithoutAgent(navigationParams);
+	        }
+		} else {
+        	openWithoutAgent(navigationParams);
+		}
+	}
+	
+	private void openWithoutAgent(NavigationParams navigationParams) {
+		RecordVO recordVO = navigationParams.getRecordVO();
+		if (recordVO != null) {
+			Page page = navigationParams.getPage();
+			String schemaTypeCode = navigationParams.getSchemaTypeCode();
 
-				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-				ConnectorManager connectorManager = es.getConnectorManager();
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			ConnectorManager connectorManager = es.getConnectorManager();
 
-				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
-					ConnectorUtilsServices<?> services = connector.getServices();
-					for (String type : services.getConnectorDocumentTypes()) {
-						if (schemaTypeCode.equals(type)) {
-							String url = services.getRecordExternalUrl(recordVO);
-							if (url != null) {
-								page.open(url, null);
-							}
-							return;
+			for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+				ConnectorUtilsServices<?> services = connector.getServices();
+				for (String type : services.getConnectorDocumentTypes()) {
+					if (schemaTypeCode.equals(type)) {
+						String url = services.getRecordExternalUrl(recordVO);
+						if (url != null) {
+							page.open(url, null);
 						}
+						return;
 					}
 				}
-
-				throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 			}
-        }
+
+			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
+		}
 	}
 
 	private void openWithAgent(NavigationParams navigationParams) {
