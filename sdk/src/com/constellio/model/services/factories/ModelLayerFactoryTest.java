@@ -10,8 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -25,6 +23,7 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
@@ -75,6 +74,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		zeCache = new SerializationCheckCache("zeCache");
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
+		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);
 
 		XMLConfiguration xmlConfiguration = Mockito.mock(XMLConfiguration.class);
 		Document document = Mockito.mock(Document.class);

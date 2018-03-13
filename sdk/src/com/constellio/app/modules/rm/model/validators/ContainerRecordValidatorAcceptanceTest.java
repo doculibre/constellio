@@ -117,17 +117,15 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 					entry("linearSizeEntered", "20.0"),
 					entry("schemaCode", "containerRecord_default"),
 					entry("linearSizeSum", "6.0"),
-					entry("capacity", "10.0"),
-					entry("prefix", "containerTestTemporary (containerTest) : "));
+					entry("capacity", "10.0"));
 
 			params = e.getErrors().getValidationErrors().get(1).getParameters();
 			assertThat(params).containsOnly(entry("schemaCode", "containerRecord_default"),
-					entry("storageSpace", "storageTest"),
-					entry("prefix", "containerTestTemporary (containerTest) : "));
+					entry("storageSpace", "storageTest"));
 
 			assertThat(TestUtils.frenchMessages(e.getErrors())).containsOnly(
-					"containerTestTemporary (containerTest) : La capacité (10.0 cm) doit être plus grande ou égale à la longueur linéaire (20.0 cm)",
-					"containerTestTemporary (containerTest) : L'emplacement storageTest ne peut pas contenir ce type de contenant");
+					"La capacité (10.0 cm) doit être plus grande ou égale à la longueur linéaire (20.0 cm)",
+					"L'emplacement storageTest ne peut pas contenir ce type de contenant");
 		}
 	}
 

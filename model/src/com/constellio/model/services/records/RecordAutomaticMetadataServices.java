@@ -437,7 +437,8 @@ public class RecordAutomaticMetadataServices {
 
 				}
 				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
-					for (Record record : searchServices.getAllRecords(types.getSchemaType(Group.SCHEMA_TYPE))) {
+					for (Record record : searchServices
+							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
 						if (record != null) {
 							if (!groupsInTransaction.contains(record.getId())) {
 								groups.add(Group.wrapNullable(record, types));
@@ -447,7 +448,7 @@ public class RecordAutomaticMetadataServices {
 						}
 					}
 
-					for (Record record : searchServices.getAllRecords(types.getSchemaType(User.SCHEMA_TYPE))) {
+					for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
 						if (record != null) {
 							if (!usersInTransaction.contains(record.getId())) {
 								users.add(User.wrapNullable(record, types, roles));
@@ -499,7 +500,8 @@ public class RecordAutomaticMetadataServices {
 					}
 				}
 
-				for (Record record : searchServices.getAllRecords(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+				for (Record record : searchServices
+						.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
 					if (record != null) {
 						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
 						if (!authsInTransaction.contains(authorizationDetail.getId())

@@ -42,6 +42,13 @@ public class RecordImplRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class RecordImplException_RecordIsUnmodifiable extends RecordImplRuntimeException {
+
+		public RecordImplException_RecordIsUnmodifiable() {
+			super("Record is unmodifiable, call getCopyOfOriginalRecord() to obtain a modifiable copy");
+		}
+	}
+
 	public static class RecordImplException_CannotChangeSchemaOfSavedRecord extends RecordImplRuntimeException {
 
 		public RecordImplException_CannotChangeSchemaOfSavedRecord(String recordId) {
