@@ -305,7 +305,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			return false;
 		}
 
-		return "C".equalsIgnoreCase(statusType.getStatusType().getCode()) || "F".equalsIgnoreCase(statusType.getStatusType().getCode());
+		return statusType.getStatusType().isFinishedOrClosed();
 	}
 
 	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {

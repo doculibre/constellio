@@ -143,8 +143,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 		for(Record taskAsRecord : tasksSearchServices){
 			Task currentTask = tasksSchemasRecordsServices.wrapTask(taskAsRecord);
-			if(currentTask.getStatusType() != null && currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
-					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS)) {
+			if(!currentTask.isLogicallyDeletedStatus() && currentTask.getStatusType() != null
+					&& (currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
+					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS))) {
 				isSubTaskWithRequiredStatusFound = true;
 				break;
 			}

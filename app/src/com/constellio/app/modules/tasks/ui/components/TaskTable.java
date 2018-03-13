@@ -91,17 +91,18 @@ public class TaskTable extends RecordVOTable {
 
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
-					String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
 
-					if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
-						completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
-					}
-					final String completeTaskDialogFinal = completeTaskDialog;
 
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), completeTaskDialogFinal,
+							String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
+
+							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+								completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
+							}
+
+							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), completeTaskDialog,
 									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
 									new ConfirmDialog.Listener() {
 										@Override

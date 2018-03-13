@@ -1,24 +1,7 @@
 package com.constellio.app.modules.tasks.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.vaadin.event.MouseEvents;
-import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -31,13 +14,26 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import org.vaadin.dialogs.ConfirmDialog;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -203,15 +199,12 @@ public class TaskPresenterServices {
 				LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
 						.where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
 
-		final String STAND_BY = "S";
-		final String IN_PROGRESS = "I";
-
 		boolean isSubTaskWithRequiredStatusFound = false;
 
 		for(Record taskAsRecord : tasksSearchServices){
 			Task currentTask = tasksSchemas.wrapTask(taskAsRecord);
-			if(currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
-					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS)) {
+			if(TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
+					|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
 				isSubTaskWithRequiredStatusFound = true;
 				break;
 			}
