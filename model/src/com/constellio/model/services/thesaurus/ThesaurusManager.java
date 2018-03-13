@@ -10,6 +10,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -28,6 +29,7 @@ public class ThesaurusManager implements StatefulService {
     final String FILE_INPUT_STREAM_NAME = "ThesaurusManager.ThesaurusFile";
     private CollectionsListManager collectionsListManager;
     private SearchServices searchServices;
+    private RecordServices recordServices;
 
     private ConstellioCache cache;
     private ModelLayerFactory modelLayerFactory;
@@ -41,6 +43,7 @@ public class ThesaurusManager implements StatefulService {
 
         collectionsListManager = this.modelLayerFactory.getCollectionsListManager();
         searchServices = this.modelLayerFactory.newSearchServices();
+        recordServices = this.modelLayerFactory.newRecordServices();
     }
 
     /**
@@ -107,6 +110,12 @@ public class ThesaurusManager implements StatefulService {
             } catch (ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
                 // La voute ne contient pas le fichier.
                 thesaurusFile = IOUtils.toInputStream("");
+                thesaurusConfig.setContent(null);
+                try {
+                    recordServices.update(thesaurusConfig);
+                    new RuntimeException("Error while updating thesaurus config. Id:" + thesaurusConfig.getId());
+                } catch (RecordServicesException e) {
+                }
                 new RuntimeException("Invalid Thesaurus file content in DAO.");
             }
 
