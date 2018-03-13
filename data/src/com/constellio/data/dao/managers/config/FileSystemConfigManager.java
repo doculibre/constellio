@@ -435,6 +435,14 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
+	private void cacheRemoveAndCallListeners(String path ) {
+		removeFromCache(path);
+
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
+	}
+
 	@Override
 	public synchronized void update(String path, String version, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
@@ -616,6 +624,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	void validateHash(String path, String version, String expectedVersion)
 			throws OptimisticLockingConfiguration {
 		if (!version.equals(expectedVersion)) {
+			cacheRemoveAndCallListeners(path);
 			throw new ConfigManagerException.OptimisticLockingConfiguration(path, expectedVersion, version);
 		}
 	}
