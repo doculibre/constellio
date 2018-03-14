@@ -59,6 +59,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
+	public static final String THESAURUS_TITLE = "theasaurusTitle";
+	public static final String THESAURUS_COLUMN = "thesaurusColumn";
 
 	protected T presenter;
 	private CssLayout suggestions;
@@ -140,24 +142,33 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int count = 0;
 		VerticalLayout verticalLayout = new VerticalLayout();
 		
-		
+		int layoutCounter = 0;
 		CssLayout cssLayout = new CssLayout();
 		if(suggestionList != null && suggestionList.size() > 0) {
 
-			Label title = new Label("<h3 style=\"Font-Weight: Bold;\">"  +$("SearchView.suggestion.title", presenter.getUserSearchExpression()) +  "</h3>");
-			title.setContentMode(ContentMode.HTML);
+			Label title = new Label($("SearchView.suggestion.title", presenter.getUserSearchExpression()));
+			title.setStyleName(THESAURUS_TITLE);
 			verticalLayout.addComponent(title);
 			verticalLayout.addComponent(cssLayout);
 			
 			VerticalLayout currentVerticalLayout = null;
 			for (String entry : suggestionList) {
-				count++;
-				if (currentVerticalLayout == null || count % 6 == 0) {
+				if (currentVerticalLayout == null || count % 7 == 0) {
+
 					currentVerticalLayout = new VerticalLayout();
-					currentVerticalLayout.addStyleName("thesaurusColumn");
+					if(layoutCounter != 0) {
+						currentVerticalLayout.addStyleName(THESAURUS_COLUMN + layoutCounter);
+					} else {
+						currentVerticalLayout.addStyleName(THESAURUS_COLUMN);
+					}
+
+					if(layoutCounter == 2) {
+						layoutCounter = 0;
+					}
 					currentVerticalLayout.setWidthUndefined();
 					cssLayout.addComponent(currentVerticalLayout);
 				}
+				count++;
 				Button button = new Button();
 				button.setCaption(entry);
 				button.addClickListener(new ClickListener() {
