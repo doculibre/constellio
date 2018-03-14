@@ -139,6 +139,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		List<String> suggestionList = presenter.getSuggestion();
 		int count = 0;
 		VerticalLayout verticalLayout = new VerticalLayout();
+		
+		
 		CssLayout cssLayout = new CssLayout();
 		if(suggestionList != null && suggestionList.size() > 0) {
 
@@ -146,9 +148,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			title.setContentMode(ContentMode.HTML);
 			verticalLayout.addComponent(title);
 			verticalLayout.addComponent(cssLayout);
-			VerticalLayout currentVerticalLayout = new VerticalLayout();
-			cssLayout.addComponent(currentVerticalLayout);
-			for(String entry : suggestionList) {
+			
+			VerticalLayout currentVerticalLayout = null;
+			for (String entry : suggestionList) {
+				count++;
+				if (currentVerticalLayout == null || count % 6 == 0) {
+					currentVerticalLayout = new VerticalLayout();
+					currentVerticalLayout.addStyleName("thesaurusColumn");
+					currentVerticalLayout.setWidthUndefined();
+					cssLayout.addComponent(currentVerticalLayout);
+				}
 				Button button = new Button();
 				button.setCaption(entry);
 				button.addClickListener(new ClickListener() {
@@ -159,14 +168,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				});
 				button.addStyleName(ValoTheme.BUTTON_LINK);
 				currentVerticalLayout.addComponent(button);
-				count++;
-				if(count % 6 == 0) {
-					cssLayout.addComponent(currentVerticalLayout);
-					currentVerticalLayout = new VerticalLayout();
-				}
-			}
-			if(count > 0 && count % 6 != 0) {
-				cssLayout.addComponent(currentVerticalLayout);
 			}
 		}
 
