@@ -870,11 +870,11 @@ public class DecommissioningService {
 		}
 		LocalDateTime now = LocalDateTime.now();
 
-		duplicatedDocument.setFormCreatedBy(currentUser);
-		duplicatedDocument.setFormCreatedOn(now);
-		duplicatedDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
-		duplicatedDocument.setCreatedOn(now).setModifiedOn(now);
-		return duplicatedDocument;
+		newDocument.setFormCreatedBy(currentUser);
+		newDocument.setFormCreatedOn(now);
+		newDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		newDocument.setCreatedOn(now).setModifiedOn(now);
+		return newDocument;
 	}
 
 	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
