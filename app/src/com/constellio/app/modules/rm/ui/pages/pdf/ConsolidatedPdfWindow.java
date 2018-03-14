@@ -29,103 +29,104 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
-	
+
 	private static final String ATTRIBUTE_KEY = ConsolidatedPdfWindow.class.getName();
-	
-    public static final String WIDTH = "100%";
-    private Map<String, Tab> pdfTabs = new HashMap<>();
-    private Map<String, PdfStatusViewImpl> pdfTabPanels = new HashMap<>();
 
-    private TabSheet tabSheet;
+	public static final String WIDTH = "100%";
+	private Map<String, Tab> pdfTabs = new HashMap<>();
+	private Map<String, PdfStatusViewImpl> pdfTabPanels = new HashMap<>();
 
-    private Button closeWindowButton;
-    private Button minimizeWindowButton;
+	private TabSheet tabSheet;
 
-    public ConsolidatedPdfWindow() {
-        super($("ConsolidatedPDFWindow.caption"));
-        setId("ConsolidatedPDFWindowId");
-        init();
-    }
+	private Button closeWindowButton;
+	private Button minimizeWindowButton;
 
-    private void init() {
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setSpacing(true);
-        verticalLayout.addStyleName("consolidated-pdf-window-content");
-        verticalLayout.addComponent(tabSheet = new TabSheet());
+	public ConsolidatedPdfWindow() {
+		super($("ConsolidatedPDFWindow.caption"));
+		setId("ConsolidatedPDFWindowId");
+		init();
+	}
 
-        tabSheet.setWidth("100%");
+	private void init() {
+		VerticalLayout verticalLayout = new VerticalLayout();
+		verticalLayout.setSpacing(true);
+		verticalLayout.addStyleName("consolidated-pdf-window-content");
+		verticalLayout.addComponent(tabSheet = new TabSheet());
 
-        HorizontalLayout buttonsLayout = new I18NHorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.setWidth(WIDTH);
+		tabSheet.setWidth("100%");
 
-        minimizeWindowButton = new Button($("ConsolidatedPDFWindow.minimize"));
-        minimizeWindowButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-            	minimize();
-            }
-        });
+		HorizontalLayout buttonsLayout = new I18NHorizontalLayout();
+		buttonsLayout.setSpacing(true);
+		buttonsLayout.setWidth(WIDTH);
 
-        closeWindowButton = new Button($("ConsolidatedPDFWindow.close"));
-        closeWindowButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                close();
-            }
-        });
-        closeWindowButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        closeWindowButton.setVisible(false);
+		minimizeWindowButton = new Button($("ConsolidatedPDFWindow.minimize"));
+		minimizeWindowButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				minimize();
+			}
+		});
 
-        buttonsLayout.addComponent(closeWindowButton);
-        buttonsLayout.addComponent(minimizeWindowButton);
-        buttonsLayout.setComponentAlignment(closeWindowButton, Alignment.TOP_CENTER);
-        buttonsLayout.setComponentAlignment(minimizeWindowButton, Alignment.TOP_CENTER);
+		closeWindowButton = new Button($("ConsolidatedPDFWindow.close"));
+		closeWindowButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				close();
+			}
+		});
+		closeWindowButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
+		closeWindowButton.setVisible(false);
 
-        verticalLayout.addComponent(buttonsLayout);
-        verticalLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
-        verticalLayout.setExpandRatio(tabSheet, 1);
+		buttonsLayout.addComponent(closeWindowButton);
+		buttonsLayout.addComponent(minimizeWindowButton);
+		buttonsLayout.setComponentAlignment(closeWindowButton, Alignment.TOP_CENTER);
+		buttonsLayout.setComponentAlignment(minimizeWindowButton, Alignment.TOP_CENTER);
 
-        setContent(verticalLayout);
+		verticalLayout.addComponent(buttonsLayout);
+		verticalLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
+		verticalLayout.setExpandRatio(tabSheet, 1);
 
-        setHeight("90%");
-        setWidth("60%");
-        setModal(false);
-        setClosable(false);
-    }
-    
+		setContent(verticalLayout);
+
+		setHeight("90%");
+		setWidth("60%");
+		setModal(false);
+		setClosable(false);
+	}
+
 	private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata) {
-        restoreMinimized();
+		restoreMinimized();
 
-        if (pdfTabPanels.containsKey(pdfFileName)) {
-            String baseName = FilenameUtils.getBaseName(pdfFileName);
-            String extension = FilenameUtils.getExtension(pdfFileName);
+		if (pdfTabPanels.containsKey(pdfFileName)) {
+			String baseName = FilenameUtils.getBaseName(pdfFileName);
+			String extension = FilenameUtils.getExtension(pdfFileName);
 
-            Set<String> keySet = pdfTabPanels.keySet();
-            for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension););
-        }
+			Set<String> keySet = pdfTabPanels.keySet();
+			for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension); )
+				;
+		}
 
-        PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);
-        panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
-            @Override
-            public void firePdfGenerationCompleted(PdfStatusViewImpl panel, boolean errorOccurred) {
-                checkAllGenerationStatus();
-                restoreMinimized();
-            	Tab pdfTab = pdfTabs.get(panel.getPdfFileName());
-                tabSheet.setSelectedTab(pdfTab);
-//                setContent(getContent());
-            }
-        });
+		PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);
+		panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
+			@Override
+			public void firePdfGenerationCompleted(PdfStatusViewImpl panel, boolean errorOccurred) {
+				checkAllGenerationStatus();
+				restoreMinimized();
+				Tab pdfTab = pdfTabs.get(panel.getPdfFileName());
+				tabSheet.setSelectedTab(pdfTab);
+				//                setContent(getContent());
+			}
+		});
 
-        Tab tab = tabSheet.addTab(panel, pdfFileName);
+		Tab tab = tabSheet.addTab(panel, pdfFileName);
 
-        pdfTabs.put(pdfFileName, tab);
-        pdfTabPanels.put(pdfFileName, panel);
+		pdfTabs.put(pdfFileName, tab);
+		pdfTabPanels.put(pdfFileName, panel);
 
-        tabSheet.setSelectedTab(tab);
-    }
-    
-    public static ConsolidatedPdfWindow getInstance() {
+		tabSheet.setSelectedTab(tab);
+	}
+
+	public static ConsolidatedPdfWindow getInstance() {
 		ConsolidatedPdfWindow instance = null;
 		for (Window uiWindow : UI.getCurrent().getWindows()) {
 			if (uiWindow instanceof ConsolidatedPdfWindow) {
@@ -133,7 +134,7 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 				break;
 			}
 		}
-		
+
 		if (instance == null) {
 			instance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
 			if (instance == null) {
@@ -141,66 +142,68 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 				ConstellioUI.getCurrent().setAttribute(ATTRIBUTE_KEY, instance);
 			}
 			UI.getCurrent().addWindow(instance);
-		} 
+		}
 		return instance;
-    }
-    
-    @Override
+	}
+
+	@Override
 	public void close() {
-    	ConstellioUI.getCurrent().setAttribute(ATTRIBUTE_KEY, null);
+		ConstellioUI.getCurrent().setAttribute(ATTRIBUTE_KEY, null);
 		super.close();
 	}
 
 	public static void ensurePresentIfRunningAndNotAdded() {
-		ConsolidatedPdfWindow contextInstance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
-		if (contextInstance != null) {
-			ConsolidatedPdfWindow uiInstance = null;
-			for (Window uiWindow : UI.getCurrent().getWindows()) {
-				if (uiWindow instanceof ConsolidatedPdfWindow) {
-					uiInstance = (ConsolidatedPdfWindow) uiWindow;
-					break;
+		if (ConstellioUI.getCurrent() != null) {
+			ConsolidatedPdfWindow contextInstance = ConstellioUI.getCurrent().getAttribute(ATTRIBUTE_KEY);
+			if (contextInstance != null) {
+				ConsolidatedPdfWindow uiInstance = null;
+				for (Window uiWindow : UI.getCurrent().getWindows()) {
+					if (uiWindow instanceof ConsolidatedPdfWindow) {
+						uiInstance = (ConsolidatedPdfWindow) uiWindow;
+						break;
+					}
+				}
+				if (uiInstance == null) {
+					UI.getCurrent().addWindow(contextInstance);
+					contextInstance.minimize();
 				}
 			}
-			if (uiInstance == null) {
-				UI.getCurrent().addWindow(contextInstance);
-				contextInstance.minimize();
+		}
+	}
+
+	protected void checkAllGenerationStatus() {
+		for (PdfStatusViewImpl panel : pdfTabPanels.values()) {
+			if (!panel.isFinished()) {
+				setModal(false);
+				minimizeWindowButton.setVisible(true);
+				closeWindowButton.setVisible(false);
+				setClosable(false);
+				return;
 			}
 		}
-    }
 
-    protected void checkAllGenerationStatus() {
-        for (PdfStatusViewImpl panel: pdfTabPanels.values()) {
-            if (!panel.isFinished()) {
-                setModal(false);
-                minimizeWindowButton.setVisible(true);
-                closeWindowButton.setVisible(false);
-                setClosable(false);
-                return;
-            }
-        }
+		setModal(true);
+		minimizeWindowButton.setVisible(false);
+		closeWindowButton.setVisible(true);
+		setClosable(true);
+	}
 
-        setModal(true);
-        minimizeWindowButton.setVisible(false);
-        closeWindowButton.setVisible(true);
-        setClosable(true);
-    }
+	private void show() {
+		if (!isAttached()) {
+			setClosable(false);
+			UI.getCurrent().addWindow(this);
+		}
+	}
 
-    private void show() {
-        if (!isAttached()) {
-        	setClosable(false);
-            UI.getCurrent().addWindow(this);
-        }
-    }
-
-    public void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
-        checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
-        checkArgument(!CollectionUtils.isEmpty(documentIds), "Document ids is mandatory and must not be empty");
-        addTabSheet(pdfName, documentIds, withMetadata);
-        show();
-    }
+	public void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
+		checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
+		checkArgument(!CollectionUtils.isEmpty(documentIds), "Document ids is mandatory and must not be empty");
+		addTabSheet(pdfName, documentIds, withMetadata);
+		show();
+	}
 
 	@Override
 	public void poll(PollEvent event) {
 	}
-	
+
 }

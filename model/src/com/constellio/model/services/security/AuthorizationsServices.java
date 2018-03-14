@@ -149,9 +149,9 @@ public class AuthorizationsServices {
 
 		List<User> returnedUsers = new ArrayList<>();
 
-		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+		for (User user : schemas(concept.getCollection()).getAllUsersInUnmodifiableState()) {
 			if (user.has(permission).on(concept)) {
-				returnedUsers.add(user);
+				returnedUsers.add(user.getCopyOfOriginalRecord());
 			}
 		}
 
@@ -219,9 +219,9 @@ public class AuthorizationsServices {
 
 		List<User> returnedUsers = new ArrayList<>();
 
-		for (User user : schemas(concept.getCollection()).getAllUsers()) {
+		for (User user : schemas(concept.getCollection()).getAllUsersInUnmodifiableState()) {
 			if (user.has(permission).specificallyOn(concept)) {
-				returnedUsers.add(user);
+				returnedUsers.add(user.getCopyOfOriginalRecord());
 			}
 		}
 
@@ -273,7 +273,7 @@ public class AuthorizationsServices {
 		} else {
 			List<String> returnedIds = new ArrayList<>();
 			for (MetadataSchemaType type : types.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes())) {
-				for (Record record : searchServices.getAllRecords(type)) {
+				for (Record record : searchServices.getAllRecordsInUnmodifiableState(type)) {
 					if (user.has(permission).on(record)) {
 						returnedIds.add(record.getId());
 					}
@@ -589,9 +589,9 @@ public class AuthorizationsServices {
 			}
 		}
 
-		for (SolrAuthorizationDetails authorizationDetail : schemas.getAllAuthorizations()) {
+		for (SolrAuthorizationDetails authorizationDetail : schemas.getAllAuthorizationsInUnmodifiableState()) {
 			if (recordsIdsWithPosibleAuths.contains(authorizationDetail.getTarget())) {
-				authorizationDetails.add(authorizationDetail);
+				authorizationDetails.add(authorizationDetail.getCopyOfOriginalRecord());
 			}
 		}
 
@@ -722,7 +722,7 @@ public class AuthorizationsServices {
 			SchemasRecordsServices schemas = schemas(record.getCollection());
 
 			authIds = new ArrayList<>();
-			for (AuthorizationDetails authorizationDetails : schemas.getAllAuthorizations()) {
+			for (AuthorizationDetails authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
 
 				boolean targettingRecordOrAncestor =
 						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
@@ -989,8 +989,8 @@ public class AuthorizationsServices {
 		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType(User.SCHEMA_TYPE);
 		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
 
-		List<Record> allUsers = searchServices.getAllRecords(userSchemaType);
-		List<Record> allGroups = searchServices.getAllRecords(groupSchemaType);
+		List<Record> allUsers = searchServices.getAllRecordsInUnmodifiableState(userSchemaType);
+		List<Record> allGroups = searchServices.getAllRecordsInUnmodifiableState(groupSchemaType);
 
 		if (principals != null) {
 			for (Record user : allUsers) {

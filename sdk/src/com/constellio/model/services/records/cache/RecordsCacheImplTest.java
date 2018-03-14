@@ -9,6 +9,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +35,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordIsUnmodifiable;
 import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.search.StatusFilter;
@@ -134,13 +136,13 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenConfigureCacheThatIsAlreadyConfiguredThenReconfigure()
+	public void whenConfigureCacheThatIsAlreadyConfiguredThenNotReconfigured()
 			throws Exception {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(zeType, 100, withoutIndexByMetadata));
 
-		assertThat(cache.getCacheConfigOf(zeType).isVolatile()).isTrue();
+		assertThat(cache.getCacheConfigOf(zeType).isVolatile()).isFalse();
 
 	}
 
@@ -852,6 +854,26 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenGetAllValuesOfPermanentCachesThenAllReturnedInModifiableState()
+			throws Exception {
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThat(cache.getAllValues(anotherType)).extracting("id").containsOnly("1", "2", "3");
+		assertThat(cache.getAllValues(zeType)).extracting("id").containsOnly("4", "5", "6");
+
+		cache.getAllValues(anotherType).get(0).set(Schemas.TITLE, "test");
+	}
+
+	@Test
 	public void whenCacheQueryResultsThenBasedOnSort()
 			throws Exception {
 
@@ -1394,6 +1416,31 @@ public class RecordsCacheImplTest extends ConstellioTest {
 				}
 			}
 		});
+
+		when(record.getUnmodifiableCopyOfOriginalRecord()).thenAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				if (givenDisabledRecordDuplications) {
+					return record;
+				} else {
+					boolean dirty = record.isDirty();
+					boolean fullyLoaded = record.isFullyLoaded();
+					boolean saved = record.isSaved();
+					Boolean logicallyDeleted = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+					Record recordCopy = newRecord(schemaType, id, version);
+
+					when(recordCopy.set(any(Metadata.class), any(Object.class)))
+							.thenThrow(RecordImplException_RecordIsUnmodifiable.class);
+					when(recordCopy.isDirty()).thenReturn(dirty);
+					when(recordCopy.isFullyLoaded()).thenReturn(fullyLoaded);
+					when(recordCopy.isSaved()).thenReturn(saved);
+					when(recordCopy.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(logicallyDeleted);
+					return recordCopy;
+				}
+			}
+		});
+
 		return record;
 	}
 
