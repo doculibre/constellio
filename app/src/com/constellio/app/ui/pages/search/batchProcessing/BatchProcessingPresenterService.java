@@ -116,14 +116,15 @@ public class BatchProcessingPresenterService {
 	}
 
 	public String getOriginType(LogicalSearchQuery query) {
-		if (searchServices.getResultsCount(query) == 0) {
+		long resultsCount = searchServices.getResultsCount(query);
+		if (resultsCount == 0) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
 		Map<String, List<FacetValue>> typeId_s = searchServices.query(query.setNumberOfRows(0).addFieldFacet("typeId_s"))
 				.getFieldFacetValues();
 		Set<String> types = new HashSet<>();
 		for (FacetValue facetValue : typeId_s.get("typeId_s")) {
-			if (facetValue.getQuantity() != 0) {
+			if (facetValue.getQuantity() == resultsCount) {
 				types.add(facetValue.getValue());
 			}
 		}
