@@ -507,11 +507,15 @@ public class ThesaurusService implements Serializable {
 			}
 		});
 
+
 		for (SkosConcept linkConcept : linkConcepts) {
 			String prefLabel = linkConcept.getPrefLabel(currentLanguage);
 			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 			allLinks.add(prefLabel);
 		}
+
+		String queryAdjusted = StringUtils.capitalize(input.toLowerCase());
+		allLinks.remove(queryAdjusted);
 
 		int max = 21;
 		for (int i = 0; i < disambiguationConcepts.size(); i++) {
