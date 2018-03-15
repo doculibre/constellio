@@ -156,11 +156,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				if (currentVerticalLayout == null || count % 7 == 0) {
 
 					currentVerticalLayout = new VerticalLayout();
-					if(layoutCounter != 0) {
-						currentVerticalLayout.addStyleName(THESAURUS_COLUMN + layoutCounter);
-					} else {
-						currentVerticalLayout.addStyleName(THESAURUS_COLUMN);
-					}
+					currentVerticalLayout.addStyleName(THESAURUS_COLUMN);
+					currentVerticalLayout.addStyleName(THESAURUS_COLUMN + layoutCounter);
 
 					if(layoutCounter == 2) {
 						layoutCounter = 0;
