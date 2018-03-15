@@ -47,12 +47,12 @@ public class TemporaryRecordVO extends RecordVO {
 		set(CONTENT, content);
 	}
 
-    public int getNumberOfDaysBeforeDestruction(){
-        return Integer.parseInt((String) get(DAY_BEFORE_DESTRUCTION));
+    public double getNumberOfDaysBeforeDestruction(){
+        return Double.parseDouble((String) get(DAY_BEFORE_DESTRUCTION));
     }
 
     public void setNumberOfDaysBeforeDestruction(int numberOfDaysBeforeDestruction) {
-        set(DAY_BEFORE_DESTRUCTION, numberOfDaysBeforeDestruction);
+        set(DAY_BEFORE_DESTRUCTION, new Double(numberOfDaysBeforeDestruction));
     }
 
 }
