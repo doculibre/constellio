@@ -59,7 +59,6 @@ public class User extends RecordWrapper {
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
-	public static final String DEFAULT_FOLLOWER_WHEN_CREATING_TASK = "defaultFollowerWhenCreatingTask";
 
 
 	private transient Roles roles;

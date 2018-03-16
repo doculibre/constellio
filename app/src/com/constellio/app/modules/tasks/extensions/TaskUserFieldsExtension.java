@@ -6,6 +6,7 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.ui.builders.TaskFollowerFromVOBuilder;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
@@ -41,7 +42,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 		if(params.getMainComponent() instanceof ModifyProfileView) {
 			TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
 			User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
-			TaskFollower taskFollower = user.get(User.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
+			TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
 			AdditionalTaskFollowerFieldImpl field = new AdditionalTaskFollowerFieldImpl();
 
 			if(taskFollower != null) {
@@ -56,7 +57,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 
 		@Override
 		public String getMetadataLocalCode() {
-			return User.DEFAULT_FOLLOWER_WHEN_CREATING_TASK;
+			return TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK;
 		}
 
 		@Override
