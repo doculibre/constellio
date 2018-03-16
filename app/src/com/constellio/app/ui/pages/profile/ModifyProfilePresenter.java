@@ -6,6 +6,9 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -58,7 +61,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         return result;
     }
 
-    public void saveButtonClicked(ProfileVO profileVO) {
+    public void saveButtonClicked(ProfileVO profileVO, HashMap<String, Object> additionnalMetadataValues) {
         User user = userServices.getUserInCollection(profileVO.getUsername(), view.getCollection());
         user.setPhone(profileVO.getPhone());
         user.setJobTitle(profileVO.getJobTitle());
@@ -85,6 +88,12 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         try {
             if (profileVO.getPassword() != null && profileVO.getPassword().equals(profileVO.getConfirmPassword())) {
                 authenticationService.changePassword(profileVO.getUsername(), profileVO.getOldPassword(), profileVO.getPassword());
+            }
+
+            Iterator<Map.Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
+            while (additionnalMetadatasIterator.hasNext()) {
+                Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
+                user.set(metadataValue.getKey(), metadataValue.getValue());
             }
 
             recordServices.update(user.getWrappedRecord());
@@ -212,7 +221,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
     }
 
     ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit, SearchPageLength defaultPageLength) {
+                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay,
+                           String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit, SearchPageLength defaultPageLength) {
         String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
@@ -332,5 +342,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
     public boolean isRMModuleActivated() {
         return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
+    }
+
+    public User getUserRecord() {
+        return getCurrentUser();
     }
 }

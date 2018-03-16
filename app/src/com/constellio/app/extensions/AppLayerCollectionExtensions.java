@@ -43,6 +43,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -61,6 +62,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 public class AppLayerCollectionExtensions {
 
@@ -588,4 +590,12 @@ public class AppLayerCollectionExtensions {
 	public Component getDefaultDisplayForReference(String id) {
 		return new ReferenceDisplay(id);
 	}
+
+    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+			additionnalFields.addAll(extension.getAdditionnalFields(params));
+		}
+		return additionnalFields;
+    }
 }

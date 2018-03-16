@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.components.fields;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.entities.records.wrappers.User;
@@ -38,15 +39,6 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 	private CheckBox followTaskCompletedField;
 	@PropertyId("followTaskDeleted")
 	private CheckBox followTaskDeletedField;
-	private String defaultUserId;
-
-	public TaskFollowerFieldImpl() {
-		defaultUserId = null;
-	}
-
-	public TaskFollowerFieldImpl(String userId) {
-		defaultUserId = userId;
-	}
 
 	@Override
 	protected Component initContent() {
@@ -91,12 +83,6 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 
 		followerIdField = new LookupRecordField(User.SCHEMA_TYPE);
 		followerIdField.setCaption($("TaskFollowerField.followerId"));
-
-		if(defaultUserId != null){
-		    taskFollowerVO.setFollowerId(defaultUserId);
-			followerIdField.setValue(defaultUserId);
-			followerIdField.setVisible(false);
-		}
 		
 		followTaskStatusModifiedField = new CheckBox();
 		followTaskStatusModifiedField.setCaption($("TaskFollowerField.followTaskStatusModified"));
@@ -171,5 +157,8 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 			super.commit();
 		} 
 	}
-	
+
+	public void setTaskFollowerVO(TaskFollowerVO taskFollowerVO) {
+		this.taskFollowerVO = taskFollowerVO;
+	}
 }

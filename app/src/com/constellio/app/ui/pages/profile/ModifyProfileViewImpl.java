@@ -1,10 +1,15 @@
 package com.constellio.app.ui.pages.profile;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-import com.constellio.app.modules.tasks.ui.components.fields.TaskFollowerFieldImpl;
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -93,8 +98,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private Field defaultAdministrativeUnitField;
 	@PropertyId("agentManuallyDisabled")
 	private CheckBox agentManuallyDisabledField;
-    @PropertyId("defaultFollowerWhenCreatingTask")
-	private TaskFollowerFieldImpl defaultFollowerField;
 
 
 	private boolean agentManuallyDisabledVisible;
@@ -357,16 +360,21 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
 		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
 
-		defaultFollowerField = new TaskFollowerFieldImpl(getSessionContext().getCurrentUser().getId());
-		defaultFollowerField.setId("defaultFollowerWhenCreatingTask");
-
-        form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-                phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-                taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField, defaultFollowerField) {
+		List<Field> allFields = new ArrayList<>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
+				taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField));
+		final List<AdditionnalRecordField> additionnalFields = getAdditionnalFields();
+		allFields.addAll(additionnalFields);
+		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
-				presenter.saveButtonClicked(profileVO);
+				HashMap<String, Object> additionnalMetadataValues = new HashMap<>();
+				for(AdditionnalRecordField field: additionnalFields) {
+					field.commit();
+					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
+				}
+				presenter.saveButtonClicked(profileVO, additionnalMetadataValues);
 			}
 
 			@Override
@@ -411,4 +419,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		this.agentManuallyDisabledVisible = visible;
 	}
 
+	public List<AdditionnalRecordField> getAdditionnalFields() {
+		RecordFieldsExtensionParams params = new RecordFieldsExtensionParams(this, presenter.getUserRecord().getWrappedRecord());
+		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getAdditionnalFields(params);
+	}
 }

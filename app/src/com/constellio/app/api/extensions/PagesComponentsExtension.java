@@ -2,7 +2,13 @@ package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.vaadin.ui.Field;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PagesComponentsExtension {
 
@@ -24,5 +30,9 @@ public class PagesComponentsExtension {
 
 	public void updateComponent(UpdateComponentExtensionParams params) {
 
+	}
+
+	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+		return new ArrayList<>();
 	}
 }

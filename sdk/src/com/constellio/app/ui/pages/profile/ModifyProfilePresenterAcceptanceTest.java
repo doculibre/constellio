@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.util.HashMap;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,7 +81,7 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
         when(view.getUIContext()).thenReturn(uiContext);
 
         presenter = new ModifyProfilePresenter(view);
-        presenter.saveButtonClicked(profileVO);
+        presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 
         rolesManager = getModelLayerFactory().getRolesManager();
 
@@ -91,7 +92,7 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
     public void whenSaveButtonClickedThenUpdateUserCredentialAndUser()
             throws Exception {
 
-        presenter.saveButtonClicked(profileVO);
+        presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 
         assertThat(userServices.getUser(bobGratton).getPersonalEmails()).containsOnly("bob@hotmail.com", "bob@gmail.com");
     }

@@ -29,7 +29,7 @@ public class TaskToVOBuilder extends RecordToVOBuilder {
 		return value;
 	}
 
-	private TaskFollowerVO toTaskFollowerVO(TaskFollower taskFollower) {
+	public TaskFollowerVO toTaskFollowerVO(TaskFollower taskFollower) {
 		return new TaskFollowerVO(taskFollower.getFollowerId(), taskFollower.getFollowTaskAssigneeModified(),
 				taskFollower.getFollowSubTasksModified(), taskFollower.getFollowTaskStatusModified(),
 				taskFollower.getFollowTaskCompleted(), taskFollower.getFollowTaskDeleted());
