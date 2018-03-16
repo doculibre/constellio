@@ -38,6 +38,15 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 	private CheckBox followTaskCompletedField;
 	@PropertyId("followTaskDeleted")
 	private CheckBox followTaskDeletedField;
+	private String defaultUserId;
+
+	public TaskFollowerFieldImpl() {
+		defaultUserId = null;
+	}
+
+	public TaskFollowerFieldImpl(String userId) {
+		defaultUserId = userId;
+	}
 
 	@Override
 	protected Component initContent() {
@@ -82,6 +91,12 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 
 		followerIdField = new LookupRecordField(User.SCHEMA_TYPE);
 		followerIdField.setCaption($("TaskFollowerField.followerId"));
+
+		if(defaultUserId != null){
+		    taskFollowerVO.setFollowerId(defaultUserId);
+			followerIdField.setValue(defaultUserId);
+			followerIdField.setVisible(false);
+		}
 		
 		followTaskStatusModifiedField = new CheckBox();
 		followTaskStatusModifiedField.setCaption($("TaskFollowerField.followTaskStatusModified"));

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.profile;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.model.entities.enums.SearchPageLength;
 
@@ -27,6 +28,7 @@ public class ProfileVO implements Serializable {
 	String fax;
 	String address;
 	boolean agentManuallyDisabled;
+	TaskFollowerVO defaultFollowerWhenCreatingTask;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
@@ -251,4 +253,12 @@ public class ProfileVO implements Serializable {
 	public void setDefaultPageLength(SearchPageLength defaultPageLength) {
 		this.defaultPageLength = defaultPageLength;
 	}
+
+    public TaskFollowerVO getDefaultFollowerWhenCreatingTask() {
+        return defaultFollowerWhenCreatingTask;
+    }
+
+    public void setDefaultFollowerWhenCreatingTask(TaskFollowerVO defaultFollowerWhenCreatingTask) {
+        this.defaultFollowerWhenCreatingTask = defaultFollowerWhenCreatingTask;
+    }
 }
