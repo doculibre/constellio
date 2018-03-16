@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.display;
 
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.AccentApostropheCleaner;
 
 import java.util.Comparator;
 
@@ -18,7 +19,13 @@ public class SortFormMetadataVO implements Comparator<Object> {
     public int compare(Object o1, Object o2) {
         FormMetadataVO formMetadataVO1 = (FormMetadataVO) o1;
         FormMetadataVO formMetadataVO2 = (FormMetadataVO) o2;
-        return formMetadataVO1.getLabel(sessionContext.getCurrentLocale().getLanguage()).toLowerCase()
-                .compareTo((formMetadataVO2.getLabel(sessionContext.getCurrentLocale().getLanguage()).toLowerCase().toLowerCase()));
+
+        String firstValue = formMetadataVO1.getLabel(sessionContext.getCurrentLocale().getLanguage()).toLowerCase();
+        String secondValue = formMetadataVO2.getLabel(sessionContext.getCurrentLocale().getLanguage()).toLowerCase();
+
+        String firstValueWithoutAccents = AccentApostropheCleaner.removeAccents(firstValue);
+        String secondValueWithoutAccents = AccentApostropheCleaner.removeAccents(secondValue);
+
+        return firstValueWithoutAccents.compareTo(secondValueWithoutAccents);
     }
 }
