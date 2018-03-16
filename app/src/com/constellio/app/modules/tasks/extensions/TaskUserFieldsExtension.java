@@ -40,8 +40,9 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
 		if(params.getMainComponent() instanceof ModifyProfileView) {
-			TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
 			User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+			TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
 			TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
 			AdditionalTaskFollowerFieldImpl field = new AdditionalTaskFollowerFieldImpl();
 
