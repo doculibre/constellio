@@ -69,4 +69,5 @@ public interface RecordsCache {
 	boolean isFullyLoaded(String schemaType);
 
 	void markAsFullyLoaded(String schemaType);
+
 }

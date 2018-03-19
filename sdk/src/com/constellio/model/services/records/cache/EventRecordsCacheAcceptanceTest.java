@@ -45,7 +45,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	Transaction transaction;
 	User adminInZeCollection, adminInAnotherCollection;
 
-	TestRecord record1, record2, record3, record4, record5, record18, record42;
+	TestRecord uncachedRecord1, uncachedRecord2, permanentRecord1, permanentRecord2, volatileRecord3, volatileRecord4, volatileRecord1, volatileRecord2;
 
 	TestsSchemasSetup zeCollectionSchemas = new TestsSchemasSetup(zeCollection).withSecurityFlag(false);
 	ZeSchemaMetadatas zeCollectionSchemaWithVolatileCache = zeCollectionSchemas.new ZeSchemaMetadatas();
@@ -82,8 +82,9 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		inCollection(anotherCollection).giveWriteAccessTo(admin);
 
 		defineSchemasManager()
-				.using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata());
-		defineSchemasManager().using(anotherCollectionSchemas);
+				.using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata()
+						.withAStringMetadataInAnotherSchema(whichIsUnique));
+		defineSchemasManager().using(anotherCollectionSchemas.withAStringMetadataInAnotherSchema(whichIsUnique));
 
 		adminInZeCollection = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		adminInAnotherCollection = getModelLayerFactory().newUserServices().getUserInCollection("admin", anotherCollection);
@@ -148,8 +149,8 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			recordsCaches.insert(record);
 		}
 
-		assertThatRecords("1", "2", "3", "18", "42").areNotIn(recordsCaches);
-		assertThatRecords("1", "2", "3", "18", "42").areNotIn(otherInstanceRecordsCaches);
+		assertThatRecords("un1", "p2", "v3", "v1", "v2").areNotIn(recordsCaches);
+		assertThatRecords("un1", "p2", "v3", "v1", "v2").areNotIn(otherInstanceRecordsCaches);
 
 		records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).returnAll()));
@@ -157,9 +158,17 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			assertThat(record.isFullyLoaded()).isTrue();
 			recordsCaches.insert(record);
 		}
+		assertThatRecords("un1", "un2").areNotInBothCache();
+		assertThatRecords("p1", "p2", "v3", "v1", "v2").areIn(recordsCaches);
+		assertThatRecords("p1", "p2").areIn(otherInstanceRecordsCaches);
+		assertThatRecords("v3", "v1", "v2").areNotIn(otherInstanceRecordsCaches);
 
-		assertThatRecords("2", "3", "18", "42").areIn(recordsCaches);
-		assertThatRecords("2", "3", "18", "42").areIn(otherInstanceRecordsCaches);
+		otherInstanceRecordServices.getDocumentById("v1");
+		otherInstanceRecordServices.getDocumentById("v2");
+		otherInstanceRecordServices.getDocumentById("v3");
+
+		assertThatRecords("un1", "un2").areNotInBothCache();
+		assertThatRecords("p1", "p2", "v1", "v2", "v3").areInBothCache();
 	}
 
 	@Test
@@ -167,7 +176,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithPermanentCache).withTitle("original title"));
+		Record record = transaction.add(newRecordOf("un1", zeCollectionSchemaWithPermanentCache).withTitle("original title"));
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
@@ -189,10 +198,11 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(record.isDirty()).isTrue();
 
 		String type = zeCollectionSchemaWithPermanentCache.typeCode();
-		assertThat(recordsCaches.getCache(zeCollection).getAllValues(type)).extracting("id").containsOnly("1");
+		assertThat(recordsCaches.getCache(zeCollection).getAllValues(type)).extracting("id").containsOnly("un1");
 		recordsCaches.getCache(zeCollection).getAllValues(type).get(0).set(Schemas.TITLE, "test");
 
-		assertThat(recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type)).extracting("id").containsOnly("1");
+		assertThat(recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type)).extracting("id")
+				.containsOnly("un1");
 		try {
 			recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type).get(0).set(Schemas.TITLE, "test");
 			fail("Record should be unmodifiable");
@@ -206,7 +216,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		Record record = transaction.add(newRecordOf("un1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
@@ -234,7 +244,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		Record record = transaction.add(newRecordOf("un1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
@@ -262,29 +272,35 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		loadAllRecordsInCaches();
 
-		assertThatRecords("2", "3", "4").areIn(recordsCaches);
-		assertThatRecords("2", "3", "4").areIn(otherInstanceRecordsCaches);
-		assertThatRecords("1", "5").areNotIn(recordsCaches);
-		assertThatRecords("1", "5").areNotIn(otherInstanceRecordsCaches);
+		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
+		assertThatRecords("p2", "v3", "v4").areIn(otherInstanceRecordsCaches);
+		assertThatRecords("un1", "un2").areNotIn(recordsCaches);
+		assertThatRecords("un1", "un2").areNotIn(otherInstanceRecordsCaches);
 
-		recordServices.logicallyDelete(recordServices.getDocumentById("2"), adminInZeCollection);
-		assertThatRecords("2", "3", "4").areIn(recordsCaches);
-		assertThatRecords("2", "3", "4").areIn(otherInstanceRecordsCaches);
-		assertThatRecords("1", "5").areNotIn(recordsCaches);
-		assertThatRecords("1", "5").areNotIn(otherInstanceRecordsCaches);
+		recordServices.logicallyDelete(recordServices.getDocumentById("p2"), adminInZeCollection);
+		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
+		assertThatRecords("p2", "v3", "v4").areIn(otherInstanceRecordsCaches);
+		assertThatRecords("un1", "un2").areNotIn(recordsCaches);
+		assertThatRecords("un1", "un2").areNotIn(otherInstanceRecordsCaches);
 
-		recordServices.update(recordServices.getDocumentById("3").set(Schemas.LOGICALLY_DELETED_STATUS, true),
+		recordServices.update(recordServices.getDocumentById("v3").set(Schemas.LOGICALLY_DELETED_STATUS, true),
 				adminInZeCollection);
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
+		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
+		assertThatRecords("p2", "v4").areIn(otherInstanceRecordsCaches);
+		assertThatRecords("un1", "un2").areNotIn(recordsCaches);
+		assertThatRecords("un1", "un2", "v3").areNotIn(otherInstanceRecordsCaches);
 
 		recordsCaches.getCache(zeCollection).invalidateAll();
+		otherInstanceRecordsCaches.getCache(zeCollection).invalidateAll();
+		recordsCaches.getCache(anotherCollection).invalidateAll();
+		otherInstanceRecordsCaches.getCache(anotherCollection).invalidateAll();
+		assertThatRecords("p2", "v3", "v4").areNotInBothCache();
 
-		recordServices.getDocumentById("2");
-		recordServices.getDocumentById("3");
-		recordServices.getDocumentById("4");
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
+		recordServices.getDocumentById("p2");
+		recordServices.getDocumentById("v3");
+		recordServices.getDocumentById("v4");
+		assertThatRecords("p2").areInBothCache();
+		assertThatRecords("v3", "v4").areOnlyIn(recordsCaches);
 	}
 
 	@Test
@@ -294,25 +310,27 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		loadAllRecordsInCaches();
 
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
+		assertThatRecords("p2", "v3", "v4").areInBothCache();
+		assertThatRecords("un1", "un2").areNotInBothCache();
 
 		queriesListener.clear();
-		assertThatGetDocumentsByIdReturnEqualRecord(record1, record2, record3, record4, record5);
-		assertThat(queriesListener.byIds).containsOnlyOnce("1", "5");
+		assertThatGetDocumentsByIdReturnEqualRecord(uncachedRecord1, permanentRecord2, volatileRecord3, volatileRecord4,
+				uncachedRecord2);
+		assertThat(queriesListener.byIds).containsOnlyOnce("un1", "un2");
 
 		transaction = new Transaction();
-		transaction.add(record1.set(Schemas.TITLE, "a2"));
-		transaction.add(record2.set(Schemas.TITLE, "b2"));
-		transaction.add(record3.set(Schemas.TITLE, "c2"));
+		transaction.add(uncachedRecord1.set(Schemas.TITLE, "a2"));
+		transaction.add(permanentRecord2.set(Schemas.TITLE, "b2"));
+		transaction.add(volatileRecord3.set(Schemas.TITLE, "c2"));
 		recordServices.execute(transaction);
 
-		recordServices.add(record4.set(Schemas.TITLE, "d2"));
-		recordServices.add(record5.set(Schemas.TITLE, "e2"));
+		recordServices.add(volatileRecord4.set(Schemas.TITLE, "d2"));
+		recordServices.add(uncachedRecord2.set(Schemas.TITLE, "e2"));
 
 		queriesListener.clear();
-		assertThatGetDocumentsByIdReturnEqualRecord(record1, record2, record3, record4, record5);
-		assertThat(queriesListener.byIds).containsOnlyOnce("1", "5");
+		assertThatGetDocumentsByIdReturnEqualRecord(uncachedRecord1, permanentRecord2, volatileRecord3, volatileRecord4,
+				uncachedRecord2);
+		assertThat(queriesListener.byIds).containsOnlyOnce("un1", "un2");
 	}
 
 	@Test
@@ -321,11 +339,11 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		loadAllRecordsInCaches();
 
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
+		assertThatRecords("p2", "v3", "v4").areInBothCache();
+		assertThatRecords("un1", "un2").areNotInBothCache();
 
 		recordsCaches.invalidateAll();
-		assertThatRecords("1", "2", "3", "4", "5").areNotInCache();
+		assertThatRecords("un1", "p2", "v3", "v4", "un2").areNotInBothCache();
 	}
 
 	@Test
@@ -334,52 +352,98 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		givenTestRecords();
 
-		recordServices.getDocumentById("1");
-		recordServices.getDocumentById("2");
-		recordServices.getDocumentById("3");
-		recordServices.getDocumentById("4");
-		recordServices.getDocumentById("5");
-		assertThat(queriesListener.byIds).containsOnlyOnce("1", "2", "3", "4", "5");
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
+		recordServices.getDocumentById("un1");
+		otherInstanceRecordServices.getDocumentById("p1");
+		recordServices.getDocumentById("p2");
+		otherInstanceRecordServices.getDocumentById("p2");
+		otherInstanceRecordServices.getDocumentById("v1");
+		otherInstanceRecordServices.getDocumentById("v2");
+		recordServices.getDocumentById("v2");
+		recordServices.getDocumentById("v3");
+		recordServices.getDocumentById("v4");
+		recordServices.getDocumentById("un2");
+		assertThat(queriesListener.byIds).containsOnlyOnce("un1", "p2", "v3", "v4", "un2");
+		assertThat(otherSystemQueriesListener.byIds).containsOnlyOnce("p1", "v1", "v2");
+		assertThatRecords("p1", "p2").areInBothCache();
+		assertThatRecords("v1").areOnlyIn(otherInstanceRecordsCaches);
+		assertThatRecords("v2").areInBothCache();
+		assertThatRecords("v3", "v4").areOnlyIn(recordsCaches);
+		assertThatRecords("un1", "un2").areNotInBothCache();
 
-		recordServices.getDocumentById("2");
-		recordServices.getDocumentById("3");
-		recordServices.getDocumentById("4");
-		assertThat(queriesListener.byIds).containsOnlyOnce("2", "3", "4");
 	}
 
 	@Test
-	public void whenGetRecordByMetadataThenKeptInCache()
+	public void whenGetRecordByMetadataOnVolatileCachesThenKeptInCacheWithoutBeingSent()
 			throws Exception {
 
 		givenTestRecords();
 		queriesListener.clear();
 		Metadata stringMetadata = zeCollectionSchemaWithVolatileCache.stringMetadata();
 
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
-		assertThat(queriesListener.queries).hasSize(3);
+		assertThat(queriesListener.queries).hasSize(0);
 		assertThat(otherSystemQueriesListener.queries).hasSize(0);
 
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
-		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
-		assertThat(queriesListener.queries).hasSize(3);
-		assertThat(otherSystemQueriesListener.queries).hasSize(0);
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("v3");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("v1");
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("v2");
+		assertThat(queriesListener.queries).hasSize(2);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
 
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("v3");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("v1");
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("v2");
+		assertThat(queriesListener.queries).hasSize(2);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
+
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("v3");
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("v1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("v2");
 		assertThat(queriesListener.queries).hasSize(3);
 		assertThat(otherSystemQueriesListener.queries).hasSize(3);
 
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
-		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("v3");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("v1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("v2");
 		assertThat(queriesListener.queries).hasSize(3);
 		assertThat(otherSystemQueriesListener.queries).hasSize(3);
+
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("v3");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("v1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("v2");
+		assertThat(queriesListener.queries).hasSize(3);
+		assertThat(otherSystemQueriesListener.queries).hasSize(3);
+	}
+
+	@Test
+	public void whenGetRecordByMetadataOnPermanentCachesThenKeptInCacheAndSent()
+			throws Exception {
+
+		givenTestRecords();
+		queriesListener.clear();
+		Metadata stringMetadata = zeCollectionSchemaWithPermanentCache.stringMetadata();
+
+		assertThat(queriesListener.queries).hasSize(0);
+		assertThat(otherSystemQueriesListener.queries).hasSize(0);
+
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p1Code").getId()).isEqualTo("p1");
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "p2Code").getId()).isEqualTo("p2");
+		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
+
+		assertThat(recordServices.getRecordByMetadata(stringMetadata, "p1Code").getId()).isEqualTo("p1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p2Code").getId()).isEqualTo("p2");
+		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
+
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p1Code").getId()).isEqualTo("p1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p2Code").getId()).isEqualTo("p2");
+		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
+
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p1Code").getId()).isEqualTo("p1");
+		assertThat(otherInstanceRecordServices.getRecordByMetadata(stringMetadata, "p2Code").getId()).isEqualTo("p2");
+		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(otherSystemQueriesListener.queries).hasSize(1);
 	}
 
 	@Test
@@ -406,17 +470,21 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		givenTestRecords();
 
-		recordServices.getDocumentById("1", adminInZeCollection);
-		recordServices.getDocumentById("2", adminInZeCollection);
-		recordServices.getDocumentById("3", adminInZeCollection);
-		recordServices.getDocumentById("4", adminInAnotherCollection);
-		recordServices.getDocumentById("5", adminInAnotherCollection);
-		recordServices.getDocumentById("2", adminInZeCollection);
-		recordServices.getDocumentById("3", adminInZeCollection);
-		recordServices.getDocumentById("4", adminInAnotherCollection);
-		assertThatRecords("2", "3", "4").areInCache();
-		assertThatRecords("1", "5").areNotInCache();
-		assertThat(queriesListener.byIds).containsOnlyOnce("2", "3", "4");
+		recordServices.getDocumentById("un1", adminInZeCollection);
+		otherInstanceRecordServices.getDocumentById("un1", adminInAnotherCollection);
+		recordServices.getDocumentById("p1", adminInZeCollection);
+		otherInstanceRecordServices.getDocumentById("p2", adminInZeCollection);
+		recordServices.getDocumentById("v3", adminInZeCollection);
+		recordServices.getDocumentById("v4", adminInAnotherCollection);
+		otherInstanceRecordServices.getDocumentById("v1", adminInZeCollection);
+		otherInstanceRecordServices.getDocumentById("v2", adminInAnotherCollection);
+		assertThatRecords("p1", "p2").areInBothCache();
+		assertThatRecords("v3", "v4").areIn(recordsCaches);
+		assertThatRecords("v1", "v2").areNotIn(recordsCaches);
+		assertThatRecords("v3", "v4").areNotIn(otherInstanceRecordsCaches);
+		assertThatRecords("v1", "v2").areIn(otherInstanceRecordsCaches);
+
+		assertThatRecords("un1", "un2").areNotInBothCache();
 	}
 
 	@Test
@@ -426,13 +494,13 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 
 		Transaction transaction = new Transaction().setRecordFlushing(RecordsFlushing.LATER());
-		transaction.update(record1.withTitle("modified1"));
+		transaction.update(uncachedRecord1.withTitle("modified1"));
 		cachelessRecordServices.execute(transaction);
 		cachelessRecordServices.flush();
 
 		//Can add withing 2 seconds for a record
 		transaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(2));
-		transaction.update(record1.withTitle("modified2"));
+		transaction.update(uncachedRecord1.withTitle("modified2"));
 		cachelessRecordServices.execute(transaction);
 		cachelessRecordServices.flush();
 
@@ -459,38 +527,38 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	//			throws Exception {
 	//
 	//		givenTestRecords();
-	//		assertThatRecords("1", "2", "3", "4", "5").areNotInCache();
+	//		assertThatRecords("un1", "p2", "v3", "v4", "un2").areNotInBothCache();
 	//
-	//		assertThat(recordServices.getRecordsById(zeCollection, asList("1", "2", "3"))).extracting("id")
-	//				.containsOnly("1", "2", "3");
-	//		assertThat(recordServices.getRecordsById(anotherCollection, asList("4", "5"))).extracting("id")
-	//				.containsOnly("4", "5");
+	//		assertThat(recordServices.getRecordsById(zeCollection, asList("un1", "p2", "v3"))).extracting("id")
+	//				.containsOnly("un1", "p2", "v3");
+	//		assertThat(recordServices.getRecordsById(anotherCollection, asList("v4", "un2"))).extracting("id")
+	//				.containsOnly("v4", "un2");
 	//
-	//		assertThatRecords("2", "3", "4").areInCache();
-	//		assertThatRecords("1", "5").areNotInCache();
-	//		assertThat(queriesListener.byIds).containsOnlyOnce("1", "2", "3", "4", "5").hasSize(5);
+	//		assertThatRecords("p2", "v3", "v4").areInBothCache();
+	//		assertThatRecords("un1", "un2").areNotInBothCache();
+	//		assertThat(queriesListener.byIds).containsOnlyOnce("un1", "p2", "v3", "v4", "un2").hasSize(5);
 	//
-	//		assertThat(recordServices.getRecordsById(zeCollection, asList("1", "2", "3"))).extracting("id")
-	//				.containsOnly("1", "2", "3");
-	//		assertThat(recordServices.getRecordsById(anotherCollection, asList("4", "5"))).extracting("id")
-	//				.containsOnly("4", "5");
-	//		assertThat(queriesListener.byIds).containsOnlyOnce("2", "3", "4").hasSize(7);
+	//		assertThat(recordServices.getRecordsById(zeCollection, asList("un1", "p2", "v3"))).extracting("id")
+	//				.containsOnly("un1", "p2", "v3");
+	//		assertThat(recordServices.getRecordsById(anotherCollection, asList("v4", "un2"))).extracting("id")
+	//				.containsOnly("v4", "un2");
+	//		assertThat(queriesListener.byIds).containsOnlyOnce("p2", "v3", "v4").hasSize(7);
 	//
 	//		resetCacheAndQueries();
-	//		assertThat(recordServices.getRecordsById(zeCollection, asList("1", "2"))).extracting("id")
-	//				.containsOnly("1", "2");
-	//		assertThatRecord("2").isInCache();
-	//		assertThatRecords("1", "3").areNotInCache();
-	//		assertThat(queriesListener.byIds).isEqualTo(asList("1", "2"));
+	//		assertThat(recordServices.getRecordsById(zeCollection, asList("un1", "p2"))).extracting("id")
+	//				.containsOnly("un1", "p2");
+	//		assertThatRecord("p2").isInCache();
+	//		assertThatRecords("un1", "v3").areNotInBothCache();
+	//		assertThat(queriesListener.byIds).isEqualTo(asList("un1", "p2"));
 	//
-	//		assertThat(recordServices.getRecordsById(zeCollection, asList("1", "2", "3"))).extracting("id")
-	//				.containsOnly("1", "2", "3");
-	//		assertThatRecords("2", "3").areInCache();
-	//		assertThatRecords("1").areNotInCache();
-	//		assertThat(queriesListener.byIds).isEqualTo(asList("1", "2", "1", "3"));
+	//		assertThat(recordServices.getRecordsById(zeCollection, asList("un1", "p2", "v3"))).extracting("id")
+	//				.containsOnly("un1", "p2", "v3");
+	//		assertThatRecords("p2", "v3").areInBothCache();
+	//		assertThatRecords("un1").areNotInBothCache();
+	//		assertThat(queriesListener.byIds).isEqualTo(asList("un1", "p2", "un1", "v3"));
 	//
 	//		try {
-	//			recordServices.getRecordsById(anotherCollection, asList("1"));
+	//			recordServices.getRecordsById(anotherCollection, asList("un1"));
 	//		} catch (RecordServicesRuntimeException e) {
 	//
 	//		}
@@ -502,31 +570,51 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	private void resetCacheAndQueries() {
 		recordsCaches.invalidateAll();
 		queriesListener.clear();
-		assertThatRecords("1", "2", "3", "4", "5").areNotInCache();
+		assertThatRecords("un1", "p2", "v3", "v4", "un2").areNotInBothCache();
 	}
 
 	private void loadAllRecordsInCaches() {
-		recordServices.getDocumentById("1");
-		recordServices.getDocumentById("2");
-		recordServices.getDocumentById("3");
-		recordServices.getDocumentById("4");
-		recordServices.getDocumentById("5");
+		recordServices.getDocumentById("un1");
+		recordServices.getDocumentById("p1");
+		recordServices.getDocumentById("p2");
+		recordServices.getDocumentById("v1");
+		recordServices.getDocumentById("v2");
+		recordServices.getDocumentById("v3");
+		recordServices.getDocumentById("v4");
+
+		otherInstanceRecordServices.getDocumentById("v1");
+		otherInstanceRecordServices.getDocumentById("v2");
+		otherInstanceRecordServices.getDocumentById("v3");
+		otherInstanceRecordServices.getDocumentById("v4");
+		recordServices.getDocumentById("un2");
 	}
 
 	private void givenTestRecords()
 			throws Exception {
-		Transaction transaction = new Transaction();
-		record1 = (TestRecord) transaction.add(newRecordOf("1", zeCollectionSchemaWithoutCache).withTitle("a"));
-		record2 = (TestRecord) transaction.add(newRecordOf("2", zeCollectionSchemaWithPermanentCache).withTitle("b"));
-		record3 = (TestRecord) transaction.add(newRecordOf("3", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
-		transaction.add(newRecordOf("18", zeCollectionSchemaWithVolatileCache).withTitle("c")
+		Transaction tx = new Transaction();
+
+		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("x")
+				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
+
+		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("b")
+				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p2Code"));
+
+		tx.add(volatileRecord1 = newRecordOf("v1", zeCollectionSchemaWithVolatileCache).withTitle("c")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
-		transaction.add(newRecordOf("42", zeCollectionSchemaWithVolatileCache).withTitle("c")
+
+		tx.add(volatileRecord2 = newRecordOf("v2", zeCollectionSchemaWithVolatileCache).withTitle("c")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
-		recordServices.execute(transaction);
-		recordServices.add(record4 = newRecordOf("4", anotherCollectionSchemaWithVolatileCache).withTitle("d"));
-		recordServices.add(record5 = newRecordOf("5", anotherCollectionSchemaWithoutCache).withTitle("e"));
+
+		tx.add(volatileRecord3 = newRecordOf("v3", zeCollectionSchemaWithVolatileCache).withTitle("c")
+				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
+
+		tx.add(uncachedRecord1 = newRecordOf("un1", zeCollectionSchemaWithoutCache).withTitle("a"));
+		recordServices.execute(tx);
+		tx = new Transaction();
+		tx.add(volatileRecord4 = newRecordOf("v4", anotherCollectionSchemaWithVolatileCache).withTitle("d"));
+		tx.add(uncachedRecord2 = newRecordOf("un2", anotherCollectionSchemaWithoutCache).withTitle("e"));
+
+		recordServices.execute(tx);
 
 		resetCacheAndQueries();
 	}
@@ -536,71 +624,71 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Transaction transaction = new Transaction();
-		TestRecord record1 = (TestRecord) transaction.add(newRecordOf("1", zeCollectionSchemaWithoutCache).withTitle("a"));
+		TestRecord record1 = (TestRecord) transaction.add(newRecordOf("un1", zeCollectionSchemaWithoutCache).withTitle("a"));
 		TestRecord record2 = (TestRecord) transaction
-				.add(newRecordOf("2", zeCollectionSchemaWithPermanentCache).withTitle("b"));
+				.add(newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("b"));
 		TestRecord record3 = (TestRecord) transaction
-				.add(newRecordOf("3", zeCollectionSchemaWithPermanentCache).withTitle("c"));
+				.add(newRecordOf("v3", zeCollectionSchemaWithPermanentCache).withTitle("c"));
 		recordServices.execute(transaction);
 
 		resetCacheAndQueries();
 
-		recordServices.getDocumentById("2");
-		recordServices.getDocumentById("3");
+		recordServices.getDocumentById("p2");
+		recordServices.getDocumentById("v3");
 
-		assertThatRecord("2").isIn(recordsCaches);
-		assertThatRecord("2").isIn(otherInstanceRecordsCaches);
-		assertThatRecords("2", "3").areInCache();
+		assertThatRecord("p2").isIn(recordsCaches);
+		assertThatRecord("p2").isIn(otherInstanceRecordsCaches);
+		assertThatRecords("p2", "v3").areInBothCache();
 
 		try {
-			assertThatRecords("1", "2", "3").areInCache();
+			assertThatRecords("un1", "p2", "v3").areInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
 		}
 
 		try {
-			assertThatRecords("2", "3", "1").areInCache();
+			assertThatRecords("p2", "v3", "un1").areInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
 		}
 
 		try {
-			assertThatRecords("1", "inexistentRecord").areInCache();
+			assertThatRecords("un1", "inexistentRecord").areInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
 		}
 
 		try {
-			assertThatRecords("2", "inexistentRecord").areInCache();
+			assertThatRecords("p2", "inexistentRecord").areInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
 		}
 
-		assertThatRecord("1").isNotIn(recordsCaches);
-		assertThatRecord("1").isNotIn(recordsCaches);
-		assertThatRecords("1", "4").areNotInCache();
-		assertThatRecords("1", "inexistentRecord").areNotInCache();
+		assertThatRecord("un1").isNotIn(recordsCaches);
+		assertThatRecord("un1").isNotIn(recordsCaches);
+		assertThatRecords("un1", "v4").areNotInBothCache();
+		assertThatRecords("un1", "inexistentRecord").areNotInBothCache();
 
 		try {
-			assertThatRecords("2", "3").areNotInCache();
-			fail("Exception expected");
-		} catch (ComparisonFailure e) {
-			//OK
-		}
-
-		try {
-			assertThatRecords("1", "2").areNotInCache();
+			assertThatRecords("p2", "v3").areNotInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
 		}
 
 		try {
-			assertThatRecords("2", "3", "1").areNotInCache();
+			assertThatRecords("un1", "p2").areNotInBothCache();
+			fail("Exception expected");
+		} catch (ComparisonFailure e) {
+			//OK
+		}
+
+		try {
+			assertThatRecords("p2", "v3", "un1").areNotInBothCache();
 			fail("Exception expected");
 		} catch (ComparisonFailure e) {
 			//OK
@@ -609,7 +697,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(queriesListener.queries).isNotEmpty();
 
 		try {
-			recordServices.getDocumentById("42");
+			recordServices.getDocumentById("v2");
 		} catch (NoSuchRecordWithId e) {
 			//OK
 		}
@@ -624,7 +712,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
-		assertThat(queriesListener.byIds).containsOnlyOnce("42", "is", "magic");
+		assertThat(queriesListener.byIds).containsOnlyOnce("v2", "is", "magic");
 		queriesListener.clear();
 		assertThat(queriesListener.queries).isEmpty();
 		assertThat(queriesListener.byIds).isEmpty();
@@ -683,7 +771,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			areIn(recordsCaches);
 		}
 
-		private void areInCache() {
+		private void areInBothCache() {
 			areIn(recordsCaches);
 			areIn(otherInstanceRecordsCaches);
 		}
@@ -695,7 +783,18 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		private void areNotInCache() {
+		private void areOnlyIn(RecordsCaches aRecordsCaches) {
+			if (recordsCaches == aRecordsCaches) {
+				areIn(recordsCaches);
+				areNotIn(otherInstanceRecordsCaches);
+			} else {
+				areIn(otherInstanceRecordsCaches);
+				areNotIn(recordsCaches);
+			}
+
+		}
+
+		private void areNotInBothCache() {
 			areNotIn(recordsCaches);
 			areNotIn(otherInstanceRecordsCaches);
 		}

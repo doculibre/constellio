@@ -5,7 +5,9 @@ import static com.constellio.model.services.records.cache.RecordsCachesUtils.eva
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	public static final String INSERT_RECORDS_EVENT_TYPE = "insertRecords";
 	public static final String INVALIDATE_SCHEMA_TYPE_EVENT_TYPE = "invalidateSchemaTypeRecords";
 	public static final String INVALIDATE_RECORDS_EVENT_TYPE = "invalidateRecords";
+	public static final String INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE = "invalidateRecordsWithOlderVersion";
 	public static final String INVALIDATE_ALL_EVENT_TYPE = "invalidateAll";
 
 	EventBus eventBus;
@@ -54,6 +57,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 		List<Record> insertedRecords = new ArrayList<>();
 		List<String> invalidatedRecords = new ArrayList<>();
+		Map<String, Long> invalidatedRecordsWithOlderVersion = new HashMap<>();
 		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		for (Record insertedRecord : records) {
 
@@ -70,7 +74,12 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 						}
 
 						if (status == ACCEPTED) {
-							insertedRecords.add(insertedRecord);
+							if (cacheConfig.isPermanent()) {
+								insertedRecords.add(insertedRecord);
+							} else {
+								invalidatedRecordsWithOlderVersion.put(insertedRecord.getId(), insertedRecord.getVersion());
+								nestedRecordsCache.insert(insertedRecord);
+							}
 						}
 					}
 				}
@@ -83,6 +92,10 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 		}
 		if (!insertedRecords.isEmpty()) {
 			eventBus.send(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
+		}
+
+		if (!invalidatedRecordsWithOlderVersion.isEmpty()) {
+			eventBus.send(INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE, invalidatedRecordsWithOlderVersion);
 		}
 
 		return statuses;
@@ -131,6 +144,10 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 			nestedRecordsCache.invalidate(event.<List<String>>getData());
 			break;
 
+		case INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE:
+			invalidateRecordsWithOlderVersions(event.<Map<String, Long>>getData());
+			break;
+
 		case INVALIDATE_ALL_EVENT_TYPE:
 			nestedRecordsCache.invalidateAll();
 			break;
@@ -139,6 +156,15 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 			throw new ImpossibleRuntimeException("Unsupported event type '" + event.getType()
 					+ "' on record's cache event bus '" + eventBus.getName());
 
+		}
+	}
+
+	private void invalidateRecordsWithOlderVersions(Map<String, Long> recordsToPossiballyInvalidate) {
+		for (Map.Entry<String, Long> entry : recordsToPossiballyInvalidate.entrySet()) {
+			Record record = get(entry.getKey());
+			if (record != null && record.getVersion() < entry.getValue()) {
+				nestedRecordsCache.invalidate(record.getId());
+			}
 		}
 	}
 
