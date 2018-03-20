@@ -1,5 +1,6 @@
 package com.constellio.model.services.security.roles;
 
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -11,6 +12,7 @@ import org.junit.Test;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -25,12 +27,14 @@ import com.constellio.sdk.tests.setups.Users;
 public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 	CollectionsManager collectionsManager;
+	CollectionsManager collectionsManagerOfOtherInstance;
 	private Role validRole;
 	private Role validRole2;
 	private Role validRole3;
 	private Role invalidRoleWithoutCode;
 	private Role invalidRoleWithCode;
 	private RolesManager manager;
+	private RolesManager managerOfOtherInstance;
 	private ConstellioPluginManager pluginManager;
 	private SchemasRecordsServices schemas;
 	private UserServices userServices;
@@ -48,6 +52,10 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		pluginManager = getAppLayerFactory().getPluginManager();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 
+		AppLayerFactory otherInstanceAppLayerFactory = getAppLayerFactory("otherInstance");
+		collectionsManagerOfOtherInstance = otherInstanceAppLayerFactory.getCollectionsManager();
+		linkEventBus(getDataLayerFactory(), otherInstanceAppLayerFactory.getModelLayerFactory().getDataLayerFactory());
+
 		validRole = new Role(zeCollection, "uniqueCode", "zeValidRole", asList("operation1", "operation2"));
 		validRole2 = new Role(zeCollection, "uniqueCode2", "zeValidRole2", asList("operation3", "operation4"));
 		validRole3 = new Role(zeCollection, "uniqueCode3", "zeValidRole3", asList("operation5", "operation6"));
@@ -58,6 +66,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		users = new Users().setUp(userServices);
 		manager = getModelLayerFactory().getRolesManager();
+		managerOfOtherInstance = otherInstanceAppLayerFactory.getModelLayerFactory().getRolesManager();
 		schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 	}
 
@@ -67,16 +76,30 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 		givenCollection("collection1");
 		givenCollection("collection2");
+
+		assertThat(manager.getAllRoles("collection1")).hasSize(1);
+		assertThat(manager.getAllRoles("collection2")).hasSize(1);
+		assertThat(managerOfOtherInstance.getAllRoles("collection1")).hasSize(1);
+		assertThat(managerOfOtherInstance.getAllRoles("collection2")).hasSize(1);
+
 		Role role1 = new Role("collection1", "uniqueCode", "zeValidRole", asList("operation"));
 		Role role2 = new Role("collection2", "uniqueCode", "zeValidRole", asList("operation"));
+		Role role3 = new Role("collection2", "otherRole", "zeValidRole", asList("operation"));
 
 		manager.addRole(role1);
 		manager.addRole(role2);
+		manager.addRole(role3);
 
 		assertThat(manager.getAllRoles("collection1")).hasSize(2);
-		assertThat(manager.getAllRoles("collection2")).hasSize(2);
+		assertThat(manager.getAllRoles("collection2")).hasSize(3);
+		assertThat(managerOfOtherInstance.getAllRoles("collection1")).hasSize(2);
+		assertThat(managerOfOtherInstance.getAllRoles("collection2")).hasSize(3);
 		assertThat(manager.getRole("collection1", role1.getCode()).getCollection()).isEqualTo("collection1");
-		assertThat(manager.getRole("collection2", role1.getCode()).getCollection()).isEqualTo("collection2");
+		assertThat(manager.getRole("collection2", role2.getCode()).getCollection()).isEqualTo("collection2");
+		assertThat(manager.getRole("collection2", role3.getCode()).getCollection()).isEqualTo("collection2");
+
+		assertThat(manager.getAllRoles("collection1")).hasSize(2);
+		assertThat(manager.getAllRoles("collection2")).hasSize(3);
 	}
 
 	@Test

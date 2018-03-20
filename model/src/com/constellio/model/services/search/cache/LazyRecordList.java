@@ -1,6 +1,6 @@
 package com.constellio.model.services.search.cache;
 
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class LazyRecordList extends AbstractList<Record> {
 		}
 
 		SPEQueryResponse speQueryResponse = searchServices.query(fetchIndexQuery);
-		cache.incrementQTime((int)speQueryResponse.getQtime());
+		cache.incrementQTime((int) speQueryResponse.getQtime());
 		cache.setSize((int) speQueryResponse.getNumFound());
 
 		List<Record> recordsToInsert = new ArrayList<>();

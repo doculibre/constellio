@@ -6,23 +6,23 @@ import java.util.List;
 import java.util.Set;
 
 public interface ConstellioCache {
-	
+
 	String getName();
-	
+
 	<T extends Serializable> T get(String key);
-	
-	<T extends Serializable> void put(String key, T value);
-	
+
+	<T extends Serializable> void put(String key, T value, InsertionReason insertionReason);
+
 	void remove(String key);
-	
+
 	void removeAll(Set<String> keys);
-	
+
 	void clear();
-	
+
 	Iterator<String> keySet();
-	
+
 	int size();
-	
+
 	List<Object> getAllValues();
 
 }

@@ -1,7 +1,7 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;

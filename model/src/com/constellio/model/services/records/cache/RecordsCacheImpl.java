@@ -1,9 +1,9 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;

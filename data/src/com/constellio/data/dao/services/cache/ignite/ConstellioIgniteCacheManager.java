@@ -30,6 +30,7 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
@@ -39,7 +40,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
 	private Ignite igniteClient;
 	private boolean initialized = false;
-	
+
 	private static ThreadLocal<Map<ConstellioIgniteCache, Map<String, Object>>> putTransaction = new ThreadLocal<>();
 
 	public ConstellioIgniteCacheManager(String cacheUrl, String constellioVersion) {
@@ -53,17 +54,17 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	}
 
 	private void initializeIfNecessary() {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-                    IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
-                    igniteClient = Ignition.getOrStart(igniteConfiguration);
-                    addListener();
-                    initialized = true;
-                }
-            }
-        }
-    }
+		if (!initialized) {
+			synchronized (this) {
+				if (!initialized) {
+					IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
+					igniteClient = Ignition.getOrStart(igniteConfiguration);
+					addListener();
+					initialized = true;
+				}
+			}
+		}
+	}
 
 	@Override
 	public void close() {
@@ -116,7 +117,6 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		}
 	}
 
-
 	private String versionedCacheName(String name) {
 		String versionedCacheName;
 		String prefix = constellioVersion + "_";
@@ -158,7 +158,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 					final IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
 					cache = new ConstellioIgniteCache(name, igniteCache, igniteClient) {
 						@Override
-						public <T extends Serializable> void put(String key, T value) {
+						public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
 							Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
 							if (transactionMap != null) {
 								super.put(key, value, true);
@@ -169,17 +169,17 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 								}
 								transactionObjects.put(key, value);
 							} else {
-								super.put(key, value);
-		//						Map<String, Object> keyValue = new TreeMap<>();
-		//						keyValue.put(key, value);
-		//						igniteCache.putAll(keyValue);
+								super.put(key, value, insertionReason);
+								//						Map<String, Object> keyValue = new TreeMap<>();
+								//						keyValue.put(key, value);
+								//						igniteCache.putAll(keyValue);
 							}
 						}
 					};
 					caches.put(name, cache);
 				}
 			}
-		}	
+		}
 		return cache;
 	}
 
@@ -242,23 +242,23 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 					}
 				});
 	}
-	
+
 	public void beginPutTransaction() {
-		putTransaction.set(new HashMap<ConstellioIgniteCache, Map<String,Object>>());
+		putTransaction.set(new HashMap<ConstellioIgniteCache, Map<String, Object>>());
 	}
-	
+
 	public void commitPutTransaction() {
 		Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
 		if (transactionMap != null) {
-			for (Iterator<ConstellioIgniteCache> it = transactionMap.keySet().iterator(); it.hasNext();) {
+			for (Iterator<ConstellioIgniteCache> it = transactionMap.keySet().iterator(); it.hasNext(); ) {
 				ConstellioIgniteCache cache = it.next();
 				Map<String, Object> transactionObjects = transactionMap.get(cache);
 				if (transactionObjects != null) {
-//					cache.getIgniteCache().putAll(transactionObjects);
+					//					cache.getIgniteCache().putAll(transactionObjects);
 					IgniteFuture<?> result = cache.getIgniteStreamer().addData(transactionObjects);
 					cache.getIgniteStreamer().flush();
 					result.get();
-				}	
+				}
 				it.remove();
 			}
 		}

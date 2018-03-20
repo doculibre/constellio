@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;

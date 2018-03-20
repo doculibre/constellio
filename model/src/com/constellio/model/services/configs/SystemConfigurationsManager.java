@@ -26,6 +26,7 @@ import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperation;
@@ -394,7 +395,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 				Map<String, String> properties = propertiesConfig.getProperties();
 				for (String key : properties.keySet()) {
 					String value = properties.get(key);
-					cache.put(key, value);
+					cache.put(key, value, InsertionReason.WAS_OBTAINED);
 				}
 				readPropertiesFileRequired = false;
 			}
@@ -414,12 +415,12 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 					inputStreamFactory = binaryConfiguration.getInputStreamFactory();
 					try (InputStream in = inputStreamFactory.create(configKey + ".loadingInCache")) {
 						byte[] binaryContent = IOUtils.toByteArray(in);
-						cache.put(configKey, binaryContent);
+						cache.put(configKey, binaryContent, InsertionReason.WAS_OBTAINED);
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
 				} else {
-					cache.put(configKey, new byte[0]);
+					cache.put(configKey, new byte[0], InsertionReason.WAS_OBTAINED);
 					inputStreamFactory = null;
 				}
 

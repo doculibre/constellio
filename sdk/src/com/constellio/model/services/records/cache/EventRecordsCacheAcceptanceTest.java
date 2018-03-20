@@ -1,13 +1,14 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,8 +21,6 @@ import org.junit.ComparisonFailure;
 import org.junit.Test;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.events.EventBusManager;
-import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -128,16 +127,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		otherSystemQueriesListener = new StatsBigVaultServerExtension();
 		extensions.getBigVaultServerExtension().add(otherSystemQueriesListener);
 
-		EventBusManager eventBusManager1 = getModelLayerFactory().getDataLayerFactory().getEventBusManager();
-		EventBusManager eventBusManager2 = otherModelLayerFactory.getDataLayerFactory().getEventBusManager();
-		assertThat(eventBusManager1).isNotSameAs(eventBusManager2);
-
-		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
-		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
-
-		eventBusManager1.setEventBusSendingService(sendingService1);
-		eventBusManager2.setEventBusSendingService(sendingService2);
-		SDKEventBusSendingService.interconnect(sendingService1, sendingService2);
+		linkEventBus(getDataLayerFactory(), otherModelLayerFactory.getDataLayerFactory());
 	}
 
 	@Test
@@ -681,7 +671,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(queriesListener.queries).hasSize(1);
 		assertThat(otherSystemQueriesListener.queries).hasSize(1);
 
-		recordsCaches.insert(record("p2"), InsertionReason.WAS_OBTAINED);
+		recordsCaches.insert(record("p2"), WAS_OBTAINED);
 
 		assertThat(searchServices.cachedSearch(query)).extracting("id").containsOnly("p2");
 		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("id").containsOnly("p2");
@@ -721,7 +711,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(queriesListener.queries).hasSize(1);
 		assertThat(otherSystemQueriesListener.queries).hasSize(1);
 
-		recordsCaches.insert(record("p2"), InsertionReason.WAS_OBTAINED);
+		recordsCaches.insert(record("p2"), WAS_OBTAINED);
 		queriesListener.queries.clear();
 		otherSystemQueriesListener.queries.clear();
 

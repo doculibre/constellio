@@ -1,3 +1,3 @@
-package com.constellio.model.services.records.cache;
+package com.constellio.data.dao.services.cache;
 
 public enum InsertionReason {WAS_MODIFIED, WAS_OBTAINED}

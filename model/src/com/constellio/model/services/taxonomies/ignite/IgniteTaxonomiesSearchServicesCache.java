@@ -1,5 +1,7 @@
 package com.constellio.model.services.taxonomies.ignite;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
@@ -20,12 +22,13 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 
 public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
-	
+
 	ConstellioIgniteCache constellioIgniteCache;
-	
+
 	public IgniteTaxonomiesSearchServicesCache(ModelLayerFactory modelLayerFactory) {
-		ConstellioIgniteCacheManager recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory().getRecordsCacheManager();
-		
+		ConstellioIgniteCacheManager recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory()
+				.getRecordsCacheManager();
+
 		CacheConfiguration<String, Object> cacheCfg = new CacheConfiguration<>("TaxonomiesSearchServicesCache");
 		cacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
 		cacheCfg.setOnheapCacheEnabled(true);
@@ -40,7 +43,7 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 		if (username != null && recordId != null && mode != null && value != null) {
 			UserTaxonomyNodeCacheObject cacheObject = new UserTaxonomyNodeCacheObject(username, recordId, mode, value);
 			String cacheKey = cacheObject.getKey();
-			constellioIgniteCache.put(cacheKey, cacheObject);
+			constellioIgniteCache.put(cacheKey, cacheObject, WAS_OBTAINED);
 		}
 	}
 
@@ -63,7 +66,7 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 	public void invalidateRecord(String recordId) {
 		invalidateRecord(recordId, null);
 	}
-	
+
 	public void invalidateRecord(String recordId, Boolean withChildren) {
 		if (recordId != null) {
 			String sql = "recordId = ?";
@@ -126,13 +129,13 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 
 		@QuerySqlField(index = true)
 		private String username;
-		
+
 		@QuerySqlField(index = true)
 		private String recordId;
 
 		@QuerySqlField(index = true)
 		private String mode;
-		
+
 		@QuerySqlField(index = true)
 		private Boolean value;
 
@@ -146,13 +149,13 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 			this.mode = mode;
 			this.value = value;
 		}
-		
+
 		public String getKey() {
 			return toKey(username, recordId, mode);
 		}
-		
+
 		public static String toKey(String username, String recordId, String mode) {
-			return "[username=" + username + ", recordId=" + recordId + ", mode=" + mode+ "]";
+			return "[username=" + username + ", recordId=" + recordId + ", mode=" + mode + "]";
 		}
 
 		public Boolean getValue() {
@@ -175,8 +178,6 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 			return mode;
 		}
 
-
 	}
 
-	
 }

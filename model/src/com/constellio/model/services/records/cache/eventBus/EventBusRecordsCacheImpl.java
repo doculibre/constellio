@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
@@ -20,7 +21,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.DefaultRecordsCacheAdapter;
-import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCache;
 
 /**

@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 
 import java.util.List;
 

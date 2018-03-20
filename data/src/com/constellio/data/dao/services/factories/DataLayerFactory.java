@@ -32,6 +32,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.event.ConstellioEventMapCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
@@ -65,6 +66,7 @@ import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 
 public class DataLayerFactory extends LayerFactoryImpl {
 
@@ -128,8 +130,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
-			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
+				settingsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+				recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+
+			} else {
+				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+				recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			}
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
 			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);

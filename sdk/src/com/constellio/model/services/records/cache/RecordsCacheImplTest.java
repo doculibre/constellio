@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;

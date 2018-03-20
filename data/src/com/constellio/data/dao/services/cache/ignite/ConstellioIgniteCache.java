@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.cache.ignite;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,9 +15,10 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteDataStreamer;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class ConstellioIgniteCache implements ConstellioCache {
-	
+
 	public static final String CLEAR_MESSAGE_TOPIC = "clear";
 
 	private static final Object NULL = "__NULL__";
@@ -23,9 +26,9 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	private String name;
 
 	private IgniteCache<String, Object> igniteCache;
-	
+
 	private IgniteDataStreamer<String, Object> igniteStreamer;
-	
+
 	private Ignite igniteClient;
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
@@ -34,7 +37,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		this.name = name;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
-		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName()); 
+		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName());
 		this.igniteStreamer.allowOverwrite(true);
 	}
 
@@ -42,7 +45,7 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	public final String getName() {
 		return name;
 	}
-	
+
 	public IgniteCache<String, Object> getIgniteCache() {
 		return igniteCache;
 	}
@@ -68,12 +71,12 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	}
 
 	@Override
-	public <T extends Serializable> void put(String key, T value) {
-		put(key, value, false);
+	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
+		put(key, value, insertionReason == WAS_OBTAINED);
 	}
-		
+
 	@SuppressWarnings("unchecked")
-	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {	
+	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {
 		value = value == null ? (T) NULL : value;
 		localCache.put(key, value);
 		if (!locallyOnly) {

@@ -9,11 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class ConstellioMapCache implements ConstellioCache {
-	
+
 	private String name;
-	
+
 	private Map<String, Object> map = new LinkedHashMap<>();
 
 	public ConstellioMapCache(String name) {
@@ -32,7 +33,7 @@ public class ConstellioMapCache implements ConstellioCache {
 	}
 
 	@Override
-	public <T extends Serializable> void put(String key, T value) {
+	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
 		map.put(key, value);
 	}
 

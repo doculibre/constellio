@@ -1,8 +1,9 @@
 package com.constellio.model.utils;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.jdom2.Document;
 
@@ -11,7 +12,9 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.AutoReloadingConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
 
@@ -25,7 +28,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 
 	private final CollectionsListManager collectionsListManager;
 
-//	private final Map<String, T> cache = new HashMap<>();
+	//	private final Map<String, T> cache = new HashMap<>();
 
 	private final ConstellioCache cache;
 
@@ -40,11 +43,26 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	}
 
 	public OneXMLConfigPerCollectionManager(
-			ConfigManager configManager, CollectionsListManager collectionsListManager, String collectionFolderRelativeConfigPath,
+			final ConfigManager configManager, CollectionsListManager collectionsListManager,
+			String collectionFolderRelativeConfigPath,
 			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener,
-			DocumentAlteration newDocumentAlteration, ConstellioCache cache) {
+			final DocumentAlteration newDocumentAlteration, ConstellioCache cache) {
 
-		this.cache = cache;
+		this.cache = new AutoReloadingConstellioCache(cache) {
+			@Override
+			protected <T extends Serializable> T reload(String collection) {
+				//TODO Only if event based
+				String configPath = getConfigPath(collection);
+				XMLConfiguration config = configManager.getXML(configPath);
+				if (config == null) {
+					configManager.createXMLDocumentIfInexistent(configPath, newDocumentAlteration);
+					config = configManager.getXML(configPath);
+				}
+
+				return (T) parse(collection, config);
+
+			}
+		};
 		this.newDocumentAlteration = newDocumentAlteration;
 		this.configReader = configReader;
 		this.configManager = configManager;
@@ -66,15 +84,15 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	Object getFromCache(String key) {
 		return cache.get(key);
 	}
-	
-	void putInCache(String key, Object value) {
-		cache.put(key, (Serializable) value);
+
+	void putInCache(String key, Object value, InsertionReason insertionReason) {
+		cache.put(key, (Serializable) value, insertionReason);
 	}
-	
+
 	void removeFromCache(String key) {
 		cache.remove(key);
 	}
-	
+
 	void clearCache() {
 		cache.clear();
 	}
@@ -82,7 +100,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	private void registerCollectionConfigAndLoad(String collection) {
 		String configPath = getConfigPath(collection);
 		configManager.registerListener(configPath, this);
-		load(collection, configPath);
+		load(collection, configPath, WAS_OBTAINED);
 	}
 
 	public String getConfigPath(String collectionCode) {
@@ -96,7 +114,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	public void updateXML(String collection, DocumentAlteration documentAlteration) {
 		String configPath = getConfigPath(collection);
 		configManager.updateXML(configPath, documentAlteration);
-		load(collection, configPath);
+		load(collection, configPath, WAS_MODIFIED);
 	}
 
 	public void update(String collection, String hash, Document document)
@@ -111,13 +129,13 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		return (T) getFromCache(collection);
 	}
 
-	public void reload(String collection) {
+	public void reload(String collection, InsertionReason insertionReason) {
 		removeFromCache(collection);
 		String configPath = getConfigPath(collection);
-		load(collection, configPath);
+		load(collection, configPath, insertionReason);
 	}
 
-	void load(String collection, String configPath) {
+	T load(String collection, String configPath, InsertionReason insertionReason) {
 		XMLConfiguration config = configManager.getXML(configPath);
 		if (config == null) {
 			configManager.createXMLDocumentIfInexistent(configPath, newDocumentAlteration);
@@ -125,7 +143,8 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		}
 
 		T value = parse(collection, config);
-		putInCache(collection, value);
+		putInCache(collection, value, insertionReason);
+		return value;
 	}
 
 	protected T parse(String collection, XMLConfiguration xmlConfiguration) {
@@ -136,7 +155,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	@Override
 	public void onConfigUpdated(String configPath) {
 		String collection = getCollectionCode(configPath);
-		load(collection, configPath);
+		load(collection, configPath, WAS_MODIFIED);
 		listener.onValueModified(collection, get(collection));
 	}
 
@@ -155,7 +174,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	public void createCollectionFile(final String collection, DocumentAlteration documentAlteration) {
 		String configPath = getConfigPath(collection);
 		configManager.createXMLDocumentIfInexistent(configPath, documentAlteration);
-		load(collection, configPath);
+		load(collection, configPath, WAS_MODIFIED);
 	}
 
 }

@@ -2,7 +2,6 @@ package com.constellio.data.dao.services.cache.event;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -11,12 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
-public class ConstellioEventCache implements ConstellioCache, EventBusListener {
+public class ConstellioEventMapCache implements ConstellioCache, EventBusListener {
 
 	private static final String PUT_EVENT_TYPE = "put";
 
@@ -30,7 +30,7 @@ public class ConstellioEventCache implements ConstellioCache, EventBusListener {
 
 	private EventBus eventBus;
 
-	public ConstellioEventCache(String name, EventBus eventBus) {
+	public ConstellioEventMapCache(String name, EventBus eventBus) {
 		this.name = name;
 		this.eventBus = eventBus;
 		eventBus.register(this);
@@ -48,27 +48,39 @@ public class ConstellioEventCache implements ConstellioCache, EventBusListener {
 	}
 
 	@Override
-	public <T extends Serializable> void put(String key, T value) {
-		Map<String, Object> data = new HashMap<>();
-		data.put("key", key);
-		data.put("value", value);
-		eventBus.send(REMOVE_EVENT_TYPE, data);
+	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
+		if (insertionReason == InsertionReason.WAS_OBTAINED) {
+			map.put(key, value);
+		} else if (insertionReason == InsertionReason.WAS_MODIFIED) {
+
+			//Disabled for test purposes
+			//map.put(key, value);
+			map.remove(key); //Added for test purposes
+
+			HashSet<String> keys = new HashSet<>();
+			keys.add(key);
+			eventBus.send(REMOVE_EVENT_TYPE, keys);
+		}
 	}
 
 	@Override
 	public void remove(String key) {
 		HashSet<String> keys = new HashSet<>();
 		keys.add(key);
-		eventBus.send(REMOVE_EVENT_TYPE, keys);
+		removeAll(keys);
 	}
 
 	@Override
 	public void removeAll(Set<String> keys) {
+		for (String key : keys) {
+			map.remove(key);
+		}
 		eventBus.send(REMOVE_EVENT_TYPE, keys);
 	}
 
 	@Override
 	public void clear() {
+		map.clear();
 		eventBus.send(CLEAR_EVENT_TYPE);
 	}
 
@@ -95,7 +107,7 @@ public class ConstellioEventCache implements ConstellioCache, EventBusListener {
 			break;
 
 		case REMOVE_EVENT_TYPE:
-			for (String key : event.<List<String>>getData()) {
+			for (String key : event.<Set<String>>getData()) {
 				map.remove(key);
 			}
 			break;
