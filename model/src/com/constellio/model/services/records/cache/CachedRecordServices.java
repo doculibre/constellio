@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 
 import java.util.List;
 
@@ -109,7 +110,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
 			if (foundRecord != null) {
-				getConnectedRecordsCache().insert(foundRecord);
+				getConnectedRecordsCache().insert(foundRecord, WAS_OBTAINED);
 			}
 		}
 

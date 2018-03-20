@@ -1,6 +1,8 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.utils.MaskUtils.format;
@@ -96,6 +98,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
+import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
@@ -461,7 +464,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -479,7 +482,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -511,7 +514,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			records.add(record);
 		}
 
@@ -519,12 +522,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	public void insertInCache(Record record) {
-		recordsCaches.insert(record);
+	public void insertInCache(Record record, InsertionReason reason) {
+		recordsCaches.insert(record, reason);
 	}
 
-	public void insertInCache(String collection, List<Record> records) {
-		recordsCaches.insert(collection, records);
+	public void insertInCache(String collection, List<Record> records, InsertionReason reason) {
+		recordsCaches.insert(collection, records, reason);
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
@@ -841,7 +844,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
-		insertInCache(collection, recordsToInsert);
+		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
 
 	}
 

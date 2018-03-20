@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
@@ -146,7 +147,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isFalse();
-			recordsCaches.insert(record);
+			recordsCaches.insert(record, WAS_MODIFIED);
 		}
 
 		assertThatRecords("un1", "p2", "v3", "v1", "v2").areNotIn(recordsCaches);
@@ -156,7 +157,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 				fromAllSchemasIn(zeCollection).returnAll()));
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isTrue();
-			recordsCaches.insert(record);
+			recordsCaches.insert(record, WAS_MODIFIED);
 		}
 		assertThatRecords("un1", "un2").areNotInBothCache();
 		assertThatRecords("p1", "p2", "v3", "v1", "v2").areIn(recordsCaches);
@@ -182,7 +183,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
@@ -222,7 +223,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");
@@ -250,7 +251,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");

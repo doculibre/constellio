@@ -1,18 +1,17 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.util.List;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -37,6 +36,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
 		implements SearchCriteriaPresenter {
@@ -269,7 +269,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 		} else {
 			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-			if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+			if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
 				tmpSearchRecord = recordServices()
 						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 			}
@@ -286,7 +286,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
 		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord());
+		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord(), WAS_MODIFIED);
 		//recordServices().update(search);
 		if (refreshPage) {
 			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());

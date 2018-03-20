@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -176,10 +177,10 @@ public class RecordsCacheImpl implements RecordsCache {
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
 
-	public void insert(List<Record> records) {
+	public void insert(List<Record> records, InsertionReason insertionReason) {
 		if (records != null) {
 			for (Record record : records) {
-				insert(record);
+				insert(record, insertionReason);
 			}
 		}
 	}
@@ -194,7 +195,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			List<String> recordIds = new ArrayList<>();
 			for (Record record : records) {
 				recordIds.add(record.getId());
-				insert(record);
+				insert(record, WAS_OBTAINED);
 			}
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
@@ -355,7 +356,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord) {
+	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 			if (!insertedRecord.getSchemaCode().startsWith("event")
@@ -401,7 +402,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord) {
+	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (insertedRecord == null) {
 			return CacheInsertionStatus.REFUSED_NULL;
@@ -417,7 +418,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				}
 
 				if (status == ACCEPTED) {
-					return forceInsert(insertedRecord);
+					return forceInsert(insertedRecord, insertionReason);
 				} else {
 					return status;
 				}

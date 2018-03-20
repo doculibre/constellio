@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
+import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 
@@ -61,19 +62,19 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 		return false;
 	}
 
-	public void insert(String collection, List<Record> records) {
+	public void insert(String collection, List<Record> records, InsertionReason insertionReason) {
 		RecordsCache cache = getCache(collection);
-		cache.insert(records);
+		cache.insert(records, insertionReason);
 	}
 
-	public CacheInsertionStatus insert(Record record) {
+	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
 		RecordsCache cache = getCache(record.getCollection());
-		return cache.insert(record);
+		return cache.insert(record, insertionReason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record) {
+	public CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason) {
 		RecordsCache cache = getCache(record.getCollection());
-		return cache.forceInsert(record);
+		return cache.forceInsert(record, insertionReason);
 	}
 
 	public Record getRecord(String id) {

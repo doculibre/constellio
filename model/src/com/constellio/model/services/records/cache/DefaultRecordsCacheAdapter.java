@@ -28,8 +28,8 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isCached(id);
 	}
 
-	public void insert(List<Record> record) {
-		nestedRecordsCache.insert(record);
+	public void insert(List<Record> record, InsertionReason reason) {
+		nestedRecordsCache.insert(record, reason);
 	}
 
 	public void insertQueryResults(LogicalSearchQuery query,
@@ -59,12 +59,12 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getQueryResultIds(query);
 	}
 
-	public CacheInsertionStatus insert(Record record) {
-		return nestedRecordsCache.insert(record);
+	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
+		return nestedRecordsCache.insert(record, reason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record) {
-		return nestedRecordsCache.forceInsert(record);
+	public CacheInsertionStatus forceInsert(Record record, InsertionReason reason) {
+		return nestedRecordsCache.forceInsert(record, reason);
 	}
 
 	public void invalidateRecordsOfType(String recordType) {

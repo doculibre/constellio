@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache.ignite;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -107,30 +108,30 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
 		Record record1 = newRecord(zeType, 1);
-		cache.insert(record1);
+		cache.insert(record1, WAS_MODIFIED);
 
 		Record record2 = newRecord(zeType, 2);
-		cache.insert(record2);
+		cache.insert(record2, WAS_MODIFIED);
 
 		Record record3 = newRecord(zeType, 3);
-		cache.insert(record3);
+		cache.insert(record3, WAS_MODIFIED);
 
 		Record record4 = newRecord(zeType, 4);
-		cache.insert(record4);
+		cache.insert(record4, WAS_MODIFIED);
 
 		Record record5 = newRecord(zeType, 5);
-		cache.insert(record5);
+		cache.insert(record5, WAS_MODIFIED);
 
-		cache.insert(record1);
-		cache.insert(record2);
-		cache.insert(record3);
-		cache.insert(record4);
-		cache.insert(record5);
+		cache.insert(record1, WAS_MODIFIED);
+		cache.insert(record2, WAS_MODIFIED);
+		cache.insert(record3, WAS_MODIFIED);
+		cache.insert(record4, WAS_MODIFIED);
+		cache.insert(record5, WAS_MODIFIED);
 
 		assertThatRecords("3", "4", "5").areInCache();
 		assertThatRecords("1", "2").areNotInCache();
 
-		cache.insert(record1);
+		cache.insert(record1, WAS_MODIFIED);
 
 		assertThatRecords("1", "4", "5").areInCache();
 		assertThatRecords("2", "3").areNotInCache();
@@ -185,13 +186,13 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record record1 = newRecord(zeType, 1);
-		cache.insert(record1);
+		cache.insert(record1, WAS_MODIFIED);
 
 		Record record2 = newRecord(zeType, 2);
-		cache.insert(record2);
+		cache.insert(record2, WAS_MODIFIED);
 
 		Record record3 = newRecord(zeType, 3);
-		cache.insert(record3);
+		cache.insert(record3, WAS_MODIFIED);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
@@ -213,13 +214,13 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
 		Record record1 = newRecord(zeType, 1);
-		cache.insert(record1);
+		cache.insert(record1, WAS_MODIFIED);
 
 		Record record2 = newRecord(anotherType, 2);
-		cache.insert(record2);
+		cache.insert(record2, WAS_MODIFIED);
 
 		Record record3 = newRecord(anotherType, 3);
-		cache.insert(record3);
+		cache.insert(record3, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecords("2", "3").areNotInCache();
@@ -233,13 +234,13 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
 		Record record1 = newRecord(zeType, 1);
-		cache.insert(record1);
+		cache.insert(record1, WAS_MODIFIED);
 
 		Record record2 = newRecord(zeType, 2);
-		cache.insert(record2);
+		cache.insert(record2, WAS_MODIFIED);
 
 		Record record3 = newRecord(zeType, 3);
-		cache.insert(record3);
+		cache.insert(record3, WAS_MODIFIED);
 
 		assertThatRecords("1", "2", "3").areInCache();
 
@@ -252,20 +253,20 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
-		cache.insert(newRecord(zeType, 4));
-		cache.insert(newRecord(zeType, 5));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 4), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 5), WAS_MODIFIED);
 
 		assertThatRecords("3", "4", "5").areInCache();
 		assertThatRecords("1", "2").areNotInCache();
 
-		cache.insert(newRecord(zeType, 6));
+		cache.insert(newRecord(zeType, 6), WAS_MODIFIED);
 		assertThatRecords("4", "5", "6").areInCache();
 		assertThatRecords("1", "2", "3").areNotInCache();
 
-		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
 		assertThatRecords("1", "5", "6").areInCache();
 		assertThatRecords("2", "3", "4").areNotInCache();
 	}
@@ -276,24 +277,24 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 
 		cache.get("1");
-		cache.insert(newRecord(zeType, 4));
+		cache.insert(newRecord(zeType, 4), WAS_MODIFIED);
 		assertThatRecords("1", "3", "4").areInCache();
 		assertThatRecord("2").isNotInCache();
 
-		cache.insert(newRecord(zeType, 5));
+		cache.insert(newRecord(zeType, 5), WAS_MODIFIED);
 		assertThatRecords("1", "4", "5").areInCache();
 		assertThatRecords("2", "3").areNotInCache();
 
-		cache.insert(newRecord(zeType, 6));
+		cache.insert(newRecord(zeType, 6), WAS_MODIFIED);
 		assertThatRecords("4", "5", "6").areInCache();
 		assertThatRecords("1", "2", "3").areNotInCache();
 
-		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
 		assertThatRecords("1", "5", "6").areInCache();
 		assertThatRecords("2", "3", "4").areNotInCache();
 
@@ -306,24 +307,24 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 
 		for (int i = 0; i < 20000; i++) {
 			cache.get("1");
 			cache.get("2");
 		}
 
-		cache.insert(newRecord(zeType, 4));
+		cache.insert(newRecord(zeType, 4), WAS_MODIFIED);
 		assertThatRecords("1", "2", "4").areInCache();
 		assertThatRecord("3").isNotInCache();
 
-		cache.insert(newRecord(zeType, 5));
+		cache.insert(newRecord(zeType, 5), WAS_MODIFIED);
 		assertThatRecords("2", "5").areInCache();
 		assertThatRecords("1", "3").areNotInCache();
 
-		cache.insert(newRecord(zeType, 6));
+		cache.insert(newRecord(zeType, 6), WAS_MODIFIED);
 		assertThatRecords("4", "5", "6").areInCache();
 		assertThatRecords("1", "2", "3").areNotInCache();
 		//		IGNITE : Assume that LRU is working properly
@@ -335,12 +336,12 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 2, 2));
-		cache.insert(newRecord(zeType, 2, 3));
-		cache.insert(newRecord(zeType, 3));
-		cache.insert(newRecord(zeType, 3, 2));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2, 3), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 
 		assertThatRecords("1", "2", "3").areInCache();
 		assertThat(cache.getPermanentRecordHoldersCount(zeType)).isEqualTo(3);
@@ -354,12 +355,12 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 2, 2));
-		cache.insert(newRecord(zeType, 2, 3));
-		cache.insert(newRecord(zeType, 3));
-		cache.insert(newRecord(zeType, 3, 2));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2, 3), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 
 		assertThatRecords("1", "2", "3").areInCache();
 		assertThat(cache.getVolatileRecordHoldersCount(zeType)).isEqualTo(3);
@@ -375,12 +376,12 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 4, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.volatileCache(anotherType, 4, withoutIndexByMetadata));
 
-		cache.insert(newRecord(anotherType, 10));
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(anotherType, 10), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 		cache.get("2");
-		cache.insert(newRecord(zeType, 3, 2));
+		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 		assertThatRecords("1", "2", "3", "10").areInCache();
 
 		cache.invalidateRecordsOfType(zeType);
@@ -399,12 +400,12 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
 
-		cache.insert(newRecord(anotherType, 10));
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(anotherType, 10), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 		cache.get("2");
-		cache.insert(newRecord(zeType, 3, 2));
+		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 		assertThatRecords("1", "2", "3", "10").areInCache();
 
 		cache.invalidateRecordsOfType(zeType);
@@ -426,7 +427,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				newRecord(anotherType, 2),
 				newRecord(zeType, 3),
 				newRecord(zeType, 4)
-		));
+		), WAS_MODIFIED);
 		assertThatRecords("1", "2", "3", "4").areInCache();
 
 		cache.insert(asList(
@@ -434,7 +435,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				newRecord(anotherType, 6),
 				newRecord(zeType, 7),
 				newRecord(zeType, 8)
-		));
+		), WAS_MODIFIED);
 		assertThatRecords("2", "3", "4", "5", "6", "7", "8").areInCache();
 		//		IGNITE : Assume that LRU works properly
 		//		assertThatRecord("1").isNotInCache();
@@ -455,7 +456,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				newRecord(zeType, 6),
 				newRecord(zeType, 7),
 				newRecord(zeType, 8)
-		));
+		), WAS_MODIFIED);
 		assertThatRecords("2", "3", "4", "5", "6", "7", "8").areInCache();
 		//		IGNITE : Assuming Ignite manages LRU correctly
 		//		assertThatRecord("1").isNotInCache();
@@ -466,9 +467,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert((Record) null);
-		cache.insert((List<Record>) null);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert((Record) null, WAS_MODIFIED);
+		cache.insert((List<Record>) null, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 	}
@@ -478,8 +479,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(new ArrayList<Record>());
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(new ArrayList<Record>(), WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 	}
@@ -493,8 +494,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(dirtyRecord.isDirty()).thenReturn(true);
 		((TestRecord) dirtyRecord).setDirty(true);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(dirtyRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(dirtyRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -509,8 +510,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(notFullyLoadedRecord.isFullyLoaded()).thenReturn(false);
 		((TestRecord) notFullyLoadedRecord).setFullyLoaded(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(notFullyLoadedRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(notFullyLoadedRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -518,7 +519,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecordUpdate = newRecord(zeType, 1);
 		//		when(zeTypeRecordUpdate.isFullyLoaded()).thenReturn(false);
 		((TestRecord) zeTypeRecordUpdate).setFullyLoaded(false);
-		cache.insert(zeTypeRecordUpdate);
+		cache.insert(zeTypeRecordUpdate, WAS_MODIFIED);
 		assertThatRecords("1", "2").areNotInCache();
 	}
 
@@ -535,9 +536,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(restoredRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
 		((TestRecord) restoredRecord).setLogicallyDeleted(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(logicallyDeletedRecord);
-		cache.insert(restoredRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(logicallyDeletedRecord, WAS_MODIFIED);
+		cache.insert(restoredRecord, WAS_MODIFIED);
 
 		assertThatRecords("1", "3").areInCache();
 		assertThatRecord("2").isNotInCache();
@@ -552,8 +553,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(dirtyRecord.isSaved()).thenReturn(false);
 		((TestRecord) dirtyRecord).setSaved(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(dirtyRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(dirtyRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -564,9 +565,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert((Record) null);
-		cache.insert((List<Record>) null);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert((Record) null, WAS_MODIFIED);
+		cache.insert((List<Record>) null, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 	}
@@ -576,8 +577,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(new ArrayList<Record>());
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(new ArrayList<Record>(), WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 	}
@@ -595,9 +596,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(restoredRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
 		((TestRecord) restoredRecord).setLogicallyDeleted(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(logicallyDeletedRecord);
-		cache.insert(restoredRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(logicallyDeletedRecord, WAS_MODIFIED);
+		cache.insert(restoredRecord, WAS_MODIFIED);
 
 		assertThatRecords("1", "3").areInCache();
 		assertThatRecord("2").isNotInCache();
@@ -612,8 +613,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(dirtyRecord.isDirty()).thenReturn(true);
 		((TestRecord) dirtyRecord).setDirty(true);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(dirtyRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(dirtyRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -628,8 +629,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(notFullyLoadedRecord.isFullyLoaded()).thenReturn(false);
 		((TestRecord) notFullyLoadedRecord).setFullyLoaded(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(notFullyLoadedRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(notFullyLoadedRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -637,7 +638,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecordUpdate = newRecord(zeType, 1);
 		//		when(zeTypeRecordUpdate.isFullyLoaded()).thenReturn(false);
 		((TestRecord) zeTypeRecordUpdate).setFullyLoaded(false);
-		cache.insert(zeTypeRecordUpdate);
+		cache.insert(zeTypeRecordUpdate, WAS_MODIFIED);
 		assertThatRecords("1", "2").areNotInCache();
 	}
 
@@ -650,8 +651,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		//		when(dirtyRecord.isSaved()).thenReturn(false);
 		((TestRecord) dirtyRecord).setSaved(false);
 
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(dirtyRecord);
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(dirtyRecord, WAS_MODIFIED);
 
 		assertThatRecord("1").isInCache();
 		assertThatRecord("2").isNotInCache();
@@ -662,7 +663,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
-		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
 
 		cache.invalidate("2");
 
@@ -676,9 +677,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 
 		cache.invalidate("2");
 
@@ -691,9 +692,9 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 	public void givenVolatileCacheWhenInvalidatingARecordThenInvalidate()
 			throws Exception {
 		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
-		cache.insert(newRecord(zeType, 1));
-		cache.insert(newRecord(zeType, 2));
-		cache.insert(newRecord(zeType, 3));
+		cache.insert(newRecord(zeType, 1), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 2), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 3), WAS_MODIFIED);
 
 		cache.invalidate("2");
 
@@ -703,8 +704,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		assertThat(cache.getVolatileRecordHoldersCount(zeType)).isEqualTo(3);
 		//At this step, the cache elements counter has an invalid value
 
-		cache.insert(newRecord(zeType, 4));
-		cache.insert(newRecord(zeType, 5));
+		cache.insert(newRecord(zeType, 4), WAS_MODIFIED);
+		cache.insert(newRecord(zeType, 5), WAS_MODIFIED);
 		assertThatRecords("3", "4", "5").areInCache();
 		//		IGNITE : Assume that LRU is working properly
 		//		assertThatRecords("1", "2").isNotInCache();
@@ -725,7 +726,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				newRecord(zeType, 4),
 				newRecord(zeType, 5),
 				newRecord(zeType, 6)
-		));
+		), WAS_MODIFIED);
 
 		cache.invalidate(asList("1", "3", "5"));
 
@@ -747,7 +748,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				newRecord(zeType, 4),
 				newRecord(zeType, 5),
 				newRecord(zeType, 6)
-		));
+		), WAS_MODIFIED);
 
 		cache.invalidate((String) null);
 		cache.invalidate((List<String>) null);
@@ -769,7 +770,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -810,7 +812,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		LogicalSearchCondition condition = from(zeType()).returnAll();
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		//		assertThat(cache.permanentCaches.get(zeType).queryResultsSize()).isEqualTo(0);
 		assertThat(cache.getQueryResultHoldersCount(zeType)).isEqualTo(0);
@@ -895,7 +898,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
-		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6), WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -930,7 +933,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
-		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6), WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -965,7 +968,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord5 = newRecord(zeType, 5);
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
-		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6), WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1004,7 +1007,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record anotherTypeRecord2_v2 = newRecord(anotherType, 2, 2);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1018,22 +1022,22 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 		//Inserting a record from another schema - no impacts
-		cache.insert(anotherTypeRecord2);
-		cache.insert(anotherTypeRecord2_v2);
+		cache.insert(anotherTypeRecord2, WAS_MODIFIED);
+		cache.insert(anotherTypeRecord2_v2, WAS_MODIFIED);
 
 		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 		//Inserting a record from the schema with same version - no impact
-		cache.insert(zeTypeRecord5);
+		cache.insert(zeTypeRecord5, WAS_MODIFIED);
 
 		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 		//Inserting a record from the schema with different version - all queries invalidated
-		cache.insert(zeTypeRecord5_v2);
+		cache.insert(zeTypeRecord5_v2, WAS_MODIFIED);
 
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
@@ -1058,7 +1062,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record anotherTypeRecord2_v2 = newRecord(anotherType, 2, 2);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1101,7 +1106,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1144,7 +1150,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1180,7 +1187,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		Record zeTypeRecord6 = newRecord(zeType, 6);
 
 		cache.insert(
-				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
 
 		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
@@ -1194,14 +1202,14 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 		//Invalidate a record from another schema - queries of ze schema not invalidated
-		cache.insert(newRecord(anotherType, 7));
+		cache.insert(newRecord(anotherType, 7), WAS_MODIFIED);
 
 		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 		//Invalidate a record from ze schema - queries of ze schema invalidated
-		cache.insert(newRecord(zeType, 8));
+		cache.insert(newRecord(zeType, 8), WAS_MODIFIED);
 
 		assertThatQueryResults(from(zeType()).returnAll()).isNull();
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
@@ -1249,7 +1257,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		((TestRecord) anotherType42).set(anotherTypeCodeMetadata, "ze42");
 		((TestRecord) anotherType42).set(anotherTypeLegacyIdMetadata, "789");
 
-		cache.insert(asList(zeType1, zeType18, zeType42, anotherType1, anotherType18, anotherType42));
+		cache.insert(asList(zeType1, zeType18, zeType42, anotherType1, anotherType18, anotherType42), WAS_MODIFIED);
 
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "leNumero1"))).isEqualTo("1");
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "code18"))).isEqualTo("2");
@@ -1269,21 +1277,21 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		zeType18 = newRecord(zeType, 2);
 		//		when(zeType18.get(zeTypeCodeMetadata)).thenReturn("666");
 		((TestRecord) zeType18).set(zeTypeCodeMetadata, "666");
-		cache.insert(asList(zeType18));
+		cache.insert(asList(zeType18), WAS_MODIFIED);
 
 		anotherType42 = newRecord(anotherType, 6);
 		//		when(anotherType42.get(anotherTypeCodeMetadata)).thenReturn("ze42");
 		//		when(anotherType42.get(anotherTypeLegacyIdMetadata)).thenReturn("666");
 		((TestRecord) anotherType42).set(anotherTypeCodeMetadata, "ze42");
 		((TestRecord) anotherType42).set(anotherTypeLegacyIdMetadata, "666");
-		cache.insert(asList(anotherType42));
+		cache.insert(asList(anotherType42), WAS_MODIFIED);
 
 		anotherType1 = newRecord(anotherType, 4);
 		//		when(anotherType1.get(anotherTypeCodeMetadata)).thenReturn(null);
 		//		when(anotherType1.get(anotherTypeLegacyIdMetadata)).thenReturn("123");
 		((TestRecord) anotherType1).set(anotherTypeCodeMetadata, null);
 		((TestRecord) anotherType1).set(anotherTypeLegacyIdMetadata, "123");
-		cache.insert(asList(anotherType1));
+		cache.insert(asList(anotherType1), WAS_MODIFIED);
 
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "leNumero1"))).isEqualTo("1");
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "code18"))).isNull();
@@ -1308,8 +1316,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		anotherType18 = newRecord(anotherType, 5);
 		//		when(anotherType18.get(anotherTypeCodeMetadata)).thenReturn("code18pouces");
 		((TestRecord) anotherType18).set(anotherTypeCodeMetadata, "code18pouces");
-		cache.insert(asList(zeType1));
-		cache.insert(asList(anotherType18));
+		cache.insert(asList(zeType1), WAS_MODIFIED);
+		cache.insert(asList(anotherType18), WAS_MODIFIED);
 
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "leNumero1"))).isNull();
 		assertThat(idOf(cache.getByMetadata(zeTypeCodeMetadata, "code18"))).isNull();

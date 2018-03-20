@@ -16,7 +16,7 @@ public interface RecordsCache {
 
 	boolean isCached(String id);
 
-	void insert(List<Record> record);
+	void insert(List<Record> record, InsertionReason insertionReason);
 
 	void insertQueryResults(LogicalSearchQuery query, List<Record> records);
 
@@ -30,9 +30,9 @@ public interface RecordsCache {
 
 	List<String> getQueryResultIds(LogicalSearchQuery query);
 
-	CacheInsertionStatus insert(Record record);
+	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	CacheInsertionStatus forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
 
 	void invalidateRecordsOfType(String recordType);
 

@@ -10,11 +10,11 @@ public interface RecordsCaches {
 
 	boolean isCached(String id);
 
-	void insert(String collection, List<Record> records);
+	void insert(String collection, List<Record> records, InsertionReason insertionReason);
 
-	CacheInsertionStatus insert(Record record);
+	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	CacheInsertionStatus forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
 
 	Record getRecord(String id);
 

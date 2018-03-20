@@ -40,6 +40,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
+import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -501,7 +502,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return copy;
 	}
 
-	public synchronized void insert(List<Record> records) {
+	public synchronized void insert(List<Record> records, InsertionReason insertionReason) {
 		if (records != null) {
 			beginPutTransaction();
 			for (Record record : records) {
@@ -666,7 +667,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord) {
+	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
 		long start = new Date().getTime();
 
 		if (!insertedRecord.isFullyLoaded()) {
@@ -720,7 +721,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord) {
+	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
 		beginPutTransaction();
 		CacheInsertionStatus result = doInsert(insertedRecord);
 		commitPutTransaction();

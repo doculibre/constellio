@@ -20,6 +20,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.DefaultRecordsCacheAdapter;
+import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCache;
 
 /**
@@ -44,16 +45,16 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord) {
-		return insertAllWithResponses(asList(insertedRecord)).get(0);
+	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
+		return insertAllWithResponses(asList(insertedRecord), insertionReason).get(0);
 	}
 
 	@Override
-	public void insert(List<Record> records) {
-		insertAllWithResponses(records);
+	public void insert(List<Record> records, InsertionReason insertionReason) {
+		insertAllWithResponses(records, insertionReason);
 	}
 
-	private List<CacheInsertionStatus> insertAllWithResponses(List<Record> records) {
+	private List<CacheInsertionStatus> insertAllWithResponses(List<Record> records, InsertionReason insertionReason) {
 
 		List<Record> insertedRecords = new ArrayList<>();
 		List<String> invalidatedRecords = new ArrayList<>();
@@ -78,7 +79,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 								insertedRecords.add(insertedRecord);
 							} else {
 								invalidatedRecordsWithOlderVersion.put(insertedRecord.getId(), insertedRecord.getVersion());
-								nestedRecordsCache.insert(insertedRecord);
+								nestedRecordsCache.insert(insertedRecord, insertionReason);
 							}
 						}
 					}
@@ -91,7 +92,12 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 			eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
 		}
 		if (!insertedRecords.isEmpty()) {
-			eventBus.send(INSERT_RECORDS_EVENT_TYPE, insertedRecords);
+
+			Map<String, Object> params = new HashMap<>();
+			params.put("records", insertedRecords);
+			params.put("reason", insertionReason);
+
+			eventBus.send(INSERT_RECORDS_EVENT_TYPE, params);
 		}
 
 		if (!invalidatedRecordsWithOlderVersion.isEmpty()) {
@@ -102,8 +108,13 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord) {
-		eventBus.send(INSERT_RECORDS_EVENT_TYPE, asList(insertedRecord));
+	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("records", asList(insertedRecord));
+		params.put("reason", insertionReason);
+
+		eventBus.send(INSERT_RECORDS_EVENT_TYPE, params);
 		return CacheInsertionStatus.ACCEPTED;
 	}
 
@@ -131,8 +142,9 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
 		case INSERT_RECORDS_EVENT_TYPE:
-			for (Record record : event.<List<Record>>getData()) {
-				nestedRecordsCache.forceInsert(record);
+			InsertionReason insertionReason = event.getData("reason");
+			for (Record record : event.<List<Record>>getData("records")) {
+				nestedRecordsCache.forceInsert(record, insertionReason);
 			}
 			break;
 
