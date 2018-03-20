@@ -66,4 +66,9 @@ public abstract class AutoReloadingConstellioCache implements ConstellioCache {
 	public List<Object> getAllValues() {
 		return nestedConstellioCache.getAllValues();
 	}
+
+	@Override
+	public void setOptions(ConstellioCacheOptions options) {
+		nestedConstellioCache.setOptions(options);
+	}
 }

@@ -26,6 +26,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
@@ -71,7 +72,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 
-		zeCache = new SerializationCheckCache("zeCache");
+		zeCache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);

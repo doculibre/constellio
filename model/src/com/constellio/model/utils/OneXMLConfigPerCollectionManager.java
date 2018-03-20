@@ -14,6 +14,7 @@ import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.AutoReloadingConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
@@ -48,15 +49,14 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener,
 			final DocumentAlteration newDocumentAlteration, ConstellioCache cache) {
 
+		cache.setOptions(new ConstellioCacheOptions().setInvalidateRemotelyWhenPutting(true));
 		this.cache = new AutoReloadingConstellioCache(cache) {
 			@Override
 			protected <T extends Serializable> T reload(String collection) {
-				//TODO Only if event based
 				String configPath = getConfigPath(collection);
 				XMLConfiguration config = configManager.getXML(configPath);
 				if (config == null) {
-					configManager.createXMLDocumentIfInexistent(configPath, newDocumentAlteration);
-					config = configManager.getXML(configPath);
+					return null;
 				}
 
 				return (T) parse(collection, config);
@@ -114,7 +114,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	public void updateXML(String collection, DocumentAlteration documentAlteration) {
 		String configPath = getConfigPath(collection);
 		configManager.updateXML(configPath, documentAlteration);
-		load(collection, configPath, WAS_MODIFIED);
+		//load(collection, configPath, WAS_MODIFIED);
 	}
 
 	public void update(String collection, String hash, Document document)

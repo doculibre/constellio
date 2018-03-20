@@ -10,6 +10,8 @@ import java.util.Map;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheManagerRuntimeException.ConstellioCacheManagerRuntimeException_CacheAlreadyExist;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusManager;
 
@@ -33,8 +35,21 @@ public class ConstellioEventMapCacheManager implements ConstellioCacheManager {
 		ConstellioCache cache = caches.get(name);
 		if (cache == null) {
 			EventBus eventBus = eventBusManager.createEventBus("cache-" + name, ONLY_SENT_REMOTELY);
-			cache = new ConstellioEventMapCache(name, eventBus);
+			cache = new ConstellioEventMapCache(name, eventBus, new ConstellioCacheOptions());
 			caches.put(name, cache);
+		}
+		return cache;
+	}
+
+	@Override
+	public ConstellioCache createCache(String name, ConstellioCacheOptions options) {
+		ConstellioCache cache = caches.get(name);
+		if (cache == null) {
+			EventBus eventBus = eventBusManager.createEventBus("cache-" + name, ONLY_SENT_REMOTELY);
+			cache = new ConstellioEventMapCache(name, eventBus, options);
+			caches.put(name, cache);
+		} else {
+			throw new ConstellioCacheManagerRuntimeException_CacheAlreadyExist(name);
 		}
 		return cache;
 	}

@@ -1045,7 +1045,7 @@ public class TestUtils {
 		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory());
 	}
 
-	public static void linkEventBus(DataLayerFactory dataLayerFactory1, DataLayerFactory dataLayerFactory2) {
+	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1, DataLayerFactory dataLayerFactory2) {
 		EventBusManager eventBusManager1 = dataLayerFactory1.getEventBusManager();
 		EventBusManager eventBusManager2 = dataLayerFactory2.getEventBusManager();
 		assertThat(eventBusManager1).isNotSameAs(eventBusManager2);
@@ -1053,8 +1053,13 @@ public class TestUtils {
 		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
 		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
 
+		sendingService1.setEventDataSerializer(eventBusManager1.getEventDataSerializer());
+		sendingService2.setEventDataSerializer(eventBusManager2.getEventDataSerializer());
+
 		eventBusManager1.setEventBusSendingService(sendingService1);
 		eventBusManager2.setEventBusSendingService(sendingService2);
 		SDKEventBusSendingService.interconnect(sendingService1, sendingService2);
+
+		return sendingService1;
 	}
 }

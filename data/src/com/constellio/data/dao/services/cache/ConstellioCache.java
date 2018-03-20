@@ -25,4 +25,5 @@ public interface ConstellioCache {
 
 	List<Object> getAllValues();
 
+	void setOptions(ConstellioCacheOptions options);
 }

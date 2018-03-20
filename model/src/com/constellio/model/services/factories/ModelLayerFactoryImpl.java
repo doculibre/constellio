@@ -28,6 +28,7 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.records.RecordEventDataSerializerExtension;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -135,6 +136,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName);
+
+		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		systemCollectionListeners = new ArrayList<>();
 

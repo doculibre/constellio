@@ -15,6 +15,7 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteDataStreamer;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class ConstellioIgniteCache implements ConstellioCache {
@@ -33,8 +34,12 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
 
-	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient) {
+	private ConstellioCacheOptions options;
+
+	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient,
+			ConstellioCacheOptions options) {
 		this.name = name;
+		this.options = options;
 		this.igniteCache = igniteCache;
 		this.igniteClient = igniteClient;
 		this.igniteStreamer = igniteClient.dataStreamer(igniteCache.getName());
@@ -143,6 +148,11 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	@Override
 	public List<Object> getAllValues() {
 		return new ArrayList<>(localCache.values());
+	}
+
+	@Override
+	public void setOptions(ConstellioCacheOptions options) {
+		this.options = options;
 	}
 
 }

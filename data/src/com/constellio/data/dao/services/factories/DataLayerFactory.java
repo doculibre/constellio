@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.factories;
 
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -131,7 +133,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
-				settingsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 				recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
 
 			} else {
@@ -156,7 +158,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			configManagerWithoutCache = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
-					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions));
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions,
+					eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY)));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");

@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang3.SerializationException;
 import org.apache.commons.lang3.SerializationUtils;
 
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCache;
 import com.constellio.data.utils.serialization.ConstellioSerializationUtils;
@@ -16,8 +17,8 @@ public class SerializationCheckCache extends ConstellioMapCache {
 
 	private Map<String, Object> deserializedCache = new LinkedHashMap<>();
 
-	public SerializationCheckCache(String name) {
-		super(name);
+	public SerializationCheckCache(String name, ConstellioCacheOptions options) {
+		super(name, options);
 	}
 
 	private String deserializedKey(String key) {

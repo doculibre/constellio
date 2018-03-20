@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.cache.event;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
@@ -30,9 +32,12 @@ public class ConstellioEventMapCache implements ConstellioCache, EventBusListene
 
 	private EventBus eventBus;
 
-	public ConstellioEventMapCache(String name, EventBus eventBus) {
+	ConstellioCacheOptions options;
+
+	public ConstellioEventMapCache(String name, EventBus eventBus, ConstellioCacheOptions options) {
 		this.name = name;
 		this.eventBus = eventBus;
+		this.options = options;
 		eventBus.register(this);
 	}
 
@@ -51,15 +56,28 @@ public class ConstellioEventMapCache implements ConstellioCache, EventBusListene
 	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
 		if (insertionReason == InsertionReason.WAS_OBTAINED) {
 			map.put(key, value);
+
 		} else if (insertionReason == InsertionReason.WAS_MODIFIED) {
 
-			//Disabled for test purposes
-			//map.put(key, value);
-			map.remove(key); //Added for test purposes
+			if (options.isInvalidateRemotelyWhenPutting()) {
 
-			HashSet<String> keys = new HashSet<>();
-			keys.add(key);
-			eventBus.send(REMOVE_EVENT_TYPE, keys);
+				//Disabled for test purposes
+				//map.put(key, value);
+				map.remove(key); //Added for test purposes
+
+				HashSet<String> keys = new HashSet<>();
+				keys.add(key);
+				eventBus.send(REMOVE_EVENT_TYPE, keys);
+
+			} else {
+				map.put(key, value);
+				Map<String, Object> params = new HashMap<>();
+				params.put("key", key);
+				params.put("value", value);
+
+				eventBus.send(PUT_EVENT_TYPE, params);
+
+			}
 		}
 	}
 
@@ -97,6 +115,11 @@ public class ConstellioEventMapCache implements ConstellioCache, EventBusListene
 	@Override
 	public List<Object> getAllValues() {
 		return new ArrayList<>(map.values());
+	}
+
+	@Override
+	public void setOptions(ConstellioCacheOptions options) {
+		this.options = options;
 	}
 
 	@Override

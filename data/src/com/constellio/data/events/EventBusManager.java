@@ -83,4 +83,7 @@ public class EventBusManager implements EventReceiver {
 
 	}
 
+	public EventDataSerializer getEventDataSerializer() {
+		return eventDataSerializer;
+	}
 }

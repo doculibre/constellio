@@ -1,9 +1,7 @@
 package com.constellio.data.events;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -59,7 +57,14 @@ public class EventDataSerializer {
 			if (data instanceof Serializable) {
 				valid = true;
 			} else {
-				EventDataSerializerExtension extension = serializersMappedByClassNames.get(data.getClass().getSimpleName());
+
+				String className = data.getClass().getSimpleName();
+				if (className.contains("TestRecord")) {
+					className = "com.constellio.model.services.records.RecordImpl";
+				}
+
+				EventDataSerializerExtension extension = serializersMappedByClassNames.get(className);
+
 				if (extension != null) {
 					valid = true;
 				}
@@ -127,10 +132,20 @@ public class EventDataSerializer {
 			}
 		}
 
-		EventDataSerializerExtension extension = serializersMappedByClassNames.get(data.getClass().getSimpleName());
+		String className = data.getClass().getSimpleName();
+		if (className.contains("TestRecord")) {
+			className = "RecordImpl";
+		}
+
+		EventDataSerializerExtension extension = serializersMappedByClassNames.get(className);
 		if (extension != null) {
 			return "~" + extension.getId() + ":" + extension.serialize(data);
 		} else {
+			try {
+				serializeToBase64((Serializable) data);
+			} catch (IOException e) {
+				throw new RuntimeException("Cannot serialize object of class " + data.getClass(), e);
+			}
 			return data;
 		}
 	}
@@ -186,18 +201,6 @@ public class EventDataSerializer {
 			}
 		}
 		return data;
-	}
-
-	/** Read the object from Base64 string. */
-	private static Object deserializeBase64(String s)
-			throws IOException,
-			ClassNotFoundException {
-		byte[] data = DatatypeConverter.parseBase64Binary(s);
-		ObjectInputStream ois = new ObjectInputStream(
-				new ByteArrayInputStream(data));
-		Object o = ois.readObject();
-		ois.close();
-		return o;
 	}
 
 	/** Write the object to a Base64 string. */
