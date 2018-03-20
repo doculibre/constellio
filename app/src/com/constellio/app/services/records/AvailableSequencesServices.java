@@ -3,6 +3,7 @@ package com.constellio.app.services.records;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.Language.withCode;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,7 +71,6 @@ public class AvailableSequencesServices {
 
 		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
 			for (Metadata metadata : schemaType.getAllMetadatas().onlySequence()) {
-				Set<String> typesWithSequenceFeedingRecordForCurrentMetadata = new HashSet<>();
 				SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
 				if (dataEntry.getMetadataProvidingSequenceCode() != null) {
 					MetadataSchema schema = types.getSchema(metadata.getSchemaCode());
@@ -89,8 +89,7 @@ public class AvailableSequencesServices {
 
 					if (metadataProvidingReference.getType() == REFERENCE) {
 						if (record.isOfSchemaType(metadataProvidingReference.getAllowedReferences().getTypeWithAllowedSchemas())) {
-							typesWithSequenceFeedingRecord.put(metadataProvidingSequenceCode, typesWithSequenceFeedingRecordForCurrentMetadata);
-							typesWithSequenceFeedingRecord.get(metadataProvidingSequenceCode).add(new SchemaUtils().getSchemaTypeCode(schema.getCode()));
+							addValueToKey(typesWithSequenceFeedingRecord, metadataProvidingSequenceCode, new SchemaUtils().getSchemaTypeCode(schema.getCode()));
 						}
 					}
 				}
@@ -110,6 +109,14 @@ public class AvailableSequencesServices {
 			}
 		}
 		return availableSequences;
+	}
+
+	private void addValueToKey(Map<Metadata, Set<String>> map, Metadata key, String valueToAdd) {
+		if(map.containsKey(key)) {
+			map.get(key).add(valueToAdd);
+		} else {
+			map.put(key, new HashSet<String>(asList(valueToAdd)));
+		}
 	}
 
 //	private void addMetadataProvidingSequenceCode(){
