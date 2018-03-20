@@ -144,7 +144,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 
-		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getDisplayMetadataCodes());
+		putMetadataAtTheEnd(label, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
@@ -155,5 +155,9 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {
 		int index = codes.indexOf(RetentionRule.DEFAULT_SCHEMA + "_" + codeToSearch);
 		codes.add(index, codeToInsert);
+	}
+
+	private void putMetadataAtTheEnd(String codeToInsert, List<String> codes) {
+		codes.add(codeToInsert);
 	}
 }

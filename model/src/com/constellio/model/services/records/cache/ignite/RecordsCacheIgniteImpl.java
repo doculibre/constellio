@@ -137,10 +137,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	private CacheConfiguration<String, Object> newPermanentCacheCfg(String name, Class<?> indexedType) {
 		CacheConfiguration<String, Object> permanentCacheCfg = new CacheConfiguration<>(name);
-		permanentCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		permanentCacheCfg.setCacheMode(CacheMode.REPLICATED); // Default.
 		permanentCacheCfg.setMemoryPolicyName("permanent");
-		permanentCacheCfg.setReadFromBackup(true);
-		permanentCacheCfg.setBackups(0);
 		permanentCacheCfg.setIndexedTypes(String.class, indexedType);
 		return permanentCacheCfg;
 	}

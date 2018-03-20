@@ -517,6 +517,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             couldNotMove.add(record.getTitle());
                     }
                 } catch (RecordServicesException.ValidationException e) {
+                    e.printStackTrace();
                     couldNotMove.add(record.getTitle());
                 }
             }

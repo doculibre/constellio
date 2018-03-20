@@ -172,11 +172,6 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
-
-				if (schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
-					condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE))
-							.isFalseOrNull();
-				}
 			} else {
 				String caption = $("caption." + type.getCode() + ".record");
 
@@ -186,6 +181,11 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				} else {
 					sort = Schemas.TITLE;
 				}
+			}
+
+			if (schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
+				condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE))
+						.isFalseOrNull();
 			}
 		} else {
 

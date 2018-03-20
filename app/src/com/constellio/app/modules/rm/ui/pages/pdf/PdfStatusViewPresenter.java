@@ -2,6 +2,10 @@ package com.constellio.app.modules.rm.ui.pages.pdf;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -18,6 +22,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.TemporaryRecordVO;
 import com.constellio.app.ui.framework.builders.TemporaryRecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -37,8 +42,10 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 	
     private static final String PDF_GENERATION = "PdfGeneration";
     
+    private String consolidatedPdfId;
     private String batchProcessId;
 
+    private File consolidatedPdfFile;
     private final String pdfFileName;
     private final List<String> documentIds;
     private final boolean withMetadata;
@@ -72,9 +79,9 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 
         final String username = view.getSessionContext().getCurrentUser().getUsername();
 
-        final String consolidatedId = username + String.valueOf(System.currentTimeMillis());
+        consolidatedPdfId = username + String.valueOf(System.currentTimeMillis());
 
-        PdfGeneratorAsyncTask asyncTask = new PdfGeneratorAsyncTask(documentIds, consolidatedId,
+        PdfGeneratorAsyncTask asyncTask = new PdfGeneratorAsyncTask(documentIds, consolidatedPdfId,
                 pdfFileName, pdfFileName, username, withMetadata);
 
         AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, view.getCollection(), PDF_GENERATION);
@@ -100,8 +107,13 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
                     dataProvider.setMessages(messages);
 
                     if (isFinished()) {
-                        view.firePdfGenerationCompleted(consolidatedId, errorOccurred);
-                        timer.cancel();
+                    	try {
+							saveInTempFile();
+	                        view.firePdfGenerationCompleted(consolidatedPdfFile, errorOccurred);
+	                        timer.cancel();
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
                     }
                 }
             }
@@ -127,15 +139,38 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 		return pdfFileName;
 	}
 
-    public TemporaryRecordVO getPdfDocumentVO(String id) {
+    private TemporaryRecordVO getPdfDocumentVO() {
     	TemporaryRecordVO result;
         try {
             RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            result = new TemporaryRecordToVOBuilder().build(rm.get(id), VIEW_MODE.DISPLAY, view.getSessionContext());
+            result = new TemporaryRecordToVOBuilder().build(rm.get(consolidatedPdfId), VIEW_MODE.DISPLAY, view.getSessionContext());
         } catch (NoSuchRecordWithId e) {
         	result = null;
         }
         return result;
+    }
+    
+    private void saveInTempFile() throws IOException {
+    	TemporaryRecordVO temporaryRecordVO = getPdfDocumentVO();
+    	if (temporaryRecordVO != null && temporaryRecordVO.getContent() != null) {
+        	InputStream in = temporaryRecordVO.getContent().getInputStreamProvider().getInputStream(pdfFileName + ".in");
+        	IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+        	consolidatedPdfFile = ioServices.newTemporaryFile(consolidatedPdfId, FilenameUtils.getExtension(pdfFileName));
+        	consolidatedPdfFile.deleteOnExit();
+        	OutputStream out = ioServices.newFileOutputStream(consolidatedPdfFile, pdfFileName);
+        	ioServices.copyAndClose(in, out);
+    	}
+    }
+    
+    public InputStream newConsolidatedPdfInputStream() {
+    	InputStream in;
+    	TemporaryRecordVO temporaryRecordVO = getPdfDocumentVO();
+    	if (temporaryRecordVO != null && temporaryRecordVO.getContent() != null) {
+        	in = temporaryRecordVO.getContent().getInputStreamProvider().getInputStream(pdfFileName + ".in");
+    	} else {
+    		in = null;
+    	}
+    	return in;
     }
     
     private class TaskProgressInfo {

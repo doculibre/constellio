@@ -2,24 +2,19 @@ package com.constellio.app.modules.rm.ui.pages.pdf;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusDataProvider;
 import com.constellio.app.modules.rm.ui.pages.pdf.table.PdfStatusTable;
-import com.constellio.app.ui.entities.TemporaryRecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinSession;
@@ -32,7 +27,6 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import com.vaadin.ui.Button.ClickEvent;
 
 public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 	
@@ -41,7 +35,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
     private final String pdfFileName;
     private final PdfStatusViewPresenter presenter;
 
-    private String documentPdfId;
+    private File consolidatePdfFile;
     private boolean finished;
     private boolean errorOccurred;
 
@@ -113,10 +107,11 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         return layout;
     }
 
-    public void firePdfGenerationCompleted(String documentId, final boolean errorOccurred) {
-        this.documentPdfId = documentId;
+    @Override
+    public void firePdfGenerationCompleted(File consolidatePdfFile, final boolean errorOccurred) {
         this.finished = true;
         this.errorOccurred = errorOccurred;
+        this.consolidatePdfFile = consolidatePdfFile;
 
         VaadinSession.getCurrent().access(new Runnable() {
             @Override
@@ -141,12 +136,11 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         });
     }
 
-	private Resource getPdfDocumentResource(final String id) {
+	private Resource getPdfDocumentResource() {
         return new StreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
-                TemporaryRecordVO vo = presenter.getPdfDocumentVO(id);
-                return vo.getContent().getInputStreamProvider().getInputStream(pdfFileName);
+            	return presenter.newConsolidatedPdfInputStream();
             }
         }, pdfFileName);
     }
@@ -156,7 +150,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         layout.setSizeFull();
 //        layout.setSpacing(true);
         
-        DownloadLink downloadLink = new DownloadLink(getPdfDocumentResource(documentPdfId), $("PdfStatusView.downloadPdfFile"));
+        DownloadLink downloadLink = new DownloadLink(getPdfDocumentResource(), $("PdfStatusView.downloadPdfFile"));
 
         layout.addComponent(downloadLink);
         layout.setExpandRatio(downloadLink, 1);
@@ -167,13 +161,12 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
         layout.addComponent(label);
         layout.setExpandRatio(label, 1);
 
-        if (documentPdfId != null) {
-            TemporaryRecordVO temporaryRecordVO = presenter.getPdfDocumentVO(documentPdfId);
-            if (temporaryRecordVO != null) {
-                ContentViewer contentViewer = new ContentViewer(temporaryRecordVO, TemporaryRecord.CONTENT, temporaryRecordVO.getContent());
-                layout.addComponent(contentViewer);
-                layout.setComponentAlignment(contentViewer, Alignment.TOP_CENTER);
-            }
+        if (consolidatePdfFile != null) {
+            DocumentViewer documentViewer = new DocumentViewer(consolidatePdfFile);
+            layout.addComponent(documentViewer);
+            layout.setComponentAlignment(documentViewer, Alignment.TOP_CENTER);
+        } else {
+        	downloadLink.setVisible(false);
         }
 
         return layout;

@@ -6,6 +6,8 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.vaadin.data.util.converter.Converter;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class StringToEnumWithSmallCodeConverter<T extends EnumWithSmallCode> implements Converter<String, EnumWithSmallCode> {
 	
 	private Class<T> enumWithSmallCodeClass;
@@ -23,7 +25,8 @@ public class StringToEnumWithSmallCodeConverter<T extends EnumWithSmallCode> imp
 	@Override
 	public String convertToPresentation(EnumWithSmallCode value, Class<? extends String> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
-		return EnumWithSmallCodeUtils.toSmallCode(value);
+//		return EnumWithSmallCodeUtils.toSmallCode(value);
+		return $(enumWithSmallCodeClass.getSimpleName() + "." + value.getCode());
 	}
 
 	@Override
