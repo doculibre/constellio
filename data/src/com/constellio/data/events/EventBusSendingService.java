@@ -3,7 +3,7 @@ package com.constellio.data.events;
 /**
  * Have two responsibilities :
  * - send event remotely to other nodes
- * - receive events, dispatching them to the event bus manager
+ * - receive events, dispatching them to the event receiver
  */
 public abstract class EventBusSendingService {
 

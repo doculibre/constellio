@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache.eventBus;
 
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +37,7 @@ public class EventsBusRecordsCachesImpl extends RecordsCachesMemoryImpl {
 			LOGGER.warn("Event bus with name already exist, it is recreated");
 			eventBusManager.removeEventBus(recordsCacheEventBusName);
 		}
-		EventBus eventBus = eventBusManager.createEventBus(recordsCacheEventBusName);
+		EventBus eventBus = eventBusManager.createEventBus(recordsCacheEventBusName, ONLY_SENT_REMOTELY);
 
 		RecordsCache recordsCache = super.newRecordsCache(collection, modelLayerFactory);
 		return new EventBusRecordsCacheImpl(eventBus, recordsCache);

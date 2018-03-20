@@ -28,8 +28,8 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isCached(id);
 	}
 
-	public void insert(List<Record> record, InsertionReason reason) {
-		nestedRecordsCache.insert(record, reason);
+	public List<CacheInsertionStatus> insert(List<Record> record, InsertionReason reason) {
+		return nestedRecordsCache.insert(record, reason);
 	}
 
 	public void insertQueryResults(LogicalSearchQuery query,

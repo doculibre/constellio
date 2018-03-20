@@ -1,5 +1,6 @@
 package com.constellio.data.events;
 
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
@@ -45,8 +46,8 @@ public class EventBusManagerTest extends ConstellioTest {
 	public void validatingAddRemoveEventBusOperations()
 			throws Exception {
 
-		EventBus magicBus = eventBusManager.createEventBus("Bus magique");
-		EventBus schoolBus = eventBusManager.createEventBus("Bus d'école");
+		EventBus magicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+		EventBus schoolBus = eventBusManager.createEventBus("Bus d'école", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
 		assertThat(eventBusManager.hasEventBus("Bus magique")).isTrue();
 		assertThat(eventBusManager.hasEventBus("Bus d'école")).isTrue();
@@ -62,7 +63,7 @@ public class EventBusManagerTest extends ConstellioTest {
 		}
 
 		try {
-			eventBusManager.createEventBus("Bus magique");
+			eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 			fail("Exception expected");
 		} catch (EventBusManagerRuntimeException_EventBusAlreadyExist e) {
 
@@ -71,7 +72,7 @@ public class EventBusManagerTest extends ConstellioTest {
 		eventBusManager.removeEventBus("Bus magique");
 		assertThat(eventBusManager.hasEventBus("Bus magique")).isFalse();
 
-		EventBus newMagicBus = eventBusManager.createEventBus("Bus magique");
+		EventBus newMagicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		assertThat(newMagicBus).isNotSameAs(magicBus);
 
 	}
@@ -80,15 +81,15 @@ public class EventBusManagerTest extends ConstellioTest {
 	public void givenMultipleEventBusReceivedEventsOrDispatchedToTheGoodOneAndEventWithUnknownBusAreDismissed()
 			throws Exception {
 
-		EventBus magicBus = eventBusManager.createEventBus("Bus magique");
+		EventBus magicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		magicBus.register(listener1);
 		magicBus.register(listener2);
 		magicBus.register(listener4);
 		magicBus.unregister(listener4);
 
-		EventBus schoolBus = eventBusManager.createEventBus("Bus d'école");
+		EventBus schoolBus = eventBusManager.createEventBus("Bus d'école", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
-		EventBus ourleheinExpressBus = eventBusManager.createEventBus("Ourléhein Express");
+		EventBus ourleheinExpressBus = eventBusManager.createEventBus("Ourléhein Express", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		ourleheinExpressBus.register(listener3);
 
 		Event event1 = new Event("Bus magique", "flying", "1", 1l, "zeValue");
@@ -116,7 +117,7 @@ public class EventBusManagerTest extends ConstellioTest {
 	public void whenSendingEventThenValidatedThenSentLocallyThenSentRemotely()
 			throws Exception {
 
-		EventBus magicBus = eventBusManager.createEventBus("Bus magique");
+		EventBus magicBus = eventBusManager.createEventBus("Bus magique", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		magicBus.register(listener1);
 		magicBus.register(listener2);
 
@@ -124,10 +125,10 @@ public class EventBusManagerTest extends ConstellioTest {
 		eventBusManager.eventDataSerializer = spy(eventBusManager.eventDataSerializer);
 
 		Event event1 = new Event("Bus magique", "flying", "1", 1l, "zeValue");
-		eventBusManager.send(event1);
+		eventBusManager.send(event1, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
 		Event event2 = new Event("Bus magique", "landing", "1", 1l, "anotherValue");
-		eventBusManager.send(event2);
+		eventBusManager.send(event2, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
 		InOrder inOrder = Mockito
 				.inOrder(listener1, listener2, eventBusManager.eventDataSerializer, eventBusManager, sendingService);

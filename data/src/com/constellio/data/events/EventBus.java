@@ -14,14 +14,17 @@ public class EventBus {
 
 	List<EventBusListener> listeners = new ArrayList<>();
 
-	public EventBus(String name, EventBusManager manager) {
+	EventBusEventsExecutionStrategy executionStrategy;
+
+	public EventBus(String name, EventBusManager manager, EventBusEventsExecutionStrategy executionStrategy) {
 		this.name = name;
 		this.manager = manager;
+		this.executionStrategy = executionStrategy;
 	}
 
 	public void send(String type, Object data) {
 		long timeStamp = new Date().getTime();
-		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data));
+		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data), executionStrategy);
 	}
 
 	public void send(String type) {

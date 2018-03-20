@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.cache.event;
 
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +32,7 @@ public class ConstellioEventCacheManager implements ConstellioCacheManager {
 	public synchronized ConstellioCache getCache(String name) {
 		ConstellioCache cache = caches.get(name);
 		if (cache == null) {
-			EventBus eventBus = eventBusManager.createEventBus("cache-" + name);
+			EventBus eventBus = eventBusManager.createEventBus("cache-" + name, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 			cache = new ConstellioEventCache(name, eventBus);
 			caches.put(name, cache);
 		}

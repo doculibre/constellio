@@ -34,7 +34,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	public static final String INVALIDATE_SCHEMA_TYPE_EVENT_TYPE = "invalidateSchemaTypeRecords";
 	public static final String INVALIDATE_RECORDS_EVENT_TYPE = "invalidateRecords";
 	public static final String INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE = "invalidateRecordsWithOlderVersion";
-	public static final String INVALIDATE_ALL_EVENT_TYPE = "invalidateAll";
 
 	EventBus eventBus;
 
@@ -46,30 +45,30 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
-		return insertAllWithResponses(asList(insertedRecord), insertionReason).get(0);
+		CacheInsertionStatus status = nestedRecordsCache.insert(insertedRecord, insertionReason);
+		handleRemotely(asList(insertedRecord), insertionReason);
+		return status;
 	}
 
 	@Override
-	public void insert(List<Record> records, InsertionReason insertionReason) {
-		insertAllWithResponses(records, insertionReason);
+	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = nestedRecordsCache.insert(records, insertionReason);
+		handleRemotely(records, insertionReason);
+		return statuses;
 	}
 
-	private List<CacheInsertionStatus> insertAllWithResponses(List<Record> records, InsertionReason insertionReason) {
+	private void handleRemotely(List<Record> records, InsertionReason insertionReason) {
 
-		List<Record> insertedRecords = new ArrayList<>();
-		List<String> invalidatedRecords = new ArrayList<>();
-		Map<String, Long> invalidatedRecordsWithOlderVersion = new HashMap<>();
-		List<CacheInsertionStatus> statuses = new ArrayList<>();
-		for (Record insertedRecord : records) {
+		if (insertionReason == InsertionReason.WAS_MODIFIED) {
+			List<Record> insertedRecords = new ArrayList<>();
+			List<String> invalidatedRecords = new ArrayList<>();
+			Map<String, Long> invalidatedRecordsWithOlderVersion = new HashMap<>();
+			for (Record insertedRecord : records) {
+				if (insertedRecord != null) {
+					CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
 
-			CacheInsertionStatus status = null;
-			if (insertedRecord != null) {
-
-				CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
-				status = evaluateCacheInsert(insertedRecord, cacheConfig);
-				if (cacheConfig != null) {
-					synchronized (cacheConfig) {
-
+					if (cacheConfig != null) {
+						CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
 						if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
 							invalidatedRecords.add(insertedRecord.getId());
 						}
@@ -79,63 +78,58 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 								insertedRecords.add(insertedRecord);
 							} else {
 								invalidatedRecordsWithOlderVersion.put(insertedRecord.getId(), insertedRecord.getVersion());
-								nestedRecordsCache.insert(insertedRecord, insertionReason);
 							}
 						}
 					}
 				}
+
 			}
 
-			statuses.add(status);
-		}
-		if (!invalidatedRecords.isEmpty()) {
-			eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
-		}
-		if (!insertedRecords.isEmpty()) {
+			if (!invalidatedRecords.isEmpty()) {
+				eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, invalidatedRecords);
+			}
+			if (!insertedRecords.isEmpty()) {
 
-			Map<String, Object> params = new HashMap<>();
-			params.put("records", insertedRecords);
-			params.put("reason", insertionReason);
+				Map<String, Object> params = new HashMap<>();
+				params.put("records", insertedRecords);
+				params.put("reason", insertionReason);
+				eventBus.send(INSERT_RECORDS_EVENT_TYPE, params);
+			}
 
-			eventBus.send(INSERT_RECORDS_EVENT_TYPE, params);
+			if (!invalidatedRecordsWithOlderVersion.isEmpty()) {
+				eventBus.send(INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE, invalidatedRecordsWithOlderVersion);
+			}
 		}
-
-		if (!invalidatedRecordsWithOlderVersion.isEmpty()) {
-			eventBus.send(INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE, invalidatedRecordsWithOlderVersion);
-		}
-
-		return statuses;
 	}
 
 	@Override
 	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
-
-		Map<String, Object> params = new HashMap<>();
-		params.put("records", asList(insertedRecord));
-		params.put("reason", insertionReason);
-
-		eventBus.send(INSERT_RECORDS_EVENT_TYPE, params);
-		return CacheInsertionStatus.ACCEPTED;
+		CacheInsertionStatus status = nestedRecordsCache.forceInsert(insertedRecord, insertionReason);
+		handleRemotely(asList(insertedRecord), insertionReason);
+		return status;
 	}
 
 	@Override
 	public void invalidateRecordsOfType(String recordType) {
+		nestedRecordsCache.invalidateRecordsOfType(recordType);
 		eventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
 	}
 
 	@Override
 	public void invalidate(List<String> recordIds) {
+		nestedRecordsCache.invalidate(recordIds);
 		eventBus.send(INVALIDATE_RECORDS_EVENT_TYPE, recordIds);
 	}
 
 	@Override
 	public void invalidate(String recordId) {
+		nestedRecordsCache.invalidate(recordId);
 		this.invalidate(asList(recordId));
 	}
 
 	@Override
 	public void invalidateAll() {
-		eventBus.send(INVALIDATE_ALL_EVENT_TYPE);
+		nestedRecordsCache.invalidateAll();
 	}
 
 	@Override
@@ -158,10 +152,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 
 		case INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE:
 			invalidateRecordsWithOlderVersions(event.<Map<String, Long>>getData());
-			break;
-
-		case INVALIDATE_ALL_EVENT_TYPE:
-			nestedRecordsCache.invalidateAll();
 			break;
 
 		default:

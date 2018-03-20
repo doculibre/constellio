@@ -10,7 +10,7 @@ public interface RecordsCaches {
 
 	boolean isCached(String id);
 
-	void insert(String collection, List<Record> records, InsertionReason insertionReason);
+	List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason insertionReason);
 
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 

@@ -74,6 +74,7 @@ import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.schemas.MetadataList;
@@ -111,6 +112,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock RecordDao eventsDao;
 	@Mock RecordDao notificationsDao;
 	@Mock RecordsCaches recordsCaches;
+	@Mock RecordsCache recordsCache;
 	@Mock RecordValidationServices validationServices;
 	@Mock RecordAutomaticMetadataServices automaticMetadataServices;
 	@Mock ContentManager contentManager;
@@ -303,6 +305,8 @@ public class RecordServicesTest extends ConstellioTest {
 		metadataSchemaTypes = schemaManager.getSchemaTypes(zeCollection);
 		when(modelFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(asList("fr"));
+
+		when(recordsCaches.getCache(anyString())).thenReturn(recordsCache);
 	}
 
 	@Test
@@ -842,7 +846,7 @@ public class RecordServicesTest extends ConstellioTest {
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
-		doReturn(asMap("records",transactionDTO)).when(recordServices)
+		doReturn(asMap("records", transactionDTO)).when(recordServices)
 				.createTransactionDTOs(eq(transaction), anyList());
 
 		recordServices.executeWithImpactHandler(transaction, handler);

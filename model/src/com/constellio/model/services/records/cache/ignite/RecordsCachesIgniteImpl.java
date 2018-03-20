@@ -62,9 +62,9 @@ public class RecordsCachesIgniteImpl implements RecordsCaches {
 		return false;
 	}
 
-	public void insert(String collection, List<Record> records, InsertionReason insertionReason) {
+	public List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason insertionReason) {
 		RecordsCache cache = getCache(collection);
-		cache.insert(records, insertionReason);
+		return cache.insert(records, insertionReason);
 	}
 
 	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {

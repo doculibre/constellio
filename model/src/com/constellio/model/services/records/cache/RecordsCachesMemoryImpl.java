@@ -66,9 +66,9 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return false;
 	}
 
-	public void insert(String collection, List<Record> records, InsertionReason reason) {
+	public List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason reason) {
 		RecordsCache cache = getCache(collection);
-		cache.insert(records, reason);
+		return cache.insert(records, reason);
 	}
 
 	public CacheInsertionStatus insert(Record record, InsertionReason reason) {

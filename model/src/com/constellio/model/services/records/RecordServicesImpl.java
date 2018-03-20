@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
 import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.utils.MaskUtils.format;
@@ -98,6 +99,8 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.InsertionReason;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
@@ -523,11 +526,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void insertInCache(Record record, InsertionReason reason) {
-		recordsCaches.insert(record, reason);
+		insertInCache(record.getCollection(), asList(record), reason);
 	}
 
 	public void insertInCache(String collection, List<Record> records, InsertionReason reason) {
-		recordsCaches.insert(collection, records, reason);
+
+		List<Record> insertedRecords = new ArrayList<>();
+		for (Record record : records) {
+			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(record.getTypeCode());
+			if (cacheConfig != null) {
+				if (evaluateCacheInsert(record, cacheConfig) != CacheInsertionStatus.ACCEPTED && cacheConfig.isPermanent()) {
+					insertedRecords.add(realtimeGetRecordById(record.getId()));
+				} else {
+					insertedRecords.add(record);
+				}
+			}
+		}
+		recordsCaches.insert(collection, insertedRecords, reason);
+
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {

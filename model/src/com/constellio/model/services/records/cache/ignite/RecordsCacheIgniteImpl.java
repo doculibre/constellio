@@ -502,14 +502,16 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return copy;
 	}
 
-	public synchronized void insert(List<Record> records, InsertionReason insertionReason) {
+	public synchronized List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		if (records != null) {
 			beginPutTransaction();
 			for (Record record : records) {
-				doInsert(record);
+				statuses.add(doInsert(record));
 			}
 			commitPutTransaction();
 		}
+		return statuses;
 	}
 
 	private void beginPutTransaction() {

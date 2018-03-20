@@ -76,10 +76,12 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public void insert(List<Record> records, InsertionReason insertionReason) {
+	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		for (Record record : records) {
-			insert(record, insertionReason);
+			statuses.add(insert(record, insertionReason));
 		}
+		return statuses;
 	}
 
 	@Override

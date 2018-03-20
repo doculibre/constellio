@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
+import static com.constellio.model.services.records.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
@@ -177,12 +178,15 @@ public class RecordsCacheImpl implements RecordsCache {
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
 
-	public void insert(List<Record> records, InsertionReason insertionReason) {
+	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		if (records != null) {
 			for (Record record : records) {
-				insert(record, insertionReason);
+				statuses.add(insert(record, insertionReason));
 			}
 		}
+
+		return statuses;
 	}
 
 	@Override
@@ -382,7 +386,7 @@ public class RecordsCacheImpl implements RecordsCache {
 							insertRecordIntoAnAlreadyExistingVolatileCacheHolder(recordCopy, cacheConfig, holder);
 						}
 						holder.set(recordCopy);
-						if (cacheConfig.isPermanent()) {
+						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
 					} else {
@@ -390,7 +394,7 @@ public class RecordsCacheImpl implements RecordsCache {
 					}
 				} else {
 					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
-					if (cacheConfig.isPermanent()) {
+					if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 					}
 				}

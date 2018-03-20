@@ -1,5 +1,8 @@
 package com.constellio.data.events;
 
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,20 +49,27 @@ public class EventBusManager implements EventReceiver {
 		return eventBuses.remove(name) != null;
 	}
 
-	public EventBus createEventBus(String name) {
+	public EventBus createEventBus(String name, EventBusEventsExecutionStrategy executionStrategy) {
 		EventBus eventBus = eventBuses.get(name);
 		if (eventBus != null) {
 			throw new EventBusManagerRuntimeException_EventBusAlreadyExist(name);
 		}
-		eventBus = new EventBus(name, this);
+		eventBus = new EventBus(name, this, executionStrategy);
 		eventBuses.put(name, eventBus);
 		return eventBus;
 	}
 
-	public void send(Event event) {
-		eventDataSerializer.validateData(event.getData());
-		receive(event);
-		eventBusSendingService.sendRemotely(event);
+	public void send(Event event, EventBusEventsExecutionStrategy executionStrategy) {
+		if (executionStrategy == EXECUTED_LOCALLY_THEN_SENT_REMOTELY) {
+			eventDataSerializer.validateData(event.getData());
+			receive(event);
+			eventBusSendingService.sendRemotely(event);
+
+		} else if (executionStrategy == ONLY_SENT_REMOTELY) {
+			eventDataSerializer.validateData(event.getData());
+			eventBusSendingService.sendRemotely(event);
+
+		}
 
 	}
 
