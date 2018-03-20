@@ -1,10 +1,15 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class RecordServicesException extends Exception {
@@ -38,21 +43,22 @@ public class RecordServicesException extends Exception {
 		final TransactionDTO transactionDTO;
 
 		public OptimisticLocking(TransactionDTO transactionDTO, RecordDaoException.OptimisticLocking e) {
-			super(getMessage(e.getId(), e.getVersion()), e);
+			super(getMessage(e.getId(), e.getVersion(), transactionDTO), e);
 			this.transactionDTO = transactionDTO;
 			this.id = e.getId();
 			this.version = e.getVersion();
 		}
 
 		public OptimisticLocking(String id, TransactionDTO transactionDTO, Throwable cause) {
-			super(getMessage(id, null), cause);
+			super(getMessage(id, null, transactionDTO), cause);
 			this.transactionDTO = transactionDTO;
 			this.id = id;
 			this.version = null;
 		}
 
-		private static String getMessage(String id, Long version) {
-			return "Optimistic locking while saving record with id '" + id + "' in version '" + version + "'";
+		private static String getMessage(String id, Long version, TransactionDTO transactionDTO) {
+			return "Optimistic locking while saving record with id '" + id + "' in version '" + version + "'"
+					+ "\n" + getAdvancedMessage(id, transactionDTO);
 		}
 
 		public String getId() {
@@ -65,6 +71,89 @@ public class RecordServicesException extends Exception {
 
 		public Long getVersion() {
 			return version;
+		}
+
+		private static String getAdvancedMessage(String id, TransactionDTO transactionDTO) {
+			StringBuilder stringBuilder = new StringBuilder();
+			List<RecordDTO> newRecords = transactionDTO.getNewRecords();
+			List<RecordDTO> deletedRecords = transactionDTO.getDeletedRecords();
+			List<RecordDeltaDTO> modifiedRecords = transactionDTO.getModifiedRecords();
+			for(RecordDTO record: newRecords) {
+				if(id.equals(record.getId())) {
+					Map<String, Object> fields = record.getFields();
+					Iterator<Map.Entry<String, Object>> fieldIterator = fields.entrySet().iterator();
+					while (fieldIterator.hasNext()) {
+						Map.Entry<String, Object> next = fieldIterator.next();
+						try {
+							if(next != null && next.getKey() != null && next.getValue() != null) {
+								stringBuilder.append("Version " + record.getVersion() + " in new records with metadata: " + next.getKey() + " and value: " + next.getValue().toString() + "\n");
+							}
+						} catch (Exception e) {
+						}
+					}
+					stringBuilder.append("\n");
+				}
+			}
+			stringBuilder.append("\n");
+
+			for(RecordDTO record: deletedRecords) {
+				if(id.equals(record.getId())) {
+					Map<String, Object> fields = record.getFields();
+					Iterator<Map.Entry<String, Object>> fieldIterator = fields.entrySet().iterator();
+					while (fieldIterator.hasNext()) {
+						Map.Entry<String, Object> next = fieldIterator.next();
+						try {
+							if(next != null && next.getKey() != null && next.getValue() != null) {
+								stringBuilder.append("Version " + record.getVersion() + " in deleted records with metadata: " + next.getKey() + " and value: " + next.getValue().toString() + "\n");
+							}
+						} catch (Exception e) {
+						}
+					}
+					stringBuilder.append("\n");
+				}
+			}
+			stringBuilder.append("\n");
+
+			for(RecordDeltaDTO record: modifiedRecords) {
+				if(id.equals(record.getId())) {
+					Map<String, Object> initialFields = record.getInitialFields();
+					Map<String, Object> modifiedFields = record.getModifiedFields();
+					Iterator<Map.Entry<String, Object>> initialFieldIterator = initialFields.entrySet().iterator();
+					Iterator<Map.Entry<String, Object>> modifiedFieldIterator = initialFields.entrySet().iterator();
+					Set<String> modifiedFieldsAlreadyFound = new HashSet<>();
+					while (initialFieldIterator.hasNext()) {
+						Map.Entry<String, Object> next = initialFieldIterator.next();
+						try {
+							if(next != null && next.getKey() != null && next.getValue() != null) {
+								modifiedFieldsAlreadyFound.add(next.getKey());
+								Object modifiedValue = modifiedFields.get(next.getKey());
+								if(modifiedValue != null) {
+									stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and old value: " + next.getValue().toString() +
+											" and new value: "+ modifiedValue.toString() +"\n");
+								} else {
+									stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and old value: " + next.getValue().toString() + "\n");
+								}
+							}
+						} catch (Exception e) {
+						}
+					}
+
+					while (modifiedFieldIterator.hasNext()) {
+						Map.Entry<String, Object> next = modifiedFieldIterator.next();
+						try {
+							if(next != null && next.getKey() != null && next.getValue() != null && !modifiedFieldsAlreadyFound.contains(next.getKey())) {
+								modifiedFieldsAlreadyFound.add(next.getKey());
+								stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and new value: " + next.getValue().toString() + "\n");
+							}
+						} catch (Exception e) {
+						}
+					}
+					stringBuilder.append("\n");
+				}
+			}
+			stringBuilder.append("\n");
+
+			return stringBuilder.toString();
 		}
 	}
 
