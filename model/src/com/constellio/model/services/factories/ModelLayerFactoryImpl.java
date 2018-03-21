@@ -71,8 +71,8 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.EventBusTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
@@ -213,15 +213,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
-		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
-			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
-
-		} else if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
-			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
-
-		} else {
-			taxonomiesSearchServicesCache = new NoTaxonomiesSearchServicesCache();
-		}
+		taxonomiesSearchServicesCache = new EventBusTaxonomiesSearchServicesCache(new MemoryTaxonomiesSearchServicesCache(),
+				dataLayerFactory.getEventBusManager());
 		this.searchConfigurationsManager = new SearchConfigurationsManager(dataLayerFactory, this);
 
 	}
