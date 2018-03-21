@@ -29,6 +29,6 @@ public class RecordEventDataSerializerExtension implements EventDataSerializerEx
 
 	@Override
 	public Object deserialize(String recordId) {
-		return modelLayerFactory.newRecordServices().realtimeGetRecordById(recordId);
+		return modelLayerFactory.newCachelessRecordServices().realtimeGetRecordById(recordId);
 	}
 }

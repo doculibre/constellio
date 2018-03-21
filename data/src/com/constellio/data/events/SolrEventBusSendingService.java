@@ -42,6 +42,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	SolrClient client;
 
 	Thread sendAndReceiveThread;
+	Thread cleanerThread;
 	boolean running = true;
 
 	List<Event> sendQueue = new LinkedList<>();
@@ -85,6 +86,13 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 					}
 				}
 				return sending;
+			}
+		};
+
+		this.cleanerThread = new Thread() {
+			@Override
+			public void run() {
+				super.run();
 			}
 		};
 
@@ -247,4 +255,5 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		oos.close();
 		return DatatypeConverter.printBase64Binary(baos.toByteArray());
 	}
+
 }

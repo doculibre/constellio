@@ -352,5 +352,20 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String getOnlineConversionUrl() {
 		return getString("conversion.url", null);
 	}
-	
+
+	@Override
+	public EventBusSendingServiceType getEventBusSendingServiceType() {
+		return (EventBusSendingServiceType) getEnum("eventBus.type", EventBusSendingServiceType.STANDALONE);
+	}
+
+	@Override
+	public Duration getSolrEventBusSendingServiceTypeEventLifespan() {
+		return getDuration("eventBus.solr.eventLifespan", Duration.standardMinutes(10));
+	}
+
+	@Override
+	public Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency() {
+		return getDuration("eventBus.solr.retrieveAndSendFrequency", Duration.standardSeconds(1));
+	}
+
 }

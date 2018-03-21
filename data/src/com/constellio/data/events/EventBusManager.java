@@ -27,9 +27,8 @@ public class EventBusManager implements EventReceiver, StatefulService {
 	protected DataLayerSystemExtensions extensions;
 
 	public EventBusManager(EventBusSendingService eventBusSendingService, DataLayerSystemExtensions extensions) {
-		this.eventBusSendingService = eventBusSendingService;
-		this.eventBusSendingService.setEventReceiver(this);
 		this.extensions = extensions;
+		setEventBusSendingService(eventBusSendingService);
 	}
 
 	public EventBusManager setEventBusSendingService(EventBusSendingService eventBusSendingService) {

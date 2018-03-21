@@ -15,6 +15,7 @@ import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -59,6 +60,8 @@ import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManage
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
 import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.EventBusSendingService;
+import com.constellio.data.events.SolrEventBusSendingService;
 import com.constellio.data.events.StandaloneEventBusSendingService;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
@@ -68,7 +71,6 @@ import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.dev.Toggle;
 
 public class DataLayerFactory extends LayerFactoryImpl {
 
@@ -124,8 +126,17 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
-		this.eventBusManager = add(
-				new EventBusManager(new StandaloneEventBusSendingService(), dataLayerExtensions.getSystemWideExtensions()));
+		EventBusSendingService eventBusSendingService = new StandaloneEventBusSendingService();
+		if (EventBusSendingServiceType.SOLR.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
+			SolrEventBusSendingService solrEventBusSendingService = new SolrEventBusSendingService(
+					getNotificationsVaultServer().getNestedSolrServer());
+			solrEventBusSendingService.setEventLifespan(dataLayerConfiguration.getSolrEventBusSendingServiceTypeEventLifespan());
+			solrEventBusSendingService.setPollAndRetrieveFrequency(
+					dataLayerConfiguration.getSolrEventBusSendingServiceTypePollAndRetrieveFrequency());
+			eventBusSendingService = solrEventBusSendingService;
+		}
+
+		this.eventBusManager = add(new EventBusManager(eventBusSendingService, dataLayerExtensions.getSystemWideExtensions()));
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
@@ -133,14 +144,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
-			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
-				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-				recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+			//			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
+			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
 
-			} else {
-				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-				recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			}
+			//			} else {
+			//				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			//				recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			//			}
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
 			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
