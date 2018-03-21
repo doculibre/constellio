@@ -21,4 +21,10 @@ public abstract class EventBusSendingService {
 	}
 
 	public abstract void sendRemotely(Event event);
+
+	public void start() {
+	}
+
+	public void close() {
+	}
 }

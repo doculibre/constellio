@@ -9,10 +9,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
 
-public class EventBusManager implements EventReceiver {
+public class EventBusManager implements EventReceiver, StatefulService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusManager.class);
 
@@ -30,6 +31,8 @@ public class EventBusManager implements EventReceiver {
 	public EventBusManager setEventBusSendingService(EventBusSendingService eventBusSendingService) {
 		this.eventBusSendingService = eventBusSendingService;
 		this.eventBusSendingService.setEventReceiver(this);
+		this.eventBusSendingService.setEventDataSerializer(eventDataSerializer);
+		this.eventBusSendingService.start();
 		return this;
 	}
 
@@ -85,5 +88,17 @@ public class EventBusManager implements EventReceiver {
 
 	public EventDataSerializer getEventDataSerializer() {
 		return eventDataSerializer;
+	}
+
+	@Override
+	public void initialize() {
+
+	}
+
+	@Override
+	public void close() {
+		if (eventBusSendingService != null) {
+			this.eventBusSendingService.close();
+		}
 	}
 }

@@ -124,7 +124,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
-		this.eventBusManager = new EventBusManager(new StandaloneEventBusSendingService());
+		this.eventBusManager = add(new EventBusManager(new StandaloneEventBusSendingService()));
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 

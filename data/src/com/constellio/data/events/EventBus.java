@@ -22,13 +22,17 @@ public class EventBus {
 		this.executionStrategy = executionStrategy;
 	}
 
-	public void send(String type, Object data) {
-		long timeStamp = new Date().getTime();
-		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data), executionStrategy);
-	}
-
 	public void send(String type) {
 		this.send(type, null);
+	}
+
+	public void send(String type, Object data) {
+		long timeStamp = new Date().getTime();
+		send(type, data, timeStamp);
+	}
+
+	void send(String type, Object data, long timeStamp) {
+		manager.send(new Event(name, type, UUIDV1Generator.newRandomId(), timeStamp, data), executionStrategy);
 	}
 
 	public void register(EventBusListener listener) {

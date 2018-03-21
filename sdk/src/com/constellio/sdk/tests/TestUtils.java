@@ -1053,8 +1053,6 @@ public class TestUtils {
 		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
 		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
 
-		sendingService1.setEventDataSerializer(eventBusManager1.getEventDataSerializer());
-		sendingService2.setEventDataSerializer(eventBusManager2.getEventDataSerializer());
 
 		eventBusManager1.setEventBusSendingService(sendingService1);
 		eventBusManager2.setEventBusSendingService(sendingService2);
