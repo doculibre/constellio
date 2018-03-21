@@ -4,7 +4,10 @@ import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTE
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
@@ -28,6 +31,12 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 	SolrEventBusSendingService localSendingService;
 	SolrEventBusSendingService remoteSendingService;
 
+	AtomicInteger localSentEventExtensionCalledCounter = new AtomicInteger();
+	AtomicInteger remoteSentEventExtensionCalledCounter = new AtomicInteger();
+
+	AtomicInteger localReceivedEventExtensionCalledCounter = new AtomicInteger();
+	AtomicInteger remoteReceivedEventExtensionCalledCounter = new AtomicInteger();
+
 	@Before
 	public void setup() {
 
@@ -46,12 +55,8 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		localSendingService = new SolrEventBusSendingService(solrClient).setPollAndRetrieveFrequency(Duration.millis(1000));
 		remoteSendingService = new SolrEventBusSendingService(solrClient).setPollAndRetrieveFrequency(Duration.millis(1000));
 
-		//		SDKEventBusSendingService localSendingService = new SDKEventBusSendingService();
-		//		SDKEventBusSendingService remoteSendingService = new SDKEventBusSendingService();
-
 		localEventBusManager.setEventBusSendingService(localSendingService);
 		remoteEventBusManager.setEventBusSendingService(remoteSendingService);
-		//TestUtils.linkEventBus(getDataLayerFactory(), getDataLayerFactory("other-instance"));
 		localEventBus1.register(new EventBusListener() {
 			@Override
 			public void onEventReceived(Event event) {
@@ -86,16 +91,46 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 				}
 			}
 		});
+
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().eventBusManagerExtensions
+				.add(new EventBusManagerExtension() {
+					@Override
+					public void onEventReceived(ReceivedEventParams params) {
+						if (params.isRemoteEvent()) {
+							localReceivedEventExtensionCalledCounter.incrementAndGet();
+						}
+					}
+
+					@Override
+					public void onEventSent(SentEventParams params) {
+						localSentEventExtensionCalledCounter.incrementAndGet();
+					}
+				});
+
+		getDataLayerFactory("other-instance").getExtensions().getSystemWideExtensions().eventBusManagerExtensions
+				.add(new EventBusManagerExtension() {
+					@Override
+					public void onEventReceived(ReceivedEventParams params) {
+						if (params.isRemoteEvent()) {
+							remoteReceivedEventExtensionCalledCounter.incrementAndGet();
+						}
+					}
+
+					@Override
+					public void onEventSent(SentEventParams params) {
+						remoteSentEventExtensionCalledCounter.incrementAndGet();
+					}
+				});
 	}
 
 	@Test
-	public void whenBothServersAreSendingEventsThenAllReceived()
+	public void whenBothServersAreSendingEventsThenAllReceivedAndExtensionsCalled()
 			throws Exception {
 
 		Thread remoteThread = new Thread() {
 			@Override
 			public void run() {
-				for (int i = 0; i < 2000000; i++) {
+				for (int i = 0; i < 20000; i++) {
 					remoteEventBus1.send("anEvent", i);
 					remoteEventBus2.send("anEvent", i);
 				}
@@ -103,22 +138,35 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		};
 		remoteThread.start();
 
-		for (int i = 0; i < 1000000; i++) {
+		for (int i = 0; i < 10000; i++) {
 			localEventBus1.send("anEvent", i);
 			localEventBus2.send("anEvent", i);
 		}
 		remoteThread.join();
 
-		while (!localSendingService.sendQueue.isEmpty() || !remoteSendingService.sendQueue.isEmpty()) {
-			System.out.println(localSendingService.sendQueue.size() + remoteSendingService.sendQueue.size() + " not sent yet");
-			Thread.sleep(500);
+		while (remoteReceivedEventExtensionCalledCounter.get() < 10000
+				|| localReceivedEventExtensionCalledCounter.get() < 20000) {
+			Thread.sleep(50);
 		}
 
-		Thread.sleep(10000);
+		assertThat(localEventBus1ReceivedEvents.size()).isEqualTo(30000);
+		assertThat(localEventBus2ReceivedEvents.size()).isEqualTo(30000);
+		assertThat(remoteEventBus1ReceivedEvents.size()).isEqualTo(30000);
+		assertThat(remoteEventBus2ReceivedEvents.size()).isEqualTo(30000);
 
-		assertThat(localEventBus1ReceivedEvents.size()).isEqualTo(3000000);
-		assertThat(localEventBus2ReceivedEvents.size()).isEqualTo(3000000);
-		assertThat(remoteEventBus1ReceivedEvents.size()).isEqualTo(3000000);
-		assertThat(remoteEventBus2ReceivedEvents.size()).isEqualTo(3000000);
+		assertThat(countDifferentIds(localEventBus1ReceivedEvents)).isEqualTo(30000);
+		assertThat(countDifferentIds(localEventBus2ReceivedEvents)).isEqualTo(30000);
+		assertThat(countDifferentIds(remoteEventBus1ReceivedEvents)).isEqualTo(30000);
+		assertThat(countDifferentIds(remoteEventBus2ReceivedEvents)).isEqualTo(30000);
+	}
+
+	private int countDifferentIds(List<Event> events) {
+		Set<String> ids = new HashSet<>();
+
+		for (Event event : events) {
+			ids.add(event.getId());
+		}
+
+		return ids.size();
 	}
 }

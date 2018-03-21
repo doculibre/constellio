@@ -27,6 +27,7 @@ import org.mockito.Mockito;
 
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class EventBusManagerTest extends ConstellioTest {
@@ -36,10 +37,12 @@ public class EventBusManagerTest extends ConstellioTest {
 
 	@Mock EventBusListener listener1, listener2, listener3, listener4;
 
+	@Mock DataLayerSystemExtensions systemExtensions;
+
 	@Before
 	public void setUp()
 			throws Exception {
-		eventBusManager = new EventBusManager(sendingService);
+		eventBusManager = new EventBusManager(sendingService, systemExtensions);
 	}
 
 	@Test

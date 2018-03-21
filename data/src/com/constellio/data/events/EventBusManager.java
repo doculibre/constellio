@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 
 public class EventBusManager implements EventReceiver, StatefulService {
 
@@ -23,9 +24,12 @@ public class EventBusManager implements EventReceiver, StatefulService {
 
 	protected EventDataSerializer eventDataSerializer = new EventDataSerializer();
 
-	public EventBusManager(EventBusSendingService eventBusSendingService) {
+	protected DataLayerSystemExtensions extensions;
+
+	public EventBusManager(EventBusSendingService eventBusSendingService, DataLayerSystemExtensions extensions) {
 		this.eventBusSendingService = eventBusSendingService;
 		this.eventBusSendingService.setEventReceiver(this);
+		this.extensions = extensions;
 	}
 
 	public EventBusManager setEventBusSendingService(EventBusSendingService eventBusSendingService) {
@@ -63,9 +67,10 @@ public class EventBusManager implements EventReceiver, StatefulService {
 	}
 
 	public void send(Event event, EventBusEventsExecutionStrategy executionStrategy) {
+		extensions.onEventSent(event);
 		if (executionStrategy == EXECUTED_LOCALLY_THEN_SENT_REMOTELY) {
 			eventDataSerializer.validateData(event.getData());
-			receive(event);
+			receive(event, false);
 			eventBusSendingService.sendRemotely(event);
 
 		} else if (executionStrategy == ONLY_SENT_REMOTELY) {
@@ -77,6 +82,11 @@ public class EventBusManager implements EventReceiver, StatefulService {
 	}
 
 	public void receive(Event event) {
+		receive(event, true);
+	}
+
+	public void receive(Event event, boolean remoteEvent) {
+		extensions.onEventReceived(event, remoteEvent);
 		EventBus eventBus = eventBuses.get(event.busName);
 		if (eventBus != null) {
 			for (EventBusListener listener : eventBus.listeners) {
