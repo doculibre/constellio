@@ -219,6 +219,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	private void repairVaultFiles() {
 		BufferedReader b = null;
+
+		if(replicatedRootRecoveryFile == null || !replicatedRootRecoveryFile.exists()){
+			return;
+		}
+
 		try {
 			b = ioServices.newBufferedFileReader(replicatedRootRecoveryFile, FILE_SYSTEM_CONTENT_DAO_FILE_STREAM_NAME);
 			String lineRead;

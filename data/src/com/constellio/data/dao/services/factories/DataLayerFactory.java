@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -93,6 +94,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConversionManager conversionManager;
 	private static DataLayerFactory lastCreatedInstance;
 
+	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
+
 	public static int countConstructor;
 
 	public static int countInit;
@@ -133,6 +136,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 		add(settingsCacheManager);
 		add(recordsCacheManager);
+
+
+
 
 		ConfigManager configManagerWithoutCache;
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
@@ -192,6 +198,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
 				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
 		lastCreatedInstance = this;
+
+		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
+
+		add(dataLayerBackgroundThreadsManager);
 	}
 
 	public static DataLayerFactory getLastCreatedInstance() {
