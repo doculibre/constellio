@@ -49,6 +49,36 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
     }
 
     @Test
+    public void vaultWihoutReplicationMoveFileAndFailThenThrow() throws Exception {
+        getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(null);
+        fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration()));
+
+        Mockito.doReturn(false).when(fileSystemContentDao).moveFile((File) Mockito.any(), (File) Mockito.any());
+        File tempFile1 = null;
+
+        try {
+            tempFile1 = ioServices.newTemporaryFile(FILE_NAME_1);
+
+            File testRessourceFile1 = getTestResourceFile("1.docx");
+
+            InputStream inputStream1FromFile = ioServices.newFileInputStream(testRessourceFile1, FILE_SYSTEM_CONTENT_DAO_STREAM_NAME_1);
+            FileUtils.copyToFile(inputStream1FromFile, tempFile1);
+
+            ioServices.closeQuietly(inputStream1FromFile);
+
+            String fileHash1 = hashingService.getHashFromFile(tempFile1);
+            fileSystemContentDao.moveFileToVault(testRessourceFile1, fileHash1);
+
+            fail("Une exception doit être levé.");
+        }
+        catch(FileSystemContentDaoRuntimeException e) {
+            assertThat(true).isTrue();
+        } finally {
+            ioServices.deleteQuietly(tempFile1);
+        }
+    }
+
+    @Test
     public void moveFileToVaultWhileOneWritingFailAtATimeThenRepair() throws Exception {
         File testRessourceFile1 = getTestResourceFile("1.docx");
         File testRessourceFile2 = getTestResourceFile("2.docx");
