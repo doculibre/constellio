@@ -567,14 +567,16 @@ public class BigVaultServer implements Cloneable {
 			commitSemaphore.release();
 			return;
 		} else {
-
+			boolean released = false;
 			try {
 				long timeStampWhenStartingToCommit = new Date().getTime();
 				server.commit(true, true, true);
 				lastCommit = timeStampWhenStartingToCommit;
 				commitSemaphore.release();
+				released = true;
 			} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
 				commitSemaphore.release();
+				released = true;
 				if (currentAttempt < MAX_FAIL_ATTEMPT) {
 					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
 							waitedMillisecondsBetweenAttempts, solrServerException);
@@ -582,6 +584,10 @@ public class BigVaultServer implements Cloneable {
 					trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
 				} else {
 					throw solrServerException;
+				}
+			} finally {
+				if (!released) {
+					commitSemaphore.release();
 				}
 			}
 		}
