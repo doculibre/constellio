@@ -60,7 +60,10 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 		value.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				String connectorUrl = esSchemasRecordsServices.wrapConnectorSmbFolder(recordServices.getDocumentById(value.getValue())).getConnectorUrl();
+				String connectorUrl = null;
+				if(value.getValue() != null) {
+					connectorUrl = esSchemasRecordsServices.wrapConnectorSmbFolder(recordServices.getDocumentById(value.getValue())).getConnectorUrl();
+				}
 				criterion.setValue(connectorUrl);
 			}
 		});
@@ -135,7 +138,11 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 						if(connectorUrl.endsWith("\"")) {
 							connectorUrl = connectorUrl.substring(0, connectorUrl.lastIndexOf("\""));
 						}
-						String id = recordServices.getRecordByMetadata(esSchemasRecordsServices.connectorSmbFolder.connectorUrl(), connectorUrl).getId();
+						Record connector = recordServices.getRecordByMetadata(esSchemasRecordsServices.connectorSmbFolder.connectorUrl(), connectorUrl);
+						String id = null;
+						if(connector != null) {
+							id = connector.getId();
+						}
 						return super.convertToPresentation(id, targetType, locale);
 					} else {
 						throw e;

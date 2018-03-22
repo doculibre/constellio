@@ -75,12 +75,6 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
             }
         }
         if(tabSheet.getComponentCount() > 0) {
-            tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
-                @Override
-                public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-                    TabSheet.Tab tab = (TabSheet.Tab) event.getSource();
-                }
-            });
             mainLayout.addComponent(tabSheet);
         } else {
             mainLayout.addComponent(new TitlePanel($("ListTemporaryRecordViewImpl.noTemporaryReportAvailable")));

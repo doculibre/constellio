@@ -91,10 +91,8 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		cfg.setIncludeEventTypes(EventType.EVT_CACHE_OBJECT_PUT, EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
-		partitionedCacheCfg.setName("PARTITIONED");
-		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
-		partitionedCacheCfg.setBackups(0);
-		partitionedCacheCfg.setReadFromBackup(true);
+		partitionedCacheCfg.setName("REPLICATED_" + constellioVersion);
+		partitionedCacheCfg.setCacheMode(CacheMode.REPLICATED);
 		partitionedCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
 
 		cfg.setCacheConfiguration(partitionedCacheCfg);

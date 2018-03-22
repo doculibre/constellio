@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -17,20 +16,23 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.TermVectorParams;
 
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+
 public class JaccardDocumentSorter {
 	public static final String SIMILARITY_SCORE_FIELD = "sim_score";
 	private final String idField;
 	private final String contentField;
 	private final Map<String, Map<String, Double>> sourceDocTermVector;
 	private final Map<String, Map<String, Map<String, Double>>> doc2FieldTermVectors = new TreeMap<String, Map<String, Map<String, Double>>>();
-	private final SolrClient solrClient;
+	private final BigVaultServer server;
 	private final JaccardTermVectorSimilarity similarity = new JaccardTermVectorSimilarity();
 
-	public JaccardDocumentSorter(SolrClient solrClient, SolrDocument source, String contentField, String idField)
+	public JaccardDocumentSorter(BigVaultServer server, SolrDocument source, String contentField, String idField)
 			throws SolrServerException, IOException {
 		this.idField = idField;
 		this.contentField = contentField;
-		this.solrClient = solrClient;
+		this.server = server;
 
 		sourceDocTermVector = getTermVectors(source);
 		if (sourceDocTermVector == null)
@@ -52,7 +54,13 @@ public class JaccardDocumentSorter {
 			solrQuery.setParam(TermVectorParams.TF_IDF, "true");
 			solrQuery.setParam(TermVectorParams.FIELDS, fields);
 			solrQuery.setRows(1);
-			QueryResponse response = solrClient.query(solrQuery);
+
+			QueryResponse response = null;
+			try {
+				response = server.query(solrQuery);
+			} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
+				throw new RuntimeException(couldNotExecuteQuery);
+			}
 			TermVectoreResponse termVectoreResponse = new TermVectoreResponse(response);
 			Map<String, Map<String, Map<String, Map<String, Double>>>> doc2FieldTermVectors = termVectoreResponse
 					.getDoc2FieldTermVectors();

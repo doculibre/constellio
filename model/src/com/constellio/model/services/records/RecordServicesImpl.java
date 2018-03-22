@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -994,11 +995,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 			List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
 			List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 			MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
 			ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages));
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs));
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {

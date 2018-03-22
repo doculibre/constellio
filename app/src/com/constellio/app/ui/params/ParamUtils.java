@@ -35,8 +35,9 @@ public class ParamUtils {
 		}
 		path = urlDecode(path);
 		String paramsStr = null;
+		int indexOfEquals = path.indexOf("=");
 		int indexOfSlash = path.lastIndexOf("/");
-		if (indexOfSlash != -1) {
+		if (indexOfSlash != -1 && (indexOfEquals == -1 || indexOfEquals > indexOfSlash)) {
 			paramsStr = path.substring(indexOfSlash + 1);
 		} else {
 			paramsStr = path;

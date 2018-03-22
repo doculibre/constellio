@@ -30,6 +30,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
@@ -572,7 +573,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		}
 		//		List<DecomListContainerDetail> containerDetails = decommissioningList.getContainerDetails();
 		//		decommissioningList.setContainerDetails(containerDetails);
-		addOrUpdate(decommissioningList.getWrappedRecord());
+		addOrUpdate(decommissioningList.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		this.decommissioningList = decommissioningList;
 		return result;
 	}

@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -143,6 +144,8 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 		protected Component buildWindowContent() {
 			VerticalLayout vLayout = new VerticalLayout();
 			vLayout.setSizeFull();
+			Label warningLabel = new Label("<p style=\"color:red\">" + $("CollectionUserRolesView.onCollectionWarning") + "</p>", ContentMode.HTML);
+			vLayout.addComponent(warningLabel);
 			buildAccessField();
 			vLayout.addComponent(accessRoles);
 			Button saveButton = new Button($("save"));
