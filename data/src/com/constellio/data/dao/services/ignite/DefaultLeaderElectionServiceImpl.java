@@ -17,6 +17,8 @@ public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
 
 	DataLayerFactory dataLayerFactory;
 
+	boolean leader = true;
+
 	public DefaultLeaderElectionServiceImpl(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
 	}
@@ -28,7 +30,8 @@ public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
 		if (constellioCacheManager instanceof ConstellioIgniteCacheManager) {
 			return isCurrentNodeLeader(((ConstellioIgniteCacheManager) constellioCacheManager).getClient());
 		} else {
-			return true;
+
+			return leader;
 		}
 
 	}
@@ -51,4 +54,8 @@ public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
 		return localNode.id().equals(oldest.id());
 	}
 
+	public DefaultLeaderElectionServiceImpl setLeader(boolean leader) {
+		this.leader = leader;
+		return this;
+	}
 }

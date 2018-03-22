@@ -42,15 +42,20 @@ import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusListener;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 
-public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
+public class ZooKeeperConfigManager implements StatefulService, ConfigManager, EventBusListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZooKeeperConfigManager.class);
 	private static final String ROOT_FOLDER = "/constellio";
 	private static final String CONFIG_FOLDER = "/conf";
 	private static final String GET_BINARY_CONTENT = "ZooKeeperConfigManager-getBinaryContent";
+	private static final String CONFIG_UPDATED_EVENT_TYPE = "configUpdated";
 
 	private static volatile CuratorFramework CLIENT;
 
@@ -60,12 +65,15 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	private String rootFolder;
 	private IOServices ioServices;
 	private ConfigManagerHelper configManagerHelper;
+	private EventBus eventBus;
 
-	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices) {
+	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices, EventBus eventBus) {
 		this.address = address;
 		this.rootFolder = StringUtils.removeEnd(rootFolder, "/");
 		this.ioServices = ioServices;
 		this.configManagerHelper = new ConfigManagerHelper(this);
+		this.eventBus = eventBus;
+		this.eventBus.register(this);
 		init(address);
 	}
 
@@ -272,6 +280,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -289,6 +298,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -308,6 +318,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -519,5 +530,20 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void keepInCache(String path) {
 		//This config manager has no cache
+	}
+
+	@Override
+	public void onEventReceived(Event event) {
+		switch (event.getType()) {
+		case CONFIG_UPDATED_EVENT_TYPE:
+			String path = event.getData();
+			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+				listener.onConfigUpdated(path);
+			}
+			break;
+
+		default:
+			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
+		}
 	}
 }

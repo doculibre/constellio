@@ -466,6 +466,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -500,6 +501,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.constellio.model.services.configs;
 
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -18,6 +19,7 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Delayed;
@@ -73,17 +75,22 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	static SystemConfiguration enumValue = anOtherGroup.createEnum("enumValue", AValidEnum.class);
 	static SystemConfiguration enumWithDefaultValue = anOtherGroup.createEnum("enumWithDefaultValue", AValidEnum.class)
 			.withDefaultValue(AValidEnum.FIRST_VALUE);
-	static SystemConfigurationsManager manager;
+	static SystemConfigurationsManager manager, managerOfOtherInstance;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
+		manager = getModelLayerFactory().getSystemConfigurationsManager();
+		managerOfOtherInstance = getModelLayerFactory("other-instance").getSystemConfigurationsManager();
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
+
 		givenSpecialCollection(zeCollection).withModule(ZeModule.class).withAllTestUsers();
 		givenSpecialCollection(anotherCollection).withModule(ZeModule.class).withAllTestUsers();
 		givenSpecialCollection(aThirdCollection).withAllTestUsers();
 
-		manager = getModelLayerFactory().getSystemConfigurationsManager();
+		//withSpiedServices(ConstellioPluginManager.class);
+
 		callCollectionsActionCallCount = new AtomicInteger();
 	}
 
@@ -112,7 +119,8 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		manager.setValue(text, "dakota");
 
 		SystemConfigurationsManager otherManager = new SystemConfigurationsManager(getModelLayerFactory(),
-				getDataLayerFactory().getConfigManager(), new Delayed<>(getAppLayerFactory().getModulesManager()), getDataLayerFactory().getSettingsCacheManager());
+				getDataLayerFactory().getConfigManager(), new Delayed<>(getAppLayerFactory().getModulesManager()),
+				getDataLayerFactory().getSettingsCacheManager());
 		otherManager.initialize();
 
 		assertThat(otherManager.getValue(text)).isEqualTo("dakota");
@@ -127,21 +135,21 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("bob");
 
 		manager.setValue(text, "dakota");
-		manager.setValue(textWithDefaultValue, "lindien");
+		managerOfOtherInstance.setValue(textWithDefaultValue, "lindien");
 
-		assertThat(manager.getValue(text)).isEqualTo("dakota");
+		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("dakota");
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("lindien");
 
 		manager.setValue(text, "alice");
-		manager.setValue(textWithDefaultValue, "wonderland");
+		managerOfOtherInstance.setValue(textWithDefaultValue, "wonderland");
 
-		assertThat(manager.getValue(text)).isEqualTo("alice");
+		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("alice");
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("wonderland");
 
 		manager.reset(text);
-		manager.reset(textWithDefaultValue);
+		managerOfOtherInstance.reset(textWithDefaultValue);
 
-		assertThat(manager.getValue(text)).isNull();
+		assertThat(managerOfOtherInstance.getValue(text)).isNull();
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("bob");
 
 	}
@@ -151,25 +159,25 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(manager.getValue(number)).isNull();
-		assertThat(manager.getValue(numberWithDefaultValue)).isEqualTo(42);
+		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(42);
 
-		manager.setValue(number, 12);
+		managerOfOtherInstance.setValue(number, 12);
 		manager.setValue(numberWithDefaultValue, 34);
 
 		assertThat(manager.getValue(number)).isEqualTo(12);
-		assertThat(manager.getValue(numberWithDefaultValue)).isEqualTo(34);
+		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(34);
 
-		manager.setValue(number, 56);
+		managerOfOtherInstance.setValue(number, 56);
 		manager.setValue(numberWithDefaultValue, 78);
 
 		assertThat(manager.getValue(number)).isEqualTo(56);
-		assertThat(manager.getValue(numberWithDefaultValue)).isEqualTo(78);
+		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(78);
 
-		manager.reset(number);
+		managerOfOtherInstance.reset(number);
 		manager.reset(numberWithDefaultValue);
 
 		assertThat(manager.getValue(number)).isNull();
-		assertThat(manager.getValue(numberWithDefaultValue)).isEqualTo(42);
+		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(42);
 
 	}
 
@@ -177,9 +185,12 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenBinaryMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
+		getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("myCollection").getSchemaType(Folder.SCHEMA_TYPE)
+				.getDefaultSchema().getMetadata(Folder.RETENTION_RULE);
+
 		assertThat(manager.getValue(binary)).isNull();
 
-		manager.setValue(binary, getTestResourceInputStreamFactory("binary1.png"));
+		managerOfOtherInstance.setValue(binary, getTestResourceInputStreamFactory("binary1.png"));
 		StreamFactory<InputStream> value = manager.getValue(binary);
 		assertThat(value.create(SDK_STREAM)).hasContentEqualTo(getTestResourceInputStream("binary1.png"));
 
@@ -187,7 +198,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		value = manager.getValue(binary);
 		assertThat(value.create(SDK_STREAM)).hasContentEqualTo(getTestResourceInputStream("binary2.png"));
 
-		manager.reset(binary);
+		managerOfOtherInstance.reset(binary);
 		assertThat(manager.getValue(binary)).isNull();
 
 		manager.reset(binary);
@@ -199,19 +210,19 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenBooleanMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(manager.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
+		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
 		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
 
 		manager.setValue(booleanWithFalseByDefault, true);
-		manager.setValue(booleanWithTrueByDefault, false);
+		managerOfOtherInstance.setValue(booleanWithTrueByDefault, false);
 
-		assertThat(manager.getValue(booleanWithFalseByDefault)).isEqualTo(true);
+		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(true);
 		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(false);
 
 		manager.reset(booleanWithFalseByDefault);
-		manager.reset(booleanWithTrueByDefault);
+		managerOfOtherInstance.reset(booleanWithTrueByDefault);
 
-		assertThat(manager.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
+		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
 		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
 
 	}
@@ -220,19 +231,25 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenEnumMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
+		assertThat(managerOfOtherInstance.getValue(enumValue)).isNull();
 		assertThat(manager.getValue(enumValue)).isNull();
+		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		manager.setValue(enumValue, AValidEnum.SECOND_VALUE);
 		manager.setValue(enumWithDefaultValue, AValidEnum.FIRST_VALUE);
 
+		assertThat(managerOfOtherInstance.getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
 		assertThat(manager.getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
+		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		manager.reset(enumValue);
 		manager.reset(enumWithDefaultValue);
 
+		assertThat(managerOfOtherInstance.getValue(enumValue)).isNull();
 		assertThat(manager.getValue(enumValue)).isNull();
+		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 	}
@@ -244,6 +261,9 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(findUserByTitleInCollection(zeCollection, "L'Indien, Dakota")).isNull();
 		assertThat(findUserByTitleInCollection(aThirdCollection, "Dakota L'Indien")).isNotNull();
 		assertThat(findUserByTitleInCollection(aThirdCollection, "L'Indien, Dakota")).isNull();
+
+		assertThat(getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()).isTrue();
+		assertThat(getDataLayerFactory("other-instance").getLeaderElectionService().isCurrentNodeLeader()).isFalse();
 
 		manager.setValue(ConstellioEIMConfigs.USER_TITLE_PATTERN, "${lastName}, ${firstName}");
 		waitForBatchProcess();
@@ -280,7 +300,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getFirstnameMetadataIn(anotherCollection).isUniqueValue()).isFalse();
 		assertThat(getFirstnameMetadataIn(aThirdCollection).isUniqueValue()).isFalse();
 
-		manager.setValue(textAlteringSchemas, "ohHellYeah");
+		managerOfOtherInstance.setValue(textAlteringSchemas, "ohHellYeah");
 		assertThat(getFirstnameMetadataIn(zeCollection).isUniqueValue()).isTrue();
 		assertThat(getFirstnameMetadataIn(anotherCollection).isUniqueValue()).isTrue();
 		assertThat(getFirstnameMetadataIn(aThirdCollection).isUniqueValue()).isFalse();
@@ -298,7 +318,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(errors.getValidationErrors().get(0).getCode()).endsWith("ohBobo");
 
 		try {
-			manager.setValue(textAlteringSchemas, "invalidValue!");
+			managerOfOtherInstance.setValue(textAlteringSchemas, "invalidValue!");
 			fail("SystemConfigurationsManagerRuntimeException_InvalidConfigValue expected");
 		} catch (SystemConfigurationsManagerRuntimeException_InvalidConfigValue e) {
 			//OK

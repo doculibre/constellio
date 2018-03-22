@@ -449,6 +449,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	@Override
 	public void onConfigUpdated(String configPath) {
+		clearCache();
 	}
 
 	public SystemConfigurationScript<Object> getInstanciatedScriptFor(SystemConfiguration config) {

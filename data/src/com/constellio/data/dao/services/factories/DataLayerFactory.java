@@ -59,6 +59,7 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
+import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.EventBusSendingService;
 import com.constellio.data.events.SolrEventBusSendingService;
@@ -101,6 +102,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
 	private static DataLayerFactory lastCreatedInstance;
+	private DefaultLeaderElectionServiceImpl leaderElectionService;
 
 	public static int countConstructor;
 
@@ -125,6 +127,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.dataLayerLogger = new DataLayerLogger();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
+
+		this.leaderElectionService = new DefaultLeaderElectionServiceImpl(this);
 
 		EventBusSendingService eventBusSendingService = new StandaloneEventBusSendingService();
 		if (EventBusSendingServiceType.SOLR.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
@@ -161,22 +165,28 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		add(settingsCacheManager);
 		add(recordsCacheManager);
 
+		EventBus configManagerEventBus = eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY);
 		ConfigManager configManagerWithoutCache;
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			configManagerWithoutCache = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
-					ioServicesFactory.newIOServices()));
+					ioServicesFactory.newIOServices(), configManagerEventBus));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			configManagerWithoutCache = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
 					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions,
-					eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY)));
+					configManagerEventBus));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
 		}
-		configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
+
+		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+			configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
+		} else {
+			configManager = new CachedConfigManager(configManagerWithoutCache, recordsCacheManager.getCache("configManager"));
+		}
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
 			this.idGenerator = new UUIDV1Generator();
@@ -231,7 +241,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	}
 
 	public LeaderElectionService getLeaderElectionService() {
-		return new DefaultLeaderElectionServiceImpl(this);
+		return leaderElectionService;
 	}
 
 	public DataLayerExtensions getExtensions() {

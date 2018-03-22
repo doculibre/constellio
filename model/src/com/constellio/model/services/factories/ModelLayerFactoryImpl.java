@@ -163,7 +163,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
-				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed, cacheManager));
+				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
+						dataLayerFactory.getRecordsCacheManager()));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));

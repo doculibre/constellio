@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.mockito.Mockito.spy;
@@ -41,6 +42,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
+import com.constellio.data.dao.services.ignite.LeaderElectionService;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -259,7 +262,7 @@ public class FactoriesTestFeatures {
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories() {
-		return getConstellioFactories(SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME);
+		return getConstellioFactories(DEFAULT_NAME);
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories(final String name) {
@@ -456,13 +459,21 @@ public class FactoriesTestFeatures {
 		final File finalPropertyFile = propertyFile;
 		final TestConstellioFactoriesDecorator finalDecorator = decorator;
 		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
-		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
+
+		ConstellioFactories constellioFactories = instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
 				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name);
+				LeaderElectionService electionService = instance.getDataLayerFactory().getLeaderElectionService();
+				if (electionService instanceof DefaultLeaderElectionServiceImpl) {
+					((DefaultLeaderElectionServiceImpl) electionService).setLeader(DEFAULT_NAME.equals(name));
+				}
 				return instance;
 			}
 		}, name);
+
+		return constellioFactories;
+
 	}
 
 	public void configure(DataLayerConfigurationAlteration dataLayerConfigurationAlteration) {
