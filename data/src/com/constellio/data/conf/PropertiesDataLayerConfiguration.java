@@ -91,6 +91,14 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			this.filter = filter;
 		}
 
+		public void setEventLifespan(Duration duration) {
+			setDuration("eventBus.solr.eventLifespan", duration);
+		}
+
+		public void setSolrEventBusRetrieveAndSendFrequency(Duration duration) {
+			setDuration("eventBus.solr.retrieveAndSendFrequency", duration);
+		}
+
 		public SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter() {
 			return filter == null ? super.getSecondTransactionLogReplayFilter() : filter;
 		}

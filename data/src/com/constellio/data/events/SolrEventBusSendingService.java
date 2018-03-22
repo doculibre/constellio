@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.utils.TimeProvider;
 
 public class SolrEventBusSendingService extends EventBusSendingService {
 
@@ -56,21 +57,28 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		this.sendAndReceiveThread = new Thread() {
 			@Override
 			public void run() {
+				setName("SolrEventBusSendingService-sendAndReceiveThread");
 				while (running) {
 
-					List<Event> received = receiveNewEvents();
+					try {
 
-					receivingEvents(received);
+						List<Event> received = receiveNewEvents();
 
-					List<Event> sending = getNewEventsToSend();
-					sendNewEvents(sending, received);
+						receivingEvents(received);
 
-					if (sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT) {
-						try {
-							Thread.sleep(pollAndRetrieveFrequency.getMillis());
-						} catch (InterruptedException e) {
-							throw new RuntimeException(e);
+						List<Event> sending = getNewEventsToSend();
+						sendNewEvents(sending, received);
+
+						if (sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT) {
+							try {
+								Thread.sleep(pollAndRetrieveFrequency.getMillis());
+							} catch (InterruptedException e) {
+								throw new RuntimeException(e);
+							}
 						}
+
+					} catch (Throwable t) {
+						LOGGER.warn("Exception while send/receiving events", t);
 					}
 				}
 			}
@@ -92,10 +100,34 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		this.cleanerThread = new Thread() {
 			@Override
 			public void run() {
-				super.run();
+				setName("SolrEventBusSendingService-deleteThread");
+				while (running) {
+					try {
+						deleteOldEvents();
+
+						try {
+							Thread.sleep(60000);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+					} catch (Throwable t) {
+						LOGGER.warn("Exception while deleting old events", t);
+					}
+				}
 			}
 		};
 
+	}
+
+	void deleteOldEvents() {
+		String query = "timestamp_d:[* TO " + TimeProvider.getLocalDateTime().minus(eventLifespan).toDate().getTime() + "]";
+		try {
+			client.deleteByQuery(query);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected void receivingEvents(List<Event> received) {
@@ -142,23 +174,30 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		}
 
 		if (!solrInputDocuments.isEmpty()) {
-			try {
-				client.add(solrInputDocuments);
-			} catch (SolrServerException e) {
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
-			try {
-				client.commit(true, true, true);
-			} catch (SolrServerException e) {
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			add(solrInputDocuments);
+			commit();
 		}
 
+	}
+
+	void add(List<SolrInputDocument> solrInputDocuments) {
+		try {
+			client.add(solrInputDocuments);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	void commit() {
+		try {
+			client.commit(true, true, true);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private List<Event> receiveNewEvents() {

@@ -1,10 +1,10 @@
 package com.constellio.data.events;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.utils.TimeProvider;
 
 public class EventBus {
 
@@ -27,7 +27,7 @@ public class EventBus {
 	}
 
 	public void send(String type, Object data) {
-		long timeStamp = new Date().getTime();
+		long timeStamp = TimeProvider.getLocalDateTime().toDate().getTime();
 		send(type, data, timeStamp);
 	}
 
