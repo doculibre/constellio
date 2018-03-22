@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTypes;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Capsule;
@@ -51,7 +52,7 @@ public class RMGenericRecordPageExtension extends GenericRecordPageExtension {
 	public String getSchemaTypeDisplayGroup(MetadataSchemaType schemaType) {
 		if(RMTypes.STORAGE_SPACE.equals(schemaType.getCode())) {
 			return TAXONOMY_TAB;
-		} else if(RMTypes.getAllTypes().contains(schemaType.getCode())) {
+		} else if(RMTypes.getAllTypes().contains(schemaType.getCode()) || Task.SCHEMA_TYPE.equals(schemaType.getCode())) {
 			return RM_TAB;
 		}
 		return super.getSchemaTypeDisplayGroup(schemaType);
