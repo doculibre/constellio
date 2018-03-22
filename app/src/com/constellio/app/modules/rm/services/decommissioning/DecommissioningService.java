@@ -852,7 +852,8 @@ public class DecommissioningService {
 		}
 
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
+				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
 		for (Document child : childrenDocuments) {
 			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
