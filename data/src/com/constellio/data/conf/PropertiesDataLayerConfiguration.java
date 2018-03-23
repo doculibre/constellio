@@ -249,7 +249,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public String getCacheUrl() {
-		return getRequiredString("dao.cache.url");
+		return getString("dao.cache.url", null);
 	}
 
 	@Override

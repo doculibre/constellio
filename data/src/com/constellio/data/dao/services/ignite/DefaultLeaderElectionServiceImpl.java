@@ -9,8 +9,6 @@ import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
 
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
@@ -25,10 +23,9 @@ public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
 
 	@Override
 	public boolean isCurrentNodeLeader() {
-		ConstellioCacheManager constellioCacheManager = dataLayerFactory.getSettingsCacheManager();
-
-		if (constellioCacheManager instanceof ConstellioIgniteCacheManager) {
-			return isCurrentNodeLeader(((ConstellioIgniteCacheManager) constellioCacheManager).getClient());
+		Ignite ignite = dataLayerFactory.getIgniteClient();
+		if (ignite != null) {
+			return isCurrentNodeLeader(ignite);
 		} else {
 
 			return leader;

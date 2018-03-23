@@ -1,7 +1,9 @@
 package com.constellio.data.events;
 
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
@@ -58,6 +61,11 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
 		EventBusManager localEventBusManager = getDataLayerFactory().getEventBusManager();
 		EventBusManager remoteEventBusManager = getDataLayerFactory("other-instance").getEventBusManager();
+
+		localEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToSerialize());
+		localEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToDeserialize());
+		remoteEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToSerialize());
+		remoteEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToDeserialize());
 
 		localEventBus1 = localEventBusManager.createEventBus("bus1", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		localEventBus2 = localEventBusManager.createEventBus("bus2", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
@@ -161,6 +169,8 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 10000
 				|| localReceivedEventExtensionCalledCounter.get() < 20000) {
+			System.out.println(remoteReceivedEventExtensionCalledCounter.get());
+			System.out.println(localReceivedEventExtensionCalledCounter.get());
 			Thread.sleep(50);
 		}
 
@@ -199,6 +209,133 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		localSendingService.commit();
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(2);
 		assertThat(countSolrDocumentWithBus("bus2")).isEqualTo(3);
+	}
+
+	@Test
+	public void whenSendingAnEventWhichFailToDeserializeThenSentAndNotReceivedButEventBusStillWorkingOnbothSides()
+			throws Exception {
+		remoteEventBus1.send("anEvent");
+		remoteEventBus1.send("anEvent2");
+		localEventBus1.send("anEvent3");
+		localEventBus1.send("anEvent4");
+
+		while (remoteReceivedEventExtensionCalledCounter.get() < 2
+				|| localReceivedEventExtensionCalledCounter.get() < 2) {
+			Thread.sleep(50);
+		}
+
+		remoteEventBus1.send("anInvalidEvent", asList(new TestClassWhichIsNeverDeserializable()));
+		remoteEventBus1.send("anEvent5");
+
+		Thread.sleep(4000);
+
+		remoteEventBus1.send("anEvent6");
+
+		while (remoteReceivedEventExtensionCalledCounter.get() < 2
+				|| localReceivedEventExtensionCalledCounter.get() < 4) {
+			Thread.sleep(50);
+		}
+
+		assertThat(localEventBus1ReceivedEvents).extracting("type")
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+
+		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
+	}
+
+	@Test
+	public void whenSendingAnEventWhichFailToSerializeThenSentAndNotReceivedButEventBusStillWorkingOnbothSides()
+			throws Exception {
+		remoteEventBus1.send("anEvent");
+		remoteEventBus1.send("anEvent2");
+		localEventBus1.send("anEvent3");
+		localEventBus1.send("anEvent4");
+
+		while (remoteReceivedEventExtensionCalledCounter.get() < 2
+				|| localReceivedEventExtensionCalledCounter.get() < 2) {
+			Thread.sleep(50);
+		}
+
+		try {
+			remoteEventBus1.send("anInvalidEvent", asList(new TestClassWhichIsNeverSerializable()));
+			fail("Exception expected");
+
+		} catch (EventBusManagerRuntimeException_DataIsNotSerializable e) {
+			//OK
+		}
+		remoteEventBus1.send("anEvent5");
+
+		Thread.sleep(4000);
+
+		remoteEventBus1.send("anEvent6");
+
+		while (remoteReceivedEventExtensionCalledCounter.get() < 2
+				|| localReceivedEventExtensionCalledCounter.get() < 4) {
+			Thread.sleep(50);
+		}
+
+		assertThat(localEventBus1ReceivedEvents).extracting("type")
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+
+		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
+	}
+
+	private static class TestClassWhichIsNeverDeserializable {
+
+	}
+
+	private static class TestClassWhichIsNeverSerializable {
+
+	}
+
+	private static class EventDataSerializerExtensionFailingToDeserialize implements EventDataSerializerExtension {
+
+		@Override
+		public String getId() {
+			return "TestClassWhichIsNeverDeserializable";
+		}
+
+		@Override
+		public Class<?> getSupportedDataClass() {
+			return TestClassWhichIsNeverDeserializable.class;
+		}
+
+		@Override
+		public String serialize(Object data) {
+			return data.toString();
+		}
+
+		@Override
+		public Object deserialize(String deserialize) {
+			throw new RuntimeException("Oh bobo!");
+		}
+	}
+
+	private static class EventDataSerializerExtensionFailingToSerialize implements EventDataSerializerExtension {
+
+		@Override
+		public String getId() {
+			return "TestClassWhichIsNeverSerializable";
+		}
+
+		@Override
+		public Class<?> getSupportedDataClass() {
+			return TestClassWhichIsNeverSerializable.class;
+		}
+
+		@Override
+		public String serialize(Object data) {
+			throw new RuntimeException("Oh bobo!");
+		}
+
+		@Override
+		public Object deserialize(String deserialize) {
+			throw new AssertionError(
+					"TestClassWhichIsNeverSerializable should never be deserialized, since it is not serializable");
+		}
 	}
 
 	private int countSolrDocumentWithBus(String bus)

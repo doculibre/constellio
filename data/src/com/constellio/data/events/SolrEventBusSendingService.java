@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
 import com.constellio.data.utils.TimeProvider;
 
 public class SolrEventBusSendingService extends EventBusSendingService {
@@ -46,7 +47,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	Thread cleanerThread;
 	boolean running = true;
 
-	List<Event> sendQueue = new LinkedList<>();
+	List<EventReadyToSend> sendQueue = new LinkedList<>();
 
 	final int SENDING_BATCH_LIMIT = 50000;
 	final int RECEIVING_BATCH_LIMIT = 50000;
@@ -59,17 +60,10 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 			public void run() {
 				setName("SolrEventBusSendingService-sendAndReceiveThread");
 				while (running) {
-
 					try {
+						boolean queueEmpty = sendAndReceive();
 
-						List<Event> received = receiveNewEvents();
-
-						receivingEvents(received);
-
-						List<Event> sending = getNewEventsToSend();
-						sendNewEvents(sending, received);
-
-						if (sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT) {
+						if (queueEmpty) {
 							try {
 								Thread.sleep(pollAndRetrieveFrequency.getMillis());
 							} catch (InterruptedException e) {
@@ -83,18 +77,6 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 				}
 			}
 
-			@NotNull
-			protected List<Event> getNewEventsToSend() {
-				List<Event> sending = new ArrayList<>();
-				synchronized (sendQueue) {
-					Iterator<Event> eventIterator = sendQueue.iterator();
-					while (eventIterator.hasNext() && sending.size() < SENDING_BATCH_LIMIT) {
-						sending.add(eventIterator.next());
-						eventIterator.remove();
-					}
-				}
-				return sending;
-			}
 		};
 
 		this.cleanerThread = new Thread() {
@@ -119,6 +101,34 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 
 	}
 
+	boolean sendAndReceive() {
+		List<Event> received = receiveNewEvents();
+
+		receivingEvents(received);
+
+		List<EventReadyToSend> sending = getNewEventsToSend();
+		if (sending.size() > 0 || received.size() > 0) {
+			sendNewEvents(sending, received);
+		} else {
+			commit();
+		}
+
+		return sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT;
+	}
+
+	@NotNull
+	protected List<EventReadyToSend> getNewEventsToSend() {
+		List<EventReadyToSend> sending = new ArrayList<>();
+		synchronized (sendQueue) {
+			Iterator<EventReadyToSend> eventIterator = sendQueue.iterator();
+			while (eventIterator.hasNext() && sending.size() < SENDING_BATCH_LIMIT) {
+				sending.add(eventIterator.next());
+				eventIterator.remove();
+			}
+		}
+		return sending;
+	}
+
 	void deleteOldEvents() {
 		String query = "timestamp_d:[* TO " + TimeProvider.getLocalDateTime().minus(eventLifespan).toDate().getTime() + "]";
 		try {
@@ -136,7 +146,12 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		}
 	}
 
-	private void sendNewEvents(List<Event> sentEvents, List<Event> receivedEvents) {
+	private static class EventReadyToSend {
+		Event event;
+		String serializedData;
+	}
+
+	private void sendNewEvents(List<EventReadyToSend> sentEvents, List<Event> receivedEvents) {
 
 		List<SolrInputDocument> solrInputDocuments = new ArrayList<>();
 		for (Event event : receivedEvents) {
@@ -151,7 +166,8 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 			solrInputDocuments.add(solrInputDocument);
 		}
 
-		for (Event event : sentEvents) {
+		for (EventReadyToSend readyToSendEvent : sentEvents) {
+			Event event = readyToSendEvent.event;
 			SolrInputDocument solrInputDocument = new SolrInputDocument();
 			solrInputDocument.setField("id", event.getId());
 			solrInputDocument.setField("bus_s", event.getBusName());
@@ -159,18 +175,10 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 			solrInputDocument.setField("type_s", event.getType());
 			solrInputDocument.setField("readBy_ss", asList(serviceId));
 
-			Object converted = eventDataSerializer.serialize(event.getData());
-			if (converted != null) {
-				try {
-					solrInputDocument.setField("data_s", serializeToBase64((Serializable) converted));
-					solrInputDocuments.add(solrInputDocument);
-				} catch (IOException e) {
-					LOGGER.warn("Bus event '" + event.getBusName() + "' of type '" + event.getType()
-							+ "' cannot be sent since data isn't serialisable", e);
-				}
-			} else {
-				solrInputDocuments.add(solrInputDocument);
+			if (readyToSendEvent.serializedData != null) {
+				solrInputDocument.setField("data_s", readyToSendEvent.serializedData);
 			}
+			solrInputDocuments.add(solrInputDocument);
 		}
 
 		if (!solrInputDocuments.isEmpty()) {
@@ -210,24 +218,29 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		List<Event> events = new ArrayList<>();
 		try {
 			for (SolrDocument solrDocument : client.query(params).getResults()) {
-
 				String id = (String) solrDocument.getFieldValue("id");
-				String type = (String) solrDocument.getFieldValue("type_s");
-				long timeStamp = ((Double) solrDocument.getFieldValue("timestamp_d")).longValue();
-				String busName = (String) solrDocument.getFieldValue("bus_s");
 
-				String data = (String) solrDocument.getFieldValue("data_s");
+				try {
+					String type = (String) solrDocument.getFieldValue("type_s");
+					long timeStamp = ((Double) solrDocument.getFieldValue("timestamp_d")).longValue();
+					String busName = (String) solrDocument.getFieldValue("bus_s");
+					String data = (String) solrDocument.getFieldValue("data_s");
 
-				Object deserializedData = null;
-				if (data != null) {
-					try {
-						deserializedData = eventDataSerializer.deserialize(deserializeBase64(data));
-					} catch (ClassNotFoundException e) {
-						throw new RuntimeException(e);
+					Object deserializedData = null;
+					if (data != null) {
+						try {
+							deserializedData = eventDataSerializer.deserialize(deserializeBase64(data));
+						} catch (ClassNotFoundException e) {
+							throw new RuntimeException(e);
+						}
 					}
-				}
 
-				events.add(new Event(busName, type, id, timeStamp, deserializedData));
+					events.add(new Event(busName, type, id, timeStamp, deserializedData));
+
+				} catch (Exception e) {
+					client.deleteById(id);
+					LOGGER.warn("Event could not be deserialized, it is deleted ", e);
+				}
 			}
 		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
@@ -250,8 +263,24 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 
 	@Override
 	public void sendRemotely(Event event) {
+
+		String serializedData = null;
+		if (event.getData() != null) {
+			try {
+				Object converted = eventDataSerializer.serialize(event.getData());
+				serializedData = serializeToBase64((Serializable) converted);
+			} catch (Throwable t) {
+				throw new EventBusManagerRuntimeException_DataIsNotSerializable(event, t);
+			}
+		}
+
+		EventReadyToSend eventReadyToSend = new EventReadyToSend();
+		eventReadyToSend.event = event;
+		eventReadyToSend.serializedData = serializedData;
+
 		synchronized (sendQueue) {
-			sendQueue.add(event);
+
+			sendQueue.add(eventReadyToSend);
 		}
 	}
 

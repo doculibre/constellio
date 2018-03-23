@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -108,6 +109,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public static int countInit;
 
+	private Ignite igniteClient;
+
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
 
@@ -145,9 +148,19 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			igniteClient = ((ConstellioIgniteCacheManager) settingsCacheManager).getClient();
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+
+			if (dataLayerConfiguration.getCacheUrl() != null) {
+				ConstellioIgniteCacheManager cacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(),
+						warVersion);
+				cacheManager.initialize();
+				igniteClient = cacheManager.getClient();
+			}
+
 			//			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
@@ -435,5 +448,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public EventBusManager getEventBusManager() {
 		return eventBusManager;
+	}
+
+	public Ignite getIgniteClient() {
+		return igniteClient;
 	}
 }
