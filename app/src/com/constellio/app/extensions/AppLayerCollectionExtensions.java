@@ -62,6 +62,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
+
 public class AppLayerCollectionExtensions {
 
 	//------------ Extension points -----------
@@ -360,6 +362,17 @@ public class AppLayerCollectionExtensions {
 				return behavior.isSchemaTypeConfigurable(schemaType);
 			}
 		});
+	}
+
+	public String getSchemaTypeDisplayGroup(final MetadataSchemaType schemaType) {
+		String schemaTypeDisplayGroup = null;
+		for(GenericRecordPageExtension extension: schemaTypeAccessExtensions) {
+			schemaTypeDisplayGroup = extension.getSchemaTypeDisplayGroup(schemaType);
+			if(schemaTypeDisplayGroup != null) {
+				break;
+			}
+		}
+		return schemaTypeDisplayGroup != null? schemaTypeDisplayGroup:OTHERS_TAB;
 	}
 
 	public boolean canManageTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
