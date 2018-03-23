@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -80,7 +81,9 @@ public class SchemaTypeVODataProvider implements Serializable {
 				if(o1.getLabel() == null || o2.getLabel() == null) {
 					return -1;
 				}
-				int result = o1.getLabel().compareTo(o2.getLabel());
+				String label1 = AccentApostropheCleaner.removeAccents(o1.getLabel()).toLowerCase();
+				String label2 = AccentApostropheCleaner.removeAccents(o2.getLabel()).toLowerCase();
+				int result = label1.compareTo(label2);
 				return asc ? result : -result;
 			}
 		});
