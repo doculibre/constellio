@@ -230,6 +230,11 @@ public class ContentManager implements StatefulService {
 		return ContentImpl.create(uniqueId, user, filename, newVersion, false, true);
 	}
 
+	public Content createEmptyMajor(User user, String filename, ContentVersionDataSummary newVersion) {
+		String uniqueId = uniqueIdGenerator.next();
+		return ContentImpl.create(uniqueId, user, filename, newVersion, true, true);
+	}
+
 	public Content createFileSystem(String filename, ContentVersionDataSummary version) {
 		return ContentImpl.createSystemContent(filename, version);
 	}
