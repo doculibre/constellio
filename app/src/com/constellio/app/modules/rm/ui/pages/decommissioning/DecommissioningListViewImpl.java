@@ -354,10 +354,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 			@Override
 			public boolean isEnabled() {
-				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+				return !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
-		removeFolders.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
+		removeFolders.setEnabled(!presenter.isApproved() && !presenter.isProcessed());
 		return removeFolders;
 	}
 
