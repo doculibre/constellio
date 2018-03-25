@@ -53,12 +53,11 @@ public class SolrCloudBackup {
 		}
 
 		if (argv[0].equals("--export")) {
-			CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(argv[2]).build();
 			for (String collection : COLLECTIONS) {
-				client.setDefaultCollection(collection);
+				SolrClient solrClient = buildClient(argv[2], collection);
 				File recordsFolder = new File(localDir, collection);
 				FileUtils.forceMkdir(recordsFolder);
-				exportIndex(client, recordsFolder);
+				exportIndex(solrClient, recordsFolder);
 			}
 
 			close();
@@ -68,7 +67,18 @@ public class SolrCloudBackup {
 		} else {
 			close();
 		}
+	}
 
+	private static SolrClient buildClient(String solrParam, String collection) {
+		if (solrParam.startsWith("http")) {
+			if (!solrParam.endsWith("/solr/")) {
+				throw new IllegalArgumentException("Invalid solrUrl");
+			}
+			return new HttpSolrClient.Builder().withBaseSolrUrl(solrParam + collection).build();
+		}
+		CloudSolrClient cloudSolrClient = new CloudSolrClient.Builder().withZkHost(solrParam).build();
+		cloudSolrClient.setDefaultCollection(collection);
+		return cloudSolrClient;
 	}
 
 	protected static void close()
@@ -136,12 +146,12 @@ public class SolrCloudBackup {
 		return numFound == 0;
 	}
 
-	public static void importCollectionsIndex(final String httpSolrUrl, final File localDir)
+	public static void importCollectionsIndex(final String solrParam, final File localDir)
 			throws IOException, SolrServerException, InterruptedException, XMLStreamException {
 		EXECUTOR.setCorePoolSize(2);
 		EXECUTOR.setMaximumPoolSize(2);
 		for (String collection : COLLECTIONS) {
-			SolrClient client = new HttpSolrClient.Builder().withBaseSolrUrl(httpSolrUrl + collection).build();
+			SolrClient client = buildClient(solrParam, collection);
 			if (isEmpty(client)) {
 				File recordsFolder = new File(localDir, collection);
 				importCollectionIndex(client, recordsFolder);
@@ -235,7 +245,7 @@ public class SolrCloudBackup {
 	}
 
 	private static void usage() {
-		System.out.println("Usage: SolrCloudBackup OPTIONS <zkAddress>");
+		System.out.println("Usage: SolrCloudBackup OPTIONS <zkAddress|solrUrl>");
 		System.out.println("OPTIONS");
 		System.out.println(" --import <localDir>");
 		System.out.println("         Imports <localDir> in Solr, if empty");
