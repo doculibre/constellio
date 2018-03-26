@@ -57,8 +57,8 @@ public class RecordServicesException extends Exception {
 		}
 
 		private static String getMessage(String id, Long version, TransactionDTO transactionDTO) {
-			return "Optimistic locking while saving record with id '" + id + "' in version '" + version + "'"
-					+ "\n" + getAdvancedMessage(id, transactionDTO);
+			return "Optimistic locking while saving record with id '" + id + "' in version '" + version + "'";
+//					+ "\n" + getAdvancedMessage(id, transactionDTO);
 		}
 
 		public String getId() {
