@@ -5,23 +5,16 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -85,12 +78,23 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void ensureAllLanguageFilesHaveSameKeys()
+	public void ensureEnglishAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.English);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
 			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.English, results);
+			fail("Missing i18n keys\n" + comparisonMessage);
+		}
+	}
+
+	@Test
+	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
+			throws Exception {
+		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
+
+		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
+			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.Arabic, results);
 			fail("Missing i18n keys\n" + comparisonMessage);
 		}
 	}
@@ -137,7 +141,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		findTypesMissingKeys();
 		findTaxonomiesMissingKeys();
 		findMissingConfigKeys();
-		findMissingKeysInMainI18nFile();
+		//findMissingKeysInMainI18nFile();
 		if (!missingKeys.isEmpty()) {
 
 			System.out.println("###############################################################################");
@@ -152,29 +156,29 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	}
 
-	private void findMissingKeysInMainI18nFile() {
-		if (!locale.equals(new Locale("fr"))) {
-
-			FoldersLocator foldersLocator = new FoldersLocator();
-
-			File frenchI18n = new File(foldersLocator.getI18nFolder(), "i18n.properties");
-
-			File testedLanguageI18n = new File(foldersLocator.getI18nFolder(), "i18n_" + locale.getLanguage() + ".properties");
-
-			Map<String, String> frenchValues = PropertyFileUtils.loadKeyValues(frenchI18n);
-			Set<String> frenchKeys = frenchValues.keySet();
-			Set<String> testedLanguageKeys = PropertyFileUtils.loadKeyValues(testedLanguageI18n).keySet();
-
-			ListComparisonResults<String> results = LangUtils.compare(frenchKeys, testedLanguageKeys);
-
-			for (String missingKey : results.getRemovedItems()) {
-
-				if (!missingKey.endsWith(".icon") && StringUtils.isNotBlank(frenchValues.get(missingKey)))
-					missingKeys.add(missingKey);
-			}
-
-		}
-	}
+	//	private void findMissingKeysInMainI18nFile() {
+	//		if (!locale.equals(new Locale("fr"))) {
+	//
+	//			FoldersLocator foldersLocator = new FoldersLocator();
+	//
+	//			File frenchI18n = new File(foldersLocator.getI18nFolder(), "i18n.properties");
+	//
+	//			File testedLanguageI18n = new File(foldersLocator.getI18nFolder(), "i18n_" + locale.getLanguage() + ".properties");
+	//
+	//			Map<String, String> frenchValues = PropertyFileUtils.loadKeyValues(frenchI18n);
+	//			Set<String> frenchKeys = frenchValues.keySet();
+	//			Set<String> testedLanguageKeys = PropertyFileUtils.loadKeyValues(testedLanguageI18n).keySet();
+	//
+	//			ListComparisonResults<String> results = LangUtils.compare(frenchKeys, testedLanguageKeys);
+	//
+	//			for (String missingKey : results.getRemovedItems()) {
+	//
+	//				if (!missingKey.endsWith(".icon") && StringUtils.isNotBlank(frenchValues.get(missingKey)))
+	//					missingKeys.add(missingKey);
+	//			}
+	//
+	//		}
+	//	}
 
 	private void findMissingConfigKeys() {
 		List<String> missingKeys = new ArrayList<>();

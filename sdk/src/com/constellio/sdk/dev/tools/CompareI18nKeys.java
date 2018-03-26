@@ -3,13 +3,15 @@ package com.constellio.sdk.dev.tools;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 
@@ -27,12 +29,19 @@ public class CompareI18nKeys {
 		StringBuilder result = new StringBuilder("");
 		String languageFilename = "i18n_" + language.getCode() + ".properties";
 		result.append("Keys in i18n.properties that are not in " + languageFilename);
-		for (String key : comparisonResults.getRemovedItems()) {
+
+		List<String> removedItems = new ArrayList<>(comparisonResults.getRemovedItems());
+		List<String> newItems = new ArrayList<>(comparisonResults.getNewItems());
+
+		Collections.sort(removedItems);
+		Collections.sort(newItems);
+
+		for (String key : removedItems) {
 			result.append("\n\t" + key);
 		}
 
 		result.append("\n\n\nKeys in " + languageFilename + " that are not in i18n.properties");
-		for (String key : comparisonResults.getNewItems()) {
+		for (String key : newItems) {
 			result.append("\n\t" + key);
 		}
 		return result.toString();
@@ -43,26 +52,34 @@ public class CompareI18nKeys {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		File i18nFolder = foldersLocator.getI18nFolder();
 		String languageFilename = "i18n_" + language.getCode() + ".properties";
-		List<String> defaultKeys = loadI18nKeys(new File(i18nFolder, "i18n.properties"));
-		List<String> englishKeys = loadI18nKeys(new File(i18nFolder, languageFilename));
+		List<String> defaultKeys = loadI18nKeysWithValue(new File(i18nFolder, "i18n.properties"));
+		List<String> englishKeys = loadI18nKeysWithValue(new File(i18nFolder, languageFilename));
 		return LangUtils.compare(defaultKeys, englishKeys);
 	}
 
-	private static List<String> loadI18nKeys(File file)
+	private static List<String> loadI18nKeysWithValue(File file)
 			throws IOException {
 		List<String> keys = new ArrayList<>();
 
-		Iterator<String> linesIterator = FileUtils.readLines(file).iterator();
+		Map<String, String> properties = PropertyFileUtils.loadKeyValues(file);
 
-		while(linesIterator.hasNext()) {
-			String line = linesIterator.next();
-			while(line.endsWith("\\")) {
-				line += linesIterator.next();
-			}
-			if (line.contains("=")) {
-				keys.add(line.split("=")[0]);
+		for (Map.Entry<String, String> entry : properties.entrySet()) {
+			if (StringUtils.isNotBlank(entry.getValue())) {
+				keys.add(entry.getKey());
 			}
 		}
+
+		//		Iterator<String> linesIterator = FileUtils.readLines(file).iterator();
+		//
+		//		while (linesIterator.hasNext()) {
+		//			String line = linesIterator.next();
+		//			while (line.endsWith("\\")) {
+		//				line += linesIterator.next();
+		//			}
+		//			if (line.contains("=")) {
+		//				keys.add(line.split("=")[0]);
+		//			}
+		//		}
 		return keys;
 	}
 
