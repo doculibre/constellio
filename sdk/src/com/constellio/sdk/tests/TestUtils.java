@@ -568,6 +568,14 @@ public class TestUtils {
 			}
 		}
 
+		public ListAssert<Object> extracting(Metadata... metadatas) {
+			String[] metadatasLocalCodes = new String[metadatas.length];
+			for (int i = 0; i < metadatas.length; i++) {
+				metadatasLocalCodes[i] = metadatas[i].getLocalCode();
+			}
+			return extracting(metadatasLocalCodes);
+		}
+
 		public ListAssert<Object> extracting(String... metadatas) {
 			Object[] objects = new Object[metadatas.length];
 
