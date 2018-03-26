@@ -71,13 +71,15 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
             transactions.add(currentTransaction);
         }
 
-            for(File currentFileToSuppress : documentToSuppress) {
-                if (currentFileToSuppress.exists()) {ioServices.deleteQuietly(currentFileToSuppress);
-            outputLogger.appendToFile("Deleted file : " + currentFileToSuppress.getName() + "\n");
-                }}for(Transaction transaction: transactions) {
-            recordServices.execute(transaction);
+        for(File currentFileToSuppress : documentToSuppress) {
+            if (currentFileToSuppress.exists()) {
+                ioServices.deleteQuietly(currentFileToSuppress);
+                outputLogger.appendToFile("Deleted file : " + currentFileToSuppress.getName() + "\n");
+            }
         }
 
-        outputLogger.appendToFile("Execution done. Deleted : " + documentToSuppress.size() + " parsed document");
+        for(Transaction transaction: transactions) {
+            recordServices.execute(transaction);
+        }
     }
 }
