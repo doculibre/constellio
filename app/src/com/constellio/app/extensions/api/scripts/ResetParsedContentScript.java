@@ -45,8 +45,8 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                     public void modifyRecord(Record record) {
                         Document document = rm.wrapDocument(record);
                         String currentHash = document.getContent().getCurrentVersion().getHash();
-                        String fileName = contentManager.getParsedContentFileName(currentHash);
-                        File parsedFilePath = contentManager.getContentDao().getFileOf(fileName);
+                        String parsedContentFileName = contentManager.getParsedContentFileName(currentHash);
+                        File parsedFilePath = contentManager.getContentDao().getFileOf(parsedContentFileName);
 
                         if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
                             ioServices.deleteQuietly(parsedFilePath);
