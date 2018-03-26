@@ -7,6 +7,7 @@ import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
@@ -31,33 +32,53 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
         List<File> documentToSuppress = new ArrayList<>();
         SearchServices searchServices = modelLayerFactory.newSearchServices();
         IOServices ioServices = dataLayerFactory.getIOServicesFactory().newIOServices();
+        int maxParsedContentSize = modelLayerFactory.getSystemConfigurationsManager().getValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS);
+        List<Transaction> transactions = new ArrayList<>();
+        Transaction currentTransaction = new Transaction();
+        int numberOfRecords = 0;
 
         for(String collection : appLayerFactory
-                .getCollectionsManager().getCollectionCodesExcludingSystem())
-        {
+                .getCollectionsManager().getCollectionCodesExcludingSystem()) {
             RMSchemasRecordsServices schemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
             LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
             logicalSearchQuery.setCondition(LogicalSearchQueryOperators.from(schemasRecordsServices.userDocument.schemaType()).returnAll());
-            SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(logicalSearchQuery, 2000);
+            SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(logicalSearchQuery, 500);
             ContentManager contentManager = modelLayerFactory.getContentManager();
 
             while(searchResponseIterator.hasNext()) {
-                 Record currentRecord = searchResponseIterator.next();
-                 Document document = schemasRecordsServices.wrapDocument(currentRecord);
+                Record currentRecord = searchResponseIterator.next();
+                Document document = schemasRecordsServices.wrapDocument(currentRecord);
 
-                 String fileName = contentManager.getParsedContentFileName(document.getContent().getCurrentVersion().getHash());
-                 File parsedFilePath = contentManager.getContentDao().getFileOf(fileName);
+                String fileName = contentManager.getParsedContentFileName(document.getContent().getCurrentVersion().getHash());
+                File parsedFilePath = contentManager.getContentDao().getFileOf(fileName);
 
-                 if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > (int)  modelLayerFactory.getSystemConfigurationsManager().getValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS)) {
-                     documentToSuppress.add(parsedFilePath);
-                     document.set(Schemas.MARKED_FOR_PARSING, true);
-                     document.set(Schemas.MARKED_FOR_REINDEXING, true);
-                 }
+                if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
+                    documentToSuppress.add(parsedFilePath);
+                    document.set(Schemas.MARKED_FOR_PARSING, true);
+                    document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                    currentTransaction.update(document.getWrappedRecord());
+                    numberOfRecords++;
+                }
+
+                if(currentTransaction.getRecordIds().size() > 2) {
+                    transactions.add(currentTransaction);
+                    currentTransaction = new Transaction();
+                }
             }
+        }
+        outputLogger.appendToFile("\nNombre de fichiers à recalculés: " + documentToSuppress.size());
+        outputLogger.appendToFile("\nNombre d'enregistrements impactés: " + numberOfRecords + "\n\n");
 
-            for(File currentFileToSuppress : documentToSuppress) {
-                ioServices.deleteQuietly(currentFileToSuppress);
-            }
+        if(currentTransaction.getRecordIds().size() > 0) {
+            transactions.add(currentTransaction);
+        }
+
+        for(File currentFileToSuppress : documentToSuppress) {
+            ioServices.deleteQuietly(currentFileToSuppress);
+        }
+
+        for(Transaction transaction: transactions) {
+            recordServices.execute(transaction);
         }
     }
 }
