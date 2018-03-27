@@ -28,7 +28,8 @@ public final class MainConstellio {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ZipServiceException {
-		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
+        changeTemporaryDirectory();
+        File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
 
 		FileService fileService = new FileService(null);
 
@@ -60,6 +61,18 @@ public final class MainConstellio {
 			}
 		}
 	}
+
+    private static void changeTemporaryDirectory(){
+        FoldersLocator foldersLocator = new FoldersLocator();
+        File tempFile = foldersLocator.getDefaultTempFolder();
+        try {
+            FileUtils.deleteDirectory(tempFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        tempFile.mkdirs();
+        System.setProperty("java.io.tmpdir", tempFile.getAbsolutePath());
+    }
 
 	private static void ensureApplicationWillRestartInCorrectState(PluginManagementUtils utils)
 			throws IOException {
