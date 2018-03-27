@@ -52,11 +52,17 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                             File parsedFilePath = contentManager.getContentDao().getFileOf(parsedContentFileName);
 
                             if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
-                                ioServices.deleteQuietly(parsedFilePath);
-                                outputLogger.appendToFile("Deleted file : " + parsedFilePath.getName() + "\n");
-                                deletedHash.add(currentHash);
-                                document.set(Schemas.MARKED_FOR_PARSING, true);
-                                document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                                try {
+                                    String filename = parsedFilePath.getName();
+                                    if(parsedFilePath.delete()) {
+                                        outputLogger.appendToFile("Deleted file : " + filename + "\n");
+                                        deletedHash.add(currentHash);
+                                        document.set(Schemas.MARKED_FOR_PARSING, true);
+                                        document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             } else if(deletedHash.contains(parsedFilePath)) {
                                 document.set(Schemas.MARKED_FOR_PARSING, true);
                                 document.set(Schemas.MARKED_FOR_REINDEXING, true);
