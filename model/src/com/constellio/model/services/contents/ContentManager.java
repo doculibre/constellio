@@ -707,14 +707,18 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	public String getParsedContentFileName(String hash) {
+		return hash + "__parsed";
+	}
+
 	public ParsedContent getParsedContent(String hash)
 			throws ContentManagerException_ContentNotParsed {
-		String parsedContent = null;
+		String parsedContent;
 
 		InputStream inputStream = null;
 
 		try {
-			inputStream = getContentDao().getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
+			inputStream = getContentDao().getContentInputStream(getParsedContentFileName(hash), READ_PARSED_CONTENT);
 			parsedContent = ioServices.readStreamToString(inputStream);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerException_ContentNotParsed(hash);
