@@ -66,7 +66,7 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                                     outputLogger.appendToFile("Failed to delete : " + filename + "\n");
                                     e.printStackTrace();
                                 }
-                            } else if(deletedHash.contains(parsedFilePath)) {
+                            } else if(deletedHash.contains(currentHash)) {
                                 document.set(Schemas.MARKED_FOR_PARSING, true);
                                 document.set(Schemas.MARKED_FOR_REINDEXING, true);
                             }
