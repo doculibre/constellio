@@ -73,6 +73,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
 
+	String originalAssigner;
+	String originalAssignedTo;
+
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
@@ -179,9 +182,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
 					Field<?> field = getAssignerField();
-					if(field != null && field.getValue() != null) {
+					if(originalAssigner == null && field != null && field.getValue() != null) {
+						task.setAssigner((String) field.getValue());
+					}else if(field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
 						task.setAssigner((String) field.getValue());
 					}
+				} else if(task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
+					Field<?> field = getAssignerField();
+					task.setAssigner((String) field.getValue());
 				}
 			}
 
@@ -247,6 +255,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
+
+		originalAssignedTo = taskVO.getAssignee();
+		originalAssigner = taskVO.get(Task.ASSIGNER);
 	}
 
 	public String getViewTitle() {
@@ -304,7 +315,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if(assignerField != null) {
+		if(assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
