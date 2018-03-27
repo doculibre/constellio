@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -44,19 +45,22 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                     @Override
                     public void modifyRecord(Record record) {
                         Document document = rm.wrapDocument(record);
-                        String currentHash = document.getContent().getCurrentVersion().getHash();
-                        String parsedContentFileName = contentManager.getParsedContentFileName(currentHash);
-                        File parsedFilePath = contentManager.getContentDao().getFileOf(parsedContentFileName);
+                        Content content = document.getContent();
+                        if(content != null) {
+                            String currentHash = content.getCurrentVersion().getHash();
+                            String parsedContentFileName = contentManager.getParsedContentFileName(currentHash);
+                            File parsedFilePath = contentManager.getContentDao().getFileOf(parsedContentFileName);
 
-                        if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
-                            ioServices.deleteQuietly(parsedFilePath);
-                            outputLogger.appendToFile("Deleted file : " + parsedFilePath.getName() + "\n");
-                            deletedHash.add(currentHash);
-                            document.set(Schemas.MARKED_FOR_PARSING, true);
-                            document.set(Schemas.MARKED_FOR_REINDEXING, true);
-                        } else if(deletedHash.contains(parsedFilePath)) {
-                            document.set(Schemas.MARKED_FOR_PARSING, true);
-                            document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                            if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
+                                ioServices.deleteQuietly(parsedFilePath);
+                                outputLogger.appendToFile("Deleted file : " + parsedFilePath.getName() + "\n");
+                                deletedHash.add(currentHash);
+                                document.set(Schemas.MARKED_FOR_PARSING, true);
+                                document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                            } else if(deletedHash.contains(parsedFilePath)) {
+                                document.set(Schemas.MARKED_FOR_PARSING, true);
+                                document.set(Schemas.MARKED_FOR_REINDEXING, true);
+                            }
                         }
                     }
                 }
