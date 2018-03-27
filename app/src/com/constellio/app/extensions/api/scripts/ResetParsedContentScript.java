@@ -52,8 +52,8 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                             File parsedFilePath = contentManager.getContentDao().getFileOf(parsedContentFileName);
 
                             if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
+                                String filename = parsedFilePath.getName();
                                 try {
-                                    String filename = parsedFilePath.getName();
                                     if(parsedFilePath.delete()) {
                                         outputLogger.appendToFile("Deleted file : " + filename + "\n");
                                         deletedHash.add(currentHash);
@@ -61,6 +61,7 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
                                         document.set(Schemas.MARKED_FOR_REINDEXING, true);
                                     }
                                 } catch (Exception e) {
+                                    outputLogger.appendToFile("Failed to delete : " + filename + "\n");
                                     e.printStackTrace();
                                 }
                             } else if(deletedHash.contains(parsedFilePath)) {
