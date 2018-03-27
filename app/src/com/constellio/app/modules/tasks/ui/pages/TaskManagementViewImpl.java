@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -62,7 +63,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
-		timestamp = new ComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
+		timestamp = new BaseComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
 		timestamp.setNullSelectionAllowed(false);
 		timestamp.setValue(Timestamp.ALL);
 		timestamp.setItemCaption(Timestamp.ALL, $("all"));

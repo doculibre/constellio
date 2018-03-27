@@ -22,7 +22,9 @@ import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataPopulateConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
@@ -239,6 +241,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
 		}
 
+		if (importedMetadata.getRelationshipProvidingSecurity() != null) {
+			metadataElem.setAttribute(RELATIONSHIP_PROVIDING_SECURITY, importedMetadata.getRelationshipProvidingSecurity() + "");
+		}
+
 		if (importedMetadata.getReferencedType() != null) {
 			metadataElem.setAttribute(REFERENCED_TYPE, importedMetadata.getReferencedType() + "");
 		}
@@ -343,6 +349,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, join(importedMetadata.getVisibleInTablesIn(), ","));
 		}
 
+		if (importedMetadata.getPopulateConfigs() != null) {
+			metadataElem.addContent(writePopulateConfigElement(importedMetadata.getPopulateConfigs()));
+		}
+
 		if (importedMetadata.getDataEntry() != null) {
 
 			ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
@@ -389,6 +399,22 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		defaultSchemaElem.addContent(metadataElem);
+	}
+
+	private Element writePopulateConfigElement(ImportedMetadataPopulateConfigs populateConfigs) {
+
+		Element element = new Element(POPULATE_CONFIGS);
+		for (ImportedRegexConfigs regexPopulateConfigs : populateConfigs.getRegexes()) {
+			Element elementConfigsRegex = new Element(POPULATE_CONFIGS_REGEX);
+			element.addContent(elementConfigsRegex);
+
+			elementConfigsRegex.setAttribute(POPULATE_CONFIGS_REGEX_INPUT_METADATA, regexPopulateConfigs.getInputMetadata());
+			elementConfigsRegex.setAttribute(POPULATE_CONFIGS_REGEX_PATTERN, regexPopulateConfigs.getRegex());
+			elementConfigsRegex.setAttribute(POPULATE_CONFIGS_REGEX_VALUE, regexPopulateConfigs.getValue());
+			elementConfigsRegex.setAttribute(POPULATE_CONFIGS_REGEX_TYPE, regexPopulateConfigs.getRegexConfigType());
+		}
+
+		return element;
 	}
 
 	private void addTaxonomies(ImportedCollectionSettings importedCollectionSettings, Element collectionSettingsElem) {

@@ -9,11 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
+import com.vaadin.ui.Field;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -30,10 +37,6 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -91,8 +94,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		boolean isTerminatedOrClosed = finishedOrClosedStatuses.contains(tasksSchemasRecordsServices.wrapTask(restrictedRecord).getStatus());
-		return user.hasWriteAccess().on(restrictedRecord) && !isTerminatedOrClosed;
+		TaskStatusType statusType = new TasksSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory).wrapTask(restrictedRecord).getStatusType();
+		return user.hasWriteAccess().on(restrictedRecord) && !(statusType != null && statusType.isFinishedOrClosed());
 	}
 
 	@Override
@@ -175,9 +178,19 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
+					Field<?> field = getAssignerField();
+					if(field != null && field.getValue() != null) {
+						task.setAssigner((String) field.getValue());
+					}
 				}
 			}
-			addOrUpdate(task.getWrappedRecord());
+
+			if(task.isModel()) {
+				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
+			} else {
+				addOrUpdate(task.getWrappedRecord());
+			}
+
 			if (StringUtils.isNotBlank(workflowId)) {
 				view.navigateToWorkflow(workflowId);
 			} else if (StringUtils.isNotBlank(parentId)) {
@@ -188,6 +201,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
 		}
+	}
+
+	private Field getAssignerField() {
+		TaskForm form = view.getForm();
+		if(form instanceof TaskFormImpl) {
+			return ((TaskFormImpl) form).getField(Task.ASSIGNER);
+		}
+		return null;
 	}
 
 	public void initTaskVO(String parameters) {
@@ -237,12 +258,55 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public void viewAssembled() {
+		adjustTypeField();
 		adjustProgressPercentageField();
 		adjustDecisionField();
+		adjustQuestionField();
 		adjustInclusiveDecisionField();
 		adjustRelativeDueDate();
 		adjustAcceptedField();
 		adjustReasonField();
+		adjustAssignerField();
+		adjustRequiredUSRMetadatasFields();
+	}
+
+	private void adjustRequiredUSRMetadatasFields() {
+		try {
+			TaskVO taskVO = getTask();
+			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
+			if(task.isModel()) {
+				TaskForm form = view.getForm();
+				if(form != null && form instanceof RecordForm) {
+					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+					MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(taskVO.getSchema().getCode());
+					for(Metadata metadata: schema.getMetadatas().onlyUSR().onlyAlwaysRequired()) {
+						Field<?> field = ((RecordForm) form).getField(metadata.getLocalCode());
+						if(field != null) {
+							field.setRequired(false);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void adjustQuestionField() {
+		TaskQuestionFieldImpl questionField = (TaskQuestionFieldImpl) view.getForm().getCustomField(Task.QUESTION);
+		if(questionField != null) {
+			if(field != null) {
+				questionField.setVisible(field.isVisible());
+			}
+			questionField.setReadOnly(true);
+		}
+	}
+
+	private void adjustAssignerField() {
+		Field assignerField = getAssignerField();
+		if(assignerField != null) {
+			assignerField.setValue(getCurrentUser().getId());
+		}
 	}
 
 	private void adjustProgressPercentageField() {
@@ -374,6 +438,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	void reloadForm() {
 		view.getForm().reload();
+		adjustQuestionField();
+		adjustRequiredUSRMetadatasFields();
+		adjustDecisionField();
+		adjustInclusiveDecisionField();
 	}
 
 	void commitForm() {
@@ -397,21 +465,36 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	void adjustTypeField() {
-		// Nothing to adjust
+		Field typeField = getTypeField();
+		if(typeField != null) {
+			if(tasksSchemas.isRequestTask(getTask())) {
+				typeField.setReadOnly(true);
+			}
+		}
+	}
+
+	private Field getTypeField() {
+		TaskForm form = view.getForm();
+		if(form instanceof TaskFormImpl) {
+			return ((TaskFormImpl) form).getField(Task.TYPE);
+		}
+		return null;
 	}
 
 	boolean isReloadRequiredAfterTaskTypeChange() {
-		boolean reload;
+		boolean reload = false;
 		String currentSchemaCode = getSchemaCode();
-		String taskTypeRecordId = getTypeFieldValue();
-		if (StringUtils.isNotBlank(taskTypeRecordId)) {
-			String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
-			if (schemaCodeForTaskTypeRecordId != null) {
-				reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
-			} else
+		if(isTaskTypeFieldVisible()) {
+			String taskTypeRecordId = getTypeFieldValue();
+			if (StringUtils.isNotBlank(taskTypeRecordId)) {
+				String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
+				if (schemaCodeForTaskTypeRecordId != null) {
+					reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
+				} else
+					reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			} else {
 				reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
-		} else {
-			reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+			}
 		}
 		return reload;
 	}
@@ -477,5 +560,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public Record getWorkflow(String workflowId) {
 		return recordServices().getDocumentById(workflowId);
+	}
+
+	public boolean isTaskTypeFieldVisible() {
+		return view.getForm().getCustomField(Task.TYPE) != null;
+	}
+
+	public List<String> getUnavailableTaskTypes() {
+		return !tasksSchemas.isRequestTask(getTask())? searchServices().searchRecordIds(
+				LogicalSearchQueryOperators.from(tasksSchemas.taskTypeSchemaType()).where(Schemas.CODE)
+						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))): null;
 	}
 }

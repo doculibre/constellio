@@ -8,7 +8,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.ReportXMLGeneratorV2;
+import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
@@ -18,15 +18,14 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -40,7 +39,6 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
-import org.omg.IOP.IOR;
 
 import java.io.File;
 import java.io.InputStream;
@@ -50,7 +48,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class LabelButtonV2 extends WindowButton {
     //Window property
@@ -143,7 +140,7 @@ public class LabelButtonV2 extends WindowButton {
     private void setupStartingPositionField() {
         this.getWindow().setResizable(true);
 
-        startPositionField = new ComboBox($("LabelsButton.startPosition"));
+        startPositionField = new BaseComboBox($("LabelsButton.startPosition"));
         startPositionField.setNullSelectionAllowed(false);
         startPositionField.setRequired(true);
         //Custom user templates.
@@ -167,7 +164,7 @@ public class LabelButtonV2 extends WindowButton {
 
     private void setupFormLayoutField() {
 
-        formatField = new ComboBox($("LabelsButton.labelFormat"));
+        formatField = new BaseComboBox($("LabelsButton.labelFormat"));
         formatField.setRequired(true);
 
         setItemsForFormatFields(listOfAllTemplates);
@@ -298,17 +295,17 @@ public class LabelButtonV2 extends WindowButton {
         private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
             VerticalLayout layout = null;
             if (validateInputs(selectedTemplate)) {
-                ReportXMLGeneratorV2 reportXMLGeneratorV2 = new ReportXMLGeneratorV2(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
+                LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
                         .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
                 PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
-                JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(reportXMLGeneratorV2);
+                JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);
                 Content content = selectedTemplateAsPrintableLabel.get(PrintableLabel.JASPERFILE);
                 InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
                 File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
                 try {
                     FileUtils.copyInputStreamToFile(inputStream, jasperFile);
-                    String titleOfthePdfFile = ReportXMLGeneratorV2.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
-                    File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile, titleOfthePdfFile);
+                    String titleOfthePdfFile = LabelXmlGenerator.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
+                    File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile);
                     layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
                 } finally {
                     ioServicesFactory.newIOServices().deleteQuietly(jasperFile);

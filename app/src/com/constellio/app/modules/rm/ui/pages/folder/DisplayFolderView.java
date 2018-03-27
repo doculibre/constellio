@@ -75,5 +75,5 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setTaxonomyCode(String taxonomyCode);
 
 	void clearUploadField();
-
+	
 }

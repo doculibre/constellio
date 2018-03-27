@@ -10,12 +10,13 @@ import java.util.Map;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class SerializedCacheSearchService {
-	private static Map<Record, Map<Record, Double>> emptyRecordsWithMoreLikeThis = Collections.emptyMap();
+	private static List<MoreLikeThisRecord> emptyRecordsWithMoreLikeThis = Collections.emptyList();
 	private static Map<String, Map<String, Object>> emptyStatisticsValues = Collections.emptyMap();
 	private static List<String> emptySpellcheckerSuggestions = Collections.emptyList();
 	boolean correctlySpelt = true;

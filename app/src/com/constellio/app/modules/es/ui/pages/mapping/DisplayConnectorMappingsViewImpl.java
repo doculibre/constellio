@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -189,7 +190,7 @@ public class DisplayConnectorMappingsViewImpl extends BaseViewImpl implements Di
 
 	private Component buildMappingTable(String documentType) {
 		MappingsContainer mappings = new MappingsContainer(documentType);
-		Table table = new Table($("DisplayConnectorMappingsView.mappings", mappings.size()));
+		Table table = new BaseTable(getClass().getName(), $("DisplayConnectorMappingsView.mappings", mappings.size()));
 		table.setContainerDataSource(mappings);
 		table.setVisibleColumns(MappingVO.METADATA_LABEL, MappingVO.FIELD_LABELS, ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID);
 		table.setColumnHeader(MappingVO.METADATA_LABEL, $("DisplayConnectorMappingView.metadata"));
@@ -204,7 +205,7 @@ public class DisplayConnectorMappingsViewImpl extends BaseViewImpl implements Di
 	private Table buildQuickConfigTable(List<MappingParams> config) {
 		final BeanItemContainer<MappingParams> container = new BeanItemContainer<>(MappingParams.class, config);
 
-		final Table table = new Table("", container);
+		final Table table = new BaseTable(getClass().getName() + ".quickConfig", "", container);
 
 		table.addGeneratedColumn("active", new ColumnGenerator() {
 			@Override

@@ -1,26 +1,28 @@
 package com.constellio.app.modules.rm.services.sip.filter;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SIPFilter {
     private int startIndex;
     private String file;
     private String bagInfo;
-    private String rubriqueCode;
+    private String categoryCode;
     private String administrativeUnit;
     private boolean documentTypeRequired;
     private List<String> includeFolderIds;
@@ -32,11 +34,13 @@ public class SIPFilter {
     private String collection;
     private AppLayerFactory factory;
     private RMSchemasRecordsServices rm;
+    private SearchServices searchService;
 
-    public SIPFilter(String collection, AppLayerFactory factory){
+    public SIPFilter(String collection, AppLayerFactory factory) {
         this.collection = collection;
         this.factory = factory;
         this.rm = new RMSchemasRecordsServices(collection, factory);
+        this.searchService = factory.getModelLayerFactory().newSearchServices();
         includeDocumentIds = new ArrayList<>();
         includeFolderIds = new ArrayList<>();
         excludeFolderIds = new ArrayList<>();
@@ -57,8 +61,8 @@ public class SIPFilter {
         return this;
     }
 
-    public SIPFilter withRubriqueCode(String rubriqueCode) {
-        this.rubriqueCode = rubriqueCode;
+    public SIPFilter withCategoryCode(String categoryCode) {
+        this.categoryCode = categoryCode;
         return this;
     }
 
@@ -109,8 +113,8 @@ public class SIPFilter {
         return bagInfo;
     }
 
-    public Category getRubriqueCode() {
-        return rm.getCategoryWithCode(rubriqueCode);
+    public Category getCategory() {
+        return rm.getCategoryWithCode(categoryCode);
     }
 
     public AdministrativeUnit getAdministrativeUnit() {
@@ -141,37 +145,43 @@ public class SIPFilter {
         return limitSize;
     }
 
-    public LogicalSearchQuery getSearchQuery(){
+    public List<Document> getDocument() {
+
         MetadataSchemaType documentSchemaType = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
-        List<LogicalSearchCondition> whereClause = new ArrayList<>();
+        final List<LogicalSearchCondition> whereClauseAll = new ArrayList<>();
+        final List<LogicalSearchCondition> whereClauseAny = new ArrayList<>();
 
-        if(this.isDocumentTypeRequired()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.TYPE)).isNotNull());
-        }
 
-        if(this.getRubriqueCode() != null) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER_CATEGORY)).isEqualTo(this.getRubriqueCode().getId()));
-        }
-
-        if(this.getAdministrativeUnit() != null) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER_ADMINISTRATIVE_UNIT)).isEqualTo(this.getAdministrativeUnit()));
-        }
-
-        if(!this.getIncludeFolderIds().isEmpty()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isIn(this.getIncludeFolderIds()));
+        if (!this.getIncludeFolderIds().isEmpty()) {
+            for (String folderId : this.getIncludeFolderIds()) {
+                Folder folder = rm.getFolder(folderId);
+                whereClauseAny.add(where(documentSchemaType.getMetadata(Schemas.PRINCIPAL_PATH.getCode())).isStartingWithText(folder.<String>get(Schemas.PRINCIPAL_PATH)));
+            }
         }
 
         if(!this.getIncludeDocumentIds().isEmpty()) {
-            whereClause.add(where(Schemas.IDENTIFIER).isIn(this.getIncludeDocumentIds()));
+            whereClauseAny.add(where(documentSchemaType.getMetadata(Schemas.IDENTIFIER.getCode())).isIn(this.getIncludeDocumentIds()));
         }
 
-        if(!this.getExcludeFolderIds().isEmpty()) {
-            whereClause.add(where(documentSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isNotIn(this.getExcludeFolderIds()));
+        if (!this.getExcludeFolderIds().isEmpty()) {
+            for (String folderId : this.getIncludeFolderIds()) {
+                Folder folder = rm.getFolder(folderId);
+                whereClauseAny.add(where(documentSchemaType.getMetadata(Schemas.PRINCIPAL_PATH.getCode())).isNot(LogicalSearchQueryOperators.startingWithText(folder.<String>get(Schemas.PRINCIPAL_PATH))));
+            }
         }
 
-        LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).whereAllConditions(
-                whereClause
+        LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).whereAnyCondition(
+                whereClauseAny
         );
-        return new LogicalSearchQuery(condition).sortAsc(Schemas.IDENTIFIER).setStartRow(this.getStartIndex());
+        List<Document> documentList = rm.wrapDocuments(searchService.search(new LogicalSearchQuery(condition).sortAsc(Schemas.IDENTIFIER).setStartRow(this.getStartIndex())));
+        List<Document> finalDocumentList = new ArrayList<>();
+        for(Document document  : documentList) {
+            if (!((this.isDocumentTypeRequired() && document.getType() == null)
+            || (this.getCategory() != null && !document.getFolderCategory().equals(this.getCategory().getId()))
+            || (this.getAdministrativeUnit() != null && !document.getFolderAdministrativeUnit().equals(this.getAdministrativeUnit().getId())))) {
+                finalDocumentList.add(document);
+            }
+        }
+        return finalDocumentList;
     }
 }

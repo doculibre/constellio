@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -40,7 +42,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeExceptio
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyIsAlreadyDefined;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyMustBeAddedBeforeSettingItHasPrincipal;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaIsReferencedInMultivalueReference;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
@@ -58,16 +59,18 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private ConstellioCacheManager cacheManager;
 	private final BatchProcessesManager batchProcessesManager;
 	private OneXMLConfigPerCollectionManager<TaxonomiesManagerCache> oneXMLConfigPerCollectionManager;
+	private ConstellioEIMConfigs eimConfigs;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
 			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
-			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager) {
+			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager, ConstellioEIMConfigs eimConfigs) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.batchProcessesManager = batchProcessesManager;
 		this.recordsCaches = recordsCaches;
 		this.cacheManager = cacheManager;
+		this.eimConfigs = eimConfigs;
 	}
 
 	@Override
@@ -124,6 +127,11 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	public void editTaxonomy(Taxonomy taxonomy) {
 		String collection = taxonomy.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newEditTaxonomyDocumentAlteration(taxonomy));
+	}
+
+	public void deleteWithoutValidations(Taxonomy taxonomy) {
+		String collection = taxonomy.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, newDeleteTaxonomyDocumentAlteration(taxonomy));
 	}
 
 	public void enable(Taxonomy taxonomy, MetadataSchemasManager schemasManager) {
@@ -240,7 +248,16 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		return new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
-				newTaxonomyWriter(document).editTaxonmy(taxonomy);
+				newTaxonomyWriter(document).editTaxonomy(taxonomy);
+			}
+		};
+	}
+
+	DocumentAlteration newDeleteTaxonomyDocumentAlteration(final Taxonomy taxonomy) {
+		return new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				newTaxonomyWriter(document).deleteTaxonomy(taxonomy);
 			}
 		};
 	}
@@ -348,6 +365,32 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			}
 		}
 
+		return sortTaxonomies(taxonomies);
+	}
+
+	private List<Taxonomy> sortTaxonomies(List<Taxonomy> taxonomies) {
+		final List<String> taxonomiesInOrder = new ArrayList<>();
+
+		String stringOrder = eimConfigs.getTaxonomyOrderInHomeView();
+		if (stringOrder != null) {
+			taxonomiesInOrder.addAll(asList(stringOrder.replaceAll("\\s", "").split(",")));
+		}
+
+		Collections.sort(taxonomies, new Comparator<Taxonomy>() {
+			@Override
+			public int compare(Taxonomy o1, Taxonomy o2) {
+				int index1 = taxonomiesInOrder.indexOf(o1.getCode());
+				int index2 = taxonomiesInOrder.indexOf(o2.getCode());
+
+				if (index1 == -1) {
+					return 1;
+				} else if (index2 == -1) {
+					return -1;
+				} else {
+					return index1 - index2;
+				}
+			}
+		});
 		return taxonomies;
 	}
 
@@ -363,7 +406,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		List<Taxonomy> schemaTaxonomies = getAvailableTaxonomiesForSelectionOfType(schemaType, user, metadataSchemasManager);
 		taxonomies.addAll(schemaTaxonomies);
 
-		return new ArrayList<>(taxonomies);
+		return sortTaxonomies(new ArrayList<>(taxonomies));
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,
@@ -373,7 +416,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 		Taxonomy taxonomyWithType = getTaxonomyFor(user.getCollection(), schemaType);
 		if (taxonomyWithType != null) {
-			return asList(taxonomyWithType);
+			return sortTaxonomies(asList(taxonomyWithType));
 		} else {
 
 			MetadataSchemaType type = types.getSchemaType(schemaType);
@@ -395,7 +438,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 				}
 			}
 
-			return new ArrayList<>(taxonomies);
+			return sortTaxonomies(new ArrayList<>(taxonomies));
 		}
 
 	}

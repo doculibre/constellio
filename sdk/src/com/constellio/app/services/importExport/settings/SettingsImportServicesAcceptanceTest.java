@@ -1,8 +1,11 @@
 package com.constellio.app.services.importExport.settings;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.model.entities.Language.English;
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
 import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
@@ -48,6 +51,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
@@ -3104,6 +3108,55 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
+
+	public void whenUpdatingRelationshipProvidingSecurityThenOK()
+			throws Exception {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("REFERENCE")
+				.setReferencedType(Category.SCHEMA_TYPE).setRelationshipProvidingSecurity(true);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("REFERENCE")
+				.setReferencedType(Category.SCHEMA_TYPE).setRelationshipProvidingSecurity(false);
+
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default").addMetadata(m1).addMetadata(m2);
+
+		folderType.setDefaultSchema(defaultSchema);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory()
+				.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isRelationshipProvidingSecurity()).isTrue();
+
+		Metadata folder_default_m2 = schemaType.getMetadata("folder_default_m2");
+		assertThat(folder_default_m2.isRelationshipProvidingSecurity()).isFalse();
+
+		// inverser et re-importer
+		m1.setRelationshipProvidingSecurity(false);
+		m2.setRelationshipProvidingSecurity(true);
+		importSettings();
+
+		schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isRelationshipProvidingSecurity()).isFalse();
+
+		folder_default_m2 = schemaType.getMetadata("folder_default_m2");
+		assertThat(folder_default_m2.isRelationshipProvidingSecurity()).isTrue();
+
+	}
+
+	@Test
 	public void testWriteAndReadImportSettings()
 			throws IOException {
 
@@ -3228,6 +3281,37 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
+	@Test
+	public void whenImportingMetadataPopulateConfigsThenOK()
+			throws ValidationException {
+		runTwice = false;
+		ImportedCollectionSettings collectionSettings = settings.newCollectionSettings(zeCollection);
+
+		ImportedMetadataSchema folderDefaultSchema = collectionSettings.newType("folder").newDefaultSchema();
+
+		folderDefaultSchema.newMetadata("USRtheme").setLabel("Thème").setType(STRING).newPopulateConfigs()
+				.addRegexConfigs(new ImportedRegexConfigs(DESCRIPTION, "^Gandalf*", "LOTR", "SUBSTITUTION"))
+				.addRegexConfigs(new ImportedRegexConfigs(DESCRIPTION, "^Dakota*", "Légendes d'indiens", "SUBSTITUTION"));
+
+		folderDefaultSchema.newMetadata("USRisbn").setLabel("ISBN").setType(STRING).newPopulateConfigs().addRegexConfigs(
+				new ImportedRegexConfigs(DESCRIPTION, "[0-9]{3}-[0-9]-[0-9]{4}-[0-9]{4}-[0-9]", "$0", "TRANSFORMATION"));
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getDefaultSchema().get("folder_default_USRtheme").getPopulateConfigs().getRegexes())
+				.extracting("inputMetadata", "regex.pattern", "value", "regexConfigType").containsOnly(
+				tuple("description", "^Dakota*", "Légendes d'indiens", SUBSTITUTION),
+				tuple("description", "^Gandalf*", "LOTR", SUBSTITUTION));
+
+		assertThat(schemaType.getDefaultSchema().get("folder_default_USRisbn").getPopulateConfigs().getRegexes())
+				.extracting("inputMetadata", "regex.pattern", "value", "regexConfigType").containsOnly(
+				tuple("description", "[0-9]{3}-[0-9]-[0-9]{4}-[0-9]{4}-[0-9]", "$0", TRANSFORMATION));
+
+	}
+
 	Document getDocumentFromFile(File file) {
 		SAXBuilder builder = new SAXBuilder();
 		try {
@@ -3244,7 +3328,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-
 			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);

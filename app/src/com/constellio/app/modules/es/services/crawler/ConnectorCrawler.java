@@ -26,6 +26,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -81,6 +82,10 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
+		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled()) {
+			return false;
+		}
+
 		boolean executedJobs = false;
 
 		try {
@@ -95,9 +100,9 @@ public class ConnectorCrawler {
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
 					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-					LOGGER.info(
-							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
-									+ " job(s) " + "' **** ");
+					//					LOGGER.info(
+					//							"**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size()
+					//									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
 						connectorJobsMap.put(crawledConnector, connectorJobs);
@@ -132,13 +137,8 @@ public class ConnectorCrawler {
 				}
 
 				eventObserver.flush();
-			} else {
-				waitSinceNoJobs();
 			}
 
-			if (crawledConnectors.isEmpty()) {
-				waitSinceNoJobs();
-			}
 		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
 			// Ignore
 		} finally {
@@ -306,7 +306,18 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			crawlAllConnectors();
+			//			try {
+			//if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
+			boolean hasCrawledSomething;
+			//					try {
+			hasCrawledSomething = crawlAllConnectors();
+
+			//					} finally {
+			//						COLLECTIONS_CRAWLING_SEMAPHORE.release();
+			//					}
+			if (!hasCrawledSomething) {
+				waitSinceNoJobs();
+			}
 			if (crawledConnectors.isEmpty()) {
 				try {
 					Thread.sleep(200);
@@ -314,6 +325,10 @@ public class ConnectorCrawler {
 					throw new RuntimeException(e);
 				}
 			}
+			//}
+			//			} catch (InterruptedException e) {
+			//				e.printStackTrace();
+			//			}
 		}
 	}
 

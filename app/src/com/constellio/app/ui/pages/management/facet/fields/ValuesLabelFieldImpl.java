@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPresenter;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
@@ -66,7 +67,7 @@ public class ValuesLabelFieldImpl<ModifiableStructure> extends ValuesLabelField<
 		horizontalLayout.setSpacing(true);
 		horizontalLayout.addComponents(addValueButton, populateLabelsValuesButton);
 
-		final Table table = new Table($("AddEditFacetConfiguration.tableTitle"));
+		final Table table = new BaseTable(getClass().getName(), $("AddEditFacetConfiguration.tableTitle"));
 		table.addContainerProperty("value", String.class, null);
 		table.addContainerProperty("label", String.class, null);
 		table.addContainerProperty("delete", DeleteButton.class, null);

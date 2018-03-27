@@ -28,8 +28,8 @@ subprojects {
         compile "com.cybozu.labs:langdetect:1.1-20120112"
         compile "com.eaio.uuid:uuid:3.2"
         compile "org.jdom:jdom:2.0.2"
-        compile "org.apache.poi:poi-ooxml:3.12"
-        compile "org.apache.poi:poi:3.12"
+        compile "org.apache.poi:poi-ooxml:3.17"
+        compile "org.apache.poi:poi:3.17"
         compile "org.eclipse.jetty.aggregate:jetty-all-server:8.1.10.v20130312"
         compile "org.slf4j:slf4j-log4j12:1.7.7"
         compile "org.slf4j:slf4j-api:1.7.7"
@@ -40,8 +40,8 @@ subprojects {
         compile "org.apache.commons:commons-lang3:3.4"
         compile "org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:1.0.2.Final"
         compile "commons-logging:commons-logging:1.1.3"
-        compile "org.apache.tika:tika-core:1.11"
-        compile "org.apache.tika:tika-parsers:1.11"
+        compile "org.apache.tika:tika-core:1.17"
+        compile "org.apache.tika:tika-parsers:1.17"
         compile "org.databene:contiperf:2.2.0"
         compile "commons-httpclient:commons-httpclient:3.1"
         compile "org.seleniumhq.selenium.fluent:fluent-selenium:1.14.5"
@@ -57,6 +57,9 @@ subprojects {
         compile "org.apache.ignite:ignite-indexing:2.0.0"
         compile "org.apache.kafka:kafka-clients:0.11.0.0"
         compile "com.google.code.gson:gson:2.8.1"
+        compile "org.apache.pdfbox:pdfbox:2.0.8"
+        compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
+        compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'
@@ -65,6 +68,8 @@ subprojects {
     configurations {
         compile.exclude module: "asm-debug-all"
         compile.exclude module: "org.objectweb.asm"
+        compile.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+        runtime.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
 
     }
 
@@ -84,6 +89,9 @@ war {
         from("reportsRecource/") {
             into("resources/reports")
         }
+        from("libs/jcifs_novell.jar.disabled") {
+            into("lib")
+        }
     }
 
     if (findProject(":constellio-plugins") != null) {
@@ -91,7 +99,8 @@ war {
                              ":constellio-plugins:plugin005", ":constellio-plugins:plugin006", ":constellio-plugins:plugin007", ":constellio-plugins:plugin008",
                              ":constellio-plugins:plugin009", ":constellio-plugins:plugin010", ":constellio-plugins:plugin012", ":constellio-plugins:plugin015",
                              ":constellio-plugins:plugin016", ":constellio-plugins:plugin017", ":constellio-plugins:plugin018", ":constellio-plugins:plugin019",
-                             ":constellio-plugins:plugin020", ":constellio-plugins:plugin027", ":constellio-plugins:plugin028", ":constellio-plugins:plugin032"]
+                             ":constellio-plugins:plugin020", ":constellio-plugins:plugin027", ":constellio-plugins:plugin028", ":constellio-plugins:plugin032",
+                             ":constellio-plugins:plugin033", ":constellio-plugins:plugin034"]
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
@@ -103,6 +112,7 @@ war {
         }
     }
 
+    // gwt-dev-2.7.0.vaadin4.jar
     rootSpec.exclude("**/gwt-*.vaadin4.jar")
 
     webAppDirName = "app/WebContent"

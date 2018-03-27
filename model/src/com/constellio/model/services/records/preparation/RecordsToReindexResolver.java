@@ -47,9 +47,17 @@ public class RecordsToReindexResolver {
 		}
 
 		for (Metadata metadata : metadatas) {
-			for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata)) {
-				if (link.getLevel() > 0) {
-					metadatasToReindex.add(link.getFromMetadata().getCode());
+			if(metadata.getInheritance() != null) {
+				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata.getInheritance())) {
+					if (link.getLevel() > 0) {
+						metadatasToReindex.add(link.getFromMetadata().getCode());
+					}
+				}
+			} else {
+				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata)) {
+					if (link.getLevel() > 0) {
+						metadatasToReindex.add(link.getFromMetadata().getCode());
+					}
 				}
 			}
 		}
@@ -60,30 +68,10 @@ public class RecordsToReindexResolver {
 				if (metadata.getType() == REFERENCE && schema.hasMetadataWithCode(metadata.getCode())) {
 
 					if (originalRecord != null) {
-
-						if (metadata.isMultivalue()) {
-							List<String> value = originalRecord.getList(metadata);
-							ids.addAll(value);
-						} else {
-							String value = originalRecord.get(metadata);
-							if (value != null) {
-								ids.add(value);
-							}
-						}
-
+						ids.addAll(originalRecord.<String>getValues(metadata));
 					}
 
-					if (record != null) {
-						if (metadata.isMultivalue()) {
-							List<String> value = record.getList(metadata);
-							ids.addAll(value);
-						} else {
-							String value = record.get(metadata);
-							if (value != null) {
-								ids.add(value);
-							}
-						}
-					}
+					ids.addAll(record.<String>getValues(metadata));
 
 				}
 			}

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -53,9 +54,10 @@ public class BigVaultServer implements Cloneable {
 	private static final int HTTP_ERROR_500_INTERNAL = 500;
 	private static final int HTTP_ERROR_409_CONFLICT = 409;
 	private static final int HTTP_ERROR_400_BAD_REQUEST = 400;
+	private static final int HTTP_ERROR_404_NOT_FOUND = 404;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultServer.class);
-	private final int maxFailAttempt = 10;
+	public static int MAX_FAIL_ATTEMPT = 10;
 	private final int waitedMillisecondsBetweenAttempts = 500;
 	private BigVaultLogger bigVaultLogger;
 	private DataLayerSystemExtensions extensions;
@@ -66,6 +68,9 @@ public class BigVaultServer implements Cloneable {
 
 	private final AtomicFileSystem fileSystem;
 	private final List<BigVaultServerListener> listeners;
+	private final List<BigVaultServerTransaction> postponedTransactions = new ArrayList<>();
+	private long lastCommit;
+	private Semaphore commitSemaphore = new Semaphore(1);
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
 			, DataLayerSystemExtensions extensions) {
@@ -125,11 +130,13 @@ public class BigVaultServer implements Cloneable {
 		int currentAttempt = 0;
 		long start = new Date().getTime();
 		final QueryResponse response = tryQuery(params, currentAttempt);
-		final int resultsSize = response.getResults().size();
+		if (response.getResults() != null) {
+			final int resultsSize = response.getResults().size();
+		}
 		long end = new Date().getTime();
 
 		final long qtime = end - start;
-		extensions.afterQuery(params, queryName, qtime, response.getResults().size());
+		extensions.afterQuery(params, queryName, qtime, response.getResults() == null ? 0 : response.getResults().size());
 
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
@@ -173,6 +180,9 @@ public class BigVaultServer implements Cloneable {
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
 					throw new BadRequest(params, e);
 				}
+				if (remoteSolrException.code() == HTTP_ERROR_404_NOT_FOUND && remoteSolrException.getMessage().contains("mlt")) {
+					throw new BigVaultRuntimeException.MLTComponentNotConfigured();
+				}
 			}
 
 			return handleQueryException(params, currentAttempt, e);
@@ -182,16 +192,21 @@ public class BigVaultServer implements Cloneable {
 				throw new BadRequest(params, solrServerException);
 			}
 
+			if (solrServerException.code() == HTTP_ERROR_404_NOT_FOUND && solrServerException.getMessage().contains("mlt")) {
+				throw new BigVaultRuntimeException.MLTComponentNotConfigured();
+			}
+
 			return handleQueryException(params, currentAttempt, solrServerException);
 		}
 	}
 
 	private QueryResponse handleQueryException(SolrParams params, int currentAttempt, Exception solrServerException)
 			throws BigVaultException.CouldNotExecuteQuery {
-		if (currentAttempt < maxFailAttempt) {
+		if (currentAttempt < MAX_FAIL_ATTEMPT) {
 			LOGGER.warn("Solr thrown an unexpected exception, retrying the query '{}' in {} milliseconds...",
 					SolrUtils.toString(params), waitedMillisecondsBetweenAttempts, solrServerException);
 			sleepBeforeRetrying(solrServerException);
+
 			return tryQuery(params, currentAttempt + 1);
 		} else {
 			throw new BigVaultException.CouldNotExecuteQuery("query", params, solrServerException);
@@ -242,36 +257,43 @@ public class BigVaultServer implements Cloneable {
 
 	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
-		try {
-			return addAndCommit(transaction);
+		if (!transaction.getUpdatedDocuments().isEmpty() || !transaction.getNewDocuments().isEmpty()
+				|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
+			try {
+				return addAndCommit(transaction);
 
-		} catch (RemoteSolrException | RouteException solrServerException) {
-			int code = getExceptionCode(solrServerException);
-			return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
+			} catch (RemoteSolrException | RouteException solrServerException) {
+				int code = getExceptionCode(solrServerException);
+				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, solrServerException, code);
 
-		} catch (SolrServerException | IOException e) {
-			if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
-				RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
-				int code = getExceptionCode(remoteSolrException);
-				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException, code);
-			}
+			} catch (SolrServerException | IOException e) {
+				if (e.getCause() != null && e.getCause() instanceof RemoteSolrException) {
+					RemoteSolrException remoteSolrException = (RemoteSolrException) e.getCause();
+					int code = getExceptionCode(remoteSolrException);
+					return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException,
+							code);
+				}
 
-			StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
+				StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
 
-			for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
+				for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
+				for (SolrInputDocument document : transaction.getNewDocuments()) {
+					stringBuilder.append(ClientUtils.toXML(document));
+					stringBuilder.append("\n");
+				}
 				stringBuilder.append("\n");
-			}
-			for (SolrInputDocument document : transaction.getNewDocuments()) {
-				stringBuilder.append(ClientUtils.toXML(document));
-				stringBuilder.append("\n");
-			}
-			stringBuilder.append("\n");
-			stringBuilder.append("</transaction>");
-			LOGGER.error(stringBuilder.toString());
+				stringBuilder.append("</transaction>");
+				LOGGER.error(stringBuilder.toString());
 
-			throw new BigVaultException.CouldNotExecuteQuery("" + maxFailAttempt + " errors occured while add/updating records",
-					e);
+				throw new BigVaultException.CouldNotExecuteQuery(
+						"" + MAX_FAIL_ATTEMPT + " errors occured while add/updating records",
+						e);
+			}
+		} else {
+			return new TransactionResponseDTO(0, new HashMap<String, Long>());
 		}
 	}
 
@@ -317,29 +339,36 @@ public class BigVaultServer implements Cloneable {
 
 	private TransactionResponseDTO retryAddAll(BigVaultServerTransaction transaction, int currentAttempt, Exception e)
 			throws CouldNotExecuteQuery, OptimisticLocking {
-		if (currentAttempt < maxFailAttempt) {
+		if (currentAttempt < MAX_FAIL_ATTEMPT) {
 			return tryAddAll(transaction, currentAttempt + 1);
 
 		} else {
-			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while add/updating records", e);
+			throw new BigVaultRuntimeException("" + MAX_FAIL_ATTEMPT + " errors occured while add/updating records", e);
 		}
 	}
 
 	private TransactionResponseDTO handleOptimisticLockingException(Exception optimisticLockingException)
 			throws BigVaultException.OptimisticLocking {
-		try {
-			softCommit();
-		} catch (IOException | SolrServerException solrServerException) {
-			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
-			sleepBeforeRetrying(solrServerException);
-			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
-					solrServerException);
-		}
+		//		try {
+		//			softCommit();
+		//		} catch (IOException | SolrServerException solrServerException) {
+		//			LOGGER.warn("Failed to softCommit records that caused an optimistic locking exception", optimisticLockingException);
+		//			sleepBeforeRetrying(solrServerException);
+		//			throw new BigVaultRuntimeException("" + maxFailAttempt + " errors occured while committing records",
+		//					solrServerException);
+		//		}
 		throw new BigVaultException.OptimisticLocking(optimisticLockingException);
 	}
 
 	TransactionResponseDTO addAndCommit(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
+
+		if (transaction.getRecordsFlushing() == RecordsFlushing.ADD_LATER()) {
+			synchronized (postponedTransactions) {
+				postponedTransactions.add(transaction);
+			}
+			return null;
+		}
 
 		TransactionResponseDTO response = add(transaction);
 		if (transaction.getRecordsFlushing() == RecordsFlushing.NOW) {
@@ -349,26 +378,50 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
+	public void flush()
+			throws IOException, SolrServerException {
+		if (!postponedTransactions.isEmpty()) {
+
+			BigVaultUpdateRequest req = new BigVaultUpdateRequest();
+			req.setCommitWithin(-1);
+
+			synchronized (postponedTransactions) {
+
+				for (BigVaultServerTransaction postponedTransaction : postponedTransactions) {
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getNewDocuments()));
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getUpdatedDocuments()));
+				}
+				postponedTransactions.clear();
+			}
+
+			req.process(server);
+
+		}
+		softCommit();
+	}
+
 	public void softCommit()
 			throws IOException, SolrServerException {
-		long start = new Date().getTime();
-		trySoftCommit(0);
+		long methodEnteranceTimeStamp = new Date().getTime();
+		trySoftCommit(0, methodEnteranceTimeStamp);
 		long end = new Date().getTime();
-		extensions.afterCommmit(null, end - start);
+		extensions.afterCommmit(null, end - methodEnteranceTimeStamp);
 	}
 
 	TransactionResponseDTO add(BigVaultServerTransaction transaction)
 			throws SolrServerException, IOException {
 
-		String transactionId = UUIDV1Generator.newRandomId();
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
 				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
 			}
 		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		verifyOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
-		transaction.setTransactionId(transactionId);
+		if (transaction.isRequiringLock()) {
+			String transactionId = UUIDV1Generator.newRandomId();
+			verifyTransactionOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
+			transaction.setTransactionId(transactionId);
+		}
 		TransactionResponseDTO response = processChanges(transaction);
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerAddEditListener) {
@@ -378,7 +431,7 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	void verifyOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
+	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
 			throws IOException, SolrServerException {
 		try {
 			if (!updatedDocuments.isEmpty()) {
@@ -427,15 +480,9 @@ public class BigVaultServer implements Cloneable {
 		return optimisticLockingValidationDocuments;
 	}
 
-	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments,
-			List<String> deletedById) {
+	private List<SolrInputDocument> copyRemovingVersionsFromAtomicUpdate(List<SolrInputDocument> updatedDocuments) {
 		List<SolrInputDocument> withoutVersions = new ArrayList<>();
 		for (SolrInputDocument document : updatedDocuments) {
-
-			if (document.getFieldValue("type_s") == null) {
-				String lockId = "lock__" + document.getFieldValue("id");
-				deletedById.add(lockId);
-			}
 
 			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
 			solrInputDocument.putAll(document);
@@ -450,20 +497,35 @@ public class BigVaultServer implements Cloneable {
 			throws SolrServerException, IOException {
 
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
-		List<SolrInputDocument> newDocumentsWithoutIndexes = withoutIndexes(transaction.getNewDocuments());
-		List<SolrInputDocument> updatedDocumentsWithoutIndexes = withoutIndexes(transaction.getUpdatedDocuments());
 
 		BigVaultUpdateRequest req = new BigVaultUpdateRequest();
 		List<String> deletedQueriesAndLocks = new ArrayList<>(transaction.getDeletedQueries());
-		deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
-		List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(updatedDocumentsWithoutIndexes,
-				new ArrayList<String>());
+		if (transaction.isRequiringLock()) {
+			deletedQueriesAndLocks.add("transaction_s:" + transaction.getTransactionId());
+			List<SolrInputDocument> docsWithoutVersions = copyRemovingVersionsFromAtomicUpdate(transaction.getUpdatedDocuments());
+			req.add(docsWithoutVersions);
+
+		} else {
+			req.add(transaction.getUpdatedDocuments());
+		}
 		req.setCommitWithin(commitWithin);
 		req.setParam(UpdateParams.VERSIONS, "true");
-		req.add(docsWithoutVersions);
-		req.add(newDocumentsWithoutIndexes);
+		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
+
+		//Only added when a lock is required, because optimistic locking is handled before execution
+		if (transaction.isRequiringLock() && !postponedTransactions.isEmpty()) {
+			synchronized (postponedTransactions) {
+
+				for (BigVaultServerTransaction postponedTransaction : postponedTransactions) {
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getNewDocuments()));
+					req.add(copyRemovingVersionsFromAtomicUpdate(postponedTransaction.getUpdatedDocuments()));
+				}
+				postponedTransactions.clear();
+			}
+		}
+
 		UpdateResponse updateResponse = req.process(server);
 
 		return SolrUtils.createTransactionResponseDTO(updateResponse);
@@ -486,20 +548,44 @@ public class BigVaultServer implements Cloneable {
 		req.process(server);
 	}
 
-	private void trySoftCommit(int currentAttempt)
+	private void trySoftCommit(int currentAttempt, long methodEnteranceTimeStamp)
 			throws IOException, SolrServerException {
+
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			return;
+		}
+
 		try {
-			server.commit(true, true, true);
-		} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
-			if (currentAttempt < maxFailAttempt) {
-				LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
-						waitedMillisecondsBetweenAttempts, solrServerException);
-				sleepBeforeRetrying(solrServerException);
-				trySoftCommit(currentAttempt);
-			} else {
-				throw solrServerException;
+			commitSemaphore.acquire();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (methodEnteranceTimeStamp < lastCommit) {
+			//Another thread has committed during the wait
+			commitSemaphore.release();
+			return;
+		} else {
+
+			try {
+				long timeStampWhenStartingToCommit = new Date().getTime();
+				server.commit(true, true, true);
+				lastCommit = timeStampWhenStartingToCommit;
+				commitSemaphore.release();
+			} catch (SolrServerException | IOException | RemoteSolrException solrServerException) {
+				commitSemaphore.release();
+				if (currentAttempt < MAX_FAIL_ATTEMPT) {
+					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
+							waitedMillisecondsBetweenAttempts, solrServerException);
+					sleepBeforeRetrying(solrServerException);
+					trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
+				} else {
+					throw solrServerException;
+				}
 			}
 		}
+
 	}
 
 	List<String> toDeletedQueries(List<SolrParams> params) {

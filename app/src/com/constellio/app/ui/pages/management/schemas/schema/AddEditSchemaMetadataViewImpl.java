@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.MetadataVOLazyContainer;
@@ -125,9 +126,10 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 				}
 			});
 
-			Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
+			Table table = new BaseTable(getClass().getName(), $("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
 			table.setSizeFull();
 			table.setPageLength(Math.min(12, dataProvider.size()));
+			table.setColumnHeader("localCode", $("AddEditSchemaMetadataView.code"));
 			table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
 			table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
 			table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));

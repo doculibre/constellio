@@ -52,6 +52,26 @@ public class DecommissioningEmailServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenNoUserWithAdministrativeUnitAuthGivingRoleThenUserWithGlobalRGDRoleAreReturned()
+			throws Exception {
+
+		recordServices.update(records.getGandalf_managerInABC().setEmail(null));
+		recordServices.update(records.getDakota_managerInA_userInB().setEmail(null));
+		recordServices.update(records.getAdmin().setEmail(null));
+
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit10()).containsOnly(chuckNorris);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit10a()).containsOnly(chuckNorris);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit11()).containsOnly(edouard);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit11b()).containsOnly(edouard);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit12()).containsOnly(edouard);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit12b()).containsOnly(edouard);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit12c()).containsOnly(edouard);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit20()).containsOnly(chuckNorris);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit30()).containsOnly(chuckNorris);
+		assertThatUsersWithEmailAddressAndDecomPermissionInConcept(records.getUnit30c()).containsOnly(chuckNorris);
+	}
+
+	@Test
 	public void givenGandalfAndAdminHasNoEmailAddressThenFindCorrectUsers()
 			throws Exception {
 		recordServices.update(records.getAdmin().setEmail(null));

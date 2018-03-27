@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 
 public interface SearchQuery {
 	String getQuery(String language);
@@ -19,6 +20,8 @@ public interface SearchQuery {
 	SearchQuery setNumberOfRows(int number);
 
 	String getSort();
+
+	SearchQuery filteredWith(UserFilter userFilter);
 
 	SearchQuery filteredWithUser(User user);
 

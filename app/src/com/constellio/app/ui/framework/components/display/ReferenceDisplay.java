@@ -16,11 +16,13 @@ import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuH
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.RecordVOToCaptionConverter;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -123,30 +125,35 @@ public class ReferenceDisplay extends Button {
 
 	protected void prepareLink() {
 		final ConstellioUI ui = ConstellioUI.getCurrent();
-		String collection = ui.getSessionContext().getCurrentCollection();
+		SessionContext sessionContext = ui.getSessionContext();
+		String collection = sessionContext.getCurrentCollection();
 		AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
+		boolean isRecordInTrash = false;
 
 		NavigationParams navigationParams = null;
 		if (recordVO != null) {
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(recordVO.getSchema().getCode());
 			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
+			//isRecordInTrash = Boolean.TRUE.equals(recordServices.getDocumentById(recordVO.getId()).get(Schemas.LOGICALLY_DELETED_STATUS));
+			isRecordInTrash = Boolean.TRUE.equals(recordVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()));
 		} else if (recordId != null) {
 			try {
 				Record record = recordServices.getDocumentById(recordId);
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 				navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
 						this);
+				isRecordInTrash = Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				e.printStackTrace();
 			}
 		}
 		if (navigationParams != null) {
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-				recordNavigationExtension.prepareLinkToView(navigationParams);
+				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash, sessionContext.getCurrentLocale());
 			}
 		}
 	}

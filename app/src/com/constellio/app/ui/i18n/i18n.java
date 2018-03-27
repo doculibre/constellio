@@ -25,6 +25,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class i18n {
@@ -133,15 +134,23 @@ public class i18n {
 						Object argValue = args.get(argName);
 						if (argValue instanceof String) {
 							message = message.replace("{" + argName + "}", (String) argValue);
-						} else if (argValue instanceof Number) {	
+						} else if (argValue instanceof Number) {
 							message = message.replace("{" + argName + "}", "" + argValue);
 						} else if (argValue instanceof Map) {
 							/*	TODO Manage Map value here:
 								- Must fetch the entry for the current language.
 							 */
-							Map<String, String> labelsMap = (Map<String, String>) argValue;
+							Map<Object, String> labelsMap = (Map<Object, String>) argValue;
 							String language = getLocale().getLanguage();
-							message = message.replace("{" + argName + "}", labelsMap.get(language));
+
+							String label = null;
+							for (Map.Entry<Object, String> entry : labelsMap.entrySet()) {
+								if (entry.getKey().equals(language) || entry.getKey().equals(Language.withCode(language))) {
+									label = entry.getValue();
+								}
+							}
+
+							message = message.replace("{" + argName + "}", label);
 						} else if (argValue instanceof EnumWithSmallCode) {
 							EnumWithSmallCode enumWithSmallCode = (EnumWithSmallCode) argValue;
 							message = message.replace("{" + argName + "}",
@@ -274,7 +283,7 @@ public class i18n {
 	public static String $(ValidationErrors errors) {
 		StringBuilder sb = new StringBuilder();
 		for (ValidationError error : errors.getValidationErrors()) {
-			if(error != null) {
+			if (error != null) {
 				sb.append(" - " + $(error) + "<br/>" + "\n");
 			}
 		}
@@ -317,7 +326,11 @@ public class i18n {
 	}
 
 	public static String $(Throwable throwable) {
-		return $(throwable, (Object) null);
+		if (throwable instanceof ValidationException) {
+			return $(((ValidationException) throwable).getValidationErrors());
+		} else {
+			return $(throwable, (Object) null);
+		}
 	}
 
 	public static String $(Throwable throwable, Object... args) {
@@ -378,6 +391,11 @@ public class i18n {
 		}
 		throw new RuntimeException(
 				"Current locale" + loc + " does not correspond to any language" + StringUtils.join(languages, ","));
+	}
+
+	public static boolean isRightToLeft() {
+		Language language = getLanguage();
+		return Language.Arabic.equals(language);// || Language.French.equals(language);
 	}
 
 }

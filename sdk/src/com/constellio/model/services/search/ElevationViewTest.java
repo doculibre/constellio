@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import com.constellio.model.services.search.Elevations.QueryElevation;
 
+import java.io.StringReader;
+
 public class ElevationViewTest {
 	private static final String SAMPLE_XML_ELEVATION = "<elevate> "
 			+ "<query text=\"foo bar\"> <doc id=\"1\" exclude=\"true\"/> <doc id=\"2\" exclude=\"false\"/> </query> "
@@ -22,9 +24,9 @@ public class ElevationViewTest {
 		elevationView.setData(ELEVATION);
 		String xmlContent = new String(elevationView.toBytes());
 
+		elevationView.init(new StringReader(xmlContent));
 		//then
-		String simpleXml = xmlContent.replaceAll("\\s+", " ");
-		assertThat(simpleXml).contains(SAMPLE_XML_ELEVATION);
+		assertThat(elevationView.getData()).isEqualTo(ELEVATION);
 	}
 
 	private Elevations getSampleElevations() {

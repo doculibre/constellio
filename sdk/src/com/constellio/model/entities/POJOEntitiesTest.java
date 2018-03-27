@@ -20,6 +20,7 @@ import org.junit.Test;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -144,9 +145,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema o = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 		MetadataSchema o2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
 	}
@@ -154,13 +155,13 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema defaultSchema = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null);
-		MetadataSchemaType o = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema, true,
-				true, true, false);
-		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema2, true,
-				true, true, false);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
+		MetadataSchemaType o = new MetadataSchemaType("a", null, "a", labels, new ArrayList<MetadataSchema>(), defaultSchema,
+				true, true, true, false, "records");
+		MetadataSchemaType o2 = new MetadataSchemaType("a", null, "a", labels, new ArrayList<MetadataSchema>(), defaultSchema2,
+				true, true, true, false, "records");
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
 	}

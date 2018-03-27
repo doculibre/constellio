@@ -8,7 +8,7 @@ import java.util.Locale;
 public enum Language {
 
 	UNKNOWN("unknown", null),
-	//Arabic("ar"),
+	Arabic("ar", new Locale("ar")),
 	//	Armenian,
 	//	Basque,
 	//	Bulgarian,
@@ -97,4 +97,5 @@ public enum Language {
 
 		return languages;
 	}
+
 }

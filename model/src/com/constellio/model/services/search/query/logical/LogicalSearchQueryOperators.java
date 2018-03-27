@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -13,6 +14,7 @@ import com.constellio.model.services.search.query.logical.condition.CollectionFi
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
+import com.constellio.model.services.search.query.logical.condition.EmptyDataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.NegatedLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -70,7 +72,7 @@ public class LogicalSearchQueryOperators {
 	}
 
 	public static OngoingLogicalSearchCondition from(List<String> schemaTypeCodes, String collection) {
-		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypeCodes, collection));
+		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypeCodes, collection, DataStore.RECORDS));
 	}
 
 	public static OngoingLogicalSearchCondition from(List<MetadataSchemaType> schemaTypes) {
@@ -81,47 +83,62 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes, true));
 	}
 
-	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject) {
-		return new OngoingLogicalSearchCondition(new CollectionFilters(collectionObject.getCollection(), false));
+	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject, String dataStore) {
+		return new OngoingLogicalSearchCondition(
+				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasIn(String collection) {
-		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, false));
+		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, DataStore.RECORDS, false));
 	}
 
-	public static OngoingLogicalSearchCondition fromAllSchemasInCollectionOf(CollectionObject collectionObject) {
-		return new OngoingLogicalSearchCondition(new CollectionFilters(collectionObject.getCollection(), false));
+	public static OngoingLogicalSearchCondition fromAllSchemasInCollectionOf(CollectionObject collectionObject,
+			String dataStore) {
+		return new OngoingLogicalSearchCondition(
+				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasInExceptEvents(String collection) {
-		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, true));
+		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, DataStore.RECORDS, true));
+	}
+
+	public static OngoingLogicalSearchCondition fromAllSchemasInCollectioOfDataStore(String collection, String dataStore) {
+		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, dataStore, true));
 	}
 
 	public static OngoingLogicalSearchCondition fromEveryTypesOfEveryCollection() {
 		return new OngoingLogicalSearchCondition(null);
 	}
 
+	public static OngoingLogicalSearchCondition fromEveryTypesOfEveryCollectionInDataStore(String dataStore) {
+		return new OngoingLogicalSearchCondition(new EmptyDataStoreFilters(dataStore));
+	}
+
 	public static OngoingLogicalSearchConditionWithDataStoreFields whereAll(DataStoreField... metadatas) {
-		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(metadatas[0].getCollection(), false),
+		return new OngoingLogicalSearchConditionWithDataStoreFields(
+				new CollectionFilters(metadatas[0].getCollection(), DataStore.RECORDS, false),
 				Arrays.asList(metadatas),
 				LogicalOperator.AND);
 	}
 
 	public static OngoingLogicalSearchConditionWithDataStoreFields whereAll(List<?> dataStoreFields) {
 		List<DataStoreField> fields = (List<DataStoreField>) dataStoreFields;
-		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(fields.get(0).getCollection(), false),
+		return new OngoingLogicalSearchConditionWithDataStoreFields(
+				new CollectionFilters(fields.get(0).getCollection(), DataStore.RECORDS, false),
 				fields,
 				LogicalOperator.AND);
 	}
 
 	public static OngoingLogicalSearchConditionWithDataStoreFields whereAny(List<?> dataStoreFields) {
 		List<DataStoreField> fields = (List<DataStoreField>) dataStoreFields;
-		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(fields.get(0).getCollection(), false),
+		return new OngoingLogicalSearchConditionWithDataStoreFields(
+				new CollectionFilters(fields.get(0).getCollection(), DataStore.RECORDS, false),
 				fields, LogicalOperator.OR);
 	}
 
 	public static OngoingLogicalSearchConditionWithDataStoreFields where(DataStoreField metadata) {
-		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(metadata.getCollection(), false),
+		return new OngoingLogicalSearchConditionWithDataStoreFields(
+				new CollectionFilters(metadata.getCollection(), DataStore.RECORDS, false),
 				Arrays.asList(metadata),
 				LogicalOperator.AND);
 	}

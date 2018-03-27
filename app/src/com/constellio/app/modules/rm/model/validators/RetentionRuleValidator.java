@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.model.validators;
 
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.HashMap;
@@ -30,6 +31,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RetentionRuleValidator implements RecordValidator {
+
+	public static final String FIND_FOLDERS_USING_COPY_RULE_QUERY = "FindFoldersUsingCopyRule";
+	public static final String FIND_DOCUMENTS_USING_COPY_RULE_QUERY = "FindDocumentsUsingCopyRule";
 
 	public static final String MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG = "mustSpecifyAdministrativeUnitsXORSetResponsibles";
 	public static final String NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG = "noAdministrativeUnitsOrResponsibles";
@@ -68,7 +72,9 @@ public class RetentionRuleValidator implements RecordValidator {
 	@Override
 	public void validate(RecordValidatorParams params) {
 		RetentionRule retentionRule = new RetentionRule(params.getValidatedRecord(), params.getTypes());
-		validate(retentionRule, params.getSchema(), params.getConfigProvider(), params.getValidationErrors(), params.getSearchServices(), params.getTypes());
+		validate(retentionRule, params.getSchema(), params.getConfigProvider(), params.getValidationErrors(),
+				params.getSearchServices(), params.getTypes());
+
 	}
 
 	void validate(RetentionRule retentionRule, MetadataSchema schema, ConfigProvider configProvider,
@@ -84,7 +90,28 @@ public class RetentionRuleValidator implements RecordValidator {
 		validateCopyRetentionRules(retentionRule, schema, validationErrors, configProvider, searchServices, types);
 		validateDocumentCopyRetentionRules(retentionRule, schema, validationErrors, searchServices, types);
 		validateDefaultDocumentCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
+
+		//validateRemovedCopyRetentionRule(retentionRule, schema.getMetadata(RetentionRule.COPY_RETENTION_RULES));
 	}
+
+	//	private void validateRemovedCopyRetentionRule(RetentionRule retentionRule, Metadata metadata) {
+	//		List<CopyRetentionRule> copyRetentionRules = findRemovedCopyRetentionRule(retentionRule, metadata);
+	//
+	//		for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
+	//
+	//		}
+	//	}
+	//
+	//	private List<CopyRetentionRule> findRemovedCopyRetentionRules(RetentionRule retentionRule) {
+	//
+	//		List<CopyRetentionRule> previousCopyRetentionRules = new ArrayList<>();
+	//		List<String> previousCopyRetentionRulesIds = new ArrayList<>();
+	//		List<String> previousCopyRetentionRulesIds = new ArrayList<>();
+	//
+	//		if (retentionRule.getWrappedRecord().isModified(metadata)) {
+	//
+	//		}
+	//	}
 
 	private void validateDefaultDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
 			ValidationErrors validationErrors, ConfigProvider configProvider) {
@@ -132,12 +159,13 @@ public class RetentionRuleValidator implements RecordValidator {
 		}
 
 	}
-	
-//	on doit ajouter une extension qui valide, lors de la modification d’une règle, qu’un délai utilisé n’est pas supprimé
-//  je ferais cette validation uniquement lorsqu’un délai est retiré d’une règle déjà persistée	
+
+	//	on doit ajouter une extension qui valide, lors de la modification d’une règle, qu’un délai utilisé n’est pas supprimé
+	//  je ferais cette validation uniquement lorsqu’un délai est retiré d’une règle déjà persistée
 
 	private void validateCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors, ConfigProvider configProvider, SearchServices searchServices, MetadataSchemaTypes types) {
+			ValidationErrors validationErrors, ConfigProvider configProvider, SearchServices searchServices,
+			MetadataSchemaTypes types) {
 
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getCopyRetentionRules();
 
@@ -177,7 +205,7 @@ public class RetentionRuleValidator implements RecordValidator {
 				}
 
 			}
-			
+
 			// The rule is being modified
 			if (retentionRule.getWrappedRecord().isSaved()) {
 				Record originalRecord = retentionRule.getWrappedRecord().getCopyOfOriginalRecord();
@@ -194,12 +222,16 @@ public class RetentionRuleValidator implements RecordValidator {
 					// The copy was deleted, let's see if it was in use
 					if (deleted) {
 						MetadataSchemaType foldersSchemaType = types.getSchemaType(Folder.SCHEMA_TYPE);
-						Metadata folderMainCopyRuleRuleMetadata = foldersSchemaType.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE);
-						LogicalSearchQuery usedByFolderQuery = new LogicalSearchQuery();
-						usedByFolderQuery.setCondition(from(foldersSchemaType).where(folderMainCopyRuleRuleMetadata).is(originalCopyRetentionRule));
-						long folderResultsCount = searchServices.getResultsCount(usedByFolderQuery);
-						if (folderResultsCount > 0) {
-							Map<String, Object> parameters = nullRequired(j, originalCopyRetentionRule, "type", COPY_RETENTION_RULES);
+						Metadata folderMainCopyRuleRuleMetadata = foldersSchemaType
+								.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE);
+						LogicalSearchQuery usedByFolderQuery = new LogicalSearchQuery()
+								.setName(FIND_FOLDERS_USING_COPY_RULE_QUERY);
+						usedByFolderQuery.setCondition(from(foldersSchemaType).where(folderMainCopyRuleRuleMetadata)
+								.isContainingText(originalCopyRetentionRule.getId()));
+						boolean usedByFolders = searchServices.hasResults(usedByFolderQuery);
+						if (usedByFolders) {
+							Map<String, Object> parameters = nullRequired(j, originalCopyRetentionRule, "type",
+									COPY_RETENTION_RULES);
 							validationErrors.add(getClass(), CANNOT_DELETE_COPY_IN_USE, parameters);
 						}
 					}
@@ -230,6 +262,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	private Map<String, Object> nullRequired(int i, CopyRetentionRule copyRetentionRule, String type, String metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("code", copyRetentionRule.getCode());
+		parameters.put("stringValue", copyRetentionRule.toString());
 		parameters.put("index", "" + (i + 1));
 		parameters.put("field", "type");
 		parameters.put("errorType", "nullRequired");
@@ -240,6 +273,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	private void validateDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
 			ValidationErrors validationErrors, SearchServices searchServices, MetadataSchemaTypes types) {
 
+		Record record = retentionRule.getWrappedRecord();
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getDocumentCopyRetentionRules();
 
 		boolean validIntegrity = true;
@@ -271,14 +305,14 @@ public class RetentionRuleValidator implements RecordValidator {
 					secondaryCount++;
 				}
 			}
-			
+
 			// The rule is being modified
 			if (retentionRule.getWrappedRecord().isSaved()) {
-				Record originalRecord = retentionRule.getWrappedRecord().getCopyOfOriginalRecord();
+				Record originalRecord = record.getCopyOfOriginalRecord();
 				RetentionRule originalRetentionRule = new RetentionRule(originalRecord, types);
-				List<CopyRetentionRule> originalCopyRetentionRules = originalRetentionRule.getDocumentCopyRetentionRules();
-				for (int j = 0; j < originalCopyRetentionRules.size(); j++) {
-					CopyRetentionRule originalCopyRetentionRule = originalCopyRetentionRules.get(j);
+				List<CopyRetentionRule> documentCopyRetentionRules = originalRetentionRule.getDocumentCopyRetentionRules();
+				for (int i = 0; i < documentCopyRetentionRules.size(); i++) {
+					CopyRetentionRule originalCopyRetentionRule = documentCopyRetentionRules.get(i);
 					boolean deleted = true;
 					for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
 						if (copyRetentionRule.getId().equals(originalCopyRetentionRule.getId())) {
@@ -286,18 +320,33 @@ public class RetentionRuleValidator implements RecordValidator {
 						}
 					}
 					// The copy was deleted, let's see if it was in use
-					if (deleted) {
-						MetadataSchemaType documentsSchemaType = types.getSchemaType(Document.SCHEMA_TYPE);
-						Metadata documentMainCopyRuleRuleMetadata = documentsSchemaType.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE);
-						LogicalSearchQuery usedByDocumentQuery = new LogicalSearchQuery();
-						usedByDocumentQuery.setCondition(from(documentsSchemaType).where(documentMainCopyRuleRuleMetadata).is(originalCopyRetentionRule));
-						long documentResultsCount = searchServices.getResultsCount(usedByDocumentQuery);
-						if (documentResultsCount > 0) {
-							Map<String, Object> parameters = nullRequired(j, originalCopyRetentionRule, "type", COPY_RETENTION_RULES);
-							validationErrors.add(getClass(), CANNOT_DELETE_COPY_IN_USE, parameters);
-						}
+					if (deleted && isUsedWithDocuments(searchServices, types, originalCopyRetentionRule)) {
+						Map<String, Object> parameters = nullRequired(i, originalCopyRetentionRule, "type",
+								COPY_RETENTION_RULES);
+						validationErrors.add(getClass(), CANNOT_DELETE_COPY_IN_USE, parameters);
 					}
 				}
+
+				if (originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule() != null
+						&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
+						&& isUsedWithDocuments(searchServices, types,
+						originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule())) {
+					Map<String, Object> parameters = nullRequired(0,
+							originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule(), "type",
+							COPY_RETENTION_RULES);
+					validationErrors.add(getClass(), CANNOT_DELETE_COPY_IN_USE, parameters);
+				}
+
+				if (originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null
+						&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
+						&& isUsedWithDocuments(searchServices, types,
+						originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule())) {
+					Map<String, Object> parameters = nullRequired(0,
+							originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule(), "type",
+							COPY_RETENTION_RULES);
+					validationErrors.add(getClass(), CANNOT_DELETE_COPY_IN_USE, parameters);
+				}
+
 			}
 
 			if (retentionRule.getScope() == RetentionRuleScope.DOCUMENTS && principalCount == 0) {
@@ -309,6 +358,17 @@ public class RetentionRuleValidator implements RecordValidator {
 			}
 		}
 
+	}
+
+	private boolean isUsedWithDocuments(SearchServices searchServices, MetadataSchemaTypes types,
+			CopyRetentionRule originalCopyRetentionRule) {
+		MetadataSchemaType documentsSchemaType = types.getSchemaType(Document.SCHEMA_TYPE);
+		Metadata documentMainCopyRuleRuleMetadata = documentsSchemaType
+				.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE);
+		LogicalSearchQuery usedByDocumentQuery = new LogicalSearchQuery().setName(FIND_DOCUMENTS_USING_COPY_RULE_QUERY);
+		usedByDocumentQuery.setCondition(from(documentsSchemaType).where(documentMainCopyRuleRuleMetadata)
+				.isContainingText(originalCopyRetentionRule.getId()));
+		return searchServices.hasResults(usedByDocumentQuery);
 	}
 
 	private Map<String, Object> requiredField(String field) {

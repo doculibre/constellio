@@ -17,13 +17,13 @@ public class SchemaFilters extends CollectionFilters implements DataStoreFilters
 	MetadataSchemaType schemaType;
 
 	public SchemaFilters(MetadataSchemaType schemaType) {
-		super(schemaType.getCollection(), false);
+		super(schemaType.getCollection(), schemaType.getDataStore(), false);
 		this.schema = schemaType.getDefaultSchema();
 		this.schemaType = schemaType;
 	}
 
 	public SchemaFilters(MetadataSchema schema) {
-		super(schema.getCollection(), false);
+		super(schema.getCollection(), schema.getDataStore(), false);
 		this.schema = schema;
 	}
 

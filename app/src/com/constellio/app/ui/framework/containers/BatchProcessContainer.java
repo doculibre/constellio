@@ -7,6 +7,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesPresenter;
+import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -26,6 +36,8 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 
 public class BatchProcessContainer extends DataContainer<BatchProcessDataProvider> {
+
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/printer.png");
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -49,17 +61,22 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 
 	private static final String COLLECTION = "collection";
 
+	private static final String REPORT = "report";
+
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
 	private boolean systemBatchProcesses;
 
-	public BatchProcessContainer(BatchProcessDataProvider dataProvider) {
-		this(dataProvider, true);
+	private ListBatchProcessesPresenter presenter;
+
+	public BatchProcessContainer(BatchProcessDataProvider dataProvider, ListBatchProcessesPresenter presenter) {
+		this(dataProvider, true, presenter);
 	}
 
-	public BatchProcessContainer(BatchProcessDataProvider dataProvider, boolean systemBatchProcesses) {
+	public BatchProcessContainer(BatchProcessDataProvider dataProvider, boolean systemBatchProcesses, ListBatchProcessesPresenter presenter) {
 		super(dataProvider);
 		this.systemBatchProcesses = systemBatchProcesses;
+		this.presenter = presenter;
 		populateFromData(dataProvider);
 	}
 
@@ -85,6 +102,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		containerPropertyIds.add(HANDLED_RECORDS_COUNT);
 		containerPropertyIds.add(TOTAL_RECORDS_COUNT);
 		containerPropertyIds.add(PROGRESS);
+		containerPropertyIds.add(REPORT);
 
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
@@ -129,6 +147,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 			type = String.class;
 		} else if (COLLECTION.equals(propertyId)) {
 			type = String.class;
+		} else if (REPORT.equals(propertyId)) {
+			type = WindowButton.class;
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}
@@ -138,7 +158,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
-		BatchProcessVO batchProcessVO = (BatchProcessVO) itemId;
+		final BatchProcessVO batchProcessVO = (BatchProcessVO) itemId;
 		Object value;
 		if (RANK.equals(propertyId)) {
 			value = batchProcessVO.getRank();
@@ -162,6 +182,22 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		} else if (COLLECTION.equals(propertyId)) {
 			value = collectionCodeToLabelConverter
 					.convertToPresentation(batchProcessVO.getCollection(), String.class, i18n.getLocale());
+		} else if (REPORT.equals(propertyId)) {
+			value = new WindowButton(ICON_RESOURCE, "", true, WindowButton.WindowConfiguration.modalDialog("65%", "65%")) {
+				@Override
+				protected Component buildWindowContent() {
+					return new RecordDisplay(presenter.getBatchProcessReportVO(batchProcessVO.getId()));
+				}
+
+				@Override
+				public void buttonClick(ClickEvent event) {
+					if(presenter.getBatchProcessReport(batchProcessVO.getId()) != null) {
+						super.buttonClick(event);
+					} else {
+						presenter.showErrorMessage($("BachProcessContainer.noAvailableReport"));
+					}
+				}
+			};
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}

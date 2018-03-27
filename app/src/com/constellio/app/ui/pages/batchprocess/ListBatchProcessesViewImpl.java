@@ -60,10 +60,10 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		BatchProcessContainer container;
 		BaseTable batchProcessTable;
 		if (systemBatchProcesses) {
-			container = new BatchProcessContainer(systemBatchProcessDataProvider, systemBatchProcesses);
+			container = new BatchProcessContainer(systemBatchProcessDataProvider, systemBatchProcesses, presenter);
 			batchProcessTable = new BaseTable("ListBatchProcessesView.systemBatchProcesses", caption);
 		} else {
-			container = new BatchProcessContainer(userBatchProcessDataProvider, systemBatchProcesses);
+			container = new BatchProcessContainer(userBatchProcessDataProvider, systemBatchProcesses, presenter);
 			batchProcessTable = new BaseTable("ListBatchProcessesView.userBatchProcesses", $("ListBatchProcessesView.userBatchProcesses"));
 		}
 		batchProcessTable.setContainerDataSource(container);
@@ -78,7 +78,8 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		batchProcessTable.setColumnHeader("progress", $("ListBatchProcessesView.progress"));
 		batchProcessTable.setColumnHeader("username", $("ListBatchProcessesView.username"));
 		batchProcessTable.setColumnHeader("collection", $("ListBatchProcessesView.collection"));
-		
+		batchProcessTable.setColumnHeader("report", $("ListBatchProcessesView.report"));
+
 		batchProcessTable.setWidth("98%");
 		
 		return batchProcessTable;

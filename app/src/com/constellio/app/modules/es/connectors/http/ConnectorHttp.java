@@ -103,6 +103,11 @@ public class ConnectorHttp extends Connector {
 		}
 		eventObserver.addUpdateEvents(documents);
 		es.getRecordServices().flush();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private List<ConnectorHttpDocument> getOnDemandDocuments() {
@@ -187,7 +192,7 @@ public class ConnectorHttp extends Connector {
 			}
 		}
 
-		es.getRecordServices().refresh(connectorInstance);
+		es.getRecordServices().refreshUsingCache(connectorInstance);
 		List<ConnectorHttpDocument> onDemands = getOnDemandDocuments();
 
 		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);

@@ -58,7 +58,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         when(mockHeader.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
         appLayerFactory = getAppLayerFactory();
         extension = spy(new RMSelectionPanelExtension(appLayerFactory, zeCollection));
-        doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(extension).getSessionContext();
+//        doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(extension).getSessionContext();
         doNothing().when(extension).addCheckInButton(any(AvailableActionsParam.class));
         doNothing().when(extension).showErrorMessage(any(String.class));
         doNothing().when(extension).deleteUserFolder(any(AvailableActionsParam.class), any(RMUserFolder.class), any(User.class));

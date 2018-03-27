@@ -6,12 +6,15 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import com.constellio.model.entities.enums.SearchPageLength;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -33,8 +36,8 @@ public class User extends RecordWrapper {
 	public static final String GROUPS = "groups";
 	public static final String ROLES = "userroles";
 	public static final String ALL_ROLES = "allroles";
-	public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
-	public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
+	//public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
+	//public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
 	public static final String USER_TOKENS = "usertokens";
 	public static final String COLLECTION_READ_ACCESS = "collectionReadAccess";
 	public static final String COLLECTION_WRITE_ACCESS = "collectionWriteAccess";
@@ -199,6 +202,11 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public User addUserGroups(String... groups) {
+		add(GROUPS, groups);
+		return this;
+	}
+
 	public List<String> getUserRoles() {
 		return getList(ROLES);
 	}
@@ -264,16 +272,20 @@ public class User extends RecordWrapper {
 		return get(ALL_ROLES);
 	}
 
-	public List<String> getGroupsAuthorizations() {
-		return get(GROUPS_AUTHORIZATIONS);
-	}
-
 	public List<String> getUserAuthorizations() {
 		return get(Schemas.AUTHORIZATIONS.getLocalCode());
 	}
 
 	public List<String> getAllUserAuthorizations() {
-		return get(ALL_USER_AUTHORIZATIONS);
+
+		Set<String> allAuths = new HashSet<>();
+		allAuths.addAll(getUserAuthorizations());
+		for (String groupId : getUserGroups()) {
+			Group group = roles.getSchemasRecordsServices().getGroup(groupId);
+			allAuths.addAll(group.getAllAuthorizations());
+		}
+
+		return Collections.unmodifiableList(new ArrayList<>(allAuths));
 	}
 
 	public List<String> getUserTokens() {

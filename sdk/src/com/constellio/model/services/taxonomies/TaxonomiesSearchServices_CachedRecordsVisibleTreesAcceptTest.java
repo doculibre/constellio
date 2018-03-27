@@ -57,6 +57,8 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+
 	String subFolderId;
 
 	Users users = new Users();
@@ -825,6 +827,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
 
 		User sasquatch = users.sasquatchIn(zeCollection);
+
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
 				.has(numFoundAndListSize(1))
 				.has(recordsWithChildren(records.categoryId_X));
@@ -905,6 +908,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
@@ -919,8 +923,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
-				.has(solrQueryCounts(3, 1, 2))
-				.has(secondSolrQueryCounts(2, 1, 2));
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(2, 2, 2));
 
 		assertThat(queryCount.get()).isEqualTo(5);
 	}
@@ -1674,7 +1678,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.firstAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
@@ -1696,7 +1700,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 

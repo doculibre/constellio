@@ -91,25 +91,6 @@ public class BetaDisplayWorkflowViewImpl extends BaseViewImpl implements BetaDis
 
 	private BetaDisplayWorkflowPresenter presenter;
 
-	private static ConfirmDialog.Factory factory = new DefaultConfirmDialogFactory();
-
-	static {
-		ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
-			@Override
-			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
-					String notOKCaption) {
-				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
-				confirmDialog.addAttachListener(new AttachListener() {
-					@Override
-					public void attach(AttachEvent event) {
-						BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-					}
-				});
-				return confirmDialog;
-			}
-		});
-	}
-
 	public BetaDisplayWorkflowViewImpl() {
 		presenter = new BetaDisplayWorkflowPresenter(this);
 	}

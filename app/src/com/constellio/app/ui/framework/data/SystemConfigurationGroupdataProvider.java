@@ -16,12 +16,14 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
-	
-	transient private SortedMap<String, SystemConfigurationGroupVO > systemConfigurationGroupVOSortedMap;
+
+	transient private SortedMap<String, SystemConfigurationGroupVO> systemConfigurationGroupVOSortedMap;
+
+	private boolean showHidden;
 
 	private void readObject(ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
-		if(systemConfigurationGroupVOSortedMap == null){
+		if (systemConfigurationGroupVOSortedMap == null) {
 			initConfigs();
 		}
 	}
@@ -37,29 +39,36 @@ public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
 		for (SystemConfigurationGroup group : sysConfigGroup) {
 			List<SystemConfigurationVO> sysConfigGroupVOList = new ArrayList<>();
 
-			for (SystemConfiguration config : systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(group.getCode())){
+			for (SystemConfiguration config : systemConfigurationsManager
+					.getNonHiddenGroupConfigurationsWithCodeOrderedByName(group.getCode(), showHidden)) {
 				sysConfigGroupVOList.add(builder.build(config, systemConfigurationsManager.getValue(config)));
 			}
-			systemConfigurationGroupVOSortedMap.put(group.getCode(), new SystemConfigurationGroupVO(group.getCode(), sysConfigGroupVOList));
+			systemConfigurationGroupVOSortedMap
+					.put(group.getCode(), new SystemConfigurationGroupVO(group.getCode(), sysConfigGroupVOList));
 		}
 	}
 
+	public void showHiddenConfigs() {
+		this.showHidden = true;
+		initConfigs();
+	}
+
 	public int size() {
-		if(systemConfigurationGroupVOSortedMap == null){
+		if (systemConfigurationGroupVOSortedMap == null) {
 			initConfigs();
 		}
 		return systemConfigurationGroupVOSortedMap.size();
 	}
 
 	public List<String> getCodesList() {
-		if(systemConfigurationGroupVOSortedMap == null){
+		if (systemConfigurationGroupVOSortedMap == null) {
 			initConfigs();
 		}
 		return new ArrayList<>(systemConfigurationGroupVOSortedMap.keySet());
 	}
 
 	public SystemConfigurationGroupVO getSystemConfigurationGroup(String code) {
-		if(systemConfigurationGroupVOSortedMap == null){
+		if (systemConfigurationGroupVOSortedMap == null) {
 			initConfigs();
 		}
 		return systemConfigurationGroupVOSortedMap.get(code);
@@ -72,5 +81,9 @@ public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
 	public void valueChange(String groupCode, int i, Object newStringValue) {
 		SystemConfigurationGroupVO groupConfig = systemConfigurationGroupVOSortedMap.get(groupCode);
 		groupConfig.valueChange(i, newStringValue);
+	}
+
+	public boolean isShowHidden() {
+		return showHidden;
 	}
 }

@@ -30,10 +30,12 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
 
     private MetadataSchema reportSchema;
     private MetadataSchemaToVOBuilder schemaVOBuilder;
+    private Map<String, RecordVODataProvider> recordVODataProviderMap;
 
     public ListExcelReportPresenter(ListExcelReportView view) {
         super(view);
         reportSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(view.getCollection()).getSchema(Report.DEFAULT_SCHEMA);
+        recordVODataProviderMap = new HashMap<>();
         initTransientObjects();
     }
 
@@ -66,21 +68,24 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
     }
 
     public RecordVODataProvider getDataProviderForSchemaType(final String schemaType) {
-        final MetadataSchemaVO reportVo = schemaVOBuilder.build(
-                reportSchema,
-                RecordVO.VIEW_MODE.TABLE,
-                view.getSessionContext());
-        return new RecordVODataProvider(reportVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-            @Override
-            protected LogicalSearchQuery getQuery() {
-                Metadata schemaMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
-                LogicalSearchQuery query = new LogicalSearchQuery();
-                query.setCondition(from(reportSchema)
-                        .where(schemaMetadata).isEqualTo(schemaType));
+        if(!this.recordVODataProviderMap.containsKey(schemaType)) {
+            final MetadataSchemaVO reportVo = schemaVOBuilder.build(
+                    reportSchema,
+                    RecordVO.VIEW_MODE.TABLE,
+                    view.getSessionContext());
+            this.recordVODataProviderMap.put(schemaType, new RecordVODataProvider(reportVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+                @Override
+                protected LogicalSearchQuery getQuery() {
+                    Metadata schemaMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+                    LogicalSearchQuery query = new LogicalSearchQuery();
+                    query.setCondition(from(reportSchema)
+                            .where(schemaMetadata).isEqualTo(schemaType));
 
-                return query;
-            }
-        };
+                    return query;
+                }
+            });
+        }
+        return this.recordVODataProviderMap.get(schemaType);
     }
 
     protected void editButtonClicked(String item, String schema){

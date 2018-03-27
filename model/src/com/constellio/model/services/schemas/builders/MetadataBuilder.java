@@ -64,6 +64,7 @@ public class MetadataBuilder {
 	private boolean uniqueValue = false;
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
+	private boolean relationshipProvidingSecurity = false;
 	private boolean searchable = false;
 	private MetadataTransiency transiency = PERSISTED;
 	private boolean schemaAutocomplete = false;
@@ -196,6 +197,7 @@ public class MetadataBuilder {
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.defaultValue = metadata.getDefaultValue();
 		builder.inputMask = metadata.getInputMask();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
@@ -241,6 +243,7 @@ public class MetadataBuilder {
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
@@ -406,6 +409,15 @@ public class MetadataBuilder {
 	public MetadataBuilder setSearchable(boolean searchable) {
 		ensureCanModify("searchable");
 		this.searchable = searchable;
+		return this;
+	}
+
+	public boolean isRelationshipProvidingSecurity() {
+		return inheritance == null ? relationshipProvidingSecurity : inheritance.isRelationshipProvidingSecurity();
+	}
+
+	public MetadataBuilder setRelationshipProvidingSecurity(boolean relationshipProvidingSecurity) {
+		this.relationshipProvidingSecurity = relationshipProvidingSecurity;
 		return this;
 	}
 
@@ -743,7 +755,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, transiency);
+				increasedDependencyLevel, relationshipProvidingSecurity, transiency);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -1042,6 +1054,10 @@ public class MetadataBuilder {
 
 	public Set<String> getCustomAttributes() {
 		return Collections.unmodifiableSet(customAttributes);
+	}
+
+	public boolean hasValidator(Class<?> validatorClass) {
+		return defineValidators().contains(validatorClass);
 	}
 
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {

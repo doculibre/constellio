@@ -1,17 +1,18 @@
 package com.constellio.app.ui.application;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.vaadin.annotations.PreserveOnRefresh;
 import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.DefaultConfirmDialogFactory;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
@@ -21,6 +22,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
@@ -60,6 +62,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
@@ -67,6 +70,8 @@ import com.vaadin.ui.themes.ValoTheme;
 public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
 	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
+	
+	private static final int POLL_INTERVAL = 1000;
 
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
@@ -78,8 +83,32 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	private Map<String, Object> uiContext = new HashMap<>();
 
 	private SSOServices ssoServices;
-	
+
 	private View currentView;
+
+	static {
+		try {
+			ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
+				@Override
+				public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
+											String notOKCaption) {
+					DefaultConfirmDialogFactory factory = new DefaultConfirmDialogFactory();
+					ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
+					confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
+					confirmDialog.setResizable(true);
+					confirmDialog.addAttachListener(new AttachListener() {
+						@Override
+						public void attach(AttachEvent event) {
+							BaseWindow.executeZIndexAdjustJavascript(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+						}
+					});
+					return confirmDialog;
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public void addRequestHandler(RequestHandler handler) {
 		getSession().addRequestHandler(handler);
@@ -205,6 +234,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public void updateContent() {
+		if (isRightToLeft()) {
+			addStyleName("right-to-left");
+		}
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
 			setContent(setupView);
@@ -220,6 +252,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			if (currentUserVO != null) {
 				// Authenticated user
 				mainLayout = new MainLayoutImpl(appLayerFactory);
+//				if (isRightToLeft()) {
+//					mainLayout.addStyleName("right-to-left");
+//				}
 
 				setContent(mainLayout);
 
@@ -243,13 +278,22 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						if (newView instanceof BaseViewImpl) {
 							if (((BaseViewImpl) newView).isBackgroundViewMonitor()) {
 								// Important to allow update of components in current UI from another Thread
-								setPollInterval(1000);
+								setPollInterval(POLL_INTERVAL);
 							}
 						} else if (newView instanceof PollListener) {
 							// Important to allow update of components in current UI from another Thread
-							setPollInterval(1000);
+							setPollInterval(POLL_INTERVAL);
 						} else {
-							setPollInterval(-1);
+							boolean pollListenerWindow = false;
+							for (Window window : getWindows()) {
+								if (window instanceof PollListener) {
+									pollListenerWindow = true;
+									break;
+								}
+							}
+							if (!pollListenerWindow) {
+								setPollInterval(-1);
+							}
 						}
 						ConstellioUI.this.currentView = newView;
 						
@@ -259,24 +303,12 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 						for (EnterViewListener enterViewListener : enterViewListeners) {
 							enterViewListener.enterView(newView);
 						}
-
-						//						if (enterViewListeners.isEmpty() && !isProductionMode()) {
-						//							try {
-						//								ConstellioSerializationUtils.validateSerializable(event.getOldView());
-						//							} catch (Exception e) {
-						//								LOGGER.warn(e.getMessage(), e);
-						//							}
-						//							try {
-						//								ConstellioSerializationUtils.validateSerializable(event.getNewView());
-						//							} catch (Exception e) {
-						//								LOGGER.warn(e.getMessage(), e);
-						//							}
-						//						}
 					}
 				});
 
 				removeStyleName("setupview");
 				removeStyleName("loginview");
+//				removeStyleName("right-to-left");
 				navigator.navigateTo(navigator.getState());
 			} else {
 				removeStyleName("setupview");
@@ -285,6 +317,14 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				addStyleName("loginview");
 			}
 		}
+	}
+
+	@Override
+	public void addWindow(Window window) throws IllegalArgumentException, NullPointerException {
+		if (window instanceof PollListener) {
+			setPollInterval(POLL_INTERVAL);
+		}
+		super.addWindow(window);
 	}
 
 	private boolean isSetupRequired() {
@@ -374,8 +414,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	@Override
-	public <T> void setAttribute(String key, T value) {
+	public <T> T setAttribute(String key, T value) {
 		uiContext.put(key, value);
+		return null;
 	}
 
 	public View getCurrentView() {

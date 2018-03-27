@@ -1,5 +1,13 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -8,14 +16,9 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
 
@@ -107,5 +110,21 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_VALUELIST).globally();
+	}
+
+	public void deleteButtonClicked(String schemaTypeCode)
+			throws ValidationException {
+
+		valueListServices().deleteValueListOrTaxonomy(schemaTypeCode);
+		view.refreshTable();
+	}
+
+	public boolean isValueListPossiblyDeletable(String schemaTypeCode) {
+		String lcSchemaTypeCode = schemaTypeCode.toLowerCase();
+		Pattern pattern = Pattern.compile("ddv[0-9]+[0-9a-z]*");
+		return lcSchemaTypeCode.startsWith("ddvusr")
+				|| lcSchemaTypeCode.startsWith("usrddv")
+				|| pattern.matcher(lcSchemaTypeCode).matches();
+
 	}
 }

@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +34,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
@@ -168,6 +170,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			}
 		});
 
+		givenConfig(ConstellioEIMConfigs.VIEWER_CONTENTS_CONVERSION_SCHEDULE, null);
+		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, null);
+		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, "00-24");
 		givenTimeIs(smashOClock);
 
 		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
@@ -210,6 +215,24 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
 				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
+	}
+
+	@Test
+	public void whenMarkingContentHashForCheckThenVeryFast()
+			throws Exception {
+		long before = new Date().getTime();
+
+		for (int i = 0; i < 10000; i++) {
+			contentManager.markForDeletionIfNotReferenced(UUIDV1Generator.newRandomId());
+			if (i % 1000 == 0) {
+				Record record = new TestRecord(zeSchema, UUIDV1Generator.newRandomId());
+				new RecordPreparation(record).isSaved();
+			}
+			System.out.println(i);
+		}
+
+		long after = new Date().getTime();
+		System.out.println((after - before));
 	}
 
 	@Test
@@ -1384,6 +1407,57 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenAContentIsNotCheckedOutThenCannotCheckinAsSameVersionWithNewFilename()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
+
+		givenTimeIs(shishOClock);
+		RecordPreparation recordPreparation = when(theRecord());
+		try {
+			recordPreparation.contentCheckedInAsSameVersionWithNewName(uploadPdf3InputStream(), "newFile.pdf");
+			fail("ContentImplRuntimeException_ContentMustBeCheckedOut expected");
+		} catch (ContentImplRuntimeException_ContentMustBeCheckedOut e) {
+			//OK
+		}
+		recordPreparation.isSaved();
+		assertThat(theRecordContentCurrentVersion()).has(pdf1HashAndLength()).has(modificationDatetime(smashOClock));
+	}
+
+	@Test
+	public void givenAContentInMinorVersionIsCheckedOutWhenCheckinAsSameVersionWithNewFilenameThenUpdatedAndAtSameVersion()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()).checkOut(alice)).isSaved();
+
+		givenTimeIs(shishOClock);
+		RecordPreparation recordPreparation = when(theRecord());
+		recordPreparation.contentCheckedInAsSameVersionWithNewName(uploadPdf3InputStream(), "newFile.pdf");
+		recordPreparation.isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdf3HashAndLength()).has(modificationDatetime(shishOClock))
+				.has(filename("newFile.pdf")).has(version("0.1"));
+	}
+
+	@Test
+	public void givenAContentInMajorVersionIsCheckedOutWhenCheckinAsSameVersionWithNewFilenameThenUpdatedAndAtSameVersion()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createMajor(bob, "ZePdf.pdf", uploadPdf1InputStream()).checkOut(alice)).isSaved();
+
+		givenTimeIs(shishOClock);
+		RecordPreparation recordPreparation = when(theRecord());
+		recordPreparation.contentCheckedInAsSameVersionWithNewName(uploadPdf3InputStream(), "newFile.pdf");
+		recordPreparation.isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdf3HashAndLength()).has(modificationDatetime(shishOClock))
+				.has(filename("newFile.pdf")).has(version("1.0"));
+	}
+
+	@Test
 	public void givenAContentIsNotCheckedOutThenCannotCheckin()
 			throws Exception {
 
@@ -2138,6 +2212,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				String newName) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.checkInWithModificationAndName(contentVersionDataSummary, false, newName);
+			return this;
+		}
+
+		public RecordPreparation contentCheckedInAsSameVersionWithNewName(ContentVersionDataSummary contentVersionDataSummary,
+				String newName) {
+			Content content = record.get(zeSchema.contentMetadata());
+			content.checkInWithModificationAndNameInSameVersion(contentVersionDataSummary, newName);
 			return this;
 		}
 

@@ -242,6 +242,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 						builder.isSearchable() != formMetadataVO.isSearchable();
+				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
 				if (reindexRequired) {
 					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE?
 							$("AddEditMetadataPresenter.saveButton.sortableReference"):$("AddEditMetadataPresenter.saveButton.sortable");
@@ -255,7 +256,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 								@Override
 								public void onClose(ConfirmDialog dialog) {
 									if (dialog.isConfirmed()) {
-										builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
 										builder.setSearchable(formMetadataVO.isSearchable());
 										builder.setSortable(formMetadataVO.isSortable());
 										saveButtonClicked(formMetadataVO, editMode, schemaCode,

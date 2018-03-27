@@ -564,6 +564,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			isShowUnique = presenter.isShowUniqueComboBox();
 		}
 
+		if(!isShowUnique) {
+			uniqueField.setCaption(uniqueField.getCaption() + " " + $("AddEditMetadataView.containNonUniqueValueAlready"));
+		}
+
 		if(!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
 			uniqueField.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
 			uniqueField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING);
@@ -619,8 +623,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputType.setEnabled(false);
 		multivalueType.setEnabled(false);
 		enabledField.setEnabled(false);
-		highlight.setEnabled(false);
-		autocomplete.setEnabled(false);
+//		autocomplete.setEnabled(false);
 		duplicableField.setEnabled(false);
 		inputMask.setEnabled(false);
 		defaultValueField.setEnabled(false);

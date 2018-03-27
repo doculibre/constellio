@@ -1,5 +1,31 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_DENIED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -25,22 +51,6 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
 
 /**
  * Created by Constellio on 2017-04-03.
@@ -110,15 +120,14 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande d'emprunt du dossier: Crocodile");
-		assertThat(emailToSend.getParameters()).hasSize(11);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + folder.getBorrowPreviewReturnDate(),
-				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
-				"borrowerEntered:chuck", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
+				"borrowerEntered:Chuck Norris (chuck)", "title:" + folder.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
 	}
@@ -145,15 +154,14 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande d'emprunt du dossier: Crocodile");
-		assertThat(emailToSend.getParameters()).hasSize(11);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + LocalDate.now().plusDays(7),
-				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
-				"borrowerEntered:chuck", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
+				"borrowerEntered:Chuck Norris (chuck)", "title:" + folder.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
 	}
@@ -180,15 +188,14 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(11);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + container.getPlanifiedReturnDate(),
-				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
-				"borrowerEntered:chuck", "title:" + container.getTitle(),
+				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
+				"borrowerEntered:Chuck Norris (chuck)", "title:" + container.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
 	}
@@ -215,15 +222,14 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(11);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"borrowingDate:" + localDate, "returnDate:" + LocalDate.now().plusDays(7),
-				"currentUser:admin", "borrowingType:" + BorrowingType.BORROW,
-				"borrowerEntered:chuck", "title:" + container.getTitle(),
+				"currentUser:System Admin (admin)", "borrowingType:" + BorrowingType.BORROW,
+				"borrowerEntered:Chuck Norris (chuck)", "title:" + container.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);
 	}
@@ -252,13 +258,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande de retour du dossier: Crocodile");
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + localDate,
+				"currentUser:System Admin (admin)", "returnDate:" + localDate,
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
 	}
@@ -287,13 +292,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande de retour du dossier: Crocodile");
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + localDate,
+				"currentUser:System Admin (admin)", "returnDate:" + localDate,
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
 	}
@@ -322,13 +326,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + localDate,
+				"currentUser:System Admin (admin)", "returnDate:" + localDate,
 				"title:" + container.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
 	}
@@ -357,13 +360,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + localDate,
+				"currentUser:System Admin (admin)", "returnDate:" + localDate,
 				"title:" + container.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + container.getId(),
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);
 	}
@@ -395,13 +397,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(9);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + folder.getBorrowPreviewReturnDate(),
+				"currentUser:System Admin (admin)", "returnDate:" + folder.getBorrowPreviewReturnDate(),
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder", "extensionDate:" + localDate,
+				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Oui"
 		);
 	}
@@ -433,13 +434,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(9);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
-				"currentUser:admin", "returnDate:" + folder.getBorrowPreviewReturnDate().plusDays(7),
+				"currentUser:System Admin (admin)", "returnDate:" + folder.getBorrowPreviewReturnDate().plusDays(7),
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder", "extensionDate:" + localDate,
+				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Non"
 		);
 	}
@@ -471,13 +471,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande de renouvellement d'emprunt du contenant: 10_A_06");
-		assertThat(emailToSend.getParameters()).hasSize(9);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:Demande de renouvellement d'emprunt du contenant: 10_A_06",
-				"currentUser:admin", "returnDate:" + containerRecord.getPlanifiedReturnDate(),
+				"currentUser:System Admin (admin)", "returnDate:" + containerRecord.getPlanifiedReturnDate(),
 				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
-				"recordType:containerrecord", "extensionDate:" + localDate,
+				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Oui"
 		);
 	}
@@ -509,13 +508,12 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo("Demande de renouvellement d'emprunt du contenant: 10_A_06");
-		assertThat(emailToSend.getParameters()).hasSize(9);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:Demande de renouvellement d'emprunt du contenant: 10_A_06",
-				"currentUser:admin", "returnDate:" + containerRecord.getPlanifiedReturnDate().plusDays(7),
+				"currentUser:System Admin (admin)", "returnDate:" + containerRecord.getPlanifiedReturnDate().plusDays(7),
 				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
-				"recordType:containerrecord", "extensionDate:" + localDate,
+				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Non"
 		);
 	}
@@ -550,14 +548,13 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"reactivationDate:" + localDate,
-				"currentUser:admin", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "title:" + folder.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Oui"
 		);
 	}
@@ -592,14 +589,13 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"reactivationDate:" + localDate,
-				"currentUser:admin", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "title:" + folder.getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
-				"recordType:folder",
+				"recordType_fr:dossier", "recordType_en:folder",
 				"isAccepted:Non"
 		);
 	}
@@ -644,14 +640,13 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"reactivationDate:" + localDate,
-				"currentUser:admin", "title:" + records.getContainerBac13().getTitle(),
+				"currentUser:System Admin (admin)", "title:" + records.getContainerBac13().getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Oui"
 		);
 	}
@@ -696,14 +691,13 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
-		assertThat(emailToSend.getParameters()).hasSize(8);
 		assertThat(emailToSend.getParameters()).containsOnly(
 				"subject:" + task.getTitle(),
 				"reactivationDate:" + localDate,
-				"currentUser:admin", "title:" + records.getContainerBac13().getTitle(),
+				"currentUser:System Admin (admin)", "title:" + records.getContainerBac13().getTitle(),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
-				"recordType:containerrecord",
+				"recordType_en:container", "recordType_fr:contenant",
 				"isAccepted:Non"
 		);
 	}

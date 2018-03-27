@@ -73,7 +73,11 @@ public class LoggerUtils {
 		for (String modifiedField : recordDeltaDTO.getModifiedFields().keySet()) {
 			log.append(modifiedField);
 			log.append(":");
-			log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+			if (recordDeltaDTO.getInitialFields() != null) {
+				log.append(recordDeltaDTO.getInitialFields().get(modifiedField));
+			} else {
+				log.append("?");
+			}
 			log.append("=>");
 			log.append(recordDeltaDTO.getModifiedFields().get(modifiedField));
 			log.append("; ");
@@ -82,7 +86,7 @@ public class LoggerUtils {
 		return log.toString();
 	}
 
-	public static String toParamsString(SolrParams params, String... excludedFields) {
+	public static String toParamsString(SolrParams params, boolean multiline, String... excludedFields) {
 		StringBuilder stringBuilder = new StringBuilder();
 		Iterator<String> itIterator = params.getParameterNamesIterator();
 		boolean first = true;
@@ -101,13 +105,17 @@ public class LoggerUtils {
 
 			if (!excluded) {
 				for (String value : params.getParams(key)) {
-					if (!first) {
+					if (!first && !multiline) {
 						stringBuilder.append("&");
 					}
 					stringBuilder.append(key);
 					stringBuilder.append("=");
 					stringBuilder.append(value);
 					first = false;
+
+					if (multiline) {
+						stringBuilder.append("\n");
+					}
 				}
 			}
 		}

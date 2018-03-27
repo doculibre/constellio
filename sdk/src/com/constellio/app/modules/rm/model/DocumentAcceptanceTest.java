@@ -14,6 +14,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -24,6 +27,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -221,6 +225,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
@@ -231,7 +236,9 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isFalse();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
+
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 
@@ -241,10 +248,33 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isTrue();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 		contentManager.convertPendingContentForPreview();
+		recordServices.flush();
 		recordServices.refresh(wordDocument);
 		assertThat(wordDocument.isMarkedForPreviewConversion()).isFalse();
 		assertThat(contentManager.hasContentPreview(wordDocument.getContent().getCurrentVersion().getHash())).isTrue();
 
+	}
+
+	@Test
+	public void givenDocumentInNonCompletedAndNotDeletedTaskThenCannotDelete()
+			throws RecordServicesException {
+		Document document = rm.newDocument().setFolder(records.getFolder_A03()).setTitle("ze title");
+		recordServices.add(document);
+
+		Task task = rm.newRMTask().setLinkedDocuments(asList(document.getId())).setTitle("Task");
+		recordServices.add(task);
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+
+		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
+		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
+		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 	}
 
 	@Test

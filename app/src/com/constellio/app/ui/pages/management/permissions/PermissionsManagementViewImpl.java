@@ -11,6 +11,7 @@ import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -133,7 +134,7 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 		Label caption = new Label($("perm.group." + group));
 		caption.addStyleName(ValoTheme.LABEL_H2);
 
-		Table table = new Table();
+		Table table = new BaseTable(getClass().getName());
 		for (String permission : presenter.getPermissionsInGroup(group)) {
 			table.addItem(permission);
 		}

@@ -1,20 +1,24 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -41,14 +45,15 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsuleButton());
+			layout.addComponent(createCorrectorExclusion());
 		}
+
+
 
         verticalLayout.addComponent(layout);
 
-        if(Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally()
-			&& getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
-                .getValue(ConstellioEIMConfigs.ADVANCED_SEARCH_CONFIGS).toString().equalsIgnoreCase("true")) {
+        if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally()) {
             Label systemSectionTitle = new Label($("SearchConfigurationViewImpl.systemSectionTitle"));
             systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
             verticalLayout.addComponent(systemSectionTitle);
@@ -99,6 +104,16 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements AdminVi
 				}, "config/search-exclusions") :
 				null;
 
+	}
+
+	private Button createCorrectorExclusion() {
+		return createLink($("AdminView.excluded"), new Button.ClickListener() {
+
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				navigate().to().deleteExclusionsImpl();
+			}
+		}, "config/search-suggestions-exlusions");
 	}
 
 	private Button createBoostRequestButton() {

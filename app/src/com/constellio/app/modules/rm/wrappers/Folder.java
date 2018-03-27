@@ -92,9 +92,6 @@ public class Folder extends RMObject {
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String DATE_TYPES = "dateTypes";
 
-	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
-	public static final String CALENDAR_YEAR = "calendarYear";
-
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
 	public static final String MANUAL_EXPECTED_DESTRUCTION_DATE = "manualExpectedDesctructionDate";
@@ -114,6 +111,9 @@ public class Folder extends RMObject {
 	public static final String PREVIOUS_DEPOSIT_DATES = "previousDepositDates";
 	public static final String IS_RESTRICTED_ACCESS = "isRestrictedAccess";
 	public static final String MANUAL_DISPOSAL_TYPE = "manualDisposalType";
+
+	public static final String SUB_FOLDERS_TOKENS = "subFoldersTokens";
+	public static final String DOCUMENTS_TOKENS = "documentsTokens";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -811,5 +811,20 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public List<String> getSubFoldersTokens() {
+		return getList(SUB_FOLDERS_TOKENS);
+	}
+
+	public List<String> getDocumentsTokens() {
+		return getList(DOCUMENTS_TOKENS);
+	}
+
+	public boolean hasExpectedDates() {
+		return !(getExpectedTransferDate() == null && getExpectedDepositDate() == null && getExpectedDestructionDate() == null);
+	}
+
+	public static Folder wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new Folder(record, types);
+	}
 }
 

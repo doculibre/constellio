@@ -32,7 +32,11 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
@@ -97,6 +101,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Mock BatchProcessPart zePreviousPart;
 	@Mock CollectionsListManager collectionsListManager;
 
+	@Mock ConstellioCacheManager constellioCacheManager;
+	@Mock ConstellioCache cache;
+
 	@Mock BatchProcessesListUpdatedEventListener firstListener;
 	@Mock BatchProcessesListUpdatedEventListener secondListener;
 
@@ -109,7 +116,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		when(aBatchProcess.getQuery()).thenReturn("zeQuery");
-		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, false));
+		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, DataStore.RECORDS, false));
 		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
 		when(condition.getCollection()).thenReturn(zeCollection);
 
@@ -137,6 +144,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
+
+		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCacheManager);
+		when(constellioCacheManager.getCache(anyString())).thenReturn(cache);
 	}
 
 	private void createManager() {
@@ -248,11 +258,14 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
-		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
+		//		String solrQuery = "fq=(*:*+-type_s:index)&fq=collection_s:zeCollection&fq=zeQuery&qt=/spell&shards.qt=/spell&q=*:*&rows=100000&start=0";
+		String urlQueryString = SolrUtils.toSingleQueryString(searchServices.addSolrModifiableParams(new LogicalSearchQuery()
+				.setCondition(
+						condition)));//"?fq=%28*%3A*+-type_s%3Aindex%29&fq=collection_s%3AzeCollection&fq=zeQuery&qt=%2Fspell&shards.qt=%2Fspell&q=*%3A*&rows=100000&start=0";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)
-				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection",
+				.newAddBatchProcessDocumentAlteration(aBatchProcessId, urlQueryString, "zeCollection",
 						currentDate, 42, action, null, null);
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
@@ -263,10 +276,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
 		InOrder inOrder = Mockito.inOrder(manager, configManager, batchProcessListReader);
 		inOrder.verify(manager).newAddBatchProcessDocumentAlteration(
-				aBatchProcessId, solrQuery, "zeCollection", currentDate, 42, action, null, null);
+				aBatchProcessId, urlQueryString, "zeCollection", currentDate, 42, action, null, null);
 		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, addBatchProcessDocumentAlteration);
 		inOrder.verify(batchProcessListReader).read(aBatchProcessId);
-
 	}
 
 	@Test

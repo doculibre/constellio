@@ -13,37 +13,11 @@ import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTER
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,21 +42,6 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTransferDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
@@ -106,13 +65,13 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -129,8 +88,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -352,16 +309,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 		User currentUser = getCurrentUser();
 		LocalDateTime time = TimeProvider.getLocalDateTime();
-		if (isAddView()) {
+		if (isAddView() || isDuplicateAction) {
 			folder.setFormCreatedBy(currentUser);
 			if (folder.getFormCreatedOn() == null) {
 				folder.setFormCreatedOn(time);
 			}
 		}
 		folder.setFormModifiedBy(currentUser);
-		if (folder.getFormModifiedOn() == null) {
-			folder.setFormModifiedOn(time);
-		}
+		folder.setFormModifiedOn(time);
 		addOrUpdate(folder.getWrappedRecord(),
 				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
 
@@ -898,12 +853,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (!addView && !hasPermission) {
 			FolderOpeningDateField openingDateField = (FolderOpeningDateField) view.getForm()
 					.getCustomField(Folder.OPENING_DATE);
-			setFieldReadonly(openingDateField, true);
+			if(openingDateField != null) {
+				setFieldReadonly(openingDateField, true);
+			}
 		}
 	}
 
 	void adjustDisposalTypeField() {
-		FolderDisposalTypeField disposalTypeField = (FolderDisposalTypeField) view.getForm().getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
+		FolderDisposalTypeField disposalTypeField = (FolderDisposalTypeField) view.getForm()
+				.getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
 		if (disposalTypeField != null) {
 			boolean visible;
 			Record folerRecord = toRecord(folderVO);
@@ -1022,8 +980,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		SearchServices searchServices = searchServices();
 		MetadataSchemaTypes types = types();
 		MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(from(administrativeUnitSchemaType).returnAll());
-		allAdminUnitsQuery.sortDesc(Schemas.PRINCIPAL_PATH);
 		//visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
 
 		String defaultAdministrativeUnit = getCurrentUser().get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
@@ -1043,8 +999,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 							+ defaultAdministrativeUnit);
 				}
 			} else {
-				//It is much faster to load all admin units from cache and test write access
-				for (Record anAdministrativeUnit : searchServices.cachedSearch(allAdminUnitsQuery)) {
+				List<Record> records = new ArrayList<>(searchServices.getAllRecords(administrativeUnitSchemaType));
+				Collections.sort(records, new Comparator<Record>() {
+					@Override
+					public int compare(Record o1, Record o2) {
+						String p1 = o1.get(Schemas.PRINCIPAL_PATH);
+						String p2 = o2.get(Schemas.PRINCIPAL_PATH);
+						return -1 * LangUtils.compareStrings(p1, p2);
+					}
+				});
+				for (Record anAdministrativeUnit : records) {
 					if (currentUser.hasWriteAccess().on(anAdministrativeUnit)) {
 						folder.setAdministrativeUnitEntered(anAdministrativeUnit);
 						break;

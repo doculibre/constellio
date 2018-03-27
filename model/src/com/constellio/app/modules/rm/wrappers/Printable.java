@@ -21,6 +21,11 @@ public class Printable extends RecordWrapper {
         super(record, types, SCHEMA_TYPE);
     }
 
+    public Printable(Record record, MetadataSchemaTypes types, String schema) {
+        super(record, types, schema);
+    }
+
+
     public Printable setTitle(String title) {
         super.setTitle(title);
         return this;

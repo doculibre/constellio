@@ -99,9 +99,7 @@ public class AllowableActionsBuilder {
 		boolean readAccess = user.hasReadAccess().on(record);
 		boolean writeAccess = user.hasWriteAccess().on(record);
 		boolean deleteAccess = user.hasDeleteAccess().on(record);
-		boolean canManageACL = user.has(CorePermissions.MANAGE_SECURITY).on(record)
-				&& user.hasWriteAccess().on(record)
-				&& user.hasDeleteAccess().on(record);
+		boolean canManageACL = user.has(CorePermissions.MANAGE_SECURITY).on(record) && writeAccess && deleteAccess;
 		boolean hasContentMetadata = !type.getAllMetadatas().onlyWithType(MetadataValueType.CONTENT).isEmpty();
 		if (record == null) {
 			throw new IllegalArgumentException("File must not be null!");

@@ -60,15 +60,26 @@ public class TaxonomiesTestsUtils {
 
 	private static boolean isBetterThanExpected(String current, String expected) {
 //		if (!current.equals(expected)) {
-		//			String[] currentParts = current.split("-");
-		//			String[] expectedParts = expected.split("-");
+		//			int[] currentParts = toInts(current.split("-"));
+		//			int[] expectedParts = toInts(expected.split("-"));
 		//
-		//			if (currentParts[0].compareTo(currentParts[0]) <= 0
-		//					&& currentParts[1].compareTo(currentParts[1]) <= 0
-		//					&& currentParts[2].compareTo(currentParts[2]) <= 0) {
+		//			if (currentParts[0] <= expectedParts[0]
+		//					&& currentParts[1] <= expectedParts[1]
+		//					&& currentParts[2] <= expectedParts[2]) {
 		//				return true;
 		//			}
 		//		}
 		return false;
+	}
+
+	private static int[] toInts(String[] split) {
+
+		int[] intParts = new int[split.length];
+
+		for (int i = 0; i < split.length; i++) {
+			intParts[i] = Integer.parseInt(split[i]);
+		}
+
+		return intParts;
 	}
 }

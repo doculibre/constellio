@@ -57,6 +57,8 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
 
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+
 	String subFolderId;
 
 	Users users = new Users();
@@ -1074,7 +1076,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
-
+		waitForBatchProcess();
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		final AtomicInteger queryCount = new AtomicInteger();
@@ -1088,8 +1090,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
 				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
-				.has(solrQueryCounts(3, 1, 2))
-				.has(secondCallQueryCounts(2, 1, 2));
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondCallQueryCounts(2, 2, 2));
 
 	}
 
@@ -1459,7 +1461,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
@@ -1481,31 +1483,10 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.firstAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> CONSTRUCTINGsolrQueryCounts(final String placeHolder) {
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				//Lit la classe ENCODING!!!!
-				//Remplace CONSTRUCTINGsolrQueryCounts(placeHolder) par le bon appel avec la valeur
-				String current = value.firstAnswerSolrQueries();
-				//2-3-4
-
-				//CONSTRUCTINGsolrQueryCounts("toto")
-				//solrQueryCounts(2,3,4)
-
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);

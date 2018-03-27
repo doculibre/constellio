@@ -50,9 +50,11 @@ import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -143,6 +145,7 @@ public class DecommissioningService {
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
 			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds));
+			decommissioningList.setContainerDetailsFrom(getContainersOfFolders(recordIds));
 		}
 
 		try {
@@ -319,10 +322,15 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendEmailForList(DecommissioningList list, User user, String templateID, List<String> parameters) {
+	public void sendEmailForList(DecommissioningList list, User user, List<String> usersToSendEmail, String templateID, List<String> parameters) {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
-			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
+			List<EmailAddress> toAddresses = new ArrayList<>();
+			if(usersToSendEmail == null || usersToSendEmail.isEmpty()) {
+				toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
+			} else {
+				toAddresses = getEmailReceivers(rm.getUsers(usersToSendEmail));
+			}
 			String subject = "";
 			if (RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
 				subject = $("DecommissionningServices.approvalRequestEmailTitle");
@@ -355,7 +363,7 @@ public class DecommissioningService {
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
 
-		sendEmailForList(list, null, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
+		sendEmailForList(list, null, users, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
 			list.addValidationRequest(user, TimeProvider.getLocalDate());
 		}
@@ -640,25 +648,28 @@ public class DecommissioningService {
 	public boolean isTransferDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualTransferDate = folder.getActualTransferDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canTransferToSemiActive();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualTransferDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isDepositDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualDepositDate = folder.getActualDepositDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canDeposit();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualDepositDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isDestructionDateInputPossibleForUser(Folder folder, User user) {
 		recordServices.recalculate(folder);
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
+		LocalDate actualDestructionDate = folder.getActualDestructionDate();
 
 		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canDestroy();
-		return allowedByRetentionRule && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return (actualDestructionDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
 	public boolean isContainerInputPossibleForUser(Folder folder, User user) {
@@ -823,7 +834,7 @@ public class DecommissioningService {
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
+			Folder duplicatedChild = duplicateStructureAndDocumentsAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
@@ -832,21 +843,27 @@ public class DecommissioningService {
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
 		for (Document child : childrenDocuments) {
-			Document newDocument = createDuplicateOfDocument(child);
+			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
 			transaction.add(newDocument);
 		}
 		return duplicatedFolder;
 	}
 
-	public Document createDuplicateOfDocument(Document duplicatedDocument) {
+	public Document createDuplicateOfDocument(Document duplicatedDocument, User currentUser) {
 		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
 		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
 				.onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
 		}
-		return newDocument;
+		LocalDateTime now = LocalDateTime.now();
+
+		duplicatedDocument.setFormCreatedBy(currentUser);
+		duplicatedDocument.setFormCreatedOn(now);
+		duplicatedDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		duplicatedDocument.setCreatedOn(now).setModifiedOn(now);
+		return duplicatedDocument;
 	}
 
 	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
@@ -1150,7 +1167,8 @@ public class DecommissioningService {
 	}
 
 	public String getDecommissionningLabel(ContainerRecord record) {
-		return getDecommissioningType(record).getLabel();
+		DecommissioningType decommissioningType = getDecommissioningType(record);
+		return decommissioningType != null? decommissioningType.getLabel():null;
 	}
 
 	public DecommissioningType getDecommissioningType(ContainerRecord container) {
@@ -1184,6 +1202,7 @@ public class DecommissioningService {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				Folder folder = rm.getFolder(folderId);
 				if (isAccepted) {
@@ -1204,6 +1223,7 @@ public class DecommissioningService {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			for (String containerId : task.getLinkedContainers()) {
 				Transaction t = new Transaction();
+				t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
 				List<Folder> folders = rm.searchFolders(
 						LogicalSearchQueryOperators.from(rm.folder.schemaType()).where(rm.folder.container())
@@ -1231,8 +1251,7 @@ public class DecommissioningService {
 	}
 
 	public boolean isFolderReactivable(Folder folder, User currentUser) {
-		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive() && folder.getMediaType()
-				.potentiallyHasAnalogMedium()
+		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive()
 				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 
@@ -1254,7 +1273,8 @@ public class DecommissioningService {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered);
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -1280,12 +1300,16 @@ public class DecommissioningService {
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
+					" (" + currentUser.getUsername() + ")");
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
-			parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $(schemaType).toLowerCase());
+			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getLabels();
+			for(Map.Entry<Language, String> label:labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue().toLowerCase());
+			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);
 			transaction.add(emailToSend);

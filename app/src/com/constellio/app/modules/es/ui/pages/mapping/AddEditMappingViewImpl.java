@@ -17,7 +17,9 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -100,7 +102,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 		Label caption = new Label($("AddEditMappingView.metadata"));
 		caption.addStyleName(ValoTheme.LABEL_BOLD);
 
-		target = new ComboBox();
+		target = new BaseComboBox();
 		target.setNullSelectionAllowed(false);
 		for (MetadataVO metadata : presenter.getAvailableTargetMetadata()) {
 			target.addItem(metadata);
@@ -183,7 +185,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 			}
 		});
 
-		Table table = new Table();
+		Table table = new BaseTable(getClass().getName());
 		table.setContainerDataSource(container);
 
 		table.addGeneratedColumn("selector", new ColumnGenerator() {
@@ -193,7 +195,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 					return null;
 				}
 				final FieldMapper mapper = (FieldMapper) itemId;
-				final ComboBox box = new ComboBox();
+				final ComboBox box = new BaseComboBox();
 				box.setNullSelectionAllowed(false);
 				box.setWidth("100%");
 				for (ConnectorField field : fields) {
@@ -249,7 +251,7 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 
 		@Override
 		protected Component buildWindowContent() {
-			type = new ComboBox($("AddEditMappingView.metadata.type"));
+			type = new BaseComboBox($("AddEditMappingView.metadata.type"));
 			type.setNullSelectionAllowed(false);
 			type.setRequired(true);
 			for (MetadataValueType allowed : presenter.getApplicableTypes()) {

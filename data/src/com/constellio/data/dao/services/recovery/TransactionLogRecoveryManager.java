@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -20,7 +21,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LazyIterator;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
-		BigVaultServerQueryListener {
+													  BigVaultServerQueryListener {
 	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogRecoveryManager.class);
 	private static final String RECOVERY_WORK_DIR = TransactionLogRecoveryManager.class.getName() + "recoveryWorkDir";
 
@@ -333,7 +333,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	//TODO test me
 	private List<SolrInputDocument> getDocumentsHavingIds(List<SolrInputDocument> solrInputDocuments,
-														  final Collection<String> ids) {
+			final Collection<String> ids) {
 		List<SolrInputDocument> returnList = new ArrayList<>();
 		for (SolrInputDocument document : solrInputDocuments) {
 			String id = (String) document.getFieldValue("id");
@@ -426,7 +426,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		String transaction = this.readWriteServices.toLogEntry(notAlreadySavedDocuments);
 
 		try {
-			FileUtils.fileAppend(this.recoveryFile.getPath(), transaction);
+			FileUtils.writeStringToFile(this.recoveryFile, transaction, true);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

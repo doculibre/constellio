@@ -61,5 +61,12 @@ public interface SettingsXMLFileConstants {
 	String UNMODIFIABLE = "unmodifiable";
 	String ADVANCE_SEARCHABLE = "advanceSearchable";
 	String SEARCHABLE = "searchable";
+	String POPULATE_CONFIGS = "populateConfigs";
+	String POPULATE_CONFIGS_REGEX = "regex";
+	String POPULATE_CONFIGS_REGEX_INPUT_METADATA = "inputMetadata";
+	String POPULATE_CONFIGS_REGEX_PATTERN = "pattern";
+	String POPULATE_CONFIGS_REGEX_VALUE = "value";
+	String POPULATE_CONFIGS_REGEX_TYPE = "type";
+	String RELATIONSHIP_PROVIDING_SECURITY = "relationshipProvidingSecurity";
 
 }

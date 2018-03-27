@@ -3,9 +3,7 @@ package com.constellio.model.entities.security.global;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import org.joda.time.LocalDate;
 
@@ -14,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
 
@@ -28,6 +25,7 @@ public class AuthorizationAddRequest {
 	private Authorization existingAuthorization;
 	private LocalDate start, end;
 	private User executedBy;
+	private boolean overridingInheritedAuths;
 
 	private AuthorizationAddRequest(String collection) {
 		this(collection, null);
@@ -132,6 +130,14 @@ public class AuthorizationAddRequest {
 		return withRoles(rolesCodes);
 	}
 
+	public static AuthorizationAddRequest authorizationForGroups(Group... groups) {
+		return new AuthorizationAddRequest(groups[0].getCollection()).forGroups(groups);
+	}
+
+	public static AuthorizationAddRequest authorizationForGroups(List<Group> groups) {
+		return new AuthorizationAddRequest(groups.get(0).getCollection()).forGroups(groups.toArray(new Group[0]));
+	}
+
 	public static AuthorizationAddRequest authorizationForUsers(User... users) {
 		return new AuthorizationAddRequest(users[0].getCollection()).forUsers(users);
 	}
@@ -183,5 +189,19 @@ public class AuthorizationAddRequest {
 	public AuthorizationAddRequest setExecutedBy(User executedBy) {
 		this.executedBy = executedBy;
 		return this;
+	}
+
+	public AuthorizationAddRequest andOverridingInheritedAuths() {
+		this.overridingInheritedAuths = true;
+		return this;
+	}
+
+	public AuthorizationAddRequest andOverridingInheritedAuths(boolean value) {
+		this.overridingInheritedAuths = value;
+		return this;
+	}
+
+	public boolean isOverridingInheritedAuths() {
+		return overridingInheritedAuths;
 	}
 }

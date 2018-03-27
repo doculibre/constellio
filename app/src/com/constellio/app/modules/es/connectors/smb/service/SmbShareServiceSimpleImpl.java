@@ -90,9 +90,7 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 			SmbFile[] filesAndFolders = smbFile.listFiles(new CustomSmbFileFilter());
 			for (SmbFile fileOrFolder : filesAndFolders) {
                 //http://issues.constellio.com/browse/CONSTELLIOEIM-933
-				Field field = smbFile.getClass().getDeclaredField("unc");
-				field.setAccessible(true);
-				Object value = field.get(fileOrFolder);
+				Object value = getUNC(smbFile, fileOrFolder);
 				String fileOrFolderUrl = fileOrFolder.getCanonicalPath();
 				if (value != null) {
 					String realName = StringUtils.substringAfterLast(value.toString(), "\\");
@@ -121,6 +119,13 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 		}
 
 		return urls;
+	}
+
+	Object getUNC(SmbFile smbFile, SmbFile fileOrFolder)
+			throws NoSuchFieldException, IllegalAccessException {
+		Field field = smbFile.getClass().getDeclaredField("unc");
+		field.setAccessible(true);
+		return field.get(fileOrFolder);
 	}
 
 	private class CustomSmbFileFilter implements SmbFileFilter {

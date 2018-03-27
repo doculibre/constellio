@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.table;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 	}
 
 	public SelectionTableAdapter(Table table) {
+		addStyleName("selection-table");
 		setSpacing(true);
 		setTable(table);
 	}
@@ -116,6 +118,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 							checkBox.setImmediate(true);
 							property = new ObjectProperty<CheckBox>(checkBox);
 							itemSelectProperties.put(itemId, property);
+						} else {
+							SelectionCheckBox checkBox = (SelectionCheckBox) property.getValue();
+							if (checkBox != null) {
+								checkBox.setInternalValue(isSelected(itemId));
+							}
 						}
 					} else {
 						property = super.getContainerProperty(itemId, propertyId);
@@ -141,11 +148,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			table.setColumnWidth(SELECT_PROPERTY_ID, 44);
 			table.setColumnCollapsible(SELECT_PROPERTY_ID, false);
 
-			List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
-			if (!newVisibleColumns.contains(SELECT_PROPERTY_ID)) {
+			if (!oldVisibleColumns.contains(SELECT_PROPERTY_ID)) {
+				List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
 				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
+				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 			}
-			table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 
 			setWidth("100%");
 			addComponents(toggleButton, table);

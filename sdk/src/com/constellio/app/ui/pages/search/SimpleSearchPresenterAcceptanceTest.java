@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -45,23 +47,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
@@ -97,9 +84,12 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
+
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
+		when(view.getUIContext()).thenReturn(new FakeUIContext());
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -297,9 +287,9 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
-
 	@Test
-	public void testSearchCapsuleWithOneKeywords() throws Exception{
+	public void testSearchCapsuleWithOneKeywords()
+			throws Exception {
 		String html = "<h1>test</h1>";
 		List<String> keywords = asList("keyword1", "keyword2", "keyword3");
 		List<String> searchTerms = asList("keyword4", "keyword2", "keyword5");
@@ -313,7 +303,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		transaction.add(capsule);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-
 		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms, " "));
 		List<Capsule> returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
 		assertThat(returnedCapsule).hasSize(1);
@@ -324,18 +313,21 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testSearchCapsuleWithMultipleKeywordsAndMultipleCapsule() throws Exception {
+	public void testSearchCapsuleWithMultipleKeywordsAndMultipleCapsule()
+			throws Exception {
 		List<String> searchTerms = asList("super", "mega", "capsule1keyword3", "capsule2keyword1", "yea", "yea");
 
 		String capsule1HTML = "<h1>Capsule1</h1>";
 		List<String> capsule1Keywords = asList("capsule1keyword1", "capsule1keyword2", "capsule1keyword3");
 		String capsule1Code = "capsule1Code";
-		Capsule capsule1 = schemasRecordsServices.newCapsule().setCode(capsule1Code).setHTML(capsule1HTML).setKeywords(capsule1Keywords);
+		Capsule capsule1 = schemasRecordsServices.newCapsule().setCode(capsule1Code).setHTML(capsule1HTML)
+				.setKeywords(capsule1Keywords);
 
 		String capsule2HTML = "<h1>Capsule2</h1>";
 		List<String> capsule2Keywords = asList("capsule2keyword1", "capsule2keyword2", "capsule2keyword3");
 		String capsule2Code = "capsule2Code";
-		Capsule capsule2 = schemasRecordsServices.newCapsule().setCode(capsule2Code).setHTML(capsule2HTML).setKeywords(capsule2Keywords);
+		Capsule capsule2 = schemasRecordsServices.newCapsule().setCode(capsule2Code).setHTML(capsule2HTML)
+				.setKeywords(capsule2Keywords);
 
 		Transaction t = new Transaction();
 		t.addAll(capsule1, capsule2);

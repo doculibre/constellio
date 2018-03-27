@@ -1,16 +1,20 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataFacultative;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -58,10 +62,15 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	public static final String FOLDER4_2_DOC1 = "folder4_2_doc1";
 	public static final String FOLDER5_DOC1 = "folder5_doc1";
 
+	public static final String FOLDER_TYPE1 = "folderType1";
+	public static final String FOLDER_TYPE2 = "folderType2";
+	public static final String FOLDER_TYPE3 = "folderType3";
+
 	DocumentFond documentFond = new DocumentFond();
 	Category category = new Category();
 	AdministrativeUnit administrativeUnit = new AdministrativeUnit();
 	ClassificationStation classificationStation = new ClassificationStation();
+	public FolderTypeSchema folderTypeSchema = new FolderTypeSchema();
 	public FolderSchema folderSchema = new FolderSchema();
 	public DocumentSchema documentSchema = new DocumentSchema();
 	UserSchema userSchema = new UserSchema();
@@ -94,11 +103,14 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType("category");
 		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
 		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
+		MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
+				.createValueListItemSchema("folderType", "Folder type", codeMetadataFacultative());
 		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
 
 		setupTaxonomy1(documentFondType, categoryType);
 		setupTaxonomy2(administrativeUnitType);
-		setupFolderType(folderType, categoryType, administrativeUnitType);
+
+		setupFolderType(folderType, categoryType, administrativeUnitType, folderTypeType);
 		setupDocumentType(documentType, folderType);
 
 		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", collection, Arrays.asList("documentFond", "category"));
@@ -108,13 +120,18 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	}
 
 	private void setupFolderType(MetadataSchemaTypeBuilder folderType, MetadataSchemaTypeBuilder category,
-			MetadataSchemaTypeBuilder administrativeUnit) {
+			MetadataSchemaTypeBuilder administrativeUnit, MetadataSchemaTypeBuilder folderTypeType) {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
 				.defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
 		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(folderType);
 		folderType.getDefaultSchema().create("linkToOtherFolder").setMultivalue(false).defineReferencesTo(folderType);
+		folderType.getDefaultSchema().create("firstReference").defineReferencesTo(folderTypeType)
+				.setRelationshipProvidingSecurity(true);
+		folderType.getDefaultSchema().create("secondReference").defineReferencesTo(folderTypeType)
+				.setRelationshipProvidingSecurity(true);
+		folderType.getDefaultSchema().create("thirdReference").defineReferencesTo(folderTypeType);
 
 	}
 
@@ -352,6 +369,31 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
 	}
 
+	public class FolderTypeSchema implements SchemaShortcuts {
+		public MetadataSchemaType type() {
+			return get("folderType");
+		}
+
+		@Override
+		public String code() {
+			return "folderType_default";
+		}
+
+		@Override
+		public String collection() {
+			return collection;
+		}
+
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
+		public Metadata title() {
+			return getMetadata(code() + "_title");
+		}
+
+	}
+
 	public class FolderSchema implements SchemaShortcuts {
 		public MetadataSchemaType type() {
 			return get("folder");
@@ -401,6 +443,18 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
 		public Metadata linkToOtherFolder() {
 			return getMetadata(code() + "_linkToOtherFolder");
+		}
+
+		public Metadata firstReferenceMetadataProvidingSecurity() {
+			return getMetadata(code() + "_firstReference");
+		}
+
+		public Metadata secondReferenceMetadataProvidingSecurity() {
+			return getMetadata(code() + "_secondReference");
+		}
+
+		public Metadata thirdReferenceMetadataWhichDoesNotProvideSecurity() {
+			return getMetadata(code() + "_thirdReference");
 		}
 	}
 
@@ -614,6 +668,18 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return getRecord(FOLDER5_DOC1);
 		}
 
+		public final Record folderType1() {
+			return getRecord(FOLDER_TYPE1);
+		}
+
+		public final Record folderType2() {
+			return getRecord(FOLDER_TYPE2);
+		}
+
+		public final Record folderType3() {
+			return getRecord(FOLDER_TYPE3);
+		}
+
 		List<Record> records = new ArrayList<>();
 
 		private RecordServices recordServices;
@@ -631,6 +697,12 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			String prefix = collection.equals("zeCollection") ? "" : "anotherCollection_";
 			Record taxo1_fond1, taxo1_fond1_1, taxo1_category1, taxo1_category2, taxo1_category2_1, taxo2_unit1, taxo2_unit1_1,
 					taxo2_station1, taxo2_station2, taxo2_station2_1, folder1, folder2, folder2_1, folder2_2, folder3, folder4, folder4_1, folder4_2, folder5;
+
+			if (collection.equals("zeCollection")) {
+				records.add(transaction.add(new TestRecord(folderTypeSchema, FOLDER_TYPE1).set(Schemas.TITLE, "Type 1")));
+				records.add(transaction.add(new TestRecord(folderTypeSchema, FOLDER_TYPE2).set(Schemas.TITLE, "Type 2")));
+				records.add(transaction.add(new TestRecord(folderTypeSchema, FOLDER_TYPE3).set(Schemas.TITLE, "Type 3")));
+			}
 			records.add(taxo1_fond1 =
 
 					addFondRecord(transaction, prefix + "taxo1_fond1", null)

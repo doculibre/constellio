@@ -28,6 +28,7 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -57,6 +58,7 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -105,6 +107,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private final SystemCheckManager systemCheckManager;
 
+	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
+
+	private final CorrectorExcluderManager correctorExcluderManager;
+
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
 		super(modelLayerFactory, statefullServiceDecorator, instanceName);
@@ -128,7 +134,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),
 				appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
-				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
+				new ConstellioPluginConfigurationManager(dataLayerFactory)));
 		pluginManager.registerModule(new ConstellioRMModule());
 
 		pluginManager.registerModule(new ConstellioESModule());
@@ -139,8 +145,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
-		this.systemGlobalConfigsManager = add(
-				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager()));
+		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
 		this.collectionsManager = add(
 				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -152,7 +157,12 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager(), this);
 		this.navigatorConfigService = new NavigatorConfigurationService();
 		this.systemCheckManager = add(new SystemCheckManager(this));
+		this.upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 
+		dataLayerFactory.getConfigManager().keepInCache(MigrationServices.VERSION_PROPERTIES_FILE);
+
+		correctorExcluderManager = add(new CorrectorExcluderManager(modelLayerFactory));
 	}
 
 	private void setDefaultLocale() {
@@ -162,6 +172,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			locale = Locale.ENGLISH;
 		} else if ("fr".equals(mainDataLanguage)) {
 			locale = Locale.FRENCH;
+		} else if ("ar".equals(mainDataLanguage)) {
+			locale = new Locale(Language.Arabic.getCode());
 		} else {
 			throw new ImpossibleRuntimeException("Invalid language " + mainDataLanguage);
 		}
@@ -201,8 +213,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
-		return new UpgradeAppRecoveryServiceImpl(this,
-				dataLayerFactory.getIOServicesFactory().newIOServices());
+		return upgradeAppRecoveryService;
 	}
 
 	public SystemCheckManager getSystemCheckManager() {
@@ -407,6 +418,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public AppSchemasServices newSchemasServices() {
 		return new AppSchemasServices(this);
+	}
+
+	public CorrectorExcluderManager getCorrectorExcluderManager() {
+		return correctorExcluderManager;
 	}
 
 }

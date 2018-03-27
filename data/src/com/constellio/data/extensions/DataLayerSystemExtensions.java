@@ -2,6 +2,7 @@ package com.constellio.data.extensions;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
+import com.constellio.data.extensions.extensions.configManager.*;
 import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,9 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DataLayerSystemExtensions {
 
 	private static final Logger VAULT_LOGGER = LoggerFactory.getLogger(DataLayerSystemExtensions.class);
@@ -18,10 +22,14 @@ public class DataLayerSystemExtensions {
 	//------------ Extension points -----------
 	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
 	}
+
+	//----------------- Callers ---------------
 
 	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
@@ -67,8 +75,6 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
-	//----------------- Callers ---------------
-
 	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema, final String collection,
 			boolean defaultValue) {
 		return getBooleanValue(getTransactionLogExtensions(), defaultValue, new BooleanCaller<TransactionLogExtension>() {
@@ -83,4 +89,53 @@ public class DataLayerSystemExtensions {
 		return transactionLogExtensions;
 	}
 
+	public void onReadConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.readConfigs(new ReadConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
+
+	public String[] getSupportedExtensionExtensions() {
+		List<String> allExtension = new ArrayList<>();
+		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			allExtension.addAll(extensionExtension.getAdditionalSupportedExtension());
+		}
+		return allExtension.toArray(new String[0]);
+	}
+
+	public ExtensionConverter getConverterForSupportedExtension(String extension) {
+		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			if(extensionExtension.getAdditionalSupportedExtension().contains(extension)) {
+				return extensionExtension.getConverter();
+			}
+		}
+		return null;
+	}
+
+	public void onAddUpdateConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.addUpdateConfig(new AddUpdateConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
+
+	public void onDeleteConfig(final String configPath) {
+		for (ConfigManagerExtension extension : configManagerExtensions) {
+			extension.deleteConfig(new DeleteConfigParams() {
+				@Override
+				public String getConfigPath() {
+					return configPath;
+				}
+			});
+		}
+	}
 }

@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
@@ -38,10 +39,13 @@ Schemas {
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
 	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
+	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
+			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
+	public static final Metadata TOKENS_OF_HIERARCHY = add(new Metadata("tokensHierarchy_ss", STRING, true));
 	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 	public static final Metadata DENY_TOKENS = add(new Metadata("denyTokens_ss", STRING, true));
 	public static final Metadata SHARE_TOKENS = add(new Metadata("shareTokens_ss", STRING, true));

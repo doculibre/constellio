@@ -326,6 +326,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+	public static MetadataBuilderConfigurator whichIsProvidingSecurity = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setRelationshipProvidingSecurity(true);
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsChildOfRelationship = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -888,6 +897,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		zeDefaultSchemaBuilder.create("metadataDefiningSequenceNumber").setType(STRING);
 		zeDefaultSchemaBuilder.create("dynamicSequenceMetadata").defineDataEntry()
 				.asSequenceDefinedByMetadata("metadataDefiningSequenceNumber");
+		return this;
+	}
+
+	public TestsSchemasSetup whichIsIsStoredInDataStore(String dataStore) {
+		zeSchemaTypeBuilder.setDataStore(dataStore);
 		return this;
 	}
 

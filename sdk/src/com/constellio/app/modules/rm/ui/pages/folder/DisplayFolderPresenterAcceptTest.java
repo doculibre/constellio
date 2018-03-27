@@ -107,7 +107,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
 
-		presenter = new DisplayFolderPresenter(displayFolderView);//spy(
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);//spy(
 		presenter.forParams("C30");
 
 		rolesManager = getModelLayerFactory().getRolesManager();
@@ -462,7 +462,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
-		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
 		presenter.forParams("C30");
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
@@ -502,7 +502,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
-		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
 		presenter.forParams("C30");
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
@@ -772,21 +772,21 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
 	}
 
 	private void connectWithAlice() {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
 	}
 
 	private void connectWithChuck() {
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
 	}
 
 	@Test

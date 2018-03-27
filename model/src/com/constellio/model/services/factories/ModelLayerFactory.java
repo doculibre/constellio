@@ -82,8 +82,6 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	BatchProcessesManager getBatchProcessesManager();
 
-	BatchProcessesManager newBatchProcessesManager();
-
 	FoldersLocator getFoldersLocator();
 
 	ContentManager getContentManager();

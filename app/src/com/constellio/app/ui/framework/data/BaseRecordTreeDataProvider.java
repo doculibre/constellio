@@ -70,7 +70,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 			saveResultInCache(searchRecord);
 			recordIds.add(searchRecord.getId());
 		}
-		LOGGER.info("getRoot(" + start + ", " + maxSize + ") => " + recordIds);
+		//LOGGER.info("getRoot(" + start + ", " + maxSize + ") => " + recordIds);
 
 		estimatedRootNodesCount = Math.max(estimatedRootNodesCount, (int) response.getNumFound());
 
@@ -100,7 +100,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 			recordIds.add(searchRecord.getId());
 			parentCache.put(searchRecord.getId(), parent);
 		}
-		LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
+		//LOGGER.info("getChildren(" + parent + ", " + start + ", " + maxSize + ") => " + recordIds);
 
 		RecordDataTreeNode parentTreeNode = nodesCache.get(parent);
 		// FIXME Francis

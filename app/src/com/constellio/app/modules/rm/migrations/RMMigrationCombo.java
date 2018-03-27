@@ -116,7 +116,18 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo7_2_0_4(),
 				new RMMigrationTo7_3(),
 				new RMMigrationTo7_3_1(),
-				new RMMigrationTo7_4()
+				new RMMigrationTo7_4(),
+				new RMMigrationTo7_4_2(),
+				new RMMigrationTo7_4_48(),
+				new RMMigrationTo7_4_48_1(),
+				new RMMigrationTo7_4_49(),
+				new RMMigrationTo7_5(),
+				new RMMigrationTo7_5_2(),
+				new RMMigrationTo7_5_3(),
+				new RMMigrationTo7_5_5(),
+				new RMMigrationTo7_6(),
+				new RMMigrationTo7_6_2(),
+				new RMMigrationTo7_6_3()
 		);
 	}
 
@@ -185,9 +196,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		userTask = userTask.withNewFormMetadata("userTask_default_linkedContainers");
 		userTask = userTask.withNewFormMetadata("userTask_default_reason");
 
-		userTask = userTask.withTableMetadataCodes(
-				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
-						"userTask_default_assignee", "userTask_default_starredByUsers"));
+		userTask = userTask.withTableMetadataCodes(asList("userTask_default_title", "userTask_default_status",
+				"userTask_default_dueDate", "userTask_default_assignee", "userTask_default_assignee",
+				"userTask_default_starredByUsers"));
 		transaction.add(userTask);
 
 		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");
@@ -297,7 +308,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), true);
-			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false);
+			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false)
+					.setHandleDeletionOfUnreferencedHashes(false);
 			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
 					.getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);

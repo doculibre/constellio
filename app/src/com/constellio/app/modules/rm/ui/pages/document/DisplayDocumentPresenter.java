@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.pages.base.BaseView;
+import com.vaadin.ui.Button;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -48,6 +50,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -72,12 +75,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private RMSchemasRecordsServices rm;
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
-	
+	private Record record;
+
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 
-	public DisplayDocumentPresenter(final DisplayDocumentView view) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
@@ -91,6 +95,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+		if (recordVO != null) {
+			forParams(recordVO.getId());
+		}
 	}
 
 	@Override
@@ -103,7 +111,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
-		Record record = getRecord(id);
+		this.record = getRecord(id);
 
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
@@ -114,7 +122,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
+				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -169,6 +178,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
+				if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
+						|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
+					view.refreshContentViewer();
+				}
 			}
 
 			contentVersionVO = documentVO.getContent();
@@ -217,7 +230,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+				.getBetaWorkflow(record.getId());
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
@@ -402,11 +416,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
-	public boolean hasWritePermission()
-	{
+	public boolean hasWritePermission() {
 		return hasWriteAccess;
 	}
 
@@ -427,8 +441,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
-				return rmEventsSearchServices
+				LogicalSearchQuery query = rmEventsSearchServices
 						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+				return query == null ? null : rmEventsSearchServices.exceptEventTypes(query,
+						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
+								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
 			}
 		};
 	}
@@ -457,7 +474,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void updateTaskStarred(boolean isStarred, String taskId, RecordVODataProvider dataProvider) {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = taskSchemas.getTask(taskId);
-		if(isStarred) {
+		if (isStarred) {
 			task.addStarredBy(getCurrentUser().getId());
 		} else {
 			task.removeStarredBy(getCurrentUser().getId());
@@ -470,10 +487,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		dataProvider.fireDataRefreshEvent();
 	}
 
+	public List<Button> getButtonsFromExtension(){
+		return appLayerFactory.getExtensions().forCollection(collection).getDocumentViewButtonExtension(this.record, getCurrentUser());
+	}
+
 	private void addStarredSortToQuery(LogicalSearchQuery query) {
 		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(STARRED_BY_USERS);
 		LogicalSearchQuerySort sortField
-				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
+				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')",
+				false);
 		query.sortFirstOn(sortField);
 	}
 }

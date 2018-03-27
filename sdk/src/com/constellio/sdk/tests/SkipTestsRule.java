@@ -19,6 +19,7 @@ import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.annotations.IgniteTest;
+import com.constellio.sdk.tests.annotations.ImportTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -104,7 +105,7 @@ public class SkipTestsRule implements TestRule {
 			this.skipCloud = !"cloud".equals(properties.get("dao.records.type"));
 			this.skipIgnite = !"ignite".equals(properties.get("dao.cache"));
 
-//			System.out.println("skipAllTests:" + skipAllTests);
+			//			System.out.println("skipAllTests:" + skipAllTests);
 			//			System.out.println("skipSlow:" + skipSlow);
 			//			System.out.println("skipImportTests:" + skipImportTests);
 			//			System.out.println("skipReal:" + skipReal);
@@ -161,6 +162,7 @@ public class SkipTestsRule implements TestRule {
 		SlowTest slowTest = testClass.getAnnotation(SlowTest.class);
 		LoadTest loadTest = testClass.getAnnotation(LoadTest.class);
 		UiTest uiTest = testClass.getAnnotation(UiTest.class);
+		ImportTest importTest = testClass.getAnnotation(ImportTest.class);
 		InternetTest internetTest = testClass.getAnnotation(InternetTest.class);
 		DriverTest driverTest = testClass.getAnnotation(DriverTest.class);
 		PerformanceTest performanceTest = testClass.getAnnotation(PerformanceTest.class);
@@ -168,6 +170,10 @@ public class SkipTestsRule implements TestRule {
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
 		CloudTest cloudTest = testClass.getAnnotation(CloudTest.class);
 		IgniteTest igniteTest = testClass.getAnnotation(IgniteTest.class);
+
+		if (importTest == null && testClass.getSuperclass() != null) {
+			importTest = testClass.getSuperclass().getAnnotation(ImportTest.class);
+		}
 
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
 		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
@@ -191,7 +197,12 @@ public class SkipTestsRule implements TestRule {
 		Class<?> testSuperClass = testClass.getSuperclass();
 		if (!testClassDirectlyTargetted && testSuperClass != null && "ConstellioImportAcceptTest"
 				.equals(testSuperClass.getSimpleName()) && skipImportTests) {
-			System.out.println("Ignore 3");
+			System.out.println("Ignore 3a");
+			return true;
+		}
+
+		if (!testClassDirectlyTargetted && importTest != null && skipImportTests) {
+			System.out.println("Ignore 3b");
 			return true;
 		}
 

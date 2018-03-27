@@ -8,6 +8,7 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -42,6 +43,7 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
@@ -51,12 +53,14 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -66,6 +70,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 
 public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
@@ -134,6 +139,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
 
+				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
+					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
+					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+					cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+					cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+					cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+				}
+
 				RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 				rolesManager.addRole(
 						new Role(zeCollection, ROLE1, "Ze role 1", asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2)));
@@ -170,6 +183,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				setServices();
 				setup.refresh(schemasManager);
 				anothercollectionSetup.refresh(schemasManager);
+
+				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
+					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
+					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+					cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+					cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+					cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+				}
 			}
 		});
 
@@ -271,25 +292,38 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		public BooleanAssert assertHasDeletePermissionOnPrincipalConceptExcludingRecords(
 				String id) {
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, false, schemasManager));
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
+			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, false,
+					recordDeleteServices.loadRecordsHierarchyOf(record), schemasManager));
 		}
 
 		public BooleanAssert assertHasDeletePermissionOnPrincipalConceptIncludingRecords(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, true, schemasManager));
+			return assertThat(services.hasDeletePermissionOnPrincipalConceptHierarchy(getUser(), record, true,
+					recordDeleteServices.loadRecordsHierarchyOf(record), schemasManager));
+
 		}
 
 		public BooleanAssert assertHasRestorePermissionOnHierarchyOf(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasRestaurationPermissionOnHierarchy(getUser(), record));
+			return assertThat(services.hasRestaurationPermissionOnHierarchy(getUser(), record,
+					recordDeleteServices.loadRecordsHierarchyOf(record)));
 		}
 
 		public BooleanAssert assertHasDeletePermissionOnHierarchyOf(
 				String id) {
+			RecordDeleteServices recordDeleteServices = new RecordDeleteServices(
+					getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 			Record record = recordServices.getDocumentById(id);
-			return assertThat(services.hasDeletePermissionOnHierarchy(getUser(), record));
+			return assertThat(services.hasDeletePermissionOnHierarchy(getUser(), record,
+					recordDeleteServices.loadRecordsHierarchyOf(record)));
 		}
 
 		public ListAssert<String> assertThatRecordsWithReadAccess() {

@@ -8,6 +8,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.structures.MapStringStringStructure;
@@ -101,7 +102,7 @@ public class DisplayFacetConfigurationViewImpl extends BaseViewImpl implements D
 	}
 
 	private Component createValuesTable() {
-		Table table = new Table($("DisplayFacetConfiguration.tableTitle"));
+		Table table = new BaseTable(getClass().getName(), $("DisplayFacetConfiguration.tableTitle"));
 		table.addContainerProperty("label", String.class, null);
 		table.addContainerProperty("value", String.class, null);
 		table.setColumnHeader("label", $("DisplayFacetConfiguration.values.label." + presenter.getTypePostfix()));

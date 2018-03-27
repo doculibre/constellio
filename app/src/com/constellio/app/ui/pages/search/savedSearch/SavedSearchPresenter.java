@@ -11,10 +11,12 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchView> {
@@ -93,5 +95,9 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 			view.navigate().to().advancedSearchReplay(recordVO.getId());
 			break;
 		}
+	}
+
+	public boolean hasUserAcessToDeletePublicSearches() {
+		return getCurrentUser().has(CorePermissions.DELETE_PUBLIC_SAVED_SEARCH).globally();
 	}
 }

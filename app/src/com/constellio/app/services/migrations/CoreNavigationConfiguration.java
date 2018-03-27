@@ -1,5 +1,11 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -12,22 +18,16 @@ import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
-import com.constellio.app.ui.pages.viewGroups.PrintableViewGroup;
 import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
 public class CoreNavigationConfiguration implements Serializable {
-	
+
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
@@ -85,6 +85,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
 
+	public static final String STATISTICS = "statistics";
+	public static final String STATISTICS_ICON = "images/icons/config/chart_column.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -94,8 +96,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
-	public static final String TEMPORARY_REPORT = "temporaryRecords";
-	public static final String TEMPORARY_REPORT_ICON = "images/icons/config/hourglass.png";
+	public static final String TEMPORARY_RECORDS = "temporaryRecords";
+	public static final String TEMPORARY_RECORDS_ICON = "images/icons/config/hourglass.png";
 
 	public static final String SEARCH_CONFIG = "searchConfig";
 	public static final String SEARCH_CONFIG_ICON = "images/icons/config/configuration-search.png";
@@ -117,6 +119,17 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
+			}
+		});
+		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(TEMPORARY_RECORDS) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecords();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return ComponentState.visibleIf(user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
 			}
 		});
 	}
@@ -147,6 +160,18 @@ public class CoreNavigationConfiguration implements Serializable {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
 						.has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(STATISTICS, STATISTICS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().statistics();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled());
 			}
 		});
 
@@ -256,7 +281,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 
-//		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(BIG_DATA, BIG_DATA_ICON));
+		//		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(BIG_DATA, BIG_DATA_ICON));
 
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(UPDATE_CENTER, UPDATE_CENTER_ICON) {
 			@Override
@@ -341,7 +366,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
 						.has(user.getUsername());
-				return visibleIf(user.hasAny(CorePermissions.MANAGE_LABELS, CorePermissions.MANAGE_EXCEL_REPORT, CorePermissions.MANAGE_PRINTABLE_REPORT).globally());
+				return visibleIf(user.hasAny(CorePermissions.MANAGE_LABELS, CorePermissions.MANAGE_EXCEL_REPORT,
+						CorePermissions.MANAGE_PRINTABLE_REPORT).globally());
 			}
 		});
 
@@ -367,6 +393,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
+
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ROLES, ROLES_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -435,58 +462,59 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
-//		config.add(AdminView.COLLECTION_SECTION,
-//				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
-//					@Override
-//					public void activate(Navigation navigate) {
-//						navigate.to().searchBoostByMetadatas();
-//					}
-//
-//					@Override
-//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-//						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
-//					}
-//				});
-//		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
-//			@Override
-//			public void activate(Navigation navigate) {
-//				navigate.to().searchBoostByQuerys();
-//			}
-//
-//			@Override
-//			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-//				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
-//			}
-//		});
+		//		config.add(AdminView.COLLECTION_SECTION,
+		//				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
+		//					@Override
+		//					public void activate(Navigation navigate) {
+		//						navigate.to().searchBoostByMetadatas();
+		//					}
+		//
+		//					@Override
+		//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+		//						return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
+		//					}
+		//				});
+		//		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
+		//			@Override
+		//			public void activate(Navigation navigate) {
+		//				navigate.to().searchBoostByQuerys();
+		//			}
+		//
+		//			@Override
+		//			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+		//				return visibleIf(user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally());
+		//			}
+		//		});
 
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_REPORT, TEMPORARY_REPORT_ICON) {
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TEMPORARY_RECORDS, TEMPORARY_RECORDS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to().listTemporaryRecord();
+				navigate.to().listTemporaryRecords();
 			}
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
+						|| user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
+						.globally());
 			}
 		});
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
-//		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-//				new NavigationItem.Active(null, null, PrintableViewGroup.class) {
-//					@Override
-//					public void activate(Navigation navigate) {
-//						navigate.to().viewReport();
-//					}
-//
-//					@Override
-//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-//						return ComponentState.INVISIBLE;
-//					}
-//				});
+		//		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+		//				new NavigationItem.Active(null, null, PrintableViewGroup.class) {
+		//					@Override
+		//					public void activate(Navigation navigate) {
+		//						navigate.to().viewReport();
+		//					}
+		//
+		//					@Override
+		//					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+		//						return ComponentState.INVISIBLE;
+		//					}
+		//				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(HOME, FontAwesome.HOME, RecordsManagementViewGroup.class) {
 					@Override

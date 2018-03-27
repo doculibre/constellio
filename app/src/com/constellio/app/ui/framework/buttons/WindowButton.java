@@ -64,7 +64,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	@Override
 	public void buttonClick(ClickEvent event) {
 		if (window == null || !UI.getCurrent().getWindows().contains(window)) {
-			window = new BaseWindow(getWindowCaption());
+			window = newWindow(getWindowCaption());
 			window.setId(WINDOW_STYLE_NAME);
 			window.addStyleName(WINDOW_STYLE_NAME);
 			window.setModal(configuration.isModal());
@@ -96,6 +96,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 					}
 
 					UI.getCurrent().addWindow(window);
+					this.afterOpenModal();
 				} else {
 					window.close();
 				}
@@ -103,8 +104,15 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 		}
 	}
 	
+	protected BaseWindow newWindow(String windowCaption) {
+		return new BaseWindow(windowCaption);
+	}
+	
 	protected boolean acceptWindowOpen(ClickEvent event) {
 		return true;
+	}
+	public void afterOpenModal ( ){
+
 	}
 
 	public WindowConfiguration getConfiguration() {

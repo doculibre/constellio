@@ -1,17 +1,20 @@
 package com.constellio.model.entities.security;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import java.util.*;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 public class XMLAuthorizationDetails implements AuthorizationDetails {
 
@@ -139,6 +142,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	@Override
 	public String getTarget() {
+		return null;
+	}
+
+	@Override
+	public String getTargetSchemaType() {
 		return null;
 	}
 

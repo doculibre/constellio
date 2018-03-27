@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,8 +46,8 @@ public class RecordWrapper implements Serializable, CollectionObject {
 			throw new WrappedRecordMustMeetRequirements(schemaCode, typeRequirement);
 		}
 		if (record.getCollection() != null && types.getCollection() != null
-				&& !record.getCollection().equals(types.getCollection())){
-			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame();
+				&& !record.getCollection().equals(types.getCollection())) {
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(), record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
@@ -64,6 +65,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	public Integer getInteger(String localCode) {
 		Number value = get(localCode);
 		return value == null ? null : value.intValue();
+	}
+
+	public int getPrimitiveInteger(String localCode) {
+		Number value = get(localCode);
+		return value == null ? 0 : value.intValue();
 	}
 
 	public <T> T get(Metadata metadata) {
@@ -115,6 +121,36 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
 		Metadata metadata = types.getMetadata(code);
 		wrappedRecord.set(metadata, value);
+		return (W) this;
+	}
+
+	public <T, W extends RecordWrapper> W add(String localCode, T... newValues) {
+		ensureConnected();
+		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
+		Metadata metadata = types.getMetadata(code);
+		List<Object> values = new ArrayList<>(wrappedRecord.getList(metadata));
+
+		for (T newValue : newValues) {
+			if (newValue != null) {
+				Object convertedValue;
+				if (newValue instanceof Record) {
+					convertedValue = ((Record) newValue).getId();
+
+				} else if (newValue instanceof RecordWrapper) {
+					convertedValue = ((RecordWrapper) newValue).getId();
+
+				} else {
+					convertedValue = newValue;
+				}
+
+				if (!values.contains(convertedValue)) {
+					values.add(convertedValue);
+				}
+			}
+
+		}
+		set(metadata, values);
+
 		return (W) this;
 	}
 

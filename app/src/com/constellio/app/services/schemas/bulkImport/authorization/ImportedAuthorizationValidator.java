@@ -18,13 +18,24 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidRole;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class ImportedAuthorizationValidator {
 
 	public static final List<String> VALID_ACCESS_LIST = asList("r", "w", "d", "rw", "rd", "rwd");
 	public static final List<String> VALID_ROLES = asList("u", "m", "rgd");
-	public static final List<String> VALID_TARGET_TYPES = asList("folder", "document", "administrativeUnit", "userTask");
 	public static final List<String> VALID_PRINCIPAL_TYPES = asList("user", "group");
+
+	Taxonomy principalTaxonomy;
+	MetadataSchemaTypes types;
+
+	public ImportedAuthorizationValidator(MetadataSchemaTypes types, Taxonomy principalTaxonomy) {
+		this.types = types;
+		this.principalTaxonomy = principalTaxonomy;
+	}
 
 	public void validate(ImportedAuthorization importedAuthorization) {
 		validateId(importedAuthorization);
@@ -79,9 +90,29 @@ public class ImportedAuthorizationValidator {
 
 	private void validateTarget(ImportedAuthorizationTarget target) {
 		String targetType = target.getType();
-		if (targetType == null || !VALID_TARGET_TYPES.contains(targetType.trim())) {
+		if (targetType == null || !types.hasType(targetType)) {
 			throw new ImportedAuthorizationValidatorRuntimeException_InvalidTargetType();
 		}
+
+		MetadataSchemaType schemaType = types.getSchemaType(targetType);
+		if (!schemaType.hasSecurity()) {
+
+			boolean principalTaxonomySchemaType =
+					principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(targetType);
+
+			if (!principalTaxonomySchemaType) {
+				boolean hasMetadataProvidingSecurityFromThisType = false;
+				for (Metadata metadata : types.getAllMetadatas().onlyReferencesToType(targetType)) {
+					hasMetadataProvidingSecurityFromThisType |= metadata.isRelationshipProvidingSecurity();
+				}
+
+				if (!hasMetadataProvidingSecurityFromThisType) {
+					throw new ImportedAuthorizationValidatorRuntimeException_InvalidTargetType();
+				}
+			}
+
+		}
+
 		String legacyId = target.getLegacyId();
 		if (StringUtils.isBlank(legacyId)) {
 			throw new ImportedAuthorizationValidatorRuntimeException_EmptyLegacyId();

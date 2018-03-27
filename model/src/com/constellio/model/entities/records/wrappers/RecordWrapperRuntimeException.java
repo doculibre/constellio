@@ -24,8 +24,29 @@ public class RecordWrapperRuntimeException extends RuntimeException {
 
 	public static class WrappedRecordAndTypesCollectionMustBeTheSame extends RecordWrapperRuntimeException {
 
-		public WrappedRecordAndTypesCollectionMustBeTheSame() {
+		private String recordId;
+
+		private String recordCollection;
+
+		private String typesCollection;
+
+		public WrappedRecordAndTypesCollectionMustBeTheSame(String recordId, String recordCollection, String typesCollection) {
 			super("Wrapped record collection must be the same as the given schema types");
+			this.recordId = recordId;
+			this.recordCollection = recordCollection;
+			this.typesCollection = typesCollection;
+		}
+
+		public String getRecordId() {
+			return recordId;
+		}
+
+		public String getRecordCollection() {
+			return recordCollection;
+		}
+
+		public String getTypesCollection() {
+			return typesCollection;
 		}
 	}
 

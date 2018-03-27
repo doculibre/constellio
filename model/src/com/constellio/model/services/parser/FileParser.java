@@ -5,7 +5,11 @@ import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARS
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +131,7 @@ public class FileParser {
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
 			throws FileParserException {
 
-		Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
+		//Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
 		Pattern patternForSpaceAndReturn = Pattern.compile("((\\n{3,})|( ){2,})|(\\t)");
 		Pattern patternForCharWeDontWant = Pattern.compile("[\\[\\]\\(\\)]");
 		Pattern patternForSingleCharLine = Pattern.compile("^([\\w]){1}\\n$");
@@ -178,7 +182,7 @@ public class FileParser {
 
 		String type = metadata.get(Metadata.CONTENT_TYPE);
 		String parsedContent = handler.toString().trim();
-		parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
+		//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
 		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
 		Map<String, Object> properties = getPropertiesHashMap(metadata, type);

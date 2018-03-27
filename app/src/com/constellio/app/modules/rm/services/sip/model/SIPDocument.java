@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class SIPDocument extends SIPFicheMetadonnees implements SIPObject {
+public class SIPDocument extends SIPMetadataObject implements SIPObject {
 
     private SIPFolder folder;
 

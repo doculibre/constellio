@@ -194,6 +194,17 @@ public class RetentionRule extends RecordWrapper {
 		return null;
 	}
 
+
+	public CopyRetentionRule getCopyRetentionRuleWithId(String id) {
+		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
+			if (id.equals(copyRetentionRule.getId())) {
+				return copyRetentionRule;
+			}
+		}
+
+		return null;
+	}
+
 	public CopyRetentionRule getCopyRetentionRuleByString(String copyRule) {
 		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
 			if (copyRule.equals(copyRetentionRule.toString())) {

@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class HasChildrenQueryHandler {
@@ -22,6 +23,7 @@ public class HasChildrenQueryHandler {
 
 	String cacheMode;
 
+	SearchServices searchServices;
 	TaxonomiesSearchServices services;
 
 	LogicalSearchQuery facetQuery;
@@ -33,10 +35,11 @@ public class HasChildrenQueryHandler {
 	SPEQueryResponse response;
 
 	public HasChildrenQueryHandler(String username, String cacheMode,
-			TaxonomiesSearchServices services, LogicalSearchQuery facetQuery) {
+			TaxonomiesSearchServices services, SearchServices searchServices, LogicalSearchQuery facetQuery) {
 		this.username = username;
 		this.cacheMode = cacheMode;
 
+		this.searchServices = searchServices;
 		this.services = services;
 		this.facetQuery = facetQuery;
 		this.taxonomy = taxonomy;
@@ -46,7 +49,7 @@ public class HasChildrenQueryHandler {
 		if (response != null) {
 			throw new IllegalStateException("Cannot add record to check after the execution of the query");
 		}
-		Boolean cachedValue = services.cache.getCachedValue(username, record.getId(), cacheMode);
+		Boolean cachedValue = services.getCache().getCachedValue(username, record.getId(), cacheMode);
 		cachedValues.put(record.getId(), cachedValue);
 		if (cachedValue == null) {
 			calculatedIds.add(record.getId());
@@ -64,7 +67,7 @@ public class HasChildrenQueryHandler {
 			query();
 
 			boolean hasChildren = response.getQueryFacetCount(facetQueryFor(record)) > 0;
-			services.cache.insert(username, record.getId(), cacheMode, hasChildren);
+			services.getCache().insert(username, record.getId(), cacheMode, hasChildren);
 			return hasChildren;
 		} else {
 			return cachedValue;
@@ -78,7 +81,7 @@ public class HasChildrenQueryHandler {
 				facetQuery.setName("HasChildrenQueryHandler:hasChildren(" + join(calculatedIds.toArray(), ", ") + ")");
 			}
 
-			response = services.searchServices.query(facetQuery);
+			response = searchServices.query(facetQuery);
 		}
 		return response;
 	}

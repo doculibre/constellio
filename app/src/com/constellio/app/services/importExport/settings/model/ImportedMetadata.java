@@ -44,8 +44,11 @@ public class ImportedMetadata {
 	private Boolean sortable;
 	private Boolean unmodifiable;
 	private Boolean advanceSearchable;
+	private Boolean relationshipProvidingSecurity;
 
 	private ImportedDataEntry dataEntry;
+
+	private ImportedMetadataPopulateConfigs populateConfigs = null;
 
 	public String getCode() {
 		return code;
@@ -166,6 +169,15 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
 		this.essentialInSummary = essentialInSummary;
+		return this;
+	}
+
+	public Boolean getRelationshipProvidingSecurity() {
+		return relationshipProvidingSecurity;
+	}
+
+	public ImportedMetadata setRelationshipProvidingSecurity(Boolean relationshipProvidingSecurity) {
+		this.relationshipProvidingSecurity = relationshipProvidingSecurity;
 		return this;
 	}
 
@@ -319,6 +331,21 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setReferencedType(String referencedType) {
 		this.referencedType = referencedType;
+		return this;
+	}
+
+	public ImportedMetadataPopulateConfigs getPopulateConfigs() {
+		return populateConfigs;
+	}
+
+	public ImportedMetadataPopulateConfigs newPopulateConfigs() {
+		populateConfigs = new ImportedMetadataPopulateConfigs();
+		return populateConfigs;
+	}
+
+	public ImportedMetadata setPopulateConfigs(
+			ImportedMetadataPopulateConfigs populateConfigs) {
+		this.populateConfigs = populateConfigs;
 		return this;
 	}
 

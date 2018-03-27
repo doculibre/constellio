@@ -6,14 +6,21 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
@@ -25,6 +32,7 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
@@ -32,8 +40,38 @@ import com.constellio.model.services.security.roles.Roles;
 public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public SchemasRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory) {
-		super(collection, modelLayerFactory);
+			final ModelLayerFactory modelLayerFactory) {
+		super(collection, toModelLayerFactoryFactory(modelLayerFactory));
+	}
+
+	private static Factory<ModelLayerFactory> toModelLayerFactoryFactory(final ModelLayerFactory modelLayerFactory) {
+		if (modelLayerFactory instanceof ModelLayerFactoryWithRequestCacheImpl) {
+			return modelLayerFactory.getModelLayerFactoryFactory();
+		} else {
+			return new Factory<ModelLayerFactory>() {
+				@Override
+				public ModelLayerFactory get() {
+					return modelLayerFactory;
+				}
+			};
+		}
+	}
+
+	private SchemasRecordsServices(String collection,
+			final Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+		super(collection, modelLayerFactoryFactory);
+	}
+
+	public static SchemasRecordsServices usingMainModelLayerFactory(String collection,
+			final ModelLayerFactory modelLayerFactory) {
+
+		return new SchemasRecordsServices(collection, new Factory<ModelLayerFactory>() {
+
+			@Override
+			public ModelLayerFactory get() {
+				return modelLayerFactory;
+			}
+		});
 	}
 
 	public MetadataSchemaType collectionSchemaType() {
@@ -219,6 +257,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new ExportAudit(create(getTypes().getSchema(ExportAudit.FULL_SCHEMA)), getTypes());
 	}
 
+	public BatchProcessReport newBatchProcessReport() {
+		return new BatchProcessReport(create(getTypes().getSchema(BatchProcessReport.FULL_SCHEMA)), getTypes());
+	}
+
 	//Groups
 
 	public MetadataSchema groupSchema() {
@@ -239,10 +281,6 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 			users.add(new Group(record, getTypes()));
 		}
 		return users;
-	}
-
-	public Group getGroup(String id) {
-		return new Group(get(id), getTypes());
 	}
 
 	public Group newGroup() {
@@ -364,10 +402,6 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return users;
 	}
 
-	public User getUser(String id) {
-		return new User(get(id), getTypes(), getRoles());
-	}
-
 	public User newUser() {
 		return new User(create(userSchema()), getTypes(), getRoles());
 	}
@@ -395,4 +429,67 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
+	public List<SolrAuthorizationDetails> getAllAuthorizations() {
+		return wrapSolrAuthorizationDetailss(
+				getModelLayerFactory().newSearchServices().getAllRecords(authorizationDetails.schemaType()));
+	}
+
+	public List<User> getAllUsers() {
+		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecords(user.schemaType()));
+	}
+
+	public List<Group> getAllGroups() {
+		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecords(group.schemaType()));
+	}
+
+	public List<Report> getAllReports() {
+		return wrapReports(getModelLayerFactory().newSearchServices().getAllRecords(report.schemaType()));
+	}
+
+	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+		for (SolrAuthorizationDetails authorizationDetails : getAllAuthorizations()) {
+			if (authorizationDetails.getId().equals(id)) {
+				return authorizationDetails;
+			}
+		}
+
+		return null;
+	}
+
+	public User getUser(String id) {
+		for (User user : getAllUsers()) {
+			if (user.getId().equals(id)) {
+				return user;
+			}
+		}
+
+		return null;
+	}
+
+	public Group getGroup(String id) {
+		for (Group group : getAllGroups()) {
+			if (group.getId().equals(id)) {
+				return group;
+			}
+		}
+
+		return null;
+	}
+
+	public List<Capsule> getAllCapsules() {
+		return wrapCapsules(getModelLayerFactory().newSearchServices().getAllRecords(capsule.schemaType()));
+	}
+
+	public BatchProcessReport wrapBatchProcessReport(Record record) {
+		return record == null ? null : new BatchProcessReport(record, getTypes());
+	}
+
+	public List<BatchProcessReport> wrapBatchProcessReports(List<Record> records) {
+		List<BatchProcessReport> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new BatchProcessReport(record, getTypes()));
+		}
+
+		return wrapped;
+	}
 }

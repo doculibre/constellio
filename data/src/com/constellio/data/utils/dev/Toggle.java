@@ -39,6 +39,16 @@ public class Toggle {
 
 	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
 
+	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
+
+	public static AvailableToggle AUDIT_EVENTS = newToggle(true);
+
+	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(false);
+
+	public static AvailableToggle ALL_CONNECTORS_DISABLED = newToggle(false);
+	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
+	public static AvailableToggle LOG_CONNECTOR_INFOS_WARNINGS_ERRORS_IN_CONSOLE = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
@@ -126,6 +136,10 @@ public class Toggle {
 
 		public void disable() {
 			enabled = false;
+		}
+
+		public String getId() {
+			return id;
 		}
 	}
 }

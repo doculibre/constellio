@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
@@ -18,6 +20,7 @@ import org.vaadin.addons.lazyquerycontainer.Query;
 import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -25,6 +28,8 @@ import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
@@ -49,7 +54,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -74,7 +78,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
 	private ConverterWithCache<String, T> itemConverter;
-	private int treeBufferSize = 20;
+	private ConstellioEIMConfigs configs;
 
 	protected boolean isShowDeactivated = true;
 
@@ -105,11 +109,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public int getTreeBufferSize() {
-		return treeBufferSize;
-	}
-
-	public void setTreeBufferSize(int treeBufferSize) {
-		this.treeBufferSize = treeBufferSize;
+		if(configs == null) {
+			configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
+		}
+		return configs.getLazyTreeBufferSize();
 	}
 
 	@Override
@@ -117,12 +120,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 
-		final int autoCompleteBuffer = 15;
-
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
 			public List<T> suggest(String text) {
-				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, autoCompleteBuffer));
+				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
 				if (itemConverter != null) {
 					Collections.sort(values, new Comparator<T>() {
 						@Override
@@ -136,9 +137,12 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				return values;
 			}
 
+
 			@Override
 			public int getBufferSize() {
-				return autoCompleteBuffer;
+				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
@@ -180,7 +184,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 		});
 
-		HorizontalLayout mainLayout = new HorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
+		I18NHorizontalLayout mainLayout = new I18NHorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
@@ -306,7 +310,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	protected class LookupWindowContent extends VerticalLayout {
 
-		private HorizontalLayout searchFieldLayout;
+		private I18NHorizontalLayout searchFieldLayout;
 
 		private TextField searchField;
 
@@ -330,7 +334,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			addStyleName(LOOKUP_WINDOW_CONTENT_STYLE_NAME);
 			setSpacing(true);
 
-			searchFieldLayout = new HorizontalLayout();
+			searchFieldLayout = new I18NHorizontalLayout();
 			searchFieldLayout.setWidthUndefined();
 			searchFieldLayout.setSpacing(true);
 
@@ -358,7 +362,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					lookupTreeComponent = new TabSheet();
 				}
 				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
-					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, treeBufferSize);
+					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, getTreeBufferSize());
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 					lazyTree.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
@@ -394,7 +398,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 			}
 
-			searchResultsTable = new Table();
+			searchResultsTable = new BaseTable(UUID.randomUUID().toString());
 			searchResultsTable.setWidth("100%");
 			searchResultsTable.setHeight("98%");
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);

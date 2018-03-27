@@ -5,15 +5,15 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 
 public class XMLConfiguration implements Serializable {
 
@@ -35,7 +35,6 @@ public class XMLConfiguration implements Serializable {
 
 	private String toXml(Document document) {
 		XMLOutputter xmlOutput = new XMLOutputter();
-		xmlOutput.setFormat(Format.getPrettyFormat());
 		return xmlOutput.outputString(document);
 	}
 
@@ -62,6 +61,10 @@ public class XMLConfiguration implements Serializable {
 	}
 
 	public Document getDocument() {
+		if (document == null) {
+			document = toDocument(xml);
+		}
+
 		return document.clone();
 	}
 

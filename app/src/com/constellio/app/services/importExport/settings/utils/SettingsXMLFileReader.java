@@ -1,17 +1,49 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.*;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -80,10 +112,11 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private ImportedCollectionSettings readCollectionSetting(Element collectionElement) {
 		String collectionCode = collectionElement.getAttributeValue(CODE);
-		if(SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
+		if (SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
 			collectionCode = currentCollection;
-			if(currentCollection.equals(null)) {
-				throw new RuntimeException("ERROR: tried to import settings as currentCollection but currentCollection was not set");
+			if (currentCollection.equals(null)) {
+				throw new RuntimeException(
+						"ERROR: tried to import settings as currentCollection but currentCollection was not set");
 			}
 		}
 		return new ImportedCollectionSettings().setCode(collectionCode)
@@ -213,6 +246,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			importedMetadata.setDuplicable(Boolean.parseBoolean(element.getAttributeValue(DUPLICABLE)));
 		}
 
+		if (element.getAttribute(RELATIONSHIP_PROVIDING_SECURITY) != null) {
+			importedMetadata.setRelationshipProvidingSecurity(Boolean.parseBoolean(element.getAttributeValue(RELATIONSHIP_PROVIDING_SECURITY)));
+		}
+
 		if (element.getAttribute(REFERENCED_TYPE) != null) {
 			importedMetadata.setReferencedType(element.getAttributeValue(REFERENCED_TYPE));
 		}
@@ -222,12 +259,12 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(ENABLED_IN) != null &&
-				StringUtils.isNotBlank(element.getAttributeValue(ENABLED_IN))) {
+				isNotBlank(element.getAttributeValue(ENABLED_IN))) {
 			importedMetadata.setEnabledIn(toListOfString(element.getAttributeValue(ENABLED_IN)));
 		}
 
 		if (element.getAttribute(INPUT_MASK) != null &&
-				StringUtils.isNotBlank(element.getAttributeValue(INPUT_MASK))) {
+				isNotBlank(element.getAttributeValue(INPUT_MASK))) {
 			importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
 		}
 
@@ -240,7 +277,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(REQUIRED_IN) != null &&
-				StringUtils.isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
+				isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
 			importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
 		}
 
@@ -265,7 +302,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_RESULT_IN) != null &&
-				StringUtils.isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
+				isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
 			importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
 		}
 
@@ -278,8 +315,20 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_TABLES_IN) != null &&
-				StringUtils.isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
+				isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
 			importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
+		}
+
+		if (element.getChild(POPULATE_CONFIGS) != null) {
+			importedMetadata.newPopulateConfigs();
+			for (Element regexElement : element.getChild(POPULATE_CONFIGS).getChildren(POPULATE_CONFIGS_REGEX)) {
+				ImportedRegexConfigs configs = new ImportedRegexConfigs();
+				configs.setInputMetadata(regexElement.getAttributeValue(POPULATE_CONFIGS_REGEX_INPUT_METADATA));
+				configs.setRegex(regexElement.getAttributeValue(POPULATE_CONFIGS_REGEX_PATTERN));
+				configs.setValue(regexElement.getAttributeValue(POPULATE_CONFIGS_REGEX_VALUE));
+				configs.setRegexConfigType(regexElement.getAttributeValue(POPULATE_CONFIGS_REGEX_TYPE));
+				importedMetadata.getPopulateConfigs().addRegexConfigs(configs);
+			}
 		}
 
 		return importedMetadata;
@@ -333,7 +382,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	}
 
 	private List<String> toListOfString(String stringValue) {
-		if (StringUtils.isNotBlank(stringValue)) {
+		if (isNotBlank(stringValue)) {
 			return asList(StringUtils.split(stringValue, ","));
 		}
 		return new ArrayList<>();
@@ -410,7 +459,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private List<String> getValueListClassifiedTypes(String stringValue) {
 		List<String> classifiedTypes = new ArrayList<>();
-		if (StringUtils.isNotBlank(stringValue)) {
+		if (isNotBlank(stringValue)) {
 			classifiedTypes.addAll(asList(StringUtils.split(stringValue, ',')));
 		}
 		return classifiedTypes;

@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.model.validators;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,14 +21,15 @@ public class FolderValidator implements RecordValidator {
 	public static final String FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE = "folderUniformSubdivisionMustBeRelatedToItsRule";
 	public static final String FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE = "folderOpeningDataGreaterThanClosingDate";
 	public static final String FOLDER_INVALID_COPY_RETENTION_RULE = "folderInvalidCopyRetentionRule";
+	public static final String COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL = "copyRetentionRuleCopyTypeMustBePrincipal";
+	public static final String COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY = "copyRetentionRuleCopyTypeMustBeSecondary";
+
 	public static final String RULE_CODE = "ruleCode";
 	public static final String CATEGORY_CODE = "categoryCode";
 	public static final String UNIFORM_SUBDIVISION = "categoryCode";
 	public static final String OPENING_DATE = "openingDate";
 	public static final String CLOSING_DATE = "closingDate";
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
-
-	public static final String PREFIX = "prefix";
 
 	@Override
 	public void validate(RecordValidatorParams params) {
@@ -35,6 +39,7 @@ public class FolderValidator implements RecordValidator {
 
 	private void validate(Folder folder, RecordValidatorParams params) {
 		RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
+		boolean hasParentFolder = folder.getParentFolder() != null;
 		String uniformSubdivisionId = folder.getUniformSubdivision();
 		Boolean areUniformSubdivisionEnabled = (Boolean) params.getConfigProvider().get(RMConfigs.UNIFORM_SUBDIVISION_ENABLED);
 		String mainCopyRuleIdEntered = folder.getMainCopyRuleIdEntered();
@@ -47,7 +52,6 @@ public class FolderValidator implements RecordValidator {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(RULE_CODE, retentionRule.getCode());
 				parameters.put(UNIFORM_SUBDIVISION, uniformSubdivision.getCode());
-				parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 				params.getValidationErrors()
 						.add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
@@ -58,7 +62,6 @@ public class FolderValidator implements RecordValidator {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(RULE_CODE, retentionRule.getCode());
 				parameters.put(CATEGORY_CODE, category.getCode());
-				parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 				params.getValidationErrors().add(FolderValidator.class, FOLDER_CATEGORY_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			}
@@ -68,12 +71,11 @@ public class FolderValidator implements RecordValidator {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(OPENING_DATE, folder.getOpeningDate());
 			parameters.put(CLOSING_DATE, folder.getCloseDate());
-			parameters.put(PREFIX, formatToParameter(folder.getTitle() + " (" + folder.getId() + ")", " : "));
 
 			params.getValidationErrors().add(FolderValidator.class, FOLDER_OPENING_DATE_GREATER_THAN_CLOSING_DATE, parameters);
 		}
 
-		if (mainCopyRuleIdEntered != null && retentionRule != null) {
+		if (mainCopyRuleIdEntered != null && retentionRule != null && !hasParentFolder) {
 			boolean match = false;
 			for (CopyRetentionRule applicableCopyRule : folder.getApplicableCopyRules()) {
 				if (mainCopyRuleIdEntered.equals(applicableCopyRule.getId())) {
@@ -82,24 +84,38 @@ public class FolderValidator implements RecordValidator {
 				}
 			}
 			if (!match) {
+				CopyRetentionRule copyRetentionRule = retentionRule.getCopyRetentionRuleWithId(mainCopyRuleIdEntered);
+
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(MAIN_COPY_RULE, mainCopyRuleIdEntered.toString());
 				parameters.put(RULE_CODE, retentionRule.getCode());
 
-				params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
+				if (copyRetentionRule != null && copyRetentionRule.getCopyType() == PRINCIPAL
+						&& folder.getCopyStatus() == SECONDARY) {
+
+					params.getValidationErrors()
+							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY, parameters);
+				} else if (copyRetentionRule != null && copyRetentionRule.getCopyType() == SECONDARY
+						&& folder.getCopyStatus() == PRINCIPAL) {
+					params.getValidationErrors()
+							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL, parameters);
+
+				} else {
+					params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);
+				}
 			}
 		}
 	}
 
 	private String formatToParameter(Object parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
 	private String formatToParameter(Object parameter, String suffix) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return formatToParameter(parameter);
 		} else {
 			return formatToParameter(parameter) + suffix;

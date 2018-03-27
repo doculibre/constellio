@@ -27,7 +27,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 	}
 
 	public DeleteWithJustificationButton(boolean iconOnly) {
-		this(DeleteButton.CAPTION, iconOnly);
+		this($(DeleteButton.CAPTION), iconOnly);
 	}
 
 	public DeleteWithJustificationButton() {
@@ -36,7 +36,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-		Label message = new Label($("DeleteWithJustificationButton.pleaseConfirm"));
+		Label message = new Label(getConfirmDialogMessage());
 		final TextArea reason = new BaseTextArea();
 		reason.setId(DELETION_REASON);
 		reason.setWidth("90%");
@@ -84,5 +84,9 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 
 	protected void deletionCancelled() {
 		// Do nothing by default
+	}
+
+	protected String getConfirmDialogMessage() {
+		return $("DeleteWithJustificationButton.pleaseConfirm");
 	}
 }

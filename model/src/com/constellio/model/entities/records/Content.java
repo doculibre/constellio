@@ -37,6 +37,8 @@ public interface Content extends ModifiableStructure {
 
 	Content cancelCheckOut();
 
+	Content checkInWithModificationAndNameInSameVersion(ContentVersionDataSummary newVersion, String name);
+
 	Content checkInWithModification(ContentVersionDataSummary newVersion, boolean finalized);
 
 	Content checkInWithModificationAndName(ContentVersionDataSummary newVersion, boolean finalized, String name);
@@ -64,6 +66,8 @@ public interface Content extends ModifiableStructure {
 	Content updateCheckedOutContentWithName(ContentVersionDataSummary newVersion, String name);
 
 	Content finalizeVersion();
+
+	Content updateMinorVersion();
 
 	ContentVersion getVersion(String version);
 

@@ -1,5 +1,7 @@
 package com.constellio.model.services.migrations;
 
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,7 +94,11 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration DEFAULT_TAXONOMY;
 
+	public static final SystemConfiguration TAXONOMY_ORDER_IN_HOME_VIEW;
+
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
+
+	public static final SystemConfiguration AUTOCOMPLETE_SIZE;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
@@ -100,7 +106,13 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT;
 
-	public static final SystemConfiguration ADVANCED_SEARCH_CONFIGS;
+	public static final SystemConfiguration MEMORY_CONSUMPTION_LEVEL;
+
+	public static final SystemConfiguration CONTENT_PARSING_SCHEDULE;
+	public static final SystemConfiguration VIEWER_CONTENTS_CONVERSION_SCHEDULE;
+	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
+	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
+	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -140,8 +152,13 @@ public class ConstellioEIMConfigs {
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
+		add(TAXONOMY_ORDER_IN_HOME_VIEW = others.createString("taxonomyOrderInHomeView"));
+
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
+
+		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
+				.scriptedBy(AutocompleteSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -158,9 +175,6 @@ public class ConstellioEIMConfigs {
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
-		add(ADVANCED_SEARCH_CONFIGS = search.createBooleanFalseByDefault("elevationSynonym").whichIsHidden());
-
-		//
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
 		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));
@@ -185,6 +199,25 @@ public class ConstellioEIMConfigs {
 		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
 				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
+		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
+				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
+
+		add(CONTENT_PARSING_SCHEDULE = advanced.createString("contentParsingSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		add(VIEWER_CONTENTS_CONVERSION_SCHEDULE = advanced.createString("viewerConversionSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
+				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		add(BATCH_PROCESSES_SCHEDULE = advanced.createString("batchProcessesSchedule")
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+
+		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
+
+		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -196,6 +229,10 @@ public class ConstellioEIMConfigs {
 
 	public ConstellioEIMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public ConstellioEIMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
 	}
 
 	public MetadataPopulatePriority getMetadataPopulatePriority() {
@@ -305,6 +342,24 @@ public class ConstellioEIMConfigs {
 
 	}
 
+	public static class AutocompleteSizeValidationScript extends AbstractSystemConfigurationScript<Integer> {
+
+		@Override
+		public void validate(Integer newValue, ValidationErrors errors) {
+			int max = 100;
+			if (newValue < 0 || newValue > 100) {
+				errors.add(LazyTreeBufferSizeValidationScript.class, "invalidAutocompleteSize", max(max));
+			}
+		}
+
+		private Map<String, Object> max(int max) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("maxValue", max);
+			return parameters;
+		}
+
+	}
+
 	public boolean getIcapScanActivated() {
 		return manager.getValue(ICAP_SCAN_ACTIVATED);
 	}
@@ -337,6 +392,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(LAZY_TREE_BUFFER_SIZE);
 	}
 
+	public int getAutocompleteSize() {
+		return manager.getValue(AUTOCOMPLETE_SIZE);
+	}
+
 	public boolean isIncludeContentsInSavestate() {
 		return manager.getValue(INCLUDE_CONTENTS_IN_SAVESTATE);
 	}
@@ -345,6 +404,32 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
+	public String getTaxonomyOrderInHomeView() {
+		return manager.getValue(TAXONOMY_ORDER_IN_HOME_VIEW);
+	}
 	//public int getDefaultFontSize() { return manager.getValue(DEFAULT_FONT_SIZE); }
 
+	public MemoryConsumptionLevel getMemoryConsumptionLevel() {
+		return manager.getValue(MEMORY_CONSUMPTION_LEVEL);
+	}
+
+	public boolean isInContentParsingSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(CONTENT_PARSING_SCHEDULE));
+	}
+
+	public boolean isInUnreferencedContentsDeleteSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(UNREFERENCED_CONTENTS_DELETE_SCHEDULE));
+	}
+
+	public boolean isInViewerContentsConversionSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
+	}
+
+	public boolean isInBatchProcessesSchedule() {
+		return isCurrentlyInSchedule(manager.<String>getValue(BATCH_PROCESSES_SCHEDULE));
+	}
+
+	public boolean isStatisticReportEnabled() {
+		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
 }

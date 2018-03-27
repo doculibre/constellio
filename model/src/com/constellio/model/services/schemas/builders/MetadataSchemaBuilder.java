@@ -359,7 +359,13 @@ public class MetadataSchemaBuilder {
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
-				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
+				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
+				schemaTypeBuilder.getDataStore());
+	}
+
+	public String getTypeCode() {
+
+		return schemaTypeBuilder.getCode();
 	}
 
 	private static class SchemaRecordSteps {
@@ -524,7 +530,7 @@ public class MetadataSchemaBuilder {
 			}
 		}
 
-//		for (Metadata metadata : metadatas) {
+		//		for (Metadata metadata : metadatas) {
 		//			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
 		//				if (!metadata.isGlobal()) {
 		//					System.out.println(metadata.getLocalCode());
@@ -566,8 +572,8 @@ public class MetadataSchemaBuilder {
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas,
-				this.isUndeletable(),
-				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
+				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
+				, schemaTypeBuilder.getDataStore());
 	}
 
 	public boolean isInheriting() {

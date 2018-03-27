@@ -66,7 +66,7 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 		String schemaCode = metadataVO.getSchema().getCode();
 		if (Email.SCHEMA.equals(schemaCode)) {
 			List<String> readOnlyMetadataCodes = Arrays.asList(Email.EMAIL_ATTACHMENTS_LIST, Email.EMAIL_BCC_TO,
-					Email.EMAIL_CC_TO, Email.EMAIL_CONTENT, Email.EMAIL_FROM, Email.EMAIL_IN_NAME_OF, Email.EMAIL_OBJECT,
+					Email.EMAIL_CC_TO, Email.EMAIL_FROM, Email.EMAIL_IN_NAME_OF, Email.EMAIL_OBJECT,
 					Email.EMAIL_RECEIVED_ON, Email.EMAIL_RECEIVED_ON, Email.EMAIL_SENT_ON, Email.EMAIL_TO);
 			String metadataCode = metadataVO.getCode();
 			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);

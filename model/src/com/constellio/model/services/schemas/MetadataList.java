@@ -238,9 +238,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 	public MetadataList onlyReferencesToType(String schemaTypeCode) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().getTypeWithAllowedSchemas()
-					.equals(
-							schemaTypeCode)) {
+			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getReferencedSchemaType().equals(schemaTypeCode)) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -251,6 +249,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.isDefaultRequirement()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyAggregations() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -586,6 +594,15 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	//	public List<Metadata> onlyDeclaredAtDependencyLevel(int dependencyLevel, MetadataSchemaTypes types) {
+	//		List<Metadata> filteredMetadatasList = new ArrayList<>();
+	//
+	//		for (Metadata metadata : nestedList) {
+	//			types.getMetadataNetwork().g
+	//		}
+	//		return new MetadataList(filteredMetadatasList).unModifiable();
+	//	}
+
 	public List<Metadata> onlyMarkedForDeletion() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -595,4 +612,5 @@ public class MetadataList implements List<Metadata>, Serializable {
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
+
 }

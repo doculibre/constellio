@@ -1,5 +1,6 @@
 package com.constellio.app.ui.application;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,12 +17,19 @@ import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresent
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.Window;
 
 public class CoreViews {
 	protected Navigator navigator;
 
 	public CoreViews(Navigator navigator) {
 		this.navigator = navigator;
+	}
+
+	public void closeAllWindows() {
+		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+			window.close();
+		}
 	}
 
 	public String getState() {
@@ -31,6 +39,10 @@ public class CoreViews {
 	public void previousView() {
 		JavaScript javascript = JavaScript.getCurrent();
 		javascript.execute("window.history.back();");
+	}
+
+	public void currentView() {
+		navigator.navigateTo(getState());
 	}
 
 	public void serviceMonitoring() {
@@ -139,6 +151,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_GROUP_ROLES + "/" + entityId);
 	}
 
+	public void deleteExclusionsImpl() {
+		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
+	}
+
 	public void permissionManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
@@ -245,6 +261,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_SCHEMA_RECORDS + "/" + schema);
 	}
 
+	public void listValueDomainRecords(String schema) {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_VALUE_LIST_RECORDS + "/" + schema);
+	}
+
 	public void addUserCredential(String params) {
 		navigator.navigateTo(NavigatorConfigurationService.USER_ADD_EDIT + "/" + params);
 	}
@@ -295,6 +315,10 @@ public class CoreViews {
 
 	public void ldapConfigManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
+	}
+
+	public void statistics() {
+		navigator.navigateTo(NavigatorConfigurationService.STATISTICS);
 	}
 
 	public void listSchema(String params) {
@@ -422,7 +446,7 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void listTemporaryRecord() {
+	public void listTemporaryRecords() {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_TEMPORARY_RECORDS);
 	}
 
@@ -513,7 +537,7 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_METADATAS);
 	}
 
-	public void searchConfiguration(){
+	public void searchConfiguration() {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_CONFIGURATION);
 	}
 
@@ -604,7 +628,7 @@ public class CoreViews {
 	}
 
 	public void addEditCapsule(String id) {
-		if(id != null) {
+		if (id != null) {
 			Map<String, String> params = new HashMap<>();
 			params.put("id", id);
 			navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_CAPSULE, params));
@@ -618,6 +642,32 @@ public class CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_CAPSULE, params));
+	}
+
+	public void listBagInfo() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_BAG_INFO);
+	}
+
+	public void addBagInfo() {
+		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_BAG_INFO);
+	}
+
+	public void editBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_BAG_INFO, params));
+	}
+
+	public void displayBagInfo(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_BAG_INFO, params));
+	}
+
+	public void displaySIPProgression(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
 }

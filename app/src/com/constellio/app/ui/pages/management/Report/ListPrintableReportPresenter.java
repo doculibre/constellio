@@ -62,28 +62,28 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
             @Override
             protected LogicalSearchQuery getQuery() {
                 MetadataSchemaType printableSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE);
-                return schemaType == null ? null : new LogicalSearchQuery(from(printableSchemaType).where(printableSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType.toUpperCase()));
+                return schemaType == null ? null : new LogicalSearchQuery(from(printableSchemaType).where(printableSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType));
             }
         };
     }
 
     public RecordVODataProvider getPrintableReportFolderDataProvider() {
         if(this.folderDataAdapter == null) {
-            folderDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.toString());
+            folderDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.FOLDER.getSchemaType());
         }
         return folderDataAdapter;
     }
 
     public RecordVODataProvider getPrintableReportDocumentDataProvider() {
         if(this.documentDataAdapter == null) {
-            this.documentDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.toString());
+            this.documentDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.DOCUMENT.getSchemaType());
         }
         return documentDataAdapter;
     }
 
     public RecordVODataProvider getPrintableReportTaskDataProvider() {
         if(this.taskDataAdapter == null) {
-            taskDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.toString());
+            taskDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.TASK.getSchemaType());
         }
         return taskDataAdapter;
     }
@@ -127,7 +127,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 
     public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {
 
-        RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema.toString());
+        RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema.getSchemaType());
         return itemId == null ?  null : dataProvider.getRecordVO(Integer.parseInt(itemId));
     }
 

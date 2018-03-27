@@ -33,6 +33,10 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		view.navigate().to(RMViews.class).reports();
 	}
 
+	public void baginfoButtonClick() {
+		view.navigate().to().listBagInfo();
+	}
+
 	public void onViewAssembled() {
 		User user = getCurrentUser();
 		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);

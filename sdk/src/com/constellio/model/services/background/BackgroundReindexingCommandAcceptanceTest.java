@@ -9,7 +9,6 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,52 +98,6 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		command.run();
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(3999);
-	}
-
-	@Test
-	public void givenOptimisticLockingWhenExecutingTransactionThenNothingChanged()
-			throws Exception {
-
-		List<String> idsMarkedForReindexing = new ArrayList<>();
-		final Transaction firstTransaction = new Transaction().setOptimisticLockingResolution(EXCEPTION);
-		for (int i = 0; i < 100; i++) {
-			Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
-			firstTransaction.add(record);
-			idsMarkedForReindexing.add(record.getId());
-		}
-		recordServices.execute(firstTransaction);
-
-		setNumberMetadataToABadValueTo(firstTransaction.getRecords());
-
-		markForReindexing(idsMarkedForReindexing);
-
-		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory()) {
-
-			@Override
-			void executeTransaction(Transaction transaction) {
-
-				//Executing a malicious transaction that will cause an optimistick locking exception
-
-				Record record = firstTransaction.getRecords().get(42);
-				try {
-					recordServices.update(record.set(Schemas.TITLE, "new title"));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-
-				super.executeTransaction(transaction);
-			}
-		};
-
-		try {
-			command.run();
-			fail("Exception expected");
-		} catch (Exception e) {
-			//OK
-		}
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(100);
-
 	}
 
 	@Test

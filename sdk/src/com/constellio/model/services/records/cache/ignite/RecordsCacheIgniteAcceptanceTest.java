@@ -1435,7 +1435,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		private String id;
 
 		private String schemaCode;
-		
+
 		private String typeCode;
 
 		private long version;

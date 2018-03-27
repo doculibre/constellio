@@ -13,21 +13,19 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+@Deprecated
 public class AllUserAuthorizationsCalculator implements MetadataValueCalculator<List<String>> {
 
 	LocalDependency<List<String>> authorizationsParam = LocalDependency.toAStringList("authorizations").whichIsRequired();
-	LocalDependency<List<String>> groupsAuthorizationsParam = LocalDependency.toAStringList(User.GROUPS_AUTHORIZATIONS)
-			.whichIsRequired();
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> calculatedAuthorizations = new HashSet<>();
 
-		calculatedAuthorizations.addAll(parameters.get(authorizationsParam));
-		calculatedAuthorizations.addAll(parameters.get(groupsAuthorizationsParam));
+		//calculatedAuthorizations.addAll(parameters.get(authorizationsParam));
+		//calculatedAuthorizations.addAll(parameters.get(groupsAuthorizationsParam));
 
 		return new ArrayList<>(calculatedAuthorizations);
 	}
@@ -49,6 +47,6 @@ public class AllUserAuthorizationsCalculator implements MetadataValueCalculator<
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(authorizationsParam, groupsAuthorizationsParam);
+		return Arrays.asList(authorizationsParam);
 	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
@@ -28,7 +29,7 @@ public class BatchProcessTasksFactory {
 	}
 
 	public List<BatchProcessTask> createBatchProcessTasks(RecordBatchProcess batchProcess, List<Record> records, List<String> errorList,
-			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager) {
+			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager, BatchProcessReport report) {
 		MetadataSchemaTypes metadataSchemaTypes = schemasManager.getSchemaTypes(batchProcess.getCollection());
 		User user = null;
 		try {
@@ -41,7 +42,7 @@ public class BatchProcessTasksFactory {
 			List<Record> recordsForTask = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
 			BatchProcessTask reindexationTask = new BatchProcessTask(taskList, recordsForTask, batchProcess.getAction(),
 					recordServices,
-					metadataSchemaTypes, searchServices, user);
+					metadataSchemaTypes, searchServices, user, report);
 			tasks.add(reindexationTask);
 		}
 		return tasks;

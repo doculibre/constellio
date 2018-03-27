@@ -419,12 +419,18 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 						throw new RuntimeException(e);
 					}
 				} else {
+					cache.put(configKey, new byte[0]);
 					inputStreamFactory = null;
 				}
+
+			} else if (binaryContentFromCache.length == 0) {
+				inputStreamFactory = null;
+
 			} else {
 				inputStreamFactory = ioServices
 						.newByteArrayStreamFactory(binaryContentFromCache, getClass().getName() + "." + configKey);
 			}
+
 			value = (T) inputStreamFactory;
 
 		} else {
@@ -509,15 +515,22 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			}
 		}
 
+		Collections.sort(configs, new Comparator<SystemConfiguration>() {
+			@Override
+			public int compare(SystemConfiguration o1, SystemConfiguration o2) {
+				return o1.getCode().compareTo(o2.getCode());
+			}
+		});
+
 		return configs;
 	}
 
-	public List<SystemConfiguration> getNonHiddenGroupConfigurationsWithCodeOrderedByName(String groupCode) {
+	public List<SystemConfiguration> getNonHiddenGroupConfigurationsWithCodeOrderedByName(String groupCode, boolean showHidden) {
 		List<SystemConfiguration> nonHidden = new ArrayList<>();
 		for (SystemConfiguration config : getAllConfigurations()) {
 			SystemConfigurationGroup group = new SystemConfigurationGroup(config.getModule(), config.getConfigGroupCode());
 			if (group.getCode().equals(groupCode)) {
-				if (!config.isHidden()) {
+				if (showHidden || !config.isHidden()) {
 					nonHidden.add(config);
 				}
 			}

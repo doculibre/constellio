@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +138,13 @@ public class SystemCheckManager implements StatefulService {
 					try {
 						recordServices.validateRecord(record);
 					} catch (RecordServicesException.ValidationException e) {
-						builder.addNewValidationError(e);
+						String schemaTypeLabel = "";
+						try {
+							schemaTypeLabel = schemasManager.getSchemaTypeOf(record).getLabel(language) + " ";
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						builder.addNewValidationError(e, formatToParameter(schemaTypeLabel + StringUtils.defaultIfBlank(record.getTitle(), "") + " (" + record.getId() + ")", " : "));
 					} catch (Exception e) {
 						e.printStackTrace();
 						//TODO
@@ -232,6 +239,21 @@ public class SystemCheckManager implements StatefulService {
 		}
 
 		return getLastSystemCheckResults();
+	}
+
+	private String formatToParameter(Object parameter) {
+		if (parameter == null) {
+			return "";
+		}
+		return parameter.toString();
+	}
+
+	private String formatToParameter(Object parameter, String suffix) {
+		if (parameter == null) {
+			return formatToParameter(parameter);
+		} else {
+			return formatToParameter(parameter) + suffix;
+		}
 	}
 
 	private Map<String, String> getAllAuthsIds() {

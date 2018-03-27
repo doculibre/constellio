@@ -26,6 +26,8 @@ import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorato
 import com.constellio.app.ui.pages.base.BasePresenterUtils;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -191,7 +193,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
 		if (folder != null) {
 			return folder != null && Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.getId()
-					.equals(folder.getBorrowUser());
+					.equals(folder.getBorrowUserEntered());
 		} else {
 			return container != null && Boolean.TRUE.equals(container.getBorrowed()) && currentUser.getId()
 					.equals(container.getBorrower());
@@ -321,7 +323,11 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				return $("DisplayFolderView.confirmReturnMessage");
+				if(view instanceof DisplayContainerViewImpl) {
+					return $("DisplayFolderView.confirmReturnContainerMessage");
+				} else {
+					return $("DisplayFolderView.confirmReturnMessage");
+				}
 			}
 
 			@Override
@@ -456,7 +462,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 							.newBorrowFolderRequestTask(currentUser.getId(), getAssigneesForFolder(recordId), recordId, numberOfDays,
 									folder.getTitle());
 				}
-				modelLayerFactory.newRecordServices().add(borrowRequest);
+				addRecordWithUserSafeOption(borrowRequest);
 				view.showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
 			}
 
@@ -483,14 +489,14 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				String folderId = folder.getId();
 				Task returnRequest = taskSchemas
 						.newReturnFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle());
-				modelLayerFactory.newRecordServices().add(returnRequest);
+				addRecordWithUserSafeOption(returnRequest);
 				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else if (container != null) {
 				String containerId = container.getId();
 				Task returnRequest = taskSchemas
 						.newReturnContainerRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 								container.getTitle());
-				modelLayerFactory.newRecordServices().add(returnRequest);
+				addRecordWithUserSafeOption(returnRequest);
 				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
@@ -500,6 +506,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 			e.printStackTrace();
 			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 		}
+	}
+
+	private void addRecordWithUserSafeOption(Task task) throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+		transaction.add(task);
+		modelLayerFactory.newRecordServices().execute(transaction);
 	}
 
 	public void reactivationRequested(BaseViewImpl view, Request req) {
@@ -519,13 +532,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 					Task reactivationRequest = taskSchemas
 							.newReactivateFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle(),
 									localDate);
-					modelLayerFactory.newRecordServices().add(reactivationRequest);
+					addRecordWithUserSafeOption(reactivationRequest);
 				} else if (container != null) {
 					String containerId = container.getId();
 					Task reactivationRequest = taskSchemas
 							.newReactivationContainerRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 									container.getTitle(), localDate);
-					modelLayerFactory.newRecordServices().add(reactivationRequest);
+					addRecordWithUserSafeOption(reactivationRequest);
 				} else {
 					view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 				}
@@ -553,13 +566,13 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 					Task borrowExtensionRequest = taskSchemas
 							.newBorrowFolderExtensionRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId,
 									folder.getTitle(), new LocalDate(req.getValue()));
-					modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
+					addRecordWithUserSafeOption(borrowExtensionRequest);
 				} else if (container != null) {
 					String containerId = container.getId();
 					Task borrowExtensionRequest = taskSchemas
 							.newBorrowContainerExtensionRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 									container.getTitle(), new LocalDate(req.getValue()));
-					modelLayerFactory.newRecordServices().add(borrowExtensionRequest);
+					addRecordWithUserSafeOption(borrowExtensionRequest);
 				} else {
 					view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 				}

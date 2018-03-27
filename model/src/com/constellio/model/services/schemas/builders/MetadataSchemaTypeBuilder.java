@@ -33,6 +33,7 @@ public class MetadataSchemaTypeBuilder {
 	private static final String UNDERSCORE = "_";
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
 	private String code;
+	private String smallCode;
 	private String collection;
 	private Map<Language, String> labels;
 	private boolean security = true;
@@ -43,6 +44,7 @@ public class MetadataSchemaTypeBuilder {
 	private boolean readOnlyLocked;
 	private ClassProvider classProvider;
 	private Set<String> flags = new HashSet<>();
+	private String dataStore;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -60,6 +62,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.collection = collection;
 		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
+		builder.dataStore = "records";
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
 
 		return builder;
@@ -78,6 +81,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.readOnlyLocked = schemaType.isReadOnlyLocked();
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
+		builder.smallCode = schemaType.getSmallCode();
 		builder.collection = schemaType.getCollection();
 		builder.setLabels(schemaType.getLabels());
 		builder.undeletable = schemaType.isUndeletable();
@@ -85,6 +89,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.security = schemaType.hasSecurity();
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
+		builder.dataStore = schemaType.getDataStore();
 		for (MetadataSchema schema : schemaType.getSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
@@ -119,6 +124,10 @@ public class MetadataSchemaTypeBuilder {
 	public MetadataSchemaTypeBuilder addLabel(Language language, String label) {
 		this.labels.put(language, label);
 		return this;
+	}
+
+	public MetadataBuilder createMetadata(String localCode) {
+		return getDefaultSchema().create(localCode);
 	}
 
 	public MetadataSchemaBuilder getDefaultSchema() {
@@ -211,8 +220,9 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, collection, labels, schemas, defaultSchema, undeletable, security, inTransactionLog,
-				readOnlyLocked);
+		return new MetadataSchemaType(code, smallCode, collection, labels, schemas, defaultSchema, undeletable, security,
+				inTransactionLog,
+				readOnlyLocked, dataStore);
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -286,12 +296,26 @@ public class MetadataSchemaTypeBuilder {
 		return this;
 	}
 
+	public MetadataSchemaTypeBuilder setSmallCode(String smallCode) {
+		this.smallCode = smallCode;
+		return this;
+	}
+
 	public boolean isReadOnlyLocked() {
 		return readOnlyLocked;
 	}
 
 	public MetadataSchemaTypeBuilder setReadOnlyLocked(boolean readOnlyLocked) {
 		this.readOnlyLocked = readOnlyLocked;
+		return this;
+	}
+
+	public String getDataStore() {
+		return dataStore;
+	}
+
+	public MetadataSchemaTypeBuilder setDataStore(String dataStore) {
+		this.dataStore = dataStore == null ? "records" : dataStore;
 		return this;
 	}
 

@@ -1,11 +1,18 @@
 package com.constellio.app.modules.tasks.migrations;
 
+import java.util.ArrayList;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.tasks.TaskTypes;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -33,5 +40,22 @@ public class TasksMigrationTo7_2 implements MigrationScript {
 					}
 				});
 
+		configureTableMetadatas(collection, appLayerFactory);
+	}
+
+	private void configureTableMetadatas(String collection, AppLayerFactory factory) {
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		SchemasDisplayManager manager = factory.getMetadataSchemasDisplayManager();
+
+		for (MetadataSchema metadataSchema : TaskTypes.taskSchemas(factory, collection)) {
+			if ("default".equals(metadataSchema.getLocalCode())) {
+				SchemaDisplayConfig config = manager.getSchema(collection, metadataSchema.getCode());
+				transaction.add(config.withTableMetadataCodes(config.getSearchResultsMetadataCodes()));
+			} else {
+				SchemaDisplayConfig customConfig = manager.getSchema(collection, metadataSchema.getCode());
+				transaction.add(customConfig.withTableMetadataCodes(new ArrayList<String>()));
+			}
+		}
+		manager.execute(transaction);
 	}
 }

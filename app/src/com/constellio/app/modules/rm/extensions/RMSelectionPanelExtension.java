@@ -18,16 +18,12 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPbutton;
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.pages.base.BaseView;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException;
@@ -35,6 +31,14 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -43,12 +47,13 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -72,6 +77,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -87,6 +93,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDateTime;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
@@ -101,13 +108,27 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     @Override
     public void addAvailableActions(AvailableActionsParam param) {
+        UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+        boolean hasAccessToSIP = userServices.getUserInCollection(param.getUser().getUsername(), collection)
+                .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
         addMoveButton(param);
         addDuplicateButton(param);
         addClassifyButton(param);
         addCheckInButton(param);
         addSendEmailButton(param);
         addMetadataReportButton(param);
-        addSIPbutton(param);
+        addPdfButton(param);
+        if(hasAccessToSIP) {
+            addSIPbutton(param);
+        }
+    }
+
+    public void addPdfButton(final AvailableActionsParam param) {
+        WindowButton pdfButton = new ConsolidatedPdfButton(param);
+        setStyles(pdfButton);
+        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        ((VerticalLayout) param.getComponent()).addComponent(pdfButton);
     }
 
     public void addMoveButton(final AvailableActionsParam param) {
@@ -208,9 +229,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory, collection, true);
-        tabButton.setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+        ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
+                appLayerFactory, collection, true, param.getView().getSessionContext()) {
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+                List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
+                setRecordVoList(recordVOS.toArray(new RecordVO[0]));
+                super.buttonClick(event);
+            }
+        };
         setStyles(tabButton);
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
@@ -218,10 +246,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {
-        List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds());
-        SIPbutton tabButton = new SIPbutton($("SIPButton.caption"), $("SIPButton.caption"), param.getView());
+        SIPButtonImpl tabButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), param.getView(), true) {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                List<RecordVO> recordVOS = getRecordVOFromIds(param.getIds(), param);
+                addAllObject(recordVOS.toArray(new RecordVO[0]));
+                super.buttonClick(event);
+            }
+        };
         setStyles(tabButton);
-        tabButton.addAllObject(recordVOS.toArray(new RecordVO[0]));
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
@@ -385,7 +418,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                         if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
                             if(isCheckInPossible(param, id)) {
                                 RecordVO documentVo = recordToVOBuilder.build(appLayerFactory.getModelLayerFactory().newRecordServices()
-                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, getSessionContext());
+                                        .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, param.getView().getSessionContext());
                                 records.put(documentVo, documentVo.getMetadata(Document.CONTENT));
                             }
                         }
@@ -399,7 +432,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                                 super.close();
                                 if(!this.isCancel()) {
                                     if (numberOfRecords != param.getIds().size()) {
-                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn", numberOfRecords, param.getIds().size()));
+                                        RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.couldNotCheckIn",
+                                                numberOfRecords, param.getIds().size()));
                                     } else {
                                         RMSelectionPanelExtension.this.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", numberOfRecords));
                                     }
@@ -458,10 +492,6 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         ((VerticalLayout) param.getComponent()).addComponent(button);
     }
 
-    protected SessionContext getSessionContext() {
-        return ConstellioUI.getCurrentSessionContext();
-    }
-
     private DecommissioningService decommissioningService(AvailableActionsParam param) {
         return new DecommissioningService(param.getUser().getCollection(), appLayerFactory);
     }
@@ -516,10 +546,16 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             recordServices.add(newFolder);
                             break;
                         case Document.SCHEMA_TYPE:
-                            Document newDocument = rmSchemas.newDocument();
-                            for (Metadata metadata: rmSchemas.wrapDocument(record).getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+                            Document oldDocument = rmSchemas.wrapDocument(record);
+                            Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
+                            for (Metadata metadata: oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
                                 newDocument.set(metadata, record.get(metadata));
                             }
+                            LocalDateTime now = LocalDateTime.now();
+                            newDocument.setFormCreatedBy(param.getUser());
+                            newDocument.setFormCreatedOn(now);
+                            newDocument.setCreatedBy(param.getUser().getId()).setModifiedBy(param.getUser().getId());
+                            newDocument.setCreatedOn(now).setModifiedOn(now);
                             if (newDocument.getContent() != null) {
                             	User user = param.getUser();
                             	Content content = newDocument.getContent();
@@ -844,12 +880,12 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return defaultAdministrativeUnit;
     }
 
-    private List<RecordVO> getRecordVOFromIds(List<String> ids) {
+    private List<RecordVO> getRecordVOFromIds(List<String> ids, AvailableActionsParam param) {
         List<RecordVO> recordVOS = new ArrayList<>();
         RecordServices recordServices = recordServices();
         RecordToVOBuilder builder = new RecordToVOBuilder();
         for(String id : ids) {
-            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, getSessionContext()));
+            recordVOS.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, param.getView().getSessionContext()));
         }
         return recordVOS;
     }

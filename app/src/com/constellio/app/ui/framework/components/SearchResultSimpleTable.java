@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -70,15 +70,19 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 
 				Window recordWindow = new BaseWindow();
-				recordWindow.setWidth("90%");
-				recordWindow.setHeight("90%");
-				String typeCode = recordVO.getSchema().getTypeCode();
-				//TODO add event
-				if (typeCode.equals(Document.SCHEMA_TYPE) || typeCode.equals(Folder.SCHEMA_TYPE)) {
-					recordWindow.setContent(new RecordDisplay(recordVO, new RMMetadataDisplayFactory()));
-				} else {
-					recordWindow.setContent(new RecordDisplay(recordVO));
+				recordWindow.setWidth("95%");
+				recordWindow.setHeight("98%");
+				recordWindow.center();
+
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO);
+
+				Component windowComponent = appLayerFactory.getExtensions()
+						.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
+				if (windowComponent == null) {
+					windowComponent = new RecordDisplay(recordVO);
 				}
+				recordWindow.setContent(windowComponent);
 				presenter.logRecordView(recordVO);
 				UI.getCurrent().addWindow(recordWindow);
 				//				}
@@ -101,8 +105,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : selectedItemIds) {
-			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
-			result.add(record.getId());
+//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			result.add((String) itemId);
 		}
 		return result;
 	}
@@ -110,8 +114,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getUnselectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : deselectedItemIds) {
-			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
-			result.add(record.getId());
+//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			result.add((String) itemId);
 		}
 		return result;
 	}
@@ -261,9 +265,9 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public boolean isSelected(Object itemId) {
 		boolean selectedItem;
 		if (allItemsSelected) {
-			selectedItem = !this.deselectedItemIds.contains(itemId);
+			selectedItem = !this.deselectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
 		} else {
-			selectedItem = this.selectedItemIds.contains(itemId);
+			selectedItem = this.selectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
 		}
 		return selectedItem;
 	}
@@ -275,12 +279,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 	private void setSelected(Object itemId, boolean selected, boolean fireSelectionChangeEvent) {
 		if (selected) {
-			this.selectedItemIds.add(itemId);
-			deselectedItemIds.remove(itemId);
+			this.selectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
+			deselectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
 			presenter.fireSomeRecordsSelected();
 		} else {
-			this.selectedItemIds.remove(itemId);
-			deselectedItemIds.add(itemId);
+			this.selectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
+			deselectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
 			if (selectedItemIds.isEmpty()) {
 				presenter.fireNoRecordSelected();
 			}

@@ -7,6 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -55,13 +61,16 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 
 	public void saveButtonClicked(TaxonomyVO taxonomyVO) {
 		if (isActionEdit()) {
-			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode())
-					.withTitle(taxonomyVO.getTitle())
+			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode());
+			boolean wasTitleChanged = !taxonomy.getTitle().equals(taxonomyVO.getTitle());
+			taxonomy = taxonomy.withTitle(taxonomyVO.getTitle())
 					.withUserIds(taxonomyVO.getUserIds())
 					.withGroupIds(taxonomyVO.getGroupIds())
 					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
 
-			createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects());
+			renameTaxonomyType(taxonomy, wasTitleChanged);
+
+			createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), wasTitleChanged);
 			taxonomiesManager.editTaxonomy(taxonomy);
 			view.navigate().to().listTaxonomies();
 		} else {
@@ -70,7 +79,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 				Taxonomy taxonomy = valueListServices()
 						.createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
 								taxonomyVO.isVisibleInHomePage());
-				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects());
+				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
 				view.navigate().to().listTaxonomies();
 				titles.add(taxonomyVO.getTitle());
 			} else {
@@ -80,30 +89,59 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		}
 	}
 
-	void createMetadatasInClassifiedObjects(Taxonomy taxonomy, List<String> classifiedObjects) {
+	void renameTaxonomyType(Taxonomy taxonomy, boolean wasTitleChanged) {
+		if(wasTitleChanged) {
+			MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
+			MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
+			MetadataSchemaBuilder defaultSchema = taxonomyType.getDefaultSchema();
 
-		if (classifiedObjects != null) {
-			if (classifiedObjects.contains("folderObject")) {
-				if ((actionEdit && canEditClassifiedObjects(newTaxonomyVO(taxonomy))) || !actionEdit) {
-					createMetadatasInDefaultSchemaIfInexistent(taxonomy, Folder.SCHEMA_TYPE);
-				}
+			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+				taxonomyType.addLabel(language, taxonomy.getTitle());
+				defaultSchema.addLabel(language, taxonomy.getTitle());
 			}
 
-			if (classifiedObjects.contains("documentObject")) {
-				if ((actionEdit && canEditClassifiedObjects(newTaxonomyVO(taxonomy))) || !actionEdit) {
-					createMetadatasInDefaultSchemaIfInexistent(taxonomy, Document.SCHEMA_TYPE);
-				}
+			try {
+				schemasManager.saveUpdateSchemaTypes(types);
+			} catch (MetadataSchemasManagerException.OptimisticLocking optimistickLocking) {
+				throw new RuntimeException(optimistickLocking);
 			}
 		}
 	}
 
-	void createMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType) {
+	void createMetadatasInClassifiedObjects(Taxonomy taxonomy, List<String> classifiedObjects, boolean wasTitleChanged) {
 
-		if (!getClassifiedObjects(taxonomy).contains(schemaType)) {
+		if (classifiedObjects != null) {
+			if (classifiedObjects.contains("folderObject")) {
+				createOrRenameMetadatasInDefaultSchemaIfInexistent(taxonomy, Folder.SCHEMA_TYPE, wasTitleChanged);
+			}
+
+			if (classifiedObjects.contains("documentObject")) {
+				createOrRenameMetadatasInDefaultSchemaIfInexistent(taxonomy, Document.SCHEMA_TYPE, wasTitleChanged);
+			}
+		}
+	}
+
+	void createOrRenameMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType, boolean wasTitleChanged) {
+
+		if (!getClassifiedSchemaTypes(taxonomy).contains(schemaType)) {
 			//TODO Patrick - code instead label
 			String groupLabel = $("classifiedInGroupLabel");
 			valueListServices()
 					.createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, "classifiedInGroupLabel", groupLabel);
+		} else if(wasTitleChanged) {
+			MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
+			String localCode = taxonomy.getCode() + "Ref";
+			MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().get(localCode);
+
+			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+				metadataBuilder.addLabel(language, taxonomy.getTitle());
+			}
+
+			try {
+				schemasManager.saveUpdateSchemaTypes(types);
+			} catch (MetadataSchemasManagerException.OptimisticLocking optimistickLocking) {
+				throw new RuntimeException(optimistickLocking);
+			}
 		}
 	}
 

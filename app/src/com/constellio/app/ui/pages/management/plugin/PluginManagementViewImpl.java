@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -112,7 +113,7 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 
 	private Table createPluginsTable() {
 		List<ConstellioPluginInfo> plugins = presenter.getAllPlugins();
-		Table table = new Table($("PluginManagementView.plugins", plugins.size()));
+		Table table = new BaseTable(getClass().getName(), $("PluginManagementView.plugins", plugins.size()));
 		Container beanContainer = new BeanItemContainer<>(ConstellioPluginInfo.class);
 		table.setContainerDataSource(beanContainer);
 

@@ -2,8 +2,10 @@ package com.constellio.app.api.search;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,6 +13,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -20,17 +30,14 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.ModificationImpactCalculatorAcceptSetup.AnotherSchemaMetadatas;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -44,8 +51,6 @@ import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
-
-import javax.servlet.http.HttpServletResponse;
 
 @SlowTest
 public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
@@ -85,6 +90,15 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 				withCollection(anotherCollection)
 		);
 
+		for (String collection : asList(zeCollection, anotherCollection)) {
+			RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
+			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+			cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(SearchEvent.SCHEMA_TYPE)));
+		}
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 
@@ -100,6 +114,13 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 				}));
 		defineSchemasManager().using(anotherCollectionSetup.withSecurityFlag(true)
 				.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
+
+		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+		//			@Override
+		//			public void alter(MetadataSchemaTypesBuilder types) {
+		//				types.getSchemaType(zeCollectionSetup.)
+		//			}
+		//		});
 
 		setupUsers();
 		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
@@ -197,6 +218,36 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
 
 	}
+
+	@Test
+	public void testSearchEventPresentOnWebServiceQuery() throws IOException, SolrServerException {
+
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		solrParams.add("q", "*:*");
+		solrParams.add("fq", "collection_s:zeCollection");
+
+		SolrClient solrServer = newSearchClient();
+
+		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", token);
+		solrServer.query(solrParams);
+
+		getModelLayerFactory().getDataLayerFactory().getEventsVaultServer().flush();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchemaType searchEventSchemaType = rm.searchEventSchemaType();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(searchEventSchemaType).returnAll());
+
+		List<Record> recordList = getModelLayerFactory().newSearchServices().search(query);
+
+		assertThat(recordList.size()).isEqualTo(1);
+		assertThat(rm.wrapSearchEvent(recordList.get(0)).getQuery()).isEqualTo("*:*");
+	 }
+
 
 	@Test
 	public void givenUserWithSomeAccessWhenSearchingUsingWebServiceWithOnNonSecuredSchemaThenSeeAllResults()
@@ -479,7 +530,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	}
 
 	private void setupAuthorizations()
-			throws RecordServicesException, InterruptedException {
+			throws Exception {
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
 		authorizationsServices.add(authorizationForUsers(users.gandalfLeblancIn(zeCollection))
@@ -488,10 +539,6 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		authorizationsServices.add(authorizationForUsers(users.gandalfLeblancIn(anotherCollection))
 				.on(anotherCollectionRecord1).givingReadAccess());
 
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		waitForBatchProcess();
 	}
 }

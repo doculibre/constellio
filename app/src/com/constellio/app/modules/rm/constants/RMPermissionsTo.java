@@ -108,6 +108,8 @@ public class RMPermissionsTo {
 	public static final String CREATE_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createActiveFolderToSemiActiveDecommissioningList");
 	public static final String EDIT_TRANSFER_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editActiveFolderToSemiActiveDecommissioningList");
 	public static final String GENERATE_SIP_ARCHIVES = permission(DECOMMISSIONING, "generateSIPArchives");
+	//BagInfo
+	public static final String MANAGE_BAG_INFO = permission(DECOMMISSIONING, "manageBagInfo");
 
 	// Cart
 	private static final String CART_GROUP = "carts";
@@ -121,6 +123,7 @@ public class RMPermissionsTo {
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
+
 
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }

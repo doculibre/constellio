@@ -45,6 +45,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
 		AuthorizationAddRequest authorization = toAuthorization(authorizationVO);
 		authorizationsServices().add(authorization, getCurrentUser());
+		modelLayerFactory.newLoggingServices().shareDocument(presenterService().getRecord(recordId), getCurrentUser());
 		view.showMessage($("ShareContentView.shared"));
 		view.returnFromPage();
 	}

@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.*;
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -16,10 +27,6 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -34,14 +41,6 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
@@ -135,10 +134,10 @@ public abstract class Decommissioner {
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
-        if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
-            folder.setManualArchivisticStatus(null);
-        }
-    }
+		if (!rm.folder.manualArchivisticStatus().isUnmodifiable()) {
+			folder.setManualArchivisticStatus(null);
+		}
+	}
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;
@@ -168,6 +167,7 @@ public abstract class Decommissioner {
 		this.processingDate = processingDate;
 		this.user = user;
 		transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 		recordsToDelete = new ArrayList<>();
 		recordsToDeletePhysically = new ArrayList<>();
 	}
@@ -202,7 +202,8 @@ public abstract class Decommissioner {
 
 	protected abstract void processDocuments();
 
-	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail, DecommissioningListType decommissioningListType) {
+	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail,
+			DecommissioningListType decommissioningListType) {
 		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
@@ -362,11 +363,11 @@ public abstract class Decommissioner {
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
 			if (containerIdUsed.contains(containerRecordId)) {
-				if(!detailsToProcess.containsKey(containerRecordId)) {
+				if (!detailsToProcess.containsKey(containerRecordId)) {
 					detailsToProcess.put(containerRecordId, detail);
 				} else {
 					DecomListContainerDetail previousDetail = detailsToProcess.get(containerRecordId);
-					if(!previousDetail.isFull() && detail.isFull()) {
+					if (!previousDetail.isFull() && detail.isFull()) {
 						detailsToProcess.put(containerRecordId, detail);
 					}
 				}
@@ -375,12 +376,14 @@ public abstract class Decommissioner {
 
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
-			if (containerIdUsed.contains(containerRecordId)) {
-				if(detailsToProcess.get(containerRecordId) == detail) {
-					processContainer(rm.getContainerRecord(containerRecordId), detail);
+			if(containerRecordId != null) {
+				if (containerIdUsed.contains(containerRecordId)) {
+					if (detailsToProcess.get(containerRecordId) == detail) {
+						processContainer(rm.getContainerRecord(containerRecordId), detail);
+					}
+				} else {
+					decommissioningList.removeContainerDetail(containerRecordId);
 				}
-			} else {
-				decommissioningList.removeContainerDetail(containerRecordId);
 			}
 		}
 
@@ -422,7 +425,7 @@ public abstract class Decommissioner {
 					empty = false;
 					break;
 				}
-			}	
+			}
 		} else {
 			empty = false;
 		}
@@ -448,6 +451,7 @@ public abstract class Decommissioner {
 		}
 
 		try {
+			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 			recordServices.execute(transaction);
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
@@ -458,12 +462,14 @@ public abstract class Decommissioner {
 			recordServices.update(decommissioningList);
 			for (Record record : recordsToDeletePhysically) {
 				try {
-					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+					recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD,
+							new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 				} catch (Exception e) {
+					e.printStackTrace();
+					record = recordServices.getDocumentById(record.getId());
 					recordServices.logicallyDelete(record, user);
 				}
 			}
-			contentManager.deleteUnreferencedContents();
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
 			throw new RecordServicesWrapperRuntimeException(e);

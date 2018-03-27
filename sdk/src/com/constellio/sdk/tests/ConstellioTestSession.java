@@ -2,6 +2,7 @@ package com.constellio.sdk.tests;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -136,9 +137,10 @@ public class ConstellioTestSession {
 			exception = afterTestValidationsTestFeature.afterTest(firstClean, failed);
 		}
 
+		List<Runnable> runnables = new ArrayList<>();
 		try {
 			if (factoriesTestFeatures != null) {
-				factoriesTestFeatures.afterTest();
+				runnables = factoriesTestFeatures.afterTest();
 			}
 		} finally {
 			if (streamsTestFeatures != null) {
@@ -167,6 +169,10 @@ public class ConstellioTestSession {
 			if (exception != null) {
 				throw new RuntimeException(exception);
 			}
+		}
+
+		for (Runnable runnable : runnables) {
+			runnable.run();
 		}
 
 	}

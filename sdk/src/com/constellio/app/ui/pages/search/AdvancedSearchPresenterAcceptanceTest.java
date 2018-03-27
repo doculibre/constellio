@@ -70,6 +70,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
@@ -219,6 +220,17 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		newMetadatas.removeAll(baseMetadatas);
 		assertThat(newMetadatas.size()).isEqualTo(1);
 		assertThat(newMetadatas.get(0).getCode()).isEqualTo("folder_default_" + Folder.BORROWED);
+	}
+
+	@Test
+	public void givenBatchProcessRequestedWithAccentThenProcessWithoutException() throws Exception {
+		when(advancedSearchView.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
+		when(advancedSearchView.getSearchExpression()).thenReturn("Abèille");
+		presenter = new AdvancedSearchPresenter(advancedSearchView);
+		presenter.forRequestParameters(null);
+		presenter.buildSearchCondition();
+		presenter.batchEditRequested("folder_default_description", "asdf", Folder.SCHEMA_TYPE);
+		waitForBatchProcess();
 	}
 
 	private void connectWithAlice() {

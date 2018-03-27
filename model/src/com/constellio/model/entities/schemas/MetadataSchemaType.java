@@ -26,6 +26,8 @@ public class MetadataSchemaType implements Serializable {
 
 	private final String code;
 
+	private final String smallCode;
+
 	private final String collection;
 
 	private final Map<Language, String> labels;
@@ -46,11 +48,15 @@ public class MetadataSchemaType implements Serializable {
 
 	private final Boolean undeletable;
 
-	public MetadataSchemaType(String code, String collection, Map<Language, String> labels, List<MetadataSchema> customSchemas,
+	private final String dataStore;
+
+	public MetadataSchemaType(String code, String smallCode, String collection, Map<Language, String> labels,
+			List<MetadataSchema> customSchemas,
 			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog,
-			boolean readOnlyLocked) {
+			boolean readOnlyLocked, String dataStore) {
 		super();
 		this.code = code;
+		this.smallCode = smallCode;
 		this.collection = collection;
 		this.labels = Collections.unmodifiableMap(labels);
 		this.customSchemas = Collections.unmodifiableList(customSchemas);
@@ -61,6 +67,7 @@ public class MetadataSchemaType implements Serializable {
 		this.readOnlyLocked = readOnlyLocked;
 		this.metadatasByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildMetadataByLocalCodeIndex(
 				customSchemas, defaultSchema));
+		this.dataStore = dataStore;
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
 
@@ -92,6 +99,10 @@ public class MetadataSchemaType implements Serializable {
 
 	public String getCode() {
 		return code;
+	}
+
+	public String getSmallCode() {
+		return smallCode;
 	}
 
 	public Map<Language, String> getLabels() {
@@ -306,6 +317,10 @@ public class MetadataSchemaType implements Serializable {
 
 	public Boolean isUndeletable() {
 		return undeletable;
+	}
+
+	public String getDataStore() {
+		return dataStore;
 	}
 
 	@Override

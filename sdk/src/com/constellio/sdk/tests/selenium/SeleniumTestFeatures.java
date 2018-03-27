@@ -66,7 +66,22 @@ public class SeleniumTestFeatures {
 	public void afterTest(boolean failed) {
 		ApplicationStarter.resetServlets();
 		if (waitUntilICloseTheBrowsers) {
-			waitForWebDriversToClose();
+			String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
+			String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
+
+			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+				try {
+					Object lock = new Object();
+					synchronized (lock) {
+						while (true) {
+							lock.wait();
+						}
+					}
+				} catch (InterruptedException ex) {
+				}
+			} else {
+				waitForWebDriversToClose();
+			}
 		} else if (openedWebDriver != null) {
 			if (failed) {
 				Dimension dimension = openedWebDriver.manage().window().getSize();

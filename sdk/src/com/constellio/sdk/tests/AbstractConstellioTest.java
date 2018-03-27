@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.ConstellioTest.getInstance;
 import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
 import static java.util.Arrays.asList;
@@ -40,6 +41,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -128,6 +130,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@Rule public FailureDetectionTestWatcher failureDetectionTestWatcher = new FailureDetectionTestWatcher(this);
 
+	private String failMessage;
+
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
 	protected String zeCollection = "zeCollection";
@@ -161,6 +165,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
 		skipTestRule = new SkipTestsRule(sdkPropertiesLoader, isUnitTest(getClass().getSimpleName()));
 		ConsoleLogger.GLOBAL_PREFIX = getClass().getSimpleName();
+		failMessage = null;
 	}
 
 	@BeforeClass
@@ -404,14 +409,25 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	public static File getResourcesDir() {
-		File resourcesDir = new File("sdk-resources");
 
-		if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
-			resourcesDir = new File("sdk" + File.separator + "sdk-resources");
-		}
+		File resourcesDir;
 
-		if (!resourcesDir.exists()) {
-			resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+		if (getInstance().getClass().getResource(".").getFile().contains("constellio-plugins")) {
+
+			File pluginsSDK = new FoldersLocator().getPluginsSDKProject();
+			resourcesDir = new File(pluginsSDK, "sdk-resources");
+
+		} else {
+			resourcesDir = new File("sdk-resources");
+
+			System.out.println();
+			if (!resourcesDir.getAbsolutePath().contains(File.separator + "sdk" + File.separator)) {
+				resourcesDir = new File("sdk" + File.separator + "sdk-resources");
+			}
+
+			if (!resourcesDir.exists()) {
+				resourcesDir = new File(new FoldersLocator().getSDKProject(), "sdk-resources");
+			}
 		}
 
 		return resourcesDir;
@@ -528,6 +544,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		getCurrentTestSession().getFactoriesTestFeatures().configure(appLayerConfigurationAlteration);
 	}
 
+	protected boolean isLayersInitialized() {
+		return getCurrentTestSession().getFactoriesTestFeatures().isInitialized();
+	}
+
 	protected AppLayerFactory getAppLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(DEFAULT_NAME);
@@ -538,17 +558,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFactoriesTestFeatures().newAppServicesFactory(name);
 	}
 
-	protected DataLayerFactory getDataLayerFactory() {
+	public DataLayerFactory getDataLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(DEFAULT_NAME);
 	}
 
-	protected DataLayerFactory getDataLayerFactory(String name) {
+	public DataLayerFactory getDataLayerFactory(String name) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newDaosFactory(name);
 	}
 
-	protected IOServicesFactory getIOLayerFactory() {
+	public IOServicesFactory getIOLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newIOServicesFactory(DEFAULT_NAME);
 	}
@@ -563,12 +583,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFactoriesTestFeatures().getConstellioFactories(name);
 	}
 
-	protected ModelLayerFactory getModelLayerFactory() {
+	public ModelLayerFactory getModelLayerFactory() {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(DEFAULT_NAME);
 	}
 
-	protected ModelLayerFactory getModelLayerFactory(String name) {
+	public ModelLayerFactory getModelLayerFactory(String name) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFactoriesTestFeatures().newModelServicesFactory(name);
 	}
@@ -722,16 +742,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void waitUntilICloseTheBrowsers() {
-		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
-		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
 
-		if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
-			waitUntilChuckNorrisIsDead();
-		} else {
-			ensureNotUnitTest();
-			ensureInDevelopmentTest();
-			getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
-		}
+		ensureNotUnitTest();
+		ensureInDevelopmentTest();
+		getCurrentTestSession().getSeleniumTestFeatures().waitUntilICloseTheBrowsers();
 	}
 
 	protected File unzipInTempFolder(File zipFile) {
@@ -1033,6 +1047,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void finished(Description description) {
 		if (!skipTestRule.wasSkipped()) {
 			safeAfterTest(false);
+			if (failMessage != null) {
+				Assert.fail(failMessage);
+			}
 		}
 	}
 
@@ -1489,6 +1506,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
 	}
 
+	protected void assumeLocalSolr() {
+		assumeNotSolrCloud();
+
+		String httpUrl = sdkProperties.get("dao.records.http.url").toLowerCase();
+		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
+	}
+
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);
@@ -1500,6 +1524,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
 			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		}
+	}
+
+	protected void reindex() {
+		ensureNotUnitTest();
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 	}
 
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
@@ -1539,5 +1569,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				return new File(configFile, "conf").getAbsolutePath();
 		}
 		return null;
+	}
+
+	public String getFailMessage() {
+		return failMessage;
+	}
+
+	public void setFailMessage(String failMessage) {
+		this.failMessage = failMessage;
 	}
 }

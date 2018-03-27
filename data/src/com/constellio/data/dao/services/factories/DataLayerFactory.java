@@ -20,6 +20,7 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
+import com.constellio.data.dao.managers.config.CachedConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
@@ -133,19 +134,21 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		add(settingsCacheManager);
 		add(recordsCacheManager);
 
+		ConfigManager configManagerWithoutCache;
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
-			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
+			configManagerWithoutCache = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
-			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
+			configManagerWithoutCache = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
-					settingsCacheManager.getCache(FileSystemConfigManager.class.getName())));
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
 		}
+		configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
 			this.idGenerator = new UUIDV1Generator();
@@ -187,7 +190,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
-				dataLayerConfiguration.getOnlineConversionUrl()));
+				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
 		lastCreatedInstance = this;
 	}
 

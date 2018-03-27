@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,6 +29,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -260,6 +260,10 @@ public class SettingsExportServices {
 			importedMetadata.setEssential(metadata.isEssential());
 
 			importedMetadata.setEssentialInSummary(metadata.isEssentialInSummary());
+
+			if (metadata.isRelationshipProvidingSecurity()) {
+				importedMetadata.setRelationshipProvidingSecurity(true);
+			}
 
 			importedMetadata.setInputMask(metadata.getInputMask());
 

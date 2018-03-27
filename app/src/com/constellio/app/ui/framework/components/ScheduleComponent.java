@@ -1,6 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.NestedMethodProperty;
@@ -90,7 +92,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
         horizontalLayout.setSizeFull();
 
-        final Table table = new Table();
+        final Table table = new BaseTable(getClass().getName());
 
         timeBeanContainer = new BeanItemContainer<>(TimeBean.class);
 
@@ -106,7 +108,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
         table.addGeneratedColumn(TimeBean.TIME_PROPERTY_NAME, new Table.ColumnGenerator() {
 
             public Object generateCell(Table source, Object itemId, Object columnId) {
-                final ComboBox comboBox = new ComboBox();
+                final ComboBox comboBox = new BaseComboBox();
 
                 for (int scheduleTime = 0; scheduleTime < 24; scheduleTime++) {
                     comboBox.addItem(scheduleTime + HOUR_ROUNDED_SUFFIX);

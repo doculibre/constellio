@@ -22,7 +22,8 @@ public class MetadataSchemaToFormVOBuilder implements Serializable {
 
 		if (schemaTypeDisplayConfig != null) {
 			boolean advancedSearch = schemaTypeDisplayConfig.isAdvancedSearch();
-			return new FormMetadataSchemaVO(code, localCode,collection, labels, advancedSearch);
+			boolean simpleSearch = schemaTypeDisplayConfig.isSimpleSearch();
+			return new FormMetadataSchemaVO(code, localCode,collection, labels, advancedSearch, simpleSearch);
 		}
 		return new FormMetadataSchemaVO(code, localCode, collection, labels);
 	}

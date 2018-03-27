@@ -2,6 +2,7 @@ package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
@@ -18,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
@@ -41,7 +43,11 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
@@ -68,6 +74,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends ConstellioTest {
+
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	Users users = new Users();
 	User alice;
@@ -125,6 +133,56 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	}
 
 	@Test
+	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree()
+			throws Exception {
+		cleanStorageSpaces();
+		StorageSpace ancestor = buildStorageSpace();
+		StorageSpace parent = buildStorageSpace().setParentStorageSpace(ancestor);
+		StorageSpace child = buildStorageSpace().setParentStorageSpace(parent).setCapacity(10);
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(ancestor, parent, child);
+		recordServices.execute(transaction);
+		waitForBatchProcess();
+
+		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				return canStorageSpaceContainContainer(storageSpace, 20D);
+			}
+		});
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
+
+		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		child.setCapacity(30);
+		recordServices.update(child);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+	}
+
+	@Test
 	public void whenGetListOfCategoriesThenReturnNotDeactivatedTaxonomie()
 			throws Exception {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -152,6 +210,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				return LangUtils.isFalseOrNull(category.<Boolean>get(Category.DEACTIVATE));
 			}
 		});
+
+		loadCaches();
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(taxonomiesSearchFilter)
 				.has(numFoundAndListSize(2))
@@ -277,7 +337,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -312,7 +372,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -350,7 +410,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
 				.has(numFoundAndListSize(1))
@@ -387,7 +447,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10, withWriteAccess)
 				.has(numFoundAndListSize(1))
@@ -466,6 +526,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		recordServices.execute(tx);
 
+		loadCaches();
+
 		TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setFilter(filter);
 
@@ -480,10 +542,10 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		});
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(options)
-				.has(numFoundAndListSize(2))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X))
-				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
-				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X))
+				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
@@ -548,6 +610,19 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(noItemsWithChildren())
 				.has(solrQueryCounts(2, 2, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
+
+	}
+
+	private void loadCaches() {
+		for (MetadataSchemaType aSchemaType : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaTypes()) {
+			if (recordServices.getRecordsCaches().getCache(zeCollection).isConfigured(aSchemaType)) {
+				getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(from(aSchemaType).returnAll()));
+			}
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
 
 	}
 
@@ -620,7 +695,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
 				.has(numFoundAndListSize(1))
@@ -639,8 +714,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20))
-				.has(solrQueryCounts(3, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
 				.has(numFoundAndListSize(1))
@@ -673,14 +748,14 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess)
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_Z))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(solrQueryCounts(1, 0, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
 				.has(numFoundAndListSize(2))
@@ -711,6 +786,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		//records.folder_A20,
 		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
+
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
@@ -760,7 +836,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(0))
@@ -790,8 +866,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(solrQueryCounts(1, 0, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, defaultOptions)
 				.has(numFoundAndListSize(1))
@@ -805,8 +881,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120, defaultOptions)
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(2, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20, defaultOptions)
 				.has(numFoundAndListSize(2))
@@ -834,12 +910,14 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(1))
@@ -870,8 +948,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(solrQueryCounts(1, 0, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, defaultOptions)
 				.has(numFoundAndListSize(1))
@@ -917,7 +995,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(0))
@@ -947,8 +1025,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(solrQueryCounts(1, 0, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z, defaultOptions)
 				.has(numFoundAndListSize(1))
@@ -987,7 +1065,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z).has(numFoundAndListSize(0))
 				.has(solrQueryCounts(3, 4, 4))
@@ -1021,7 +1099,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
 				.has(numFoundAndListSize(1))
@@ -1034,8 +1112,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20))
 				.has(itemsWithChildren(records.folder_A20))
-				.has(solrQueryCounts(3, 0, 1))
-				.has(secondSolrQueryCounts(2, 0, 1));
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.folder_A20)
 				.has(numFoundAndListSize(1))
@@ -1062,7 +1140,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -1106,7 +1184,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
 				.has(numFoundAndListSize(1))
@@ -1287,12 +1365,12 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess)
 				.is(empty())
-				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(solrQueryCounts(1, 0, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -1336,7 +1414,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X, withWriteAccess)
 				.has(numFoundAndListSize(1))
@@ -1410,6 +1488,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
@@ -1427,8 +1506,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
 				.has(linkable(folderNearEnd.getId()))
 				.has(unlinkable(subFolderNearEnd.getParentFolder()))
-				.has(solrQueryCounts(3, 1, 2))
-				.has(secondSolrQueryCounts(2, 1, 2));
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(2, 2, 2));
 
 		assertThat(queryCount.get()).isEqualTo(6);
 	}
@@ -1446,7 +1525,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(solrQueryCounts(2, 2, 2))
-				.has(secondSolrQueryCounts(1, 2, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X, withWriteAccess)
 				.has(numFoundAndListSize(1))
@@ -1525,17 +1604,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
 				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(3, 50, 25))
-				.has(secondSolrQueryCounts(2, 50, 0));
-
-		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(20).setFastContinueInfos(null))
-				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
-						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
-						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
-				.has(numFound(25)).has(listSize(20))
-				.has(fastContinuationInfos(false, 20))
-				.has(solrQueryCounts(2, 50, 0))
-				.has(secondSolrQueryCounts(2, 50, 0));
+				.has(solrQueryCounts(2, 302, 25))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
 				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
@@ -1544,8 +1614,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(3, 50, 10))
-				.has(secondSolrQueryCounts(2, 50, 0));
+				.has(solrQueryCounts(1, 0, 10))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -1555,8 +1625,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(3, 50, 1))
-				.has(secondSolrQueryCounts(2, 50, 0));
+				.has(solrQueryCounts(1, 0, 1))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(30).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1566,8 +1636,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(50)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(4, 75, 14))
-				.has(secondSolrQueryCounts(3, 75, 0));
+				.has(solrQueryCounts(1, 0, 14))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(null))
@@ -1576,8 +1646,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(302)).has(listSize(13))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(24, 302, 252))
-				.has(secondSolrQueryCounts(13, 302, 0));
+				.has(solrQueryCounts(11, 0, 252))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
@@ -1586,8 +1656,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(302)).has(listSize(13))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(1, 13, 0))
-				.has(secondSolrQueryCounts(1, 13, 0));
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)
 				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
@@ -1596,8 +1666,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 						"category_300", "categoryId_X", "categoryId_Z"))
 				.has(numFound(301)).has(listSize(12))
 				.has(fastContinuationInfos(true, 302))
-				.has(solrQueryCounts(1, 12, 0))
-				.has(secondSolrQueryCounts(1, 12, 0));
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 	}
 
@@ -2074,7 +2144,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.unitId_10, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_30))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
 				.has(unlinkable(records.unitId_11, records.unitId_12, records.unitId_10a))
@@ -2125,7 +2195,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.unitId_10, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_30))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
 				.has(unlinkable(records.unitId_11, records.unitId_12, records.unitId_10a))
@@ -2445,7 +2515,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
@@ -2513,7 +2583,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(itemsWithChildren(records.unitId_10, records.unitId_20))
 				.has(numFoundAndListSize(2))
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
 				.has(resultsInOrder(records.unitId_12))
@@ -2546,8 +2616,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(resultsInOrder(records.unitId_10, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_30))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(1, 3, 0));
+				.has(solrQueryCounts(1, 0, 3))
+				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
 				.has(resultsInOrder(records.unitId_12))
@@ -2975,7 +3045,11 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		for (String id : ids) {
 			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingReadAccess());
 		}
-		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
 	}
 
@@ -3285,6 +3359,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call");
 				firstCallAnswer = call();
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3300,6 +3375,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call");
 				secondCallAnswer = call();
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3332,7 +3408,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.firstAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
@@ -3354,7 +3430,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
-				if (!ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
@@ -3365,5 +3441,29 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				return true;
 			}
 		};
+	}
+
+	public StorageSpace buildStorageSpace() {
+		StorageSpace storageSpace = rm.newStorageSpace().setTitle("storageTest");
+		storageSpace.setCode(storageSpace.getId());
+		return storageSpace;
+	}
+
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
+		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null
+				&& storageSpace.getCapacity() > containerCapacity;
+	}
+
+	public void cleanStorageSpaces() {
+		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+		modifiableSolrParams.set("q", "schema_s:storageSpace*");
+		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+		try {
+			recordDao.execute(transaction);
+		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+			optimisticLocking.printStackTrace();
+		}
 	}
 }

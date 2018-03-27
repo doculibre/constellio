@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -20,26 +21,49 @@ import com.constellio.model.services.users.UserServices;
 
 public class FilterUtils {
 
-	public static String multiCollectionUserReadFilter(UserCredential user, UserServices userServices,
+	public static String multiCollectionUserReadFilter(UserCredential userCredential, UserServices userServices,
 			SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
-		if (user.getCollections().isEmpty()) {
+		if (userCredential.getCollections().isEmpty()) {
 			addTokenA38(filter);
 		} else {
-			filter.append("(");
-			boolean firstCollection = true;
-			for (String collection : user.getCollections()) {
-				if (!firstCollection) {
+			addTokenA38(filter);
+
+			for (String collection : userCredential.getCollections()) {
+				User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
+				if (user.hasCollectionReadAccess()) {
 					filter.append(" OR ");
+					filter.append(Schemas.COLLECTION.getDataStoreCode());
+					filter.append(":");
+					filter.append(collection);
 				}
-				firstCollection = false;
-				User userInCollection = userServices.getUserInCollection(user.getUsername(), collection);
-				filter.append("(");
-				filter.append(userReadFilter(userInCollection, securityTokenManager));
+
+				filter.append(" OR ");
+				filter.append(Schemas.TOKENS.getDataStoreCode());
+				filter.append(":r_");
+				filter.append(user.getId());
+
+				for (String schemaType : securityTokenManager
+						.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+					filter.append(" OR ");
+					filter.append(Schemas.SCHEMA.getDataStoreCode());
+					filter.append(":");
+					filter.append(schemaType);
+					filter.append("_*");
+				}
+
+				for (String aGroup : user.getUserGroups()) {
+					filter.append(" OR ");
+					filter.append(Schemas.TOKENS.getDataStoreCode());
+					filter.append(":r_");
+					filter.append(aGroup);
+				}
+
+				filter.append(" OR (");
+				filter.append(userReadFilter(user, securityTokenManager));
 				filter.append(")");
 
 			}
-			filter.append(")");
 		}
 		return filter.toString();
 	}
@@ -76,7 +100,7 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.WRITE_ACCESS);
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.WRITE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'w');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'w');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
@@ -119,12 +143,99 @@ public class FilterUtils {
 			stringBuilder.append(aGroup);
 		}
 
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.READ_ACCESS);
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
 		stringBuilder.append(" OR ");
 		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":");
+		stringBuilder.append(Record.PUBLIC_TOKEN);
+		if (deny) {
+			stringBuilder.append(")");
+		}
+		return stringBuilder.toString();
+	}
+
+	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
+			MetadataSchemaType selectedType, boolean includeInvisible) {
+
+		String selectedTypeSmallCode = null;
+		if (selectedType != null) {
+			selectedTypeSmallCode = selectedType.getSmallCode();
+			if (selectedTypeSmallCode == null) {
+				selectedTypeSmallCode = selectedType.getCode();
+			}
+		}
+
+		String tokenPrefix;
+		if (Role.READ.equals(access)) {
+			if (selectedType == null) {
+				tokenPrefix = "r";
+			} else {
+				tokenPrefix = "r" + selectedTypeSmallCode;
+			}
+		} else {
+			if (selectedType == null) {
+				tokenPrefix = "w";
+			} else {
+				tokenPrefix = "w" + selectedTypeSmallCode;
+			}
+		}
+
+		StringBuilder stringBuilder = new StringBuilder();
+		UserTokens tokens = securityTokenManager.getTokens(user);
+		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+		boolean deny = stringBuilder.length() > 0;
+		if (deny) {
+			stringBuilder.append(" AND (");
+		}
+		addTokenA38(stringBuilder);
+		if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(user.getCollection());
+		}
+
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+		stringBuilder.append(":" + tokenPrefix + "_");
+		stringBuilder.append(user.getId());
+		if (includeInvisible) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+			stringBuilder.append(":" + "z" + tokenPrefix + "_");
+			stringBuilder.append(user.getId());
+		}
+
+		for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
+			stringBuilder.append(":");
+			stringBuilder.append(schemaType);
+			stringBuilder.append("_*");
+		}
+
+		for (String aGroup : user.getUserGroups()) {
+			stringBuilder.append(" OR ");
+			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+			stringBuilder.append(":" + tokenPrefix + "_");
+			stringBuilder.append(aGroup);
+			if (includeInvisible) {
+				stringBuilder.append(" OR ");
+				stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
+				stringBuilder.append(":z" + tokenPrefix + "_");
+				stringBuilder.append(aGroup);
+			}
+		}
+
+		addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
+		addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
+		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
 		stringBuilder.append(":");
 		stringBuilder.append(Record.PUBLIC_TOKEN);
 		if (deny) {
@@ -152,8 +263,25 @@ public class FilterUtils {
 
 		if (!user.has(permission).globally()) {
 			addTokenA38(stringBuilder);
+
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
-			addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
+			for (String role : rolesGivingPermission) {
+
+				stringBuilder.append(" OR ");
+				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+				stringBuilder.append(":" + role + "_");
+				stringBuilder.append(user.getId());
+
+				for (String aGroup : user.getUserGroups()) {
+					stringBuilder.append(" OR ");
+					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(":" + role + "_");
+					stringBuilder.append(aGroup);
+				}
+			}
+
+			addAuthsTokens(stringBuilder, user, false,
+					UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
 		}
 		return stringBuilder.toString();
 	}
@@ -191,15 +319,18 @@ public class FilterUtils {
 		}
 
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addAuthsTokens(stringBuilder, user, UserAuthorizationsUtils.DELETE_ACCESS);
+		addAuthsTokens(stringBuilder, user, true, UserAuthorizationsUtils.DELETE_ACCESS);
 		addTokens(stringBuilder, tokens.getAllowTokens(), 'd');
 		addTokens(stringBuilder, tokens.getShareAllowTokens(), 'd');
 		addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
 		return stringBuilder.toString();
 	}
 
-	private static void addAuthsTokens(StringBuilder stringBuilder, User user, AuthorizationDetailsFilter filter) {
-		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, filter);
+	private static void addAuthsTokens(StringBuilder stringBuilder, User user, boolean includeSpecifics,
+			AuthorizationDetailsFilter filter) {
+
+		//Specific auths are excluded, they are handled with tokens
+		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, includeSpecifics, filter);
 
 		for (Map.Entry<String, Set<String>> token : tokens.getNestedMap().entrySet()) {
 			stringBuilder.append(" OR (");

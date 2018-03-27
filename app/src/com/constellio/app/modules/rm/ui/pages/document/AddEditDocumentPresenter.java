@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
@@ -32,6 +33,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolde
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -154,7 +156,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document);
+		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document, getCurrentUser());
 
 		documentVO = voBuilder.build(duplicatedDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 
@@ -324,6 +326,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		try {
 			//TODO should throw message if duplicate is found
 			record = toRecord(documentVO, newFile);
+			documentVO.setRecord(record);
 			document = rmSchemas().wrapDocument(record);
 
 			boolean editWithUserDocument = !addView && userDocumentId != null;
@@ -372,6 +375,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
 		view.navigate().to(RMViews.class).displayDocument(record.getId());
+		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
+			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
+			if (agentURL != null) {
+				view.openAgentURL(agentURL);
+			}	
+		}
 	}
 	
 	private void setRecordContent(Record record, DocumentVO documentVO) {
@@ -712,7 +721,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								((Email) document).setEmailTo(email.getEmailTo());
 								((Email) document).setEmailCCTo(email.getEmailCCTo());
 								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
-								((Email) document).setEmailContent(email.getEmailContent());
 								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
 							} finally {
 								ioServices.closeQuietly(inputStream);

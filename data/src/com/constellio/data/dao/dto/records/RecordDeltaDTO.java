@@ -41,6 +41,14 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 		this(id, fromVersion, modifiedFields, initialFields, new HashMap<String, Object>());
 	}
 
+	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields) {
+		this(id, fromVersion, modifiedFields, null, new HashMap<String, Object>());
+	}
+
+	public RecordDeltaDTO(String id, Map<String, Object> modifiedFields) {
+		this(id, 0, modifiedFields, null, new HashMap<String, Object>());
+	}
+
 	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields, Map<String, Object> initialFields,
 			Map<String, Object> copyfields) {
 		super();

@@ -49,7 +49,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 		modifiableSolrParams.set("q", "zeQ");
 		modifiableSolrParams.set("fq", "zeFQ");
 
-		iterator = spy(new LazyResultsIterator<String>(recordDao, modifiableSolrParams, 3) {
+		iterator = spy(new LazyResultsIterator<String>(recordDao, modifiableSolrParams, 3, true) {
 			@Override
 			public String convert(RecordDTO recordDTO) {
 				return "converted_" + recordDTO.getId();

@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.SequenceVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SaveButton;
 import com.constellio.app.ui.framework.components.fields.number.BaseLongField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.MethodProperty;
@@ -54,7 +55,7 @@ public class ListSequencesViewImpl extends BaseViewImpl implements ListSequences
 //		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		
-		Table table = new Table();
+		Table table = new BaseTable(getClass().getName());
 		table.setWidth("100%");
 		table.setPageLength(sequenceVOs.size());
 		table.addContainerProperty("id", String.class, "");

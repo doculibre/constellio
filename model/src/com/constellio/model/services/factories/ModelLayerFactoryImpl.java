@@ -72,6 +72,7 @@ import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCa
 import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
@@ -149,6 +150,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
+		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed, cacheManager));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
@@ -159,7 +161,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches, cacheManager));
+						recordsCaches, cacheManager, getSystemConfigs()));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
@@ -177,8 +179,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.contentsManager = add(new ContentManager(this));
 
-		securityTokenManager = add(new SecurityTokenManager(this));
-
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(this));
@@ -188,7 +188,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
 				ioServicesFactory.newHashingService(BASE64));
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
-				passwordFileAuthenticationService);
+				passwordFileAuthenticationService, modelLayerExtensions);
 		this.emailConfigurationsManager = add(
 				new EmailConfigurationsManager(configManager, collectionsListManager, this, cacheManager));
 
@@ -269,10 +269,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return batchProcessesManager;
 	}
 
-	public BatchProcessesManager newBatchProcessesManager() {
-		return new BatchProcessesManager(this);
-	}
-
 	public FoldersLocator getFoldersLocator() {
 		return foldersLocator;
 	}
@@ -290,7 +286,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public TaxonomiesSearchServices newTaxonomiesSearchService() {
-		return new TaxonomiesSearchServices(this);
+		return new TaxonomiesSearchServicesBasedOnHierarchyTokensImpl(this);
 	}
 
 	public RolesManager getRolesManager() {

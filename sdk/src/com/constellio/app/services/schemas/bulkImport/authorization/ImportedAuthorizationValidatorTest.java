@@ -3,12 +3,15 @@ package com.constellio.app.services.schemas.bulkImport.authorization;
 import static com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidator.VALID_ROLES;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
@@ -22,16 +25,54 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidRole;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 
-public class ImportedAuthorizationValidatorTest {
+public class ImportedAuthorizationValidatorTest extends ConstellioTest {
 	ImportedAuthorizationValidator validator;
 
 	ImportedAuthorization validAuthorization;
 
+	@Mock MetadataSchemaType folderSchemaType;
+	@Mock MetadataSchemaType documentSchemaType;
+	@Mock MetadataSchemaType administrativeUnitSchemaType;
+	@Mock MetadataSchemaType taskSchemaType;
+	@Mock MetadataSchemaType categorySchemaType;
+	@Mock MetadataSchemaTypes types;
+
 	@Before
 	public void setUp()
 			throws Exception {
-		validator = new ImportedAuthorizationValidator();
+
+		when(types.getSchemaType("folder")).thenReturn(folderSchemaType);
+		when(types.getSchemaType("document")).thenReturn(documentSchemaType);
+		when(types.getSchemaType("userTask")).thenReturn(taskSchemaType);
+		when(types.getSchemaType("category")).thenReturn(categorySchemaType);
+		when(types.getSchemaType("administrativeUnit")).thenReturn(administrativeUnitSchemaType);
+
+		when(types.hasType("folder")).thenReturn(true);
+		when(types.hasType("document")).thenReturn(true);
+		when(types.hasType("userTask")).thenReturn(true);
+		when(types.hasType("administrativeUnit")).thenReturn(true);
+		when(types.hasType("category")).thenReturn(true);
+
+		when(types.getAllMetadatas()).thenReturn(new MetadataList());
+		when(folderSchemaType.hasSecurity()).thenReturn(true);
+		when(documentSchemaType.hasSecurity()).thenReturn(true);
+		when(taskSchemaType.hasSecurity()).thenReturn(true);
+		when(administrativeUnitSchemaType.hasSecurity()).thenReturn(false);
+		when(categorySchemaType.hasSecurity()).thenReturn(false);
+
+		Taxonomy principalTaxonomy = mock(Taxonomy.class);
+		when(principalTaxonomy.getSchemaTypes()).thenReturn(asList("administrativeUnit"));
+
+		validator = new ImportedAuthorizationValidator(types, principalTaxonomy);
 		List<ImportedAuthorizationPrincipal> validPrincipals = asList(new ImportedAuthorizationPrincipal("user", "userLegacyId"),
 				new ImportedAuthorizationPrincipal("group", "groupLegacyId"));
 		List<ImportedAuthorizationTarget> validTargets = asList(new ImportedAuthorizationTarget("folder", "folderLegacyId"),
@@ -133,10 +174,31 @@ public class ImportedAuthorizationValidatorTest {
 	}
 
 	@Test(expected = ImportedAuthorizationValidatorRuntimeException_InvalidTargetType.class)
-	public void givenAuthorizationWithInvalidTargetTypeWhenValidatingThenAdequateException()
+	public void givenAuthorizationWithInexistingTargetTypeWhenValidatingThenAdequateException()
 			throws Exception {
 		validAuthorization.setTargets(asList(new ImportedAuthorizationTarget("folders", "legacyId")));
 		validator.validate(validAuthorization);
 	}
 
+	@Test(expected = ImportedAuthorizationValidatorRuntimeException_InvalidTargetType.class)
+	public void givenAuthorizationWithUnsecurizedTargetTypeWhenValidatingThenAdequateException()
+			throws Exception {
+		validAuthorization.setTargets(asList(new ImportedAuthorizationTarget("category", "legacyId")));
+		validator.validate(validAuthorization);
+	}
+
+	@Test
+	public void givenAuthorizationWithUnsecurizedTargetTypeProvidingSecurityWithMetadataWhenValidatingThenNoException()
+			throws Exception {
+
+		Metadata metadataProvidingSecurity = TestUtils.mockManualMetadata("folder_default_category", MetadataValueType.REFERENCE);
+		when(metadataProvidingSecurity.getReferencedSchemaType()).thenReturn("category");
+		when(metadataProvidingSecurity.isRelationshipProvidingSecurity()).thenReturn(true);
+
+		MetadataList metadatas = new MetadataList(metadataProvidingSecurity);
+		when(types.getAllMetadatas()).thenReturn(metadatas);
+
+		validAuthorization.setTargets(asList(new ImportedAuthorizationTarget("category", "legacyId")));
+		validator.validate(validAuthorization);
+	}
 }

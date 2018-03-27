@@ -1,5 +1,26 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.lang.model.element.Modifier;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Test;
+
 import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -27,8 +48,19 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.entities.security.Role;
@@ -52,26 +84,12 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Test;
-
-import javax.lang.model.element.Modifier;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
 
 @InDevelopmentTest
 public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	String collection = zeCollection;
-	public Class[] problems = new Class[]{
+	public Class[] problems = new Class[] {
 			ArrayList.class,
 			RolesManager.class,
 			MetadataValueType.class,
@@ -302,9 +320,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
+		String fileWithoutProblems = this.resolveProblems(file);
+
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, file.toString());
+		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
 	@Test
@@ -512,26 +532,26 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return constructor;
 	}
 
-//	private MethodSpec generateSearchBoost() {
-//		Builder main = MethodSpec.methodBuilder("applySearchBoost").addModifiers(Modifier.PUBLIC)
-//				.addParameter(SearchBoostManager.class, "manager")
-//				.returns(void.class);
-//
-//		SearchBoostManager manager = getModelLayerFactory().getSearchBoostManager();
-//		main.beginControlFlow("for(SearchBoost searchBoost : manager.getAllSearchBoosts(collection))");
-//		main.addStatement("manager.delete(collection, searchBoost)");
-//		main.endControlFlow();
-//		main.addStatement("SearchBoost newBoost");
-//		for (SearchBoost searchBoost : manager.getAllSearchBoosts(collection)) {
-//			main.addStatement("newBoost = new SearchBoost(SearchBoost.$N_TYPE, $S, $S, $N)",
-//					searchBoost.getType().toString().toUpperCase(), searchBoost.getKey(), searchBoost.getLabel(), searchBoost.getValue()+"d");
-//			main.addStatement("manager.add(collection, newBoost)");
-//		}
-//
-//		MethodSpec spec = main.build();
-//		System.out.println(spec.toString());
-//		return spec;
-//	}
+	//	private MethodSpec generateSearchBoost() {
+	//		Builder main = MethodSpec.methodBuilder("applySearchBoost").addModifiers(Modifier.PUBLIC)
+	//				.addParameter(SearchBoostManager.class, "manager")
+	//				.returns(void.class);
+	//
+	//		SearchBoostManager manager = getModelLayerFactory().getSearchBoostManager();
+	//		main.beginControlFlow("for(SearchBoost searchBoost : manager.getAllSearchBoosts(collection))");
+	//		main.addStatement("manager.delete(collection, searchBoost)");
+	//		main.endControlFlow();
+	//		main.addStatement("SearchBoost newBoost");
+	//		for (SearchBoost searchBoost : manager.getAllSearchBoosts(collection)) {
+	//			main.addStatement("newBoost = new SearchBoost(SearchBoost.$N_TYPE, $S, $S, $N)",
+	//					searchBoost.getType().toString().toUpperCase(), searchBoost.getKey(), searchBoost.getLabel(), searchBoost.getValue()+"d");
+	//			main.addStatement("manager.add(collection, newBoost)");
+	//		}
+	//
+	//		MethodSpec spec = main.build();
+	//		System.out.println(spec.toString());
+	//		return spec;
+	//	}
 
 	protected void generateI18n(File moduleFolder)
 			throws IOException {
@@ -587,7 +607,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"), new HashMap<String, String>());
 
 			for (File resourceFile : resourcesFiles) {
-				if(resourceFile.isDirectory()) {
+				if (resourceFile.isDirectory()) {
 					FileUtils.copyDirectory(resourceFile, new File(comboFolder, resourceFile.getName()));
 				} else {
 					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
@@ -927,16 +947,16 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
-							if(dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
+							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
 								main.addStatement("$L.defineDataEntry().asReferenceCount($L)",
 										variableOf(metadata),
 										variableOfMetadata(dataEntry.getReferenceMetadata()));
 							}
-							if(dataEntry.getAgregationType().equals(AggregationType.SUM)) {
+							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
 								main.addStatement("$L.defineDataEntry().asSum($L, $L)",
 										variableOf(metadata),
 										variableOfMetadata(dataEntry.getReferenceMetadata()),
-										variableOfMetadata(dataEntry.getInputMetadata()));
+										variableOfMetadata(StringUtils.join(dataEntry.getInputMetadatas(), ", ")));
 							}
 						}
 					}
@@ -1055,8 +1075,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected void configureMetadata(Builder method, String variable, Metadata metadata) {
 
-		if(MetadataTransiency.TRANSIENT_EAGER.equals(metadata.getTransiency()) || MetadataTransiency.TRANSIENT_LAZY.equals(metadata.getTransiency())) {
-			method.addStatement("$L.setTransiency(MetadataTransiency.$N)", variable, metadata.getTransiency().name().toUpperCase());
+		if (MetadataTransiency.TRANSIENT_EAGER.equals(metadata.getTransiency()) || MetadataTransiency.TRANSIENT_LAZY
+				.equals(metadata.getTransiency())) {
+			method.addStatement("$L.setTransiency(MetadataTransiency.$N)", variable,
+					metadata.getTransiency().name().toUpperCase());
 		}
 
 		if (metadata.isMultivalue()) {

@@ -22,8 +22,8 @@ public class MetadataDisplayConfig implements Serializable {
 	private final boolean highlight;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
-								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
-								 MetadataDisplayType displayType) {
+			MetadataInputType inputType, boolean highlight, String metadataGroupCode,
+			MetadataDisplayType displayType) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
@@ -94,5 +94,41 @@ public class MetadataDisplayConfig implements Serializable {
 	public MetadataDisplayConfig withCode(String code) {
 		return new MetadataDisplayConfig(collection, code, visibleInAdvancedSearch, inputType, highlight,
 				metadataGroupCode, displayType);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof MetadataDisplayConfig))
+			return false;
+
+		MetadataDisplayConfig that = (MetadataDisplayConfig) o;
+
+		if (visibleInAdvancedSearch != that.visibleInAdvancedSearch)
+			return false;
+		if (highlight != that.highlight)
+			return false;
+		if (metadataCode != null ? !metadataCode.equals(that.metadataCode) : that.metadataCode != null)
+			return false;
+		if (collection != null ? !collection.equals(that.collection) : that.collection != null)
+			return false;
+		if (inputType != that.inputType)
+			return false;
+		if (displayType != that.displayType)
+			return false;
+		return metadataGroupCode != null ? metadataGroupCode.equals(that.metadataGroupCode) : that.metadataGroupCode == null;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = metadataCode != null ? metadataCode.hashCode() : 0;
+		result = 31 * result + (collection != null ? collection.hashCode() : 0);
+		result = 31 * result + (visibleInAdvancedSearch ? 1 : 0);
+		result = 31 * result + (inputType != null ? inputType.hashCode() : 0);
+		result = 31 * result + (displayType != null ? displayType.hashCode() : 0);
+		result = 31 * result + (metadataGroupCode != null ? metadataGroupCode.hashCode() : 0);
+		result = 31 * result + (highlight ? 1 : 0);
+		return result;
 	}
 }

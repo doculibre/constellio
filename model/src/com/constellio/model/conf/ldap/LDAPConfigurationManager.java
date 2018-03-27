@@ -29,6 +29,7 @@ import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
 
 public class LDAPConfigurationManager implements StatefulService {
+	private static final String CACHE_KEY = "configs";
 	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
 	public static final long MIN_DURATION = 1000 * 60 * 10;//10mns
 	private final ModelLayerFactory modelLayerFactory;
@@ -41,6 +42,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
 		this.configManager = configManager;
 		this.modelLayerFactory = modelLayerFactory;
+		configManager.keepInCache(LDAP_CONFIGS);
 		configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
@@ -271,7 +273,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
-		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration configuration = getConfigs();
 		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
@@ -299,7 +301,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(boolean decryptPassword) {
-		PropertiesConfiguration configuration = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration configuration = getConfigs();
 		Map<String, String> configs = configuration == null ? new HashMap<String, String>() : configuration.getProperties();
 		RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex",
 				"ldap.syncConfiguration.userFilter.rejectedRegex");
@@ -327,7 +329,7 @@ public class LDAPConfigurationManager implements StatefulService {
 					.setGroupsFilter(groupsFilter)
 					.setUsersFilter(usersFilter)
 					.setUserGroups(userGroups);
-			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
+			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution, scheduleTimeList,
 					selectedCollections);
 		} else {
 			String user = getString(configs, "ldap.syncConfiguration.user.login", null);
@@ -353,8 +355,12 @@ public class LDAPConfigurationManager implements StatefulService {
 		}
 	}
 
+	private PropertiesConfiguration getConfigs() {
+		return configManager.getProperties(LDAP_CONFIGS);
+	}
+
 	public boolean isLDAPAuthentication() {
-		PropertiesConfiguration properties = configManager.getProperties(LDAP_CONFIGS);
+		PropertiesConfiguration properties = getConfigs();
 		if (properties == null) {
 			return false;
 		} else {

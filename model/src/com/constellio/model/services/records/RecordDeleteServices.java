@@ -95,6 +95,10 @@ public class RecordDeleteServices {
 
 	private final ModelLayerFactory modelLayerFactory;
 
+	public RecordDeleteServices(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory.getDataLayerFactory().newRecordDao(), modelLayerFactory);
+	}
+
 	public RecordDeleteServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this.recordDao = recordDao;
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -109,7 +113,7 @@ public class RecordDeleteServices {
 
 	public boolean isRestorable(Record record, User user) {
 		ensureSameCollection(user, record);
-
+		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String parentId = record.getParentId();
 		boolean parentActiveOrNull;
 		if (parentId != null) {
@@ -122,7 +126,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 		return parentActiveOrNull && (!schemaType.hasSecurity() || user == User.GOD ||
-				authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record));
+				authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
 	}
 
 	public void restore(Record record, User user) {
@@ -169,14 +173,15 @@ public class RecordDeleteServices {
 
 	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
-
+		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
 		boolean correctStatus = TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
 		boolean noActiveRecords = containsNoActiveRecords(record);
 		boolean hasPermissions =
-				!schemaType.hasSecurity() || authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record);
+				!schemaType.hasSecurity() || authorizationsServices
+						.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy);
 		if (!correctStatus) {
 			LOGGER.info("Not physically deletable : Record is not logically deleted");
 			return false;
@@ -197,14 +202,16 @@ public class RecordDeleteServices {
 
 	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
-
+		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
 		boolean hasPermissions =
-				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
+				!schemaType.hasSecurity() || authorizationsServices
+						.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record, recordsHierarchy);
 		boolean referencesInConfigs = isReferencedByConfigs(record);
-		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isSetMostReferencesToNull();
+		boolean referencesUnhandled =
+				isReferencedByOtherRecords(record, recordsHierarchy) && !options.isSetMostReferencesToNull();
 
 		if (referencesInConfigs) {
 			LOGGER.info("Not physically deletable : Record is used in configs");
@@ -223,12 +230,12 @@ public class RecordDeleteServices {
 		Factory<Boolean> referenced = new Factory<Boolean>() {
 			@Override
 			public Boolean get() {
-				return !getRecordsInHierarchyWithDependency(record).isEmpty();
+				return !getRecordsInHierarchyWithDependency(record, recordsHierarchy).isEmpty();
 			}
 		};
 
 		if (physicallyDeletable) {
-			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced, true);
 			physicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
 		}
 
@@ -368,6 +375,7 @@ public class RecordDeleteServices {
 			}
 
 			for (RecordDTO recordDTO : recordsDTO) {
+				ids.remove(recordDTO.getId());
 				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
 			}
 
@@ -452,8 +460,16 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
+		if (user != null && schemaType.hasSecurity() && !user.hasDeleteAccess().on(record)) {
+			//The record has security, before going further with validations, we check if the user can delete it
+			return false;
+		}
+
+		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
+
 		boolean logicallyDeletable =
-				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchy(user, record);
+				!schemaType.hasSecurity() || authorizationsServices
+						.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
 
 		if (isReferencedByConfigs(record)) {
 			logicallyDeletable = false;
@@ -463,10 +479,11 @@ public class RecordDeleteServices {
 			Factory<Boolean> referenced = new Factory<Boolean>() {
 				@Override
 				public Boolean get() {
-					return !getRecordsInHierarchyWithDependency(record).isEmpty();
+					return !getRecordsInHierarchyWithDependency(record, recordsHierarchy).isEmpty();
 				}
 			};
-			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced,
+					false);
 			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
 		}
 
@@ -530,7 +547,7 @@ public class RecordDeleteServices {
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 
-		if(!options.isCheckForValidationErrorEnable()) {
+		if (!options.isCheckForValidationErrorEnable()) {
 			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 		}
 
@@ -545,10 +562,6 @@ public class RecordDeleteServices {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
 			transaction.add(hierarchyRecord);
 		}
-		//		if (!transaction.getRecords().contains(record)) {
-		//			record.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		//			transaction.add(record);
-		//		}
 		transaction.setRecordFlushing(options.getRecordsFlushing());
 		transaction.setUser(user);
 		try {
@@ -559,14 +572,11 @@ public class RecordDeleteServices {
 		}
 	}
 
-	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record principalConcept, User user) {
+	boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record principalConcept, User user) {
+		List<Record> recordsHierarchy = loadRecordsHierarchyOf(principalConcept);
 		return authorizationsServices
-				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, true, metadataSchemasManager);
-	}
-
-	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record principalConcept, User user) {
-		return authorizationsServices
-				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, false, metadataSchemasManager);
+				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, false, recordsHierarchy,
+						metadataSchemasManager);
 	}
 
 	List<Record> getAllRecordsInHierarchy(Record record) {
@@ -631,10 +641,10 @@ public class RecordDeleteServices {
 		return new RecordUtils();
 	}
 
-	public List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user) {
+	List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user, List<Record> recordHierarchy) {
 		//1 - Find all hierarchy records (including the given record) that are referenced (using the counter index)
 		List<Record> returnedRecords = new ArrayList<>();
-		List<String> recordsWithReferences = new ArrayList<>(getRecordsInHierarchyWithDependency(record));
+		List<String> recordsWithReferences = new ArrayList<>(getRecordsInHierarchyWithDependency(record, recordHierarchy));
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
 		for (String id : recordsWithReferences) {
@@ -645,18 +655,6 @@ public class RecordDeleteServices {
 				returnedRecords.add(referencingRecord);
 			}
 		}
-
-		//if (!recordsWithReferences.isEmpty()) {
-
-		//			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
-		//				List<Metadata> references = type.getAllNonParentReferences();
-		//				if (!references.isEmpty()) {
-		//					List<Record> recordsInType = getRecordsInTypeWithReferenceTo(user, recordsWithReferences, type, references);
-		//					returnedRecords.addAll(recordsInType);
-		//				}
-		//			}
-		//return recordServices.getRecordsById()
-		//}
 
 		return Collections.unmodifiableList(returnedRecords);
 	}
@@ -669,17 +667,8 @@ public class RecordDeleteServices {
 		return searchServices.search(query);
 	}
 
-	public Set<String> getRecordsInHierarchyWithDependency(Record record) {
+	private Set<String> getRecordsInHierarchyWithDependency(Record record, List<Record> recordsHierarchy) {
 
-		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
-
-		List<Record> recordsHierarchy;
-
-		if (taxonomy == null) {
-			recordsHierarchy = new ArrayList<>(getAllRecordsInHierarchy(record));
-		} else {
-			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
-		}
 		List<String> recordsHierarchyIds = new RecordUtils().toIdList(recordsHierarchy);
 		Set<String> references = new HashSet<>();
 
@@ -689,28 +678,28 @@ public class RecordDeleteServices {
 
 		for (Record aHierarchyRecord : recordsHierarchy) {
 
+			boolean mayBeReferencedOutsideHierarchy = false;
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 
 				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
-						.onlyReferencesToType(aHierarchyRecord.getTypeCode());
-				if (!referencesMetadata.isEmpty()) {
-					List<Metadata> parentReferences = schemaType.getDefaultSchema().getMetadatas()
-							.onlyParentReferenceToSchemaType(aHierarchyRecord.getTypeCode());
+						.onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
+				mayBeReferencedOutsideHierarchy |= !referencesMetadata.isEmpty();
+			}
 
-					LogicalSearchCondition condition = from(schemaType).where(ALL_REFERENCES)
-							.isEqualTo(aHierarchyRecord.getId());
+			if (mayBeReferencedOutsideHierarchy) {
+				LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
+						.where(ALL_REFERENCES).isEqualTo(aHierarchyRecord.getId());
 
-					if (!parentReferences.isEmpty()) {
-						condition = condition.andWhereAll((List) parentReferences).isNotEqual(aHierarchyRecord.getId());
-					}
+				if (taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode()) == null) {
+					condition = condition.andWhere(Schemas.PATH_PARTS).isNotEqual(aHierarchyRecord.getId());
+				}
 
-					Iterator<String> iterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(condition));
+				Iterator<String> iterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(condition));
 
-					while (iterator.hasNext()) {
-						String referencingRecord = iterator.next();
-						if (!recordsHierarchyIds.contains(referencingRecord)) {
-							references.add(referencingRecord);
-						}
+				while (iterator.hasNext()) {
+					String referencingRecord = iterator.next();
+					if (!recordsHierarchyIds.contains(referencingRecord)) {
+						references.add(referencingRecord);
 					}
 				}
 			}
@@ -738,9 +727,21 @@ public class RecordDeleteServices {
 		return false;
 	}
 
-	public boolean isReferencedByOtherRecords(Record record) {
-		return !getRecordsInHierarchyWithDependency(record).isEmpty();
+	public boolean isReferencedByOtherRecords(Record record, List<Record> recordsHierarchy) {
+		return !getRecordsInHierarchyWithDependency(record, recordsHierarchy).isEmpty();
 
+	}
+
+	public List<Record> loadRecordsHierarchyOf(Record record) {
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		List<Record> recordsHierarchy;
+		if (taxonomy == null) {
+			recordsHierarchy = new ArrayList<>(getAllRecordsInHierarchy(record));
+		} else {
+			recordsHierarchy = new ArrayList<>(getAllTaxonomyRecordsInHierarchy(record, taxonomy));
+		}
+
+		return recordsHierarchy;
 	}
 
 	private void ensureSameCollection(User user, Record record) {

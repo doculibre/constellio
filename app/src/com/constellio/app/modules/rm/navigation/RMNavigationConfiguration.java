@@ -270,16 +270,13 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE,
-						"view_folder").getItems();
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE).getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE,
-						"view_document")
-						.getItems();
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE).getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {

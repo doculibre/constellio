@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.model.entities.records.*;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +23,6 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -90,8 +88,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return addOrUpdate(record, getCurrentUser(), RecordsFlushing.NOW());
 	}
 
+	public final List<BatchProcess> addOrUpdate(Record record, RecordUpdateOptions updateOptions) {
+		return addOrUpdate(record, getCurrentUser(), RecordsFlushing.NOW(), updateOptions);
+	}
+
 	public final List<BatchProcess> addOrUpdateWithoutUser(Record record) {
-		return addOrUpdate(record, null);
+		return addOrUpdate(record, (User) null);
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record, User user) {
@@ -99,10 +101,17 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing) {
+		return addOrUpdate(record, user, recordFlushing, null);
+	}
+
+	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing, RecordUpdateOptions updateOptions) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setToReindexAll();
-		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+		if(updateOptions != null) {
+			createTransaction.setOptions(updateOptions);
+		}
 		createTransaction.addUpdate(record);
 		//		if (!modelLayerFactory().getRecordsCaches().isCached(record.getId())
 		//				|| !modelLayerFactory().getRecordsCaches().getCache(getCollection()).isCached(record.getId())) {
@@ -165,7 +174,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
-				recordServices().physicallyDelete(record, user);
+				recordServices().physicallyDeleteNoMatterTheStatus(record, user, new RecordPhysicalDeleteOptions());
 			}
 		}
 	}

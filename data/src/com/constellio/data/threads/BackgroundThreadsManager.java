@@ -72,7 +72,8 @@ public class BackgroundThreadsManager implements StatefulService {
 		TimeUnit unit = TimeUnit.SECONDS;
 		Runnable command = getRunnableCommand(backgroundThreadConfiguration);
 		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
-			scheduledExecutorService.scheduleWithFixedDelay(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
+			scheduledExecutorService
+					.scheduleWithFixedDelay(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
 		}
 	}
 
@@ -82,7 +83,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	}
 
 	ScheduledExecutorService newScheduledExecutorService() {
-		return Executors.newScheduledThreadPool(4 * dataLayerConfiguration.getBackgroudThreadsPoolSize());
+		return Executors.newScheduledThreadPool(42 * dataLayerConfiguration.getBackgroudThreadsPoolSize());
 	}
 
 }

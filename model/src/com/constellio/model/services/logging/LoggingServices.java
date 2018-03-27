@@ -1,8 +1,13 @@
 package com.constellio.model.services.logging;
 
+import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
+
+import org.joda.time.LocalDateTime;
+
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -15,11 +20,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
-import org.joda.time.LocalDateTime;
-
-import java.util.List;
-
-import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
 
 public class LoggingServices {
 
@@ -94,7 +94,8 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.VIEW, null, dateTime));
 	}
 
-	public void borrowExtensionOnRecord(Record record, User currentUser, LocalDateTime dateTime, LocalDateTime oldReturnDate, LocalDateTime newReturnDate) {
+	public void borrowExtensionOnRecord(Record record, User currentUser, LocalDateTime dateTime, LocalDateTime oldReturnDate,
+			LocalDateTime newReturnDate) {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.BORROWING_TIME_EXTENSIONS, null, dateTime)
 				.setDelta(eventFactory.getBorrowDurationDelta(oldReturnDate, newReturnDate)));
 	}
@@ -110,6 +111,31 @@ public class LoggingServices {
 	public void borrowRecord(Record record, User currentUser) {
 		executeTransaction(
 				eventFactory.newRecordEvent(record, currentUser, EventType.BORROW, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void openDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.OPEN, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void downloadDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.DOWNLOAD, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void uploadDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.UPLOAD, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void shareDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.SHARE, null, TimeProvider.getLocalDateTime()));
+	}
+
+	public void finalizeDocument(Record record, User currentUser) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, currentUser, EventType.FINALIZE, null, TimeProvider.getLocalDateTime()));
 	}
 
 	public void consultingRecord(Record record, User currentUser, LocalDateTime dateTime) {
@@ -165,28 +191,16 @@ public class LoggingServices {
 	}
 
 	private void executeTransaction(Record record) {
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(1));
-		transaction.add(record);
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			//TODO
-			throw new RuntimeException(e.getMessage());
-		}
-	}
-
-	private void executeTransaction(List<Record> records) {
-		Transaction transaction = new Transaction();
-		transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(10));
-		for (Record record : records) {
+		if (Toggle.AUDIT_EVENTS.isEnabled()) {
+			Transaction transaction = new Transaction();
+			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
 			transaction.add(record);
-		}
-		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			//TODO
-			throw new RuntimeException(e.getMessage());
+			try {
+				modelLayerFactory.newRecordServices().execute(transaction);
+			} catch (RecordServicesException e) {
+				//TODO
+				throw new RuntimeException(e.getMessage());
+			}
 		}
 	}
 
@@ -195,23 +209,29 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 
-	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
+	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
+			String reason, String delta) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.BORROW_REQUEST, reason, LocalDateTime.now())
 				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
-	public void completeReturnRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason) {
+	public void completeReturnRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
+			String reason) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.RETURN_REQUEST, reason, LocalDateTime.now())
 				.setTask(taskId).setReceiver(respondant).setAccepted(isAccepted));
 	}
 
-	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
-		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.REACTIVATION_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
+	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
+			String reason, String delta) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, applicant, EventType.REACTIVATION_REQUEST, reason, LocalDateTime.now())
+						.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
-	public void completeBorrowExtensionRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant, String reason, String delta) {
-		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.BORROW_EXTENSION_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
+	public void completeBorrowExtensionRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
+			User respondant, String reason, String delta) {
+		executeTransaction(
+				eventFactory.newRecordEvent(record, applicant, EventType.BORROW_EXTENSION_REQUEST, reason, LocalDateTime.now())
+						.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 }

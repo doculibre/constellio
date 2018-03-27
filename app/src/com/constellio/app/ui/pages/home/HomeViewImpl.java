@@ -398,7 +398,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 						try {
 							String extension = FileIconUtils.getExtension(recordVO);
 							if (extension != null) {
-								return "file-icon-" + extension;
+								return "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
 							}
 						} catch (Exception e) {
 							// Ignore the exception

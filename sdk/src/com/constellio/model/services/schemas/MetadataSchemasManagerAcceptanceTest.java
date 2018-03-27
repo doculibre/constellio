@@ -36,6 +36,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
@@ -710,6 +711,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSavingReferenceProvidingSecurityMetadataThenFlagConserved()
+			throws Exception {
+		defineSchemasManager().using(
+				defaultSchema.withAReferenceMetadata(whichAllowsThirdSchemaType, whichIsProvidingSecurity));
+
+		assertThat(zeSchema.referenceMetadata().isRelationshipProvidingSecurity()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.referenceMetadata().getLocalCode())
+						.setRelationshipProvidingSecurity(false);
+			}
+		});
+
+		assertThat(zeSchema.referenceMetadata().isRelationshipProvidingSecurity()).isFalse();
+
+	}
+
+	@Test
 	public void whenSavingReferencedMetadataThenAllowedSchemaTypeConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAReferenceMetadata(whichAllowsAnotherDefaultSchema));
@@ -760,7 +781,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		AggregatedDataEntry dataEntry = (AggregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
 		assertThat(dataEntry.getType()).isEqualTo(AGGREGATED);
-		assertThat(dataEntry.getInputMetadata()).isEqualTo("anotherSchemaType_default_number");
+		assertThat(dataEntry.getInputMetadatas()).containsOnly("anotherSchemaType_default_number");
 		assertThat(dataEntry.getReferenceMetadata()).isEqualTo("anotherSchemaType_default_ref");
 		assertThat(dataEntry.getAgregationType()).isEqualTo(AggregationType.SUM);
 	}
@@ -1610,6 +1631,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo("value2");
 		assertThat(zeCustomSchema.stringMetadata().getDefaultValue()).isEqualTo("value3");
+	}
+
+	@Test
+	public void givenDifferentDataStoreIsUsedToPersistRecordsThenSaved()
+			throws Exception {
+		defineSchemasManager().using(schemas.whichIsIsStoredInDataStore("events"));
+
+		assertThat(zeSchema.type().getDataStore()).isEqualTo("events");
+		assertThat(anotherSchema.type().getDataStore()).isEqualTo("records");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setDataStore(null);
+				types.getSchemaType(anotherSchema.typeCode()).setDataStore("events");
+			}
+		});
+
+		assertThat(zeSchema.type().getDataStore()).isEqualTo("records");
+		assertThat(anotherSchema.type().getDataStore()).isEqualTo("events");
 	}
 
 	private MetadataSchemaTypes createTwoSchemas()

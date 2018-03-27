@@ -1,5 +1,25 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -31,20 +51,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.*;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.*;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
 
 public class DemoTestRecords {
 
@@ -323,6 +329,15 @@ public class DemoTestRecords {
 		PA = schemas.PA();
 		MD = schemas.DM();
 		MV = schemas.FI();
+
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
+		if ("ar".equals(mainDataLanguage)) {
+			PA = schemas.getMediumTypeByCode("ورقي").getId();
+			MD = schemas.getMediumTypeByCode("القرص المغناطيسي").getId();
+			MV = schemas.getMediumTypeByCode("فيلم").getId();
+		}
+
 		PA_MD = asList(PA, MD);
 
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
@@ -658,6 +673,10 @@ public class DemoTestRecords {
 	}
 
 	public DemoTestRecords withFoldersAndContainersOfEveryStatus() {
+		return withFoldersAndContainersOfEveryStatus(true);
+	}
+
+	public DemoTestRecords withFoldersAndContainersOfEveryStatus(boolean documents) {
 		//Calculation of closing date is disabled because we want some folders without close date
 		systemConfigurationsManager.setValue(RMConfigs.CALCULATED_CLOSING_DATE, false);
 		systemConfigurationsManager.setValue(RMConfigs.YEAR_END_DATE, "10/31");
@@ -667,7 +686,9 @@ public class DemoTestRecords {
 		setupContainerTypes(transaction);
 		setupContainers(transaction);
 		setupFolders(transaction);
-		setupDocuments(transaction);
+		if (documents) {
+			setupDocuments(transaction);
+		}
 		setupLists(transaction);
 		try {
 			recordServices.execute(transaction);

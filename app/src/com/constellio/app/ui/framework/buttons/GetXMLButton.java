@@ -2,17 +2,20 @@ package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.ReportXMLGenerator;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -24,11 +27,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class GetXMLButton extends WindowButton {
@@ -52,11 +53,12 @@ public class GetXMLButton extends WindowButton {
     private List<String> ids;
     private AppLayerFactory factory;
     private ContentManager contentManager;
-    private ReportXMLGenerator reportXmlGenerator;
+    private LabelXmlGenerator reportXmlGenerator;
     private BaseView view;
     private String currentSchema;
+    private RecordServices recordServices;
 
-    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view) {
+    public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection, BaseView view, boolean isForTest) {
         super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
         this.model = factory.getModelLayerFactory();
         this.collection = collection;
@@ -64,58 +66,45 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.reportXmlGenerator = new ReportXMLGenerator(collection, factory, view.getSessionContext().getCurrentUser().getUsername());
+        this.reportXmlGenerator = new LabelXmlGenerator(collection, factory);
+        if(isForTest) {
+            reportXmlGenerator.setXmlGeneratorParameters(new XmlReportGeneratorParameters().markAsTestXml());
+        }
         this.view = view;
         this.currentSchema = Folder.SCHEMA_TYPE;
+        this.recordServices = this.model.newRecordServices();
     }
 
     @Override
     protected Component buildWindowContent() {
-        final TextField txtNbFolder = new TextField();
-        txtNbFolder.addStyleName(STYLE_FIELD);
-        txtNbFolder.setValue(1 + "");
-        txtNbFolder.setConverter(Integer.class);
-        txtNbFolder.setCaption(currentSchema.equals(Folder.SCHEMA_TYPE) ? $("GenerateXML.nbFolder") : $("GenerateXML.nbContainer"));
+        final ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema);
+        listAddRemoveRecordLookupField.setCaption(currentSchema.equals(Folder.SCHEMA_TYPE) ? $("GenerateXML.nbFolder") : $("GenerateXML.nbContainer"));
 
         return new BaseForm<LabelParametersVO>(
-                new LabelParametersVO(new LabelTemplate()), this, txtNbFolder) {
+                new LabelParametersVO(new LabelTemplate()), this, listAddRemoveRecordLookupField) {
             @Override
             protected void saveButtonClick(LabelParametersVO parameters) throws ValidationException {
                 try {
-                    VerticalLayout newMain = new VerticalLayout();
+                    Field lookupField = fields.get(0);
                     String filename = "Constellio-Test.xml";
-                    int nbEntre = Integer.parseInt(txtNbFolder.getValue());
-                    List<String> ids = new ArrayList<>();
-                    LogicalSearchCondition log = from(rm.schemaType(currentSchema)).where(ALL);
-                    LogicalSearchQuery query = new LogicalSearchQuery(log).setNumberOfRows(nbEntre);
-                    if (currentSchema.equals(Folder.SCHEMA_TYPE)) {
-                        List<Folder> folders = rm.wrapFolders(ss.search(query));
-                        for (Folder f : folders) {
-                            ids.add(f.getId());
-                        }
-                    } else {
-                        List<ContainerRecord> containers = rm.wrapContainerRecords(ss.search(query));
-                        for (ContainerRecord c : containers) {
-                            ids.add(c.getId());
-                        }
+                    List<String> ids = ((ListAddRemoveRecordLookupField) lookupField).getValue();
+                    if(ids.size() > 0) {
+                        List<Record> records = recordServices.getRecordsById(collection, ids);
+                        reportXmlGenerator.setElements(records.toArray(new Record[0]));
+                        String xml = reportXmlGenerator.generateXML();
+                        StreamResource source = createResource(xml, filename);
+
+                        Link download = new Link($("ReportViewer.download", filename),
+                                new DownloadStreamResource(source.getStreamSource(), filename));
+                        VerticalLayout newLayout = new VerticalLayout();
+                        newLayout.addComponents(download);
+                        newLayout.setWidth("100%");
+                        getWindow().setContent(newLayout);
                     }
-
-                    String xml = currentSchema.equals(Folder.SCHEMA_TYPE) ? reportXmlGenerator.convertFolderWithIdentifierToXML(ids, null) : reportXmlGenerator.convertContainerWithIdentifierToXML(ids, null);
-                    //Embedded viewer = new Embedded();
-                    StreamResource source = createResource(xml, filename);
-//                    viewer.setSource(source);
-//                    viewer.setType(Embedded.TYPE_BROWSER);
-//
-//                    viewer.setWidth("100%");
-//                    viewer.setHeight("1024px");
-
-                    Link download = new Link($("ReportViewer.download", filename),
-                            new DownloadStreamResource(source.getStreamSource(), filename));
-                    newMain.addComponents(download);
-                    newMain.setWidth("100%");
-                    getWindow().setContent(newMain);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     view.showErrorMessage(e.getMessage());
+                    e.printStackTrace();
                 }
             }
 

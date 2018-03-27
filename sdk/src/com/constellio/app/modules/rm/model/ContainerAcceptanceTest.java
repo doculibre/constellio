@@ -1,8 +1,15 @@
 package com.constellio.app.modules.rm.model;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -156,5 +163,75 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.aliceIn(zeCollection)))).isEqualTo(0);
 	}
 
+	@Test
+	public void givenContainerInNonCompletedAndNotDeletedTaskThenCannotDelete() throws RecordServicesException {
+		ContainerRecordType zeBoite = rm.newContainerRecordTypeWithId("zeBoite");
+		zeBoite.setTitle("Ze Boite");
+		zeBoite.setCode("BOITE");
+		ContainerRecord zeContainer = rm.newContainerRecordWithId("zeContainer");
+		zeContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeContainer.setDescription("Ze description");
+		zeContainer.setFull(false);
+		zeContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeContainer.setAdministrativeUnit(records.unitId_10a);
+		zeContainer.setType("zeBoite");
+		recordServices.add(zeBoite);
+		recordServices.add(zeContainer);
+
+		Task task = rm.newRMTask().setLinkedContainers(asList(zeContainer.getId())).setTitle("Task");
+		recordServices.add(task);
+		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+
+		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
+		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
+		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
+		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+	}
+
+	@Test(expected = RecordServicesException.ValidationException.class)
+	public void givenContainerWithUniqueTitleThenThrowExceptionEvenIfDifferentCustomSchemas() throws RecordServicesException {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(Schemas.TITLE).setUniqueValue(true);
+				types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("zeSchema");
+			}
+		});
+		ContainerRecordType zeDefaultType = rm.newContainerRecordTypeWithId("zeDefaultType");
+		zeDefaultType.setTitle("zeDefaultType");
+		zeDefaultType.setCode("zeDefaultType");
+		recordServices.add(zeDefaultType);
+		ContainerRecordType zeBoite = rm.newContainerRecordTypeWithId("zeBoite");
+		zeBoite.setTitle("Ze Boite");
+		zeBoite.setCode("BOITE");
+		zeBoite.setLinkedSchema("containerRecord_zeSchema");
+		recordServices.add(zeBoite);
+
+		ContainerRecord zeDefaultContainer = rm.newContainerRecord();
+		zeDefaultContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeDefaultContainer.setDescription("Ze description");
+		zeDefaultContainer.setFull(false);
+		zeDefaultContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeDefaultContainer.setAdministrativeUnit(records.unitId_10a);
+		zeDefaultContainer.setType(zeDefaultType);
+		recordServices.add(zeDefaultContainer);
+
+		ContainerRecord zeCustomContainer = rm.newContainerRecord();
+		zeCustomContainer.changeSchemaTo("zeSchema");
+		zeCustomContainer.setType("zeBoite");
+		zeCustomContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeCustomContainer.setDescription("Ze description");
+		zeCustomContainer.setFull(false);
+		zeCustomContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeCustomContainer.setAdministrativeUnit(records.unitId_10a);
+		zeCustomContainer.setType("zeBoite");
+		recordServices.add(zeCustomContainer);
+	}
 
 }

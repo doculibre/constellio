@@ -16,7 +16,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public abstract class BaseRecordServices implements RecordServices {
 
-	ModelLayerFactory modelLayerFactory;
+	protected ModelLayerFactory modelLayerFactory;
 
 	MetadataSchemasManager metadataSchemasManager;
 

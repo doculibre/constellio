@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Observable;
 
-import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +30,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -68,8 +67,11 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	public BasePresenter(final T view, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		this.view = view;
 		view.addViewEnterListener(new ViewEnterListener() {
+			private String viewEnteredParams;
+
 			@Override
 			public void viewEntered(String params) {
+				viewEnteredParams = params;
 			}
 
 			@Override
@@ -78,6 +80,28 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 					LOGGER.warn("Error does not have access to the page");
 					view.navigate().to().home();
 				}
+			}
+
+			@Override
+			public boolean exception(Exception e) {
+				boolean exceptionHandled;
+				if (e instanceof RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) {
+					RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame wrongCollectionException = 
+							(RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) e;
+					String recordCollection = wrongCollectionException.getRecordCollection();
+					String sessionContextCollection = view.getSessionContext().getCurrentCollection();
+
+					if (sessionContextCollection.equals(recordCollection) ||
+							viewEnteredParams != null && isViewVisibleToCurrentUser(viewEnteredParams)) {
+						exceptionHandled = true;
+						view.navigate().to().currentView();
+					} else {
+						exceptionHandled = false;
+					}
+				} else {
+					exceptionHandled = false;
+				}
+				return exceptionHandled;
 			}
 		});
 		this.collection = sessionContext.getCurrentCollection();

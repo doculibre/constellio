@@ -341,7 +341,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private void removeUsersExceptAdmins(List<String> removedUsersIds) {
 		for (String userId : removedUsersIds) {
 			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
-				if (!userServices.has(userId).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY)) {
+				if (!userServices.isAdminInAnyCollection(userId)) {
 					UserCredential userCredential = userServices.getUser(userId);
 					userServices.removeUserCredentialAndUser(userCredential);
 				}

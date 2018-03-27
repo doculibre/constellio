@@ -17,15 +17,21 @@ public class CalculatorParameters {
 	final MetadataSchemaType schemaType;
 	final String id;
 	final String legacyId;
+	final boolean principalTaxonomyConcept;
 
 	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, MetadataSchemaType schemaType,
-			String collection) {
+			String collection, boolean principalTaxonomyConcept) {
 		super();
 		this.values = values;
 		this.id = id;
 		this.schemaType = schemaType;
 		this.legacyId = legacyId;
 		this.collection = collection;
+		this.principalTaxonomyConcept = principalTaxonomyConcept;
+	}
+
+	public boolean isPrincipalTaxonomyConcept() {
+		return principalTaxonomyConcept;
 	}
 
 	public MetadataSchemaType getSchemaType() {

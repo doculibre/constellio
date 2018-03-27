@@ -177,6 +177,13 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 			view.navigate().to().listSchema(params);
 		}
 
+		if (schemaVO.getSimpleSearch() != null) {
+			boolean simpleSearch = schemaVO.getSimpleSearch();
+			SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+			SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(collection, schemaTypeCode).withSimpleSearchStatus(simpleSearch);
+			metadataSchemasDisplayManager.saveType(schemaTypeDisplayConfig);
+		}
+
 		if (schemaVO.getAdvancedSearch() != null) {
 			boolean advancedSearch = schemaVO.getAdvancedSearch();
 			SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();

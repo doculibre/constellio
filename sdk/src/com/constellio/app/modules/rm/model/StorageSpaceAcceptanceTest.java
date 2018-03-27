@@ -1,17 +1,38 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.List;
+
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.taxonomies.LinkableConceptFilter;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
@@ -23,6 +44,8 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	SearchServices searchServices;
 
+	Users users = new Users();
+
 	@Before
 	public void setUp() {
 		prepareSystem(
@@ -30,6 +53,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
+		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices());
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -173,5 +197,109 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 		recordServices.update(child1.setDescription("test"));
 		recordServices.update(child4.setDescription("test"));
+	}
+
+	@Test
+	public void whenSavingAContainerRecordWithCustomSchemaThenAggregatedMetadatasStillWork()
+			throws Exception {
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
+			}
+		});
+
+		ContainerRecordType zeContainerType = rm.newContainerRecordTypeWithId("zeContainerType");
+		zeContainerType.setTitle("zeContainerType");
+		zeContainerType.setCode("BOITE");
+		zeContainerType.setLinkedSchema(ContainerRecord.SCHEMA_TYPE + "_" + "ZeSchema");
+		recordServices.add(zeContainerType);
+
+
+		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(10L);
+		recordServices.add(parentStorageSpace1);
+
+		assertThat(parentStorageSpace1.getNumberOfContainers()).isEqualTo(0);
+
+		ContainerRecord zeContainer = rm.newContainerRecordWithId("zeContainer");
+		zeContainer.changeSchemaTo("ZeSchema");
+		zeContainer.setTemporaryIdentifier("Ze temp identifier");
+		zeContainer.setDescription("Ze description");
+		zeContainer.setStorageSpace(parentStorageSpace1);
+		zeContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
+		zeContainer.setAdministrativeUnits(asList(records.unitId_10a));
+		zeContainer.setType("zeContainerType");
+		recordServices.add(zeContainer);
+
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace1.getId()).getNumberOfContainers()).isEqualTo(1);
+	}
+
+	@Test
+	public void givenStorageSpaceIsNotValidAndHasNoValidChildThenDoNotShowInTree()
+			throws Exception {
+		cleanStorageSpaces();
+		StorageSpace ancestor = buildStorageSpace();
+		StorageSpace parent = buildStorageSpace().setParentStorageSpace(ancestor);
+		StorageSpace child = buildStorageSpace().setParentStorageSpace(parent).setCapacity(10);
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(ancestor, parent, child);
+		recordServices.execute(transaction);
+		waitForBatchProcess();
+
+		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
+		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
+			@Override
+			public boolean isLinkable(LinkableConceptFilterParams params) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+				StorageSpace storageSpace = rm.wrapStorageSpace(params.getRecord());
+
+				return canStorageSpaceContainContainer(storageSpace, 20D);
+			}
+		});
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
+
+		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).isEmpty();
+
+		child.setCapacity(30);
+		recordServices.update(child);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+
+		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+		assertThat(visibleChild).hasSize(1);
+	}
+
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
+		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null
+				&& storageSpace.getCapacity() > containerCapacity;
+	}
+
+	public void cleanStorageSpaces() {
+		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
+		modifiableSolrParams.set("q", "schema_s:storageSpace*");
+		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
+		try {
+			recordDao.execute(transaction);
+		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
+			optimisticLocking.printStackTrace();
+		}
 	}
 }

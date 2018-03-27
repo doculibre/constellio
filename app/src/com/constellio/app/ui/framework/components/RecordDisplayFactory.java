@@ -8,6 +8,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
+import com.vaadin.ui.Button.ClickListener;
 
 @SuppressWarnings("serial")
 public class RecordDisplayFactory implements Serializable {
@@ -27,7 +28,8 @@ public class RecordDisplayFactory implements Serializable {
 		return new RecordDisplay(recordVO, componentFactory);
 	}
 
-	public SearchResultDisplay build(SearchResultVO searchResultVO, String query) {
+	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener clickListener, ClickListener elevationClickListener, ClickListener exclusionClickListener) {
+		SearchResultDisplay result;
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		GetCustomResultDisplayParam param = new GetCustomResultDisplayParam(searchResultVO, componentFactory, query);
 
@@ -35,9 +37,19 @@ public class RecordDisplayFactory implements Serializable {
 				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
 
 		if (searchResultDisplay == null) {
-			return new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query);
+			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query);
 		} else {
-			return searchResultDisplay;
+			result = searchResultDisplay;
 		}
+		if (clickListener != null) {
+			result.addClickListener(clickListener);
+		}
+		if (elevationClickListener != null) {
+			result.addElevationClickListener(elevationClickListener);
+		}
+		if (exclusionClickListener != null) {
+			result.addExclusionClickListener(exclusionClickListener);
+		}
+		return result;
 	}
 }

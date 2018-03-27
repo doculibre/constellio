@@ -26,7 +26,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.AllUserAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.RolesCalculator;
 import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 import com.constellio.model.services.schemas.validators.DecisionValidator;
@@ -148,11 +147,11 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		userSchema.createUndeletable(User.ALL_ROLES).setType(STRING).setMultivalue(true).defineDataEntry()
 				.asCalculated(RolesCalculator.class);
 
-		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
-				.asCopied(groupsReference, groupSchemaType.getMetadata("group_default_allauthorizations"));
-
-		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
-				.asCalculated(AllUserAuthorizationsCalculator.class);
+//		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
+		//				.asCopied(groupsReference, groupSchemaType.getMetadata("group_default_allauthorizations"));
+		//
+		//		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
+		//				.asCalculated(AllUserAuthorizationsCalculator.class);
 		userSchema.createUndeletable(User.USER_TOKENS).setType(STRING).setMultivalue(true).defineDataEntry()
 				.asCalculated(UserTokensCalculator2.class);
 

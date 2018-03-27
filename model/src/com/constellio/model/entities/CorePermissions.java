@@ -25,6 +25,7 @@ public class CorePermissions {
 
 	public static final String DELETE_CONTENT_VERSION = permission(SYSTEM, "deleteContentVersion");
 	public static final String VIEW_EVENTS = permission(SYSTEM, "viewEvents");
+	public static final String DELETE_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "deletePublicSavedSearch");
 
 	// Collection management
 	public static final String COLLECTION_MANAGEMENT = "management.collection";
@@ -70,6 +71,7 @@ public class CorePermissions {
 
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
+	public static final String ACCESS_DELETE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT,"accessDeleteAllTemporaryRecords");
 
 	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(SYSTEM_MANAGEMENT, "excludeAndRaiseOnSearchResult",
 			Toggle.ADVANCED_SEARCH_CONFIGS);

@@ -32,6 +32,8 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.hashing.HashingService;
@@ -44,6 +46,8 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock HashingService hashService;
 	@Mock SAXBuilder builder;
 
+	@Mock DataLayerExtensions dataLayerExtensions;
+	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 	@Mock FileOutputStream binaryOutputStream;
 
 	PropertiesConfiguration propertiesConfiguration;
@@ -80,13 +84,13 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock DocumentAlteration alterDoc;
 
 	@Mock Properties fileProperties;
-	
+
 	ConstellioCache cache;
 
 	@Before
 	public void setUp() {
 		cache = new SerializationCheckCache("zeCache");
-		configManager = spy(new FileSystemConfigManager(configurationRoot, ioServices, hashService, cache));
+		configManager = spy(new FileSystemConfigManager(configurationRoot, ioServices, hashService, cache, dataLayerExtensions));
 
 		properties = new HashMap<String, String>();
 		propertiesAdded = new HashMap<String, String>();
@@ -109,13 +113,15 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 		xmlConfiguration = new XMLConfiguration(hashOfAllFile, hashOfAllFile, document);
 
 		binaryConfiguration = new BinaryConfiguration(hashOfAllFile, binStreamFactory);
+
+		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
 	}
 
 	@Test
 	public void whenGetPropertiesThenReturnRightPropertiesConfiguration()
 			throws Exception {
 
-		doReturn(true).when(configManager).exist(propertiesConfigurationPath);
+		doReturn(true).when(configManager).exist(propertiesConfigurationPath, false);
 		doReturn(fileProperties).when(configManager).newProperties();
 		doReturn(properties).when(configManager).propertiesToMap(fileProperties);
 
@@ -128,7 +134,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenUpdatePropertiesWithDifferentHashCodeThenException()
 			throws Exception {
 
-		doReturn(true).when(configManager).exist(propertiesConfigurationPath);
+		doReturn(true).when(configManager).exist(propertiesConfigurationPath, false);
 		doReturn(propertiesConfiguration).when(configManager).getProperties(propertiesConfigurationPath);
 
 		configManager.update(propertiesConfigurationPath, "different hash", allPropertiesInNotAlphebeticalOrder);
@@ -139,7 +145,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenAddNewXMLThenNewXMLAdded()
 			throws Exception {
 
-		doReturn(false).when(configManager).exist(xmlConfigurationPath);
+		doReturn(false).when(configManager).exist(xmlConfigurationPath, false);
 		doReturn(expectedContent).when(configManager).getContentOfDocument(document);
 
 		configManager.add(xmlConfigurationPath, document);
@@ -151,7 +157,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenGetXMLThenReturnRightXMLConfiguration()
 			throws Exception {
 
-		doReturn(true).when(configManager).exist(xmlConfigurationPath);
+		doReturn(true).when(configManager).exist(xmlConfigurationPath, false);
 		doReturn(builder).when(configManager).newSAXBuilder();
 		when(builder.build(xmlConfigurationFile)).thenReturn(document);
 		doReturn("-1").when(configManager).readVersion(any(Document.class));
@@ -181,7 +187,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Test
 	public void whenUpdateXMLThenXMLUpdated()
 			throws Exception {
-		doReturn(true).when(configManager).exist(xmlConfigurationPath);
+		doReturn(true).when(configManager).exist(xmlConfigurationPath, false);
 		doReturn(xmlConfiguration).when(configManager).getXML(xmlConfigurationPath);
 		doReturn("-1").when(configManager).readVersion(any(Document.class));
 		configManager.update(xmlConfigurationPath, hashOfAllFile, document);
@@ -193,7 +199,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenUpdateXMLWithDifferentHashThenException()
 			throws Exception {
 
-		doReturn(true).when(configManager).exist(xmlConfigurationPath);
+		doReturn(true).when(configManager).exist(xmlConfigurationPath, false);
 		doReturn(xmlConfiguration).when(configManager).getXML(xmlConfigurationPath);
 
 		configManager.update(xmlConfigurationPath, "different hash", document);
@@ -202,7 +208,8 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Test
 	public void whenUpdateXMLWithAlterDocThenUpdate()
 			throws Exception {
-		doReturn(true).when(configManager).exist(xmlConfigurationPath);
+		configManager.configManagerHelper = new ConfigManagerHelper(configManager);
+		doReturn(true).when(configManager).exist(xmlConfigurationPath, false);
 		doReturn(xmlConfiguration).when(configManager).getXML(xmlConfigurationPath);
 		doNothing().when(configManager).update(eq(xmlConfigurationPath), anyString(), any(Document.class));
 
@@ -215,7 +222,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Test
 	public void whenAddNewBinaryThenBinaryAdded()
 			throws Exception {
-		doReturn(false).when(configManager).exist(binaryConfigurationPath);
+		doReturn(false).when(configManager).exist(binaryConfigurationPath, false);
 		when(ioServices.newFileOutputStream(binaryConfigurationFile, FileSystemConfigManager.ADD_BINARY_FILE))
 				.thenReturn(binaryOutputStream);
 
@@ -228,7 +235,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenGetBinaryThenReturnTheRightBinaryConfiguration()
 			throws Exception {
 		byte[] bytesReturned = { 1, 2, 3 };
-		doReturn(true).when(configManager).exist(binaryConfigurationPath);
+		doReturn(true).when(configManager).exist(binaryConfigurationPath, false);
 		when(ioServices.readBytes(inputStream)).thenReturn(bytesReturned);
 		when(ioServices.newInputStreamFactory(binaryConfigurationFile, FileSystemConfigManager.READ_BINARY_FILE))
 				.thenReturn(binStreamFactory);
@@ -243,7 +250,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	public void whenUpdateBinaryThenBinaryUpdated()
 			throws Exception {
 
-		doReturn(true).when(configManager).exist(binaryConfigurationPath);
+		doReturn(true).when(configManager).exist(binaryConfigurationPath, false);
 		doReturn(binaryConfiguration).when(configManager).getBinary(binaryConfigurationPath);
 
 		configManager.update(binaryConfigurationPath, hashOfAllFile, inputStream);

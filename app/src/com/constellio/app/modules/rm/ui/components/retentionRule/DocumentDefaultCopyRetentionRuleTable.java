@@ -14,8 +14,8 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
-import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -31,6 +31,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -49,6 +50,7 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private static final String COPY_TYPE = "copyType";
@@ -94,7 +96,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		table = new Table();
+		table = new BaseTable(getClass().getName());
 		table.setWidth("100%");
 		table.setPageLength(0);
 
@@ -151,7 +153,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 	@SuppressWarnings("unchecked")
 	private Table buildVariablePeriodTable() {
-		variablePeriodTable = new Table();
+		variablePeriodTable = new BaseTable(getClass().getName() + ".variablePeriodTable");
 		variablePeriodTable.setWidth("100%");
 		variablePeriodTable.setPageLength(Math.min(15, variableRetentionPeriodVOList.size()));
 		variablePeriodTable.setVisible(!formMode && !variableRetentionPeriodVOList.isEmpty());
@@ -366,7 +368,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
 						getVariablePeriods());
-				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
+				final ComboBox openRetentionPeriodDDVField = new BaseComboBox("", container);
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
 				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 				for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
@@ -458,7 +460,8 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
 			WindowConfiguration windowConfiguration = WindowConfiguration.modalDialog("50%", "550px");
-			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"), $("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),
+					$("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout windowLayout = new VerticalLayout();
@@ -466,32 +469,35 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 					windowLayout.setSpacing(true);
 					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
 					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
-					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
-					Property<Boolean> semiActiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,"semiActiveYearTypeId");
-					Property<Boolean> inactiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,"inactiveYearTypeId");
+					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule, "ignoreActivePeriod");
+					Property<Boolean> semiActiveYearTypeProperty = new MethodProperty<>(copyRetentionRule,
+							"semiActiveYearTypeId");
+					Property<Boolean> inactiveYearTypeProperty = new MethodProperty<>(copyRetentionRule, "inactiveYearTypeId");
 
 					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
 					titleField.setWidth("90%");
 					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
 					descriptionField.setWidth("90%");
 					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
-					
+
 					semiActiveYearTypeField = new RecordComboBox(YearType.DEFAULT_SCHEMA);
 					semiActiveYearTypeField.setCaption($("DetailsFieldGroup.semiActiveYearType"));
 					semiActiveYearTypeField.setPropertyDataSource(semiActiveYearTypeProperty);
-					
+
 					inactiveYearTypeField = new RecordComboBox(YearType.DEFAULT_SCHEMA);
 					inactiveYearTypeField.setCaption($("DetailsFieldGroup.inactiveYearType"));
 					inactiveYearTypeField.setPropertyDataSource(inactiveYearTypeProperty);
 
-					Button closeButton = new BaseButton($("OK")) {
+					Button closeButton = new BaseButton($("Ok")) {
 						@Override
 						protected void buttonClick(ClickEvent event) {
 							getWindow().close();
 						}
 					};
+					closeButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
-					windowLayout.addComponents(titleField, descriptionField, ignoreActivePeriodField, semiActiveYearTypeField, inactiveYearTypeField, closeButton);
+					windowLayout.addComponents(titleField, descriptionField, ignoreActivePeriodField, semiActiveYearTypeField,
+							inactiveYearTypeField, closeButton);
 					return windowLayout;
 				}
 			};

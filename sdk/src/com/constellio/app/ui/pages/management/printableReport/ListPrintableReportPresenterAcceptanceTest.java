@@ -61,17 +61,17 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
         Transaction transaction = new Transaction();
         //Content jasperFileContentForFolder1 = mock(Content.class);
         String titleForFolder1 = "title for folder 1";
-        String reportTypeForFolder1 = PrintableReportListPossibleType.FOLDER.toString();
+        String reportTypeForFolder1 = PrintableReportListPossibleType.FOLDER.getSchemaType();
         String schemaForFolder1 = Folder.DEFAULT_SCHEMA;
 
         //Content jasperFileContentForFolder2 = mock(Content.class);
         String titleForFolder2 = "title for folder 2";
-        String reportTypeForFolder2 = PrintableReportListPossibleType.FOLDER.toString();
+        String reportTypeForFolder2 = PrintableReportListPossibleType.FOLDER.getSchemaType();
         String schemaForFolder2 = Folder.SCHEMA_TYPE + "_meeting";
 
         //Content jasperFileContentForFolder3 = mock(Content.class);
         String titleForFolder3 = "title for folder 3";
-        String reportTypeForFolder3 = PrintableReportListPossibleType.FOLDER.toString();
+        String reportTypeForFolder3 = PrintableReportListPossibleType.FOLDER.getSchemaType();
         String schemaForFolder3 = Folder.SCHEMA_TYPE + "_employee";
 
 
@@ -121,17 +121,17 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
         Transaction transaction = new Transaction();
         //Content jasperFileContentForFolder1 = mock(Content.class);
         String titleForFolder1 = "title for folder 1";
-        String reportTypeForFolder1 = PrintableReportListPossibleType.DOCUMENT.toString();
+        String reportTypeForFolder1 = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
         String schemaForFolder1 = Document.DEFAULT_SCHEMA;
 
         //Content jasperFileContentForFolder2 = mock(Content.class);
         String titleForFolder2 = "title for folder 2";
-        String reportTypeForFolder2 = PrintableReportListPossibleType.DOCUMENT.toString();
+        String reportTypeForFolder2 = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
         String schemaForFolder2 = Document.SCHEMA_TYPE + "_eleve";
 
         //Content jasperFileContentForFolder3 = mock(Content.class);
         String titleForFolder3 = "title for folder 3";
-        String reportTypeForFolder3 = PrintableReportListPossibleType.DOCUMENT.toString();
+        String reportTypeForFolder3 = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
         String schemaForFolder3 = Document.SCHEMA_TYPE + "_employe";
 
 
@@ -181,17 +181,17 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
         Transaction transaction = new Transaction();
         //Content jasperFileContentForFolder1 = mock(Content.class);
         String titleForFolder1 = "title for folder 1";
-        String reportTypeForFolder1 = PrintableReportListPossibleType.TASK.toString();
+        String reportTypeForFolder1 = PrintableReportListPossibleType.TASK.getSchemaType();
         String schemaForFolder1 = Task.DEFAULT_SCHEMA;
 
         //Content jasperFileContentForFolder2 = mock(Content.class);
         String titleForFolder2 = "title for folder 2";
-        String reportTypeForFolder2 = PrintableReportListPossibleType.TASK.toString();
+        String reportTypeForFolder2 = PrintableReportListPossibleType.TASK.getSchemaType();
         String schemaForFolder2 = Task.SCHEMA_TYPE + "_todo";
 
         //Content jasperFileContentForFolder3 = mock(Content.class);
         String titleForFolder3 = "title for folder 3";
-        String reportTypeForFolder3 = PrintableReportListPossibleType.TASK.toString();
+        String reportTypeForFolder3 = PrintableReportListPossibleType.TASK.getSchemaType();
         String schemaForFolder3 = Task.SCHEMA_TYPE + "_done";
 
 
@@ -242,12 +242,12 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 
         PrintableReport reportToRemoveByIndex = rm.newPrintableReport();
         reportToRemoveByIndex.setTitle("testToRemoveByIndex")
-                .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.toString())
+                .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
                 .set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
         PrintableReport reportToRemoveById = rm.newPrintableReport();
         reportToRemoveById.setTitle("testToRemoveById")
-                .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.toString())
+                .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
                 .set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
 

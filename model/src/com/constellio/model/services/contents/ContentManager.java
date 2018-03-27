@@ -71,6 +71,7 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapService;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.records.RecordServices;
@@ -93,6 +94,8 @@ public class ContentManager implements StatefulService {
 	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
+
+	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
 
@@ -148,6 +151,7 @@ public class ContentManager implements StatefulService {
 					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
 						deleteUnreferencedContents();
 					}
+
 					handleRecordsMarkedForParsing();
 				}
 			}
@@ -155,7 +159,8 @@ public class ContentManager implements StatefulService {
 		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+						&& new ConstellioEIMConfigs(modelLayerFactory).isInViewerContentsConversionSchedule()) {
 					convertPendingContentForPreview();
 				}
 			}
@@ -168,7 +173,7 @@ public class ContentManager implements StatefulService {
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
@@ -474,7 +479,7 @@ public class ContentManager implements StatefulService {
 
 			RecordDTO recordDTO = new RecordDTO(id, fields);
 			try {
-				recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)));
+				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {
 				throw new ImpossibleRuntimeException(e);
 			}
@@ -516,6 +521,7 @@ public class ContentManager implements StatefulService {
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
+						transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
 								convertRecordContents(record, conversionManager, tempFolder);
@@ -523,6 +529,7 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
+							transaction.setRecordFlushing(RecordsFlushing.LATER());
 							recordServices.execute(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
@@ -567,7 +574,9 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void handleRecordsMarkedForParsing() {
-		handleRecordsMarkedForParsing(RecordsFlushing.NOW());
+		if (new ConstellioEIMConfigs(modelLayerFactory).isInContentParsingSchedule()) {
+			handleRecordsMarkedForParsing(RecordsFlushing.NOW());
+		}
 	}
 
 	public void handleRecordsMarkedForParsing(RecordsFlushing recordsFlushing) {
@@ -641,7 +650,10 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void deleteUnreferencedContents() {
-		deleteUnreferencedContents(RecordsFlushing.NOW());
+
+		if (new ConstellioEIMConfigs(modelLayerFactory).isInUnreferencedContentsDeleteSchedule()) {
+			deleteUnreferencedContents(RecordsFlushing.NOW());
+		}
 	}
 
 	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
@@ -657,6 +669,7 @@ public class ContentManager implements StatefulService {
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
+					hashToDelete.add(hash + ".preview");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);

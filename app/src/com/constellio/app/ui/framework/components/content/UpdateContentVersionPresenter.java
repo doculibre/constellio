@@ -139,7 +139,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 				boolean sameVersion = isContentCheckedOut(recordVO) && majorVersion == null;
 				boolean newMajorVersion = Boolean.TRUE.equals(majorVersion);
 				boolean newMinorVersion = Boolean.FALSE.equals(majorVersion);
-				boolean checkingIn = isCurrentUserBorrower(recordVO) && newMajorVersion || newMinorVersion;
+				boolean checkingIn = isCurrentUserBorrower(recordVO);
 
 				if (contentUploaded) {
 					String fileName = newVersionVO.getFileName();
@@ -174,7 +174,11 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 						if (isContentCheckedOut(recordVO)) {
 							if (checkingIn) {
-								content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+								if (sameVersion) {
+									content.checkInWithModificationAndNameInSameVersion(newVersionDataSummary, fileName);
+								} else {
+									content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+								}
 							} else {
 								content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
 							}
@@ -191,9 +195,14 @@ public class UpdateContentVersionPresenter implements Serializable {
 					inputStreamProvider = null;
 					if (newMajorVersion) {
 						content.checkIn();
-						content.finalizeVersion();
+						if (!wasMajorVersion(content)) {
+							content.finalizeVersion();
+						}
 					} else if (newMinorVersion) {
 						content.checkIn();
+						if (!wasMinorVersion(content)) {
+							content.updateMinorVersion();
+						}
 					} else {
 						// TODO Throw appropriate exception
 						throw new RuntimeException("A new version must be specified if no new content is uploaded");
@@ -203,6 +212,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 				try {
 					getPresenterUtils(recordVO).addOrUpdate(record);
+					modelLayerFactory.newLoggingServices().uploadDocument(record, currentUser);
 					if (newVersionVO != null) {
 						newVersionVO.setVersion(content.getCurrentVersion().getVersion());
 						newVersionVO.setHash(content.getCurrentVersion().getHash());
@@ -216,6 +226,14 @@ public class UpdateContentVersionPresenter implements Serializable {
 				}
 			}
 		}
+	}
+
+	private boolean wasMajorVersion(Content content) {
+		return content != null && content.getCurrentVersion().isMajor();
+	}
+
+	private boolean wasMinorVersion(Content content) {
+		return content != null && !content.getCurrentVersion().isMajor();
 	}
 
 	public SchemaPresenterUtils getPresenterUtils(RecordVO recordVO) {

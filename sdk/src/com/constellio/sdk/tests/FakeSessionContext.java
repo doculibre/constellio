@@ -15,6 +15,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
@@ -29,6 +30,10 @@ public class FakeSessionContext extends BaseSessionContext {
 	boolean forcedSignOut;
 	List<String> selectedRecordIds;
 	Map<String, Long> selectedRecordSchemaTypeCodes;
+
+	Record searchEvent = null;
+	
+	private Map<String, Object> attributes = new HashMap<>();
 
 	private static FakeSessionContext current;
 
@@ -79,8 +84,15 @@ public class FakeSessionContext extends BaseSessionContext {
 		return new FakeSessionContext(userVO, collection);
 	}
 
+
+
 	public static SessionContext dakotaInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
+	public static SessionContext dakotaInCollection(String id, String collection) {
+		UserVO userVO = newUserVO(id, collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
 		return new FakeSessionContext(userVO, collection);
 	}
 
@@ -92,6 +104,11 @@ public class FakeSessionContext extends BaseSessionContext {
 	public static SessionContext xavierInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "charles", "Charles-François", "Xavier",
 				"charlesfrancois.xavier@doculibre.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
+	public static SessionContext gandalfInCollection(String id, String collection) {
+		UserVO userVO = newUserVO(id, collection, "gandalf", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com");
 		return new FakeSessionContext(userVO, collection);
 	}
 
@@ -115,6 +132,10 @@ public class FakeSessionContext extends BaseSessionContext {
 	}
 
 	private static UserVO newUserVO(String collection, String username, String firstName, String lastName, String email) {
+		return newUserVO(username + "Id", collection, username, firstName, lastName, email);
+	}
+
+	private static UserVO newUserVO(String id,String collection, String username, String firstName, String lastName, String email) {
 		List<MetadataValueVO> metadataValueVOs = new ArrayList<>();
 		MetadataSchemaVO userSchema = userSchema(collection);
 		metadataValueVOs.add(new MetadataValueVO(userNameMetadata(userSchema), username));
@@ -122,7 +143,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		metadataValueVOs.add(new MetadataValueVO(lastNameMetadata(userSchema), lastName));
 		metadataValueVOs.add(new MetadataValueVO(emailMetadata(userSchema), email));
 
-		return new UserVO(username + "Id", metadataValueVOs, VIEW_MODE.DISPLAY);
+		return new UserVO(id, metadataValueVOs, VIEW_MODE.DISPLAY);
 	}
 
 	private static MetadataSchemaVO userSchema(String collection) {
@@ -213,6 +234,17 @@ public class FakeSessionContext extends BaseSessionContext {
 		return userPrincipal;
 	}
 
+	@Override
+	public SessionContext setCurrentSearchEventRecord(Record searchEventId) {
+		this.searchEvent = searchEvent;
+		return this;
+	}
+
+	@Override
+	public Record getCurrentSearchEventRecord() {
+		return searchEvent;
+	}
+
 	public void setUserPrincipal(Principal userPrincipal) {
 		this.userPrincipal = userPrincipal;
 	}
@@ -235,5 +267,16 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
 		return selectedRecordSchemaTypeCodes;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String key) {
+		return (T) attributes.get(key);
+	}
+
+	@Override
+	public void setAttribute(String key, Object value) {
+		attributes.put(key, value);
 	}
 }

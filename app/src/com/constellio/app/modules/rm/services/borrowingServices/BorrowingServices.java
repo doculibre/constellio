@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -25,10 +26,13 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -43,7 +47,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 
 public class BorrowingServices {
@@ -81,6 +84,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					borrowFolder(folderId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -109,6 +113,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					borrowContainer(containerId, borrowingDate, returnDate, respondant, applicant, borrowingType, false);
@@ -144,6 +149,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					returnFolder(folderId, applicant, returnDate, false);
@@ -172,6 +178,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					returnContainer(containerId, applicant, returnDate, false);
@@ -207,6 +214,7 @@ public class BorrowingServices {
 		if (task.getLinkedFolders() != null) {
 			schemaType = Folder.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
 					extendBorrowDateForFolder(folderId, returnDate, applicant, false);
@@ -222,6 +230,7 @@ public class BorrowingServices {
 		if (task.getLinkedContainers() != null) {
 			schemaType = ContainerRecord.SCHEMA_TYPE;
 			Transaction t = new Transaction();
+			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String containerId : task.getLinkedContainers()) {
 				if (isAccepted) {
 					extendBorrowDateForContainer(containerId, returnDate, applicant, false);
@@ -247,7 +256,7 @@ public class BorrowingServices {
 				previewReturnDate,
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
-		recordServices.update(folder);
+		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -271,7 +280,8 @@ public class BorrowingServices {
 		setBorrowedMetadatasToContainer(containerRecord, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
 				previewReturnDate,
 				borrowerEntered.getId());
-		recordServices.update(containerRecord);
+		recordServices
+				.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices.borrowRecord(record, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
@@ -290,7 +300,7 @@ public class BorrowingServices {
 		boolean equals = Boolean.TRUE.equals(folder.getBorrowed());
 		boolean equals1 = folder.getBorrowUser().equals(currentUser.getId());
 		if (equals && equals1) {
-			recordServices.update(folder.setBorrowPreviewReturnDate(previewReturnDate));
+			recordServices.update(folder.setBorrowPreviewReturnDate(previewReturnDate).getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		}
 	}
 
@@ -301,7 +311,7 @@ public class BorrowingServices {
 		Record record = recordServices.getDocumentById(containerId);
 		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 		if (Boolean.TRUE.equals(containerRecord.getBorrowed()) && containerRecord.getBorrower().equals(currentUser.getId())) {
-			recordServices.update(containerRecord.setPlanifiedReturnDate(previewReturnDate));
+			recordServices.update(containerRecord.setPlanifiedReturnDate(previewReturnDate).getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		}
 	}
 
@@ -313,7 +323,7 @@ public class BorrowingServices {
 		validateCanReturnFolder(currentUser, folder);
 		BorrowingType borrowingType = folder.getBorrowType();
 		setReturnedMetadatasToFolder(folder);
-		recordServices.update(folder);
+		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
@@ -329,7 +339,7 @@ public class BorrowingServices {
 		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 		validateCanReturnContainer(currentUser, containerRecord);
 		setReturnedMetadatasToContainer(containerRecord);
-		recordServices.update(containerRecord);
+		recordServices.update(containerRecord.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		if (isCreateEvent) {
 			loggingServices.returnRecord(record, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
@@ -378,7 +388,7 @@ public class BorrowingServices {
 			} else if (folder.getContainer() != null) {
 
 				ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
-				validateCanBorrow(currentUser, containerRecord, borrowingDate);
+				validateContainerIsNotBorrowed(containerRecord);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
@@ -388,14 +398,19 @@ public class BorrowingServices {
 	public void validateCanBorrow(User currentUser, ContainerRecord containerRecord, LocalDate borrowingDate) {
 
 		if (currentUser.hasReadAccess().on(containerRecord)) {
-			if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
-				throw new BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed(containerRecord.getId());
-			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
+			validateContainerIsNotBorrowed(containerRecord);
+			if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
 				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToContainer(currentUser.getUsername(),
 					containerRecord.getId());
+		}
+	}
+
+	public void validateContainerIsNotBorrowed(ContainerRecord containerRecord) {
+		if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
+			throw new BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed(containerRecord.getId());
 		}
 	}
 
@@ -480,11 +495,20 @@ public class BorrowingServices {
 	}
 
 	private boolean isInDecommissioningList(Folder folder) {
-		boolean isInDecommissioningList =
-				searchServices.getResultsCount(LogicalSearchQueryOperators.from(rm.decommissioningList.schemaType())
-						.where(rm.decommissioningList.folders()).isEqualTo(folder.getId())
-						.andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
-		return isInDecommissioningList;
+		List<DecommissioningList> allDecommissioningLists = rm.wrapDecommissioningLists(searchServices.getAllRecords(
+				rm.decommissioningList.schemaType()));
+
+		for (DecommissioningList decommissioningList : allDecommissioningLists) {
+			if (decommissioningList.getFolders().contains(folder.getId()) && decommissioningList.getProcessingDate() == null) {
+				return true;
+			}
+		}
+
+		//		boolean isInDecommissioningList =
+		//				searchServices.getResultsCount(from(rm.decommissioningList.schemaType())
+		//						.where(rm.decommissioningList.folders()).isEqualTo(folder.getId())
+		//						.andWhere(rm.decommissioningList.processingDate()).isNull()) > 0;
+		return false;
 	}
 
 	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,
@@ -505,7 +529,8 @@ public class BorrowingServices {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered);
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -531,12 +556,18 @@ public class BorrowingServices {
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser);
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
+					" (" + currentUser.getUsername() + ")");
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
-			parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $(schemaType).toLowerCase());
+			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)
+					.getLabels();
+			for (Map.Entry<Language, String> label : labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue()
+						.toLowerCase());
+			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);
 			transaction.add(emailToSend);

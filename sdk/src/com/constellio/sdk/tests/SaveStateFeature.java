@@ -4,6 +4,7 @@ import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DE
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,18 +78,7 @@ public class SaveStateFeature {
 		File tempUnzipTlogWorkFolder = new File(folder, "tlog-work");
 
 		if (resetPasswords) {
-			File authenticationFile = new File(tempUnzipSettingsFolder, "authentification.properties");
-			List<String> lines = FileUtils.readLines(authenticationFile);
-
-			for (int i = 0; i < lines.size(); i++) {
-				String line = lines.get(i);
-				int indexOfEqual = line.indexOf("=");
-				if (indexOfEqual != -1) {
-					line = line.substring(0, indexOfEqual) + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=";
-					lines.set(i, line);
-				}
-			}
-			FileUtils.writeLines(authenticationFile, lines);
+			changePasswordsToPassword(tempUnzipSettingsFolder);
 
 			File ldapConfigsFile = new File(tempUnzipSettingsFolder, "ldapConfigs.properties");
 			//String newLDAPConfigs = "ldap.authentication.active=false";
@@ -108,6 +98,22 @@ public class SaveStateFeature {
 		}
 
 		return tempUnzipSettingsFolder;
+	}
+
+	public static void changePasswordsToPassword(File settingsFolder)
+			throws IOException {
+		File authenticationFile = new File(settingsFolder, "authentification.properties");
+		List<String> lines = FileUtils.readLines(authenticationFile);
+
+		for (int i = 0; i < lines.size(); i++) {
+			String line = lines.get(i);
+			int indexOfEqual = line.indexOf("=");
+			if (indexOfEqual != -1) {
+				line = line.substring(0, indexOfEqual) + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=";
+				lines.set(i, line);
+			}
+		}
+		FileUtils.writeLines(authenticationFile, lines);
 	}
 
 	public void saveStateAfterTestWithTitle(String title) {

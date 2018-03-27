@@ -1,8 +1,8 @@
 package com.constellio.app.modules.es.extensions;
 
 import java.io.InputStream;
+import java.util.Locale;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.model.entities.records.Record;
@@ -21,6 +21,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -93,15 +94,17 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 				smbMetadataCode = null;
 			}
 			if (smbMetadataCode != null) {
-				Metadata smbUrlMetadata = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						.getMetadata(typeCode + "_default_" + smbMetadataCode);
-				String smbPath = record.get(smbUrlMetadata);
 				SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 				if (rmConfigs.isAgentEnabled()) {
-					String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
+					RecordVO recordVO = navigationParams.getRecordVO();
+					MetadataVO smbPathMetadata = recordVO.getMetadata(typeCode + "_default_" + smbMetadataCode);
+					String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 					page.open(agentSmbPath, null);
 				} else {
+					Metadata smbUrlMetadata = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+							.getMetadata(typeCode + "_default_" + smbMetadataCode);
+					String smbPath = record.get(smbUrlMetadata);
 					String path = smbPath;
 					if (StringUtils.startsWith(path, "smb://")) {
 						path = "file://" + StringUtils.removeStart(path, "smb://");
@@ -130,7 +133,7 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams) {
+	public void prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash, Locale currentLocale) {
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
 			ClickListener clickListener = null;
 

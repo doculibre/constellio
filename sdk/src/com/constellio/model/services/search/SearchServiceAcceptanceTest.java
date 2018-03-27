@@ -1,14 +1,19 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.data.dao.services.records.DataStore.EVENTS;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
@@ -19,7 +24,9 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculat
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -39,6 +46,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
@@ -143,28 +151,20 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		recordServices.execute(transaction);
 
-		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(documentCNewVersion);
-
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
-		query.setQueryCondition(condition);
-		query.setMoreLikeThis(true);
-		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		query.setMoreLikeThisRecordId(documentCNewVersion.getId()).addMoreLikeThisField(zeSchema.stringMetadata());
 
-		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
+		assertThat(searchServices.searchWithMoreLikeThis(query)).extracting("record.id", "identical").containsOnly(
+				tuple(documentA.getId(), false),
+				tuple(documentB.getId(), false),
+				tuple(documentC.getId(), false));
 
-		assertThat(resutls).hasSize(1);
-		Map<Record, Double> similarDocs = resutls.entrySet().iterator().next().getValue();
-
-		List<Record> docsInOrder = new ArrayList<>();
-		for (Entry<Record, Double> record : similarDocs.entrySet()) {
-			docsInOrder.add(record.getKey());
-		}
-
-		assertThat(docsInOrder).containsExactly(documentC, documentB, documentA);
 	}
 
-	public String createAContentWithWords(Random random, String[] words) {
+	private Random random = new Random();
+
+	public String stringWithRandom(String[] words) {
 
 		final int WORD_DOC_CNT = 10;
 		StringBuilder sb = new StringBuilder();
@@ -184,41 +184,27 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
 		String[] politicsWords = new String[] { "party", "democrat", "president", "election", "vote" };
 		String[] sportWords = new String[] { "hockey", "team", "game", "play", "league" };
-		String[][] topics = new String[][] { politicsWords, sportWords };
-		String[] topicNames = new String[] { "POLICTICS", "SPORT" };
 
-		final int TOPIC_DOC_CNT = 10;
-		Random random = new Random(77655467554l);
-		for (int topicIdx = 0; topicIdx < topicNames.length; topicIdx++) {
-			String topicName = topicNames[topicIdx];
-			String[] words = topics[topicIdx];
-			for (int i = 0; i < TOPIC_DOC_CNT; i++) {
-				transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
-						, createAContentWithWords(random, words)).set(zeSchema.anotherStringMetadata(), topicName));
-			}
+		for (int i = 0; i < 10; i++) {
+			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
+					, stringWithRandom(politicsWords)).set(zeSchema.anotherStringMetadata(), "POLITICS"));
 		}
 
-		int docTopicIdx = 1;
-		Record docToBeClassified;
-		transaction.addUpdate(docToBeClassified = newRecordOfZeSchema().set(
-				zeSchema.stringMetadata(), createAContentWithWords(random, topics[docTopicIdx])));
+		for (int i = 0; i < 10; i++) {
+			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
+					, stringWithRandom(sportWords)).set(zeSchema.anotherStringMetadata(), "SPORT"));
+		}
+
+		transaction.add(newRecordOfZeSchema("newSportDoc").set(zeSchema.stringMetadata(), stringWithRandom(sportWords)));
+		transaction.add(newRecordOfZeSchema("newPoliticsDoc").set(zeSchema.stringMetadata(), stringWithRandom(politicsWords)));
 		recordServices.execute(transaction);
 
 		//when
-		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(docToBeClassified);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
-		query.setQueryCondition(condition);
-		query.setMoreLikeThis(true);
-		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		query.setMoreLikeThisRecordId("newSportDoc").addMoreLikeThisField(zeSchema.stringMetadata());
 
-		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
-
-		assertThat(resutls).hasSize(1);
-		assertThat(resutls.entrySet().iterator().next().getValue()).isNotEmpty();
-		//then
-
-		MoreLikeThisClustering facet = new MoreLikeThisClustering(resutls.get(docToBeClassified),
+		MoreLikeThisClustering facet = new MoreLikeThisClustering(searchServices.searchWithMoreLikeThis(query),
 				new MoreLikeThisClustering.StringConverter<Record>() {
 
 					@Override
@@ -227,8 +213,21 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 					}
 				});
 
-		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey();
-		assertThat(suggestedTopic).isEqualTo(topicNames[docTopicIdx]);
+		assertThat(facet.getClusterScore().entrySet().iterator().next().getKey()).isEqualTo("SPORT");
+
+		query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
+		query.setMoreLikeThisRecordId("newPoliticsDoc").addMoreLikeThisField(zeSchema.stringMetadata());
+
+		facet = new MoreLikeThisClustering(searchServices.searchWithMoreLikeThis(query),
+				new MoreLikeThisClustering.StringConverter<Record>() {
+
+					@Override
+					public String converToString(Record record) {
+						return record.get(zeSchema.anotherStringMetadata());
+					}
+				});
+
+		assertThat(facet.getClusterScore().entrySet().iterator().next().getKey()).isEqualTo("POLITICS");
 	}
 
 	@Test
@@ -262,6 +261,43 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		query.setFreeTextQuery("11043");
 		assertThat(searchServices.searchRecordIds(query)).containsOnly("00000011043");
 
+	}
+
+	@Test
+	public void whenIteratingInAscendingOrDescendingOrderThenOK()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
+
+		Transaction tx = new Transaction();
+		for (int i = 10; i < 42; i++) {
+			tx.add(recordServices.newRecordWithSchema(zeSchema.instance(), "record" + i)
+					.set(zeSchema.stringMetadata(), "V" + i));
+		}
+
+		recordServices.execute(tx);
+
+		List<String> stringMetadatasOfRecordsWhenIteratingAsc = new ArrayList<>();
+		Iterator<Record> recordIterator = searchServices.recordsIterator(from(zeSchema.type()).returnAll(), 5);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			stringMetadatasOfRecordsWhenIteratingAsc.add(record.<String>get(zeSchema.stringMetadata()));
+		}
+		assertThat(stringMetadatasOfRecordsWhenIteratingAsc).isEqualTo(
+				asList("V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24",
+						"V25", "V26", "V27", "V28", "V29", "V30", "V31", "V32", "V33", "V34", "V35", "V36", "V37", "V38", "V39",
+						"V40", "V41"));
+
+		List<String> stringMetadatasOfRecordsWhenIteratingDesc = new ArrayList<>();
+		recordIterator = searchServices.reverseRecordsIterator(from(zeSchema.type()).returnAll(), 5);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			stringMetadatasOfRecordsWhenIteratingDesc.add(record.<String>get(zeSchema.stringMetadata()));
+		}
+		assertThat(stringMetadatasOfRecordsWhenIteratingDesc).isEqualTo(
+				asList("V41", "V40", "V39", "V38", "V37", "V36", "V35", "V34", "V33", "V32", "V31", "V30", "V29", "V28", "V27",
+						"V26", "V25", "V24", "V23", "V22", "V21", "V20", "V19", "V18", "V17", "V16", "V15", "V14", "V13", "V12",
+						"V11", "V10"));
 	}
 
 	@Test
@@ -2303,6 +2339,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenFourLettersValues();
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).query("*");
 
+		searchServices = Mockito.spy(searchServices);
+		doReturn(recordDao).when(searchServices).dataStoreDao("records");
 		List<String> ids = findRecordIds(condition);
 
 		assertThat(ids).hasSize(4);
@@ -2317,6 +2355,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	public void whenGetResultsCountThenUseFlAndRowsParameters()
 			throws Exception {
 		givenFourLettersValues();
+		searchServices = Mockito.spy(searchServices);
+		doReturn(recordDao).when(searchServices).dataStoreDao("records");
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).query("*");
 
 		long count = searchServices.getResultsCount(condition);
@@ -2324,7 +2364,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(count).isEqualTo(4);
 
 		ArgumentCaptor<SolrParams> params = ArgumentCaptor.forClass(SolrParams.class);
-		verify(recordDao).query(params.capture());
+		verify(recordDao).query(anyString(), params.capture());
 		assertThat(params.getValue().get("rows")).isEqualTo("0");
 	}
 
@@ -2903,6 +2943,67 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		query.setFreeTextQuery("1034002");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
+
+	}
+
+	@Test
+	public void givenRecordsInAnotherDataStoreThenFoundDependingOnSearchedDataStore()
+			throws Exception {
+		defineSchemasManager().using(schema.whichIsIsStoredInDataStore("events"));
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).returnAll())).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.type()).returnAll())).isEqualTo(0);
+
+		long otherRecordsInRecordsDataStore = searchServices.getResultsCount(fromEveryTypesOfEveryCollection().returnAll());
+
+		Transaction tx = new Transaction();
+		tx.add(new TestRecord(zeSchema.instance(), "record1"));
+		tx.add(new TestRecord(zeSchema.instance(), "record2"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record3"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record4"));
+		tx.add(new TestRecord(anotherSchema.instance(), "record5"));
+
+		recordServices.execute(tx);
+
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.type()).returnAll())).isEqualTo(3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollection().returnAll()))
+				.isEqualTo(otherRecordsInRecordsDataStore + 3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollectionInDataStore(RECORDS).returnAll()))
+				.isEqualTo(otherRecordsInRecordsDataStore + 3);
+		assertThat(searchServices.getResultsCount(fromEveryTypesOfEveryCollectionInDataStore(EVENTS).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(zeSchema.instance()).returnAll())).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(from(anotherSchema.instance()).returnAll())).isEqualTo(3);
+
+	}
+
+	@Test
+	public void givenRegexBoostThenAffectScores()
+			throws Exception {
+		defineSchemasManager().using(schema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema("zeSchemaType_default").get(Schemas.LEGACY_ID).setSearchable(true);
+			}
+		}));
+
+		Transaction tx = new Transaction();
+		tx.add(newRecordOfZeSchema("r1").set(Schemas.TITLE, "Apple"));
+		tx.add(newRecordOfZeSchema("r2").set(Schemas.TITLE, "Banana"));
+		tx.add(newRecordOfZeSchema("r3").set(Schemas.TITLE, "Kiwi"));
+		tx.add(newRecordOfZeSchema("r4").set(Schemas.TITLE, "Orange"));
+		tx.add(newRecordOfZeSchema("r5").set(Schemas.TITLE, "Melon"));
+		recordServices.execute(tx);
+
+		SearchBoostManager searchBoostManager = getModelLayerFactory().getSearchBoostManager();
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "Kiwi", "My boost", 12.0));
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "*o*", "My boost", 5.0));
+		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "*O*", "My boost", 6.0));
+
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(zeSchema.instance()).returnAll())
+				.setFreeTextQuery("*");
+		query.setQueryBoosts(searchBoostManager.getAllSearchBoostsByQueryType(zeCollection));
+
+		assertThat(searchServices.search(query)).extracting("id").containsExactly("r3", "r4", "r5", "r1", "r2");
 
 	}
 
