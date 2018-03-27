@@ -53,9 +53,10 @@ public class ResetParsedContentScript extends ScriptWithLogOutput {
 
                             if(parsedFilePath.exists() && (parsedFilePath.length() / 1024) > maxParsedContentSize) {
                                 String filename = parsedFilePath.getName();
+                                double fileSizeInKb = parsedFilePath.length() / 1024;
                                 try {
                                     if(parsedFilePath.delete()) {
-                                        outputLogger.appendToFile("Deleted file : " + filename + "\n");
+                                        outputLogger.appendToFile("Deleted file : " + filename + " with size : " + fileSizeInKb + "\n");
                                         deletedHash.add(currentHash);
                                         document.set(Schemas.MARKED_FOR_PARSING, true);
                                         document.set(Schemas.MARKED_FOR_REINDEXING, true);
