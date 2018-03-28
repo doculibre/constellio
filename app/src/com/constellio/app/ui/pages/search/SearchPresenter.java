@@ -36,6 +36,7 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchPageLength;
@@ -178,7 +179,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 	}
 
-	public List<String> getSuggestion() {
+	public List<String> getThesaurusSemanticNetworkSuggestions() {
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
@@ -197,8 +198,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		return result;
 	}
+	
+	void thesaurusSemanticNetworkSuggestionClicked(String thesaurusSemanticNetworkSuggestion) {
+		view.navigate().to().simpleSearch(thesaurusSemanticNetworkSuggestion);
+	}
 
-	public List<String> getDesambiguation() {
+	public List<String> getDisambiguationSuggestions() {
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
@@ -217,6 +222,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 		return result;
+	}
+
+	public void disambiguationClicked(String disambiguation) {
+		view.navigate().to().simpleSearch(disambiguation);
 	}
 
 	public boolean isAllowDownloadZip() {
@@ -322,8 +331,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return correspondingCapsules;
 	}
 
-	public boolean mustDisplaySuggestions(SearchResultVODataProvider dataProvider) {
-		if (dataProvider.size() != 0) {
+	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
+		if (dataProvider.size() != 0 || !disambiguationSuggestions.isEmpty()) {
 			return false;
 		}
 
@@ -848,6 +857,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		correctorExclusion.setCollection(collection);
 		correctorExclusion.setExclusion(exclusionString);
 		correctorExcluderManager.addExclusion(correctorExclusion);
+		view.refreshSearchResultsAndFacets();
 	}
 
 	public List<String> getAllNonExcluded(String collection, List<String> correctedList) {
@@ -870,6 +880,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 		return allExclusionFormCollection;
+	}
+	
+	public boolean isSpellCheckerExcludeButtonVisible() {
+		return getCurrentUser().has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}
 
 	public void searchResultClicked(RecordVO searchResultVO) {

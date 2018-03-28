@@ -151,7 +151,7 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_GROUP_ROLES + "/" + entityId);
 	}
 
-	public void deleteExclusionsImpl() {
+	public void deleteExclusions() {
 		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
 	}
 

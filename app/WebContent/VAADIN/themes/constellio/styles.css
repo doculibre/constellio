@@ -12928,6 +12928,99 @@ div.v-layout.v-horizontal.v-widget {
 	opacity: 0.5;
 }
 
+.constellio .information-capsule .information-capsule-content {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.constellio .thesaurus-disambiguation, .constellio .spell-checker {
+	min-height: 38px;
+	position: relative;
+	border-radius: 10px;
+	padding: 10px 10px 10px 10px;
+	margin: 0 0 0 0px;
+	box-shadow: inset 0px 5px 15px -12px black;
+	background-color: #ebebeb;
+	background-image: url('images/icons/suggestion.png');
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+
+.constellio .thesaurus-disambiguation .disambiguation-title, .constellio .spell-checker .disambiguation-title {
+	padding-left: 50px;
+}
+
+.constellio .thesaurus-disambiguation .spell-checker-message, .constellio .spell-checker .spell-checker-message {
+	font-weight: bold;
+}
+
+.constellio .thesaurus-disambiguation .spell-checker-suggestions, .constellio .spell-checker .spell-checker-suggestions {
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+.constellio .thesaurus-disambiguation .disambiguation-suggestions, .constellio .thesaurus-disambiguation .spell-checker-suggestions, .constellio .spell-checker .disambiguation-suggestions, .constellio .spell-checker .spell-checker-suggestions {
+	padding-left: 60px;
+}
+
+.constellio .thesaurus-disambiguation .disambiguation-suggestions .disambiguation-suggestion, .constellio .thesaurus-disambiguation .disambiguation-suggestions .spell-checker-suggestion, .constellio .thesaurus-disambiguation .disambiguation-suggestions .deleteLogically-button, .constellio .thesaurus-disambiguation .spell-checker-suggestions .disambiguation-suggestion, .constellio .thesaurus-disambiguation .spell-checker-suggestions .spell-checker-suggestion, .constellio .thesaurus-disambiguation .spell-checker-suggestions .deleteLogically-button, .constellio .spell-checker .disambiguation-suggestions .disambiguation-suggestion, .constellio .spell-checker .disambiguation-suggestions .spell-checker-suggestion, .constellio .spell-checker .disambiguation-suggestions .deleteLogically-button, .constellio .spell-checker .spell-checker-suggestions .disambiguation-suggestion, .constellio .spell-checker .spell-checker-suggestions .spell-checker-suggestion, .constellio .spell-checker .spell-checker-suggestions .deleteLogically-button {
+	height: inherit;
+}
+
+.constellio .thesaurus-disambiguation .disambiguation-suggestions .spell-checker-suggestion-and-exclude .spell-checker-suggestion-remove, .constellio .thesaurus-disambiguation .spell-checker-suggestions .spell-checker-suggestion-and-exclude .spell-checker-suggestion-remove, .constellio .spell-checker .disambiguation-suggestions .spell-checker-suggestion-and-exclude .spell-checker-suggestion-remove, .constellio .spell-checker .spell-checker-suggestions .spell-checker-suggestion-and-exclude .spell-checker-suggestion-remove {
+	width: 20px;
+}
+
+.constellio .thesaurus-disambiguation .disambiguation-suggestions .spell-checker-suggestion-remove-visible, .constellio .thesaurus-disambiguation .spell-checker-suggestions .spell-checker-suggestion-remove-visible, .constellio .spell-checker .disambiguation-suggestions .spell-checker-suggestion-remove-visible, .constellio .spell-checker .spell-checker-suggestions .spell-checker-suggestion-remove-visible {
+	border: 1px solid #3a434d;
+	border-radius: 4px;
+	margin-left: 5px;
+}
+
+.constellio .thesaurus-semantic-network {
+	min-height: 38px;
+	position: relative;
+	border-radius: 10px;
+	padding: 10px 10px 10px 10px;
+	margin: 0 0 0 0px;
+	box-shadow: inset 0px 5px 15px -12px black;
+	background-color: #ebebeb;
+}
+
+.constellio .thesaurus-semantic-network .thesaurus-semantic-network-title {
+	font-weight: bold;
+	font-size: 0.923em;
+	line-height: 24px;
+	margin: 0;
+	font-weight: bold;
+	background: url('images/icons/thesaurus-semantic-network.gif') left center no-repeat;
+	padding: 8px 0 8px 40px;
+	max-width: 900px;
+}
+
+.constellio .thesaurus-semantic-network .thesaurus-semantic-network-columns {
+	width: 100%;
+	padding-left: 20px;
+	font-size: 0.85em;
+	color: #9ca5af;
+}
+
+.constellio .thesaurus-semantic-network .thesaurus-semantic-network-columns .thesaurus-semantic-network-column {
+	min-width: 33%;
+	padding-right: 15px;
+}
+
+.constellio .thesaurus-semantic-network .thesaurus-semantic-network-columns .thesaurus-semantic-network-column .thesaurus-semantic-network-suggestion:before {
+	font-family: FontAwesome;
+	font-size: 0.5em;
+	content: "\f111;";
+	padding-right: 15px;
+}
+
+.constellio .thesaurus-semantic-network .thesaurus-semantic-network-columns .thesaurus-semantic-network-column .thesaurus-semantic-network-suggestion {
+	height: 14px;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -13579,6 +13672,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: left;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {
+	padding-top: 10px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-highlights {
 	margin-bottom: 10px;
 	white-space: normal;
@@ -13597,6 +13694,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-metadata .metadata-caption {
 	font-weight: bold;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-slot-search-result-elevation-buttons {
+	border: 1px solid #197de1;
+	border-radius: 4px;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-exclusion {

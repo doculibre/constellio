@@ -32,6 +32,7 @@ import java.io.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConfigurationView> {
+	
     public static final String THESAURUS_CONFIGURATION_PRESENTER_STREAM_NAME = "thesaurusConfigurationPresenterStreamName";
     public static final String THESAURUS_TEMPORARY_FILE = "thesaurusTemporaryFile";
     public static final String THESAURUS_FILE = "thesaurus.xml";
@@ -60,31 +61,28 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         thesaurusManager = modelLayerFactory.getThesaurusManager();
     }
 
-    public boolean haveThesaurusConfiguration(){
-        if(thesaurusConfig == null) {
+    public boolean isThesaurusConfiguration() {
+        if (thesaurusConfig == null) {
             return false;
         } else {
-            if(thesaurusConfig.getContent() == null) {
+            if (thesaurusConfig.getContent() == null) {
                 return false;
             }
         }
-
         return true;
     }
 
-    public void saveNewThesaurusFile(TempFileUpload tempFileUpload) {
+    public void thesaurusFileUploaded(TempFileUpload tempFileUpload) {
         boolean isNew = false;
         IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 
         InputStream inputStreamFromFile = null;
         InputStream inputStream2FromFile = null;
         try {
-
-
             inputStreamFromFile = ioServices.newFileInputStream(tempFileUpload.getTempFile(), THESAURUS_CONFIGURATION_PRESENTER_STREAM_NAME);
             thesaurusManager.set(inputStreamFromFile, view.getCollection());
 
-            if(thesaurusConfig == null)  {
+            if (thesaurusConfig == null)  {
                 thesaurusConfig = schemaRecordService.newThesaurusConfig();
                 isNew = true;
             }
@@ -104,17 +102,17 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
             }
 
             modelLayerFactory.getContentManager().getContentDao().moveFileToVault(tempFileUpload.getTempFile(),contentVersionDataSummary.getHash());
-            view.enableSKOSSaveButton(false);
+            view.setSKOSSaveButtonEnabled(false);
         } catch (IOException e) {
             e.printStackTrace();
-            view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
+            view.showErrorMessage($("ThesaurusConfigurationView.errorWhileSavingThesaurusFile"));
         } catch (RecordServicesException e) {
             e.printStackTrace();
-            view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
+            view.showErrorMessage($("ThesaurusConfigurationView.errorWhileSavingThesaurusFile"));
         } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
             // Not suppose to happen because the file have been validated when uploaded.
             thesaurusInvalidFileFormat.printStackTrace();
-            view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
+            view.showErrorMessage($("ThesaurusConfigurationView.errorWhileSavingThesaurusFile"));
         } finally {
             ioServices.closeQuietly(inputStreamFromFile);
             ioServices.closeQuietly(inputStream2FromFile);
@@ -123,154 +121,154 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
         Page.getCurrent().reload();
     }
 
-    public ContentVersionDataSummary upload(InputStream resource, String fileName, ContentManager contentManager) {
+    private ContentVersionDataSummary upload(InputStream resource, String fileName, ContentManager contentManager) {
         return contentManager.upload(resource, new ContentManager.UploadOptions(fileName)).getContentVersionDataSummary();
     }
 
-    public void deleteButtonClick() {
+    public void deleteSkosFileButtonClicked() {
         thesaurusConfig.setContent(null);
         try {
             recordServices.update(thesaurusConfig);
             Page.getCurrent().reload();
         } catch (RecordServicesException e) {
             e.printStackTrace();
-            view.showErrorMessage($("ThesaurusConfigurationView.ErrorWhileSavingThesaurusFile"));
+            view.showErrorMessage($("ThesaurusConfigurationView.errorWhileSavingThesaurusFile"));
         }
     }
 
     public void valueChangeInFileSelector(TempFileUpload tempFileUpload) {
-        if(tempFileUpload == null) {
+        if (tempFileUpload == null) {
             isInStateToBeSaved = false;
-            view.enableSKOSSaveButton(false);
+            view.setSKOSSaveButtonEnabled(false);
             return;
         }
 
         try {
             tempThesarusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(tempFileUpload.getTempFile()));
             isInStateToBeSaved = true;
-            view.enableSKOSSaveButton(true);
+            view.setSKOSSaveButtonEnabled(true);
             view.loadDescriptionFieldsWithFileValue();
         } catch (FileNotFoundException e) {
             isInStateToBeSaved = false;
-            view.enableSKOSSaveButton(false);
+            view.setSKOSSaveButtonEnabled(false);
             e.printStackTrace();
             throw new RuntimeException("ThesaurusConfigurationPresenter - Internal Error", e);
         } catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
             isInStateToBeSaved = false;
-            view.enableSKOSSaveButton(false);
-            view.toNoThesaurusAvalible();
+            view.setSKOSSaveButtonEnabled(false);
+            view.toNoThesaurusAvailable();
             view.showErrorMessage($("ThesaurusConfigurationView.errorInvalidFileFormat"));
             view.removeAllTheSelectedFile();
         }
     }
 
     public ContentVersionVO getContentVersionForDownloadLink() {
-        if(haveThesaurusConfiguration()) {
+        if (isThesaurusConfiguration()) {
             return new RecordToVOBuilder().build(thesaurusConfig.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, view.getSessionContext()).get(ThesaurusConfig.CONTENT);
         }
         throw new IllegalStateException("A thesaurusFile need to be avalible when calling this method");
     }
 
-    public void saveDenidedTerms(String denidedTerms) throws RecordServicesException {
-        String[] termsPerLine = denidedTerms.split("[\\r\\n]+");
+    public void saveRejectedTermsButtonClicked(String rejectedTerms) throws RecordServicesException {
+        String[] termsPerLine = rejectedTerms.split("[\\r\\n]+");
 
         List<String> termsPerLineAsList = Arrays.asList(termsPerLine);
         boolean isNew = false;
-        if(thesaurusConfig == null) {
+        if (thesaurusConfig == null) {
             thesaurusConfig = schemaRecordService.newThesaurusConfig();
             isNew = true;
         }
 
         thesaurusConfig.setDenidedWords(termsPerLineAsList);
 
-        if(isNew) {
+        if (isNew) {
             recordServices.add(thesaurusConfig);
         } else {
             recordServices.update(thesaurusConfig);
         }
 
         ThesaurusService thesarusService = thesaurusManager.get(collection);
-        if(thesarusService != null) {
+        if (thesarusService != null) {
             thesarusService.setDeniedTerms(termsPerLineAsList);
         }
+        view.showMessage($("ThesaurusConfigurationView.rejectedTermsSaved"));
     }
 
-    public String getDenidedTerms() {
-        String currentDenidedTerms = "";
+    public String getRejectedTerms() {
+        String currentRejectedTerms = "";
 
-        if(thesaurusConfig != null) {
+        if (thesaurusConfig != null) {
             StringBuilder stringBuilder = new StringBuilder();
 
-            for(String denidedWord : thesaurusConfig.getDenidedWords()) {
+            for (String denidedWord : thesaurusConfig.getDenidedWords()) {
                 stringBuilder.append(denidedWord).append("\n");
             }
 
-            currentDenidedTerms = stringBuilder.toString();
+            currentRejectedTerms = stringBuilder.toString();
         }
 
-        return currentDenidedTerms;
+        return currentRejectedTerms;
+    }
+
+    public boolean isInStateToBeSaved() {
+        return isInStateToBeSaved;
     }
 
     public String getAbout() {
         ThesaurusService thesaurusService;
-        if(isInStateToBeSaved) {
+        if (isInStateToBeSaved) {
             return tempThesarusService.getRdfAbout();
-        }
-        else if((thesaurusService = thesaurusManager.get(collection)) != null) {
+        } else if ((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getRdfAbout();
         }
         return "";
     }
 
     public String getTitle() {
-        if(isInStateToBeSaved) {
+        if (isInStateToBeSaved) {
             return tempThesarusService.getDcTitle();
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get(collection)) != null) {
+        if ((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcTitle();
         }
         return "";
     }
 
     public String getDescription() {
-        if(isInStateToBeSaved) {
+        if (isInStateToBeSaved) {
             return tempThesarusService.getDcDescription();
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get(collection)) != null) {
+        if ((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcDescription();
         }
         return "";
     }
 
-    public boolean haveSomethingToBeSaved(){
-        return isInStateToBeSaved;
-    }
-
     public String getDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        if(isInStateToBeSaved && tempThesarusService.getDcDate() != null) {
+        if (isInStateToBeSaved && tempThesarusService.getDcDate() != null) {
             return sdf.format(tempThesarusService.getDcDate());
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get(collection)) != null && thesaurusService.getDcDate() != null) {
+        if ((thesaurusService = thesaurusManager.get(collection)) != null && thesaurusService.getDcDate() != null) {
             return sdf.format(thesaurusService.getDcDate());
         }
         return "";
     }
 
     public String getCreator() {
-        if(isInStateToBeSaved) {
+        if (isInStateToBeSaved) {
             return tempThesarusService.getDcDescription();
         }
 
         ThesaurusService thesaurusService;
-        if((thesaurusService = thesaurusManager.get(collection)) != null) {
+        if ((thesaurusService = thesaurusManager.get(collection)) != null) {
             return thesaurusService.getDcCreator();
         }
         return "";
@@ -280,4 +278,5 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
     protected boolean hasPageAccess(String params, User user) {
         return true;
     }
+
 }

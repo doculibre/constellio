@@ -3,11 +3,13 @@ package com.constellio.app.ui.pages.management.thesaurus;
 import com.constellio.app.ui.pages.base.BaseView;
 
 interface ThesaurusConfigurationView extends BaseView {
+	
     void removeAllTheSelectedFile();
 
     void loadDescriptionFieldsWithFileValue();
 
-    void toNoThesaurusAvalible();
+    void toNoThesaurusAvailable();
 
-    void enableSKOSSaveButton(boolean enabled);
+    void setSKOSSaveButtonEnabled(boolean enabled);
+
 }

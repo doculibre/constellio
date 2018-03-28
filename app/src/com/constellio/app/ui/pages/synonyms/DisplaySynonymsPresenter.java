@@ -1,12 +1,11 @@
 package com.constellio.app.ui.pages.synonyms;
 
+import java.util.List;
+
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchConfigurationsManager;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class DisplaySynonymsPresenter extends BasePresenter<EditSynonymsView> {
     List<String> synonyms;
@@ -37,4 +36,9 @@ public class DisplaySynonymsPresenter extends BasePresenter<EditSynonymsView> {
     public void editButtonClick() {
         view.navigate().to(CoreViews.class).editSynonyms();
     }
+
+	public void backButtonClicked() {
+		view.navigate().to().searchConfiguration();
+	}
+	
 }

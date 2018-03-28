@@ -62,20 +62,24 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
         return docElevationExcluded;
     }
 
-    public void deleteQuery(String query) {
+    public void cancelQueryElevationAndExclusionButtonClicked(String query) {
         searchConfigurationsManager.removeQuery(query);
+        view.navigate().to().editElevation();
     }
 
-    public void deleteAllExclution(String query) {
+    public void cancelQueryExclusionButtonClicked(String query) {
         searchConfigurationsManager.removeAllExclusion(query);
+        view.navigate().to().editElevation();
     }
 
-    public void deleteAllElevation(String query) {
+    public void cancelQueryElevationButtonClicked(String query) {
         searchConfigurationsManager.removeAllElevation(query);
+        view.navigate().to().editElevation();
     }
 
-    public void deleteDocElevation(Elevations.QueryElevation.DocElevation docElevation) {
+    public void cancelDocElevationButtonClicked(Elevations.QueryElevation.DocElevation docElevation) {
         searchConfigurationsManager.removeElevated(docElevation.getQuery(), docElevation.getId());
+        view.navigate().to().editElevation();
     }
 
     public String getRecordTitle(String id) {
@@ -85,8 +89,13 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
             record = schemasRecordsServices.get(id);
             title = record.getTitle();
         } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-            title = id + " " + $("EditElevationPresenter.notARecord");
+            title = id + " " + $("EditElevationView.notARecord");
         }
         return title;
     }
+
+	public void backButtonClicked() {
+		view.navigate().to().searchConfiguration();
+	}
+	
 }

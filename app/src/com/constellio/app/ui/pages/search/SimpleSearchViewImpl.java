@@ -15,7 +15,7 @@ public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> 
 	@Override
 	protected Component buildSearchUI() {
 		setSearchExpression(presenter.getUserSearchExpression());
-		return new VerticalLayout();
+		return null;
 	}
 
 	@Override

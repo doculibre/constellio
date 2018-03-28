@@ -7,6 +7,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class AdminPresenter extends BasePresenter<AdminView> {
+	
 	public AdminPresenter(AdminView view) {
 		super(view);
 	}
