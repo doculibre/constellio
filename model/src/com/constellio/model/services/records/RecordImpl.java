@@ -926,6 +926,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public String getSchemaIdTitle() {
+		return "(" + getSchemaCode() + ") " + getTitle();
+	}
+
+	@Override
 	public String getTitle() {
 		return get(Schemas.TITLE);
 	}

@@ -1629,6 +1629,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public String getSchemaIdTitle() {
+			return null;
+		}
+
+		@Override
 		public void removeAllFieldsStartingWith(String field) {
 		}
 

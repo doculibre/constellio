@@ -49,7 +49,7 @@ public class UserAuthorizationsUtils {
 		}
 
 		for (String aGroup : user.getUserGroups()) {
-			if (tokens.contains(prefix + aGroup)) {
+			if (tokens.contains(prefix + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
 				return true;
 			}
 		}
@@ -166,7 +166,9 @@ public class UserAuthorizationsUtils {
 			authsId.addAll(user.getUserAuthorizations());
 			for (String groupId : user.getUserGroups()) {
 				Group group = schemas.getGroup(groupId);
-				authsId.addAll(getAuthsOfGroupAndChildGroups(group, schemas));
+				if (schemas.isGroupActive(group)) {
+					authsId.addAll(getAuthsOfGroupAndChildGroups(group, schemas));
+				}
 			}
 
 		} else {
