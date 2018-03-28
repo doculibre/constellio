@@ -190,7 +190,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					}
 				}
 			} else {
-				if (task.getAssignee() == null && task.getAssigneeGroupsCandidates() == null &&  task.getAssigneeUsersCandidates() == null) {
+				if (task.getAssignee() == null
+						&& (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().size() == 0)
+						&&  (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().size() == 0)) {
 					task.setAssignationDate(null);
 					task.setAssigner(null);
 				} else {
