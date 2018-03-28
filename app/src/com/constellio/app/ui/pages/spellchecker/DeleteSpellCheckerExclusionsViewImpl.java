@@ -45,7 +45,7 @@ public class DeleteSpellCheckerExclusionsViewImpl extends BaseViewImpl implement
 
     @Override
     public String getTitle() {
-        return $("DeleteExclusionsView.title");
+        return $("DeleteSpellCheckerExclusionsView.title");
     }
 
     @Override
@@ -63,7 +63,7 @@ public class DeleteSpellCheckerExclusionsViewImpl extends BaseViewImpl implement
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
         
-        Label infoLabel = new Label($("DeleteExclusionsView.info"));
+        Label infoLabel = new Label($("DeleteSpellCheckerExclusionsView.info"));
 
         indexedContainer = new IndexedContainer();
         buttonsContainer = new ButtonsContainer<>(indexedContainer);
@@ -73,7 +73,7 @@ public class DeleteSpellCheckerExclusionsViewImpl extends BaseViewImpl implement
         exclusionsTable = new BaseTable(DeleteSpellCheckerExclusionsViewImpl.class.getName());
 
         exclusionsTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-        exclusionsTable.setColumnHeader(INFORMATION, $("DeleteExclusionsView.excluded"));
+        exclusionsTable.setColumnHeader(INFORMATION, $("DeleteSpellCheckerExclusionsView.excluded"));
 
         exclusionsTable.setContainerDataSource(buttonsContainer);
 
@@ -83,7 +83,7 @@ public class DeleteSpellCheckerExclusionsViewImpl extends BaseViewImpl implement
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                Button restoreButton = new EnableButton() {
+                Button restoreButton = new EnableButton($("DeleteSpellCheckerExclusionsView.restore")) {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
                         ExclusionCollectionVO exclusion = (ExclusionCollectionVO) containerMapperWithElevationObject.get(itemId);

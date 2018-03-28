@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.capsule.display;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -13,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
-public class DisplayCapsuleViewImpl extends BaseViewImpl implements DisplayViewCapsule {
+public class DisplayCapsuleViewImpl extends BaseViewImpl implements DisplayCapsuleView {
 
     private RecordVO recordVO;
     private DisplayCapsulePresenter presenter;
@@ -46,4 +47,9 @@ public class DisplayCapsuleViewImpl extends BaseViewImpl implements DisplayViewC
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         return new RecordDisplay(recordVO);
     }
+
+	@Override
+	protected String getTitle() {
+		return $("DisplayCapsuleView.viewTitle");
+	}
 }

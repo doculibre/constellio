@@ -8,11 +8,11 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 
-public class DisplayCapsulePresenter extends BasePresenter<DisplayViewCapsule> {
+public class DisplayCapsulePresenter extends BasePresenter<DisplayCapsuleView> {
 
     private SchemaPresenterUtils utils;
 
-    public DisplayCapsulePresenter(DisplayViewCapsule view) {
+    public DisplayCapsulePresenter(DisplayCapsuleView view) {
         super(view);
         utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
     }
