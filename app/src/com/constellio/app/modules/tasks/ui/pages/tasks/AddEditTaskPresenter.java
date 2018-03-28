@@ -174,22 +174,38 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (completeMode && tasksSchemas.isRequestTask(task)) {
 				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
-			if (task.getAssignee() == null) {
-				task.setAssignationDate(null);
-				task.setAssigner(null);
-			} else {
-				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+
+			if(task.getAssigner() == null) {
+
+				if ((task.getAssigneeUsersCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
+						|| task.getAssigneeGroupsCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
+
 					Field<?> field = getAssignerField();
-					if(originalAssigner == null && field != null && field.getValue() != null) {
-						task.setAssigner((String) field.getValue());
-					}else if(field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+					if(originalAssigner == null && field != null && field.getValue() != null ||
+							field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
 						task.setAssigner((String) field.getValue());
 					}
-				} else if(task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
-					Field<?> field = getAssignerField();
-					task.setAssigner((String) field.getValue());
+				}
+			} else {
+				if (task.getAssignee() == null && task.getAssigneeGroupsCandidates() == null &&  task.getAssigneeUsersCandidates() == null) {
+					task.setAssignationDate(null);
+					task.setAssigner(null);
+				} else {
+					if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+						task.setAssignationDate(TimeProvider.getLocalDate());
+						task.setAssigner(getCurrentUser().getId());
+						Field<?> field = getAssignerField();
+						 if (originalAssigner == null && field != null && field.getValue() != null
+								 || field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+							task.setAssigner((String) field.getValue());
+						}
+					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
+						Field<?> field = getAssignerField();
+						task.setAssigner((String) field.getValue());
+					}
 				}
 			}
 
