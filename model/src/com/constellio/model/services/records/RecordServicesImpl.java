@@ -1337,6 +1337,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	public void flushRecords() {
+		try {
+			recordDao.flush();
+		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
+			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
+		}
+	}
+
 	public void removeOldLocks() {
 		recordDao.removeOldLocks();
 	}
