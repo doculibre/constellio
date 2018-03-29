@@ -92,6 +92,8 @@ Schemas {
 	public static final Metadata MARKED_FOR_PARSING = add(new Metadata("markedForParsing_s", BOOLEAN, false));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
+	public static final Metadata SUMMARY = add(new Metadata("summary_s", STRING, false));
+
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
