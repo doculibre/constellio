@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.IndexedContainer;
@@ -80,8 +81,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		final MenuBar.Command editListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				MetadataSchemaVO entity = metadataSchemaVO;
-				presenter.editButtonClicked(entity);
+				presenter.editButtonClicked(metadataSchemaVO);
 			}
 		};
 
@@ -91,8 +91,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				MetadataSchemaVO entity = metadataSchemaVO;
-				presenter.orderButtonClicked(entity);
+				presenter.orderButtonClicked(metadataSchemaVO);
 			}
 		};
 
@@ -101,8 +100,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		final MenuBar.Command formListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				MetadataSchemaVO entity = metadataSchemaVO;
-				presenter.formButtonClicked(entity);
+				presenter.formButtonClicked(metadataSchemaVO);
 			}
 		};
 
@@ -124,8 +122,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		final MenuBar.Command searchListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				MetadataSchemaVO entity = metadataSchemaVO;
-				presenter.searchButtonClicked(entity);
+				presenter.searchButtonClicked(metadataSchemaVO);
 			}
 		};
 
@@ -135,8 +132,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			final MenuBar.Command deleteListener = new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuBar.MenuItem selectedItem) {
-					MetadataSchemaVO entity = metadataSchemaVO;
-					presenter.deleteButtonClicked(entity.getCode());
+					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
 				}
 			};
 			rootItem.addItem($("delete"), deleteListener);
@@ -149,19 +145,19 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		metadataButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				MetadataSchemaVO entity = metadataSchemaVO;
-				presenter.orderButtonClicked(entity);
+				presenter.orderButtonClicked(metadataSchemaVO);
 			}
 		});
 
 		buttonVerticalLayout.addComponent(metadataButton);
 		buttonVerticalLayout.addComponent(menuBar);
+		buttonVerticalLayout.setSpacing(true);
 
 
 		indexedContainer.addItem(metadataSchemaVO);
 
 		indexedContainer.getContainerProperty(metadataSchemaVO, "title").setValue(metadataSchemaVO.getLabel());
-		indexedContainer.getContainerProperty(metadataSchemaVO, "code").setValue(metadataSchemaVO.getCode());
+		indexedContainer.getContainerProperty(metadataSchemaVO, "localCode").setValue(metadataSchemaVO.getLocalCode());
 		indexedContainer.getContainerProperty(metadataSchemaVO, OPTIONS_COL).setValue(buttonVerticalLayout);
 	}
 
@@ -169,7 +165,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		final SchemaVODataProvider dataProvider = presenter.getDataProvider();
 
 		Container indexContainer = new IndexedContainer();
-		indexContainer.addContainerProperty("code", String.class, "");
+		indexContainer.addContainerProperty("localCode", String.class, "");
 		indexContainer.addContainerProperty("title", String.class, "");
 		indexContainer.addContainerProperty(OPTIONS_COL, HorizontalLayout.class, null);
 
@@ -182,17 +178,14 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		table.setSizeFull();
 		table.setContainerDataSource(indexContainer);
 		table.setPageLength(Math.min(15, indexContainer.size()));
-		table.setColumnHeader("code", $("code"));
+		table.setColumnHeader("localCode", $("ListSchemaView.localCode"));
 		table.setColumnHeader("title", $("ListSchemaView.caption"));
 		table.setColumnHeader(OPTIONS_COL, "");
 		table.setColumnExpandRatio("title", 1);
-		table.setColumnExpandRatio("code", 1);
 		table.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				Integer index = (Integer) event.getItemId();
-				MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-				presenter.editButtonClicked(entity);
+				presenter.editButtonClicked((MetadataSchemaVO) event.getItemId());
 			}
 		});
 
