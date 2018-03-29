@@ -114,6 +114,9 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 
+	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
+	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -214,9 +217,14 @@ public class ConstellioEIMConfigs {
 		add(BATCH_PROCESSES_SCHEDULE = advanced.createString("batchProcessesSchedule")
 				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
+		add(SEIZE_MULTILANGUAL_VALUES = advanced.createBooleanFalseByDefault("seizeMultiLangual"));
+
+
 		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
 
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
+
+		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
