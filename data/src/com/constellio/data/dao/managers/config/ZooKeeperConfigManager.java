@@ -74,10 +74,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 		this.configManagerHelper = new ConfigManagerHelper(this);
 		this.eventBus = eventBus;
 		this.eventBus.register(this);
-		init(address);
+		getInstance(address);
 	}
 
-	private static synchronized void init(String address) {
+	public static synchronized CuratorFramework getInstance(String address) {
 		if (CLIENT == null) {
 			try {
 				RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
@@ -87,6 +87,8 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 				throw new RuntimeException(e);
 			}
 		}
+
+		return CLIENT;
 	}
 
 	@Override

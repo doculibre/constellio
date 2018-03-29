@@ -96,6 +96,8 @@ public interface DataLayerConfiguration {
 
 	EventBusSendingServiceType getEventBusSendingServiceType();
 
+	ElectionServiceType getElectionServiceType();
+
 	Duration getSolrEventBusSendingServiceTypeEventLifespan();
 
 	Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency();

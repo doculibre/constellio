@@ -376,4 +376,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getDuration("eventBus.solr.retrieveAndSendFrequency", Duration.standardSeconds(1));
 	}
 
+	@Override
+	public ElectionServiceType getElectionServiceType() {
+		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
+	}
 }

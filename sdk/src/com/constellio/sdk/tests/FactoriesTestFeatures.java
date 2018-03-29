@@ -42,8 +42,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
-import com.constellio.data.dao.services.ignite.LeaderElectionService;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -464,9 +464,9 @@ public class FactoriesTestFeatures {
 			@Override
 			public ConstellioFactories get() {
 				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name);
-				LeaderElectionService electionService = instance.getDataLayerFactory().getLeaderElectionService();
-				if (electionService instanceof DefaultLeaderElectionServiceImpl) {
-					((DefaultLeaderElectionServiceImpl) electionService).setLeader(DEFAULT_NAME.equals(name));
+				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService();
+				if (electionService instanceof StandaloneLeaderElectionManager) {
+					((StandaloneLeaderElectionManager) electionService).setLeader(DEFAULT_NAME.equals(name));
 				}
 				return instance;
 			}

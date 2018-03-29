@@ -1,4 +1,4 @@
-package com.constellio.data.dao.services.ignite;
+package com.constellio.data.dao.services.leaderElection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,14 +15,14 @@ import com.constellio.sdk.tests.annotations.IgniteTest;
 
 @IgniteTest
 public class IgniteLeaderElectionServiceImplAcceptanceTest extends ConstellioTest {
-	private DefaultLeaderElectionServiceImpl service;
+	private IgniteLeaderElectionManager service;
 	private Ignite server;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		service = new DefaultLeaderElectionServiceImpl(getDataLayerFactory());
+		service = new IgniteLeaderElectionManager(getDataLayerFactory());
 		server = Ignition.start(createConfiguration("server", false));
 	}
 

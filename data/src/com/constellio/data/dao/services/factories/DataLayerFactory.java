@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.factories;
 
+import static com.constellio.data.conf.ElectionServiceType.IGNITE;
+import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -46,8 +49,10 @@ import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
-import com.constellio.data.dao.services.ignite.LeaderElectionService;
+import com.constellio.data.dao.services.leaderElection.IgniteLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -103,13 +108,14 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
 	private static DataLayerFactory lastCreatedInstance;
-	private DefaultLeaderElectionServiceImpl leaderElectionService;
+	private final LeaderElectionManager leaderElectionManager;
 
 	public static int countConstructor;
 
 	public static int countInit;
 
 	private Ignite igniteClient;
+	private CuratorFramework curatorFramework;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
@@ -131,7 +137,15 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
-		this.leaderElectionService = new DefaultLeaderElectionServiceImpl(this);
+		if (dataLayerConfiguration.getElectionServiceType() == ZOOKEEPER) {
+			this.leaderElectionManager = add(new ZookeeperLeaderElectionManager(this));
+
+		} else if (dataLayerConfiguration.getElectionServiceType() == IGNITE) {
+			this.leaderElectionManager = add(new IgniteLeaderElectionManager(this));
+
+		} else {
+			this.leaderElectionManager = add(new StandaloneLeaderElectionManager());
+		}
 
 		EventBusSendingService eventBusSendingService = new StandaloneEventBusSendingService();
 		if (EventBusSendingServiceType.SOLR.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
@@ -152,6 +166,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 			igniteClient = ((ConstellioIgniteCacheManager) settingsCacheManager).getClient();
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 
 			if (dataLayerConfiguration.getCacheUrl() != null) {
@@ -161,14 +176,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 				igniteClient = cacheManager.getClient();
 			}
 
-			//			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
 
-			//			} else {
-			//				settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			//				recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			//			}
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
 			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
@@ -253,8 +263,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.constellioVersion = constellioVersion;
 	}
 
-	public LeaderElectionService getLeaderElectionService() {
-		return leaderElectionService;
+	public LeaderElectionManager getLeaderElectionService() {
+		return leaderElectionManager;
 	}
 
 	public DataLayerExtensions getExtensions() {
@@ -452,5 +462,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public Ignite getIgniteClient() {
 		return igniteClient;
+	}
+
+	public CuratorFramework getCuratorFramework() {
+		return ZooKeeperConfigManager.getInstance(dataLayerConfiguration.getSettingsZookeeperAddress());
 	}
 }
