@@ -178,7 +178,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			semanticNetworkLayout.addComponent(cssLayout);
 			
 			VerticalLayout currentColumnLayout = null;
-			for (String semanticNetworkSuggestion : semanticNetworkSuggestions) {
+			for (final String semanticNetworkSuggestion : semanticNetworkSuggestions) {
 				if (currentColumnLayout == null || suggestionIndex % suggestionsPerColumnInt == 0) {
 					currentColumnLayout = new VerticalLayout();
 					currentColumnLayout.addStyleName("thesaurus-semantic-network-column");

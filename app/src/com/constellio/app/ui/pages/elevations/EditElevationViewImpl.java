@@ -73,14 +73,14 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                Integer index = (Integer) itemId;
+                final Integer index = (Integer) itemId;
                 
                 final boolean queryItem = isQuery(index);
                 final boolean queryDocsElevation = isQueryDocsElevation(index);
                 final boolean queryDocsExclusion = isQueryDocsExclusion(index);
                 final boolean singleDocElevation = isSingleDocElevation(index);
-                String buttonLabel;
-                String confirmDialogMessage;
+                final String buttonLabel;
+                final String confirmDialogMessage;
                 if (queryItem) {
                 	buttonLabel = $("EditElevationView.cancelQueryElevationAndExclusion");
                 	confirmDialogMessage = $("EditElevationView.confirmCancel");

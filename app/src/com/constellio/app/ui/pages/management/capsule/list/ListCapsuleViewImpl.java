@@ -66,18 +66,7 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
     	
         Container tableContainer = new RecordVOLazyContainer(presenter.getCapsuleDataProvider());
         ButtonsContainer buttonTableContainer = new ButtonsContainer(tableContainer, "buttons");
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
-
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DisplayButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.displayButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
+        
         buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
