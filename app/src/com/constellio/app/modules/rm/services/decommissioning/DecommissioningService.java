@@ -717,11 +717,11 @@ public class DecommissioningService {
 
 		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
 			for (Record record : records) {
-				comparedDate = getMinimumLocalDate(comparedDate, record);
+				comparedDate = LangUtils.min(comparedDate,getMinimumLocalDateForRecord(record, false));
 			}
 		} else {
 			for (Record record : records) {
-				comparedDate = getMaximalLocalDate(comparedDate, record);
+				comparedDate = LangUtils.max(comparedDate,getMaximalLocalDateForRecord(record, false));
 			}
 		}
 
@@ -1067,87 +1067,58 @@ public class DecommissioningService {
 		return searchServices.search(query);
 	}
 
-	private LocalDate getMinimumLocalDate(LocalDate minimumDate, Record record) {
-		Folder folder = rm.wrapFolder(record);
-		if (folder.getExpectedDepositDate() != null && folder.getExpectedDestructionDate() != null) {
-			if (folder.getExpectedDepositDate().isBefore(folder.getExpectedDestructionDate())) {
-				if (minimumDate != null) {
-					if (folder.getExpectedDepositDate().isBefore(minimumDate)) {
-						minimumDate = folder.getExpectedDepositDate();
-					}
-				} else {
-					minimumDate = folder.getExpectedDepositDate();
-				}
-			} else {
-				if (minimumDate != null) {
-					if (folder.getExpectedDestructionDate().isBefore(minimumDate)) {
-						minimumDate = folder.getExpectedDestructionDate();
-					}
-				} else {
-					minimumDate = folder.getExpectedDestructionDate();
-				}
-			}
-		} else if (folder.getExpectedDepositDate() != null) {
-			if (minimumDate != null) {
-				if (folder.getExpectedDepositDate().isBefore(minimumDate)) {
-					minimumDate = folder.getExpectedDepositDate();
-				}
-			} else {
-				minimumDate = folder.getExpectedDepositDate();
-			}
+	private LocalDate getMinimumLocalDateForRecord(Record record, boolean takeActualDates) {
+        Folder folder = rm.wrapFolder(record);
+        if (!takeActualDates){
+            List<LocalDate> dates = getListOfExpectedDates(folder);
+            return getMinimal(dates);
+        }
+        List<LocalDate> dates = getListOfAllDates(folder);
 
-		} else if (folder.getExpectedDestructionDate() != null) {
-			if (minimumDate != null) {
-				if (folder.getExpectedDestructionDate().isBefore(minimumDate)) {
-					minimumDate = folder.getExpectedDestructionDate();
-				}
-			} else {
-				minimumDate = folder.getExpectedDestructionDate();
-			}
-		}
-		return minimumDate;
+        return getMinimal(dates);
 	}
 
-	private LocalDate getMaximalLocalDate(LocalDate maximalDate, Record record) {
+	private LocalDate getMaximalLocalDateForRecord(Record record, boolean takeActualDates) {
 		Folder folder = rm.wrapFolder(record);
-		if (folder.getExpectedDepositDate() != null && folder.getExpectedDestructionDate() != null) {
-			if (folder.getExpectedDepositDate().isAfter(folder.getExpectedDestructionDate())) {
-				if (maximalDate != null) {
-					if (folder.getExpectedDepositDate().isAfter(maximalDate)) {
-						maximalDate = folder.getExpectedDepositDate();
-					}
-				} else {
-					maximalDate = folder.getExpectedDepositDate();
-				}
-			} else {
-				if (maximalDate != null) {
-					if (folder.getExpectedDestructionDate().isAfter(maximalDate)) {
-						maximalDate = folder.getExpectedDestructionDate();
-					}
-				} else {
-					maximalDate = folder.getExpectedDestructionDate();
-				}
-			}
-		} else if (folder.getExpectedDepositDate() != null) {
-			if (maximalDate != null) {
-				if (folder.getExpectedDepositDate().isAfter(maximalDate)) {
-					maximalDate = folder.getExpectedDepositDate();
-				}
-			} else {
-				maximalDate = folder.getExpectedDepositDate();
-			}
-
-		} else if (folder.getExpectedDestructionDate() != null) {
-			if (maximalDate != null) {
-				if (folder.getExpectedDestructionDate().isAfter(maximalDate)) {
-					maximalDate = folder.getExpectedDestructionDate();
-				}
-			} else {
-				maximalDate = folder.getExpectedDestructionDate();
-			}
+		if (!takeActualDates){
+            List<LocalDate> dates = getListOfExpectedDates(folder);
+            return getMaximal(dates);
 		}
-		return maximalDate;
+        List<LocalDate> dates = getListOfAllDates(folder);
+		return getMaximal(dates);
 	}
+
+    private List<LocalDate> getListOfExpectedDates(Folder folder){
+        List<LocalDate> dates = new ArrayList<LocalDate>();
+        dates.add(folder.getExpectedDestructionDate());
+        dates.add(folder.getExpectedDepositDate());
+        return dates;
+    }
+
+	private List<LocalDate> getListOfAllDates(Folder folder){
+        List<LocalDate> dates = getListOfExpectedDates(folder);
+        dates.add(folder.getActualDestructionDate());
+        dates.add(folder.getActualDepositDate());
+        dates.add(folder.getExpectedTransferDate());
+        dates.add(folder.getActualTransferDate());
+        return dates;
+    }
+
+	private LocalDate getMaximal(List<LocalDate> dates){
+	    LocalDate max = null;
+	    for (LocalDate date : dates) {
+            max = LangUtils.max(max, date);
+        }
+        return max;
+	}
+
+    private LocalDate getMinimal(List<LocalDate> dates){
+        LocalDate min = null;
+        for (LocalDate date : dates) {
+            min = LangUtils.min(min, date);
+        }
+        return min;
+    }
 
 	private void getMaximalSemiActiveInterval(Map<String, String> maximalIntervals, Record record) {
 		Folder folder = rm.wrapFolder(record);
@@ -1348,17 +1319,16 @@ public class DecommissioningService {
 	}
 
 	public String getContainerRecordExtremeDates(ContainerRecord container) {
-
 		LocalDate minimum = null;
 		LocalDate maximum = null;
 		List<Record> records = getFoldersInContainer(container, rm.folder.expectedDepositDate(),
 				rm.folder.expectedDestructionDate());
 
 		for (Record record : records) {
-			minimum = getMinimumLocalDate(minimum, record);
+			minimum = LangUtils.min(minimum, getMinimumLocalDateForRecord( record, false));
 		}
 		for (Record record : records) {
-			maximum = getMaximalLocalDate(maximum, record);
+			maximum = LangUtils.max(maximum,getMaximalLocalDateForRecord(record, false));
 		}
 
 		return minimum == null ? "" : minimum.getYear() + "-" + maximum.getYear();
@@ -1385,6 +1355,14 @@ public class DecommissioningService {
 		//		} else {
 		//			return beginingYear + "-" + endingYear;
 		//		}
+	}
+
+	public LocalDate getDispositionDate(Record record){
+		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
+			return getMinimumLocalDateForRecord( record, true);
+		} else {
+			return getMaximalLocalDateForRecord(record, true);
+		}
 	}
 }
 
