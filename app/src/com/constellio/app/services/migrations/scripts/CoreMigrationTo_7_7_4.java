@@ -35,7 +35,7 @@ public class CoreMigrationTo_7_7_4 implements MigrationScript {
             Iterator<MetadataBuilder> metadataIterator = typesBuilder.getAllMetadatas().iterator();
             while (metadataIterator.hasNext()) {
                 MetadataBuilder metadata = metadataIterator.next();
-                if(metadata.getType() == MetadataValueType.REFERENCE) {
+                if(metadata.getType() == MetadataValueType.REFERENCE && metadata.getInheritance() == null) {
                     metadata.setSearchable(false);
                     metadata.setSchemaAutocomplete(false);
                 }
