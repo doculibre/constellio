@@ -50,8 +50,13 @@ public class RecordToVOBuilder implements Serializable {
 		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
+			Object recordVOValue;
+			if(metadata.isMultiLingual()) {
+				recordVOValue = record.get(metadata, sessionContext.getCurrentLocale());
+			} else {
+				recordVOValue = getValue(record, metadata);
+			}
 
-			Object recordVOValue = getValue(record, metadata);
 			if (recordVOValue instanceof Content) {
 				recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue, sessionContext);
 			} else if (recordVOValue instanceof List) {

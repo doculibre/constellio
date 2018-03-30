@@ -45,26 +45,29 @@ public class MetadataVO implements Serializable {
 	final Object defaultValue;
 	final String inputMask;
 	final Set<String> customAttributes;
+	final boolean isMultiLingual;
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 			MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
-			String metadataGroup, Object defaultValue, Set<String> customAttributes) {
+			String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean isMultiLingual) {
 		this(code, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes);
+				defaultValue, null, customAttributes, isMultiLingual);
 	}
 
+
+
 	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
-			Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-			String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
-			AllowedReferences allowedReferences,
-			boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-			String inputMask, Set<String> customAttributes) {
+					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
+					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+					  String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+					  AllowedReferences allowedReferences,
+					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+					  String inputMask, Set<String> customAttributes, boolean isMultiLingual) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -88,6 +91,7 @@ public class MetadataVO implements Serializable {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.customAttributes = customAttributes;
+		this.isMultiLingual = isMultiLingual;
 
 		if (schema != null && !schema.getMetadatas().contains(this)) {
 			schema.getMetadatas().add(this);
@@ -100,11 +104,11 @@ public class MetadataVO implements Serializable {
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType,
 			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues,
-			Set<String> customAttributes) {
+			Set<String> customAttributes, boolean isMultiLingual) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes);
+				metadataGroup, defaultValue, customAttributes, isMultiLingual);
 	}
 
 	public MetadataVO() {
@@ -131,6 +135,7 @@ public class MetadataVO implements Serializable {
 		this.defaultValue = null;
 		this.inputMask = null;
 		this.customAttributes = new HashSet<>();
+		this.isMultiLingual = false;
 	}
 
 	public String getCode() {
@@ -367,5 +372,9 @@ public class MetadataVO implements Serializable {
 
 	public boolean hasCustomAttributes(String customAttribute) {
 		return customAttributes.contains(customAttribute);
+	}
+
+	public boolean isMultiLingual() {
+		return isMultiLingual;
 	}
 }
