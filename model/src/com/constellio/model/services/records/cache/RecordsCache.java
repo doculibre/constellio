@@ -24,6 +24,8 @@ public interface RecordsCache {
 
 	List<Record> getAllValues(String schemaType);
 
+	List<Record> getAllValuesInUnmodifiableState(String schemaType);
+
 	List<Record> getQueryResults(LogicalSearchQuery query);
 
 	List<String> getQueryResultIds(LogicalSearchQuery query);

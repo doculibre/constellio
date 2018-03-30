@@ -85,7 +85,7 @@ public class RMConfigs {
 			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT;
 
 	// other
-	public static final SystemConfiguration OPEN_HOLDER;
+	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE ;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
@@ -236,6 +236,8 @@ public class RMConfigs {
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
+
+		add(MAJOR_VERSION_FOR_NEW_FILE  = others.createBooleanFalseByDefault("majorVersionForNewFile"));
 
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
@@ -460,6 +462,8 @@ public class RMConfigs {
 	public boolean isOpenHolder() {
 		return manager.getValue(OPEN_HOLDER);
 	}
+
+	public boolean isMajorVersionForNewFile(){return manager.getValue(MAJOR_VERSION_FOR_NEW_FILE);}
 
 	public boolean areWorkflowsEnabled() {
 		return manager.getValue(WORKFLOWS_ENABLED);

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,8 @@ import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
 
+import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
+
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchFieldsPopulator.class);
@@ -35,12 +39,15 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	List<String> collectionLanguages;
 
+	ConstellioEIMConfigs systemConf;
+
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-			ParsedContentProvider parsedContentProvider, List<String> collectionLanguages) {
+								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
+		this.systemConf = systemConf;
 	}
 
 	@Override
@@ -219,60 +226,66 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableDateMetadata(Object value,
 			String copiedMetadataCodePrefix) {
+		String dateFormat = systemConf.getDateFormat();
 
-		String prefix = copiedMetadataCodePrefix;
-		String valueLanguage = collectionLanguages.get(0);
-		if (!prefix.endsWith("_")) {
-			prefix += "_";
+		String fieldCode = copiedMetadataCodePrefix;
+		if (!fieldCode.endsWith("_")) {
+			fieldCode += "_";
 		}
-		int index = prefix.lastIndexOf("da_");
-		if (prefix.endsWith("da_")) {
-			prefix = new StringBuilder(prefix).replace(index, index + 3, "t_").toString();
+		int index = fieldCode.lastIndexOf("_da_");
+		if (fieldCode.endsWith("_da_")) {
+			fieldCode = new StringBuilder(fieldCode).replace(index, index + 4, DATE_SEARCH_FIELD).toString();
 		}
 
-		Map<String, Object> copyfields = new HashMap<>();
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = prefix + collectionLanguage;
-			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				copyfields.put(fieldCode, value);
-			} else {
-				copyfields.put(fieldCode, "");
+		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
+		if (value != null && value instanceof LocalDate) {
+			try {
+				keyListMap.add(fieldCode, ((LocalDate) value).toString(dateFormat));
+			} catch (Exception e) {
+				keyListMap.add(fieldCode, ((LocalDate) value).toString());
 			}
+			keyListMap.add(fieldCode, String.valueOf(((LocalDate) value).getYear()));
+		} else {
+			keyListMap.add(fieldCode, "");
 		}
 
-		return copyfields;
+		return (Map) keyListMap.getNestedMap();
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableDateMetadata(List<String> values,
 			String copiedMetadataCodePrefix) {
+		String dateFormat = systemConf.getDateFormat();
 
 		String prefix = copiedMetadataCodePrefix;
-		String valueLanguage = collectionLanguages.get(0);
 		if (!prefix.contains("_")) {
-			prefix += "_txt_";
+			prefix += "_das_";
 		}
 		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
-		int index = prefix.lastIndexOf("da_");
-		if (prefix.endsWith("da_")) {
-			prefix = new StringBuilder(prefix).replace(index, index + 3, "txt_").toString();
+		int index = prefix.lastIndexOf("_das_");
+		if (prefix.endsWith("_das_")) {
+			prefix = new StringBuilder(prefix).replace(index, index + 5, DATE_SEARCH_FIELD).toString();
 		}
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		for (Object value : values) {
-			String language = collectionLanguages.get(0);
-			if (language != null && collectionLanguages.contains(language)) {
-				String fieldCode = prefix + language;
-				keyListMap.add(fieldCode, value);
+			String fieldCode = prefix;
+			if (value != null && value instanceof LocalDate) {
+				try {
+					keyListMap.add(fieldCode, ((LocalDate) value).toString(dateFormat));
+				} catch (Exception e) {
+					keyListMap.add(fieldCode, ((LocalDate) value).toString());
+				}
+				keyListMap.add(fieldCode, String.valueOf(((LocalDate) value).getYear()));
+			} else {
+				keyListMap.add(fieldCode, "");
 			}
 		}
 
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = prefix + collectionLanguage;
-			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
-				keyListMap.add(fieldCode, "");
-			}
+		String fieldCode = prefix;
+		if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
+			keyListMap.add(fieldCode, "");
 		}
 		return (Map) keyListMap.getNestedMap();
 	}

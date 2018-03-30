@@ -241,6 +241,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
+	public MetadataSchemaType temporaryRecordSchemaType() {
+		return getTypes().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema temporaryRecord() {
 		return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA);
 	}
@@ -434,8 +438,17 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 				getModelLayerFactory().newSearchServices().getAllRecords(authorizationDetails.schemaType()));
 	}
 
+	public List<SolrAuthorizationDetails> getAllAuthorizationsInUnmodifiableState() {
+		return wrapSolrAuthorizationDetailss(
+				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
+	}
+
 	public List<User> getAllUsers() {
 		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecords(user.schemaType()));
+	}
+
+	public List<User> getAllUsersInUnmodifiableState() {
+		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
 	}
 
 	public List<Group> getAllGroups() {
@@ -447,33 +460,15 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
-		for (SolrAuthorizationDetails authorizationDetails : getAllAuthorizations()) {
-			if (authorizationDetails.getId().equals(id)) {
-				return authorizationDetails;
-			}
-		}
-
-		return null;
+		return wrapSolrAuthorizationDetails(get(id));
 	}
 
 	public User getUser(String id) {
-		for (User user : getAllUsers()) {
-			if (user.getId().equals(id)) {
-				return user;
-			}
-		}
-
-		return null;
+		return wrapUser(get(id));
 	}
 
 	public Group getGroup(String id) {
-		for (Group group : getAllGroups()) {
-			if (group.getId().equals(id)) {
-				return group;
-			}
-		}
-
-		return null;
+		return wrapGroup(get(id));
 	}
 
 	public List<Capsule> getAllCapsules() {

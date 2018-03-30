@@ -36,7 +36,7 @@ public class TemporaryRecordsDeletionBackgroundAction implements Runnable {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		for(String collection: collections) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(schemas.temporaryRecord())
+			LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(schemas.temporaryRecordSchemaType())
 					.where(schemas.temporaryRecord().getMetadata(TemporaryRecord.DESTRUCTION_DATE))
 					.isLessThan(LocalDateTime.now()));
 			List<Record> recordsToDelete = searchServices.search(query);

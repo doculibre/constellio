@@ -11,7 +11,9 @@ import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTe
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,11 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.modules.rm.wrappers.type.FolderType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -44,7 +41,14 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
@@ -59,6 +63,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -66,6 +71,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -92,7 +98,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDocumentWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+	public void givenDocumentWithSchemaAndWrongTypeThenRepair()
+			throws RecordServicesException {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
@@ -117,7 +124,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(documentType);
 
-		Document document = rm.newDocumentWithTypeAndId(documentType, "MyDocument").setTitle("Document").setFolder(records.folder_A01);
+		Document document = rm.newDocumentWithTypeAndId(documentType, "MyDocument").setTitle("Document")
+				.setFolder(records.folder_A01);
 		document.setCreatedOn(LocalDateTime.now());
 
 		documentType.setLinkedSchema("document_USRdocumentSchema2");
@@ -136,7 +144,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWithSchemaAndWrongTypeThenRepair() throws RecordServicesException {
+	public void givenFolderWithSchemaAndWrongTypeThenRepair()
+			throws RecordServicesException {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
@@ -160,7 +169,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		folderType.setTitle("USRfolderSchema");
 		recordServices.add(folderType);
 
-		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder")
+				.setParentFolder(records.folder_A01);
 		folder.setType(folderType);
 		folder.setOpenDate(LocalDate.now());
 		folder.setCreatedOn(LocalDateTime.now());
@@ -181,7 +191,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWithSchemaAndWrongTypeThenRepairFail() throws RecordServicesException {
+	public void givenFolderWithSchemaAndWrongTypeThenRepairFail()
+			throws RecordServicesException {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
@@ -195,7 +206,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
-				types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("USRfolderSchema1").create("metadataInSchema1").setType(MetadataValueType.STRING);
+				types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("USRfolderSchema1").create("metadataInSchema1")
+						.setType(MetadataValueType.STRING);
 			}
 
 		});
@@ -207,7 +219,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		folderType.setTitle("USRfolderSchema");
 		recordServices.add(folderType);
 
-		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder").setParentFolder(records.folder_A01);
+		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder")
+				.setParentFolder(records.folder_A01);
 		folder.setType(folderType);
 		folder.setOpenDate(LocalDate.now());
 		folder.setCreatedOn(LocalDateTime.now());
@@ -220,7 +233,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults results = systemCheckManager.runSystemCheck(true);
 
-		assertThat(frenchMessages(results.errors)).contains("Le schéma de l'enregistrement MyFolder n’a pas pu être modifié pour celui de son type");
+		assertThat(frenchMessages(results.errors))
+				.contains("Le schéma de l'enregistrement MyFolder n’a pas pu être modifié pour celui de son type");
 		assertThat(results.getRepairedRecords().size()).isEqualTo(0);
 		assertThat(results.getMetric(RMSystemCheckExtension.METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE).intValue()).isEqualTo(1);
 	}
@@ -233,11 +247,12 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
-				"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
-				"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
-				"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
-				"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
+		assertThat(frenchMessages(systemCheckResults.errors))
+				.containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
+						"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
+						"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
+						"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
+						"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
 	}
 
 	@Test
@@ -603,7 +618,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
-				"La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
+				"Dossier Framboise (B06) : La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
 		);
 	}
 
@@ -642,7 +657,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
 		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
-
 
 	@Test
 	public void givenLogicallyDeletedAdministrativeUnitsAndCategoriesThenRepairRestoreThem()

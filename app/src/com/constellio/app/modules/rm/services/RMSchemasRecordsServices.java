@@ -1152,6 +1152,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
 	}
 
+	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {
+		return wrapAdministrativeUnits(
+				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(administrativeUnit.schemaType()));
+	}
+
 	public List<PrintableReport> getAllPrintableReports() {
 		return wrapPrintableReports(getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));

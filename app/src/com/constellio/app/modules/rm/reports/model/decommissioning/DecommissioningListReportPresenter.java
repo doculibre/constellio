@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DecommissioningListReportModel.DecommissioningListReportModel_Folder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.MultipleFieldsComparator;
@@ -56,10 +57,20 @@ public class DecommissioningListReportPresenter {
         MetadataSchemaType folderSchemaType = rm.folder.schemaType();
         DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
 
+        List<String> processedFolders = new ArrayList<>();
+        if(decommissioningList.getFolders() != null) {
+            processedFolders.addAll(decommissioningList.getFolders());
+            for (FolderDetailWithType folder : decommissioningList.getFolderDetailsWithType()) {
+                if (folder.isExcluded()) {
+                    processedFolders.remove(folder.getFolderId());
+                }
+            }
+        }
+
         LogicalSearchQuery foldersQuery = new LogicalSearchQuery()
                 .setCondition(LogicalSearchQueryOperators.from(folderSchemaType)
                         .where(Schemas.IDENTIFIER)
-                        .isIn(decommissioningList.getFolders()));
+                        .isIn(processedFolders));
 
         if(folderDetailTableExtension != null) {
             model.setWithMediumType(true);

@@ -11,6 +11,10 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public class RMTypes {
 
 	public static final String ADMINISTRATIVE_UNIT = AdministrativeUnit.SCHEMA_TYPE;
@@ -24,4 +28,9 @@ public class RMTypes {
 	public static final String STORAGE_SPACE = StorageSpace.SCHEMA_TYPE;
 	public static final String UNIFORM_SUBDIVISION = UniformSubdivision.SCHEMA_TYPE;
 
+
+	public static List<String> getAllTypes() {
+		return asList(ADMINISTRATIVE_UNIT, CATEGORY, CONTAINER_RECORD, DECOMMISSIONING_LIST, DOCUMENT, FILING_SPACE, FOLDER,
+				RETENTION_RULE, STORAGE_SPACE, UNIFORM_SUBDIVISION);
+	}
 }

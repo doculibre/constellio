@@ -44,7 +44,7 @@ public class RMMigrationTo7_6_11 extends MigrationHelper implements MigrationScr
         for(Record report:reportList) {
             transaction.addUpdate(report.set(recordTypeMetadata, getRealRecordType((String) report.get(recordTypeMetadata))));
         }
-
+        appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
     }
 
     private String getRealRecordType(String previousRecordType) {

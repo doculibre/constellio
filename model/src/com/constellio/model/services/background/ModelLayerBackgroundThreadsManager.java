@@ -3,6 +3,7 @@ package com.constellio.model.services.background;
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
 import static org.joda.time.Duration.standardSeconds;
 
 import org.joda.time.Duration;
@@ -24,6 +25,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
+	FlushRecordsBackgroundAction flushRecordsBackgroundAction;
 
 	EventService eventService;
 
@@ -61,6 +63,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 		backgroundThreadsManager.configure(repeatingAction("flushEvents", new FlushEventsBackgroundAction(modelLayerFactory))
 				.executedEvery(FLUSH_EVENTS_EVERY_DURATION).handlingExceptionWith(CONTINUE));
+
+		flushRecordsBackgroundAction = new FlushRecordsBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("flushRecords", flushRecordsBackgroundAction)
+				.executedEvery(standardMinutes(2)).handlingExceptionWith(CONTINUE));
 
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);

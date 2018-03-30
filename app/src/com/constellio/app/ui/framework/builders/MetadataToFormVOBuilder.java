@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -74,6 +75,10 @@ public class MetadataToFormVOBuilder implements Serializable {
 		String reference = null;
 		if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 			reference = metadata.getAllowedReferences().getAllowedSchemaType();
+			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
+			if(reference == null && allowedSchemas != null && allowedSchemas.size() == 1) {
+				reference = SchemaUtils.getSchemaTypeCode((String) allowedSchemas.toArray()[0]);
+			}
 		}
 
 		boolean autocomplete = metadata.isSchemaAutocomplete();

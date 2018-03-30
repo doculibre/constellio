@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
@@ -31,6 +32,7 @@ public class NewFilePresenter implements Serializable {
 	private transient Content fileContent;
 	private transient ContentManager contentManager;
 	private transient UserServices userServices;
+	RMConfigs rmConfigs;
 
 	public NewFilePresenter(NewFileWindow window) {
 		this.window = window;
@@ -39,6 +41,7 @@ public class NewFilePresenter implements Serializable {
 		window.setSupportedExtensions(supportedExtensions);
 
 		initTransientObjects();
+
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -51,6 +54,7 @@ public class NewFilePresenter implements Serializable {
 		ModelLayerFactory modelLayerFactory = window.getConstellioFactories().getModelLayerFactory();
 		contentManager = modelLayerFactory.getContentManager();
 		userServices = modelLayerFactory.newUserServices();
+        rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	public void newFileNameSubmitted() {
@@ -125,6 +129,9 @@ public class NewFilePresenter implements Serializable {
 		try {
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(newFileInput, fileName);
 			ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
+			if (rmConfigs.isMajorVersionForNewFile()){
+                return contentManager.createMajor(user,filename,dataSummary);
+            }
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);

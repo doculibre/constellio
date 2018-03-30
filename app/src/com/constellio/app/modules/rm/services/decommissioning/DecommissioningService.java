@@ -282,6 +282,12 @@ public class DecommissioningService {
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
+
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+		parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+		parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + decommissioningList.getId());
+
 		sendEmailForList(managerList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
 		try {
 			decommissioningList.setApprovalRequest(approvalUser);
@@ -362,6 +368,11 @@ public class DecommissioningService {
 		List<Comment> commentaires = new ArrayList<>();
 		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
+
+		String constellioUrl = eimConfigs.getConstellioUrl();
+		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+		parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+		parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + list.getId());
 
 		sendEmailForList(list, null, users, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
 		for (String user : users) {
@@ -841,7 +852,8 @@ public class DecommissioningService {
 		}
 
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder))));
+				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
 		for (Document child : childrenDocuments) {
 			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
@@ -859,11 +871,11 @@ public class DecommissioningService {
 		}
 		LocalDateTime now = LocalDateTime.now();
 
-		duplicatedDocument.setFormCreatedBy(currentUser);
-		duplicatedDocument.setFormCreatedOn(now);
-		duplicatedDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
-		duplicatedDocument.setCreatedOn(now).setModifiedOn(now);
-		return duplicatedDocument;
+		newDocument.setFormCreatedBy(currentUser);
+		newDocument.setFormCreatedOn(now);
+		newDocument.setCreatedBy(currentUser.getId()).setModifiedBy(currentUser.getId());
+		newDocument.setCreatedOn(now).setModifiedOn(now);
+		return newDocument;
 	}
 
 	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {

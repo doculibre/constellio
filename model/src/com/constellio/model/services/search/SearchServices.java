@@ -510,7 +510,7 @@ public class SearchServices {
 		if (query.isHighlighting()) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(query.getCondition().getCollection());
-			for (Metadata metadata : types.getHighlightedMetadatas()) {
+			for (Metadata metadata : types.getSearchableMetadatas()) {
 				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
 			}
 
@@ -585,7 +585,7 @@ public class SearchServices {
 			sb.append(" ");
 			fieldsWithBoosts.add(boost.getKey());
 		}
-		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getHighlightedMetadatas()) {
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSearchableMetadatas()) {
 			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
 				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 				sb.append("^20 ");
@@ -693,6 +693,8 @@ public class SearchServices {
 		}
 	}
 
+	//public Record getRecordWithId(MetadataSchemaType schemaType) {
+
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
@@ -717,6 +719,50 @@ public class SearchServices {
 					cache.markAsFullyLoaded(schemaType.getCode());
 
 					return records;
+				}
+			} else {
+				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
+			}
+
+		} else {
+			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+				cache.insert(records);
+			}
+			return records;
+		}
+	}
+
+	public List<Record> getAllRecordsInUnmodifiableState(MetadataSchemaType schemaType) {
+
+		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
+		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
+
+			if (cache.isConfigured(schemaType)) {
+				if (cache.isFullyLoaded(schemaType.getCode())) {
+					return cache.getAllValuesInUnmodifiableState(schemaType.getCode());
+
+				} else {
+
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
+
+						if (records.size() > 1000) {
+							loadUsingMultithreading(cache, records);
+
+						} else {
+							cache.insert(records);
+						}
+					}
+					cache.markAsFullyLoaded(schemaType.getCode());
+
+					List<Record> unmodifiableRecords = new ArrayList<>();
+					for (Record record : records) {
+						unmodifiableRecords.add(record.getUnmodifiableCopyOfOriginalRecord());
+					}
+
+					return unmodifiableRecords;
 				}
 			} else {
 				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");

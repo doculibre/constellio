@@ -10,9 +10,11 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchemaTypeView> {
 
@@ -25,8 +27,14 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
-	public SchemaTypeVODataProvider getDataProvider() {
-		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
+	public SchemaTypeVODataProvider getDataProvider(final String tabId) {
+		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection) {
+			@Override
+			protected boolean isAccepted(MetadataSchemaType type) {
+				String schemaTypeDisplayGroup = appLayerFactory.getExtensions().forCollection(collection).getSchemaTypeDisplayGroup(type);
+				return tabId.equals(schemaTypeDisplayGroup);
+			}
+		};
 	}
 
 	public void editButtonClicked(MetadataSchemaTypeVO schemaTypeVO) {

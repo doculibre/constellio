@@ -10,6 +10,7 @@ import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -77,7 +78,8 @@ public class QuickCompleteWindow {
         Field decisionField = null;
         MapStringStringStructure decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
         if((task.getModelTask() != null && decisions != null)) {
-            decisionField = fieldFactory.build(recordVO.getMetadata(Task.DECISION));
+            MetadataVO decisionMetadata = recordVO.getMetadata(Task.DECISION);
+            decisionField = fieldFactory.build(decisionMetadata);
             decisionField.setRequired(true);
 
             List<String> decisionCodes = new ArrayList<>();
@@ -87,6 +89,9 @@ public class QuickCompleteWindow {
                 ((TaskDecisionField) decisionField).addItem(decision);
             }
 
+            if(task.getDecision() != null) {
+                decisionField.setValue(task.getDecision());
+            }
 
             if(recordVO.getSchema().getMetadata(Task.QUESTION) != null && task.get(Task.QUESTION) != null) {
                 String question = task.get(Task.QUESTION);

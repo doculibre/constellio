@@ -91,10 +91,18 @@ public class TaskTable extends RecordVOTable {
 
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
+
+
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), $("DisplayTaskView.completeTaskDialogMessage"),
+							String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
+
+							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+								completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
+							}
+
+							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), completeTaskDialog,
 									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
 									new ConfirmDialog.Listener() {
 										@Override
@@ -125,7 +133,11 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {
 						@Override
 						protected String getConfirmDialogMessage() {
-							return $("ConfirmDialog.confirmDelete");
+							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+								return $("TaskPresenterServices.subTaskPresentWarning");
+							} else {
+								return $("ConfirmDialog.confirmDelete");
+							}
 						}
 
 						@Override
@@ -168,7 +180,8 @@ public class TaskTable extends RecordVOTable {
 
 
 	public interface TaskPresenter {
-		
+		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
+
 		void displayButtonClicked(RecordVO record);
 
 		void editButtonClicked(RecordVO record);

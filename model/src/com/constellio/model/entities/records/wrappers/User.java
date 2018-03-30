@@ -197,6 +197,10 @@ public class User extends RecordWrapper {
 		return get(GROUPS);
 	}
 
+	public List<String> getUserGroupsOrEmpty() {
+		return getList(GROUPS);
+	}
+
 	public User setUserGroups(List<String> groups) {
 		set(GROUPS, groups);
 		return this;
@@ -541,5 +545,13 @@ public class User extends RecordWrapper {
 	public User setDefaultPageLength(SearchPageLength defaultPageLength) {
 		set(DEFAULT_PAGE_LENGTH, defaultPageLength);
 		return this;
+	}
+
+	public User getCopyOfOriginalRecord() {
+		return User.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types, roles);
+	}
+
+	public User getUnmodifiableCopyOfOriginalRecord() {
+		return User.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types, roles);
 	}
 }

@@ -173,7 +173,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, getModelLayerFactory());
-			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizations()) {
+			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
 					fail("authorization '" + auth.getId() + "' on target '" + auth.getTarget() + "'");
 				}

@@ -126,8 +126,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     public void addPdfButton(final AvailableActionsParam param) {
         WindowButton pdfButton = new ConsolidatedPdfButton(param);
         setStyles(pdfButton);
-        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
-        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
+        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         ((VerticalLayout) param.getComponent()).addComponent(pdfButton);
     }
 
@@ -517,6 +517,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             couldNotMove.add(record.getTitle());
                     }
                 } catch (RecordServicesException.ValidationException e) {
+                    e.printStackTrace();
                     couldNotMove.add(record.getTitle());
                 }
             }

@@ -41,9 +41,7 @@ public class IgniteCacheManagerAcceptanceTest extends ConstellioTest {
 
 		CacheConfiguration<String, Object> partitionedCacheCfg = new CacheConfiguration<>();
 		partitionedCacheCfg.setName("PARTITIONED");
-		partitionedCacheCfg.setCacheMode(CacheMode.PARTITIONED);
-		partitionedCacheCfg.setBackups(1);
-		partitionedCacheCfg.setReadFromBackup(true);
+		partitionedCacheCfg.setCacheMode(CacheMode.REPLICATED);
 		partitionedCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
 
 		cfg.setCacheConfiguration(partitionedCacheCfg);
