@@ -21,6 +21,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordImplRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -158,6 +159,17 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
+		String type = zeCollectionSchemaWithPermanentCache.typeCode();
+		assertThat(recordsCaches.getCache(zeCollection).getAllValues(type)).extracting("id").containsOnly("1");
+		recordsCaches.getCache(zeCollection).getAllValues(type).get(0).set(Schemas.TITLE, "test");
+
+		assertThat(recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type)).extracting("id").containsOnly("1");
+		try {
+			recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type).get(0).set(Schemas.TITLE, "test");
+			fail("Record should be unmodifiable");
+		} catch (RecordImplRuntimeException.RecordImplException_RecordIsUnmodifiable e) {
+			//OK
+		}
 	}
 
 	@Test

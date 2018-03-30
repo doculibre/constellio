@@ -25,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -132,7 +133,8 @@ public class ContainerRecordReportPresenter {
 				.getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode());
+				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode())
+				.sortAsc(Schemas.IDENTIFIER);
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 

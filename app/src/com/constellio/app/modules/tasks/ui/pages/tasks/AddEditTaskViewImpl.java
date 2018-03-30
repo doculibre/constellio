@@ -18,6 +18,10 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.UI;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView {
 
@@ -70,9 +74,21 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	private TaskFormImpl newForm() {
 		recordForm = new TaskFormImpl(taskVO, presenter.isEditMode(), presenter.getUnavailableTaskTypes()) {
 			@Override
-			protected void saveButtonClick(RecordVO viewObject)
+			protected void saveButtonClick(final RecordVO viewObject)
 					throws ValidationException {
-				presenter.saveButtonClicked(viewObject);
+				if(presenter.isCompletedOrClosedStatus(viewObject) && presenter.isSubTaskPresentAndHaveCertainStatus(viewObject)) {
+					ConfirmDialog.show(UI.getCurrent(), $("DisplayTaskView.subTaskSpecialCaseCompleteTask"),
+							new ConfirmDialog.Listener() {
+								@Override
+								public void onClose(ConfirmDialog dialog) {
+									if(dialog.isConfirmed()) {
+										presenter.saveButtonClicked(viewObject);
+									}
+								}
+							});
+				} else {
+					presenter.saveButtonClicked(viewObject);
+				}
 			}
 
 			@Override

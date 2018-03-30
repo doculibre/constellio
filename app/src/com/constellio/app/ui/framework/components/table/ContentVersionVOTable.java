@@ -105,6 +105,7 @@ public class ContentVersionVOTable extends BaseTable {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
 							selectedContentVersions.remove(contentVersionVO);
+							selectionUpdated();
 							deleteButtonClick(contentVersionVO);
 						}
 					};
@@ -181,6 +182,7 @@ public class ContentVersionVOTable extends BaseTable {
 					} else {
 						selectedContentVersions.remove(contentVersion);
 					}
+					selectionUpdated();
 				}
 			});
 			checkBox.setValue(selectedContentVersions.contains(contentVersion));
@@ -203,9 +205,14 @@ public class ContentVersionVOTable extends BaseTable {
 
 	public void removeAllSelection() {
 		selectedContentVersions.clear();
+		selectionUpdated();
 	}
 
 	public HashSet<ContentVersionVO> getSelectedContentVersions() {
 		return selectedContentVersions;
+	}
+
+	protected void selectionUpdated() {
+
 	}
 }

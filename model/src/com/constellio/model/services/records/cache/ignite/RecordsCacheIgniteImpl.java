@@ -137,10 +137,8 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	private CacheConfiguration<String, Object> newPermanentCacheCfg(String name, Class<?> indexedType) {
 		CacheConfiguration<String, Object> permanentCacheCfg = new CacheConfiguration<>(name);
-		permanentCacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.
+		permanentCacheCfg.setCacheMode(CacheMode.REPLICATED); // Default.
 		permanentCacheCfg.setMemoryPolicyName("permanent");
-		permanentCacheCfg.setReadFromBackup(true);
-		permanentCacheCfg.setBackups(0);
 		permanentCacheCfg.setIndexedTypes(String.class, indexedType);
 		return permanentCacheCfg;
 	}
@@ -154,7 +152,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		volatileCacheCfg.setIndexedTypes(String.class, indexedType);
 		return volatileCacheCfg;
 	}
-	
+
 	private ConstellioIgniteCache getRecordHoldersCache(String schemaTypeCode) {
 		ConstellioIgniteCache cache;
 		if (isVolatile(schemaTypeCode)) {
@@ -172,13 +170,13 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 
 	private void putInPermanentCache(RecordHolder recordHolder) {
 		permanentByIdRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
-//		permanentRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
+		//		permanentRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
 		getRecordHoldersCache(recordHolder.schemaTypeCode).put(recordHolder.getRecordId(), recordHolder);
 	}
 
 	private void putInVolatileCache(RecordHolder recordHolder) {
 		volatileByIdRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
-//		volatileRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
+		//		volatileRecordHoldersCache.put(recordHolder.getRecordId(), recordHolder);
 		getRecordHoldersCache(recordHolder.schemaTypeCode).put(recordHolder.getRecordId(), recordHolder);
 	}
 
@@ -571,6 +569,20 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return allValuesAsRecords;
 	}
 
+	@Override
+	public List<Record> getAllValuesInUnmodifiableState(String schemaTypeCode) {
+		List<Record> allValuesAsRecords = new ArrayList<>();
+
+		ConstellioIgniteCache constellioIgniteCache = getRecordHoldersCache(schemaTypeCode);
+		for (Object cacheValue : constellioIgniteCache.getAllValues()) {
+			RecordHolder recordHolder = (RecordHolder) cacheValue;
+			if (recordHolder.record != null) {
+				allValuesAsRecords.add(recordHolder.record.getCopyOfOriginalRecord());
+			}
+		}
+		return allValuesAsRecords;
+	}
+
 	private String getSchemaTypeCodeForStorageInCache(LogicalSearchQuery query, boolean onlyIds) {
 		String schemaTypeCodeForStorageInCache;
 		LogicalSearchCondition condition = query.getCondition();
@@ -861,25 +873,29 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		if (schemaTypeCode.contains("_")) {
 			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(schemaTypeCode);
 		}
-		if (cachedTypes.containsKey(schemaTypeCode)) {
-			removeCache(schemaTypeCode);
+		if (cachedTypes.containsKey(cacheConfig.getSchemaType())) {
+			LOGGER.warn("Cache is already configured, nothing is changed");
+			return;
 		}
 
 		cachedTypes.put(schemaTypeCode, cacheConfig);
 
 		cachedMetadatasBySchemaType.put(schemaTypeCode, cacheConfig.getIndexes());
-		
+
 		if (isVolatile(schemaTypeCode)) {
 			String cacheName = volatileRecordHoldersCacheName + "." + schemaTypeCode;
 			CacheConfiguration<String, Object> volatileRecordHoldersCacheCfg = newVolatileCacheCfg(cacheName, RecordHolder.class);
 
-			ConstellioIgniteCache volatileRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(volatileRecordHoldersCacheCfg);
+			ConstellioIgniteCache volatileRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager
+					.getCache(volatileRecordHoldersCacheCfg);
 			volatileRecordHoldersCaches.put(schemaTypeCode, volatileRecordHoldersCache);
 		} else {
 			String cacheName = permanentRecordHoldersCacheName + "." + schemaTypeCode;
-			CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = newPermanentCacheCfg(cacheName, RecordHolder.class);
+			CacheConfiguration<String, Object> permanentRecordHoldersCacheCfg = newPermanentCacheCfg(cacheName,
+					RecordHolder.class);
 
-			ConstellioIgniteCache permanentRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager.getCache(permanentRecordHoldersCacheCfg);
+			ConstellioIgniteCache permanentRecordHoldersCache = (ConstellioIgniteCache) recordsCacheManager
+					.getCache(permanentRecordHoldersCacheCfg);
 			permanentRecordHoldersCaches.put(schemaTypeCode, permanentRecordHoldersCache);
 		}
 
@@ -908,9 +924,9 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		for (ConstellioIgniteCache volatileRecordHoldersCache : volatileRecordHoldersCaches.values()) {
 			volatileRecordHoldersCache.clear();
 		}
-		
-//		permanentRecordHoldersCache.clear();
-//		volatileRecordHoldersCache.clear();
+
+		//		permanentRecordHoldersCache.clear();
+		//		volatileRecordHoldersCache.clear();
 		permanentRecordHoldersCaches.clear();
 		permanentQueryResultsCache.clear();
 		volatileQueryResultsCache.clear();
@@ -990,12 +1006,12 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		for (ConstellioIgniteCache permanentRecordHoldersCache : permanentRecordHoldersCaches.values()) {
 			permanentRecordHoldersCacheSize += permanentRecordHoldersCache.size();
 		}
-		
+
 		int volatileRecordHoldersCacheSize = 0;
 		for (ConstellioIgniteCache volatileRecordHoldersCache : volatileRecordHoldersCaches.values()) {
 			volatileRecordHoldersCacheSize += volatileRecordHoldersCache.size();
 		}
-		
+
 		cacheTotalSize += 1 + permanentRecordHoldersCacheSize;
 
 		cacheTotalSize += 1 + volatileRecordHoldersCacheSize;
@@ -1161,19 +1177,19 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		return 0;
 	}
 
-//	private Record onlyIfNotSummary(Record record) {
-//		if (record == null) {
-//			return null;
-//		} else {
-//			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
-//			if (config.getPersistedMetadatas().isEmpty()) {
-//				return null;
-//			} else {
-//				return record;
-//			}
-//		}
-//	}
-	
+	//	private Record onlyIfNotSummary(Record record) {
+	//		if (record == null) {
+	//			return null;
+	//		} else {
+	//			CacheConfig config = getCacheConfigOf(record.getSchemaCode());
+	//			if (config.getPersistedMetadatas().isEmpty()) {
+	//				return null;
+	//			} else {
+	//				return record;
+	//			}
+	//		}
+	//	}
+
 	@Override
 	public boolean isFullyLoaded(String schemaType) {
 		//TODO Vincent : distribuer!
@@ -1185,5 +1201,5 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		//TODO Vincent : distribuer!
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
-	
+
 }

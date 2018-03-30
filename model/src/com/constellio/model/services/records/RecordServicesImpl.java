@@ -86,6 +86,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
@@ -300,6 +301,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 					break;
 				}
 			}
+
+			for (Record recordWithinTransaction : transaction.getRecords()) {
+				if (recordWithinTransaction.getId().equals(id)) {
+					newRecordVersion = recordWithinTransaction;
+					break;
+				}
+			}
+
 			if (newRecordVersion == null) {
 				throw new RecordServicesException.UnresolvableOptimisticLockingConflict(id);
 			}
@@ -975,11 +984,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 			List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
 			List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 			MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
 			ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages));
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs));
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {

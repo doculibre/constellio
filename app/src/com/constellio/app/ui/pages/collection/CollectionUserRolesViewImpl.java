@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.vaadin.data.Property;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
@@ -147,6 +150,7 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 				$("CollectionUserRolesView.addRoleWindowTitle")) {
 			@Override
 			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
 
 				if (presenter.isTargetFieldVisible()) {
 					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
@@ -156,8 +160,17 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 					targetField.setVisible(false);
 				}
 
+				final Label warningLabel = new Label("<p style=\"color:red\">" + $("CollectionUserRolesView.onCollectionWarning") + "</p>", ContentMode.HTML);
+				warningLabel.setReadOnly(true);
+				warningLabel.addStyleName(ValoTheme.TEXTFIELD_BORDERLESS);
+				targetField.addValueChangeListener(new Property.ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						warningLabel.setVisible(presenter.isTargetFieldVisible() && event.getProperty().getValue() == null);
+					}
+				});
 
-				return new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionUserRolesViewImpl.this, availableRolesField,
+				BaseForm<RoleAuthVO> form = new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionUserRolesViewImpl.this, availableRolesField,
 						targetField) {
 					@Override
 					protected void saveButtonClick(RoleAuthVO viewObject)
@@ -171,6 +184,8 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 						getWindow().close();
 					}
 				};
+				mainLayout.addComponents(warningLabel, form);
+				return mainLayout;
 			}
 		};
 		return Arrays.asList(windowButton);

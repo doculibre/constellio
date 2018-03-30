@@ -354,10 +354,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 			@Override
 			public boolean isEnabled() {
-				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
+				return !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
-		removeFolders.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
+		removeFolders.setEnabled(!presenter.isApproved() && !presenter.isProcessed());
 		return removeFolders;
 	}
 
@@ -684,7 +684,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
-		return new FolderDetailTableGenerator(presenter, this, containerizable)
+		BaseTable tableGenerator = new FolderDetailTableGenerator(presenter, this, containerizable)
 				.withExtension(presenter.getFolderDetailTableExtension())
 				.displayingRetentionRule(presenter.shouldDisplayRetentionRuleInDetails())
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
@@ -692,6 +692,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingValidation(presenter.shouldDisplayValidation())
 				.displayingOrderNumber(true)
 				.attachTo(table);
+		tableGenerator.setPageLength(Math.min(25, container.size()));
+		return tableGenerator;
 	}
 
 	private DefaultItemSorter buildItemSorter() {

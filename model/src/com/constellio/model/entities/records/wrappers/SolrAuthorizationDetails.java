@@ -172,4 +172,17 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 			return false;
 		}
 	}
+
+	public static SolrAuthorizationDetails wrapNullable(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new SolrAuthorizationDetails(record, types);
+	}
+
+
+	public SolrAuthorizationDetails getCopyOfOriginalRecord() {
+		return SolrAuthorizationDetails.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types);
+	}
+
+	public SolrAuthorizationDetails getUnmodifiableCopyOfOriginalRecord() {
+		return SolrAuthorizationDetails.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types);
+	}
 }

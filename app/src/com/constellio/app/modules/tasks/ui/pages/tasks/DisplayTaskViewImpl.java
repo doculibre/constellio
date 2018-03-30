@@ -133,6 +133,10 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			ConfirmDialogButton completeTask = new ConfirmDialogButton($("DisplayTaskView.completeTask")) {
 				@Override
 				protected String getConfirmDialogMessage() {
+					if(presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTask())) {
+						return $("DisplayTaskView.subTaskPresentComplete");
+					}
+
 					return $("DisplayTaskView.completeTaskDialogMessage");
 				}
 
@@ -209,6 +213,16 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 				actionMenuButtons.add(createSubTask);
 			}
 			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					if(presenter.isSubTaskPresentAndHaveCertainStatus(recordDisplay.getRecordVO())) {
+						return $("TaskPresenterServices.subTaskPresentWarning");
+					}
+					else {
+						return super.getConfirmDialogMessage();
+					}
+				}
+
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.deleteButtonClicked();

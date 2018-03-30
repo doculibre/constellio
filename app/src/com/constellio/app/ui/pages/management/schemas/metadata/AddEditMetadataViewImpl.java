@@ -163,7 +163,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			for (MetadataInputType type : types) {
 				inputType.addItem(type);
-				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
 			}
 			inputType.setValue(null);
 
@@ -344,7 +343,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		refType.setPageLength(refType.size());
 		refType.setReadOnly(editMode);
 
-		inputType = new ComboBox();
+		inputType = new ComboBox() {
+			@Override
+			public String getItemCaption(Object itemId) {
+				return $(MetadataInputType.getCaptionFor((MetadataInputType) itemId));
+			}
+		};
 		inputType.setCaption($("AddEditMetadataView.entry"));
 		inputType.setRequired(true);
 		inputType.setId("entry");

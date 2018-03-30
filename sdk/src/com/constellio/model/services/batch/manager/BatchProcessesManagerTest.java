@@ -145,6 +145,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 
+		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(constellioCacheManager);
 		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCacheManager);
 		when(constellioCacheManager.getCache(anyString())).thenReturn(cache);
 	}

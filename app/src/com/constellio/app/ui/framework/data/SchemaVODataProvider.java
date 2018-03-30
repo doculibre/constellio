@@ -82,7 +82,9 @@ public class SchemaVODataProvider implements Serializable {
 		Collections.sort(schemas, new Comparator<MetadataSchemaVO>() {
 			@Override
 			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
-				int result = o1.getLabel().compareTo(o2.getLabel());
+				String label1 = AccentApostropheCleaner.removeAccents(o1.getLabel()).toLowerCase();
+				String label2 = AccentApostropheCleaner.removeAccents(o2.getLabel()).toLowerCase();
+				int result = label1.compareTo(label2);
 				return asc ? result : -result;
 			}
 		});
@@ -102,15 +104,15 @@ public class SchemaVODataProvider implements Serializable {
 			result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
 		}
 
-		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
-			@Override
-			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
-				String s1 = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
-				String s2 = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
-
-				return s1.compareTo(s2);
-			}
-		});
+//		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
+//			@Override
+//			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
+//				String s1 = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+//				String s2 = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+//
+//				return s1.compareTo(s2);
+//			}
+//		});
 
 		result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
 
