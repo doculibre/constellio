@@ -3,6 +3,7 @@ package com.constellio.app.services.records;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.Language.withCode;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,17 +64,32 @@ public class AvailableSequencesServices {
 	private List<AvailableSequence> getAvailableSequencesUsingSchemaTypeOn(Record record) {
 		List<AvailableSequence> availableSequences = new ArrayList<>();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		Set<String> typesWithSequenceFeedingRecord = new HashSet<>();
+		Map<Metadata, Set<String>> typesWithSequenceFeedingRecord = new HashMap<>();
+
+		Metadata metadataProvidingReference;
+		Metadata metadataProvidingSequenceCode;
 
 		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
 			for (Metadata metadata : schemaType.getAllMetadatas().onlySequence()) {
 				SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
 				if (dataEntry.getMetadataProvidingSequenceCode() != null) {
 					MetadataSchema schema = types.getSchema(metadata.getSchemaCode());
-					Metadata metadataProvidingSequence = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
-					if (metadataProvidingSequence.getType() == REFERENCE) {
-						if (record.isOfSchemaType(metadataProvidingSequence.getAllowedReferences().getTypeWithAllowedSchemas())) {
-							typesWithSequenceFeedingRecord.add(new SchemaUtils().getSchemaTypeCode(schema.getCode()));
+
+					String referencedMetadata = dataEntry.getMetadataProvidingSequenceCode();
+
+					if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
+						String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
+						metadataProvidingReference = schema.getMetadata(splittedCode[0]);
+						metadataProvidingSequenceCode = types.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType()).getMetadata(splittedCode[1]);
+					}
+					else{
+						metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
+						metadataProvidingSequenceCode = metadataProvidingReference;
+					}
+
+					if (metadataProvidingReference.getType() == REFERENCE) {
+						if (record.isOfSchemaType(metadataProvidingReference.getAllowedReferences().getTypeWithAllowedSchemas())) {
+							addValueToKey(typesWithSequenceFeedingRecord, metadataProvidingSequenceCode, new SchemaUtils().getSchemaTypeCode(schema.getCode()));
 						}
 					}
 				}
@@ -81,12 +97,31 @@ public class AvailableSequencesServices {
 		}
 
 		if (!typesWithSequenceFeedingRecord.isEmpty()) {
-			AvailableSequence seq = new AvailableSequence(record.getId(),
-					getAvailableSequenceLabelForTypes(types, typesWithSequenceFeedingRecord));
-			availableSequences.add(seq);
+			for(Map.Entry<Metadata, Set<String>> entry: typesWithSequenceFeedingRecord.entrySet()){
+
+				Object metadataValue = record.get(entry.getKey());
+
+				if(metadataValue!=null){
+					AvailableSequence seq = new AvailableSequence(metadataValue.toString(),//record.getId(),
+					getAvailableSequenceLabelForTypes(types, entry.getValue()));//getAvailableSequenceLabelForTypes(types, typesWithSequenceFeedingRecord));
+					availableSequences.add(seq);
+				}
+			}
 		}
 		return availableSequences;
 	}
+
+	private void addValueToKey(Map<Metadata, Set<String>> map, Metadata key, String valueToAdd) {
+		if(map.containsKey(key)) {
+			map.get(key).add(valueToAdd);
+		} else {
+			map.put(key, new HashSet<String>(asList(valueToAdd)));
+		}
+	}
+
+//	private void addMetadataProvidingSequenceCode(){
+//
+//	}
 
 	private Map<Language, String> getAvailableSequenceLabelForTypes(MetadataSchemaTypes types,
 			Set<String> typesWithSequenceFeedingRecord) {
@@ -165,8 +200,5 @@ public class AvailableSequencesServices {
 		}
 
 		return availableSequences;
-
 	}
-
-
 }

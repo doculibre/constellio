@@ -649,10 +649,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 
 					} else if (step instanceof SequenceRecordPreparationStep) {
+
 						SequencesManager sequencesManager = modelFactory.getDataLayerFactory().getSequencesManager();
+
 						for (Metadata metadata : step.getMetadatas()) {
 
 							SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
+
 							if (dataEntry.getFixedSequenceCode() != null) {
 								if (record.get(metadata) == null) {
 									String sequenceCode = dataEntry.getFixedSequenceCode();
@@ -660,11 +663,29 @@ public class RecordServicesImpl extends BaseRecordServices {
 									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							} else {
-								Metadata metadataProvidingSequenceCode = schema
-										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 
-								if (record.isModified(metadataProvidingSequenceCode) && !record.isModified(metadata)) {
-									String sequenceCode = record.get(metadataProvidingSequenceCode);
+								Metadata metadataProvidingReference;
+								Metadata metadataProvidingSequenceCode;
+								String sequenceCode = null;
+
+								if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
+									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
+									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
+									metadataProvidingSequenceCode = types.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType()).getMetadata(splittedCode[1]);
+									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
+
+									if(metadataProvidingReferenceValue!=null){
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
+									}
+								}
+								else{
+									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
+									metadataProvidingSequenceCode = metadataProvidingReference;
+									sequenceCode = record.get(metadataProvidingSequenceCode);
+								}
+
+								// if user did not changed seqNumber AND reference changed
+								if (!record.isModified(metadata) && record.isModified(metadataProvidingReference)) {
 									String value = sequenceCode == null ?
 											null :
 											format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
