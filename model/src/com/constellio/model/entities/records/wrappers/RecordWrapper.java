@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -34,7 +35,13 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 	MetadataSchemaTypes types;
 
+	protected Locale locale;
+
 	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement) {
+		this(record, types, typeRequirement, types.getLanguages().get(0).getLocale());
+	}
+
+	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement, Locale locale) {
 		if (record == null) {
 			throw new WrappedRecordMustBeNotNull();
 		}
@@ -47,11 +54,13 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		}
 		if (record.getCollection() != null && types.getCollection() != null
 				&& !record.getCollection().equals(types.getCollection())) {
-			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(), record.getCollection(), types.getCollection());
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(),
+					record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
 		this.wrappedRecord = record;
+		this.locale = locale;
 	}
 
 	public Record getWrappedRecord() {
@@ -85,6 +94,21 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
 		return wrappedRecord.get(metadata);
+	}
+
+	public <T> T get(Metadata metadata, Locale locale) {
+		return wrappedRecord.get(metadata, locale);
+	}
+
+	public <T> T get(String localCode, Locale locale) {
+		ensureConnected();
+
+		if (localCode.contains("_")) {
+			localCode = StringUtils.substringAfterLast(localCode, "_");
+		}
+
+		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		return wrappedRecord.get(metadata, locale);
 	}
 
 	public <T> T getOriginal(String localCode) {

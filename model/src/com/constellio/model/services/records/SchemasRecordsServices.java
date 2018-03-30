@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
@@ -42,6 +43,11 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	public SchemasRecordsServices(String collection,
 			final ModelLayerFactory modelLayerFactory) {
 		super(collection, toModelLayerFactoryFactory(modelLayerFactory));
+	}
+
+	public SchemasRecordsServices(String collection,
+			final ModelLayerFactory modelLayerFactory, Locale locale) {
+		super(collection, toModelLayerFactoryFactory(modelLayerFactory), locale);
 	}
 
 	private static Factory<ModelLayerFactory> toModelLayerFactoryFactory(final ModelLayerFactory modelLayerFactory) {

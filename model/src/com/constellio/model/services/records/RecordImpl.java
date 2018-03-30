@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -285,6 +286,30 @@ public class RecordImpl implements Record {
 		if (!metadata.isMultivalue() && (value instanceof Collection)) {
 			throw new RecordRuntimeException.CannotSetCollectionInSingleValueMetadata(metadata);
 		}
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(Metadata metadata, Locale locale) {
+		//if (metadata.isMultiLingual() && (metadata.getType() == TEXT || metadata.getType() == STRING)) {
+			if (metadata.isMultivalue()) {
+				List<String> dummyValues = new ArrayList<>();
+
+				for (String item : this.<String>getList(metadata)) {
+					dummyValues.add("{" + locale.getLanguage() + "} " + item);
+				}
+
+				return (T) dummyValues;
+
+			} else {
+				String value = get(metadata);
+				return value == null ? null : (T) ("{" + locale.getLanguage() + "} " + value);
+			}
+
+//		} else {
+		//			return get(metadata);
+		//		}
+
 	}
 
 	@Override

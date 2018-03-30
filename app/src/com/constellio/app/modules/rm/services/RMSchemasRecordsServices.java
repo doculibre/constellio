@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -95,7 +96,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public static final String EMAIL_ATTACHMENTS = "attachments";
 
 	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
-		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory());
+		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory(),
+				sessionContextProvider.getSessionContext().getCurrentLocale());
 	}
 
 	@Deprecated
@@ -105,6 +107,15 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public RMSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory.getModelLayerFactory());
+	}
+
+	@Deprecated
+	public RMSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
+		super(collection, modelLayerFactory, locale);
+	}
+
+	public RMSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		super(collection, appLayerFactory.getModelLayerFactory(), locale);
 	}
 
 	//

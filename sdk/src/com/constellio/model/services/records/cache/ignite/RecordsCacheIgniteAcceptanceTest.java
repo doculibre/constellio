@@ -1540,6 +1540,15 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			return (T) metadatas.get(metadata.getCode());
 		}
 
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T get(Metadata metadata, Locale locale) {
+			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
+				return (T) logicallyDeleted;
+			}
+			return (T) metadatas.get(metadata.getCode());
+		}
+
 		@Override
 		public <T> T getNonNullValueIn(List<Metadata> metadatas) {
 			return null;

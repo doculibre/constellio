@@ -1,8 +1,10 @@
 package com.constellio.sdk.dev.tools;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -230,8 +232,18 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 			MetadataSchema defaultSchema = type.getDefaultSchema();
 
 			Class<? extends RecordWrapper> defaultSchemaWrapperClass = wrappers.get(defaultSchema.getCode());
+
 			if (defaultSchemaWrapperClass != null) {
-				stringBuilder.append(generateSchemaHelperMethods(defaultSchema, defaultSchemaWrapperClass.getSimpleName()));
+				boolean hasConstructorWithLocale = false;
+				for (Constructor constructor : defaultSchemaWrapperClass.getConstructors()) {
+					if (constructor.getParameterTypes().length > 0) {
+						hasConstructorWithLocale |= constructor.getParameterTypes()
+								[constructor.getParameterTypes().length - 1].equals(Locale.class);
+					}
+				}
+
+				stringBuilder.append(generateSchemaHelperMethods(defaultSchema, defaultSchemaWrapperClass.getSimpleName(),
+						hasConstructorWithLocale));
 				stringBuilder.append(metadatasHelperMethod(type, defaultSchema, defaultSchemaWrapperClass));
 			}
 
@@ -240,7 +252,16 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 				Class<? extends RecordWrapper> wrapperClass = wrappers.get(schema.getCode());
 
 				if (wrapperClass != null) {
-					stringBuilder.append(generateSchemaHelperMethods(schema, wrapperClass.getSimpleName()));
+					boolean hasConstructorWithLocale = false;
+					for (Constructor constructor : wrapperClass.getConstructors()) {
+						if (constructor.getParameterTypes().length > 0) {
+							hasConstructorWithLocale |= constructor.getParameterTypes()
+									[constructor.getParameterTypes().length - 1].equals(Locale.class);
+						}
+					}
+
+					stringBuilder
+							.append(generateSchemaHelperMethods(schema, wrapperClass.getSimpleName(), hasConstructorWithLocale));
 					stringBuilder.append(metadatasHelperMethod(type, schema, wrapperClass));
 				}
 
@@ -256,11 +277,11 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		System.out.println(code);
 	}
 
-	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName) {
+	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName, boolean withLocale) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		appendWrapElementHelperMethod(schema, wrapperName, stringBuilder);
-		appendWrapElementsHelperMethod(schema, wrapperName, stringBuilder);
+		appendWrapElementHelperMethod(schema, wrapperName, withLocale, stringBuilder);
+		appendWrapElementsHelperMethod(schema, wrapperName, withLocale, stringBuilder);
 		appendSearchByQueryElementsHelperMethod(schema, wrapperName, stringBuilder);
 		appendSearchByConditionElementsHelperMethod(schema, wrapperName, stringBuilder);
 		appendGetByIdHelperMethod(schema, wrapperName, stringBuilder);
@@ -338,26 +359,35 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder.append("\n\t}\n");
 	}
 
-	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
+			StringBuilder stringBuilder) {
 
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract " + wrapperName + " wrap" + wrapperName + "(Record record);");
 		} else {
-
 			stringBuilder.append("\n\tpublic " + wrapperName + " wrap" + wrapperName + "(Record record) {");
-			stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+			if (withLocale) {
+				stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes(), locale);");
+			} else {
+				stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+			}
 			stringBuilder.append("\n\t}\n");
 		}
 	}
 
-	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
+			StringBuilder stringBuilder) {
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records);");
 		} else {
 			stringBuilder.append("\n\tpublic List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records) {");
 			stringBuilder.append("\n\t\tList<" + wrapperName + "> wrapped = new ArrayList<>();");
 			stringBuilder.append("\n\t\tfor (Record record : records) {");
-			stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+			if (withLocale) {
+				stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes(), locale));");
+			} else {
+				stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+			}
 			stringBuilder.append("\n\t\t}\n");
 
 			stringBuilder.append("\n\t\treturn wrapped;");

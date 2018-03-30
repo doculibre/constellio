@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -33,14 +34,23 @@ public class Category extends RecordWrapper {
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
 
-	public Category(Record record,
-			MetadataSchemaTypes types) {
+	@Deprecated
+	public Category(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
+	}
+
+	public Category(Record record, MetadataSchemaTypes types, Locale locale) {
+		super(record, types, SCHEMA_TYPE, locale);
 	}
 
 	public Category setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public String getTitle() {
+		return get(Schemas.TITLE.getLocalCode(), locale);
 	}
 
 	public String getParent() {

@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.data.utils.Factory;
@@ -21,6 +22,11 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	public GeneratedSchemasRecordsServices(String collection,
 			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 		super(collection, modelLayerFactoryFactory);
+	}
+
+	public GeneratedSchemasRecordsServices(String collection,
+			Factory<ModelLayerFactory> modelLayerFactoryFactory, Locale locale) {
+		super(collection, modelLayerFactoryFactory, locale);
 	}
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/

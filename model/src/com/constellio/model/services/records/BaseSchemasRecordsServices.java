@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -29,10 +31,20 @@ public class BaseSchemasRecordsServices implements Serializable {
 
 	private Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
+	protected Locale locale;
+
 	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+		this(collection, modelLayerFactoryFactory, null);
+	}
+
+	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory, Locale locale) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactoryFactory.get();
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
+		this.locale = locale;
+		if (this.locale == null) {
+			this.locale = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage()).getLocale();
+		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)

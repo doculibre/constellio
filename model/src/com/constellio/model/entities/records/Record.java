@@ -2,6 +2,7 @@ package com.constellio.model.entities.records;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
@@ -34,6 +35,8 @@ public interface Record extends Serializable, CollectionObject {
 	Record set(Metadata metadata, Object value);
 
 	<T> T get(Metadata metadata);
+
+	<T> T get(Metadata metadata, Locale locale);
 
 	<T> T getNonNullValueIn(List<Metadata> metadatas);
 

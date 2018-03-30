@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.wrappers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.joda.time.LocalDate;
 
@@ -45,9 +46,12 @@ public class RetentionRule extends RecordWrapper {
 	public static final String YEAR_TYPES = "yearTypes";
 	public static final String YEAR_TYPES_YEAR_END = "yearTypesYearEnd";
 
-	public RetentionRule(Record record,
-			MetadataSchemaTypes types) {
+	public RetentionRule(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
+	}
+
+	public RetentionRule(Record record, MetadataSchemaTypes types, Locale locale) {
+		super(record, types, SCHEMA_TYPE, locale);
 	}
 
 	public RetentionRule setTitle(String title) {
@@ -193,7 +197,6 @@ public class RetentionRule extends RecordWrapper {
 
 		return null;
 	}
-
 
 	public CopyRetentionRule getCopyRetentionRuleWithId(String id) {
 		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
