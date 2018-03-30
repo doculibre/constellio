@@ -389,6 +389,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setMultivalue(readBooleanWithDefaultValue(multivalueStringValue, false));
 		}
 
+		String multilingualStringValue = metadataElement.getAttributeValue("multilingual");
+		if (inheriteGlobalMetadata && multilingualStringValue == null) {
+			metadataBuilder.setMultiLingual(globalMetadataInCollectionSchema.isMultiLingual());
+		} else {
+			metadataBuilder.setMultiLingual(readBooleanWithDefaultValue(multilingualStringValue, false));
+		}
+
 		//}
 
 		Class<StructureFactory> structureFactoryClass = getClassValue(metadataElement, "structureFactory");

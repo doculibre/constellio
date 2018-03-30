@@ -19,6 +19,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whicIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
@@ -567,6 +568,22 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsSchemaAutocomplete));
 
 		assertThat(zeSchema.stringMetadata().isSchemaAutocomplete()).isTrue();
+	}
+
+	@Test
+	public void whenSavingSchemaMultilingualMetadataThenUndeletableFlagConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whicIsMultilingual));
+
+		assertThat(zeSchema.stringMetadata().isMultiLingual()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(defaultSchema.zeDefaultSchemaCode()).get("stringMetadata").setMultiLingual(false);
+			}
+		});
+		assertThat(zeSchema.stringMetadata().isMultiLingual()).isFalse();
 	}
 
 	@Test
