@@ -291,28 +291,7 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
-
-		List<String> TEMPORAIRE = asList("administrativeUnit_default_title", "category_default_title");
-
-		if (TEMPORAIRE.contains(schemaCode + "_" + metadata.getLocalCode())) {
-			if (metadata.isMultivalue()) {
-				List<String> dummyValues = new ArrayList<>();
-
-				for (String item : this.<String>getList(metadata)) {
-					dummyValues.add("{" + locale.getLanguage() + "} " + item);
-				}
-
-				return (T) dummyValues;
-
-			} else {
-				String value = get(metadata);
-				return value == null ? null : (T) ("{" + locale.getLanguage() + "} " + value);
-			}
-
-		} else {
-			return get(metadata);
-		}
-
+		return get(metadata);
 	}
 
 	@Override
