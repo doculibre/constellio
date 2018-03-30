@@ -1074,7 +1074,7 @@ public class DecommissioningService {
             List<LocalDate> dates = getListOfExpectedDates(folder);
             return getMinimal(dates);
         }
-        List<LocalDate> dates = getListOfAllDates(folder);
+        List<LocalDate> dates = getListOfAllDates(folder, false);
 
         return getMinimal(dates);
 	}
@@ -1085,7 +1085,7 @@ public class DecommissioningService {
             List<LocalDate> dates = getListOfExpectedDates(folder);
             return getMaximal(dates);
 		}
-        List<LocalDate> dates = getListOfAllDates(folder);
+        List<LocalDate> dates = getListOfAllDates(folder, true);
 		return getMaximal(dates);
 	}
 
@@ -1096,12 +1096,16 @@ public class DecommissioningService {
         return dates;
     }
 
-	private List<LocalDate> getListOfAllDates(Folder folder){
+	private List<LocalDate> getListOfAllDates(Folder folder, boolean includeTransfert){
         List<LocalDate> dates = getListOfExpectedDates(folder);
         dates.add(folder.getActualDestructionDate());
         dates.add(folder.getActualDepositDate());
-        dates.add(folder.getExpectedTransferDate());
-        dates.add(folder.getActualTransferDate());
+
+        if(includeTransfert) {
+			dates.add(folder.getExpectedTransferDate());
+			dates.add(folder.getActualTransferDate());
+		}
+
         return dates;
     }
 
