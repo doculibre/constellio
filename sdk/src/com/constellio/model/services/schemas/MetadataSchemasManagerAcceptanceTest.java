@@ -19,7 +19,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whicIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
@@ -36,6 +35,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabledInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
@@ -573,7 +573,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingSchemaMultilingualMetadataThenUndeletableFlagConserved()
 			throws Exception {
-		defineSchemasManager().using(defaultSchema.withAStringMetadata(whicIsMultilingual));
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsMultilingual));
 
 		assertThat(zeSchema.stringMetadata().isMultiLingual()).isTrue();
 
