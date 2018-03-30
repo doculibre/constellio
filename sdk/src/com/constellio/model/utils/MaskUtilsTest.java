@@ -66,6 +66,22 @@ public class MaskUtilsTest {
 		assertThat(MaskUtils.strictFormat("(AAA) AAA-AAAA", "BCDEFGHILH")).isEqualTo("(BCD) EFG-HILH");
 	}
 
+	@Test
+	public void whenstrictFormatWithMissingValuesThenTrue()
+			throws MaskUtilsException {
+		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) AAA-AAAA","BCDEFGH")).isEqualTo("(BCD) EFG-HZZZ");
+		assertThat(MaskUtils.strictFormatWithMissingValues("999-999-9999", "1236664")).isEqualTo("123-666-4000");
+		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "AB")).isEqualTo("(ABZ) 000-0000");
+		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "ABC10")).isEqualTo("(ABC) 100-0000");
+		assertThat(MaskUtils.strictFormatWithMissingValues("999-999-9999", "5")).isEqualTo("500-000-0000");
+	}
+
+	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
+	public void whenstrictFormatWithMissingValuesInvalidValueThenException() throws MaskUtilsException {
+		MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "5");
+		MaskUtils.strictFormatWithMissingValues("(999) 999-9999", "A");
+	}
+
 	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
 	public void whenStrictFormatInvalidValueThenException()
 			throws MaskUtilsException {

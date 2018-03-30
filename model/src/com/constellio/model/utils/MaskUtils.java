@@ -92,7 +92,6 @@ public class MaskUtils {
 		return maskRegexPattern;
 	}
 
-
 	public static void validate(String mask, String formattedValue)
 			throws MaskUtilsException {
 		if (StringUtils.isBlank(mask)) {
@@ -173,11 +172,28 @@ public class MaskUtils {
 		return formattedString;
 	}
 
-	private static String formatValueWithMask(String inputMask, String rawValue) {
+    public static String strictFormatWithMissingValues(String inputMask, String rawValues) throws MaskUtilsException {
+        String adjustedRawValue = adjustRawValue(inputMask, rawValues);
+	    return strictFormat(inputMask,adjustedRawValue);
+    }
+
+    private static String adjustRawValue (String inputMask, String rawValue){
+        String inputMaskWithoutStrictMaskItems = inputMask.replaceAll(REGEX_STRICT_MASK_ITEMS, "");
+        char[] maskAsChar = inputMaskWithoutStrictMaskItems.toCharArray();
+        StringBuilder finalAdjustedItem = new StringBuilder(rawValue);
+        int offSetInFinalAdjusted = finalAdjustedItem.length();
+        while (finalAdjustedItem.length() < maskAsChar.length){
+            String adjustementCharacter = maskAsChar[offSetInFinalAdjusted] == '9' ? "0":"Z";
+            finalAdjustedItem.append(adjustementCharacter);
+            offSetInFinalAdjusted++;
+        }
+
+        return finalAdjustedItem.toString();
+    }
+
+    private static String formatValueWithMask(String inputMask, String rawValue) {
 		int offSetInFinalFormated = 0;
-
 		StringBuilder finalFormattedItem = new StringBuilder(rawValue);
-
 		char[] maskAsChar = inputMask.toCharArray();
 		String maskItemAsString;
 		for (char maskItem : maskAsChar) {
