@@ -61,4 +61,12 @@ public class ListCapsulePresenter extends BasePresenter<ListCapsuleView> {
     public void editButtonClicked(RecordVO record){
         view.navigate().to().addEditCapsule(record.getId());
     }
+
+	public void addButtonClicked() {
+		view.navigate().to().addEditCapsule(null);
+	}
+
+	public void backButtonClicked() {
+		view.navigate().to().searchConfiguration();
+	}
 }

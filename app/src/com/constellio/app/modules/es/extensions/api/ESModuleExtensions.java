@@ -10,6 +10,7 @@ import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 
 public class ESModuleExtensions implements ModuleExtensions {
 	public VaultBehaviorsList<ConnectorMappingExtension> connectorMappingExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<ConnectorHttpDocumentExtension> connectorHttpDocumentExtensions = new VaultBehaviorsList<>();
 
 	public List<String> getCustomTargetFlags(CustomTargetFlagsParams params) {
 		ArrayList<String> result = new ArrayList<>();
@@ -22,6 +23,12 @@ public class ESModuleExtensions implements ModuleExtensions {
 	public void beforeTargetMetadataCreation(TargetMetadataCreationParams params) {
 		for (ConnectorMappingExtension extension : connectorMappingExtensions) {
 			extension.beforeTargetMetadataCreation(params);
+		}
+	}
+
+	public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
+		for(ConnectorHttpDocumentExtension connectorHttpDocumentExtension : connectorHttpDocumentExtensions) {
+			connectorHttpDocumentExtension.onHttpDocumentFetched(onHttpDocumentFetchedParams);
 		}
 	}
 }

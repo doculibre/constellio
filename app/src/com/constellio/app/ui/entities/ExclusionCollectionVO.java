@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.exclusion;
+package com.constellio.app.ui.entities;
 
 public class ExclusionCollectionVO {
     private String collection;

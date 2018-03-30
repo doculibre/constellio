@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.es.migrations.*;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,6 +201,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		}
 		if (!recordsCache.isConfigured(Report.SCHEMA_TYPE)) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.report.schemaType()));
+		}
+
+		if (!recordsCache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.thesaurusConfig.schemaType()));
 		}
 
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

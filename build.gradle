@@ -57,6 +57,8 @@ subprojects {
         compile "org.apache.ignite:ignite-indexing:2.0.0"
         compile "org.apache.kafka:kafka-clients:0.11.0.0"
         compile "com.google.code.gson:gson:2.8.1"
+        compile group: 'jaxen', name: 'jaxen', version: '1.1.6'
+        compile group: 'jdom', name: 'jdom', version: '1.0'
         compile "org.apache.pdfbox:pdfbox:2.0.8"
         compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
         compile "org.apache.pdfbox:pdfbox-tools:2.0.8"

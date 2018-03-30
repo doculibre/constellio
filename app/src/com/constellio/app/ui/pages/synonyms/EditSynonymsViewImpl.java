@@ -1,18 +1,19 @@
 package com.constellio.app.ui.pages.synonyms;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsView {
 
@@ -92,6 +93,6 @@ public class EditSynonymsViewImpl extends BaseViewImpl implements EditSynonymsVi
 
     @Override
     protected String getTitle() {
-        return $("EditViewSynonymsViewImpl");
+        return $("EditViewSynonymsView.title");
     }
 }

@@ -349,7 +349,8 @@ public class CoreNavigationConfiguration implements Serializable {
 						CorePermissions.ACCESS_SEARCH_CAPSULE,
 						CorePermissions.MANAGE_FACETS,
 						CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT,
-						CorePermissions.MANAGE_SYNONYMS
+						CorePermissions.MANAGE_SYNONYMS,
+						CorePermissions.DELETE_CORRECTION_SUGGESTION
 				).globally());
 			}
 

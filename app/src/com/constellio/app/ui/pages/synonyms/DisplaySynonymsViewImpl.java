@@ -1,22 +1,25 @@
 package com.constellio.app.ui.pages.synonyms;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
-import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonymsView {
 
-    DisplaySynonymsPresenter displaySynonymsPresenter;
+    DisplaySynonymsPresenter presenter;
     TextArea textArea;
     EditButton editButton;
 
@@ -28,7 +31,7 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
 
 
     public DisplaySynonymsViewImpl() {
-        displaySynonymsPresenter = new DisplaySynonymsPresenter(this);
+        presenter = new DisplaySynonymsPresenter(this);
     }
 
     @Override
@@ -40,7 +43,7 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         VerticalLayout verticalLayout = new VerticalLayout();
         this.textArea = new TextArea();
-        this.textArea.setValue(displaySynonymsPresenter.getSynonmsAsOneString());
+        this.textArea.setValue(presenter.getSynonmsAsOneString());
         this.textArea.setHeight("600px");
         this.textArea.setWidth("95%");
 
@@ -59,7 +62,7 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
         editButton = new EditButton( $("edit")) {
             @Override
             protected void buttonClick(ClickEvent event) {
-                displaySynonymsPresenter.editButtonClick();
+                presenter.editButtonClick();
             }
         };
 
@@ -72,6 +75,22 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
 
     @Override
     protected String getTitle() {
-        return $("DisplaySynonymsViewImpl");
+        return $("DisplaySynonymsView.title");
     }
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
+    
 }

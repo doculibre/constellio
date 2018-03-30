@@ -9,6 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -125,7 +126,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
 
+	private ThesaurusManager thesaurusManager;
+
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -202,6 +206,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
+		this.thesaurusManager = null; // TODO mettre le fichier?
+
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
 			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
 
@@ -233,6 +239,13 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public RecordServices newRecordServices() {
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
+	}
+
+	public synchronized ThesaurusManager getThesaurusManager() {
+		if(thesaurusManager == null) {
+			thesaurusManager = add(new ThesaurusManager(this));
+		}
+		return thesaurusManager;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
@@ -462,6 +475,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
-
 	}
 }

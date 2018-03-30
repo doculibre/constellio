@@ -3,8 +3,13 @@ package com.constellio.model.services.logging;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Date;
+import java.util.*;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,6 +112,64 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
         assertThat(event2.getPageNavigationCount()).isEqualTo(500);
         assertThat(event3.getClickCount()).isEqualTo(2500);
         assertThat(event3.getPageNavigationCount()).isEqualTo(2500);
+
+    }
+
+    @Test
+    public void whenGetMostPopularQueriesAutocompleteThenReturnPreviouslyConcluentRequestsWithoutExclusionsInOrder() throws RecordServicesException {
+
+        // concluding searches
+
+        Map<String, Integer> searchValuesWithOccurences = new HashMap<>();
+        searchValuesWithOccurences.put("avengers", new Integer(10));
+        searchValuesWithOccurences.put("avion", new Integer(5));
+        searchValuesWithOccurences.put("aviation", new Integer(4));
+
+        searchValuesWithOccurences.put("aviron", new Integer(3));
+        searchValuesWithOccurences.put("avionique", new Integer(2));
+
+        searchValuesWithOccurences.put("avaleur", new Integer(1));
+
+        // not concluding searches
+        Set<String> searchTermsWithoutResultsThusExcluded = new HashSet<>();
+        searchTermsWithoutResultsThusExcluded.add("avaleur");
+
+        // prepares transaction
+        RecordServices recordServices = getModelLayerFactory().newRecordServices();
+        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+        Transaction transaction = new Transaction();
+        transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION); // changes transatction limit from 1 000 to 100 000
+
+        // makes transaction
+        for (Map.Entry searchValueWithOccurence : searchValuesWithOccurences.entrySet()) {
+
+            String searchValue = (String) searchValueWithOccurence.getKey();
+            Integer searchOccurence = (Integer) searchValueWithOccurence.getValue();
+
+            // determines if should be concluent search
+            int numFound = 1;
+            if (searchTermsWithoutResultsThusExcluded.contains(searchValue)) {
+                numFound = 0;
+            }
+
+            // searches for number of times indicated
+            for(int i = 0; i <searchOccurence; i++) {
+                SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+                searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+                transaction.add(searchEvent);
+            }
+        }
+        recordServices.execute(transaction);
+
+        String[] emptyCustomRequestExclusion = {};
+        assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av",5, emptyCustomRequestExclusion)).containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+        assertThat(searchEventServices.getMostPopularQueriesAutocomplete("Av",5, emptyCustomRequestExclusion)).containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+
+        String[] singleCustomRequestExclusion = {"aviron"};
+        assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av",5, singleCustomRequestExclusion)).containsExactly("avengers", "avion", "aviation", "avionique");
+
+        String[] multipleCustomRequestExclusions = {"aviron","avionique"};
+        assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av",5, multipleCustomRequestExclusions)).containsExactly("avengers", "avion", "aviation");
 
     }
 }

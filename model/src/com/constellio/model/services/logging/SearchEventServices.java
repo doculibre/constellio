@@ -1,26 +1,26 @@
 package com.constellio.model.services.logging;
 
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.schemas.Schemas;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrInputDocument;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class SearchEventServices {
 
@@ -115,16 +115,16 @@ public class SearchEventServices {
 	}
 
 	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", "*:*");
-		params.set("rows", "0");
-		params.add("fq", "numFound_d:[1 TO *]");
-		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
-		params.add("fq", "collection_s:" + collection);
+			ModifiableSolrParams params = new ModifiableSolrParams();
+			params.set("q", "*:*");
+			params.set("rows", "0");
+			params.add("fq", "numFound_d:[1 TO *]");
+			params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
+			params.add("fq", "collection_s:" + collection);
 
-		computeDateParams(from, to, params);
+			computeDateParams(from, to, params);
 
-		computeExcludedRequest(excludedRequest, params);
+			computeExcludedRequest(excludedRequest, params);
 
 		String limit = "";
 		if (maxLines != null && maxLines > 0) {
@@ -133,6 +133,32 @@ public class SearchEventServices {
 		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+	}
+
+	public List<String> getMostPopularQueriesAutocomplete(String input, int maxResults, String[] excludedRequests) {
+		String escapedInput = ClientUtils.escapeQueryChars(input).toLowerCase();
+		String query = "query_s:" + escapedInput + "*";
+		if(excludedRequests.length>0){
+			query+= " AND NOT query_s:(" + StringUtils.join(excludedRequests, " OR ") + ")";
+		}
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", query);
+		params.set("rows", 0);
+		params.add("fq", "numFound_d:[1 TO *]");
+		params.add("fq", "collection_s:" + collection);
+		params.add("facet", "true");
+		params.add("facet.field", "query_s");
+		params.add("facet.limit", String.valueOf(maxResults));
+
+		List<String> queries = new ArrayList<>();
+		QueryResponse queryResponse = modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
+		for(FacetField.Count count : queryResponse.getFacetField("query_s").getValues()) {
+			if(count.getCount()>0){
+				queries.add(count.getName());
+			}
+		}
+		return queries;
 	}
 
 	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {

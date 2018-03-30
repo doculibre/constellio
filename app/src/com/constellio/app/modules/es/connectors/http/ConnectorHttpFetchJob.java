@@ -8,7 +8,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -164,6 +170,13 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+
+					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+
+					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+							.setConnectorHttpDocument(httpDocument)
+							.setModelLayerFactory(this.es.getModelLayerFactory()));
 				}
 			} catch (FileParserException e) {
 				//TODO Test!
@@ -215,7 +228,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		String title = results.getTitle() == null ? extractFilename(httpDocument.getURL()) : results.getTitle();
 
 		httpDocument.setManualTokens(Record.PUBLIC_TOKEN);
-		savedDocuments.add(httpDocument
+
+		httpDocument
 				.setTitle(title)
 				.setErrorCode(null)
 				.setErrorMessage(null)
@@ -227,7 +241,16 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				//.setOutlinks(urls)
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
-				.addStringProperty("charset", page.getWebResponse().getContentCharset()));
+				.addStringProperty("charset", page.getWebResponse().getContentCharset());
+
+
+		savedDocuments.add(httpDocument);
+
+		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+				.setConnectorHttpDocument(httpDocument)
+				.setModelLayerFactory(this.es.getModelLayerFactory()));
 
 		saveDocumentDigestAndDetectCopy(httpDocument);
 		connectorHttp.getEventObserver().push(savedDocuments);
@@ -265,7 +288,6 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				context.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
 			}
 		}
-
 	}
 
 }

@@ -1,27 +1,6 @@
 package com.constellio.app.api.search;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.sis.io.IO;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -34,6 +13,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -44,6 +25,7 @@ import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -51,10 +33,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +43,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
-public class FreeTextSearchAcceptTest extends ConstellioTest {
+public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 	String englishSearchField = "search_txt_en";
 	String frenchSearchField = "search_txt_fr";
@@ -94,6 +73,8 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	SolrClient solrServer;
 
 	User aliceInZeCollection;
+
+	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS destination 21 juillet 2017.xml";
 
 	@Before
 	public void setUp()
@@ -191,6 +172,46 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 
 		assertThatNoQuotesWordsCanBeFound();
 		assertThatNoFileNamesCanBeFound();
+	}
+
+	@Test
+	public void givenThesaurusValueIsResponseOk() throws Exception {
+		Users users = new Users();
+		RMTestRecords records = new RMTestRecords(zeCollection);
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+		);
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		users.using(userServices);
+
+		User systemAdmin = users.adminIn(zeCollection);
+
+		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
+		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");
+
+		getModelLayerFactory().getThesaurusManager().set(new FileInputStream(SKOS_XML_FILE_PATH), zeCollection);
+
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		solrParams.add("q", "*:*");
+		solrParams.add("fq", "collection_s:zeCollection");
+
+		SolrClient solrServer = newSearchClient();
+
+		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(systemAdmin.getUsername()));
+		String token = userServices.getToken(serviceKey, systemAdmin.getUsername(), "youshallnotpass");
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", token);
+		solrParams.set(SearchWebService.THESAURUS_VALUE, "abeile");
+		solrServer.query(solrParams);
+
+		getModelLayerFactory().getDataLayerFactory().getEventsVaultServer().flush();
+
+		QueryResponse solrDocumentsList = solrServer.query(solrParams);
+		solrDocumentsList.getResponse().getAll(SearchWebService.SKOS_CONCEPTS);
+		solrDocumentsList.getResponse().getAll(ThesaurusService.DESAMBIUGATIONS);
+
 	}
 
 	@Test
