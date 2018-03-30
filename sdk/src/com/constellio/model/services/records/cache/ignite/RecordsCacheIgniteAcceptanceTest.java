@@ -1560,6 +1560,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public <T> List<T> getList(Metadata metadata, Locale locale) {
+			return null;
+		}
+
+		@Override
 		public MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes) {
 			return null;
 		}
@@ -1665,6 +1670,20 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		public <T> List<T> getValues(Metadata metadata) {
 			Object value = get(metadata);
+			if (value == null) {
+				return Collections.emptyList();
+			} else {
+				if (metadata.isMultivalue()) {
+					return (List<T>) value;
+				} else {
+					List<T> values = asList((T) value);
+					return values;
+				}
+			}
+		}
+
+		public <T> List<T> getValues(Metadata metadata, Locale locale) {
+			Object value = get(metadata, locale);
 			if (value == null) {
 				return Collections.emptyList();
 			} else {

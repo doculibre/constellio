@@ -291,7 +291,10 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
-		//if (metadata.isMultiLingual() && (metadata.getType() == TEXT || metadata.getType() == STRING)) {
+
+		List<String> TEMPORAIRE = asList("administrativeUnit_default_title", "category_default_title");
+
+		if (TEMPORAIRE.contains(schemaCode + "_" + metadata.getLocalCode())) {
 			if (metadata.isMultivalue()) {
 				List<String> dummyValues = new ArrayList<>();
 
@@ -306,9 +309,9 @@ public class RecordImpl implements Record {
 				return value == null ? null : (T) ("{" + locale.getLanguage() + "} " + value);
 			}
 
-//		} else {
-		//			return get(metadata);
-		//		}
+		} else {
+			return get(metadata);
+		}
 
 	}
 
@@ -465,8 +468,36 @@ public class RecordImpl implements Record {
 		}
 	}
 
+	@Override
+	public <T> List<T> getList(Metadata metadata, Locale locale) {
+		Object value = get(metadata, locale);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				throw new CannotGetListForSingleValue(metadata.getLocalCode());
+			}
+		}
+	}
+
 	public <T> List<T> getValues(Metadata metadata) {
 		Object value = get(metadata);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				List<T> values = asList((T) value);
+				return values;
+			}
+		}
+	}
+
+	public <T> List<T> getValues(Metadata metadata, Locale locale) {
+		Object value = get(metadata, locale);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {
