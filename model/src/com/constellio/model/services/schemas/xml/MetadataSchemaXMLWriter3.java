@@ -232,6 +232,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isMultivalue()) {
 			metadataElement.setAttribute("multivalue", writeBoolean(metadata.isMultivalue()));
 		}
+		if (metadata.isMultiLingual()) {
+			metadataElement.setAttribute("multilingual", writeBoolean(metadata.isMultiLingual()));
+		}
 		if (metadata.isSearchable()) {
 			metadataElement.setAttribute("searchable", writeBoolean(metadata.isSearchable()));
 		}
@@ -343,6 +346,10 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isMultivalue() != metadata.isMultivalue()) {
 			metadataElement.setAttribute("multivalue", writeBoolean(metadata.isMultivalue()));
+			different = true;
+		}
+		if (globalMetadataInCollection.isMultiLingual() != metadata.isMultiLingual()) {
+			metadataElement.setAttribute("multilingual", writeBoolean(metadata.isMultiLingual()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isSearchable() != metadata.isSearchable()) {
